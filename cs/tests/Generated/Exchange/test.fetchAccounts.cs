@@ -7,10 +7,10 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testFetchAccounts(Exchange exchange, object skippedProperties)
+    async static public Task<object> testFetchAccounts(BaseExchange exchange, object skippedProperties)
     {
         object method = "fetchAccounts";
-        object accounts = await exchange.fetchAccounts();
+        object accounts = await ((dynamic)exchange).fetchAccounts();
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, accounts);
         for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
         {

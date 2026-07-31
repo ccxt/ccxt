@@ -271,16 +271,16 @@ function helperTestProperties () {
     // instance dynamic cache
     //
     // todo: remove initialization from GO
-    testSharedMethods.assertDeepEqual (exchange, {}, 'balance', exchange.balance, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'bidsasks', exchange.bidsasks, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'orderbooks', exchange.orderbooks, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'tickers', exchange.tickers, {});
+    testSharedMethods.assertDeepEqual (exchange, {}, 'balance', exchange.balance, exchange.createSafeDictionary (true));
+    testSharedMethods.assertDeepEqual (exchange, {}, 'bidsasks', exchange.bidsasks, exchange.createSafeDictionary (true));
+    testSharedMethods.assertDeepEqual (exchange, {}, 'orderbooks', exchange.orderbooks, exchange.createSafeDictionary (true));
+    testSharedMethods.assertDeepEqual (exchange, {}, 'tickers', exchange.tickers, exchange.createSafeDictionary (true));
     assert (exchange.liquidations === undefined, 'liquidations should be undefined');
-    assert (exchange.orders === undefined, 'orders should be undefined');
-    testSharedMethods.assertDeepEqual (exchange, {}, 'trades', exchange.trades, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'transactions', exchange.transactions, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'ohlcvs', exchange.ohlcvs, {});
     assert (testSharedMethods.exchangeProp (exchange, 'myLiquidations') === undefined);
+    assert (exchange.orders === undefined, 'orders should be undefined');
+    testSharedMethods.assertDeepEqual (exchange, {}, 'trades', exchange.trades, exchange.createSafeDictionary (true));
+    testSharedMethods.assertDeepEqual (exchange, {}, 'transactions', exchange.transactions, exchange.createSafeDictionary ());
+    testSharedMethods.assertDeepEqual (exchange, {}, 'ohlcvs', exchange.ohlcvs, exchange.createSafeDictionary (true));
     assert (testSharedMethods.exchangeProp (exchange, 'myTrades') === undefined);
     assert (exchange.positions === undefined, 'positions should be undefined');
 
@@ -300,6 +300,9 @@ function helperTestProperties () {
     assert (testSharedMethods.exchangeProp (exchange, 'accountsById') === undefined, 'accountsById should be undefined');
     // @SKIP_END_GO
     testSharedMethods.assertDeepEqual (exchange, {}, 'commonCurrencies', testSharedMethods.exchangeProp (exchange, 'commonCurrencies'), { 'XBT': 'BTC', 'BCHSV': 'BSV' });
+    // fetch history
+    const fetchHistoryCache = exchange.getFetchCache ();
+    assert (fetchHistoryCache.length === 0, 'fetchHistoryCache should be an empty array');
 }
 
 function testAfterConstructor () {

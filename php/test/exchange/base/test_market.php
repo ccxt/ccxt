@@ -10,6 +10,9 @@ namespace ccxt;
 use \ccxt\Precise;
 
 function test_market($exchange, $skipped_properties, $method, $market) {
+    if ($market === null) {
+        return;
+    }
     $format = array(
         'id' => 'btcusd',
         'symbol' => 'BTC/USD',
@@ -105,8 +108,16 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         $empty_allowed_for[] = 'base';
         $empty_allowed_for[] = 'quote';
     }
+    if ($exchange->safe_string($market, 'type') === 'prediction') {
+        // prediction market rows carry the unified 'market' handle, the
+        // deprecated 'symbol' key is intentionally absent from their structures
+        $format = $exchange->omit($format, ['symbol']);
+    }
     assert_structure($exchange, $skipped_properties, $method, $market, $format, $empty_allowed_for);
-    assert_symbol($exchange, $skipped_properties, $method, $market, 'symbol');
+    // prediction market rows are keyed by `market`; `symbol` internally by setMarkets
+    if ($market['type'] !== 'prediction') {
+        assert_symbol($exchange, $skipped_properties, $method, $market, 'symbol');
+    }
     $log_text = log_template($exchange, $method, $market);
     // check taker/maker
     // todo: check not all to be within 0-1.0
@@ -114,8 +125,8 @@ function test_market($exchange, $skipped_properties, $method, $market) {
     assert_less($exchange, $skipped_properties, $method, $market, 'taker', '100');
     assert_greater($exchange, $skipped_properties, $method, $market, 'maker', '-100');
     assert_less($exchange, $skipped_properties, $method, $market, 'maker', '100');
-    // validate type
-    $valid_types = ['spot', 'margin', 'swap', 'future', 'option', 'index', 'other'];
+    // validate type ('prediction' for prediction-market exchanges)
+    $valid_types = ['spot', 'margin', 'swap', 'future', 'option', 'index', 'prediction', 'other'];
     assert_in_array($exchange, $skipped_properties, $method, $market, 'type', $valid_types);
     // validate subTypes
     $valid_sub_types = ['linear', 'inverse', 'quanto', null];
@@ -147,7 +158,11 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         assert_in_array($exchange, $skipped_properties, $method, $market, 'margin', [false, null]);
     }
     // check mutually exclusive fields
-    if ($spot) {
+    $is_prediction = ($market['type'] === 'prediction');
+    if ($is_prediction) {
+        // prediction markets trade outcome shares — neither spot nor a derivative contract
+        assert(!$spot && !$contract && !$future && !$swap && !$option, 'for prediction market, none of spot/contract/future/swap/option should be set' . $log_text);
+    } elseif ($spot) {
         assert(!$contract && $linear === null && $inverse === null && !$option && !$swap && !$future, 'for spot market, none of contract/linear/inverse/option/swap/future should be set' . $log_text);
     } else {
         // if not spot, any of the below should be true
@@ -252,8 +267,9 @@ function test_market($exchange, $skipped_properties, $method, $market) {
             }
         }
     }
-    // check currencies
-    if (!$is_inactive_market) {
+    // check currencies (skip for prediction markets: the "base" is a tradeable outcome,
+    // not a currency, so baseId is the market/outcome id and won't map to a currency code)
+    if (!$is_inactive_market && !$is_prediction) {
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['baseId'], $market['base']);
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['quoteId'], $market['quote']);
         assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['settleId'], $market['settle']);
@@ -262,7 +278,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
     assert_timestamp($exchange, $skipped_properties, $method, $market, null, 'created');
     // margin modes
     if (!(is_array($skipped_properties) && array_key_exists('marginModes', $skipped_properties))) {
-        $margin_modes = $exchange->safe_dict($market, 'marginModes'); // in future, remove safeDict
+        $margin_modes = $exchange->safe_dict($market, 'marginModes', array()); // in future, remove safeDict
         assert(is_array($margin_modes) && array_key_exists('cross', $margin_modes), 'marginModes should have "cross" key' . $log_text);
         assert(is_array($margin_modes) && array_key_exists('isolated', $margin_modes), 'marginModes should have "isolated" key' . $log_text);
         assert_in_array($exchange, $skipped_properties, $method, $margin_modes, 'cross', [true, false, null]);

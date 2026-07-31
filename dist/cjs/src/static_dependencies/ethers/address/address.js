@@ -5,7 +5,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var sha3_js = require('@noble/hashes/sha3.js');
 require('../utils/base58.js');
 var errors = require('../utils/errors.js');
-require('../utils/events.js');
 require('../utils/fixednumber.js');
 require('../utils/maths.js');
 require('../utils/utf8.js');

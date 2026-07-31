@@ -94,7 +94,7 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -127,7 +127,7 @@ public partial class blofin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(List<string> symbols, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -377,7 +377,7 @@ public partial class blofin
         var res = await this.watchFundingRate(symbol, parameters);
         return new FundingRate(res);
     }
-    public async Task<Dictionary<string, object>> WatchMultipleWrapper(bool isPublic, string channelName, string callerMethodName, List<object> symbolsArray = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> WatchMultipleWrapper(bool isPublic, string channelName, string callerMethodName, object symbolsArray = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchMultipleWrapper(isPublic, channelName, callerMethodName, symbolsArray, parameters);
         return ((Dictionary<string, object>)res);

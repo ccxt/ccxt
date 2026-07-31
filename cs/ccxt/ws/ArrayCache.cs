@@ -209,6 +209,7 @@ public class ArrayCacheByTimestamp : BaseCache
 public class ArrayCacheBySymbolById : ArrayCache
 {
     public Dictionary<string, object> hashmap = new Dictionary<string, object>();
+    public string keyField = "symbol"; // first nesting level (overridden by ArrayCacheByOutcomeById)
     // public Deque<int> index = new Queue<int>();
     public ArrayCacheBySymbolById(object maxSixe = null) : base(maxSixe)
     {
@@ -225,7 +226,7 @@ public class ArrayCacheBySymbolById : ArrayCache
 
     private void _append(object item)
     {
-        var itemSymbol = Exchange.SafeString(item, "symbol");
+        var itemSymbol = Exchange.SafeString(item, this.keyField);
         var itemId = Exchange.SafeString(item, "id");
         var byId = (this.hashmap.ContainsKey(itemSymbol)) ? this.hashmap[itemSymbol] as Dictionary<string, object> : new Dictionary<string, object>();
         this.hashmap[itemSymbol] = byId;
@@ -253,7 +254,7 @@ public class ArrayCacheBySymbolById : ArrayCache
         {
             var first = this[0];
             this.RemoveAt(0);
-            var deletedSymbol = Exchange.SafeString(first, "symbol");
+            var deletedSymbol = Exchange.SafeString(first, this.keyField);
             var deletedId = Exchange.SafeString(first, "id");
             var secondHashMap = (this.hashmap[deletedSymbol] as Dictionary<string, object>);
             if (secondHashMap != null)
@@ -291,6 +292,14 @@ public class ArrayCacheBySymbolById : ArrayCache
         var afterLength = idSet.Count;
         var defaultAllNewUpdates = this.allNewUpdates;
         this.allNewUpdates = defaultAllNewUpdates + (afterLength - beforeLength);
+    }
+}
+
+public class ArrayCacheByOutcomeById : ArrayCacheBySymbolById
+{
+    public ArrayCacheByOutcomeById(object maxSixe = null) : base(maxSixe)
+    {
+        this.keyField = "outcome";
     }
 }
 

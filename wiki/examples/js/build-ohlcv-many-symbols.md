@@ -1,4 +1,5 @@
 ```javascript
+// @NO_AUTO_TRANSPILE
 'use strict';
 import asTable from 'as-table';
 import ccxt from '../../js/ccxt.js';

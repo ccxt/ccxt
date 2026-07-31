@@ -119,6 +119,10 @@ func (this *HashkeyCore) PrivateGetApiV1FuturesGetBestOrder(args ...any) <-chan 
 	return this.callEndpointAsync("privateGetApiV1FuturesGetBestOrder", args...)
 }
 
+func (this *HashkeyCore) PrivateGetApiV1CoinInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV1CoinInfo", args...)
+}
+
 func (this *HashkeyCore) PrivateGetApiV1AccountVipInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountVipInfo", args...)
 }
@@ -133,6 +137,10 @@ func (this *HashkeyCore) PrivateGetApiV1AccountTrades(args ...any) <-chan any {
 
 func (this *HashkeyCore) PrivateGetApiV1AccountType(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountType", args...)
+}
+
+func (this *HashkeyCore) PrivateGetApiV1AccountChainType(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV1AccountChainType", args...)
 }
 
 func (this *HashkeyCore) PrivateGetApiV1AccountCheckApiKey(args ...any) <-chan any {
@@ -205,6 +213,14 @@ func (this *HashkeyCore) PrivatePostApiV1FuturesLeverage(args ...any) <-chan any
 
 func (this *HashkeyCore) PrivatePostApiV1FuturesOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1FuturesOrder", args...)
+}
+
+func (this *HashkeyCore) PrivatePostApiV1FuturesMarginType(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostApiV1FuturesMarginType", args...)
+}
+
+func (this *HashkeyCore) PrivatePostApiV1FuturesPositionMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostApiV1FuturesPositionMargin", args...)
 }
 
 func (this *HashkeyCore) PrivatePostApiV1FuturesPositionTradingStop(args ...any) <-chan any {

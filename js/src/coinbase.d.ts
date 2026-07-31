@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbase.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict, int, TradingFees, LedgerEntry, DepositAddress, Position } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict, NullableDict, int, TradingFees, LedgerEntry, DepositAddress, Position } from './base/types.js';
 /**
  * @class coinbase
  * @augments Exchange
@@ -217,7 +217,7 @@ export default class coinbase extends Exchange {
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     findAccountId(code: any, params?: {}): Promise<string>;
     prepareAccountRequest(limit?: Int, params?: {}): Dict;
-    prepareAccountRequestWithCurrencyCode(code?: Str, limit?: Int, params?: {}): Promise<Dict[]>;
+    prepareAccountRequestWithCurrencyCode(code?: Str, limit?: Int, params?: {}): Promise<{}[]>;
     /**
      * @method
      * @name coinbase#createMarketBuyOrderWithCost
@@ -423,7 +423,7 @@ export default class coinbase extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the order book
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -623,11 +623,11 @@ export default class coinbase extends Exchange {
     parsePortfolioDetails(portfolioData: Dict): any[];
     createAuthToken(seconds: Int, method?: Str, url?: Str, useEddsa?: boolean): string;
     nonce(): number;
-    sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     /**

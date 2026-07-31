@@ -1,0 +1,87 @@
+{
+    "BTC/USDT0:USDT0": {
+        "id": "2",
+        "lowercaseId": null,
+        "symbol": "BTC/USDT0:USDT0",
+        "base": "BTC",
+        "quote": "USDT0",
+        "settle": "USDT0",
+        "baseId": "BTC-PERP",
+        "quoteId": "USDT0",
+        "settleId": "USDT0",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "taker": 0.00035,
+        "maker": 0.0001,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.00005,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 100,
+                "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "type": "perp",
+            "product_id": "2",
+            "symbol": "BTC-PERP",
+            "price_increment_x18": "1000000000000000000",
+            "size_increment": "50000000000000",
+            "min_size": "100000000000000000000",
+            "maker_fee_rate_x18": "100000000000000",
+            "taker_fee_rate_x18": "350000000000000",
+            "long_weight_initial_x18": "980000000000000000",
+            "long_weight_maintenance_x18": "990000000000000000",
+            "max_open_interest_x18": "165000000000000000000000000",
+            "trading_status": "live",
+            "isolated_only": false,
+            "ticker_id": "BTC-PERP_USDT0",
+            "name": "Bitcoin Perp",
+            "v2Pair": {
+                "product_id": "2",
+                "ticker_id": "BTC-PERP_USDT0",
+                "base": "BTC-PERP",
+                "quote": "USDT0"
+            },
+            "v2Asset": {
+                "product_id": "2",
+                "ticker_id": "BTC-PERP_USDT0",
+                "market_type": "perp",
+                "name": "Bitcoin Perp",
+                "symbol": "BTC-PERP",
+                "maker_fee": "0.0001",
+                "taker_fee": "0.00035",
+                "can_withdraw": false,
+                "can_deposit": false
+            }
+        }
+    }
+}

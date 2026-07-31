@@ -406,7 +406,10 @@ public partial class coinspot : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object method = this.safeString(this.options, "fetchBalance", "private_post_my_balances");
         object response = await ((Task<object>)callDynamically(this, method, new object[] { parameters }));
         //
@@ -436,12 +439,15 @@ public partial class coinspot : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "cointype", getValue(market, "id") },
@@ -499,10 +505,13 @@ public partial class coinspot : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object response = await this.publicGetLatest(parameters);
-        object id = getValue(market, "id");
+        object id = this.safeString(market, "id", "");
         id = ((string)id).ToLower();
         object prices = this.safeDict(response, "prices", new Dictionary<string, object>() {});
         //
@@ -517,7 +526,7 @@ public partial class coinspot : Exchange
         //         }
         //     }
         //
-        object ticker = this.safeDict(prices, id);
+        object ticker = this.safeDict(prices, id, new Dictionary<string, object>() {});
         return this.parseTicker(ticker, market);
     }
 
@@ -533,7 +542,10 @@ public partial class coinspot : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetLatest(parameters);
         //
         //    {
@@ -583,7 +595,10 @@ public partial class coinspot : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "cointype", getValue(market, "id") },
@@ -615,7 +630,10 @@ public partial class coinspot : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -756,8 +774,15 @@ public partial class coinspot : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object method = add("privatePostMy", this.capitalize(side));
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
+        object sideUpper = ((string)side).ToUpper();
         if (isTrue(isEqual(type, "market")))
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() allows limit orders only")) ;
@@ -768,8 +793,23 @@ public partial class coinspot : Exchange
             { "amount", amount },
             { "rate", price },
         };
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
-        return this.parseOrder(response);
+        object response = null;
+        if (isTrue(isEqual(sideUpper, "BUY")))
+        {
+            response = await this.privatePostMyBuy(this.extend(request, parameters));
+        } else if (isTrue(isEqual(sideUpper, "SELL")))
+        {
+            response = await this.privatePostMySell(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " createOrder only support buy/sell side")) ;
+        }
+        //
+        // status - ok, error
+        //
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     /**
@@ -809,6 +849,21 @@ public partial class coinspot : Exchange
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
         });
+    }
+
+    public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
+    {
+        if (!isTrue(response))
+        {
+            return null;  // fallback to default error handler
+        }
+        object status = this.safeString(response, "status");
+        if (isTrue(isEqual(status, "error")))
+        {
+            object feedback = add(add(this.id, " "), this.json(response));
+            throw new ExchangeError ((string)feedback) ;
+        }
+        return null;
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

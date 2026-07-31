@@ -291,16 +291,16 @@ def helper_test_properties():
     # instance dynamic cache
     #
     # todo: remove initialization from GO
-    test_shared_methods.assert_deep_equal(exchange, {}, 'balance', exchange.balance, {})
-    test_shared_methods.assert_deep_equal(exchange, {}, 'bidsasks', exchange.bidsasks, {})
-    test_shared_methods.assert_deep_equal(exchange, {}, 'orderbooks', exchange.orderbooks, {})
-    test_shared_methods.assert_deep_equal(exchange, {}, 'tickers', exchange.tickers, {})
+    test_shared_methods.assert_deep_equal(exchange, {}, 'balance', exchange.balance, exchange.create_safe_dictionary(True))
+    test_shared_methods.assert_deep_equal(exchange, {}, 'bidsasks', exchange.bidsasks, exchange.create_safe_dictionary(True))
+    test_shared_methods.assert_deep_equal(exchange, {}, 'orderbooks', exchange.orderbooks, exchange.create_safe_dictionary(True))
+    test_shared_methods.assert_deep_equal(exchange, {}, 'tickers', exchange.tickers, exchange.create_safe_dictionary(True))
     assert exchange.liquidations is None, 'liquidations should be undefined'
-    assert exchange.orders is None, 'orders should be undefined'
-    test_shared_methods.assert_deep_equal(exchange, {}, 'trades', exchange.trades, {})
-    test_shared_methods.assert_deep_equal(exchange, {}, 'transactions', exchange.transactions, {})
-    test_shared_methods.assert_deep_equal(exchange, {}, 'ohlcvs', exchange.ohlcvs, {})
     assert test_shared_methods.exchange_prop(exchange, 'myLiquidations') is None
+    assert exchange.orders is None, 'orders should be undefined'
+    test_shared_methods.assert_deep_equal(exchange, {}, 'trades', exchange.trades, exchange.create_safe_dictionary(True))
+    test_shared_methods.assert_deep_equal(exchange, {}, 'transactions', exchange.transactions, exchange.create_safe_dictionary())
+    test_shared_methods.assert_deep_equal(exchange, {}, 'ohlcvs', exchange.ohlcvs, exchange.create_safe_dictionary(True))
     assert test_shared_methods.exchange_prop(exchange, 'myTrades') is None
     assert exchange.positions is None, 'positions should be undefined'
     #
@@ -322,6 +322,9 @@ def helper_test_properties():
         'XBT': 'BTC',
         'BCHSV': 'BSV',
     })
+    # fetch history
+    fetch_history_cache = exchange.get_fetch_cache()
+    assert len(fetch_history_cache) == 0, 'fetchHistoryCache should be an empty array'
 
 
 def test_after_constructor():

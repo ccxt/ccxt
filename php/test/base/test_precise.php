@@ -113,4 +113,50 @@ function test_precise() {
     assert(Precise::string_or('10', '5') === '15'); // 1010 | 0101 = 1111 = 15
     assert(Precise::string_or('0', '0') === '0');
     assert(Precise::string_or('7', '0') === '7');
+    // with undefined arguments
+    assert(Precise::string_mul(null, '1') === null);
+    assert(Precise::string_mul('1', null) === null);
+    assert(Precise::string_mul(null, null) === null);
+    assert(Precise::string_div(null, '1') === null);
+    assert(Precise::string_div('1', null) === null);
+    assert(Precise::string_div(null, null) === null);
+    assert(Precise::string_add(null, '1') === null);
+    assert(Precise::string_add('1', null) === null);
+    assert(Precise::string_add(null, null) === null);
+    assert(Precise::string_sub(null, '1') === null);
+    assert(Precise::string_sub('1', null) === null);
+    assert(Precise::string_sub(null, null) === null);
+    assert(Precise::string_abs(null) === null);
+    assert(Precise::string_neg(null) === null);
+    assert(Precise::string_mod(null, '1') === null);
+    assert(Precise::string_mod('1', null) === null);
+    assert(Precise::string_mod(null, null) === null);
+    assert(Precise::string_or(null, '1') === null);
+    assert(Precise::string_or('1', null) === null);
+    assert(Precise::string_or(null, null) === null);
+    assert(Precise::string_min(null, '1') === null);
+    assert(Precise::string_min('1', null) === null);
+    assert(Precise::string_min(null, null) === null);
+    assert(Precise::string_max(null, '1') === null);
+    assert(Precise::string_max('1', null) === null);
+    assert(Precise::string_max(null, null) === null);
+    // bool false
+    assert(Precise::string_equals(null, '1') === false);
+    assert(Precise::string_equals('1', null) === false);
+    assert(Precise::string_equals(null, null) === false);
+    assert(Precise::string_eq(null, '1') === false);
+    assert(Precise::string_eq('1', null) === false);
+    assert(Precise::string_eq(null, null) === false);
+    assert(Precise::string_gt(null, '1') === false);
+    assert(Precise::string_gt('1', null) === false);
+    assert(Precise::string_gt(null, null) === false);
+    assert(Precise::string_ge(null, '1') === false);
+    assert(Precise::string_ge('1', null) === false);
+    assert(Precise::string_ge(null, null) === false);
+    assert(Precise::string_lt(null, '1') === false);
+    assert(Precise::string_lt('1', null) === false);
+    assert(Precise::string_lt(null, null) === false);
+    assert(Precise::string_le(null, '1') === false);
+    assert(Precise::string_le('1', null) === false);
+    assert(Precise::string_le(null, null) === false);
 }

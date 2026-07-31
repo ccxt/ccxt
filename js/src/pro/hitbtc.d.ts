@@ -1,9 +1,10 @@
 import hitbtcRest from '../hitbtc.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types';
+import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types.js';
 export default class hitbtc extends hitbtcRest {
     describe(): any;
+    describeData(): any;
     /**
      * @ignore
      * @method
@@ -51,7 +52,7 @@ export default class hitbtc extends hitbtcRest {
      * @param {string} [params.method] 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch'
      * @param {int} [params.depth] 5 , 10, or 20 (default)
      * @param {int} [params.speed] 100 (default), 500, or 1000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: Client, message: any): void;
@@ -84,7 +85,7 @@ export default class hitbtc extends hitbtcRest {
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): void;
-    parseWsTicker(ticker: any, market?: any): Ticker;
+    parseWsTicker(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name hitbtc#watchBidsAsks
@@ -98,7 +99,7 @@ export default class hitbtc extends hitbtcRest {
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(ticker: any, market?: any): Ticker;
+    parseWsBidAsk(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name hitbtc#watchTrades
@@ -112,8 +113,8 @@ export default class hitbtc extends hitbtcRest {
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): any;
-    parseWsTrades(trades: any, market?: object, since?: Int, limit?: Int, params?: {}): Trade[];
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrades(trades: any, market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name hitbtc#watchOHLCV
@@ -145,8 +146,8 @@ export default class hitbtc extends hitbtcRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrder(client: Client, message: any): any;
     handleOrderHelper(client: Client, message: any, order: any): void;
-    parseWsOrderTrade(trade: any, market?: any): Trade;
-    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrderTrade(trade: any, market?: Market): Trade;
+    parseWsOrder(order: any, market?: Market): Order;
     /**
      * @method
      * @name hitbtc#watchBalance

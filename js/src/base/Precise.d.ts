@@ -1,4 +1,4 @@
-import { Str, Int } from './types';
+import { Str, Int } from './types.js';
 declare class Precise {
     decimals: number;
     integer: bigint;

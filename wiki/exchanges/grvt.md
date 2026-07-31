@@ -274,7 +274,7 @@ fetch all withdrawals made from an account
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals  
+**See**: https://api-docs.grvt.io/trading_api/#withdrawal-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -673,7 +673,7 @@ watches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://docs.backpack.exchange/#tag/Streams/Public/Ticker  
+**See**: https://api-docs.grvt.io/market_data_streams/#mini-ticker-snap-feed-selector  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -786,7 +786,7 @@ grvt.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -812,7 +812,7 @@ grvt.watchOrderBook (symbol, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>grvt</code>](#grvt)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 

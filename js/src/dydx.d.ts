@@ -1,5 +1,5 @@
 import Exchange from './abstract/dydx.js';
-import type { Int, Market, Dict, int, Trade, OHLCV, Balances, Str, FundingRateHistory, Order, OrderSide, OrderType, Strings, Num, Position, OrderBook, Currency, LedgerEntry, TransferEntry, Transaction, Account } from './base/types.js';
+import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int } from './base/types.js';
 /**
  * @class dydx
  * @augments Exchange
@@ -19,7 +19,7 @@ export default class dydx extends Exchange {
     /**
      * @method
      * @name dydx#fetchMarkets
-     * @description retrieves data on all markets for hyperliquid
+     * @description retrieves data on all markets for dydx
      * @see https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -30,7 +30,7 @@ export default class dydx extends Exchange {
      * @method
      * @name dydx#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
+     * @see https://docs.dydx.xyz/indexer-client/http#get-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -227,7 +227,7 @@ export default class dydx extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
@@ -353,11 +353,11 @@ export default class dydx extends Exchange {
     parseBalance(response: any): Balances;
     nonce(): number;
     getWalletAddress(): string;
-    sign(path: any, section?: string, method?: string, params?: {}, headers?: any, body?: any): {
-        url: string;
+    sign(path: any, section?: string, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+        url: any;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     setSandboxMode(enable: boolean): void;

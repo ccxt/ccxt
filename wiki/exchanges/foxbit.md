@@ -119,7 +119,7 @@ foxbit.fetchTradingFees (params?)
 Exports a copy of the order book of a specific market.
 
 **Kind**: instance method of [<code>foxbit</code>](#foxbit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.foxbit.com.br/rest/v3/#tag/Market-Data/operation/MarketsController_findOrderbook  
 

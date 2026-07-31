@@ -10,6 +10,9 @@ abstract class coincheck extends \ccxt\Exchange {
     public function public_get_exchange_orders_rate($params = array()) {
         return $this->request('exchange/orders/rate', 'public', 'GET', $params, null, null, array());
     }
+    public function public_get_exchange_status($params = array()) {
+        return $this->request('exchange_status', 'public', 'GET', $params, null, null, array());
+    }
     public function public_get_order_books($params = array()) {
         return $this->request('order_books', 'public', 'GET', $params, null, null, array());
     }
@@ -37,8 +40,14 @@ abstract class coincheck extends \ccxt\Exchange {
     public function private_get_deposit_money($params = array()) {
         return $this->request('deposit_money', 'private', 'GET', $params, null, null, array());
     }
+    public function private_get_exchange_orders_id($params = array()) {
+        return $this->request('exchange/orders/{id}', 'private', 'GET', $params, null, null, array());
+    }
     public function private_get_exchange_orders_opens($params = array()) {
         return $this->request('exchange/orders/opens', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_exchange_orders_cancel_status($params = array()) {
+        return $this->request('exchange/orders/cancel_status', 'private', 'GET', $params, null, null, array());
     }
     public function private_get_exchange_orders_transactions($params = array()) {
         return $this->request('exchange/orders/transactions', 'private', 'GET', $params, null, null, array());
@@ -97,6 +106,9 @@ abstract class coincheck extends \ccxt\Exchange {
     public function publicGetExchangeOrdersRate($params = array()) {
         return $this->request('exchange/orders/rate', 'public', 'GET', $params, null, null, array());
     }
+    public function publicGetExchangeStatus($params = array()) {
+        return $this->request('exchange_status', 'public', 'GET', $params, null, null, array());
+    }
     public function publicGetOrderBooks($params = array()) {
         return $this->request('order_books', 'public', 'GET', $params, null, null, array());
     }
@@ -124,8 +136,14 @@ abstract class coincheck extends \ccxt\Exchange {
     public function privateGetDepositMoney($params = array()) {
         return $this->request('deposit_money', 'private', 'GET', $params, null, null, array());
     }
+    public function privateGetExchangeOrdersId($params = array()) {
+        return $this->request('exchange/orders/{id}', 'private', 'GET', $params, null, null, array());
+    }
     public function privateGetExchangeOrdersOpens($params = array()) {
         return $this->request('exchange/orders/opens', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetExchangeOrdersCancelStatus($params = array()) {
+        return $this->request('exchange/orders/cancel_status', 'private', 'GET', $params, null, null, array());
     }
     public function privateGetExchangeOrdersTransactions($params = array()) {
         return $this->request('exchange/orders/transactions', 'private', 'GET', $params, null, null, array());

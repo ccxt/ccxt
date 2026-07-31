@@ -29,13 +29,15 @@ async def test_watch_trades_for_symbols(exchange, skipped_properties, symbols):
             if not test_shared_methods.is_temporary_failure(e):
                 raise e
             now = exchange.milliseconds()
-        if success:
+        if (success) and (response is not None):
             assert isinstance(response, list), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an array. ' + exchange.json(response)
             now = exchange.milliseconds()
             symbol = None
             for i in range(0, len(response)):
                 trade = response[i]
                 symbol = trade['symbol']
+                if symbol is None:
+                    continue
                 test_trade(exchange, skipped_properties, method, trade, symbol, now)
                 test_shared_methods.assert_in_array(exchange, skipped_properties, method, trade, 'symbol', symbols)
                 if not exchange.in_array(symbol, returned_symbols):

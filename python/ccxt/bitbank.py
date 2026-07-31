@@ -407,9 +407,10 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = self.publicGetPairTicker(self.extend(request, params))
@@ -425,11 +426,12 @@ class bitbank(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = self.publicGetPairDepth(self.extend(request, params))
@@ -493,9 +495,10 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         response = self.publicGetPairTransactions(self.extend(request, params))
@@ -512,7 +515,8 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.marketsGetSpotPairs(params)
         #
         #     {
@@ -544,7 +548,7 @@ class bitbank(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         pairs = self.safe_value(data, 'pairs', [])
-        result: dict = {}
+        result = {}
         for i in range(0, len(pairs)):
             pair = pairs[i]
             marketId = self.safe_string(pair, 'name')
@@ -598,9 +602,10 @@ class bitbank(Exchange, ImplicitAPI):
                 limit = 1000  # it doesn't have any defaults, might return 200, might 2000(i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
             duration = self.parse_timeframe(timeframe)
             since = self.milliseconds() - duration * 1000 * limit
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
             'candletype': self.safe_string(self.timeframes, timeframe, timeframe),
             'yyyymmdd': self.yyyymmdd(since, ''),
@@ -631,7 +636,7 @@ class bitbank(Exchange, ImplicitAPI):
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -658,7 +663,8 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetUserAssets(params)
         #
         #     {
@@ -696,7 +702,7 @@ class bitbank(Exchange, ImplicitAPI):
         return self.parse_balance(response)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'UNFILLED': 'open',
             'PARTIALLY_FILLED': 'open',
             'FULLY_FILLED': 'closed',
@@ -756,9 +762,10 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
             'amount': self.amount_to_precision(symbol, amount),
             'side': side,
@@ -781,9 +788,10 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_id': id,
             'pair': market['id'],
         }
@@ -825,9 +833,10 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_id': id,
             'pair': market['id'],
         }
@@ -869,9 +878,10 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'pair': market['id'],
         }
         if limit is not None:
@@ -895,8 +905,9 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -920,9 +931,10 @@ class bitbank(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'asset': currency['id'],
         }
         response = self.privateGetUserWithdrawalAccount(self.extend(request, params))
@@ -955,9 +967,10 @@ class bitbank(Exchange, ImplicitAPI):
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         if not ('uuid' in params):
             raise ExchangeError(self.id + ' uuid is required for withdrawal')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'asset': currency['id'],
             'amount': amount,
         }
@@ -1027,7 +1040,7 @@ class bitbank(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         query = self.omit(params, self.extract_params(path))
         url = self.implode_hostname(self.urls['api'][api]) + '/'
         if (api == 'public') or (api == 'markets'):
@@ -1062,7 +1075,7 @@ class bitbank(Exchange, ImplicitAPI):
         success = self.safe_integer(response, 'success')
         data = self.safe_value(response, 'data')
         if not success or not data:
-            errorMessages: dict = {
+            errorMessages = {
                 '10000': 'URL does not exist',
                 '10001': 'A system error occurred. Please contact support',
                 '10002': 'Invalid JSON format. Please check the contents of transmission',

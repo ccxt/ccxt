@@ -221,7 +221,7 @@ trait ClientTrait {
         }
     }
 
-    public function close() {
+    public function close_ws_clients() {
         // make sure to close the exchange once you are finished using the websocket connections
         // so that the event loop can complete it's work and go to sleep
         foreach ($this->clients as $client) {
@@ -229,11 +229,6 @@ trait ClientTrait {
         }
         // empty the array
         array_splice($this->clients, 0);
-    }
-
-    public function __destruct() {
-        parent::__destruct();
-        $this->close();
     }
 
     public function load_order_book($client, $messageHash, $symbol, $limit = null, $params = array()) {

@@ -564,7 +564,8 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetAuthAccount(params)
         #
         #     [
@@ -588,7 +589,7 @@ class latoken(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -627,11 +628,12 @@ class latoken(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         }
@@ -713,9 +715,10 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'base': market['baseId'],
             'quote': market['quoteId'],
         }
@@ -752,7 +755,8 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.publicGetTicker(params)
         #
         #    [
@@ -871,9 +875,10 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
             # 'from': str(since),  # milliseconds
@@ -914,9 +919,10 @@ class latoken(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' not support self method')
 
     async def fetch_public_trading_fee(self, symbol: str, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         }
@@ -939,9 +945,10 @@ class latoken(Exchange, ImplicitAPI):
         }
 
     async def fetch_private_trading_fee(self, symbol: str, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         }
@@ -976,8 +983,9 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             # 'currency': market['baseId'],
             # 'quote': market['quoteId'],
             # 'from': self.milliseconds(),
@@ -986,7 +994,7 @@ class latoken(Exchange, ImplicitAPI):
         market = None
         if limit is not None:
             request['limit'] = limit  # default 100
-        response = None
+        response: List
         if symbol is not None:
             market = self.market(symbol)
             request['currency'] = market['baseId']
@@ -1015,7 +1023,7 @@ class latoken(Exchange, ImplicitAPI):
         return self.parse_trades(response, market, since, limit)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'ORDER_STATUS_PLACED': 'open',
             'ORDER_STATUS_CLOSED': 'closed',
             'ORDER_STATUS_CANCELLED': 'canceled',
@@ -1023,14 +1031,14 @@ class latoken(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, status):
-        statuses: dict = {
+        statuses = {
             'ORDER_TYPE_MARKET': 'market',
             'ORDER_TYPE_LIMIT': 'limit',
         }
         return self.safe_string(statuses, status, status)
 
     def parse_time_in_force(self, timeInForce: Str):
-        timeInForces: dict = {
+        timeInForces = {
             'ORDER_CONDITION_GOOD_TILL_CANCELLED': 'GTC',
             'ORDER_CONDITION_IMMEDIATE_OR_CANCEL': 'IOC',
             'ORDER_CONDITION_FILL_OR_KILL': 'FOK',
@@ -1152,13 +1160,14 @@ class latoken(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
-        await self.load_markets()
-        response = None
+        if self.markets is None:
+            await self.load_markets()
+        response: dict
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, 'stop')
         # privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency': market['baseId'],
             'quote': market['quoteId'],
         }
@@ -1206,8 +1215,9 @@ class latoken(Exchange, ImplicitAPI):
         :param boolean [params.trigger]: True if fetching trigger orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             # 'currency': market['baseId'],
             # 'quote': market['quoteId'],
             # 'from': self.milliseconds(),
@@ -1218,7 +1228,7 @@ class latoken(Exchange, ImplicitAPI):
         params = self.omit(params, ['stop', 'trigger'])
         if limit is not None:
             request['limit'] = limit  # default 100
-        response = None
+        response: dict
         if symbol is not None:
             market = self.market(symbol)
             request['currency'] = market['baseId']
@@ -1269,13 +1279,14 @@ class latoken(Exchange, ImplicitAPI):
         :param boolean [params.trigger]: True if fetching a trigger order
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             'id': id,
         }
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['stop', 'trigger'])
-        response = None
+        response: dict
         if isTrigger:
             response = await self.privateGetAuthStopOrderGetOrderId(self.extend(request, params))
         else:
@@ -1322,10 +1333,11 @@ class latoken(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: [0 .. 50] characters, client's custom order id(free field for your convenience)
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         uppercaseType = type.upper()
-        request: dict = {
+        request = {
             'baseCurrency': market['baseId'],
             'quoteCurrency': market['quoteId'],
             'side': side.upper(),  # "BUY", "BID", "SELL", "ASK"
@@ -1341,7 +1353,7 @@ class latoken(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         params = self.omit(params, ['triggerPrice', 'stopPrice'])
-        response = None
+        response: dict
         if triggerPrice is not None:
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
             response = await self.privatePostAuthStopOrderPlace(self.extend(request, params))
@@ -1374,13 +1386,14 @@ class latoken(Exchange, ImplicitAPI):
         :param boolean [params.trigger]: True if cancelling a trigger order
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             'id': id,
         }
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['stop', 'trigger'])
-        response = None
+        response: dict
         if isTrigger:
             response = await self.privatePostAuthStopOrderCancel(self.extend(request, params))
         else:
@@ -1408,15 +1421,16 @@ class latoken(Exchange, ImplicitAPI):
         :param boolean [params.trigger]: True if cancelling trigger orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             # 'currency': market['baseId'],
             # 'quote': market['quoteId'],
         }
         market = None
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['stop', 'trigger'])
-        response = None
+        response: dict
         if symbol is not None:
             market = self.market(symbol)
             request['currency'] = market['baseId']
@@ -1455,8 +1469,9 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             # 'page': '1',
             # 'size': 100,
         }
@@ -1556,7 +1571,7 @@ class latoken(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'TRANSACTION_STATUS_CONFIRMED': 'ok',
             'TRANSACTION_STATUS_EXECUTED': 'ok',
             'TRANSACTION_STATUS_CHECKING': 'pending',
@@ -1567,7 +1582,7 @@ class latoken(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_transaction_type(self, type):
-        types: dict = {
+        types = {
             'TRANSACTION_TYPE_DEPOSIT': 'deposit',
             'TRANSACTION_TYPE_WITHDRAWAL': 'withdrawal',
         }
@@ -1585,7 +1600,8 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         response = await self.privateGetAuthTransfer(params)
         #
@@ -1637,14 +1653,15 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'recipient': toAccount,
             'value': self.currency_to_precision(code, amount),
         }
-        response = None
+        response: dict
         if toAccount.find('@') >= 0:
             response = await self.privatePostAuthTransferEmail(self.extend(request, params))
         elif len(toAccount) == 36:
@@ -1714,7 +1731,7 @@ class latoken(Exchange, ImplicitAPI):
         }
 
     def parse_transfer_status(self, status: Str) -> Str:
-        statuses: dict = {
+        statuses = {
             'TRANSFER_STATUS_COMPLETED': 'ok',
             'TRANSFER_STATUS_PENDING': 'pending',
             'TRANSFER_STATUS_REJECTED': 'failed',
@@ -1723,7 +1740,7 @@ class latoken(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path, api='public', method='GET', params=None, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         request = '/' + self.version + '/' + self.implode_params(path, params)
         requestString = request
         query = self.omit(params, self.extract_params(path))
@@ -1743,7 +1760,7 @@ class latoken(Exchange, ImplicitAPI):
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'
                 body = self.json(query)
-        url = self.urls['api']['rest'] + requestString
+        url = (self.urls['api'])['rest'] + requestString
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):

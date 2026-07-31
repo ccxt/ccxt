@@ -10,7 +10,7 @@ public partial class toobit
     /// watches information on multiple trades made in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -44,7 +44,7 @@ public partial class toobit
     /// get the list of most recent trades for a list of symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -84,7 +84,8 @@ public partial class toobit
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -118,7 +119,8 @@ public partial class toobit
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -152,7 +154,8 @@ public partial class toobit
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -172,7 +175,8 @@ public partial class toobit
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -192,7 +196,10 @@ public partial class toobit
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -208,7 +215,7 @@ public partial class toobit
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -219,7 +226,10 @@ public partial class toobit
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -235,7 +245,7 @@ public partial class toobit
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(List<string> symbols, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -246,7 +256,8 @@ public partial class toobit
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-account-update"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-account.html#payload-account-update"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -266,7 +277,8 @@ public partial class toobit
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-order-update"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-account.html#payload-order-update"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -300,7 +312,8 @@ public partial class toobit
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-ticket-push"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-account.html#payload-ticket-push"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-trade-update"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -340,7 +353,7 @@ public partial class toobit
     /// watch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#event-position-update"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-position-update"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

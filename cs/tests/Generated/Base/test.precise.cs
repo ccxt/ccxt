@@ -112,5 +112,51 @@ public partial class BaseTest
             Assert(isEqual(Precise.stringOr("10", "5"), "15")); // 1010 | 0101 = 1111 = 15
             Assert(isEqual(Precise.stringOr("0", "0"), "0"));
             Assert(isEqual(Precise.stringOr("7", "0"), "7"));
+            // with undefined arguments
+            Assert(isEqual(Precise.stringMul(null, "1"), null));
+            Assert(isEqual(Precise.stringMul("1", null), null));
+            Assert(isEqual(Precise.stringMul(null, null), null));
+            Assert(isEqual(Precise.stringDiv(null, "1"), null));
+            Assert(isEqual(Precise.stringDiv("1", null), null));
+            Assert(isEqual(Precise.stringDiv(null, null), null));
+            Assert(isEqual(Precise.stringAdd(null, "1"), null));
+            Assert(isEqual(Precise.stringAdd("1", null), null));
+            Assert(isEqual(Precise.stringAdd(null, null), null));
+            Assert(isEqual(Precise.stringSub(null, "1"), null));
+            Assert(isEqual(Precise.stringSub("1", null), null));
+            Assert(isEqual(Precise.stringSub(null, null), null));
+            Assert(isEqual(Precise.stringAbs(null), null));
+            Assert(isEqual(Precise.stringNeg(null), null));
+            Assert(isEqual(Precise.stringMod(null, "1"), null));
+            Assert(isEqual(Precise.stringMod("1", null), null));
+            Assert(isEqual(Precise.stringMod(null, null), null));
+            Assert(isEqual(Precise.stringOr(null, "1"), null));
+            Assert(isEqual(Precise.stringOr("1", null), null));
+            Assert(isEqual(Precise.stringOr(null, null), null));
+            Assert(isEqual(Precise.stringMin(null, "1"), null));
+            Assert(isEqual(Precise.stringMin("1", null), null));
+            Assert(isEqual(Precise.stringMin(null, null), null));
+            Assert(isEqual(Precise.stringMax(null, "1"), null));
+            Assert(isEqual(Precise.stringMax("1", null), null));
+            Assert(isEqual(Precise.stringMax(null, null), null));
+            // bool false
+            Assert(isEqual(Precise.stringEquals(null, "1"), false));
+            Assert(isEqual(Precise.stringEquals("1", null), false));
+            Assert(isEqual(Precise.stringEquals(null, null), false));
+            Assert(isEqual(Precise.stringEq(null, "1"), false));
+            Assert(isEqual(Precise.stringEq("1", null), false));
+            Assert(isEqual(Precise.stringEq(null, null), false));
+            Assert(isEqual(Precise.stringGt(null, "1"), false));
+            Assert(isEqual(Precise.stringGt("1", null), false));
+            Assert(isEqual(Precise.stringGt(null, null), false));
+            Assert(isEqual(Precise.stringGe(null, "1"), false));
+            Assert(isEqual(Precise.stringGe("1", null), false));
+            Assert(isEqual(Precise.stringGe(null, null), false));
+            Assert(isEqual(Precise.stringLt(null, "1"), false));
+            Assert(isEqual(Precise.stringLt("1", null), false));
+            Assert(isEqual(Precise.stringLt(null, null), false));
+            Assert(isEqual(Precise.stringLe(null, "1"), false));
+            Assert(isEqual(Precise.stringLe("1", null), false));
+            Assert(isEqual(Precise.stringLe(null, null), false));
         }
 }

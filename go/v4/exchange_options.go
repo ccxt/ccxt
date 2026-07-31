@@ -2,7 +2,7 @@ package ccxt
 
 import "sync"
 
-// func (this *Exchange) Describe() map[string]any {
+// func (this *BaseExchange) Describe() map[string]any {
 // 	return map[string]any{
 // 		"id":              nil,
 // 		"name":            nil,
@@ -330,7 +330,7 @@ import "sync"
 
 // type Dict map[string]any
 
-func (this *Exchange) initializeProperties(extendedProperties map[string]any) {
+func (this *BaseExchange) initializeProperties(extendedProperties map[string]any) {
 
 	this.TransformedApi = map[string]any{}
 	this.Version = SafeString(extendedProperties, "version", "").(string)
@@ -406,9 +406,10 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]any) {
 	this.ReduceFees = SafeValue(extendedProperties, "reduceFees", true).(bool)
 
 	this.ReturnResponseHeaders = SafeValue(extendedProperties, "returnResponseHeaders", false).(bool)
+	this.FetchHistoryCacheSize = SafeValue(extendedProperties, "fetchHistoryCacheSize", 0).(int)
 }
 
-func (this *Exchange) MapToSafeMap(input map[string]any) *sync.Map {
+func (this *BaseExchange) MapToSafeMap(input map[string]any) *sync.Map {
 	if input == nil {
 		return nil
 	}
@@ -419,7 +420,7 @@ func (this *Exchange) MapToSafeMap(input map[string]any) *sync.Map {
 	return &sm
 }
 
-func (this *Exchange) SafeMapToMap(sm *sync.Map) map[string]any {
+func (this *BaseExchange) SafeMapToMap(sm *sync.Map) map[string]any {
 	if sm == nil {
 		return nil
 	}

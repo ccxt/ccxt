@@ -2009,7 +2009,7 @@
                         "unrealizedPnl": 14.721750955418,
                         "liquidationPrice": null,
                         "marginMode": null,
-                        "percentage": null,
+                        "percentage": 4.45,
                         "marginRatio": null,
                         "stopLossPrice": null,
                         "takeProfitPrice": null
@@ -2320,7 +2320,7 @@
                   "unrealizedPnl": -0.003390752,
                   "liquidationPrice": null,
                   "marginMode": null,
-                  "percentage": null,
+                  "percentage": -0.03,
                   "marginRatio": null,
                   "stopLossPrice": null,
                   "takeProfitPrice": null

@@ -99,7 +99,9 @@ export default class paradex extends paradexRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let messageHash = 'trades.';
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -146,10 +148,10 @@ export default class paradex extends paradexRest {
         const parsedTrade = this.parseTrade (data);
         const symbol = parsedTrade['symbol'];
         const messageHash = this.safeString (params, 'channel');
-        let stored = this.safeValue (this.trades, symbol);
+        let stored = this.safeValue (this.trades, (symbol as string));
         if (stored === undefined) {
             stored = new ArrayCache (this.safeInteger (this.options, 'tradesLimit', 1000));
-            this.trades[symbol] = stored;
+            this.trades[(symbol as string)] = stored;
         }
         stored.append (parsedTrade);
         client.resolve (stored, messageHash);
@@ -164,10 +166,12 @@ export default class paradex extends paradexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'order_book.' + market['id'] + '.snapshot@15@100ms';
         const url = this.urls['api']['ws'];
@@ -221,12 +225,12 @@ export default class paradex extends paradexRest {
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
         }
-        const orderbookData = {
+        const orderbookData: Dict = {
             'bids': [],
             'asks': [],
         };
         const inserts = this.safeList (data, 'inserts');
-        for (let i = 0; i < inserts.length; i++) {
+        for (let i = 0; i < (inserts as any[]).length; i++) {
             const insert = this.safeDict (inserts, i);
             const side = this.safeString (insert, 'side');
             const price = this.safeString (insert, 'price');
@@ -255,7 +259,9 @@ export default class paradex extends paradexRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbol = this.symbol (symbol);
         const channel = 'markets_summary';
         const url = this.urls['api']['ws'];
@@ -280,7 +286,9 @@ export default class paradex extends paradexRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const channel = 'markets_summary';
         const url = this.urls['api']['ws'];
@@ -291,7 +299,7 @@ export default class paradex extends paradexRest {
                 'channel': channel,
             },
         };
-        const messageHashes = [];
+        const messageHashes: any[] = [];
         if (symbols !== undefined && Array.isArray (symbols)) {
             for (let i = 0; i < symbols.length; i++) {
                 const messageHash = channel + '.' + symbols[i];
@@ -321,7 +329,9 @@ export default class paradex extends paradexRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         let messageHash = 'orders';
         let channel = 'orders.';
@@ -442,7 +452,9 @@ export default class paradex extends paradexRest {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbol = this.symbol (symbol);
         const channel = 'funding_data';
         const url = this.urls['api']['ws'];
@@ -467,7 +479,9 @@ export default class paradex extends paradexRest {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async watchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const channel = 'funding_data';
         const url = this.urls['api']['ws'];
@@ -478,7 +492,7 @@ export default class paradex extends paradexRest {
                 'channel': channel,
             },
         };
-        const messageHashes = [];
+        const messageHashes: any[] = [];
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength > 0) {
@@ -524,7 +538,7 @@ export default class paradex extends paradexRest {
         const data = this.safeDict (params, 'data', {});
         const fundingRate = this.parseFundingRateWs (data);
         const symbol = fundingRate['symbol'];
-        this.fundingRates[symbol] = fundingRate;
+        this.fundingRates[(symbol as string)] = fundingRate;
         const channel = this.safeString (params, 'channel');
         const messageHash = channel + '.' + symbol;
         client.resolve (fundingRate, messageHash);
@@ -640,7 +654,7 @@ export default class paradex extends paradexRest {
         const data = this.safeDict (message, 'params');
         if (data !== undefined) {
             const channel = this.safeString (data, 'channel');
-            const parts = channel.split ('.');
+            const parts = (channel as string).split ('.');
             const name = this.safeString (parts, 0);
             const methods: Dict = {
                 'trades': this.handleTrade,
@@ -649,7 +663,7 @@ export default class paradex extends paradexRest {
                 'orders': this.handleOrder,
                 'funding_data': this.handleFundingRate,
             };
-            const method = this.safeValue (methods, name);
+            const method = this.safeValue (methods, (name as string));
             if (method !== undefined) {
                 method.call (this, client, message);
             }

@@ -72,7 +72,7 @@ class blofin(ccxt.async_support.blofin):
             },
         })
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return 'ping'
 
     def handle_pong(self, client: Client, message):
@@ -108,7 +108,8 @@ class blofin(ccxt.async_support.blofin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         trades = await self.watch_multiple_wrapper(True, 'trades', 'watchTradesForSymbols', symbols, params)
         if self.newUpdates:
             firstMarket = self.safe_dict(trades, 0)
@@ -160,7 +161,7 @@ class blofin(ccxt.async_support.blofin):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         params['callerMethodName'] = 'watchOrderBook'
         return await self.watch_order_book_for_symbols([symbol], limit, params)
@@ -175,9 +176,10 @@ class blofin(ccxt.async_support.blofin):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.depth]: the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         callerMethodName = None
         callerMethodName, params = self.handle_param_string(params, 'callerMethodName', 'watchOrderBookForSymbols')
         channelName = None
@@ -304,17 +306,19 @@ class blofin(ccxt.async_support.blofin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
-        firstMarket = self.market(symbols[0])
+        symbolsList = symbols
+        firstMarket = self.market(symbolsList[0])
         channel = 'tickers'
         marketType = None
         marketType, params = self.handle_market_type_and_params('watchBidsAsks', firstMarket, params)
-        url = self.implode_hostname(self.urls['api']['ws'][marketType]['public'])
+        url = (self.urls['api'])['ws'][marketType]['public']
         messageHashes = []
         args = []
-        for i in range(0, len(symbols)):
-            market = self.market(symbols[i])
+        for i in range(0, len(symbolsList)):
+            market = self.market(symbolsList[i])
             messageHashes.append('bidask:' + market['symbol'])
             args.append({
                 'channel': channel,
@@ -337,7 +341,7 @@ class blofin(ccxt.async_support.blofin):
             self.bidsasks[symbol] = ticker
             client.resolve(ticker, messageHash)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         marketId = self.safe_string(ticker, 'instId')
         market = self.safe_market(marketId, market, '-')
         symbol = self.safe_string(market, 'symbol')
@@ -382,7 +386,8 @@ class blofin(ccxt.async_support.blofin):
         symbolsLength = len(symbolsAndTimeframes)
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
             raise ArgumentsRequired(self.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol, timeframe, candles = await self.watch_multiple_wrapper(True, 'candle', 'watchOHLCVForSymbols', symbolsAndTimeframes, params)
         if self.newUpdates:
             limit = candles.getLimit(symbol, limit)
@@ -434,7 +439,8 @@ class blofin(ccxt.async_support.blofin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         marketType = None
         marketType, params = self.handle_market_type_and_params('watchBalance', None, params)
@@ -445,7 +451,7 @@ class blofin(ccxt.async_support.blofin):
             'channel': 'account',
         }
         request = self.get_subscription_request([sub])
-        url = self.implode_hostname(self.urls['api']['ws'][marketType]['private'])
+        url = (self.urls['api'])['ws'][marketType]['private']
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
     def handle_balance(self, client: Client, message):
@@ -500,7 +506,8 @@ class blofin(ccxt.async_support.blofin):
         :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
         """
         await self.authenticate()
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         trigger = self.safe_value_2(params, 'stop', 'trigger')
         params = self.omit(params, ['stop', 'trigger'])
         channel = 'orders-algo' if trigger else 'orders'
@@ -552,7 +559,8 @@ class blofin(ccxt.async_support.blofin):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.authenticate()
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         newPositions = await self.watch_multiple_wrapper(False, 'positions', 'watchPositions', symbols, params)
         if self.newUpdates:
             return newPositions
@@ -594,7 +602,8 @@ class blofin(ccxt.async_support.blofin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         marketType = None
         marketType, params = self.handle_market_type_and_params('watchFundingRate', market, params)
@@ -604,7 +613,7 @@ class blofin(ccxt.async_support.blofin):
             'instId': market['id'],
         }
         request = self.get_subscription_request([requestParams])
-        url = self.implode_hostname(self.urls['api']['ws'][marketType]['public'])
+        url = (self.urls['api'])['ws'][marketType]['public']
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
     def handle_funding_rate(self, client: Client, message):
@@ -631,9 +640,10 @@ class blofin(ccxt.async_support.blofin):
         messageHash = 'fundingRate:' + symbol
         client.resolve(fundingRate, messageHash)
 
-    async def watch_multiple_wrapper(self, isPublic: bool, channelName: str, callerMethodName: str, symbolsArray: List[Any] = None, params={}):
+    async def watch_multiple_wrapper(self, isPublic: bool, channelName: str, callerMethodName: str, symbolsArray: Any = None, params={}):
         # underlier method for all watch-multiple symbols
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         callerMethodName, params = self.handle_param_string(params, 'callerMethodName', callerMethodName)
         # if OHLCV method are being called, then symbols would be symbolsAndTimeframes(multi-dimensional) array
         isOHLCV = (channelName == 'candle')
@@ -679,7 +689,7 @@ class blofin(ccxt.async_support.blofin):
             rawSubscriptions = [{'channel': channelName}]
         request = self.get_subscription_request(rawSubscriptions)
         privateOrPublic = 'public' if isPublic else 'private'
-        url = self.implode_hostname(self.urls['api']['ws'][marketType][privateOrPublic])
+        url = (self.urls['api'])['ws'][marketType][privateOrPublic]
         return await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
 
     def get_subscription_request(self, args):
@@ -758,5 +768,5 @@ class blofin(ccxt.async_support.blofin):
             ],
         }
         marketType = 'swap'  # for now
-        url = self.implode_hostname(self.urls['api']['ws'][marketType]['private'])
+        url = (self.urls['api'])['ws'][marketType]['private']
         await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)

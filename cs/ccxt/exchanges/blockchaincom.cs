@@ -325,16 +325,13 @@ public partial class blockchaincom : Exchange
             object minOrderSize = this.parseNumber(minOrderSizePreciseString);
             // maximum order size
             object maxOrderSize = null;
-            maxOrderSize = this.safeString(market, "max_order_size");
-            if (isTrue(!isEqual(maxOrderSize, "0")))
+            object maxOrderSizeRaw = this.safeString(market, "max_order_size");
+            if (isTrue(!isEqual(maxOrderSizeRaw, "0")))
             {
                 object maxOrderSizeScaleString = this.safeString(market, "max_order_size_scale");
                 object maxOrderSizeScalePrecisionString = this.parsePrecision(maxOrderSizeScaleString);
-                object maxOrderSizeString = Precise.stringMul(maxOrderSize, maxOrderSizeScalePrecisionString);
-                maxOrderSize = this.parseNumber(maxOrderSizeString);
-            } else
-            {
-                maxOrderSize = null;
+                object maxOrderSizeValueString = Precise.stringMul(maxOrderSizeRaw, maxOrderSizeScalePrecisionString);
+                maxOrderSize = this.parseNumber(maxOrderSizeValueString);
             }
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "info", market },
@@ -398,7 +395,7 @@ public partial class blockchaincom : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -419,7 +416,10 @@ public partial class blockchaincom : Exchange
     public async override Task<object> fetchL3OrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -435,7 +435,10 @@ public partial class blockchaincom : Exchange
     public async override Task<object> fetchL2OrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -499,7 +502,10 @@ public partial class blockchaincom : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -520,7 +526,10 @@ public partial class blockchaincom : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object tickers = await this.publicGetTickers(parameters);
         return this.parseTickers(tickers, symbols);
     }
@@ -612,7 +621,10 @@ public partial class blockchaincom : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object orderType = this.safeString(parameters, "ordType", type);
         object uppercaseOrderType = ((string)orderType).ToUpper();
@@ -703,7 +715,10 @@ public partial class blockchaincom : Exchange
         // cancels all open orders if no symbol specified
         // cancels all open orders of specified symbol, if symbol is specified
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -730,7 +745,10 @@ public partial class blockchaincom : Exchange
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetFees(parameters);
         //
         //     {
@@ -812,7 +830,10 @@ public partial class blockchaincom : Exchange
     public async virtual Task<object> fetchOrdersByState(object state, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "status", state },
             { "limit", 100 },
@@ -844,7 +865,7 @@ public partial class blockchaincom : Exchange
         //
         object orderId = this.safeString(trade, "exOrdId");
         object tradeId = this.safeString(trade, "tradeId");
-        object side = ((string)this.safeString(trade, "side")).ToLower();
+        object side = this.safeStringLower(trade, "side");
         object marketId = this.safeString(trade, "symbol");
         object priceString = this.safeString(trade, "price");
         object amountString = this.safeString(trade, "qty");
@@ -893,7 +914,10 @@ public partial class blockchaincom : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
         {
@@ -921,7 +945,10 @@ public partial class blockchaincom : Exchange
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
@@ -1051,7 +1078,10 @@ public partial class blockchaincom : Exchange
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "amount", amount },
@@ -1088,7 +1118,10 @@ public partial class blockchaincom : Exchange
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(since, null)))
         {
@@ -1116,7 +1149,10 @@ public partial class blockchaincom : Exchange
     public async virtual Task<object> fetchWithdrawal(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "withdrawalId", id },
         };
@@ -1138,7 +1174,10 @@ public partial class blockchaincom : Exchange
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(since, null)))
         {
@@ -1166,7 +1205,10 @@ public partial class blockchaincom : Exchange
     public async virtual Task<object> fetchDeposit(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object depositId = this.safeString(parameters, "depositId", id);
         object request = new Dictionary<string, object>() {
             { "depositId", depositId },
@@ -1186,8 +1228,11 @@ public partial class blockchaincom : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object accountName = this.safeString(parameters, "account", "primary");
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object accountName = ((string)this.safeString(parameters, "account", "primary"));
         parameters = this.omit(parameters, "account");
         object request = new Dictionary<string, object>() {
             { "account", accountName },
@@ -1224,7 +1269,7 @@ public partial class blockchaincom : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
             ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "balance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            ((IDictionary<string,object>)result)[(string)((string)code)] = account;
         }
         return this.safeBalance(result);
     }
@@ -1244,7 +1289,10 @@ public partial class blockchaincom : Exchange
         // note: only works with exchange-order-id
         // does not work with clientOrderId
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "orderId", id },
         };

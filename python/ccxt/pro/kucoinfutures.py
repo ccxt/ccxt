@@ -60,10 +60,11 @@ class kucoinfutures(kucoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         amountToPrecision = self.currency_to_precision(code, amount)
-        request: dict = {
+        request = {
             'currency': self.safe_string(currency, 'id'),
             'amount': amountToPrecision,
         }
@@ -117,7 +118,7 @@ class kucoinfutures(kucoin):
         })
 
     def parse_transfer_type(self, transferType):
-        transferTypes: dict = {
+        transferTypes = {
             'spot': 'TRADE',
             'funding': 'MAIN',
         }

@@ -228,7 +228,7 @@ These tests run in all five languages and are your primary regression net.
 
 ## Step 7 — Verify in all languages
 
-A new exchange means thousands of new lines in Python, PHP, C# and Go. The transpilers must like all of it.
+A new exchange means thousands of new lines in Python, PHP, C#, Go and Java. The transpilers must like all of it.
 
 ```bash
 npm run lint
@@ -289,3 +289,16 @@ Title: `feat(<id>): add <Name> integration`. Description follows the template in
 - [ ] `npm run build-docs` ran, generated wiki entries look correct
 - [ ] User-facing docs reviewed (CLAUDE.md §8) — Manual.md / examples / language skills if anything is non-standard
 - [ ] PR title follows `feat(<id>): ...`; description fills CLAUDE.md §11 template
+
+---
+
+## Prediction-market exchange variant
+
+A prediction-market venue (Polymarket-style: events → markets → binary/categorical outcomes) does **not** extend `Exchange` — it lives in its own namespace. The differences from the checklist above:
+
+1. **File** — `ts/src/prediction/<id>.ts`, `class <id> extends PredictionExchange` (import `Exchange` from `./abstract/prediction/<id>.js`). Read `.claude/rules/prediction-outcomes.md` for the outcome-cache contract and `ts/src/base/PredictionExchange.ts` for the base helpers you inherit (`loadOutcome`/`loadOutcomes`/`fetchOutcome`/`populateOutcomes`/`indexMarketOutcomes`/`safeOutcome`/`outcome`, `setEvents`/`getEvent`/`eventsList`/`applyEventFetchParams`, `parsePredictionTrades`/`parsePredictionOrders`/`parsePredictionPositions`, `safePrediction*`).
+2. **describe()** — `has.prediction: true`; address methods by an `outcome` handle, not a `symbol`. Implement `fetchEvents(params)` (scope-required via `requireEventQuery`) and, if the venue has a single-event endpoint, `fetchEvent(id)`. Return `Prediction*` types from `ts/src/base/types.ts` (never base `Ticker`/`Order`/…). `loadAllOutcomes` defaults to `false` (a cache miss resolves one outcome via the base search-backed `fetchOutcome`); override `fetchOutcome` with a by-id fetch when the venue has one (see kalshi), and set `loadAllOutcomes: true` only when the whole universe is a single cheap request (see hyperliquid). No-arg `fetchTickers()` must throw `ArgumentsRequired` unless the venue has a true all-tickers endpoint.
+3. **Never call the base `parseTrades`/`parseOrders`/`parsePositions`** — they filter by `symbol` and drop prediction rows. Use `parsePredictionTrades`/`Orders`/`Positions`. Never call `buildOHLCVC` (transpiles to a mangled name) — bucket candles inline.
+4. **Registration** — `npm run export-exchanges` adds the id to `exchanges.json` `prediction[]` and wires `ts/ccxt.ts` / the per-language namespaces / README table. `npm run emitAPI` emits `ts/src/abstract/prediction/<id>.ts`. Add a `skip-tests.json` entry with `preferredEventQuery` (the harness's fetchEvents scope) and `preferredPredictionOutcome` (a tradeable handle — validated against the live listing).
+5. **Transpile** — the scoped single-exchange transpilers auto-route a bare prediction-only id (`tsx build/transpile.ts <id>`, `csharpTranspiler.ts <id>`, `goTranspiler.ts <id>`). After editing `PredictionExchange.ts` you must also regen the base per language: `tsx build/{transpile,csharpTranspiler,goTranspiler,javaTranspiler}.ts --baseClass`. Any base→override call (like `fetchOutcome`) must be registered in `VIRTUAL_BASE_METHODS` in `build/goTranspiler.ts` or Go won't dispatch it.
+6. **Test** — `node run-tests <id> --js --prediction --private` (add `--sandbox` for demo hosts like kalshi). Static fixtures live in the normal flat `ts/src/test/static/{request,response}/<id>.json`; the python/php **sync** harness skips prediction (they carry `"asyncOnly": true`).

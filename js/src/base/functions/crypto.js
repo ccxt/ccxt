@@ -8,8 +8,6 @@
 import { hmac as _hmac } from '@noble/hashes/hmac.js';
 import { hex as base16, base64 } from '@scure/base';
 import { utf8ToBytes } from '@noble/hashes/utils.js';
-import { Base64 } from '../../static_dependencies/jsencrypt/lib/asn1js/base64.js';
-import { ASN1 } from "../../static_dependencies/jsencrypt/lib/asn1js/asn1.js";
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { p256 as P256 } from '@noble/curves/nist.js';
 import { numberToBytesLE, hexToBytes } from '@noble/curves/utils.js';
@@ -26,6 +24,62 @@ const supportedCurve = {
     '1.3.132.0.10': secp256k1,
     '1.2.840.10045.3.1.7': P256,
 };
+/*  ----- minimal PEM / DER helpers (replace the vendored jsencrypt asn1js) ----- */
+// strip the PEM armor (-----BEGIN/END ...-----) and base64-decode the body to DER bytes
+function pemToDer(pem) {
+    const body = pem
+        .replace(/-----BEGIN [^-]+-----/g, '')
+        .replace(/-----END [^-]+-----/g, '')
+        .replace(/\s+/g, '');
+    return base64.decode(body);
+}
+// read a definite-form DER length, returns [ length, nextOffset ]
+function readDerLength(bytes, offset) {
+    let length = bytes[offset];
+    offset += 1;
+    if (length & 0x80) {
+        const numBytes = length & 0x7f;
+        length = 0;
+        for (let i = 0; i < numBytes; i++) {
+            length = (length * 256) + bytes[offset];
+            offset += 1;
+        }
+    }
+    return [length, offset];
+}
+// parse a DER buffer into a flat list of its top-level TLV elements
+function parseDerElements(bytes) {
+    const elements = [];
+    let offset = 0;
+    while (offset < bytes.length) {
+        const tag = bytes[offset];
+        offset += 1;
+        const result = readDerLength(bytes, offset);
+        const length = result[0];
+        offset = result[1];
+        const content = bytes.slice(offset, offset + length);
+        elements.push({ 'tag': tag, 'content': content });
+        offset += length;
+    }
+    return elements;
+}
+// decode an OID's content bytes into a dotted-decimal string
+function decodeOid(bytes) {
+    const values = [];
+    const first = bytes[0];
+    values.push(Math.floor(first / 40));
+    values.push(first % 40);
+    let value = 0;
+    for (let i = 1; i < bytes.length; i++) {
+        const b = bytes[i];
+        value = (value * 128) + (b & 0x7f);
+        if ((b & 0x80) === 0) {
+            values.push(value);
+            value = 0;
+        }
+    }
+    return values.join('.');
+}
 /*  .............................................   */
 const hash = (request, hash, digest = 'hex') => {
     const binary = hash(utf8Bytes(request));
@@ -44,22 +98,24 @@ function ecdsa(request, secret, curve, prehash = null, fixedLength = false) {
     if (typeof secret === 'string' && secret.length > 64) {
         // decode pem key
         if (secret.startsWith('-----BEGIN EC PRIVATE KEY-----')) {
-            const der = Base64.unarmor(secret);
-            let asn1 = ASN1.decode(der);
-            if (asn1.sub.length === 4) {
-                // ECPrivateKey ::= SEQUENCE {
-                //     version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
-                //     privateKey     OCTET STRING,
-                //     parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
-                //     publicKey  [1] BIT STRING OPTIONAL
-                // }
-                if (typeof asn1.sub[2].sub !== null && asn1.sub[2].sub.length > 0) {
-                    const oid = asn1.sub[2].sub[0].content(undefined);
+            const der = pemToDer(secret);
+            const top = parseDerElements(der);
+            // ECPrivateKey ::= SEQUENCE {
+            //     version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+            //     privateKey     OCTET STRING,
+            //     parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+            //     publicKey  [1] BIT STRING OPTIONAL
+            // }
+            const fields = parseDerElements(top[0].content);
+            if (fields.length === 4) {
+                const params = fields[2];
+                if (params !== undefined && params.tag === 0xA0 && params.content.length > 0) {
+                    const oid = decodeOid(parseDerElements(params.content)[0].content);
                     if (supportedCurve[oid] === undefined)
                         throw new Error('Unsupported curve');
                     curve = supportedCurve[oid];
                 }
-                secret = asn1.sub[1].getHexStringValue();
+                secret = base16.encode(fields[1].content);
             }
             else {
                 // maybe return false
@@ -107,7 +163,7 @@ function eddsa(request, secret, curve) {
     else if (typeof secret === 'string') {
         // secret is the base64 pem encoded key
         // we get the last 32 bytes
-        privateKey = new Uint8Array(Base64.unarmor(secret).slice(16));
+        privateKey = new Uint8Array(pemToDer(secret).slice(16));
     }
     const signature = curve.sign(hexBytes(request), privateKey);
     return base64.encode(signature);
@@ -134,5 +190,5 @@ function crc32(str, signed = false) {
     }
 }
 /*  ------------------------------------------------------------------------ */
-export { hash, hmac, crc32, ecdsa, eddsa, };
+export { hash, hmac, crc32, ecdsa, eddsa, pemToDer, };
 /*  ------------------------------------------------------------------------ */

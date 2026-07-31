@@ -17,7 +17,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 var_dump('CCXT Version:', $ccxt->version);
 
 

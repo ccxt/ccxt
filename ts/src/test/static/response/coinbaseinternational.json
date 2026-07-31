@@ -152,7 +152,7 @@
             "liquidationPrice": null,
             "marginRatio": null,
             "marginMode": null,
-            "percentage": null
+            "percentage": 0
           }
         }
       ],
@@ -212,7 +212,7 @@
               "liquidationPrice": null,
               "marginRatio": null,
               "marginMode": null,
-              "percentage": null
+              "percentage": 0
             }
           ]
         },
@@ -273,7 +273,7 @@
               "liquidationPrice": null,
               "marginRatio": null,
               "marginMode": null,
-              "percentage": null
+              "percentage": 0
             }
           ]
         }

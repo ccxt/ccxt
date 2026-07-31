@@ -21,7 +21,7 @@ exchange = getattr(ccxt, exchange_id)({
     # 'verbose': True, // ←- uncomment this for verbose output
 
     # additional credentials might be required in exchange-specific cases:
-    # uid or password for coinbasepro, etc...
+    # uid or password for coinbaseexchange, etc...
 })
 if not exchange.has['fetchDepositAddress']:
     print('The exchange does not support fetchDepositAddress() yet')

@@ -8,6 +8,7 @@
 * [enableDemoTrading](#enabledemotrading)
 * [isUnifiedEnabled](#isunifiedenabled)
 * [upgradeUnifiedTradeAccount](#upgradeunifiedtradeaccount)
+* [fetchStatus](#fetchstatus)
 * [fetchTime](#fetchtime)
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchMarkets](#fetchmarkets)
@@ -176,6 +177,26 @@ upgrades the account to unified trade account *warning* this is irreversible
 
 ```javascript
 bybit.upgradeUnifiedTradeAccount (params?)
+```
+
+
+<a name="fetchStatus" id="fetchstatus"></a>
+
+### fetchStatus{docsify-ignore}
+the latest known information on the availability of the exchange API
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/system-status  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.fetchStatus (params?)
 ```
 
 
@@ -415,7 +436,7 @@ bybit.fetchTrades (symbol, since?, limit?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/market/orderbook  
 
@@ -2452,7 +2473,7 @@ bybit.unWatchOHLCV (symbol, timeframe, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  
 
@@ -2474,7 +2495,7 @@ bybit.watchOrderBook (symbol, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  
 
@@ -2496,7 +2517,7 @@ bybit.watchOrderBookForSymbols (symbols, limit?, params?)
 unsubscribe from the orderbook channel
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  
 
@@ -2518,7 +2539,7 @@ bybit.unWatchOrderBookForSymbols (symbols, params?)
 unsubscribe from the orderbook channel
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  
 

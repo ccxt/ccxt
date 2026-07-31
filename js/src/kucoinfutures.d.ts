@@ -1,5 +1,9 @@
 import kucoin from './kucoin.js';
 import type { Strings, TransferEntry } from './base/types.js';
+/**
+ * @class kucoinfutures
+ * @augments kucoin
+ */
 export default class kucoinfutures extends kucoin {
     describe(): any;
     /**

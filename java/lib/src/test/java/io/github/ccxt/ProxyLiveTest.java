@@ -28,7 +28,7 @@ public class ProxyLiveTest {
         test("fetchTicker via httpProxy", () -> {
             Map<String, Object> config = new HashMap<>();
             config.put("httpProxy", proxyUrl);
-            Exchange ex = Exchange.dynamicallyCreateInstance("binance", config);
+            BaseExchange ex = Exchange.dynamicallyCreateInstance("binance", config);
             ex.loadMarkets().get(30, TimeUnit.SECONDS);
             @SuppressWarnings("unchecked")
             Map<String, Object> ticker = (Map<String, Object>) ((java.util.concurrent.CompletableFuture<Object>) Helpers.callDynamically(ex, "fetchTicker", new Object[]{"BTC/USDT"})).get(15, TimeUnit.SECONDS);
@@ -41,7 +41,7 @@ public class ProxyLiveTest {
         test("fetchOrderBook via httpProxy", () -> {
             Map<String, Object> config = new HashMap<>();
             config.put("httpProxy", proxyUrl);
-            Exchange ex = Exchange.dynamicallyCreateInstance("binance", config);
+            BaseExchange ex = Exchange.dynamicallyCreateInstance("binance", config);
             ex.loadMarkets().get(30, TimeUnit.SECONDS);
             @SuppressWarnings("unchecked")
             Map<String, Object> ob = (Map<String, Object>) ((java.util.concurrent.CompletableFuture<Object>) Helpers.callDynamically(ex, "fetchOrderBook", new Object[]{"ETH/USDT"})).get(15, TimeUnit.SECONDS);
@@ -56,7 +56,7 @@ public class ProxyLiveTest {
         test("fetchTrades via httpProxy", () -> {
             Map<String, Object> config = new HashMap<>();
             config.put("httpProxy", proxyUrl);
-            Exchange ex = Exchange.dynamicallyCreateInstance("binance", config);
+            BaseExchange ex = Exchange.dynamicallyCreateInstance("binance", config);
             ex.loadMarkets().get(30, TimeUnit.SECONDS);
             @SuppressWarnings("unchecked")
             List<?> trades = (List<?>) ((java.util.concurrent.CompletableFuture<Object>) Helpers.callDynamically(ex, "fetchTrades", new Object[]{"BTC/USDT"})).get(15, TimeUnit.SECONDS);
@@ -68,7 +68,7 @@ public class ProxyLiveTest {
         test("fetchTicker via httpsProxy", () -> {
             Map<String, Object> config = new HashMap<>();
             config.put("httpsProxy", proxyUrl);
-            Exchange ex = Exchange.dynamicallyCreateInstance("binance", config);
+            BaseExchange ex = Exchange.dynamicallyCreateInstance("binance", config);
             ex.loadMarkets().get(30, TimeUnit.SECONDS);
             @SuppressWarnings("unchecked")
             Map<String, Object> ticker = (Map<String, Object>) ((java.util.concurrent.CompletableFuture<Object>) Helpers.callDynamically(ex, "fetchTicker", new Object[]{"BTC/USDT"})).get(15, TimeUnit.SECONDS);

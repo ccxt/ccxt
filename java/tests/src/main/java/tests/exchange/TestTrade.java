@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -10,8 +11,17 @@ import io.github.ccxt.errors.*;
 
 
 public class TestTrade extends BaseTest {
-    public static void testTrade(Exchange exchange, Object skippedProperties, Object method, Object entry, Object symbol, Object now)
+    public static void testTrade(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object symbol, Object now)
     {
+        // prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
+        // PredictionTrade type carries a single `fee` but omits the `fees` list entirely
+        if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            skippedProperties = exchange.extend(new java.util.HashMap<String, Object>() {{
+                put( "symbol", true );
+                put( "fees", true );
+            }}, skippedProperties);
+        }
         Object format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "id", "12345-67890:09876/54321" );
@@ -25,7 +35,10 @@ public class TestTrade extends BaseTest {
             put( "amount", exchange.parseNumber("1.5") );
             put( "cost", exchange.parseNumber("0.10376526") );
             put( "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
-            put( "fee", new java.util.HashMap<String, Object>() {{}} );
+            put( "fee", new java.util.HashMap<String, Object>() {{
+                put( "cost", exchange.parseNumber("0.001") );
+                put( "currency", "USDT" );
+            }} );
         }};
         // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
         // removed side because some public endpoints return trades without side

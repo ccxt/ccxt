@@ -18,18 +18,6 @@
  *
  *  @_subsection: api/abi:Typed Values
  */
-var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
-    if (kind === "m") throw new TypeError("Private method is not writable");
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-};
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
-var _Typed_options;
 import { defineProperties } from "./utils/index.js";
 const _gaurd = {};
 function n(value, width) {
@@ -50,17 +38,17 @@ const _typedSymbol = Symbol.for("_ethers_typed");
  *  The **Typed** class to wrap values providing explicit type information.
  */
 export class Typed {
+    #options;
     /**
      *  @_ignore:
      */
     constructor(gaurd, type, value, options) {
-        _Typed_options.set(this, void 0);
         if (options == null) {
             options = null;
         }
         // assertPrivate(_gaurd, gaurd, "Typed");
         defineProperties(this, { _typedSymbol, type, value });
-        __classPrivateFieldSet(this, _Typed_options, options, "f");
+        this.#options = options;
         // Check the value is valid
         this.format();
     }
@@ -122,7 +110,7 @@ export class Typed {
         if (this.type !== "tuple") {
             throw TypeError("not a tuple");
         }
-        return __classPrivateFieldGet(this, _Typed_options, "f");
+        return this.#options;
     }
     // Returns the length of this type as an array
     // - `null` indicates the length is unforced, it could be dynamic
@@ -137,10 +125,10 @@ export class Typed {
         if (this.type !== "array") {
             throw TypeError("not an array");
         }
-        if (__classPrivateFieldGet(this, _Typed_options, "f") === true) {
+        if (this.#options === true) {
             return -1;
         }
-        if (__classPrivateFieldGet(this, _Typed_options, "f") === false) {
+        if (this.#options === false) {
             return (this.value).length;
         }
         return null;
@@ -605,4 +593,3 @@ export class Typed {
         return value;
     }
 }
-_Typed_options = new WeakMap();

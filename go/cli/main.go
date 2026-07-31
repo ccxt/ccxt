@@ -12,6 +12,7 @@ import (
 	"time"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
+	ccxtprediction "github.com/ccxt/ccxt/go/v4/prediction"
 	ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
 )
 
@@ -55,7 +56,9 @@ func benchmarks(exchangeName string) {
 	settings := make(map[string]any)
 	settings["markets"] = marketsContent.(map[string]any)
 	suc := true
-	if slices.Contains(ccxtpro.Exchanges, exchangeName) {
+	if isPredictionExchange(exchangeName) {
+		exchange, suc = ccxtprediction.DynamicallyCreateInstance(exchangeName, settings)
+	} else if slices.Contains(ccxtpro.Exchanges, exchangeName) {
 		exchange, suc = ccxtpro.DynamicallyCreateInstance(exchangeName, settings)
 	} else {
 		exchange, suc = ccxt.DynamicallyCreateInstance(exchangeName, settings)
@@ -411,6 +414,19 @@ func SetCredentials(instance ccxt.ICoreExchange) {
 	}
 }
 
+// isPredictionExchange reports whether id should resolve from the prediction namespace:
+// regular ids win for ids present in both (e.g. hyperliquid); --prediction / -p forces
+// the prediction namespace, and prediction is the fallback for prediction-only ids
+func isPredictionExchange(exchangeName string) bool {
+	if !slices.Contains(ccxtprediction.Exchanges, exchangeName) {
+		return false
+	}
+	if containsStr(os.Args, "--prediction") || containsStr(os.Args, "-p") {
+		return true
+	}
+	return !slices.Contains(ccxt.Exchanges, exchangeName)
+}
+
 func main() {
 
 	args := os.Args
@@ -434,8 +450,12 @@ func main() {
 	exchangeIds := IoFileRead(exchangeFile, true)
 	exchangeIdsMap := exchangeIds.(map[string]any)
 	exchangeIdsList := exchangeIdsMap["ids"].([]any)
+	predictionIdsList := []any{}
+	if predictionRaw, ok := exchangeIdsMap["prediction"]; ok {
+		predictionIdsList = predictionRaw.([]any)
+	}
 
-	if !contains(exchangeIdsList, exchangeName) {
+	if !contains(exchangeIdsList, exchangeName) && !contains(predictionIdsList, exchangeName) {
 		panic(Red + "Exchange not found in exchanges.json" + Reset)
 	}
 
@@ -491,7 +511,9 @@ func main() {
 	cmdSettings := InitOptions(flags)
 	var instance ccxt.ICoreExchange
 	suc := true
-	if slices.Contains(ccxtpro.Exchanges, exchangeName) {
+	if isPredictionExchange(exchangeName) {
+		instance, suc = ccxtprediction.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
+	} else if slices.Contains(ccxtpro.Exchanges, exchangeName) {
 		instance, suc = ccxtpro.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
 	} else {
 		instance, suc = ccxt.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))

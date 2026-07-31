@@ -10,7 +10,7 @@ public partial class kraken
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/add_order"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/add_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -37,7 +37,7 @@ public partial class kraken
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/amend_order"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/amend_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -65,7 +65,7 @@ public partial class kraken
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/cancel_order"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -91,7 +91,7 @@ public partial class kraken
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/cancel_order"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -117,7 +117,7 @@ public partial class kraken
     /// cancel all open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/cancel_all"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_all"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -143,7 +143,7 @@ public partial class kraken
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/ticker"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -163,7 +163,7 @@ public partial class kraken
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/ticker"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -183,7 +183,7 @@ public partial class kraken
     /// watches best bid & ask for symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/ticker"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -203,7 +203,7 @@ public partial class kraken
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/trade"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -237,7 +237,7 @@ public partial class kraken
     /// get the list of most recent trades for a list of symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/trade"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -271,7 +271,7 @@ public partial class kraken
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/book"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -287,7 +287,7 @@ public partial class kraken
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -298,7 +298,7 @@ public partial class kraken
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/book"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -314,7 +314,7 @@ public partial class kraken
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(List<string> symbols, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -325,7 +325,7 @@ public partial class kraken
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/ohlc"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -364,7 +364,7 @@ public partial class kraken
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/executions"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/executions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -398,7 +398,7 @@ public partial class kraken
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/executions"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/executions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -437,7 +437,7 @@ public partial class kraken
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/websocket-v2/balances"/>  <br/>
+    /// See <see href="https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/balances"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

@@ -52,12 +52,19 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             Object symbols = symbols3;
             Object channel = channel3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
                 symbols = this.symbols;
             }
             symbols = this.marketSymbols(symbols);
+            if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
+            {
+                symbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            }
             Object marketIds = this.marketIds(symbols);
             Object url = this.implodeParams(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), new java.util.HashMap<String, Object>() {{
                 put( "hostname", UpbitCore.this.hostname );
@@ -210,7 +217,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -297,7 +304,10 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         //   "stream_type": "SNAPSHOT" }
         Object ticker = this.parseTicker(message);
         Object symbol = Helpers.GetValue(ticker, "symbol");
-        Helpers.addElementToObject(this.tickers, symbol, ticker);
+        if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+        {
+            Helpers.addElementToObject(this.tickers, symbol, ticker);
+        }
         Object messageHash = Helpers.add("ticker:", symbol);
         client.resolve(ticker, messageHash);
     }
@@ -378,6 +388,10 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         //   "stream_type": "REALTIME" }
         Object trade = this.parseTrade(message);
         Object symbol = Helpers.GetValue(trade, "symbol");
+        if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+        {
+            return;
+        }
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
@@ -531,7 +545,10 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object channel = "myOrder";
             Object messageHash = "myOrder";
             Object orders = (this.watchPrivate(symbol, channel, messageHash)).join();
@@ -564,7 +581,10 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object channel = "myOrder";
             Object messageHash = "myTrades";
             Object trades = (this.watchPrivate(symbol, channel, messageHash)).join();
@@ -586,6 +606,10 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             put( "watch", "open" );
             put( "trade", "open" );
         }};
+        if (Helpers.isTrue(Helpers.isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -754,8 +778,8 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object cachedOrders = this.orders;
-        Object orders = this.safeValue(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new java.util.HashMap<String, Object>() {{}});
-        Object order = this.safeValue(orders, orderId);
+        Object orders = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? new java.util.HashMap<String, Object>() {{}} : this.safeValue(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new java.util.HashMap<String, Object>() {{}});
+        Object order = ((Helpers.isTrue((Helpers.isEqual(orderId, null))))) ? null : this.safeValue(orders, orderId);
         if (Helpers.isTrue(!Helpers.isEqual(order, null)))
         {
             Object fee = this.safeValue(order, "fee");
@@ -793,7 +817,10 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object channel = "myAsset";
             Object messageHash = "myAsset";
             return (this.watchPrivate(null, channel, messageHash)).join();
@@ -851,7 +878,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             put( "candle.1s", "handleOHLCV");
         }};
         Object methodName = this.safeString(message, "type");
-        Object method = this.safeValue(methods, methodName);
+        Object method = ((Helpers.isTrue((Helpers.isEqual(methodName, null))))) ? null : this.safeValue(methods, methodName);
         if (Helpers.isTrue(!Helpers.isEqual(method, null)))
         {
             Helpers.callDynamically(this, method, new Object[] {client, message});

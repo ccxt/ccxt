@@ -234,6 +234,11 @@ public class CoinsphApi extends Exchange
         return this.callAsync ("privatePostOpenapiV1Order", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privatePostOpenapiV1OrderCancelReplace (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostOpenapiV1OrderCancelReplace", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privatePostOpenapiV1CapitalWithdrawApply (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOpenapiV1CapitalWithdrawApply", optionalArgs);
@@ -284,14 +289,39 @@ public class CoinsphApi extends Exchange
         return this.callAsync ("privatePostOpenapiConvertV1GetQuote", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privatePostOpenapiConvertV1AccpetQuote (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  privatePostOpenapiConvertV1AcceptQuote (Object... optionalArgs)
     {
-        return this.callAsync ("privatePostOpenapiConvertV1AccpetQuote", optionalArgs);
+        return this.callAsync ("privatePostOpenapiConvertV1AcceptQuote", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privatePostOpenapiConvertV1QueryOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOpenapiConvertV1QueryOrderHistory", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostOpenapiOtcTradeV1GetSupportedTradingPairs (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostOpenapiOtcTradeV1GetSupportedTradingPairs", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostOpenapiOtcTradeV1CreateRfq (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostOpenapiOtcTradeV1CreateRfq", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostOpenapiOtcTradeV1AcceptRfq (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostOpenapiOtcTradeV1AcceptRfq", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostOpenapiOtcTradeV1ManualSettle (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostOpenapiOtcTradeV1ManualSettle", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostOpenapiOtcTradeV1QueryOrderHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostOpenapiOtcTradeV1QueryOrderHistory", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privatePostOpenapiFiatV1SupportChannel (Object... optionalArgs)
@@ -322,6 +352,11 @@ public class CoinsphApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  privatePostOpenapiTransferV3Transfers (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOpenapiTransferV3Transfers", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostOpenapiTransferV4Transfers (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostOpenapiTransferV4Transfers", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privatePostOpenapiV1SubAccountCreate (Object... optionalArgs)

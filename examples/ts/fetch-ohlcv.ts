@@ -1,7 +1,5 @@
 import ccxt from '../../js/ccxt.js';
 
-// AUTO-TRANSPILE //
-
 async function example () {
     // eslint-disable-next-line import/no-named-as-default-member
     const myex = new ccxt.okx ({});

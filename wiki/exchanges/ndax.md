@@ -5,10 +5,12 @@
 **Kind**: global class  
 **Extends**: <code>Exchange</code>  
 
+* [fetchStatus](#fetchstatus)
 * [signIn](#signin)
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchMarkets](#fetchmarkets)
 * [fetchOrderBook](#fetchorderbook)
+* [fetchTickers](#fetchtickers)
 * [fetchTicker](#fetchticker)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTrades](#fetchtrades)
@@ -16,6 +18,7 @@
 * [fetchBalance](#fetchbalance)
 * [fetchLedger](#fetchledger)
 * [createOrder](#createorder)
+* [editOrder](#editorder)
 * [fetchMyTrades](#fetchmytrades)
 * [cancelAllOrders](#cancelallorders)
 * [cancelOrder](#cancelorder)
@@ -32,6 +35,26 @@
 * [watchTrades](#watchtrades)
 * [watchOHLCV](#watchohlcv)
 * [watchOrderBook](#watchorderbook)
+
+<a name="fetchStatus" id="fetchstatus"></a>
+
+### fetchStatus{docsify-ignore}
+the latest known information on the availability of the exchange API
+
+**Kind**: instance method of [<code>ndax</code>](#ndax)  
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
+
+**See**: https://apidoc.ndax.io/#ping  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+ndax.fetchStatus (params?)
+```
+
 
 <a name="signIn" id="signin"></a>
 
@@ -61,7 +84,7 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
 
-**See**: https://apidoc.ndax.io/#getproduct  
+**See**: https://apidoc.ndax.io/#getproducts  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -99,7 +122,7 @@ ndax.fetchMarkets (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://apidoc.ndax.io/#getl2snapshot  
 
@@ -112,6 +135,27 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 ```javascript
 ndax.fetchOrderBook (symbol, limit?, params?)
+```
+
+
+<a name="fetchTickers" id="fetchtickers"></a>
+
+### fetchTickers{docsify-ignore}
+fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+**Kind**: instance method of [<code>ndax</code>](#ndax)  
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://apidoc.ndax.io/#cmc-summary  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+ndax.fetchTickers (symbols?, params?)
 ```
 
 
@@ -269,6 +313,32 @@ create a trade order
 
 ```javascript
 ndax.createOrder (symbol, type, side, amount, price?, params?)
+```
+
+
+<a name="editOrder" id="editorder"></a>
+
+### editOrder{docsify-ignore}
+cancels an open order and places a new order
+
+**Kind**: instance method of [<code>ndax</code>](#ndax)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://apidoc.ndax.io/#cancelreplaceorder  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| type | <code>string</code> | Yes | 'market' or 'limit' |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | No | how much of currency you want to trade in units of base currency |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+ndax.editOrder (id, symbol, type, side, amount?, price?, params?)
 ```
 
 
@@ -614,7 +684,7 @@ ndax.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>ndax</code>](#ndax)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://apidoc.ndax.io/#subscribelevel2  
 

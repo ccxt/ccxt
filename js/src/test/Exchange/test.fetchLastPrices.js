@@ -10,7 +10,7 @@ import testSharedMethods from './base/test.sharedMethods.js';
 async function testFetchLastPrices(exchange, skippedProperties, symbol) {
     const method = 'fetchLastprices';
     // log ('fetching all tickers at once...')
-    let response = undefined;
+    let response = {};
     let checkedSymbol = undefined;
     try {
         response = await exchange.fetchLastPrices();

@@ -62,6 +62,7 @@ func (this *Cex) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @method
  * @name cex#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
+ * @see https://trade.cex.io/docs/#rest-public-api-calls-server-time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -183,7 +184,7 @@ func (this *Cex) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Tr
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Cex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 

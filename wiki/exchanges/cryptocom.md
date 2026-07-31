@@ -232,7 +232,7 @@ cryptocom.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book  
 
@@ -868,7 +868,7 @@ cryptocom.fetchTradingFees (params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name  
 
@@ -892,7 +892,7 @@ cryptocom.watchOrderBook (symbol, limit?, params?)
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name  
 
@@ -915,7 +915,7 @@ cryptocom.unWatchOrderBook (symbol, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name  
 
@@ -939,7 +939,7 @@ cryptocom.watchOrderBookForSymbols (symbols, limit?, params?)
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name  
 

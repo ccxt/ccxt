@@ -17,7 +17,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 // Bulding OHLCV array from trades (executions) data is a bit tricky. For example, if you want to build 100 ohlcv bars of 1-minute timeframe, then you have to fetch the 100 minutes of trading data. So, higher timeframe bars require more trading data (i.e. building 100 bars of 1-day timeframe OHLCV would require massive amount of trading data, which might not be desirable for user, because of data-usage rate limits)
 function example_with_fetch_trades() {
     return Async\async(function () {

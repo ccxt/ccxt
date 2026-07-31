@@ -48,8 +48,10 @@ async def test_fetch_currencies(exchange, skipped_properties):
             code = exchange.safe_string(currency, 'code')
             withdraw = exchange.safe_bool(currency, 'withdraw')
             deposit = exchange.safe_bool(currency, 'deposit')
-            if exchange.in_array(code, required_active_currencies):
-                assert skip_major_currency_check or (withdraw and deposit), 'Major currency ' + code + ' should have withdraw and deposit flags enabled ::: ' + exchange.json(currency)
+            is_mica_compliant = exchange.safe_bool(exchange.options, 'mica', False)
+            skip_usdt_for_mica = is_mica_compliant and code == 'USDT'
+            if exchange.in_array(code, required_active_currencies) and not skip_major_currency_check and not skip_usdt_for_mica:
+                assert withdraw and deposit, 'Major currency ' + code + ' should have withdraw and deposit flags enabled ::: ' + exchange.json(currency)
         # check at least X% of currencies are active
         inactive_currencies_percentage = (num_inactive_currencies / currencies_length) * 100
         assert skip_active or (inactive_currencies_percentage < max_inactive_currencies_percentage), 'Percentage of inactive currencies is too high at ' + str(inactive_currencies_percentage) + '% that is more than the allowed maximum of ' + str(max_inactive_currencies_percentage) + '%'

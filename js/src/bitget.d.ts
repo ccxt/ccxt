@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitget.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, NullableDict, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int, LedgerEntry, FundingRate, DepositAddress, LongShortRatio, BorrowInterest, FundingRates } from './base/types.js';
 /**
  * @class bitget
  * @augments Exchange
@@ -20,7 +20,8 @@ export default class bitget extends Exchange {
      * @param enabled
      */
     enableDemoTrading(enabled: boolean): void;
-    handleProductTypeAndParams(market?: any, params?: {}): {}[];
+    handleProductTypeAndParams(market?: Market, params?: {}): [Str, Dict];
+    handleUTAAndParams(params: any, methodName: Str, defaultValue?: boolean): Promise<any[]>;
     /**
      * @method
      * @name bitget#fetchTime
@@ -141,7 +142,7 @@ export default class bitget extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
@@ -717,7 +718,7 @@ export default class bitget extends Exchange {
         amount: number;
         id: string;
     };
-    parseFundingHistories(contracts: any, market?: any, since?: Int, limit?: Int): FundingHistory[];
+    parseFundingHistories(contracts: any, market?: Market, since?: Int, limit?: Int): FundingHistory[];
     modifyMarginHelper(symbol: string, amount: any, type: any, params?: {}): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
@@ -767,7 +768,7 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.posSide] required for uta isolated margin, long or short
      * @returns {object} response from the exchange
      */
-    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<any>;
+    setLeverage(leverage: int, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bitget#setMarginMode
@@ -792,7 +793,7 @@ export default class bitget extends Exchange {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} response from the exchange
      */
-    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<any>;
+    setPositionMode(hedged: boolean, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name bitget#fetchOpenInterest
@@ -861,7 +862,7 @@ export default class bitget extends Exchange {
         id: string;
         currency: string;
         amount: number;
-        symbol: any;
+        symbol: string;
         timestamp: any;
         datetime: any;
         info: any;
@@ -881,7 +882,7 @@ export default class bitget extends Exchange {
         id: string;
         currency: string;
         amount: number;
-        symbol: any;
+        symbol: string;
         timestamp: any;
         datetime: any;
         info: any;
@@ -901,7 +902,7 @@ export default class bitget extends Exchange {
         id: string;
         currency: string;
         amount: number;
-        symbol: any;
+        symbol: string;
         timestamp: any;
         datetime: any;
         info: any;
@@ -920,7 +921,7 @@ export default class bitget extends Exchange {
         id: string;
         currency: string;
         amount: number;
-        symbol: any;
+        symbol: string;
         timestamp: any;
         datetime: any;
         info: any;
@@ -929,7 +930,7 @@ export default class bitget extends Exchange {
         id: string;
         currency: string;
         amount: number;
-        symbol: any;
+        symbol: string;
         timestamp: any;
         datetime: any;
         info: any;
@@ -1033,7 +1034,7 @@ export default class bitget extends Exchange {
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
-    parseMarginMode(marginMode: Dict, market?: any): MarginMode;
+    parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     /**
      * @method
      * @name bitget#fetchPositionsHistory
@@ -1128,10 +1129,10 @@ export default class bitget extends Exchange {
     parseLongShortRatio(info: Dict, market?: Market): LongShortRatio;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     nonce(): number;
-    sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: string;
         method: string;
         body: any;
-        headers: any;
+        headers: Dict;
     };
 }

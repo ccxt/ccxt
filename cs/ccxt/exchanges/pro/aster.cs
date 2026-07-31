@@ -110,7 +110,10 @@ public partial class aster : ccxt.aster
     {
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchTicker";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.safeSymbol(symbol);
         object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);
         return getValue(tickers, symbol);
@@ -154,8 +157,15 @@ public partial class aster : ccxt.aster
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, true, true);
+        if (isTrue(isEqual(symbols, null)))
+        {
+            symbols = new List<object>() {};
+        }
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
         object symbolsLength = getArrayLength(symbols);
@@ -207,8 +217,15 @@ public partial class aster : ccxt.aster
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, true, true);
+        if (isTrue(isEqual(symbols, null)))
+        {
+            symbols = new List<object>() {};
+        }
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
         object symbolsLength = getArrayLength(symbols);
@@ -253,7 +270,10 @@ public partial class aster : ccxt.aster
     {
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchMarkPrice";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.safeSymbol(symbol);
         object tickers = await this.watchMarkPrices(new List<object>() {symbol}, parameters);
         return getValue(tickers, symbol);
@@ -291,8 +311,15 @@ public partial class aster : ccxt.aster
     public async override Task<object> watchMarkPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, true, true);
+        if (isTrue(isEqual(symbols, null)))
+        {
+            symbols = new List<object>() {};
+        }
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
         object symbolsLength = getArrayLength(symbols);
@@ -345,8 +372,15 @@ public partial class aster : ccxt.aster
     public async override Task<object> unWatchMarkPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, true, true);
+        if (isTrue(isEqual(symbols, null)))
+        {
+            symbols = new List<object>() {};
+        }
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
         object symbolsLength = getArrayLength(symbols);
@@ -417,8 +451,11 @@ public partial class aster : ccxt.aster
         object parsed = this.parseWsTicker(ticker, marketType);
         object symbol = getValue(parsed, "symbol");
         object messageHash = add("ticker:", symbol);
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.tickers, symbol), messageHash});
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            ((IDictionary<string,object>)this.tickers)[(string)symbol] = parsed;
+            callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.tickers, symbol), messageHash});
+        }
     }
 
     public virtual object parseWsTicker(object message, object marketType)
@@ -478,8 +515,15 @@ public partial class aster : ccxt.aster
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, true, true);
+        if (isTrue(isEqual(symbols, null)))
+        {
+            symbols = new List<object>() {};
+        }
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
         object symbolsLength = getArrayLength(symbols);
@@ -526,8 +570,15 @@ public partial class aster : ccxt.aster
     public async override Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, true, true);
+        if (isTrue(isEqual(symbols, null)))
+        {
+            symbols = new List<object>() {};
+        }
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
         object symbolsLength = getArrayLength(symbols);
@@ -573,7 +624,10 @@ public partial class aster : ccxt.aster
         object market = this.safeMarket(marketId, null, null, marketType);
         object ticker = this.parseWsBidAsk(data, market);
         object symbol = getValue(ticker, "symbol");
-        ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+        }
         object messageHash = add("bidask:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
     }
@@ -581,8 +635,9 @@ public partial class aster : ccxt.aster
     public virtual object parseWsBidAsk(object message, object market = null)
     {
         object timestamp = this.safeInteger(message, "T");
+        object bidAskSymbol = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "symbol") : null;
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", bidAskSymbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "ask", this.safeString(message, "a") },
@@ -647,7 +702,10 @@ public partial class aster : ccxt.aster
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
@@ -700,7 +758,10 @@ public partial class aster : ccxt.aster
     public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
@@ -753,6 +814,10 @@ public partial class aster : ccxt.aster
         object market = this.safeMarket(marketId, null, null, marketType);
         object parsed = this.parseWsTrade(trade, market);
         object symbol = getValue(parsed, "symbol");
+        if (isTrue(isEqual(symbol, null)))
+        {
+            return;
+        }
         if (!isTrue((inOp(this.trades, symbol))))
         {
             object limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -931,7 +996,7 @@ public partial class aster : ccxt.aster
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -951,7 +1016,7 @@ public partial class aster : ccxt.aster
      * @param {string} symbol symbol of the market to unwatch the trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -971,12 +1036,15 @@ public partial class aster : ccxt.aster
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
@@ -1023,12 +1091,15 @@ public partial class aster : ccxt.aster
      * @param {string[]} symbols unified symbol of the market to unwatch the trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object firstMarket = this.getMarketFromSymbols(symbols);
         object type = this.safeString(firstMarket, "type", "swap");
@@ -1126,7 +1197,10 @@ public partial class aster : ccxt.aster
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.safeSymbol(symbol);
         object result = await this.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframe}}, since, limit, parameters);
         return getValue(getValue(result, symbol), timeframe);
@@ -1166,7 +1240,10 @@ public partial class aster : ccxt.aster
     public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object symbolsLength = getArrayLength(symbolsAndTimeframes);
         object methodName = null;
         var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchOHLCVForSymbols");
@@ -1192,10 +1269,14 @@ public partial class aster : ccxt.aster
         {
             object data = getValue(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
+            if (isTrue(isEqual(symbolString, null)))
+            {
+                continue;
+            }
             object market = this.market(symbolString);
             symbolString = getValue(market, "symbol");
             object unfiedTimeframe = this.safeString(data, 1);
-            object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            object timeframeId = ((bool) isTrue((isEqual(unfiedTimeframe, null)))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@kline_"), timeframeId));
             ((IList<object>)messageHashes).Add(add(add(add("ohlcv:", getValue(market, "symbol")), ":"), unfiedTimeframe));
         }
@@ -1224,7 +1305,10 @@ public partial class aster : ccxt.aster
     public async override Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object symbolsLength = getArrayLength(symbolsAndTimeframes);
         object methodName = null;
         var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "unWatchOHLCVForSymbols");
@@ -1250,10 +1334,14 @@ public partial class aster : ccxt.aster
         {
             object data = getValue(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
+            if (isTrue(isEqual(symbolString, null)))
+            {
+                continue;
+            }
             object market = this.market(symbolString);
             symbolString = getValue(market, "symbol");
             object unfiedTimeframe = this.safeString(data, 1);
-            object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            object timeframeId = ((bool) isTrue((isEqual(unfiedTimeframe, null)))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@kline_"), timeframeId));
             ((IList<object>)messageHashes).Add(add(add(add("unsubscribe:ohlcv:", getValue(market, "symbol")), ":"), unfiedTimeframe));
         }
@@ -1296,6 +1384,10 @@ public partial class aster : ccxt.aster
         object kline = this.safeDict(data, "k");
         object timeframeId = this.safeString(kline, "i");
         object timeframe = this.findTimeframe(timeframeId);
+        if (isTrue(isEqual(timeframe, null)))
+        {
+            return;
+        }
         object ohlcvsByTimeframe = this.safeValue(this.ohlcvs, symbol);
         if (isTrue(isEqual(ohlcvsByTimeframe, null)))
         {
@@ -1330,7 +1422,7 @@ public partial class aster : ccxt.aster
         object listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
         if (isTrue(isGreaterThan(subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)))
         {
-            object response = null;
+            object response = new Dictionary<string, object>() {};
             if (isTrue(isEqual(type, "spot")))
             {
                 response = await this.sapiPrivatePostV3ListenKey(parameters);
@@ -1408,7 +1500,10 @@ public partial class aster : ccxt.aster
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters, type);
         type = ((IList<object>)typeparametersVariable)[0];
@@ -1564,7 +1659,10 @@ public partial class aster : ccxt.aster
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object type = "swap";
         await this.authenticate(type, parameters);
         object url = this.getPrivateUrl(type);
@@ -1630,7 +1728,7 @@ public partial class aster : ccxt.aster
         {
             object position = getValue(positions, i);
             object contracts = this.safeNumber(position, "contracts", 0);
-            if (isTrue(isGreaterThan(contracts, 0)))
+            if (isTrue(isTrue((!isEqual(contracts, null))) && isTrue((isGreaterThan(contracts, 0)))))
             {
                 callDynamically(cache, "append", new object[] {position});
             }
@@ -1786,7 +1884,10 @@ public partial class aster : ccxt.aster
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1830,7 +1931,10 @@ public partial class aster : ccxt.aster
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1907,7 +2011,8 @@ public partial class aster : ccxt.aster
                                 if (isTrue(isEqual(getValue(orderFee, "currency"), getValue(tradeFee, "currency"))))
                                 {
                                     object feeCost = this.sum(getValue(tradeFee, "cost"), getValue(orderFee, "cost"));
-                                    ((IDictionary<string,object>)getValue(getValue(order, "fees"), i))["cost"] = parseFloat(this.currencyToPrecision(getValue(tradeFee, "currency"), feeCost));
+                                    object feeCostString = this.currencyToPrecision(getValue(tradeFee, "currency"), feeCost);
+                                    ((IDictionary<string,object>)getValue(getValue(order, "fees"), i))["cost"] = ((bool) isTrue((isEqual(feeCostString, null)))) ? null : parseFloat(feeCostString);
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
@@ -1921,7 +2026,8 @@ public partial class aster : ccxt.aster
                             if (isTrue(isEqual(getValue(fee, "currency"), getValue(tradeFee, "currency"))))
                             {
                                 object feeCost = this.sum(getValue(fee, "cost"), getValue(tradeFee, "cost"));
-                                ((IDictionary<string,object>)getValue(order, "fee"))["cost"] = parseFloat(this.currencyToPrecision(getValue(tradeFee, "currency"), feeCost));
+                                object feeCostString = this.currencyToPrecision(getValue(tradeFee, "currency"), feeCost);
+                                ((IDictionary<string,object>)getValue(order, "fee"))["cost"] = ((bool) isTrue((isEqual(feeCostString, null)))) ? null : parseFloat(feeCostString);
                             } else if (isTrue(isEqual(getValue(fee, "currency"), null)))
                             {
                                 ((IDictionary<string,object>)order)["fee"] = tradeFee;
@@ -2151,7 +2257,7 @@ public partial class aster : ccxt.aster
             { "executionReport", this.handleOrderUpdate },
             { "ORDER_TRADE_UPDATE", this.handleOrderUpdate },
         };
-        object method = this.safeValue(methods, eventVar);
+        object method = ((bool) isTrue((isEqual(eventVar, null)))) ? null : this.safeValue(methods, eventVar);
         if (isTrue(!isEqual(method, null)))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, messageInner});

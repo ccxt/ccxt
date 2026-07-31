@@ -949,6 +949,12 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     public function uta_get_market_borrowable_currency($params = array()) {
         return $this->request('market/borrowable-currency', 'uta', 'GET', $params, null, null, array("cost" => 30));
     }
+    public function uta_get_user_my_ip($params = array()) {
+        return $this->request('user/my-ip', 'uta', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function uta_get_market_fiat_price($params = array()) {
+        return $this->request('market/fiat-price', 'uta', 'GET', $params, null, null, array("cost" => 6));
+    }
     public function utaprivate_get_market_orderbook($params = array()) {
         return $this->request('market/orderbook', 'utaPrivate', 'GET', $params, null, null, array("cost" => 6));
     }
@@ -1995,6 +2001,12 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     }
     public function utaGetMarketBorrowableCurrency($params = array()) {
         return $this->request('market/borrowable-currency', 'uta', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function utaGetUserMyIp($params = array()) {
+        return $this->request('user/my-ip', 'uta', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function utaGetMarketFiatPrice($params = array()) {
+        return $this->request('market/fiat-price', 'uta', 'GET', $params, null, null, array("cost" => 6));
     }
     public function utaPrivateGetMarketOrderbook($params = array()) {
         return $this->request('market/orderbook', 'utaPrivate', 'GET', $params, null, null, array("cost" => 6));

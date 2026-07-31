@@ -230,7 +230,7 @@ paradex.fetchTicker (symbol, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.paradex.trade/api/prod/markets/get-orderbook  
 
@@ -333,7 +333,7 @@ edit an open limit order or TPSL order
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.paradex.trade/api-reference/prod/orders/modify  
+**See**: https://docs.paradex.trade/api/prod/orders/modify  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

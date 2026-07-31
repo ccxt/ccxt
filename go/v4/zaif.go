@@ -80,7 +80,7 @@ func (this *ZaifCore) Describe() any {
 			"withdraw":                   true,
 		},
 		"urls": map[string]any{
-			"logo": "https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg",
+			"logo": "https://github.com/user-attachments/assets/c6c97d18-5bde-46ed-8eb1-85404d36150e",
 			"api": map[string]any{
 				"rest": "https://api.zaif.jp",
 			},
@@ -366,9 +366,11 @@ func (this *ZaifCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes3608 := (<-this.LoadMarkets())
-		PanicOnError(retRes3608)
+			retRes36112 := (<-this.LoadMarkets())
+			PanicOnError(retRes36112)
+		}
 
 		response := (<-this.PrivatePostGetInfo(params))
 		PanicOnError(response)
@@ -388,7 +390,7 @@ func (this *ZaifCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *ZaifCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -399,9 +401,11 @@ func (this *ZaifCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes3768 := (<-this.LoadMarkets())
-		PanicOnError(retRes3768)
+			retRes37912 := (<-this.LoadMarkets())
+			PanicOnError(retRes37912)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -475,9 +479,11 @@ func (this *ZaifCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes4368 := (<-this.LoadMarkets())
-		PanicOnError(retRes4368)
+			retRes44112 := (<-this.LoadMarkets())
+			PanicOnError(retRes44112)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -565,9 +571,11 @@ func (this *ZaifCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5068 := (<-this.LoadMarkets())
-		PanicOnError(retRes5068)
+			retRes51312 := (<-this.LoadMarkets())
+			PanicOnError(retRes51312)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -624,9 +632,11 @@ func (this *ZaifCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5488 := (<-this.LoadMarkets())
-		PanicOnError(retRes5488)
+			retRes55712 := (<-this.LoadMarkets())
+			PanicOnError(retRes55712)
+		}
 		if IsTrue(!IsEqual(typeVar, "limit")) {
 			panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
 		}
@@ -780,9 +790,11 @@ func (this *ZaifCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6678 := (<-this.LoadMarkets())
-		PanicOnError(retRes6678)
+			retRes67812 := (<-this.LoadMarkets())
+			PanicOnError(retRes67812)
+		}
 		var market any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -824,9 +836,11 @@ func (this *ZaifCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6938 := (<-this.LoadMarkets())
-		PanicOnError(retRes6938)
+			retRes70612 := (<-this.LoadMarkets())
+			PanicOnError(retRes70612)
+		}
 		var market any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -869,9 +883,11 @@ func (this *ZaifCore) Withdraw(code any, amount any, address any, optionalArgs .
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7288 := (<-this.LoadMarkets())
-		PanicOnError(retRes7288)
+			retRes74312 := (<-this.LoadMarkets())
+			PanicOnError(retRes74312)
+		}
 		var currency any = this.Currency(code)
 		if IsTrue(IsEqual(code, "JPY")) {
 			panic(ExchangeError(Add(Add(Add(this.Id, " withdraw() does not allow "), code), " withdrawals")))

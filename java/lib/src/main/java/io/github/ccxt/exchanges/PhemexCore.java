@@ -615,9 +615,9 @@ public class PhemexCore extends PhemexApi
         {
             return value;
         }
-        Object parts = Helpers.split(value, ",");
+        Object parts = Helpers.split(((String)value), ",");
         value = String.join((String)"", (java.util.List<String>)parts);
-        parts = Helpers.split(value, " ");
+        parts = Helpers.split(((String)value), " ");
         return this.safeNumber(parts, 0);
     }
 
@@ -678,7 +678,7 @@ public class PhemexCore extends PhemexApi
         Object quoteId = this.safeString(market, "quoteCurrency");
         Object settleId = this.safeString(market, "settleCurrency");
         Object base = this.safeCurrencyCode(baseId);
-        base = Helpers.replace((String)base, (String)" ", (String)""); // replace space for junction codes, eg. `1000 SHIB`
+        base = Helpers.replace((String)((String)base), (String)" ", (String)""); // replace space for junction codes, eg. `1000 SHIB`
         Object quote = this.safeCurrencyCode(quoteId);
         Object settle = this.safeCurrencyCode(settleId);
         Object inverse = false;
@@ -699,7 +699,7 @@ public class PhemexCore extends PhemexApi
         Object makerFeeRateEr = this.safeString(market, "makerFeeRateEr");
         Object takerFeeRateEr = this.safeString(market, "takerFeeRateEr");
         Object status = this.safeString(market, "status");
-        Object contractSizeString = this.safeString(market, "contractSize", " ");
+        Object contractSizeString = ((String)this.safeString(market, "contractSize", " "));
         Object contractSize = null;
         if (Helpers.isTrue(Helpers.isEqual(settle, "USDT")))
         {
@@ -1106,15 +1106,15 @@ public class PhemexCore extends PhemexApi
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "perpetual"))) || Helpers.isTrue((Helpers.isEqual(type, "perpetualv2")))) || Helpers.isTrue((Helpers.isEqual(type, "perpetualpilot")))))
                 {
                     Object id = this.safeString(market, "symbol");
-                    Object riskLimitValues = this.safeDict(riskLimitsById, id, new java.util.HashMap<String, Object>() {{}});
+                    Object riskLimitValues = this.safeDict(riskLimitsById, ((String)id), new java.util.HashMap<String, Object>() {{}});
                     market = this.extend(market, riskLimitValues);
-                    Object v1ProductsValues = this.safeDict(v1ProductsById, id, new java.util.HashMap<String, Object>() {{}});
+                    Object v1ProductsValues = this.safeDict(v1ProductsById, ((String)id), new java.util.HashMap<String, Object>() {{}});
                     market = this.extend(market, v1ProductsValues);
                     market = this.parseSwapMarket(market);
                 } else
                 {
                     Object baseCurrency = this.safeString(market, "baseCurrency");
-                    Object currencyValues = this.safeDict(currenciesByCode, baseCurrency, new java.util.HashMap<String, Object>() {{}});
+                    Object currencyValues = this.safeDict(currenciesByCode, ((String)baseCurrency), new java.util.HashMap<String, Object>() {{}});
                     Object valueScale = this.safeString(currencyValues, "valueScale", "8");
                     market = this.extend(market, new java.util.HashMap<String, Object>() {{
                         put( "valueScale", valueScale );
@@ -1168,7 +1168,7 @@ public class PhemexCore extends PhemexApi
         Object id = this.safeString(rawCurrency, "currency");
         Object code = this.safeCurrencyCode(id);
         Object valueScaleString = this.safeString(rawCurrency, "valueScale");
-        Object valueScale = Helpers.parseInt(valueScaleString);
+        Object valueScale = Helpers.parseInt(((String)valueScaleString));
         Object minValueEv = this.safeString(rawCurrency, "minValueEv");
         Object maxValueEv = this.safeString(rawCurrency, "maxValueEv");
         Object minAmount = null;
@@ -1267,7 +1267,7 @@ public class PhemexCore extends PhemexApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -1276,7 +1276,10 @@ public class PhemexCore extends PhemexApi
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1334,7 +1337,7 @@ public class PhemexCore extends PhemexApi
     public Object toEn(Object n, Object scale)
     {
         Object stringN = this.numberToString(n);
-        var precise = new Precise(stringN);
+        var precise = new Precise(((String)stringN));
         precise.decimals = Helpers.subtract(precise.decimals, scale);
         precise.reduce();
         Object preciseString = String.valueOf(precise);
@@ -1453,7 +1456,10 @@ public class PhemexCore extends PhemexApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object userLimit = limit;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -1650,7 +1656,10 @@ public class PhemexCore extends PhemexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1737,7 +1746,10 @@ public class PhemexCore extends PhemexApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
@@ -1789,7 +1801,10 @@ public class PhemexCore extends PhemexApi
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -2072,7 +2087,7 @@ public class PhemexCore extends PhemexApi
                 priceString = this.safeString(trade, "execPriceRp");
                 amountString = this.safeString(trade, "execQtyRq");
                 costString = this.safeString(trade, "execValueRv");
-                feeCostString = this.omitZero(this.safeString(trade, "execFeeRv"));
+                feeCostString = this.omitZero(((String)this.safeString(trade, "execFeeRv")));
                 feeRateString = this.safeString(trade, "feeRateRr");
                 if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
                 {
@@ -2080,7 +2095,7 @@ public class PhemexCore extends PhemexApi
                     feeCurrencyCode = this.safeCurrencyCode(currencyId);
                 } else
                 {
-                    Object ptFeeRv = this.omitZero(this.safeString(trade, "ptFeeRv"));
+                    Object ptFeeRv = this.omitZero(((String)this.safeString(trade, "ptFeeRv")));
                     if (Helpers.isTrue(!Helpers.isEqual(ptFeeRv, null)))
                     {
                         feeCostString = ptFeeRv;
@@ -2100,7 +2115,7 @@ public class PhemexCore extends PhemexApi
                 amountString = this.fromEv(this.safeString(trade, "execBaseQtyEv"), market);
                 amountString = this.safeString(trade, "execQty", amountString);
                 costString = this.fromEr(this.safeString2(trade, "execQuoteQtyEv", "execValueEv"), market);
-                feeCostString = this.fromEr(this.omitZero(this.safeString(trade, "execFeeEv")), market);
+                feeCostString = this.fromEr(this.omitZero(((String)this.safeString(trade, "execFeeEv"))), market);
                 if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
                 {
                     feeRateString = this.fromEr(this.safeString(trade, "feeRateEr"), market);
@@ -2197,7 +2212,7 @@ public class PhemexCore extends PhemexApi
             Object balance = Helpers.GetValue(data, i);
             Object currencyId = this.safeString(balance, "currency");
             Object code = this.safeCurrencyCode(currencyId);
-            Object currency = this.safeValue(this.currencies, code, new java.util.HashMap<String, Object>() {{}});
+            Object currency = this.safeValue(this.currencies, ((String)code), new java.util.HashMap<String, Object>() {{}});
             Object scale = this.safeInteger(currency, "valueScale", 8);
             Object account = this.account();
             Object balanceEv = this.safeString(balance, "balanceEv");
@@ -2211,7 +2226,7 @@ public class PhemexCore extends PhemexApi
             timestamp = ((Helpers.isTrue((Helpers.isEqual(timestamp, null))))) ? lastUpdateTimeNs : Helpers.mathMax(timestamp, lastUpdateTimeNs);
             Helpers.addElementToObject(account, "total", total);
             Helpers.addElementToObject(account, "used", used);
-            Helpers.addElementToObject(result, code, account);
+            Helpers.addElementToObject(result, ((String)code), account);
         }
         Helpers.addElementToObject(result, "timestamp", timestamp);
         Helpers.addElementToObject(result, "datetime", this.iso8601(timestamp));
@@ -2257,7 +2272,7 @@ public class PhemexCore extends PhemexApi
         Object balance = this.safeValue(data, "account", new java.util.HashMap<String, Object>() {{}});
         Object currencyId = this.safeString(balance, "currency");
         Object code = this.safeCurrencyCode(currencyId);
-        Object currency = this.currency(code);
+        Object currency = this.currency(((String)code));
         Object valueScale = this.safeInteger(currency, "valueScale", 8);
         Object account = this.account();
         Object accountBalanceEv = this.safeString2(balance, "accountBalanceEv", "accountBalanceRv");
@@ -2265,7 +2280,7 @@ public class PhemexCore extends PhemexApi
         Object needsConversion = (!Helpers.isEqual(code, "USDT"));
         Helpers.addElementToObject(account, "total", ((Helpers.isTrue(needsConversion))) ? this.fromEn(accountBalanceEv, valueScale) : accountBalanceEv);
         Helpers.addElementToObject(account, "used", ((Helpers.isTrue(needsConversion))) ? this.fromEn(totalUsedBalanceEv, valueScale) : totalUsedBalanceEv);
-        Helpers.addElementToObject(result, code, account);
+        Helpers.addElementToObject(result, ((String)code), account);
         return this.safeBalance(result);
     }
 
@@ -2287,7 +2302,10 @@ public class PhemexCore extends PhemexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object type = null;
             var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
@@ -2316,7 +2334,7 @@ public class PhemexCore extends PhemexApi
                     {
                         coin = settle;
                     }
-                    Object currency = this.currency(coin);
+                    Object currency = this.currency(((String)coin));
                     Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
                     if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(currency, "id"), "USDT")))
                     {
@@ -2486,7 +2504,7 @@ public class PhemexCore extends PhemexApi
             put( "7", "closed" );
             put( "8", "canceled" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrderType(Object type)
@@ -2505,7 +2523,7 @@ public class PhemexCore extends PhemexApi
             put( "Limit", "limit" );
             put( "Market", "market" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseTimeInForce(Object timeInForce)
@@ -2516,7 +2534,7 @@ public class PhemexCore extends PhemexApi
             put( "ImmediateOrCancel", "IOC" );
             put( "FillOrKill", "FOK" );
         }};
-        return this.safeString(timeInForces, timeInForce, timeInForce);
+        return this.safeString(timeInForces, ((String)timeInForce), timeInForce);
     }
 
     public Object parseSpotOrder(Object order, Object... optionalArgs)
@@ -2783,7 +2801,7 @@ public class PhemexCore extends PhemexApi
             lastTradeTimestamp = null;
         }
         Object timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
-        Object triggerPrice = this.omitZero(this.safeString2(order, "stopPx", "stopPxRp"));
+        Object triggerPrice = this.omitZero(((String)this.safeString2(order, "stopPx", "stopPxRp")));
         Object postOnly = (Helpers.isEqual(timeInForce, "PO"));
         Object reduceOnly = this.safeValue(order, "reduceOnly");
         Object execInst = this.safeString(order, "execInst");
@@ -2793,8 +2811,8 @@ public class PhemexCore extends PhemexApi
         }
         Object takeProfit = this.safeString(order, "takeProfitRp");
         Object stopLoss = this.safeString(order, "stopLossRp");
-        Object feeValue = this.omitZero(this.safeString(order, "execFeeRv"));
-        Object ptFeeRv = this.omitZero(this.safeString(order, "ptFeeRv"));
+        Object feeValue = this.omitZero(((String)this.safeString(order, "execFeeRv")));
+        Object ptFeeRv = this.omitZero(((String)this.safeString(order, "ptFeeRv")));
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeValue, null)))
         {
@@ -2889,9 +2907,12 @@ public class PhemexCore extends PhemexApi
             Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
-            Object requestSide = this.capitalize(side);
+            Object requestSide = this.capitalize(((String)side));
             type = this.capitalize(type);
             final Object finalType = type;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -2969,11 +2990,11 @@ public class PhemexCore extends PhemexApi
                         }
                     }
                     cost = ((Helpers.isTrue((Helpers.isEqual(cost, null))))) ? amount : cost;
-                    Object costString = this.numberToString(cost);
+                    Object costString = this.costToPrecision(symbol, cost);
                     Helpers.addElementToObject(request, "quoteQtyEv", this.toEv(costString, market));
                 } else
                 {
-                    Object amountString = this.numberToString(amount);
+                    Object amountString = this.amountToPrecision(symbol, amount);
                     Helpers.addElementToObject(request, "baseQtyEv", this.toEv(amountString, market));
                 }
             } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
@@ -3245,7 +3266,10 @@ public class PhemexCore extends PhemexApi
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3342,7 +3366,10 @@ public class PhemexCore extends PhemexApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3398,7 +3425,10 @@ public class PhemexCore extends PhemexApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object trigger = this.safeValue2(parameters, "stop", "trigger", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
@@ -3449,7 +3479,10 @@ public class PhemexCore extends PhemexApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3524,7 +3557,10 @@ public class PhemexCore extends PhemexApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3578,12 +3614,18 @@ public class PhemexCore extends PhemexApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3646,7 +3688,10 @@ public class PhemexCore extends PhemexApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -3670,7 +3715,7 @@ public class PhemexCore extends PhemexApi
             {
                 Helpers.addElementToObject(request, "currency", this.safeString(parameters, "settle", "USDT"));
                 response = (this.privateGetExchangeOrderV2OrderList(this.extend(request, parameters))).join();
-            } else if (Helpers.isTrue(Helpers.GetValue(market, "swap")))
+            } else if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(market, null)) && Helpers.isTrue(Helpers.GetValue(market, "swap"))))
             {
                 response = (this.privateGetExchangeOrderList(this.extend(request, parameters))).join();
             } else
@@ -3748,7 +3793,10 @@ public class PhemexCore extends PhemexApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -3773,7 +3821,7 @@ public class PhemexCore extends PhemexApi
                 {
                     Helpers.addElementToObject(request, "limit", 200);
                 }
-            } else if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            } else if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(symbol, null)) && Helpers.isTrue(!Helpers.isEqual(market, null))))
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
@@ -3926,7 +3974,10 @@ public class PhemexCore extends PhemexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
@@ -3935,7 +3986,7 @@ public class PhemexCore extends PhemexApi
             Object defaultNetwork = this.safeStringUpper(defaultNetworks, code);
             Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
             Object network = this.safeStringUpper2(parameters, "network", "chainName", defaultNetwork);
-            network = this.safeString(networks, network, network);
+            network = this.safeString(networks, ((String)network), network);
             if (Helpers.isTrue(Helpers.isEqual(network, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() requires a network parameter")) ;
@@ -3994,7 +4045,10 @@ public class PhemexCore extends PhemexApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -4046,7 +4100,10 @@ public class PhemexCore extends PhemexApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -4098,7 +4155,7 @@ public class PhemexCore extends PhemexApi
             put( "Confirmed", "pending" );
             put( "Cancelled", "canceled" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseTransaction(Object transaction, Object... optionalArgs)
@@ -4249,7 +4306,10 @@ public class PhemexCore extends PhemexApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object subType = null;
             Object code = this.safeString2(parameters, "currency", "code", "USDT");
@@ -4413,7 +4473,10 @@ public class PhemexCore extends PhemexApi
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object request = new java.util.HashMap<String, Object>() {{
@@ -4668,7 +4731,10 @@ public class PhemexCore extends PhemexApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingHistory() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -4740,7 +4806,7 @@ public class PhemexCore extends PhemexApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object currencyCode = Helpers.getArg(optionalArgs, 1, null);
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(value, null)) || Helpers.isTrue(Helpers.isEqual(currencyCode, null))))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(value, null)) || Helpers.isTrue(Helpers.isEqual(currencyCode, null))) || Helpers.isTrue(Helpers.isEqual(market, null))))
         {
             return value;
         }
@@ -4770,7 +4836,10 @@ public class PhemexCore extends PhemexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
             {
@@ -4901,7 +4970,10 @@ public class PhemexCore extends PhemexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -4927,7 +4999,7 @@ public class PhemexCore extends PhemexApi
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "0", "ok" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseMarginModification(Object data, Object... optionalArgs)
@@ -4979,7 +5051,10 @@ public class PhemexCore extends PhemexApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
             {
@@ -5037,7 +5112,10 @@ public class PhemexCore extends PhemexApi
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredArgument("setPositionMode", symbol, "symbol");
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT")))
             {
@@ -5073,7 +5151,10 @@ public class PhemexCore extends PhemexApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object first = this.safeValue(symbols, 0);
@@ -5306,7 +5387,10 @@ final Object finalI = i;
             {
                 throw new BadRequest((String)Helpers.add(this.id, " setLeverage() leverage should be between -100 and 100")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object isHedged = this.safeBool(parameters, "hedged", false);
             Object longLeverageRr = this.safeInteger(parameters, "longLeverageRr");
             Object shortLeverageRr = this.safeInteger(parameters, "shortLeverageRr");
@@ -5358,7 +5442,10 @@ final Object finalI = i;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object accountsByType = this.safeValue(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
             Object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -5465,7 +5552,10 @@ final Object finalI = i;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTransfers() requires a code argument")) ;
@@ -5580,7 +5670,7 @@ final Object finalI = i;
             put( "10", "ok" );
             put( "11", "failed" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     /**
@@ -5609,7 +5699,10 @@ final Object finalI = i;
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object isUsdtSettled = Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT")) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC"));
             if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
@@ -5716,7 +5809,10 @@ final Object finalI = i;
             var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             this.checkAddress(address);
             Object currency = this.currency(code);
             Object networkCode = null;
@@ -5799,7 +5895,10 @@ final Object finalI = i;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
             {
@@ -5888,7 +5987,10 @@ final Object finalI = i;
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object fromCurrency = this.currency(fromCode);
             Object toCurrency = this.currency(toCode);
             Object valueScale = this.safeInteger(fromCurrency, "valueScale");
@@ -5941,7 +6043,10 @@ final Object finalI = i;
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object fromCurrency = this.currency(fromCode);
             Object toCurrency = this.currency(toCode);
             Object valueScale = this.safeInteger(fromCurrency, "valueScale");
@@ -6003,7 +6108,10 @@ final Object finalI = i;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -6152,7 +6260,10 @@ final Object finalI = i;
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object subType = null;
             Object code = this.safeString2(parameters, "currency", "code", "USDT");

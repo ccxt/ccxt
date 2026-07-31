@@ -1,5 +1,5 @@
 import Exchange from './abstract/delta.js';
-import type { Balances, Currency, Greeks, Int, Market, MarketInterface, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL } from './base/types.js';
+import type { Balances, Currency, Greeks, Int, Market, MarketInterface, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL } from './base/types.js';
 /**
  * @class delta
  * @augments Exchange
@@ -80,7 +80,7 @@ export default class delta extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTrade(trade: Dict, market?: Market): Trade;
@@ -399,7 +399,19 @@ export default class delta extends Exchange {
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
-    parseMarginMode(marginMode: Dict, market?: any): MarginMode;
+    parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
+    /**
+     * @method
+     * @name delta#setMarginMode
+     * @description set margin mode to 'isolated' or 'portfolio'
+     * @see https://docs.delta.exchange/#change-margin-mode
+     * @param {string} marginMode 'isolated' or 'portfolio'
+     * @param {string} [symbol] not used by delta.setMarginMode
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.subaccount_user_id the user id of the subaccount
+     * @returns {object} response from the exchange
+     */
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
     /**
      * @method
      * @name delta#fetchOption
@@ -422,11 +434,11 @@ export default class delta extends Exchange {
      */
     fetchPositionsADLRank(symbols?: Strings, params?: {}): Promise<ADL[]>;
     parseADLRank(info: Dict, market?: Market): ADL;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: string;
         method: string;
         body: any;
-        headers: any;
+        headers: Dict;
     };
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

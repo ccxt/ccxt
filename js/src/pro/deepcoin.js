@@ -105,7 +105,7 @@ export default class deepcoin extends deepcoinRest {
     createPublicRequest(market, requestId, topicID, suffix = '', unWatch = false) {
         let marketId = market['symbol']; // spot markets use symbol with slash
         if (market['type'] === 'swap') {
-            marketId = market['baseId'] + market['quoteId']; // swap markets use symbol without slash
+            marketId = this.safeString(market, 'baseId', '') + this.safeString(market, 'quoteId', ''); // swap markets use symbol without slash
         }
         let action = '1'; // subscribe
         if (unWatch) {
@@ -116,7 +116,7 @@ export default class deepcoin extends deepcoinRest {
                 'Action': action,
                 'FilterValue': 'DeepCoin_' + marketId + suffix,
                 'LocalNo': requestId,
-                'ResumeNo': -1,
+                'ResumeNo': -1, // -1 from the end, 0 from the beginning
                 'TopicID': topicID,
             },
         };
@@ -198,7 +198,9 @@ export default class deepcoin extends deepcoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'ticker' + '::' + market['symbol'];
         return await this.watchPublic(market, messageHash, '7', params);
@@ -213,7 +215,9 @@ export default class deepcoin extends deepcoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'ticker' + '::' + market['symbol'];
         const subscription = {
@@ -295,13 +299,13 @@ export default class deepcoin extends deepcoinRest {
         const ask = this.safeNumber(ticker, 'AP1');
         let baseVolume = this.safeNumber(ticker, 'V');
         let quoteVolume = this.safeNumber(ticker, 'T');
-        if (market['inverse']) {
+        if (this.safeBool(market, 'inverse')) {
             const temp = baseVolume;
             baseVolume = quoteVolume;
             quoteVolume = temp;
         }
         return this.safeTicker({
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'high': high,
@@ -335,7 +339,9 @@ export default class deepcoin extends deepcoinRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'trades' + '::' + market['symbol'];
         const trades = await this.watchPublic(market, messageHash, '2', params);
@@ -354,7 +360,9 @@ export default class deepcoin extends deepcoinRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTrades(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'trades' + '::' + market['symbol'];
         const subscription = {
@@ -450,7 +458,7 @@ export default class deepcoin extends deepcoinRest {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'id': this.safeString2(trade, 'TradeID', 'TI'),
             'order': this.safeString(trade, 'OS'),
             'type': undefined,
@@ -489,7 +497,9 @@ export default class deepcoin extends deepcoinRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const timeframes = this.safeDict(this.options, 'timeframes', {});
@@ -513,7 +523,9 @@ export default class deepcoin extends deepcoinRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const timeframes = this.safeDict(this.options, 'timeframes', {});
@@ -604,10 +616,12 @@ export default class deepcoin extends deepcoinRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'orderbook' + '::' + market['symbol'];
         const suffix = '_0.1';
@@ -621,10 +635,12 @@ export default class deepcoin extends deepcoinRest {
      * @see https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'orderbook' + '::' + market['symbol'];
         const suffix = '_0.1';
@@ -704,7 +720,7 @@ export default class deepcoin extends deepcoinRest {
                 orderedEntries['asks'].push([price, volume]);
             }
         }
-        const timestamp = this.safeInteger(message, 'mt');
+        const timestamp = this.safeInteger(message, 'mt', 0);
         const snapshot = this.parseOrderBook(orderedEntries, symbol, timestamp);
         orderbook.reset(snapshot);
         const cachedMessages = orderbook.cache;
@@ -732,7 +748,7 @@ export default class deepcoin extends deepcoinRest {
         //         "mt": 1760975816446
         //     }
         //
-        const timestamp = this.safeInteger(message, 'mt');
+        const timestamp = this.safeInteger(message, 'mt', 0);
         if (timestamp > orderbook['timestamp']) {
             const response = this.safeList(message, 'r', []);
             this.handleDeltas(orderbook, response);
@@ -769,7 +785,9 @@ export default class deepcoin extends deepcoinRest {
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let messageHash = 'myTrades';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol !== undefined) {
             symbol = this.symbol(symbol);
             messageHash += '::' + symbol;
@@ -844,7 +862,9 @@ export default class deepcoin extends deepcoinRest {
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let messageHash = 'orders';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol !== undefined) {
             symbol = this.symbol(symbol);
             messageHash += '::' + symbol;
@@ -939,7 +959,7 @@ export default class deepcoin extends deepcoinRest {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.safeTimestamp(order, 'U'),
             'status': this.parseWsOrderStatus(state),
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'type': undefined,
             'timeInForce': undefined,
             'side': this.parseTradeSide(direction),
@@ -979,7 +999,9 @@ export default class deepcoin extends deepcoinRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const listenKey = await this.authenticate();
         symbols = this.marketSymbols(symbols);
         const messageHash = 'positions';
@@ -1063,7 +1085,7 @@ export default class deepcoin extends deepcoinRest {
         const direction = this.safeString(position, 'p');
         const marginMode = this.safeString(position, 'i');
         return this.safePosition({
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),

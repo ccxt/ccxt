@@ -159,6 +159,11 @@ public class DeltaApi extends Exchange
         return this.callAsync ("privateGetProfile", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privateGetRateLimitsQuota (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetRateLimitsQuota", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privateGetHeartbeat (Object... optionalArgs)
     {
         return this.callAsync ("privateGetHeartbeat", optionalArgs);
@@ -252,6 +257,11 @@ public class DeltaApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  privatePutUsersResetMmp (Object... optionalArgs)
     {
         return this.callAsync ("privatePutUsersResetMmp", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePutUsersMarginMode (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutUsersMarginMode", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privateDeleteOrders (Object... optionalArgs)

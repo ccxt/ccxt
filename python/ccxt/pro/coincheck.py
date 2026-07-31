@@ -57,13 +57,14 @@ class coincheck(ccxt.async_support.coincheck):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'orderbook:' + market['symbol']
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'type': 'subscribe',
             'channel': market['id'] + '-orderbook',
         }
@@ -118,12 +119,13 @@ class coincheck(ccxt.async_support.coincheck):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'trade:' + market['symbol']
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'type': 'subscribe',
             'channel': market['id'] + '-trades',
         }

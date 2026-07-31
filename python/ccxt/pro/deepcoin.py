@@ -105,10 +105,10 @@ class deepcoin(ccxt.async_support.deepcoin):
         self.unlock_id()
         return newValue
 
-    def create_public_request(self, market: Market, requestId: float, topicID: str, suffix: str = '', unWatch: bool = False):
+    def create_public_request(self, market, requestId: float, topicID: str, suffix: str = '', unWatch: bool = False):
         marketId = market['symbol']  # spot markets use symbol with slash
         if market['type'] == 'swap':
-            marketId = market['baseId'] + market['quoteId']  # swap markets use symbol without slash
+            marketId = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')  # swap markets use symbol without slash
         action = '1'  # subscribe
         if unWatch:
             action = '0'  # unsubscribe
@@ -123,7 +123,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return request
 
-    async def watch_public(self, market: Market, messageHash: str, topicID: str, params: dict = {}, suffix: str = '') -> Any:
+    async def watch_public(self, market, messageHash: str, topicID: str, params: dict = {}, suffix: str = '') -> Any:
         url = self.urls['api']['ws']['public'][market['type']]
         requestId = self.request_id()
         request = self.create_public_request(market, requestId, topicID, suffix)
@@ -133,7 +133,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         }
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash, subscription)
 
-    async def un_watch_public(self, market: Market, messageHash: str, topicID: str, params: dict = {}, subscription: dict = {}, suffix: str = '') -> Any:
+    async def un_watch_public(self, market, messageHash: str, topicID: str, params: dict = {}, subscription: dict = {}, suffix: str = '') -> Any:
         url = self.urls['api']['ws']['public'][market['type']]
         requestId = self.request_id()
         client = self.client(url)
@@ -171,7 +171,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             if getNewKey:
                 response = await self.privateGetDeepcoinListenkeyAcquire(params)
             else:
-                request: dict = {
+                request = {
                     'listenkey': listenKey,
                 }
                 response = await self.privateGetDeepcoinListenkeyExtend(self.extend(request, params))
@@ -193,7 +193,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'ticker' + '::' + market['symbol']
         return await self.watch_public(market, messageHash, '7', params)
@@ -208,7 +209,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'ticker' + '::' + market['symbol']
         subscription = {
@@ -290,12 +292,12 @@ class deepcoin(ccxt.async_support.deepcoin):
         ask = self.safe_number(ticker, 'AP1')
         baseVolume = self.safe_number(ticker, 'V')
         quoteVolume = self.safe_number(ticker, 'T')
-        if market['inverse']:
+        if self.safe_bool(market, 'inverse'):
             temp = baseVolume
             baseVolume = quoteVolume
             quoteVolume = temp
         return self.safe_ticker({
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': high,
@@ -329,7 +331,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'trades' + '::' + market['symbol']
         trades = await self.watch_public(market, messageHash, '2', params)
@@ -347,7 +350,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'trades' + '::' + market['symbol']
         subscription = {
@@ -440,7 +444,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'id': self.safe_string_2(trade, 'TradeID', 'TI'),
             'order': self.safe_string(trade, 'OS'),
             'type': None,
@@ -479,7 +483,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         timeframes = self.safe_dict(self.options, 'timeframes', {})
@@ -502,7 +507,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         timeframes = self.safe_dict(self.options, 'timeframes', {})
@@ -591,9 +597,10 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'orderbook' + '::' + market['symbol']
         suffix = '_0.1'
@@ -608,9 +615,10 @@ class deepcoin(ccxt.async_support.deepcoin):
 
         :param str symbol: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'orderbook' + '::' + market['symbol']
         suffix = '_0.1'
@@ -666,7 +674,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         market = self.safe_market(marketId, None, '/')
         symbol = self.safe_symbol(marketId, market)
         orderbook = self.orderbooks[symbol]
-        orderedEntries: dict = {
+        orderedEntries = {
             'bids': [],
             'asks': [],
         }
@@ -682,7 +690,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             elif side == '1':
                 # ask
                 orderedEntries['asks'].append([price, volume])
-        timestamp = self.safe_integer(message, 'mt')
+        timestamp = self.safe_integer(message, 'mt', 0)
         snapshot = self.parse_order_book(orderedEntries, symbol, timestamp)
         orderbook.reset(snapshot)
         cachedMessages = orderbook.cache
@@ -709,7 +717,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         #         "mt": 1760975816446
         #     }
         #
-        timestamp = self.safe_integer(message, 'mt')
+        timestamp = self.safe_integer(message, 'mt', 0)
         if timestamp > orderbook['timestamp']:
             response = self.safe_list(message, 'r', [])
             self.handle_deltas(orderbook, response)
@@ -743,7 +751,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         messageHash = 'myTrades'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbol is not None:
             symbol = self.symbol(symbol)
             messageHash += '::' + symbol
@@ -814,7 +823,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         messageHash = 'orders'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbol is not None:
             symbol = self.symbol(symbol)
             messageHash += '::' + symbol
@@ -905,7 +915,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             'lastTradeTimestamp': None,
             'lastUpdateTimestamp': self.safe_timestamp(order, 'U'),
             'status': self.parse_ws_order_status(state),
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'type': None,
             'timeInForce': None,
             'side': self.parse_trade_side(direction),
@@ -945,7 +955,8 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         listenKey = await self.authenticate()
         symbols = self.market_symbols(symbols)
         messageHash = 'positions'
@@ -1023,7 +1034,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         direction = self.safe_string(position, 'p')
         marginMode = self.safe_string(position, 'i')
         return self.safe_position({
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'id': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1031,7 +1042,7 @@ class deepcoin(ccxt.async_support.deepcoin):
             'contractSize': None,
             'side': self.parse_position_side(direction),
             'notional': None,
-            'leverage': self.omit_zero(self.safe_string(position, 'l')),
+            'leverage': self.omit_zero((self.safe_string(position, 'l'))),
             'unrealizedPnl': None,
             'realizedPnl': None,
             'collateral': None,

@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 import io.github.ccxt.base.Precise;
 
@@ -11,8 +12,23 @@ import io.github.ccxt.base.Precise;
 
 
 public class TestTicker extends BaseTest {
-    public static void testTicker(Exchange exchange, Object skippedProperties, Object method, Object entry, Object symbol)
+    public static void testTicker(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object symbol)
     {
+        // prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
+        // books where bid==ask and a stale `last` far from the median are normal — skip the
+        // crypto-oriented price-relationship checks for them. the PredictionTicker type also
+        // omits vwap/previousClose entirely, so their presence must not be Asserted
+        if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
+        {
+            skippedProperties = exchange.extend(new java.util.HashMap<String, Object>() {{
+                put( "symbol", true );
+                put( "spread", true );
+                put( "lastBetweenBidAsk", true );
+                put( "maxIncrease", true );
+                put( "vwap", true );
+                put( "previousClose", true );
+            }}, skippedProperties);
+        }
         Object format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "symbol", "ETH/BTC" );
@@ -105,12 +121,12 @@ public class TestTicker extends BaseTest {
         //
         // base & quote volumes
         //
-        Object baseVolume = exchange.omitZero(exchange.safeString(entry, "baseVolume"));
-        Object quoteVolume = exchange.omitZero(exchange.safeString(entry, "quoteVolume"));
-        Object high = exchange.omitZero(exchange.safeString(entry, "high"));
-        Object low = exchange.omitZero(exchange.safeString(entry, "low"));
-        Object open = exchange.omitZero(exchange.safeString(entry, "open"));
-        Object close = exchange.omitZero(exchange.safeString(entry, "close"));
+        Object baseVolume = exchange.omitZero(((String)exchange.safeString(entry, "baseVolume")));
+        Object quoteVolume = exchange.omitZero(((String)exchange.safeString(entry, "quoteVolume")));
+        Object high = exchange.omitZero(((String)exchange.safeString(entry, "high")));
+        Object low = exchange.omitZero(((String)exchange.safeString(entry, "low")));
+        Object open = exchange.omitZero(((String)exchange.safeString(entry, "open")));
+        Object close = exchange.omitZero(((String)exchange.safeString(entry, "close")));
         if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "compareQuoteVolumeBaseVolume"))))
         {
             // Assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
@@ -178,7 +194,7 @@ public class TestTicker extends BaseTest {
         Object bidString = exchange.safeString(entry, "bid");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(askString, null))) && Helpers.isTrue((!Helpers.isEqual(bidString, null)))) && !Helpers.isTrue((Helpers.inOp(skippedProperties, "spread")))))
         {
-            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "ask", exchange.safeString(entry, "bid"));
+            TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "ask", ((String)exchange.safeString(entry, "bid")));
         }
         // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
         Object allowedPercentageVariation = "0.01";

@@ -77,6 +77,10 @@ Welcome to the ccxt wiki!
 
 - [CCXT Pro](https://github.com/ccxt/ccxt/wiki/ccxt.pro)
 
+## AI Agents
+
+- [AI Skills](https://github.com/ccxt/ccxt/wiki/AI-Skills)
+
 ## Troubleshooting
 
 - [Frequently Asked Questions](https://github.com/ccxt/ccxt/wiki/FAQ)

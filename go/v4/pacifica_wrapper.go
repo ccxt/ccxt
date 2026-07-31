@@ -30,8 +30,9 @@ func NewPacificaFromCore(core *PacificaCore) *Pacifica {
  * @method
  * @name pacifica#fetchMarkets
  * @description retrieves data on all markets for pacifica
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-market-info
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} an array of objects representing market data
+ * @returns {object[]} an array of [market structures](https://docs.ccxt.com/#/?id=market-structure)
  */
 func (this *Pacifica) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarkets(params...)
@@ -78,6 +79,7 @@ func (this *Pacifica) FetchBalance(params ...any) (Balances, error) {
  * @method
  * @name pacifica#fetchLeverage
  * @description fetch the set leverage for a market
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
  * @param {string} symbol  unified symbol of the market
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.account] will default to walletAddress if not provided
@@ -123,6 +125,7 @@ func (this *Pacifica) FetchAccountSettings(params ...any) (map[string]any, error
  * @method
  * @name pacifica#fetchMarginMode
  * @description fetches the margin mode of the trading pair
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
  * @param {string} symbol unified symbol of the market to fetch the margin mode for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.account] will default to walletAddress if not provided
@@ -156,7 +159,7 @@ func (this *Pacifica) FetchMarginMode(symbol string, options ...FetchMarginModeO
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Pacifica) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -186,6 +189,7 @@ func (this *Pacifica) FetchOrderBook(symbol string, options ...FetchOrderBookOpt
  * @method
  * @name pacifica#fetchFundingRates
  * @description retrieves data on all swap markets for pacifica
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
@@ -220,7 +224,7 @@ func (this *Pacifica) FetchFundingRates(options ...FetchFundingRatesOptions) (Fu
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-candle-data
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
- * @param {string} timeframe the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d'
+ * @param {string} timeframe the length of time each candle represents, support '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '8h', '12h', '1d', '1w', '1M'
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -664,6 +668,7 @@ func (this *Pacifica) FetchTickers(options ...FetchTickersOptions) (Tickers, err
  * @method
  * @name pacifica#fetchClosedOrders
  * @description fetch all unfilled currently closed orders
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -709,6 +714,7 @@ func (this *Pacifica) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]
  * @method
  * @name pacifica#fetchCanceledOrders
  * @description fetch all canceled orders
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -754,6 +760,7 @@ func (this *Pacifica) FetchCanceledOrders(options ...FetchCanceledOrdersOptions)
  * @method
  * @name pacifica#fetchCanceledAndClosedOrders
  * @description fetch all closed and canceled orders
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -1126,6 +1133,7 @@ func (this *Pacifica) FetchTradingFee(symbol string, options ...FetchTradingFeeO
  * @method
  * @name pacifica#fetchOpenInterests
  * @description Retrieves the open interest for a list of symbols
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
  * @param {string[]} [symbols] Unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -1158,6 +1166,7 @@ func (this *Pacifica) FetchOpenInterests(options ...FetchOpenInterestsOptions) (
  * @method
  * @name pacifica#fetchOpenInterest
  * @description retrieves the open interest of a contract trading pair
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
  * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -1233,6 +1242,7 @@ func (this *Pacifica) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry,
  * @method
  * @name pacifica#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-funding-history
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -1312,6 +1322,7 @@ func (this *Pacifica) Transfer(code string, amount float64, fromAccount string, 
  * @method
  * @name pacifica#createSubAccount
  * @description creates a sub-account under the main account
+ * @see https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount
  * @param {string} name unused argument
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.expiryWindow] time to live in milliseconds

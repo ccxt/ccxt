@@ -6,7 +6,7 @@ namespace ccxt.pro;
 public class  Deepcoin: deepcoin { public Deepcoin(object args = null) : base(args) { } }
 public partial class deepcoin
 {
-    public Dictionary<string, object> CreatePublicRequest(Market market, double requestId, string topicID, string suffix = "", bool unWatch = false)
+    public Dictionary<string, object> CreatePublicRequest(object market, double requestId, string topicID, string suffix = "", bool unWatch = false)
     {
         var res = this.createPublicRequest(market, requestId, topicID, suffix, unWatch);
         return ((Dictionary<string, object>)res);
@@ -125,7 +125,7 @@ public partial class deepcoin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;

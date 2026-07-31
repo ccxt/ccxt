@@ -29,7 +29,7 @@ public partial class testMainClass : BaseTest
                 }
                 now = exchange.milliseconds();
             }
-            if (isTrue(isEqual(success, true)))
+            if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
             {
                 assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an array. "), exchange.json(response)));
                 now = exchange.milliseconds();
@@ -38,6 +38,10 @@ public partial class testMainClass : BaseTest
                 {
                     object trade = getValue(response, i);
                     symbol = getValue(trade, "symbol");
+                    if (isTrue(isEqual(symbol, null)))
+                    {
+                        continue;
+                    }
                     testTrade(exchange, skippedProperties, method, trade, symbol, now);
                     testSharedMethods.assertInArray(exchange, skippedProperties, method, trade, "symbol", symbols);
                     if (!isTrue(exchange.inArray(symbol, returnedSymbols)))

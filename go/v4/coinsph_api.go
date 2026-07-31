@@ -179,6 +179,10 @@ func (this *CoinsphCore) PrivatePostOpenapiV1Order(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiV1Order", args...)
 }
 
+func (this *CoinsphCore) PrivatePostOpenapiV1OrderCancelReplace(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenapiV1OrderCancelReplace", args...)
+}
+
 func (this *CoinsphCore) PrivatePostOpenapiV1CapitalWithdrawApply(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiV1CapitalWithdrawApply", args...)
 }
@@ -219,12 +223,32 @@ func (this *CoinsphCore) PrivatePostOpenapiConvertV1GetQuote(args ...any) <-chan
 	return this.callEndpointAsync("privatePostOpenapiConvertV1GetQuote", args...)
 }
 
-func (this *CoinsphCore) PrivatePostOpenapiConvertV1AccpetQuote(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostOpenapiConvertV1AccpetQuote", args...)
+func (this *CoinsphCore) PrivatePostOpenapiConvertV1AcceptQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenapiConvertV1AcceptQuote", args...)
 }
 
 func (this *CoinsphCore) PrivatePostOpenapiConvertV1QueryOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiConvertV1QueryOrderHistory", args...)
+}
+
+func (this *CoinsphCore) PrivatePostOpenapiOtcTradeV1GetSupportedTradingPairs(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenapiOtcTradeV1GetSupportedTradingPairs", args...)
+}
+
+func (this *CoinsphCore) PrivatePostOpenapiOtcTradeV1CreateRfq(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenapiOtcTradeV1CreateRfq", args...)
+}
+
+func (this *CoinsphCore) PrivatePostOpenapiOtcTradeV1AcceptRfq(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenapiOtcTradeV1AcceptRfq", args...)
+}
+
+func (this *CoinsphCore) PrivatePostOpenapiOtcTradeV1ManualSettle(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenapiOtcTradeV1ManualSettle", args...)
+}
+
+func (this *CoinsphCore) PrivatePostOpenapiOtcTradeV1QueryOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenapiOtcTradeV1QueryOrderHistory", args...)
 }
 
 func (this *CoinsphCore) PrivatePostOpenapiFiatV1SupportChannel(args ...any) <-chan any {
@@ -249,6 +273,10 @@ func (this *CoinsphCore) PrivatePostOpenapiMigrationV4ValidateField(args ...any)
 
 func (this *CoinsphCore) PrivatePostOpenapiTransferV3Transfers(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiTransferV3Transfers", args...)
+}
+
+func (this *CoinsphCore) PrivatePostOpenapiTransferV4Transfers(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenapiTransferV4Transfers", args...)
 }
 
 func (this *CoinsphCore) PrivatePostOpenapiV1SubAccountCreate(args ...any) <-chan any {

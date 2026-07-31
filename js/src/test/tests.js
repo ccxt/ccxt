@@ -21,6 +21,7 @@ class testMainClass {
         this.requestTests = false;
         this.wsTests = false;
         this.responseTests = false;
+        this.predictionTests = false;
         this.info = false;
         this.verbose = false;
         this.debug = false;
@@ -50,6 +51,8 @@ class testMainClass {
         this.sandbox = getCliArgValue('--sandbox');
         this.loadKeys = getCliArgValue('--loadKeys');
         this.wsTests = getCliArgValue('--ws');
+        // when set, static request/response tests are read from the static/<type>/prediction/ subfolder
+        this.predictionTests = getCliArgValue('--prediction');
         this.lang = getLang();
         this.ext = getExt();
     }
@@ -96,7 +99,8 @@ class testMainClass {
             exitScript(0);
         }
         await this.importFiles(exchange);
-        assert(Object.keys(this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
+        // ensure test files are found & filled
+        assert(Object.keys(this.testFiles).length > 0, 'Test files were not loaded');
         this.expandSettings(exchange);
         this.checkIfSpecificTestIsChosen(methodArgv);
         await this.startTest(exchange, symbolArgv);
@@ -454,7 +458,7 @@ class testMainClass {
             tests = {
                 // @ts-ignore
                 'watchOHLCV': [primarySymbol],
-                'watchOHLCVForSymbols': [primarySymbol],
+                'watchOHLCVForSymbols': [primarySymbol], // argument type will be handled inside test
                 'watchTicker': [primarySymbol],
                 'watchTickers': [primarySymbol],
                 'watchBidsAsks': [primarySymbol],
@@ -589,7 +593,7 @@ class testMainClass {
             'USDT',
             'USDC',
             'USD',
-            'GUSD',
+            'GUSD', // gemini gusd
             'EUR',
             'TUSD',
             'CNY',
@@ -670,7 +674,7 @@ class testMainClass {
             const valuesLength = values.length;
             if (valuesLength > 0) {
                 const first = values[0];
-                if (first !== undefined) {
+                if (first) {
                     symbol = first['symbol'];
                 }
             }
@@ -678,6 +682,12 @@ class testMainClass {
         return symbol;
     }
     async testExchange(exchange, providedSymbol = undefined) {
+        // prediction-market exchanges have no spot/swap markets and address methods by an
+        // outcome handle (not a market symbol), so they take a dedicated test flow
+        if (exchange.safeBool(exchange.has, 'prediction', false)) {
+            await this.runPredictionTests(exchange);
+            return true;
+        }
         let spotSymbols = undefined;
         let swapSymbols = undefined;
         if (providedSymbol !== undefined) {
@@ -705,7 +715,7 @@ class testMainClass {
                 // getValidSymbol returns undefined in that case — skip swap
                 // tests rather than crashing on `undefined.replace(...)`.
                 if (primarySymbol !== undefined) {
-                    const secondarySymbol = primarySymbol.replace('BTC', 'ETH'); // this should work any exchange
+                    const secondarySymbol = primarySymbol.replaceAll('BTC', 'ETH'); // this should work any exchange
                     swapSymbols = [primarySymbol, secondarySymbol];
                 }
             }
@@ -745,6 +755,333 @@ class testMainClass {
         }
         return true;
     }
+    async runPredictionTests(exchange) {
+        // loadMarkets (already called by loadExchange) populates the markets and their outcome
+        // tokens; resolve a tradeable outcome handle from them (works in every language since
+        // exchange.markets is typed on the base, unlike the prediction-only outcomes cache),
+        // then fetchEvents for an event id and run every method by that outcome handle
+        // a skip-tests.json preferredPredictionOutcome pins a tradeable outcome — some venues list
+        // many resolved/halted markets (e.g. hyperliquid testnet) whose first outcome can't be traded
+        let outcomeSymbol = exchange.safeString(this.skippedSettingsForExchange, 'preferredPredictionOutcome');
+        if (outcomeSymbol !== undefined) {
+            // validate the pin against the live listing - venues can rotate ids/handles
+            // (hyperliquid re-assigns outcome ids), which would strand a stale pin
+            let pinFound = false;
+            const pinnedKeys = Object.keys(exchange.markets);
+            for (let i = 0; i < pinnedKeys.length; i++) {
+                const pinnedMarket = exchange.markets[pinnedKeys[i]];
+                const pinnedOutcomes = exchange.safeList(pinnedMarket, 'outcomes', []);
+                for (let j = 0; j < pinnedOutcomes.length; j++) {
+                    if (exchange.safeString(pinnedOutcomes[j], 'outcome') === outcomeSymbol) {
+                        pinFound = true;
+                        break;
+                    }
+                }
+                if (pinFound) {
+                    break;
+                }
+            }
+            if (!pinFound) {
+                dump('[INFO:MAIN] preferredPredictionOutcome', outcomeSymbol, 'not in the live listing (stale pin?) - falling back to market scan');
+                outcomeSymbol = undefined;
+            }
+        }
+        if (outcomeSymbol === undefined) {
+            const marketKeys = Object.keys(exchange.markets);
+            for (let i = 0; i < marketKeys.length; i++) {
+                const market = exchange.markets[marketKeys[i]];
+                const outcomesList = exchange.safeList(market, 'outcomes', []);
+                const outcomesListLength = outcomesList.length;
+                if (outcomesListLength > 0) {
+                    outcomeSymbol = exchange.safeString(outcomesList[0], 'outcome');
+                    if (outcomeSymbol !== undefined) {
+                        break;
+                    }
+                }
+            }
+        }
+        if (outcomeSymbol === undefined) {
+            dump('[TEST_FAILURE]', exchange.id, 'no tradeable outcome available in loaded markets');
+            return false;
+        }
+        // fetchEvents/fetchEvent are prediction-only and not on every language's typed base
+        // (Go's ICoreExchange / C# Exchange), so invoke them dynamically by name and validate
+        // inline rather than through a per-method test file
+        let eventId = undefined;
+        if (!this.wsTests) {
+            // try/catch is required: callExchangeMethodDynamically is a checked-throwing call in
+            // Java and its async lambda can't propagate (or re-throw) a checked exception
+            try {
+                // the scoping contract: an unscoped fetchEvents must throw ArgumentsRequired on
+                // every prediction venue — assert it so the contract can't silently regress.
+                // venues with bounded listings may opt out via options['allowUnscopedFetchEvents']
+                const exchangeOptions = getExchangeProp(exchange, 'options', {});
+                const allowUnscopedFetchEvents = exchange.safeBool(exchangeOptions, 'allowUnscopedFetchEvents', false);
+                if (!allowUnscopedFetchEvents) {
+                    let unscopedError = '';
+                    try {
+                        await callExchangeMethodDynamically(exchange, 'fetchEvents', [{}]);
+                    }
+                    catch (e) {
+                        unscopedError = exceptionMessage(e);
+                    }
+                    assert(unscopedError.indexOf('requires at least one of') >= 0, exchange.id + ' fetchEvents () without a scope must throw ArgumentsRequired, got: ' + unscopedError);
+                }
+                // every venue requires fetchEvents to be scoped; a skip-tests.json
+                // preferredEventQuery supplies a query known to match the venue's markets
+                let eventQuery = exchange.safeString(this.skippedSettingsForExchange, 'preferredEventQuery');
+                if (eventQuery === undefined) {
+                    // derive one from the selected outcome handle (the market words with
+                    // separators as spaces) so the scoped contract holds even without a pin
+                    const handleParts = outcomeSymbol.split(':');
+                    const marketPart = handleParts[0];
+                    const lowerPart = marketPart.toLowerCase();
+                    const dedashed = lowerPart.replaceAll('-', ' ');
+                    eventQuery = dedashed.replaceAll('_', ' ');
+                }
+                const eventParams = {};
+                if (eventQuery !== undefined) {
+                    eventParams['query'] = eventQuery;
+                }
+                const events = await callExchangeMethodDynamically(exchange, 'fetchEvents', [eventParams]);
+                assert(events !== undefined, exchange.id + ' fetchEvents returned undefined');
+                // coerce the dynamic (any) result to a typed list via safeList (on the core interface)
+                const eventsList = exchange.safeList({ 'events': events }, 'events', []);
+                this.assertPredictionEvents(exchange, eventsList);
+                const eventsLength = eventsList.length;
+                if (eventsLength > 0) {
+                    eventId = exchange.safeString(eventsList[0], 'id');
+                }
+                if ((eventId !== undefined) && exchange.safeBool(exchange.has, 'fetchEvent', false)) {
+                    const event = await callExchangeMethodDynamically(exchange, 'fetchEvent', [eventId]);
+                    this.assertPredictionEvent(exchange, event);
+                }
+                // exercise EACH scoping parameter path, not just the initial query. a scope that
+                // silently returns [] (e.g. an eventId served from a cold cache, or an unresolved
+                // series filter) is a real bug that only surfaces if the path is actually asserted.
+                // build the scope list here (inline, not via a helper) so the callExchangeMethodDynamically
+                // calls stay inside this try/catch — Java can't propagate their checked exception otherwise
+                const scopesToTest = [];
+                if (eventId !== undefined) {
+                    // copy to a const so the dict capture is effectively-final (Java inner-class rule),
+                    // since eventId is reassigned above. every venue must refetch an event by its own id
+                    const eventIdScope = eventId;
+                    scopesToTest.push({ 'eventId': eventIdScope });
+                }
+                // optional exchange-specific server-side scopes (e.g. kalshi series_ticker / tags /
+                // category) declared in skip-tests.json preferredEventScopes as an array of param dicts
+                const extraScopes = exchange.safeList(this.skippedSettingsForExchange, 'preferredEventScopes', []);
+                const extraScopesLength = extraScopes.length;
+                for (let si = 0; si < extraScopesLength; si++) {
+                    scopesToTest.push(extraScopes[si]);
+                }
+                const scopesToTestLength = scopesToTest.length;
+                for (let sj = 0; sj < scopesToTestLength; sj++) {
+                    const scope = scopesToTest[sj];
+                    // fetchEvents scoped by a single parameter must return a non-empty, valid list
+                    const scopedEvents = await callExchangeMethodDynamically(exchange, 'fetchEvents', [scope]);
+                    const scopedList = exchange.safeList({ 'events': scopedEvents }, 'events', []);
+                    const scopedListLength = scopedList.length;
+                    assert(scopedListLength > 0, exchange.id + ' fetchEvents scoped by ' + exchange.json(scope) + ' returned no events - the parameter path may be broken');
+                    this.assertPredictionEvents(exchange, scopedList);
+                }
+                if (eventQuery !== undefined) {
+                    // limit must bound the number of events returned (applied by applyEventFetchParams)
+                    const limited = await callExchangeMethodDynamically(exchange, 'fetchEvents', [{ 'query': eventQuery, 'limit': 1 }]);
+                    const limitedList = exchange.safeList({ 'events': limited }, 'events', []);
+                    const limitedListLength = limitedList.length;
+                    assert(limitedListLength <= 1, exchange.id + ' fetchEvents did not honour limit=1');
+                }
+            }
+            catch (e) {
+                dump('[TEST_FAILURE]', exchange.id, 'fetchEvents/fetchEvent failed:', exceptionMessage(e));
+                return false;
+            }
+            // no-arg fetchTickers honesty: a venue that cannot serve every ticker without an
+            // unbounded scan (options.loadAllOutcomes false) must throw ArgumentsRequired
+            // instead of silently returning a capped subset
+            const canServeAllTickers = exchange.safeBool(exchange.options, 'loadAllOutcomes', false);
+            if (!canServeAllTickers && exchange.safeBool(exchange.has, 'fetchTickers', false)) {
+                let tickersError = '';
+                try {
+                    await callExchangeMethodDynamically(exchange, 'fetchTickers', []);
+                }
+                catch (e) {
+                    tickersError = exceptionMessage(e);
+                }
+                assert(tickersError.indexOf('requires an outcomes argument') >= 0, exchange.id + ' fetchTickers () without outcomes must throw ArgumentsRequired, got: ' + tickersError);
+            }
+        }
+        dump('[INFO:MAIN] Selected prediction OUTCOME:', outcomeSymbol, '| EVENT:', exchange.json(eventId));
+        let publicTests = {
+            'fetchStatus': [],
+            'fetchTime': [],
+            'fetchTradingFee': [outcomeSymbol],
+            'fetchOpenInterest': [outcomeSymbol],
+            'fetchTicker': [outcomeSymbol],
+            'fetchTickers': [outcomeSymbol],
+            'fetchOrderBook': [outcomeSymbol],
+            'fetchOHLCV': [outcomeSymbol],
+            'fetchTrades': [outcomeSymbol],
+        };
+        if (this.wsTests) {
+            publicTests = {
+                // @ts-ignore
+                'watchTicker': [outcomeSymbol],
+                'watchOrderBook': [outcomeSymbol],
+                'watchTrades': [outcomeSymbol],
+            };
+        }
+        if (!this.privateTestOnly) {
+            await this.runTests(exchange, publicTests, true);
+        }
+        if ((this.privateTest || this.privateTestOnly) && !this.wsTests) {
+            const privateTests = {
+                'fetchBalance': [],
+                'fetchPositions': [outcomeSymbol],
+                'fetchMyTrades': [outcomeSymbol],
+                'fetchOrders': [outcomeSymbol],
+                'fetchOpenOrders': [outcomeSymbol],
+                'fetchClosedOrders': [outcomeSymbol],
+                'fetchOrder': [outcomeSymbol],
+            };
+            await this.runTests(exchange, privateTests, false);
+            // order placement is real money — gated behind --fundedTests, like crypto createOrder
+            if (getCliArgValue('--fundedTests')) {
+                await this.testPredictionCreateCancelOrder(exchange, outcomeSymbol);
+            }
+        }
+        return true;
+    }
+    assertPredictionEvents(exchange, events) {
+        assert(Array.isArray(events), exchange.id + ' fetchEvents/fetchEvent should return a list');
+        const eventsLength = events.length;
+        for (let i = 0; i < eventsLength; i++) {
+            this.assertPredictionEvent(exchange, events[i]);
+        }
+        return true;
+    }
+    assertPredictionEvent(exchange, event) {
+        // validates one PredictionEvent structure (id, event handle, markets each carrying an
+        // outcomes list, and the optional typed fields when present)
+        const logText = ' event: ' + exchange.json(event);
+        assert(exchange.isDictionary(event), exchange.id + ' event should be a dict' + logText);
+        assert(exchange.safeString(event, 'id') !== undefined, exchange.id + ' event missing id' + logText);
+        assert(exchange.safeString(event, 'event') !== undefined, exchange.id + ' event missing the unified event handle' + logText);
+        const markets = exchange.safeList(event, 'markets');
+        assert(markets !== undefined, exchange.id + ' event missing markets' + logText);
+        const marketsLength = markets.length;
+        assert(exchange.safeString(event, 'symbol') === undefined, exchange.id + ' event must not carry the deprecated symbol key' + logText);
+        for (let i = 0; i < marketsLength; i++) {
+            const market = markets[i];
+            assert(exchange.isDictionary(market), exchange.id + ' event market should be a dict' + logText);
+            assert(exchange.safeString(market, 'market') !== undefined, exchange.id + ' event market missing the unified market handle' + logText);
+            // 'symbol' is deprecated on prediction structures — the unified 'market' handle is the identity
+            assert(exchange.safeString(market, 'symbol') === undefined, exchange.id + ' event market must not carry the deprecated symbol key' + logText);
+            const outcomes = exchange.safeList(market, 'outcomes');
+            assert(outcomes !== undefined, exchange.id + ' event market missing outcomes' + logText);
+            const outcomesLength = outcomes.length;
+            for (let j = 0; j < outcomesLength; j++) {
+                assert(exchange.safeString(outcomes[j], 'symbol') === undefined, exchange.id + ' event outcome must not carry the deprecated symbol key' + logText);
+            }
+        }
+        // optional typed fields must have the right type when present
+        const active = exchange.safeValue(event, 'active');
+        if (active !== undefined) {
+            // typeof check, not `=== true || === false` — the latter transpiles to `== False`
+            // in Python, which ruff rejects (E712)
+            assert(typeof active === 'boolean', exchange.id + ' event active must be a bool' + logText);
+        }
+        const tags = exchange.safeValue(event, 'tags');
+        if (tags !== undefined) {
+            assert(Array.isArray(tags), exchange.id + ' event tags must be a list' + logText);
+        }
+        const info = exchange.safeValue(event, 'info');
+        assert(info !== undefined, exchange.id + ' event missing info' + logText);
+        return true;
+    }
+    async testPredictionCreateCancelOrder(exchange, outcome) {
+        // place a deliberately non-marketable limit BUY (low fixed price * tiny amount), assert
+        // it, then always cancel it. Safe by construction: 5 shares @ 0.02 = 0.10 USD notional,
+        // far under the 25 USD live-test cap, and a 0.02 bid won't fill for a normal outcome.
+        // createOrder/cancelOrder are invoked dynamically since they aren't on every language's
+        // typed core-exchange interface (e.g. Go's ICoreExchange).
+        if (!exchange.safeBool(exchange.has, 'createOrder', false)) {
+            return true;
+        }
+        // honour a skip-tests.json createOrder skip — e.g. polymarket geo-blocks order placement
+        // and CI runs via an EU proxy, so live order placement is skipped and covered by fixtures
+        const createOrderSkip = this.getSkips(exchange, 'createOrder');
+        if (typeof createOrderSkip === 'string') {
+            dump('[INFO] skipping prediction createOrder test', exchange.id, createOrderSkip);
+            return true;
+        }
+        const canCancel = exchange.safeBool(exchange.has, 'cancelOrder', false) || exchange.safeBool(exchange.has, 'cancelAllOrders', false);
+        if (!canCancel) {
+            dump('[INFO] skipping prediction createOrder test', exchange.id, 'no cancelOrder/cancelAllOrders');
+            return true;
+        }
+        if (!exchange.checkRequiredCredentials(false)) {
+            dump('[INFO] skipping prediction createOrder test', exchange.id, 'keys not found');
+            return true;
+        }
+        // default 5 @ 0.02 = 0.10 USD notional. a venue with a higher minimum (e.g. hyperliquid
+        // testnet's 10 USD min) overrides amount/price via skip-tests.json fundedAmount/fundedPrice;
+        // any override's notional (amount * price) MUST stay well under the 25 USD live-test cap
+        let price = exchange.parseToNumeric('0.02');
+        let amount = exchange.parseToNumeric('5');
+        const fundedPrice = exchange.safeString(this.skippedSettingsForExchange, 'fundedPrice');
+        if (fundedPrice !== undefined) {
+            price = exchange.parseToNumeric(fundedPrice);
+        }
+        const fundedAmount = exchange.safeString(this.skippedSettingsForExchange, 'fundedAmount');
+        if (fundedAmount !== undefined) {
+            amount = exchange.parseToNumeric(fundedAmount);
+        }
+        dump('[INFO:MAIN] prediction createOrder', exchange.id, outcome, 'buy', amount, '@', price);
+        // no try/finally and no re-throw from the catch (the typed-lang async lambdas can't do
+        // either): record any failure, ALWAYS attempt the cancel, then report the failure
+        let order = undefined;
+        let placedId = undefined;
+        let failure = undefined;
+        try {
+            order = await callExchangeMethodDynamically(exchange, 'createOrder', [outcome, 'limit', 'buy', amount, price]);
+            assert(order !== undefined, 'createOrder returned undefined for ' + exchange.id);
+            assert(exchange.isDictionary(order), 'createOrder did not return an order structure for ' + exchange.id);
+            placedId = exchange.safeString(order, 'id');
+            assert(placedId !== undefined, 'createOrder returned no order id for ' + exchange.id);
+            const returnedOutcome = exchange.safeString(order, 'outcome');
+            assert((returnedOutcome === undefined) || (returnedOutcome === outcome), 'createOrder outcome "' + exchange.json(returnedOutcome) + '" should match requested "' + outcome + '" for ' + exchange.id);
+        }
+        catch (e) {
+            failure = exceptionMessage(e);
+        }
+        // always cancel any placed order (cancelPredictionOrder swallows its own errors)
+        await this.cancelPredictionOrder(exchange, placedId, outcome);
+        if (failure !== undefined) {
+            dump('[TEST_FAILURE]', exchange.id, 'prediction createOrder failed:', failure);
+            return false;
+        }
+        return true;
+    }
+    async cancelPredictionOrder(exchange, orderId, outcome) {
+        if (orderId === undefined) {
+            return true;
+        }
+        try {
+            if (exchange.safeBool(exchange.has, 'cancelOrder', false)) {
+                await callExchangeMethodDynamically(exchange, 'cancelOrder', [orderId, outcome]);
+            }
+            else {
+                await callExchangeMethodDynamically(exchange, 'cancelAllOrders', [outcome]);
+            }
+            dump('[INFO:MAIN] prediction order cancelled', exchange.id, orderId);
+        }
+        catch (e) {
+            dump('[WARN] prediction order cancel failed', exchange.id, orderId, exceptionMessage(e));
+        }
+        return true;
+    }
     async runPrivateTests(exchange, symbol) {
         if (!exchange.checkRequiredCredentials(false)) {
             dump('[INFO] Skipping private tests', 'Keys not found');
@@ -773,6 +1110,7 @@ class testMainClass {
             'fetchTransactions': [code],
             'fetchDeposits': [code],
             'fetchWithdrawals': [code],
+            'fetchTransfers': [code],
             'fetchBorrowInterest': [code, symbol],
             // 'addMargin': [ ],
             // 'reduceMargin': [ ],
@@ -846,20 +1184,20 @@ class testMainClass {
         }
         // try proxy several times
         const maxRetries = 3;
-        let exception = undefined;
+        let exceptionMessageString = undefined;
         for (let j = 0; j < maxRetries; j++) {
             try {
                 await this.testMethod(proxyTestName, exchange, [], true);
                 return true; // if successfull, then end the test
             }
             catch (e) {
-                exception = e;
+                exceptionMessageString = exceptionMessage(e);
                 await exchange.sleep(j * 1000);
             }
         }
         // if exception was set, then throw it
-        if (exception !== undefined) {
-            const errorMessage = '[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessage(exception);
+        if (exceptionMessageString !== undefined) {
+            const errorMessage = '[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessageString;
             // temporary comment the below, because c# transpilation failure
             // throw new Exchange Error (errorMessage.toString ());
             dump('[TEST_WARNING]' + errorMessage);
@@ -904,6 +1242,7 @@ class testMainClass {
         if (this.sandbox || getExchangeProp(exchange, 'sandbox')) {
             exchange.setSandboxMode(true);
         }
+        this.testHasProps(exchange);
         // because of python-async, we need proper `.close()` handling
         try {
             const result = await this.loadExchange(exchange);
@@ -930,6 +1269,19 @@ class testMainClass {
         }
         return true; // required in c#
     }
+    testHasProps(exchange) {
+        const watchOrderBookSkips = this.getSkips(exchange, 'watchOrderBook');
+        const fetchOrderBookSkips = this.getSkips(exchange, 'fetchOrderBook');
+        // ensure with hardcoded list of required methods
+        if (this.wsTests && !exchange.safeBool(exchange.has, 'watchOrderBook', false) && typeof watchOrderBookSkips !== 'string') {
+            dump('[TEST_FAILURE] Method "watchOrderBook" is not set in "has", please check the "has" property of exchange');
+            exitScript(1);
+        }
+        else if (!this.wsTests && !exchange.safeBool(exchange.has, 'fetchOrderBook', false) && typeof fetchOrderBookSkips !== 'string') {
+            dump('[TEST_FAILURE] Method "fetchOrderBook" is not set in "has", please check the "has" property of exchange');
+            exitScript(1);
+        }
+    }
     assertStaticError(cond, message, calculatedOutput, storedOutput, key = undefined) {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
@@ -952,6 +1304,15 @@ class testMainClass {
         const content = ioFileRead(filename);
         return content;
     }
+    loadEventsFromFile(id) {
+        // prediction fixtures are cached as an event -> markets -> outcomes hierarchy under
+        // static/events/<id>.json; returns undefined when the exchange has no events fixture
+        const filename = getRootDir() + './ts/src/test/static/events/' + id + '.json';
+        if (!ioFileExists(filename)) {
+            return undefined;
+        }
+        return ioFileRead(filename);
+    }
     loadCurrenciesFromFile(id) {
         const filename = getRootDir() + './ts/src/test/static/currencies/' + id + '.json';
         const content = ioFileRead(filename);
@@ -972,6 +1333,13 @@ class testMainClass {
         const files = ioDirRead(folder);
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
+            // the only non-json entry in the static dirs is the prediction/ subfolder (prediction
+            // fixtures live under static/<type>/prediction/). skip it by name — a string-equality
+            // check the AST transpiler renders correctly in every language (indexOf/slice on this
+            // entry mis-transpile in PHP: array_search / mb_strpos(...) < 0 / undefined)
+            if (file === 'prediction') {
+                continue;
+            }
             const exchangeName = file.replace('.json', '');
             const content = ioFileRead(folder + file);
             result[exchangeName] = content;
@@ -1084,6 +1452,23 @@ class testMainClass {
                 const isComputedUndefined = (sanitizedNewOutput === undefined);
                 const isStoredUndefined = (sanitizedStoredOutput === undefined);
                 const shouldBeSame = (isComputedBool === isStoredBool) && (isComputedString === isStoredString) && (isComputedUndefined === isStoredUndefined);
+                if (!shouldBeSame && (this.lang === 'PY') && !isComputedBool && !isStoredBool && !isComputedUndefined && !isStoredUndefined) {
+                    // python parses json numbers natively (arbitrary-precision ints), while fixtures
+                    // captured under number-quoting store them as strings - compare numerically like C#/GO
+                    let isNumber = false;
+                    try {
+                        exchange.parseToNumeric(newOutputString);
+                        exchange.parseToNumeric(storedOutputString);
+                        isNumber = true;
+                    }
+                    catch (e) {
+                        isNumber = false;
+                    }
+                    if (isNumber) {
+                        this.assertStaticError(exchange.parseToNumeric(newOutputString) === exchange.parseToNumeric(storedOutputString), messageError, storedOutput, newOutput, assertingKey);
+                        return true;
+                    }
+                }
                 this.assertStaticError(shouldBeSame, 'output type mismatch', storedOutput, newOutput, assertingKey);
                 const isBoolean = isComputedBool || isStoredBool;
                 const isString = isComputedString || isStoredString;
@@ -1288,8 +1673,22 @@ class testMainClass {
         return true;
     }
     initOfflineExchange(exchangeName) {
-        const markets = this.loadMarketsFromFile(exchangeName);
-        const currencies = this.loadCurrenciesFromFile(exchangeName);
+        // prediction exchanges load their outcome markets from an event -> markets -> outcomes
+        // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
+        // standard prediction path (kalshi/limitless/myriad/polymarket/hyperliquid all ship one) and
+        // is required for ids present in both namespaces (e.g. hyperliquid), whose markets/<id>.json
+        // holds the crypto markets. when a fixture is present, skip markets/currencies entirely so
+        // setMarkets rebuilds cleanly from the outcome markets
+        let predictionEvents = undefined;
+        if (this.predictionTests) {
+            predictionEvents = this.loadEventsFromFile(exchangeName);
+        }
+        let markets = undefined;
+        let currencies = undefined;
+        if (predictionEvents === undefined) {
+            markets = this.loadMarketsFromFile(exchangeName);
+            currencies = this.loadCurrenciesFromFile(exchangeName);
+        }
         let wasmExecPath = undefined;
         let libraryPath = undefined;
         // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
@@ -1367,6 +1766,27 @@ class testMainClass {
         }
         const exchange = initExchange(exchangeName, options);
         exchange.currencies = currencies;
+        // rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
+        // outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
+        if (predictionEvents !== undefined) {
+            const eventMarkets = [];
+            for (let i = 0; i < predictionEvents.length; i++) {
+                const evMarkets = exchange.safeList(predictionEvents[i], 'markets', []);
+                for (let j = 0; j < evMarkets.length; j++) {
+                    const evMarket = evMarkets[j];
+                    // every market row must carry the unified market handle (PredictionMarket
+                    // declares it required) — enforce it on the fixtures so a venue that stops
+                    // setting it fails offline, not just in live tests. 'symbol' is deprecated
+                    // on prediction structures and must be absent
+                    assert(exchange.safeString(evMarket, 'market') !== undefined, exchangeName + ' static events fixture: market row missing the unified market handle');
+                    assert(exchange.safeString(evMarket, 'symbol') === undefined, exchangeName + ' static events fixture: market row must not carry the deprecated symbol key');
+                    eventMarkets.push(evMarket);
+                }
+            }
+            if (eventMarkets.length > 0) {
+                exchange.setMarkets(eventMarkets);
+            }
+        }
         // not working in python if assigned  in the config dict
         return exchange;
     }
@@ -1539,6 +1959,13 @@ class testMainClass {
     }
     checkIfExchangeIsDisabled(exchangeName, exchangeData) {
         const exchange = initExchange('Exchange', {});
+        // prediction-market exchanges exist only in the async namespaces in python/php,
+        // so their fixtures declare asyncOnly and the sync harness skips them
+        const isAsyncOnly = exchange.safeBool(exchangeData, 'asyncOnly', false);
+        if (isAsyncOnly && isSync()) {
+            dump('[TEST_WARNING] Exchange ' + exchangeName + ' is async-only, skipped by the sync test harness');
+            return true;
+        }
         const isDisabledPy = exchange.safeBool(exchangeData, 'disabledPy', false);
         if (isDisabledPy && (this.lang === 'PY')) {
             dump('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in python');
@@ -1571,7 +1998,12 @@ class testMainClass {
         return true;
     }
     async runStaticTests(type, targetExchange = undefined, testName = undefined) {
-        const folder = getRootDir() + './ts/src/test/static/' + type + '/';
+        // prediction-market exchanges keep their fixtures under static/<type>/prediction/ and are
+        // run separately via the --prediction flag (npm run request-ts-prediction / response-ts-prediction)
+        let folder = getRootDir() + './ts/src/test/static/' + type + '/';
+        if (this.predictionTests) {
+            folder = folder + 'prediction/';
+        }
         const staticData = this.loadStaticData(folder, targetExchange);
         if (staticData === undefined) {
             return true;
@@ -1677,7 +2109,7 @@ class testMainClass {
         const spotId = 'x-TKT5PX2F';
         const swapId = 'x-cvBPrNm9';
         const inverseSwapId = 'x-xcKtGhcu';
-        let spotOrderRequest = undefined;
+        let spotOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1687,14 +2119,14 @@ class testMainClass {
         const clientOrderId = spotOrderRequest['newClientOrderId'];
         const spotIdString = spotId.toString();
         assert(clientOrderId.startsWith(spotIdString), 'binance - spot clientOrderId: ' + clientOrderId + ' does not start with spotId' + spotIdString);
-        let swapOrderRequest = undefined;
+        let swapOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
             swapOrderRequest = this.urlencodedToDict(exchange.last_request_body);
         }
-        let swapInverseOrderRequest = undefined;
+        let swapInverseOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USD:BTC', 'limit', 'buy', 1, 20000);
         }
@@ -1709,7 +2141,7 @@ class testMainClass {
         const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
         assert(clientOrderIdInverse.startsWith(inverseSwapId), 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + inverseSwapId);
         // linear swap conditional order
-        let swapAlgoOrderRequest = undefined;
+        let swapAlgoOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 0.002, 102000, { 'triggerPrice': 101000 });
             const checkOrderRequest = this.urlencodedToDict(exchange.last_request_body);
@@ -1722,7 +2154,7 @@ class testMainClass {
         catch (e) {
             swapAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
         }
-        let createOrdersRequest = undefined;
+        let createOrdersRequest = {};
         try {
             const orders = [
                 {
@@ -1758,7 +2190,7 @@ class testMainClass {
     async testOkx() {
         const exchange = this.initOfflineExchange('okx');
         const id = '6b9ad766b55dBCDE';
-        let spotOrderRequest = undefined;
+        let spotOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1770,7 +2202,7 @@ class testMainClass {
         assert(clientOrderId.startsWith(idString), 'okx - spot clientOrderId: ' + clientOrderId + ' does not start with id: ' + idString);
         const spotTag = spotOrderRequest[0]['tag'];
         assert(spotTag === id, 'okx - id: ' + id + ' different from spot tag: ' + spotTag);
-        let swapOrderRequest = undefined;
+        let swapOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1790,7 +2222,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange('cryptocom');
         const id = 'CCXT';
         await exchange.loadMarkets();
-        let request = undefined;
+        let request = {};
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1806,7 +2238,7 @@ class testMainClass {
     }
     async testBybit() {
         const exchange = this.initOfflineExchange('bybit');
-        let reqHeaders = undefined;
+        let reqHeaders = {};
         const id = 'CCXT';
         assert(exchange.options['brokerId'] === id, 'id not in options');
         try {
@@ -1825,7 +2257,7 @@ class testMainClass {
     async testKucoin() {
         const exchange = this.initOfflineExchange('kucoin');
         exchange.options['uta'] = false; // prevents fetching account mode inside createOrder
-        let reqHeaders = undefined;
+        let reqHeaders = {};
         const spotId = exchange.options['partner']['spot']['id'];
         const spotKey = exchange.options['partner']['spot']['key'];
         assert(spotId === 'ccxt', 'kucoin - id: ' + spotId + ' not in options');
@@ -1872,7 +2304,7 @@ class testMainClass {
     }
     async testKucoinfutures() {
         const exchange = this.initOfflineExchange('kucoinfutures');
-        let reqHeaders = undefined;
+        let reqHeaders = {};
         const id = 'ccxtfutures';
         const futureId = exchange.options['partner']['future']['id'];
         const futureKey = exchange.options['partner']['future']['key'];
@@ -1901,7 +2333,7 @@ class testMainClass {
     }
     async testBitget() {
         const exchange = this.initOfflineExchange('bitget');
-        let reqHeaders = undefined;
+        let reqHeaders = {};
         const id = 'p4sve';
         assert(exchange.options['broker'] === id, 'bitget - id: ' + id + ' not in options');
         try {
@@ -1918,7 +2350,7 @@ class testMainClass {
     }
     async testMexc() {
         const exchange = this.initOfflineExchange('mexc');
-        let reqHeaders = undefined;
+        let reqHeaders = {};
         const id = 'CCXT';
         assert(exchange.options['broker'] === id, 'mexc - id: ' + id + ' not in options');
         await exchange.loadMarkets();
@@ -1938,7 +2370,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange('htx');
         // spot test
         const id = 'AA03022abc';
-        let spotOrderRequest = undefined;
+        let spotOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1949,14 +2381,14 @@ class testMainClass {
         const idString = id.toString();
         assert(clientOrderId.startsWith(idString), 'htx - spot clientOrderId ' + clientOrderId + ' does not start with id: ' + idString);
         // swap test
-        let swapOrderRequest = undefined;
+        let swapOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
             swapOrderRequest = jsonParse(exchange.last_request_body);
         }
-        let swapInverseOrderRequest = undefined;
+        let swapInverseOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USD:BTC', 'limit', 'buy', 1, 20000);
         }
@@ -1976,7 +2408,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange('woo');
         // spot test
         const id = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
-        let spotOrderRequest = undefined;
+        let spotOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -1987,7 +2419,7 @@ class testMainClass {
         const idString = id.toString();
         assert(brokerId.startsWith(idString), 'woo - broker_id: ' + brokerId + ' does not start with id: ' + idString);
         // swap test
-        let stopOrderRequest = undefined;
+        let stopOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'stopPrice': 30000 });
         }
@@ -2003,7 +2435,7 @@ class testMainClass {
     }
     async testBitmart() {
         const exchange = this.initOfflineExchange('bitmart');
-        let reqHeaders = undefined;
+        let reqHeaders = {};
         const id = 'CCXTxBitmart000';
         assert(exchange.options['brokerId'] === id, 'bitmart - id: ' + id + ' not in options');
         await exchange.loadMarkets();
@@ -2023,7 +2455,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange('coinex');
         const id = 'x-167673045';
         assert(exchange.options['brokerId'] === id, 'coinex - id: ' + id + ' not in options');
-        let spotOrderRequest = undefined;
+        let spotOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -2040,7 +2472,7 @@ class testMainClass {
     }
     async testBingx() {
         const exchange = this.initOfflineExchange('bingx');
-        let reqHeaders = undefined;
+        let reqHeaders = {};
         const id = 'CCXT';
         assert(exchange.options['broker'] === id, 'bingx - id: ' + id + ' not in options');
         try {
@@ -2059,7 +2491,7 @@ class testMainClass {
     async testPhemex() {
         const exchange = this.initOfflineExchange('phemex');
         const id = 'CCXT123456';
-        let request = undefined;
+        let request = {};
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -2077,7 +2509,7 @@ class testMainClass {
     async testBlofin() {
         const exchange = this.initOfflineExchange('blofin');
         const id = 'ec6dd3a7dd982d0b';
-        let request = undefined;
+        let request = {};
         try {
             await exchange.createOrder('LTC/USDT:USDT', 'market', 'buy', 1);
         }
@@ -2113,7 +2545,7 @@ class testMainClass {
         exchange.options['portfolio'] = 'random';
         const id = 'nfqkvdjp';
         assert(exchange.options['brokerId'] === id, 'id not in options');
-        let request = undefined;
+        let request = {};
         try {
             await exchange.createOrder('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
         }
@@ -2131,7 +2563,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange('coinbase');
         const id = 'ccxt';
         assert(exchange.options['brokerId'] === id, 'id not in options');
-        let request = undefined;
+        let request = {};
         try {
             await exchange.createOrder('BTC/USDC', 'limit', 'buy', 1, 20000);
         }
@@ -2153,7 +2585,7 @@ class testMainClass {
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
         const id = 'CCXT';
         await exchange.loadMarkets();
-        let request = undefined;
+        let request = {};
         try {
             await exchange.createOrder('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
         }
@@ -2170,7 +2602,7 @@ class testMainClass {
     async testXT() {
         const exchange = this.initOfflineExchange('xt');
         const id = 'CCXT';
-        let spotOrderRequest = undefined;
+        let spotOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
@@ -2179,7 +2611,7 @@ class testMainClass {
         }
         const spotMedia = spotOrderRequest['media'];
         assert(spotMedia === id, 'xt - id: ' + id + ' different from swap tag: ' + spotMedia);
-        let swapOrderRequest = undefined;
+        let swapOrderRequest = {};
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
@@ -2203,7 +2635,7 @@ class testMainClass {
         exchange.options['authToken'] = 'token';
         exchange.options['systemConfig'] =
             { "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io", "starknet_fullnode_rpc_url": "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7", "starknet_chain_id": "PRIVATE_SN_POTC_SEPOLIA", "block_explorer_url": "https://voyager.testnet.paradex.trade/", "paraclear_address": "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6", "paraclear_decimals": 8, "paraclear_account_proxy_hash": "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9", "paraclear_account_hash": "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e", "oracle_address": "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f", "bridged_tokens": [{ "name": "TEST USDC", "symbol": "USDC", "decimals": 6, "l1_token_address": "0x29A873159D5e14AcBd63913D4A7E2df04570c666", "l1_bridge_address": "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C", "l2_token_address": "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e", "l2_bridge_address": "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef" }], "l1_core_contract_address": "0x582CC5d9b509391232cd544cDF9da036e55833Af", "l1_operator_address": "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB", "l1_chain_id": "11155111", "liquidation_fee": "0.2" };
-        let reqHeaders = undefined;
+        let reqHeaders = {};
         const id = 'CCXT';
         assert(exchange.options['broker'] === id, 'paradex - id: ' + id + ' not in options');
         await exchange.loadMarkets();
@@ -2221,7 +2653,7 @@ class testMainClass {
     }
     async testHashkey() {
         const exchange = this.initOfflineExchange('hashkey');
-        let reqHeaders = undefined;
+        let reqHeaders = {};
         const id = "10000700011";
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
@@ -2238,7 +2670,7 @@ class testMainClass {
     }
     async testCryptomus() {
         const exchange = this.initOfflineExchange('cryptomus');
-        let request = undefined;
+        let request = {};
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'sell', 1, 20000);
         }
@@ -2259,7 +2691,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange('derive');
         const id = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749';
         assert(exchange.options['id'] === id, 'derive - id: ' + id + ' not in options');
-        let request = undefined;
+        let request = {};
         try {
             const params = {
                 'subaccount_id': 1234,
@@ -2287,7 +2719,7 @@ class testMainClass {
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
         const id = 'CCXTMODE';
         await exchange.loadMarkets();
-        let request = undefined;
+        let request = {};
         try {
             await exchange.createOrder('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
         }
@@ -2305,7 +2737,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange('backpack');
         exchange.apiKey = "Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=";
         exchange.secret = "sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU=";
-        let reqHeaders = undefined;
+        let reqHeaders = {};
         const id = '1400';
         try {
             await exchange.createOrder('ETH/USDC', 'limit', 'buy', 1, 5000);
@@ -2322,7 +2754,7 @@ class testMainClass {
     }
     async testToobit() {
         const exchange = this.initOfflineExchange('toobit');
-        let reqHeaders = undefined;
+        let reqHeaders = {};
         const id = '177321641268789';
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
@@ -2341,7 +2773,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange('weex');
         const id = 'b-WEEX111125';
         assert(exchange.options['partner'] === id, 'weex - id: ' + id + ' not in options');
-        let request = undefined;
+        let request = {};
         try {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }

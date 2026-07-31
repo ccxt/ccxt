@@ -8,7 +8,6 @@ import asyncio
 import ccxt.pro as ccxt  # noqa: E402
 
 
-# AUTO-TRANSPILE #
 async def example():
     binance = ccxt.binance({})
     symbol = 'BTC/USDT'

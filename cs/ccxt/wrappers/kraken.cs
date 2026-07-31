@@ -10,7 +10,7 @@ public partial class kraken
     /// retrieves data on all markets for kraken
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/market-data/get-tradable-asset-pairs"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -30,7 +30,7 @@ public partial class kraken
     /// the latest known information on the availability of the exchange API
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/rest-api/get-system-status/"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/market-data/get-system-status"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -50,7 +50,7 @@ public partial class kraken
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeVolume"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/account-data/get-trade-volume"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -70,7 +70,7 @@ public partial class kraken
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOrderBook"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/market-data/get-order-book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -86,7 +86,7 @@ public partial class kraken
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -97,7 +97,7 @@ public partial class kraken
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/market-data/get-ticker-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -117,7 +117,7 @@ public partial class kraken
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/market-data/get-ticker-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -137,7 +137,7 @@ public partial class kraken
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/rest-api/get-ohlc-data"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/market-data/get-ohlc-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -177,7 +177,7 @@ public partial class kraken
     /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/account-data/get-ledgers-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -239,7 +239,7 @@ public partial class kraken
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getRecentTrades"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/market-data/get-recent-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -273,7 +273,7 @@ public partial class kraken
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Account-Data/operation/getExtendedBalance"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/account-data/get-extended-balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -293,7 +293,7 @@ public partial class kraken
     /// create a market order by providing the symbol, side and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/trading/add-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -313,7 +313,7 @@ public partial class kraken
     /// create a market buy order by providing the symbol, side and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/trading/add-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -333,7 +333,7 @@ public partial class kraken
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/rest-api/add-order"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/trading/add-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -420,7 +420,7 @@ public partial class kraken
     /// create a list of trade orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/rest-api/add-order-batch/"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/trading/add-order-batch"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -440,7 +440,7 @@ public partial class kraken
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/rest-api/amend-order"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/trading/amend-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>amount</term>
@@ -528,7 +528,7 @@ public partial class kraken
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/account-data/query-orders-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -548,7 +548,7 @@ public partial class kraken
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradesInfo"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/account-data/query-trades-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -582,7 +582,7 @@ public partial class kraken
     /// fetch orders by the list of order id
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/account-data/get-closed-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -608,7 +608,7 @@ public partial class kraken
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/rest-api/get-trade-history"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/account-data/get-trades-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -654,7 +654,7 @@ public partial class kraken
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/rest-api/cancel-order"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/trading/cancel-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -692,7 +692,7 @@ public partial class kraken
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrderBatch"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/trading/cancel-order-batch"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -712,7 +712,7 @@ public partial class kraken
     /// cancel all open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/trading/cancel-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -732,7 +732,7 @@ public partial class kraken
     /// dead man's switch, cancel all orders after the given timeout
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/trading/cancel-all-orders-after-x"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -752,7 +752,7 @@ public partial class kraken
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/rest-api/get-open-orders"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/account-data/get-open-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -804,7 +804,7 @@ public partial class kraken
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/api/docs/rest-api/get-closed-orders"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/account-data/get-closed-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -862,7 +862,7 @@ public partial class kraken
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/funding/get-status-of-recent-deposits"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -908,7 +908,7 @@ public partial class kraken
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getServerTime"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/market-data/get-server-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -928,7 +928,7 @@ public partial class kraken
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentWithdrawals"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/funding/get-status-of-recent-withdrawals"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -980,7 +980,7 @@ public partial class kraken
     /// create a currency deposit address
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/funding/get-deposit-addresses"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1000,7 +1000,7 @@ public partial class kraken
     /// fetch deposit methods for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Funding/operation/getDepositMethods"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/funding/get-deposit-methods"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1020,7 +1020,7 @@ public partial class kraken
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/funding/get-deposit-addresses"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1040,7 +1040,7 @@ public partial class kraken
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/funding/withdraw-funds"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1060,7 +1060,7 @@ public partial class kraken
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenPositions"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/account-data/get-open-positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1080,7 +1080,7 @@ public partial class kraken
     /// transfer from spot wallet to futures wallet
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1100,7 +1100,7 @@ public partial class kraken
     /// transfers currencies between sub-accounts (only spot->swap direction is supported)
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer"/>  <br/>
+    /// See <see href="https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

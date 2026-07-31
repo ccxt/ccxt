@@ -1,5 +1,4 @@
 import ccxt from '../../js/ccxt.js';
-// AUTO-TRANSPILE //
 async function example() {
     const prefix = '-';
     const exchange_1 = new ccxt.okx();

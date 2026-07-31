@@ -11,8 +11,8 @@ func (this *HibachiCore) PublicGetMarketExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketExchangeInfo", args...)
 }
 
-func (this *HibachiCore) PublicGetMarketDataTrades(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketDataTrades", args...)
+func (this *HibachiCore) PublicGetMarketInventory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketInventory", args...)
 }
 
 func (this *HibachiCore) PublicGetMarketDataPrices(args ...any) <-chan any {
@@ -23,16 +23,20 @@ func (this *HibachiCore) PublicGetMarketDataStats(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketDataStats", args...)
 }
 
+func (this *HibachiCore) PublicGetMarketDataTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketDataTrades", args...)
+}
+
 func (this *HibachiCore) PublicGetMarketDataKlines(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketDataKlines", args...)
 }
 
-func (this *HibachiCore) PublicGetMarketDataOrderbook(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetMarketDataOrderbook", args...)
-}
-
 func (this *HibachiCore) PublicGetMarketDataOpenInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketDataOpenInterest", args...)
+}
+
+func (this *HibachiCore) PublicGetMarketDataOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketDataOrderbook", args...)
 }
 
 func (this *HibachiCore) PublicGetMarketDataFundingRates(args ...any) <-chan any {
@@ -43,32 +47,44 @@ func (this *HibachiCore) PublicGetExchangeUtcTimestamp(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetExchangeUtcTimestamp", args...)
 }
 
-func (this *HibachiCore) PrivateGetCapitalDepositInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetCapitalDepositInfo", args...)
+func (this *HibachiCore) PrivateGetCapitalBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetCapitalBalance", args...)
 }
 
 func (this *HibachiCore) PrivateGetCapitalHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetCapitalHistory", args...)
 }
 
-func (this *HibachiCore) PrivateGetTradeAccountTradingHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeAccountTradingHistory", args...)
+func (this *HibachiCore) PrivateGetCapitalDepositInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetCapitalDepositInfo", args...)
 }
 
 func (this *HibachiCore) PrivateGetTradeAccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTradeAccountInfo", args...)
 }
 
-func (this *HibachiCore) PrivateGetTradeOrder(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetTradeOrder", args...)
-}
-
 func (this *HibachiCore) PrivateGetTradeAccountTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTradeAccountTrades", args...)
 }
 
+func (this *HibachiCore) PrivateGetTradeAccountTradingHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeAccountTradingHistory", args...)
+}
+
+func (this *HibachiCore) PrivateGetTradeAccountSettlementsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeAccountSettlementsHistory", args...)
+}
+
 func (this *HibachiCore) PrivateGetTradeOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTradeOrders", args...)
+}
+
+func (this *HibachiCore) PrivateGetTradeOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeOrder", args...)
+}
+
+func (this *HibachiCore) PrivateGetTradeOrdersHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeOrdersHistory", args...)
 }
 
 func (this *HibachiCore) PrivatePutTradeOrder(args ...any) <-chan any {
@@ -93,4 +109,12 @@ func (this *HibachiCore) PrivatePostTradeOrders(args ...any) <-chan any {
 
 func (this *HibachiCore) PrivatePostCapitalWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCapitalWithdraw", args...)
+}
+
+func (this *HibachiCore) PrivatePostCapitalTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCapitalTransfer", args...)
+}
+
+func (this *HibachiCore) PrivatePostTradeAccountLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeAccountLeverage", args...)
 }

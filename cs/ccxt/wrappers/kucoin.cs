@@ -135,7 +135,7 @@ public partial class kucoin
     /// *DEPRECATED* please use fetchDepositWithdrawFee instead
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#get-withdrawal-quotas"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-quotas"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -576,7 +576,7 @@ public partial class kucoin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -2184,7 +2184,7 @@ public partial class kucoin
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#list-fills"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/ua/get-trade-history"/>  <br/>
@@ -2541,8 +2541,7 @@ public partial class kucoin
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-history"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-list"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/funding/deposit/get-v1-historical-deposits-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/abandoned-endpoints/account-funding/get-deposit-history-old"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -2628,8 +2627,7 @@ public partial class kucoin
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-history"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/funding/withdrawals/get-withdrawals-list"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/rest/funding/withdrawals/get-v1-historical-withdrawals-list"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/abandoned-endpoints/account-funding/get-withdrawal-history-old"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -3164,7 +3162,7 @@ public partial class kucoin
     /// fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get more in-depth info
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kucoin.com/#get-currencies"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-currencies"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

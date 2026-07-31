@@ -6,7 +6,7 @@ export default class deepcoin extends deepcoinRest {
     ping(client: Client): string;
     handlePong(client: Client, message: any): any;
     requestId(): any;
-    createPublicRequest(market: Market, requestId: number, topicID: string, suffix?: string, unWatch?: boolean): {
+    createPublicRequest(market: any, requestId: number, topicID: string, suffix?: string, unWatch?: boolean): {
         sendTopicAction: {
             Action: string;
             FilterValue: string;
@@ -15,8 +15,8 @@ export default class deepcoin extends deepcoinRest {
             TopicID: string;
         };
     };
-    watchPublic(market: Market, messageHash: string, topicID: string, params?: Dict, suffix?: string): Promise<any>;
-    unWatchPublic(market: Market, messageHash: string, topicID: string, params?: Dict, subscription?: Dict, suffix?: string): Promise<any>;
+    watchPublic(market: any, messageHash: string, topicID: string, params?: Dict, suffix?: string): Promise<any>;
+    unWatchPublic(market: any, messageHash: string, topicID: string, params?: Dict, subscription?: Dict, suffix?: string): Promise<any>;
     watchPrivate(messageHash: string, params?: Dict): Promise<any>;
     authenticate(params?: {}): Promise<string>;
     /**
@@ -101,7 +101,7 @@ export default class deepcoin extends deepcoinRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -111,7 +111,7 @@ export default class deepcoin extends deepcoinRest {
      * @see https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any): void;

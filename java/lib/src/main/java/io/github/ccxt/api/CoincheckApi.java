@@ -24,6 +24,11 @@ public class CoincheckApi extends Exchange
         return this.callAsync ("publicGetExchangeOrdersRate", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  publicGetExchangeStatus (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetExchangeStatus", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  publicGetOrderBooks (Object... optionalArgs)
     {
         return this.callAsync ("publicGetOrderBooks", optionalArgs);
@@ -69,9 +74,19 @@ public class CoincheckApi extends Exchange
         return this.callAsync ("privateGetDepositMoney", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privateGetExchangeOrdersId (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetExchangeOrdersId", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privateGetExchangeOrdersOpens (Object... optionalArgs)
     {
         return this.callAsync ("privateGetExchangeOrdersOpens", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetExchangeOrdersCancelStatus (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetExchangeOrdersCancelStatus", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privateGetExchangeOrdersTransactions (Object... optionalArgs)

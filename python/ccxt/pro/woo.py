@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -92,7 +92,7 @@ class woo(ccxt.async_support.woo):
         urlUid = '/' + self.uid if (self.uid) else ''
         url = self.urls['api']['ws']['public'] + urlUid
         requestId = self.request_id(url)
-        subscribe: dict = {
+        subscribe = {
             'id': requestId,
         }
         request = self.extend(subscribe, message)
@@ -103,12 +103,12 @@ class woo(ccxt.async_support.woo):
         url = self.urls['api']['ws']['public'] + urlUid
         requestId = self.request_id(url)
         unsubHash = 'unsubscribe::' + subHash
-        message: dict = {
+        message = {
             'id': requestId,
             'event': 'unsubscribe',
             'topic': subHash,
         }
-        subscription: dict = {
+        subscription = {
             'id': str(requestId),
             'unsubscribe': True,
             'symbols': [symbol],
@@ -133,9 +133,10 @@ class woo(ccxt.async_support.woo):
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: either(default) 'orderbook' or 'orderbookupdate', default is 'orderbook'
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         method = None
         method, params = self.handle_option_and_params(params, 'watchOrderBook', 'method', 'orderbook')
         market = self.market(symbol)
@@ -143,12 +144,12 @@ class woo(ccxt.async_support.woo):
         urlUid = '/' + self.uid if (self.uid) else ''
         url = self.urls['api']['ws']['public'] + urlUid
         requestId = self.request_id(url)
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
             'id': requestId,
         }
-        subscription: dict = {
+        subscription = {
             'id': str(requestId),
             'name': method,
             'symbol': market['symbol'],
@@ -169,9 +170,10 @@ class woo(ccxt.async_support.woo):
 
         :param str symbol: unified symbol of the market
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         method = None
         method, params = self.handle_option_and_params(params, 'watchOrderBook', 'method', 'orderbook')
         market = self.market(symbol)
@@ -298,12 +300,13 @@ class woo(ccxt.async_support.woo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'ticker'
         market = self.market(symbol)
         symbol = market['symbol']
         topic = market['id'] + '@' + name
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -317,7 +320,8 @@ class woo(ccxt.async_support.woo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         method = None
         method, params = self.handle_option_and_params(params, 'watchTicker', 'method', 'ticker')
         market = self.market(symbol)
@@ -325,7 +329,7 @@ class woo(ccxt.async_support.woo):
         topic = 'ticker'
         return await self.unwatch_public(subHash, market['symbol'], topic, params)
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker, market: Market = None):
         #
         #     {
         #         "symbol": "PERP_BTC_USDT",
@@ -400,11 +404,12 @@ class woo(ccxt.async_support.woo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         name = 'tickers'
         topic = name
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -422,7 +427,8 @@ class woo(ccxt.async_support.woo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbols is not None:
             raise NotSupported(self.id + ' unWatchTickers() does not support a symbols argument. Only unwatch all tickers at once')
         topic = 'ticker'
@@ -481,11 +487,12 @@ class woo(ccxt.async_support.woo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         name = 'bbos'
         topic = name
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -505,7 +512,8 @@ class woo(ccxt.async_support.woo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbols is not None:
             raise NotSupported(self.id + ' unWatchBidsAsks() does not support a symbols argument. Only unwatch all bidsAsks at once')
         subHash = 'bbos'
@@ -531,7 +539,7 @@ class woo(ccxt.async_support.woo):
         topic = self.safe_string(message, 'topic')
         data = self.safe_list(message, 'data', [])
         timestamp = self.safe_integer(message, 'ts')
-        result: dict = {}
+        result = {}
         for i in range(0, len(data)):
             ticker = self.safe_dict(data, i)
             ticker['ts'] = timestamp
@@ -541,7 +549,7 @@ class woo(ccxt.async_support.woo):
             result[symbol] = parsedTicker
         client.resolve(result, topic)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = self.safe_string(market, 'symbol')
@@ -570,14 +578,15 @@ class woo(ccxt.async_support.woo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if (timeframe != '1m') and (timeframe != '5m') and (timeframe != '15m') and (timeframe != '30m') and (timeframe != '1h') and (timeframe != '1d') and (timeframe != '1w') and (timeframe != '1M'):
             raise ExchangeError(self.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M')
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'kline'
         topic = market['id'] + '@' + name + '_' + interval
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -599,7 +608,8 @@ class woo(ccxt.async_support.woo):
         :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         topic = 'ohlcv'
@@ -663,11 +673,12 @@ class woo(ccxt.async_support.woo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         topic = market['id'] + '@trade'
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -687,7 +698,8 @@ class woo(ccxt.async_support.woo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         topic = 'trades'
         subHash = market['id'] + '@trade'
@@ -722,7 +734,7 @@ class woo(ccxt.async_support.woo):
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, topic)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         #     {
         #         "symbol":"SPOT_ADA_USDT",
@@ -770,7 +782,7 @@ class woo(ccxt.async_support.woo):
         cost = Precise.string_mul(price, amount)
         side = self.safe_string_lower(trade, 'side')
         timestamp = self.safe_integer(trade, 'timestamp')
-        maker = self.safe_bool(trade, 'marker')
+        maker = self.safe_bool(trade, 'maker')
         takerOrMaker = None
         if maker is not None:
             takerOrMaker = 'maker' if maker else 'taker'
@@ -818,7 +830,7 @@ class woo(ccxt.async_support.woo):
             ts = str(self.nonce())
             auth = '|' + ts
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            request: dict = {
+            request = {
                 'event': event,
                 'params': {
                     'apikey': self.apiKey,
@@ -834,7 +846,7 @@ class woo(ccxt.async_support.woo):
         await self.authenticate(params)
         url = self.urls['api']['ws']['private'] + '/' + self.uid
         requestId = self.request_id(url)
-        subscribe: dict = {
+        subscribe = {
             'id': requestId,
         }
         request = self.extend(subscribe, message)
@@ -844,7 +856,7 @@ class woo(ccxt.async_support.woo):
         await self.authenticate(params)
         url = self.urls['api']['ws']['private'] + '/' + self.uid
         requestId = self.request_id(url)
-        subscribe: dict = {
+        subscribe = {
             'id': requestId,
         }
         request = self.extend(subscribe, message)
@@ -864,7 +876,8 @@ class woo(ccxt.async_support.woo):
         :param bool [params.trigger]: True if trigger order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         topic = 'algoexecutionreportv2' if (trigger) else 'executionreport'
         params = self.omit(params, ['stop', 'trigger'])
@@ -873,7 +886,7 @@ class woo(ccxt.async_support.woo):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash += ':' + symbol
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -897,7 +910,8 @@ class woo(ccxt.async_support.woo):
         :param bool [params.trigger]: True if trigger order
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         topic = 'algoexecutionreportv2' if (trigger) else 'executionreport'
         params = self.omit(params, ['stop', 'trigger'])
@@ -906,7 +920,7 @@ class woo(ccxt.async_support.woo):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash += ':' + symbol
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -916,7 +930,7 @@ class woo(ccxt.async_support.woo):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         #     {
         #         "symbol": "PERP_BTC_USDT",
@@ -1160,7 +1174,8 @@ class woo(ccxt.async_support.woo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHashes = []
         symbols = self.market_symbols(symbols)
         if not self.is_empty(symbols):
@@ -1177,7 +1192,7 @@ class woo(ccxt.async_support.woo):
         if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': 'position',
         }
@@ -1264,10 +1279,11 @@ class woo(ccxt.async_support.woo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         topic = 'balance'
         messageHash = topic
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -1334,11 +1350,12 @@ class woo(ccxt.async_support.woo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         topic = market['id'] + '@estfundingrate'
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -1413,7 +1430,7 @@ class woo(ccxt.async_support.woo):
     def handle_message(self, client: Client, message):
         if self.handle_error_message(client, message):
             return
-        methods: dict = {
+        methods = {
             'ping': self.handle_ping,
             'pong': self.handle_pong,
             'subscribe': self.handle_subscribe,

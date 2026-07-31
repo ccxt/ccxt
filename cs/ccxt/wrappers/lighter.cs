@@ -66,10 +66,10 @@ public partial class lighter
         var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
-    public async Task<double> FetchNonce(object accountIndex, object apiKeyIndex, Dictionary<string, object> parameters = null)
+    public async Task<Int64> FetchNonce(object accountIndex, object apiKeyIndex, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchNonce(accountIndex, apiKeyIndex, parameters);
-        return (double)res;
+        return ((Int64)res);
     }
     /// <summary>
     /// create a trade order
@@ -264,7 +264,7 @@ public partial class lighter
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;

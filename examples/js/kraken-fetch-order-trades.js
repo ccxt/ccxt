@@ -1,21 +1,17 @@
+// @NO_AUTO_TRANSPILE
 import ccxt from '../../js/ccxt.js';
-
 (async () => {
-
-    const exchange = new ccxt.kraken ({
+    const exchange = new ccxt.kraken({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
         // 'verbose': true,
-    })
-
-    const orders = await exchange.fetchClosedOrders ();
-
+    });
+    const orders = await exchange.fetchClosedOrders();
     for (let i = 0; i < orders.length; i++) {
-        const order = await exchange.fetchOrder (orders[i]['id']);
-        const trades = await exchange.fetchOrderTrades (order['id'], undefined, undefined, undefined, order);
-        console.log (trades);
+        const order = await exchange.fetchOrder(orders[i]['id']);
+        const trades = await exchange.fetchOrderTrades(order['id'], undefined, undefined, undefined, order);
+        console.log(trades);
     }
-
     //
     // alternatively:
     //
@@ -29,5 +25,4 @@ import ccxt from '../../js/ccxt.js';
     // }
     //
     // const trades = await exchange.fetchOrderTrades (order['id'], undefined, undefined, undefined, params);
-
-}) ()
+})();

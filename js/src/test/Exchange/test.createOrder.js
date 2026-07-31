@@ -77,7 +77,7 @@ async function tcoCreateUnfillableOrder(exchange, market, logPrefix, skippedProp
         if (maximumPrice !== undefined && limitSellPrice_nonFillable > maximumPrice) {
             limitSellPrice_nonFillable = maximumPrice;
         }
-        let createdOrder = undefined;
+        let createdOrder;
         if (buyOrSell === 'buy') {
             const orderAmount = tcoGetMinimumAmountForLimitPrice(exchange, market, limitBuyPrice_nonFillable, predefinedAmount);
             createdOrder = await tcoCreateOrderSafe(exchange, symbol, 'limit', 'buy', orderAmount, limitBuyPrice_nonFillable, {}, skippedProperties);

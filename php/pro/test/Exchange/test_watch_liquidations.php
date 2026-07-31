@@ -27,7 +27,7 @@ function test_watch_liquidations($exchange, $skipped_properties, $symbol) {
             var_dump($m2);
             return false;
         }
-        $response = null;
+        $response = [];
         $now = round(microtime(true) * 1000);
         $ends = $now + 10000;
         while ($now < $ends) {

@@ -31,7 +31,7 @@ class okxus(okx):
                 },
             },
             'has': {
-                'swap': False,
+                'swap': True,
                 'future': False,
                 'option': False,
             },

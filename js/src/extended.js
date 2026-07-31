@@ -21,14 +21,14 @@ export default class extended extends Exchange {
             'name': 'Extended',
             'countries': ['SG'],
             'version': 'v2',
-            'rateLimit': 600,
+            'rateLimit': 600, // Default Tier 1,000 requests/minute ≈ 1.67 request per second
             'precisionMode': TICK_SIZE,
             'certified': false,
             'pro': true,
             'dex': true,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
                 'swap': true,
                 'future': false,
@@ -164,16 +164,16 @@ export default class extended extends Exchange {
             },
             'hostname': 'extended.exchange',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/309d44db-2a50-4529-a27f-8f4492aec299',
+                'logo': 'https://github.com/user-attachments/assets/e2fe2bdf-6b28-4af8-b30f-38db496dc079',
                 'api': {
                     'rest': 'https://api.starknet.{hostname}',
                 },
                 'test': {
                     'rest': 'https://api.starknet.sepolia.{hostname}',
                 },
-                'www': 'https://app.{hostname}',
-                'doc': 'https://api.docs.{hostname}',
-                'fees': 'https://docs.{hostname}/extended-resources/trading/trading-fees-and-rebates',
+                'www': 'https://app.extended.exchange',
+                'doc': 'https://api.docs.extended.exchange',
+                'fees': 'https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates',
                 'referral': '',
             },
             'api': {
@@ -258,69 +258,69 @@ export default class extended extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '1000': InvalidOrder,
-                    '1001': InvalidOrder,
-                    '1002': InvalidOrder,
-                    '1003': InvalidOrder,
-                    '1004': InvalidOrder,
-                    '1005': InvalidOrder,
-                    '1006': ExchangeError,
-                    '1008': InvalidOrder,
-                    '1009': InvalidOrder,
-                    '1010': ExchangeError,
-                    '1011': InvalidOrder,
-                    '1012': InvalidOrder,
-                    '1013': InvalidOrder,
-                    '1014': InvalidOrder,
-                    '1049': InvalidOrder,
-                    '1050': InvalidOrder,
-                    '10501': InvalidOrder,
-                    '1052': InvalidOrder,
-                    '1053': InvalidOrder,
-                    '1100': InvalidOrder,
-                    '1101': InvalidOrder,
-                    '1102': InvalidOrder,
-                    '1120': InvalidOrder,
-                    '1121': InvalidOrder,
-                    '1122': InvalidOrder,
-                    '1123': InvalidOrder,
-                    '1124': InvalidOrder,
-                    '1125': InvalidOrder,
-                    '1126': InvalidOrder,
-                    '1127': InvalidOrder,
-                    '1128': InvalidOrder,
-                    '1129': InvalidOrder,
-                    '1130': InvalidOrder,
-                    '1131': InvalidOrder,
-                    '1132': InvalidOrder,
-                    '1133': InvalidOrder,
-                    '1134': InvalidOrder,
-                    '1135': InvalidOrder,
-                    '1136': InvalidOrder,
-                    '1137': InvalidOrder,
-                    '1138': InvalidOrder,
-                    '1139': InvalidOrder,
-                    '1140': InsufficientFunds,
-                    '1141': InvalidOrder,
-                    '1142': InvalidOrder,
-                    '1143': InvalidOrder,
-                    '1144': InvalidOrder,
-                    '1145': InvalidOrder,
-                    '1146': InvalidOrder,
-                    '1147': InvalidOrder,
-                    '1148': InvalidOrder,
-                    '1500': InvalidOrder,
-                    '1600': BadRequest,
-                    '1601': BadRequest,
-                    '1602': BadRequest,
-                    '1604': BadRequest,
-                    '1605': BadRequest,
-                    '1607': BadRequest,
-                    '1608': BadRequest,
-                    '1650': BadRequest,
-                    '1700': BadRequest,
-                    '1701': BadRequest,
-                    '1703': BadRequest,
+                    '1000': InvalidOrder, // Asset not found.
+                    '1001': InvalidOrder, // Market not found.
+                    '1002': InvalidOrder, // Market is disabled.
+                    '1003': InvalidOrder, // Market group not found.
+                    '1004': InvalidOrder, // Account not found.
+                    '1005': InvalidOrder, // Not supported interval.
+                    '1006': ExchangeError, // Application error.
+                    '1008': InvalidOrder, // Client not found.
+                    '1009': InvalidOrder, // Action is not allowed.
+                    '1010': ExchangeError, // Maintenance mode.
+                    '1011': InvalidOrder, // Post only mode.
+                    '1012': InvalidOrder, // Reduce only mode.
+                    '1013': InvalidOrder, // Percentage should be between 0 and 1.
+                    '1014': InvalidOrder, // Market is in reduce only mode, non-reduce only orders are not allowed.
+                    '1049': InvalidOrder, // Leverage below min leverage.
+                    '1050': InvalidOrder, // Leverage exceeds max leverage.
+                    '10501': InvalidOrder, // Max position value exceeded for new leverage.
+                    '1052': InvalidOrder, // Insufficient margin for new leverage.
+                    '1053': InvalidOrder, // Leverage has invalid precision.
+                    '1100': InvalidOrder, // Invalid Starknet public key.
+                    '1101': InvalidOrder, // Invalid Starknet signature.
+                    '1102': InvalidOrder, // Invalid Starknet vault.
+                    '1120': InvalidOrder, // Order quantity less than min trade size, based on market-specific trading rules.
+                    '1121': InvalidOrder, // Invalid quantity due to the wrong size increment, based on market-specific Minimum Change in Trade Size trading rule.
+                    '1122': InvalidOrder, // Order value exceeds max order value, based on market-specific trading rules.
+                    '1123': InvalidOrder, // Invalid quantity precision, currently equals to market-specific Minimum Change in Trade Size.
+                    '1124': InvalidOrder, // Invalid price due to wrong price movement, based on market-specific Minimum Price Change trading rule.
+                    '1125': InvalidOrder, // Invalid price precision, currently equals to market-specific Minimum Price Change.
+                    '1126': InvalidOrder, // Max open orders number exceeded, currently 200 orders per market.
+                    '1127': InvalidOrder, // Max position value exceeded, based on the Margin schedule.
+                    '1128': InvalidOrder, // Trading fees are invalid. Refer to Order management section for details.
+                    '1129': InvalidOrder, // Invalid quantity for position TP/SL.
+                    '1130': InvalidOrder, // Order price is missing.
+                    '1131': InvalidOrder, // TP/SL order trigger is missing.
+                    '1132': InvalidOrder, // Order type is not allowed.
+                    '1133': InvalidOrder, // Invalid order parameters.
+                    '1134': InvalidOrder, // Duplicate Order.
+                    '1135': InvalidOrder, // Order expiration date must be within 90 days for the Mainnet, 28 days for the Testnet.
+                    '1136': InvalidOrder, // Reduce-only order size exceeds open position size.
+                    '1137': InvalidOrder, // Position is missing for a reduce-only order.
+                    '1138': InvalidOrder, // Position is the same side as a reduce-only order.
+                    '1139': InvalidOrder, // Market order must have time in force IOC.
+                    '1140': InsufficientFunds, // New order cost exceeds available balance.
+                    '1141': InvalidOrder, // Invalid price value.
+                    '1142': InvalidOrder, // Edit order not found.
+                    '1143': InvalidOrder, // Conditional order trigger is missing.
+                    '1144': InvalidOrder, // Conditional market order can't be Post-only.
+                    '1145': InvalidOrder, // Non reduce-only orders are not allowed.
+                    '1146': InvalidOrder, // Twap order must have time in force GTT.
+                    '1147': InvalidOrder, // Open loss exceeds equity.
+                    '1148': InvalidOrder, // TP/SL open loss exceeds equity.
+                    '1500': InvalidOrder, // Account not selected.
+                    '1600': BadRequest, // Withdrawal amount must be positive.
+                    '1601': BadRequest, // Withdrawal description is too long.
+                    '1602': BadRequest, // Withdrawal request does not match settlement.
+                    '1604': BadRequest, // Withdrawal expiration time is below the 14 days minimum.
+                    '1605': BadRequest, // Withdrawal asset is not valid.
+                    '1607': BadRequest, // Withdrawals blocked for the account. Please contact the team on Discord to unblock the withdrawals.
+                    '1608': BadRequest, // The withdrawal address does not match the account address.
+                    '1650': BadRequest, // Vault transfer amount is incorrect.
+                    '1700': BadRequest, // Referral code already exist.
+                    '1701': BadRequest, // Referral code is not valid.
+                    '1703': BadRequest, // Referral program is not enabled.
                     '1704': BadRequest, // Referral code already applied.
                 },
                 'broad': {},
@@ -516,7 +516,7 @@ export default class extended extends Exchange {
         //
         const tradingConfig = this.safeDict(market, 'tradingConfig', {});
         const marketId = this.safeString(market, 'name');
-        let baseId = this.safeString(market, 'assetName');
+        let baseId = this.safeString(market, 'assetName', '');
         if (baseId.indexOf('SPOT') >= 0) {
             baseId = baseId.replace('SPOT', '');
         }
@@ -676,7 +676,7 @@ export default class extended extends Exchange {
             code = 'USDC';
         }
         const name = this.safeString(currency, 'name');
-        const precision = this.safeInteger(currency, 'precision');
+        const precision = this.safeInteger(currency, 'precision', 0);
         const isActive = this.safeBool(currency, 'isActive');
         return this.safeCurrencyStructure({
             'id': currencyId,
@@ -795,7 +795,9 @@ export default class extended extends Exchange {
             const stats = this.safeDict(marketData, 'marketStats', {});
             const ticker = this.parseTicker(stats, market);
             const symbol = ticker['symbol'];
-            tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                tickers[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(tickers, 'symbol', symbols);
     }
@@ -870,7 +872,7 @@ export default class extended extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1423,7 +1425,7 @@ export default class extended extends Exchange {
         //
         const timestamp = this.safeInteger(interest, 't');
         return this.safeOpenInterest({
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'openInterestAmount': this.safeNumber(interest, 'I'),
             'openInterestValue': this.safeNumber(interest, 'i'),
             'baseVolume': this.safeNumber(interest, 'I'),
@@ -1887,7 +1889,7 @@ export default class extended extends Exchange {
         await this.loadMarkets();
         const currency = this.currency(code);
         const account = await this.fetchExtendedAccount();
-        const currentAccountId = this.safeString(account, 'accountId');
+        const currentAccountId = this.safeString(account, 'accountId', '');
         if (fromAccount === undefined) {
             fromAccount = currentAccountId;
         }
@@ -2126,7 +2128,9 @@ export default class extended extends Exchange {
             const fee = this.safeDict(data, i, {});
             const parsed = this.parseTradingFee(fee);
             const symbol = this.safeString(parsed, 'symbol');
-            result[symbol] = parsed;
+            if (symbol !== undefined) {
+                result[symbol] = parsed;
+            }
         }
         return result;
     }
@@ -2953,7 +2957,7 @@ export default class extended extends Exchange {
             clientOrderIds = [clientOrderId];
         }
         const hasClientOrderIds = clientOrderIds !== undefined;
-        if (hasClientOrderIds) {
+        if (clientOrderIds !== undefined) {
             const clientOrderIdsLength = clientOrderIds.length;
             if (clientOrderIdsLength > 0) {
                 request['externalOrderIds'] = clientOrderIds;
@@ -3378,16 +3382,16 @@ export default class extended extends Exchange {
         const orderTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName('"Order"("position_id":"felt","base_asset_id":"AssetId","base_amount":"i64","quote_asset_id":"AssetId","quote_amount":"i64","fee_asset_id":"AssetId","fee_amount":"u64","expiration":"Timestamp","salt":"felt")"PositionId"("value":"u32")"AssetId"("value":"felt")"Timestamp"("seconds":"u64")'));
         const domainHash = this.getExtendedDomainHash();
         // Order fields
-        const positionId = this.convertToBigInt(this.safeString(settlement, 'collateralPosition'));
-        const baseAssetId = this.safeString(settlement, 'baseAssetId');
-        const baseAmount = this.convertToBigInt(this.safeString(settlement, 'baseAmount'));
-        const quoteAssetId = this.safeString(settlement, 'quoteAssetId');
-        const quoteAmount = this.convertToBigInt(this.safeString(settlement, 'quoteAmount'));
-        const feeAssetId = this.safeString(settlement, 'feeAssetId');
-        const feeAmount = this.convertToBigInt(this.safeString(settlement, 'feeAmount'));
-        const expiration = this.convertToBigInt(this.safeString2(settlement, 'expiration', 'expirationTimestamp'));
-        const salt = this.convertToBigInt(this.safeString2(settlement, 'salt', 'nonce'));
-        const starkKey = this.convertToBigInt(this.safeString(settlement, 'starkKey'));
+        const positionId = this.convertToBigInt(this.safeString(settlement, 'collateralPosition', '0'));
+        const baseAssetId = this.safeString(settlement, 'baseAssetId', '0');
+        const baseAmount = this.convertToBigInt(this.safeString(settlement, 'baseAmount', '0'));
+        const quoteAssetId = this.safeString(settlement, 'quoteAssetId', '0');
+        const quoteAmount = this.convertToBigInt(this.safeString(settlement, 'quoteAmount', '0'));
+        const feeAssetId = this.safeString(settlement, 'feeAssetId', '0');
+        const feeAmount = this.convertToBigInt(this.safeString(settlement, 'feeAmount', '0'));
+        const expiration = this.convertToBigInt(this.safeString2(settlement, 'expiration', 'expirationTimestamp', '0'));
+        const salt = this.convertToBigInt(this.safeString2(settlement, 'salt', 'nonce', '0'));
+        const starkKey = this.convertToBigInt(this.safeString(settlement, 'starkKey', '0'));
         // Order struct hash
         const orderHash = this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements([
             orderTypeHash,
@@ -3415,12 +3419,12 @@ export default class extended extends Exchange {
         const expiration = this.safeDict(settlement, 'expiration', {});
         const withdrawalHash = this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements([
             withdrawalTypeHash,
-            this.convertToBigInt(this.safeString(settlement, 'recipient')),
-            this.convertToBigInt(this.safeString(settlement, 'positionId')),
-            this.convertToBigInt(this.safeString(settlement, 'collateralId')),
-            this.convertToBigInt(this.safeString(settlement, 'amount')),
-            this.convertToBigInt(this.safeString(expiration, 'seconds')),
-            this.convertToBigInt(this.safeString(settlement, 'salt')),
+            this.convertToBigInt(this.safeString(settlement, 'recipient', '0')),
+            this.convertToBigInt(this.safeString(settlement, 'positionId', '0')),
+            this.convertToBigInt(this.safeString(settlement, 'collateralId', '0')),
+            this.convertToBigInt(this.safeString(settlement, 'amount', '0')),
+            this.convertToBigInt(this.safeString(expiration, 'seconds', '0')),
+            this.convertToBigInt(this.safeString(settlement, 'salt', '0')),
         ]));
         return this.extendedStarknetComputePoseidonHashOnElements([
             this.getExtendedStringToFelt('StarkNet Message'),
@@ -3432,15 +3436,15 @@ export default class extended extends Exchange {
     getExtendedTransferMsgHash(settlement) {
         const transferTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName('"Transfer"("sender_position_id":"PositionId","receiver_position_id":"PositionId","asset_id":"AssetId","amount":"u64","expiration":"Timestamp","salt":"felt")"PositionId"("value":"u32")"AssetId"("value":"felt")"Timestamp"("seconds":"u64")'));
         const domainHash = this.getExtendedDomainHash();
-        const senderPublicKey = this.convertToBigInt(this.safeString(settlement, 'senderPublicKey'));
+        const senderPublicKey = this.convertToBigInt(this.safeString(settlement, 'senderPublicKey', '0'));
         const transferHash = this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements([
             transferTypeHash,
-            this.convertToBigInt(this.safeString(settlement, 'senderPositionId')),
-            this.convertToBigInt(this.safeString(settlement, 'receiverPositionId')),
-            this.convertToBigInt(this.safeString(settlement, 'assetId')),
-            this.convertToBigInt(this.safeString(settlement, 'amount')),
-            this.convertToBigInt(this.safeString(settlement, 'expirationTimestamp')),
-            this.convertToBigInt(this.safeString(settlement, 'nonce')),
+            this.convertToBigInt(this.safeString(settlement, 'senderPositionId', '0')),
+            this.convertToBigInt(this.safeString(settlement, 'receiverPositionId', '0')),
+            this.convertToBigInt(this.safeString(settlement, 'assetId', '0')),
+            this.convertToBigInt(this.safeString(settlement, 'amount', '0')),
+            this.convertToBigInt(this.safeString(settlement, 'expirationTimestamp', '0')),
+            this.convertToBigInt(this.safeString(settlement, 'nonce', '0')),
         ]));
         return this.extendedStarknetComputePoseidonHashOnElements([
             this.getExtendedStringToFelt('StarkNet Message'),

@@ -10,8 +10,8 @@ abstract class hibachi extends \ccxt\Exchange {
     public function public_get_market_exchange_info($params = array()) {
         return $this->request('market/exchange-info', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_get_market_data_trades($params = array()) {
-        return $this->request('market/data/trades', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_market_inventory($params = array()) {
+        return $this->request('market/inventory', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_market_data_prices($params = array()) {
         return $this->request('market/data/prices', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -19,14 +19,17 @@ abstract class hibachi extends \ccxt\Exchange {
     public function public_get_market_data_stats($params = array()) {
         return $this->request('market/data/stats', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_market_data_trades($params = array()) {
+        return $this->request('market/data/trades', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_get_market_data_klines($params = array()) {
         return $this->request('market/data/klines', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_get_market_data_orderbook($params = array()) {
-        return $this->request('market/data/orderbook', 'public', 'GET', $params, null, null, array("cost" => 1));
-    }
     public function public_get_market_data_open_interest($params = array()) {
         return $this->request('market/data/open-interest', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_market_data_orderbook($params = array()) {
+        return $this->request('market/data/orderbook', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_market_data_funding_rates($params = array()) {
         return $this->request('market/data/funding-rates', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -34,26 +37,35 @@ abstract class hibachi extends \ccxt\Exchange {
     public function public_get_exchange_utc_timestamp($params = array()) {
         return $this->request('exchange/utc-timestamp', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_capital_deposit_info($params = array()) {
-        return $this->request('capital/deposit-info', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function private_get_capital_balance($params = array()) {
+        return $this->request('capital/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_capital_history($params = array()) {
         return $this->request('capital/history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_trade_account_trading_history($params = array()) {
-        return $this->request('trade/account/trading_history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function private_get_capital_deposit_info($params = array()) {
+        return $this->request('capital/deposit-info', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_trade_account_info($params = array()) {
         return $this->request('trade/account/info', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_trade_order($params = array()) {
-        return $this->request('trade/order', 'private', 'GET', $params, null, null, array("cost" => 1));
-    }
     public function private_get_trade_account_trades($params = array()) {
         return $this->request('trade/account/trades', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_trade_account_trading_history($params = array()) {
+        return $this->request('trade/account/trading_history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_trade_account_settlements_history($params = array()) {
+        return $this->request('trade/account/settlements_history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_trade_orders($params = array()) {
         return $this->request('trade/orders', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_trade_order($params = array()) {
+        return $this->request('trade/order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_trade_orders_history($params = array()) {
+        return $this->request('trade/orders/history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_put_trade_order($params = array()) {
         return $this->request('trade/order', 'private', 'PUT', $params, null, null, array("cost" => 1));
@@ -73,11 +85,17 @@ abstract class hibachi extends \ccxt\Exchange {
     public function private_post_capital_withdraw($params = array()) {
         return $this->request('capital/withdraw', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_capital_transfer($params = array()) {
+        return $this->request('capital/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_trade_account_leverage($params = array()) {
+        return $this->request('trade/account/leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function publicGetMarketExchangeInfo($params = array()) {
         return $this->request('market/exchange-info', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function publicGetMarketDataTrades($params = array()) {
-        return $this->request('market/data/trades', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetMarketInventory($params = array()) {
+        return $this->request('market/inventory', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetMarketDataPrices($params = array()) {
         return $this->request('market/data/prices', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -85,14 +103,17 @@ abstract class hibachi extends \ccxt\Exchange {
     public function publicGetMarketDataStats($params = array()) {
         return $this->request('market/data/stats', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function publicGetMarketDataTrades($params = array()) {
+        return $this->request('market/data/trades', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function publicGetMarketDataKlines($params = array()) {
         return $this->request('market/data/klines', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function publicGetMarketDataOrderbook($params = array()) {
-        return $this->request('market/data/orderbook', 'public', 'GET', $params, null, null, array("cost" => 1));
-    }
     public function publicGetMarketDataOpenInterest($params = array()) {
         return $this->request('market/data/open-interest', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetMarketDataOrderbook($params = array()) {
+        return $this->request('market/data/orderbook', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetMarketDataFundingRates($params = array()) {
         return $this->request('market/data/funding-rates', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -100,26 +121,35 @@ abstract class hibachi extends \ccxt\Exchange {
     public function publicGetExchangeUtcTimestamp($params = array()) {
         return $this->request('exchange/utc-timestamp', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetCapitalDepositInfo($params = array()) {
-        return $this->request('capital/deposit-info', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function privateGetCapitalBalance($params = array()) {
+        return $this->request('capital/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetCapitalHistory($params = array()) {
         return $this->request('capital/history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetTradeAccountTradingHistory($params = array()) {
-        return $this->request('trade/account/trading_history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    public function privateGetCapitalDepositInfo($params = array()) {
+        return $this->request('capital/deposit-info', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetTradeAccountInfo($params = array()) {
         return $this->request('trade/account/info', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetTradeOrder($params = array()) {
-        return $this->request('trade/order', 'private', 'GET', $params, null, null, array("cost" => 1));
-    }
     public function privateGetTradeAccountTrades($params = array()) {
         return $this->request('trade/account/trades', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetTradeAccountTradingHistory($params = array()) {
+        return $this->request('trade/account/trading_history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetTradeAccountSettlementsHistory($params = array()) {
+        return $this->request('trade/account/settlements_history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetTradeOrders($params = array()) {
         return $this->request('trade/orders', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetTradeOrder($params = array()) {
+        return $this->request('trade/order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetTradeOrdersHistory($params = array()) {
+        return $this->request('trade/orders/history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privatePutTradeOrder($params = array()) {
         return $this->request('trade/order', 'private', 'PUT', $params, null, null, array("cost" => 1));
@@ -138,5 +168,11 @@ abstract class hibachi extends \ccxt\Exchange {
     }
     public function privatePostCapitalWithdraw($params = array()) {
         return $this->request('capital/withdraw', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostCapitalTransfer($params = array()) {
+        return $this->request('capital/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradeAccountLeverage($params = array()) {
+        return $this->request('trade/account/leverage', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

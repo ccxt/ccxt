@@ -79,14 +79,14 @@ func (this *Lbank) FetchSpotMarkets(params ...any) ([]map[string]any, error) {
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMapArray(res), nil
 }
 func (this *Lbank) FetchSwapMarkets(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchSwapMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**
@@ -160,7 +160,7 @@ func (this *Lbank) FetchTickers(options ...FetchTickersOptions) (Tickers, error)
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Lbank) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 

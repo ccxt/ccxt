@@ -15,7 +15,7 @@ func TestWatchMyTrades(exchange ccxt.ICoreExchange, skippedProperties any, symbo
 		var ends any = Add(now, 15000)
 		for IsLessThan(now, ends) {
 			var success any = true
-			var response any = nil
+			var response any = []any{}
 
 			{
 				func() (ret_ any) {

@@ -168,9 +168,11 @@ func (this *PaymiumCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes1888 := (<-this.LoadMarkets())
-		PanicOnError(retRes1888)
+			retRes18912 := (<-this.LoadMarkets())
+			PanicOnError(retRes18912)
+		}
 
 		response := (<-this.PrivateGetUser(params))
 		PanicOnError(response)
@@ -190,7 +192,7 @@ func (this *PaymiumCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *PaymiumCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -201,9 +203,11 @@ func (this *PaymiumCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes2048 := (<-this.LoadMarkets())
-		PanicOnError(retRes2048)
+			retRes20712 := (<-this.LoadMarkets())
+			PanicOnError(retRes20712)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currency": GetValue(market, "id"),
@@ -285,9 +289,11 @@ func (this *PaymiumCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes2728 := (<-this.LoadMarkets())
-		PanicOnError(retRes2728)
+			retRes27712 := (<-this.LoadMarkets())
+			PanicOnError(retRes27712)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currency": GetValue(market, "id"),
@@ -369,9 +375,11 @@ func (this *PaymiumCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes3368 := (<-this.LoadMarkets())
-		PanicOnError(retRes3368)
+			retRes34312 := (<-this.LoadMarkets())
+			PanicOnError(retRes34312)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currency": GetValue(market, "id"),
@@ -403,9 +411,11 @@ func (this *PaymiumCore) CreateDepositAddress(code any, optionalArgs ...any) <-c
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes3558 := (<-this.LoadMarkets())
-		PanicOnError(retRes3558)
+			retRes36412 := (<-this.LoadMarkets())
+			PanicOnError(retRes36412)
+		}
 
 		response := (<-this.PrivatePostUserAddresses(params))
 		PanicOnError(response)
@@ -441,9 +451,11 @@ func (this *PaymiumCore) FetchDepositAddress(code any, optionalArgs ...any) <-ch
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes3788 := (<-this.LoadMarkets())
-		PanicOnError(retRes3788)
+			retRes38912 := (<-this.LoadMarkets())
+			PanicOnError(retRes38912)
+		}
 		var request any = map[string]any{
 			"address": code,
 		}
@@ -484,9 +496,11 @@ func (this *PaymiumCore) FetchDepositAddresses(optionalArgs ...any) <-chan any {
 		_ = codes
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes4048 := (<-this.LoadMarkets())
-		PanicOnError(retRes4048)
+			retRes41712 := (<-this.LoadMarkets())
+			PanicOnError(retRes41712)
+		}
 
 		response := (<-this.PrivateGetUserAddresses(params))
 		PanicOnError(response)
@@ -551,9 +565,11 @@ func (this *PaymiumCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes4538 := (<-this.LoadMarkets())
-		PanicOnError(retRes4538)
+			retRes46812 := (<-this.LoadMarkets())
+			PanicOnError(retRes46812)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"type":      Add(this.Capitalize(typeVar), "Order"),
@@ -632,9 +648,11 @@ func (this *PaymiumCore) Transfer(code any, amount any, fromAccount any, toAccou
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5048 := (<-this.LoadMarkets())
-		PanicOnError(retRes5048)
+			retRes52112 := (<-this.LoadMarkets())
+			PanicOnError(retRes52112)
+		}
 		var currency any = this.Currency(code)
 		if IsTrue(IsLessThan(GetIndexOf(toAccount, "@"), 0)) {
 			panic(ExchangeError(Add(this.Id, " transfer() only allows transfers to an email address")))

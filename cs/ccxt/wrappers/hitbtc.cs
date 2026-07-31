@@ -370,7 +370,7 @@ public partial class hitbtc
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -836,7 +836,7 @@ public partial class hitbtc
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}.</returns>
-    public async Task<MarginModes> FetchMarginModes(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<MarginModes> FetchMarginModes(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarginModes(symbols, parameters);
         return new MarginModes(res);

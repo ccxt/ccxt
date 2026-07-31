@@ -235,7 +235,7 @@ func (this *Paradex) FetchTicker(symbol string, options ...FetchTickerOptions) (
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Paradex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -380,7 +380,7 @@ func (this *Paradex) CreateOrder(symbol string, typeVar string, side string, amo
  * @method
  * @name paradex#editOrder
  * @description edit an open limit order or TPSL order
- * @see https://docs.paradex.trade/api-reference/prod/orders/modify
+ * @see https://docs.paradex.trade/api/prod/orders/modify
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to edit an order in
  * @param {string} type 'limit' or a TPSL order type

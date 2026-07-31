@@ -115,6 +115,10 @@ func (this *BybitCore) PublicGetV5AnnouncementsIndex(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV5AnnouncementsIndex", args...)
 }
 
+func (this *BybitCore) PublicGetV5SystemStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5SystemStatus", args...)
+}
+
 func (this *BybitCore) PublicGetV5MarketTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV5MarketTime", args...)
 }
@@ -141,6 +145,14 @@ func (this *BybitCore) PublicGetV5MarketInstrumentsInfo(args ...any) <-chan any 
 
 func (this *BybitCore) PublicGetV5MarketOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV5MarketOrderbook", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketRpiOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketRpiOrderbook", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketFullOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketFullOrderbook", args...)
 }
 
 func (this *BybitCore) PublicGetV5MarketTickers(args ...any) <-chan any {
@@ -175,8 +187,28 @@ func (this *BybitCore) PublicGetV5MarketDeliveryPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV5MarketDeliveryPrice", args...)
 }
 
+func (this *BybitCore) PublicGetV5MarketNewDeliveryPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketNewDeliveryPrice", args...)
+}
+
 func (this *BybitCore) PublicGetV5MarketAccountRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV5MarketAccountRatio", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketIndexPriceComponents(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketIndexPriceComponents", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketPriceLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketPriceLimit", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketAdlAlert(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketAdlAlert", args...)
+}
+
+func (this *BybitCore) PublicGetV5MarketFeeGroupInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5MarketFeeGroupInfo", args...)
 }
 
 func (this *BybitCore) PublicGetV5SpotLeverTokenInfo(args ...any) <-chan any {
@@ -491,8 +523,16 @@ func (this *BybitCore) PrivateGetV5PositionClosedPnl(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5PositionClosedPnl", args...)
 }
 
+func (this *BybitCore) PrivateGetV5PositionGetClosedPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5PositionGetClosedPositions", args...)
+}
+
 func (this *BybitCore) PrivateGetV5PositionMoveHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5PositionMoveHistory", args...)
+}
+
+func (this *BybitCore) PrivateGetV5PositionSymbolInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5PositionSymbolInfo", args...)
 }
 
 func (this *BybitCore) PrivateGetV5PreUpgradeOrderHistory(args ...any) <-chan any {
@@ -535,6 +575,10 @@ func (this *BybitCore) PrivateGetV5AccountCollateralInfo(args ...any) <-chan any
 	return this.callEndpointAsync("privateGetV5AccountCollateralInfo", args...)
 }
 
+func (this *BybitCore) PrivateGetV5AccountOptionAssetInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AccountOptionAssetInfo", args...)
+}
+
 func (this *BybitCore) PrivateGetV5AssetCoinGreeks(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5AssetCoinGreeks", args...)
 }
@@ -555,6 +599,22 @@ func (this *BybitCore) PrivateGetV5AccountContractTransactionLog(args ...any) <-
 	return this.callEndpointAsync("privateGetV5AccountContractTransactionLog", args...)
 }
 
+func (this *BybitCore) PrivateGetV5AccountQueryDcpInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AccountQueryDcpInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AccountUserSettingConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AccountUserSettingConfig", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AccountPayInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AccountPayInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AccountTradeInfoForAnalysis(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AccountTradeInfoForAnalysis", args...)
+}
+
 func (this *BybitCore) PrivateGetV5AccountSmpGroup(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5AccountSmpGroup", args...)
 }
@@ -565,6 +625,10 @@ func (this *BybitCore) PrivateGetV5AccountMmpState(args ...any) <-chan any {
 
 func (this *BybitCore) PrivateGetV5AccountWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5AccountWithdrawal", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetAssetOverview(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetAssetOverview", args...)
 }
 
 func (this *BybitCore) PrivateGetV5AssetExchangeQueryCoinList(args ...any) <-chan any {
@@ -581,6 +645,18 @@ func (this *BybitCore) PrivateGetV5AssetExchangeQueryConvertHistory(args ...any)
 
 func (this *BybitCore) PrivateGetV5AssetExchangeOrderRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5AssetExchangeOrderRecord", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetFundinghistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetFundinghistory", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetPortfolioMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetPortfolioMargin", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetTotalMembersAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetTotalMembersAssets", args...)
 }
 
 func (this *BybitCore) PrivateGetV5AssetDeliveryRecord(args ...any) <-chan any {
@@ -663,6 +739,14 @@ func (this *BybitCore) PrivateGetV5AssetWithdrawVaspList(args ...any) <-chan any
 	return this.callEndpointAsync("privateGetV5AssetWithdrawVaspList", args...)
 }
 
+func (this *BybitCore) PrivateGetV5AssetCovertSmallBalanceList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetCovertSmallBalanceList", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AssetCovertSmallBalanceHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AssetCovertSmallBalanceHistory", args...)
+}
+
 func (this *BybitCore) PrivateGetV5AssetConvertSmallBalanceList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5AssetConvertSmallBalanceList", args...)
 }
@@ -719,8 +803,20 @@ func (this *BybitCore) PrivateGetV5UserSubmembers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5UserSubmembers", args...)
 }
 
+func (this *BybitCore) PrivateGetV5UserEscrowSubMembers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5UserEscrowSubMembers", args...)
+}
+
+func (this *BybitCore) PrivateGetV5UserInvitationReferrals(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5UserInvitationReferrals", args...)
+}
+
 func (this *BybitCore) PrivateGetV5AffiliateAffUserList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5AffiliateAffUserList", args...)
+}
+
+func (this *BybitCore) PrivateGetV5AffiliateAffiliateSubList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AffiliateAffiliateSubList", args...)
 }
 
 func (this *BybitCore) PrivateGetV5SpotLeverTokenOrderRecord(args ...any) <-chan any {
@@ -745,6 +841,26 @@ func (this *BybitCore) PrivateGetV5SpotMarginTradePositionTiers(args ...any) <-c
 
 func (this *BybitCore) PrivateGetV5SpotMarginTradeCoinstate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5SpotMarginTradeCoinstate", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotMarginTradeCurrencyData(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeCurrencyData", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotMarginTradeFixedborrowContractInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeFixedborrowContractInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotMarginTradeFixedborrowOrderInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeFixedborrowOrderInfo", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotMarginTradeFixedborrowOrderQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeFixedborrowOrderQuote", args...)
+}
+
+func (this *BybitCore) PrivateGetV5SpotMarginTradeLiability(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeLiability", args...)
 }
 
 func (this *BybitCore) PrivateGetV5SpotMarginTradeRepaymentAvailableAmount(args ...any) <-chan any {
@@ -847,6 +963,10 @@ func (this *BybitCore) PrivateGetV5InsLoanProductInfos(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5InsLoanProductInfos", args...)
 }
 
+func (this *BybitCore) PrivateGetV5InsLoanEnsureTokens(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5InsLoanEnsureTokens", args...)
+}
+
 func (this *BybitCore) PrivateGetV5InsLoanEnsureTokensConvert(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5InsLoanEnsureTokensConvert", args...)
 }
@@ -859,8 +979,16 @@ func (this *BybitCore) PrivateGetV5InsLoanRepaidHistory(args ...any) <-chan any 
 	return this.callEndpointAsync("privateGetV5InsLoanRepaidHistory", args...)
 }
 
+func (this *BybitCore) PrivateGetV5InsLoanLtv(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5InsLoanLtv", args...)
+}
+
 func (this *BybitCore) PrivateGetV5InsLoanLtvConvert(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5InsLoanLtvConvert", args...)
+}
+
+func (this *BybitCore) PrivateGetV5InsLoanCoinDeltaAmount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5InsLoanCoinDeltaAmount", args...)
 }
 
 func (this *BybitCore) PrivateGetV5LendingInfo(args ...any) <-chan any {
@@ -1167,6 +1295,10 @@ func (this *BybitCore) PrivatePostV5OrderDisconnectedCancelAll(args ...any) <-ch
 	return this.callEndpointAsync("privatePostV5OrderDisconnectedCancelAll", args...)
 }
 
+func (this *BybitCore) PrivatePostV5OrderPreCheck(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5OrderPreCheck", args...)
+}
+
 func (this *BybitCore) PrivatePostV5PositionSetLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV5PositionSetLeverage", args...)
 }
@@ -1247,6 +1379,10 @@ func (this *BybitCore) PrivatePostV5AccountSetLimitPxAction(args ...any) <-chan 
 	return this.callEndpointAsync("privatePostV5AccountSetLimitPxAction", args...)
 }
 
+func (this *BybitCore) PrivatePostV5AccountSetDeltaMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AccountSetDeltaMode", args...)
+}
+
 func (this *BybitCore) PrivatePostV5AssetExchangeQuoteApply(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV5AssetExchangeQuoteApply", args...)
 }
@@ -1269,6 +1405,10 @@ func (this *BybitCore) PrivatePostV5AssetTransferUniversalTransfer(args ...any) 
 
 func (this *BybitCore) PrivatePostV5AssetDepositDepositToAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV5AssetDepositDepositToAccount", args...)
+}
+
+func (this *BybitCore) PrivatePostV5AssetTravelRuleDepositSubmit(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AssetTravelRuleDepositSubmit", args...)
 }
 
 func (this *BybitCore) PrivatePostV5AssetWithdrawCreate(args ...any) <-chan any {
@@ -1323,6 +1463,14 @@ func (this *BybitCore) PrivatePostV5UserDeleteSubApi(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV5UserDeleteSubApi", args...)
 }
 
+func (this *BybitCore) PrivatePostV5UserAgreement(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5UserAgreement", args...)
+}
+
+func (this *BybitCore) PrivatePostV5UserCreateDemoMember(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5UserCreateDemoMember", args...)
+}
+
 func (this *BybitCore) PrivatePostV5SpotLeverTokenPurchase(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV5SpotLeverTokenPurchase", args...)
 }
@@ -1341,6 +1489,14 @@ func (this *BybitCore) PrivatePostV5SpotMarginTradeSetLeverage(args ...any) <-ch
 
 func (this *BybitCore) PrivatePostV5SpotMarginTradeSetAutoRepayMode(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV5SpotMarginTradeSetAutoRepayMode", args...)
+}
+
+func (this *BybitCore) PrivatePostV5SpotMarginTradeFixedborrow(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5SpotMarginTradeFixedborrow", args...)
+}
+
+func (this *BybitCore) PrivatePostV5SpotMarginTradeFixedborrowRenew(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5SpotMarginTradeFixedborrowRenew", args...)
 }
 
 func (this *BybitCore) PrivatePostV5SpotCrossMarginTradeLoan(args ...any) <-chan any {

@@ -85,7 +85,7 @@ public class GrvtCore extends GrvtApi
                 put( "4w", "CI_4_W" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/7a2e8108-29f6-45d1-822d-48eb1c8cbbe6" );
+                put( "logo", "https://github.com/user-attachments/assets/cff0d37c-e594-40cb-88b3-90650ddadc18" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "privateEdge", "https://edge.grvt.io/" );
                     put( "privateTrading", "https://trades.grvt.io/" );
@@ -994,7 +994,10 @@ public class GrvtCore extends GrvtApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument", GrvtCore.this.marketId(symbol) );
@@ -1072,9 +1075,12 @@ public class GrvtCore extends GrvtApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(ticker, "instrument");
+        Object timestamp = this.safeIntegerProduct(ticker, "event_time", 0.000001);
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "info", ticker );
             put( "symbol", GrvtCore.this.safeSymbol(marketId, market) );
+            put( "timestamp", timestamp );
+            put( "datetime", GrvtCore.this.iso8601(timestamp) );
             put( "open", GrvtCore.this.safeString(ticker, "open_price") );
             put( "high", GrvtCore.this.safeString(ticker, "high_price") );
             put( "low", GrvtCore.this.safeString(ticker, "low_price") );
@@ -1113,7 +1119,10 @@ public class GrvtCore extends GrvtApi
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument", GrvtCore.this.marketId(symbol) );
             }};
@@ -1170,7 +1179,10 @@ public class GrvtCore extends GrvtApi
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument", Helpers.GetValue(market, "id") );
@@ -1331,7 +1343,10 @@ public class GrvtCore extends GrvtApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object maxLimit = 1000;
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -1435,7 +1450,10 @@ public class GrvtCore extends GrvtApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -1697,7 +1715,7 @@ public class GrvtCore extends GrvtApi
      * @method
      * @name grvt#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
+     * @see https://api-docs.grvt.io/trading_api/#withdrawal-history
      * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
      * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
@@ -2602,7 +2620,7 @@ public class GrvtCore extends GrvtApi
                 Object limitDec = this.safeString(limitParts, 1, "");
                 Object limitDecLength = Helpers.add(((String)limitDec).length(), 0); // php tr
                 Object limitDecLengthStr = String.valueOf(limitDecLength);
-                Object powerNum = ((Helpers.isTrue(Helpers.isEqual(limitDecLengthStr, "0")))) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
+                Object powerNum = ((Helpers.isTrue((Helpers.isEqual(limitDecLengthStr, "0"))))) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
                 Object priceInteger = (Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace((String)price, (String)".", (String)"")), this.convertToBigIntCustom(priceMultiplier)), (Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(powerNum))))));
                 Helpers.addElementToObject(legOrder, "limitPrice", this.parseToInt(priceInteger));
             } else
@@ -3515,7 +3533,7 @@ public class GrvtCore extends GrvtApi
         Object price = null;
         Object filled = null;
         Object avgPrice = null;
-        Object legs = this.safeList(order, "legs");
+        Object legs = this.safeList(order, "legs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object metadata = this.safeDict(order, "metadata", new java.util.HashMap<String, Object>() {{}});
         Object stateObj = this.safeDict(order, "state", new java.util.HashMap<String, Object>() {{}});
         Object filledAmounts = this.safeList(stateObj, "traded_size", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -3551,7 +3569,7 @@ public class GrvtCore extends GrvtApi
             put( "lastTradeTimeStamp", null );
             put( "lastUpdateTimestamp", GrvtCore.this.safeIntegerProduct(stateObj, "update_time", 0.000001) );
             put( "status", GrvtCore.this.parseOrderStatus(GrvtCore.this.safeString(stateObj, "status")) );
-            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "symbol", GrvtCore.this.safeString(finalMarket, "symbol") );
             put( "type", orderType );
             put( "timeInForce", timeInForce );
             put( "postOnly", isPostOnly );

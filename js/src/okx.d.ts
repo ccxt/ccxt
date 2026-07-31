@@ -1,5 +1,5 @@
 import Exchange from './abstract/okx.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, NullableDict, List, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests } from './base/types.js';
 /**
  * @class okx
  * @augments Exchange
@@ -64,11 +64,12 @@ export default class okx extends Exchange {
      * @name okx#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
@@ -118,6 +119,7 @@ export default class okx extends Exchange {
      * @name okx#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades
+     * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades-history
      * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-option-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -254,7 +256,7 @@ export default class okx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    editOrderRequest(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): any;
+    editOrderRequest(id: string, symbol: any, type: any, side: any, amount?: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name okx#editOrder
@@ -606,6 +608,16 @@ export default class okx extends Exchange {
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
+    /**
+     * @method
+     * @name okx#fetchTransfer
+     * @description fetch a transfer
+     * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-funds-transfer-state
+     * @param {string} id transfer id
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
     fetchTransfer(id: string, code?: Str, params?: {}): Promise<TransferEntry>;
     /**
      * @method
@@ -619,11 +631,11 @@ export default class okx extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
     parseFundingRate(contract: any, market?: Market): FundingRate;
     parseFundingInterval(interval: any): string;
@@ -921,7 +933,7 @@ export default class okx extends Exchange {
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): Dict;
+    parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: any): Dict;
     /**
      * @method
      * @name okx#fetchSettlementHistory
@@ -941,7 +953,7 @@ export default class okx extends Exchange {
         timestamp: any;
         datetime: any;
     };
-    parseSettlements(settlements: any, market: any): any[];
+    parseSettlements(settlements: any, market: any): List;
     /**
      * @method
      * @name okx#fetchUnderlyingAssets

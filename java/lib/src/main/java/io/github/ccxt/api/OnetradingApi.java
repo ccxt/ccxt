@@ -79,6 +79,11 @@ public class OnetradingApi extends Exchange
         return this.callAsync ("privateGetAccountOrdersOrderId", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privateGetAccountOrdersClientClientId (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAccountOrdersClientClientId", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privateGetAccountOrdersOrderIdTrades (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAccountOrdersOrderIdTrades", optionalArgs);
@@ -89,9 +94,9 @@ public class OnetradingApi extends Exchange
         return this.callAsync ("privateGetAccountTrades", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  privateGetAccountTradesTradeId (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  privateGetAccountTradeTradeId (Object... optionalArgs)
     {
-        return this.callAsync ("privateGetAccountTradesTradeId", optionalArgs);
+        return this.callAsync ("privateGetAccountTradeTradeId", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privatePostAccountOrders (Object... optionalArgs)

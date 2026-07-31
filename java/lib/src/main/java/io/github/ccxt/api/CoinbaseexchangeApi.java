@@ -349,6 +349,11 @@ public class CoinbaseexchangeApi extends Exchange
         return this.callAsync ("privatePostPositionClose", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privatePostProfiles (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostProfiles", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privatePostProfilesMarginTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostProfilesMarginTransfer", optionalArgs);
@@ -412,6 +417,16 @@ public class CoinbaseexchangeApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  privateDeleteOrdersId (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteOrdersId", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePutProfilesIdDeactivate (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutProfilesIdDeactivate", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePutProfilesId (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutProfilesId", optionalArgs);
     }
 
 }

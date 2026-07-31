@@ -212,7 +212,9 @@ public partial class bitopro : Exchange
                     { "BEP20", "BSC" },
                     { "BSC", "BSC" },
                 } },
-                { "fiatCurrencies", new List<object>() {"TWD"} },
+                { "fetchCurrencies", new Dictionary<string, object>() {
+                    { "fiatCurrencies", new List<object>() {"TWD"} },
+                } },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -346,7 +348,7 @@ public partial class bitopro : Exchange
 
     public override object parseCurrency(object rawCurrency)
     {
-        object fiatCurrencies = this.safeList(this.options, "fiatCurrencies", new List<object>() {});
+        object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new List<object>() {});
         object currencyId = this.safeString(rawCurrency, "currency");
         object code = this.safeCurrencyCode(currencyId);
         object deposit = this.safeBool(rawCurrency, "deposit");
@@ -528,7 +530,10 @@ public partial class bitopro : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -563,7 +568,10 @@ public partial class bitopro : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetTickers();
         object tickers = this.safeList(response, "data", new List<object>() {});
         //
@@ -592,12 +600,15 @@ public partial class bitopro : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -742,7 +753,10 @@ public partial class bitopro : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -775,7 +789,10 @@ public partial class bitopro : Exchange
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetProvisioningLimitationsAndFees(parameters);
         object tradingFeeRate = this.safeDict(response, "tradingFeeRate", new Dictionary<string, object>() {});
         object first = this.safeValue(tradingFeeRate, 0);
@@ -879,7 +896,10 @@ public partial class bitopro : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object resolution = this.safeString(this.timeframes, timeframe, timeframe);
         object request = new Dictionary<string, object>() {
@@ -1015,7 +1035,10 @@ public partial class bitopro : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetAccountsBalance(parameters);
         object balances = this.safeList(response, "data", new List<object>() {});
         //
@@ -1045,7 +1068,7 @@ public partial class bitopro : Exchange
             { "4", "canceled" },
             { "6", "canceled" },
         };
-        return this.safeString(statuses, status);
+        return ((bool) isTrue((isEqual(status, null)))) ? null : this.safeString(statuses, status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1157,7 +1180,10 @@ public partial class bitopro : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "type", type },
@@ -1228,7 +1254,10 @@ public partial class bitopro : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "id", id },
@@ -1284,7 +1313,10 @@ public partial class bitopro : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object id = getValue(market, "uppercaseId");
         object request = new Dictionary<string, object>() {};
@@ -1316,7 +1348,10 @@ public partial class bitopro : Exchange
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object response = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1359,7 +1394,10 @@ public partial class bitopro : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "orderId", id },
@@ -1410,7 +1448,10 @@ public partial class bitopro : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -1472,7 +1513,10 @@ public partial class bitopro : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1523,7 +1567,10 @@ public partial class bitopro : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -1671,7 +1718,10 @@ public partial class bitopro : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchDeposits() requires the code argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.safeCurrency(code);
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
@@ -1728,7 +1778,10 @@ public partial class bitopro : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchWithdrawals() requires the code argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.safeCurrency(code);
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
@@ -1783,7 +1836,10 @@ public partial class bitopro : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchWithdrawal() requires the code argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.safeCurrency(code);
         object request = new Dictionary<string, object>() {
             { "serial", id },
@@ -1828,7 +1884,10 @@ public partial class bitopro : Exchange
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         this.checkAddress(address);
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
@@ -1841,7 +1900,7 @@ public partial class bitopro : Exchange
             object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
             object requestedNetwork = this.safeStringUpper(parameters, "network");
             parameters = this.omit(parameters, new List<object>() {"network"});
-            object networkId = this.safeString(networks, requestedNetwork);
+            object networkId = ((bool) isTrue((isEqual(requestedNetwork, null)))) ? null : this.safeString(networks, requestedNetwork);
             if (isTrue(isEqual(networkId, null)))
             {
                 throw new ExchangeError ((string)add(add(this.id, " invalid network "), requestedNetwork)) ;
@@ -1908,7 +1967,10 @@ public partial class bitopro : Exchange
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetProvisioningCurrencies(parameters);
         //
         //     {

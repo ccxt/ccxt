@@ -155,7 +155,7 @@ func (this *CryptomusCore) Describe() any {
 		},
 		"timeframes": map[string]any{},
 		"urls": map[string]any{
-			"logo": "https://github.com/user-attachments/assets/8e0b1c48-7c01-4177-9224-f1b01d89d7e7",
+			"logo": "https://github.com/user-attachments/assets/cce42038-d22e-49bc-8a9a-b9c92a2859a0",
 			"api": map[string]any{
 				"public":  "https://api.cryptomus.com",
 				"private": "https://api.cryptomus.com",
@@ -493,9 +493,11 @@ func (this *CryptomusCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes4688 := (<-this.LoadMarkets())
-		PanicOnError(retRes4688)
+			retRes46912 := (<-this.LoadMarkets())
+			PanicOnError(retRes46912)
+		}
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.PublicGetV1ExchangeMarketTickers(params))
@@ -568,7 +570,7 @@ func (this *CryptomusCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *CryptomusCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -579,9 +581,11 @@ func (this *CryptomusCore) FetchOrderBook(symbol any, optionalArgs ...any) <-cha
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5368 := (<-this.LoadMarkets())
-		PanicOnError(retRes5368)
+			retRes53912 := (<-this.LoadMarkets())
+			PanicOnError(retRes53912)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currencyPair": GetValue(market, "id"),
@@ -645,9 +649,11 @@ func (this *CryptomusCore) FetchTrades(symbol any, optionalArgs ...any) <-chan a
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5818 := (<-this.LoadMarkets())
-		PanicOnError(retRes5818)
+			retRes58612 := (<-this.LoadMarkets())
+			PanicOnError(retRes58612)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currencyPair": GetValue(market, "id"),
@@ -695,7 +701,7 @@ func (this *CryptomusCore) ParseTrade(trade any, optionalArgs ...any) any {
 		"id":           this.SafeString(trade, "trade_id"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
-		"symbol":       GetValue(market, "symbol"),
+		"symbol":       this.SafeString(market, "symbol"),
 		"side":         this.SafeString(trade, "type"),
 		"price":        this.SafeString(trade, "price"),
 		"amount":       this.SafeString(trade, "quote_volume"),
@@ -726,9 +732,11 @@ func (this *CryptomusCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6468 := (<-this.LoadMarkets())
-		PanicOnError(retRes6468)
+			retRes65312 := (<-this.LoadMarkets())
+			PanicOnError(retRes65312)
+		}
 		var request any = map[string]any{}
 
 		response := (<-this.PrivateGetV2UserApiExchangeAccountBalance(this.Extend(request, params)))
@@ -800,9 +808,11 @@ func (this *CryptomusCore) CreateOrder(symbol any, typeVar any, side any, amount
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7048 := (<-this.LoadMarkets())
-		PanicOnError(retRes7048)
+			retRes71312 := (<-this.LoadMarkets())
+			PanicOnError(retRes71312)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"market":    GetValue(market, "id"),
@@ -888,9 +898,11 @@ func (this *CryptomusCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7698 := (<-this.LoadMarkets())
-		PanicOnError(retRes7698)
+			retRes78012 := (<-this.LoadMarkets())
+			PanicOnError(retRes78012)
+		}
 		var request any = map[string]any{}
 		AddElementToObject(request, "orderId", id)
 
@@ -940,9 +952,11 @@ func (this *CryptomusCore) FetchCanceledAndClosedOrders(optionalArgs ...any) <-c
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7988 := (<-this.LoadMarkets())
-		PanicOnError(retRes7988)
+			retRes81112 := (<-this.LoadMarkets())
+			PanicOnError(retRes81112)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1037,9 +1051,11 @@ func (this *CryptomusCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8748 := (<-this.LoadMarkets())
-		PanicOnError(retRes8748)
+			retRes88912 := (<-this.LoadMarkets())
+			PanicOnError(retRes88912)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -1278,8 +1294,14 @@ func (this *CryptomusCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		var feeTiers any = this.SafeList(data, "tariff_steps", []any{})
 		var result any = map[string]any{}
 		var tiers any = this.ParseFeeTiers(feeTiers)
-		for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
-			var symbol any = GetValue(this.Symbols, i)
+		var symbols any = this.Symbols
+		if IsTrue(IsEqual(symbols, nil)) {
+
+			ch <- result
+			return nil
+		}
+		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+			var symbol any = GetValue(symbols, i)
 			AddElementToObject(result, symbol, map[string]any{
 				"info":       response,
 				"symbol":     symbol,

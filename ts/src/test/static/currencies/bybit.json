@@ -8,7 +8,7 @@
                 {
                     "chainType": "Bitcoin",
                     "confirmation": "1",
-                    "withdrawFee": "0.000139",
+                    "withdrawFee": "0.000074",
                     "depositMin": "0.00001",
                     "withdrawMin": "0.00027",
                     "chain": "BTC",
@@ -17,7 +17,8 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "",
-                    "safeConfirmNumber": "2"
+                    "safeConfirmNumber": "2",
+                    "withdrawMax": "200"
                 }
             ]
         },
@@ -27,17 +28,17 @@
         "precision": 1e-8,
         "type": "crypto",
         "name": "BTC",
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.000139,
+        "fee": 0.000074,
         "fees": {},
         "networks": {
             "BTC": {
                 "info": {
                     "chainType": "Bitcoin",
                     "confirmation": "1",
-                    "withdrawFee": "0.000139",
+                    "withdrawFee": "0.000074",
                     "depositMin": "0.00001",
                     "withdrawMin": "0.00027",
                     "chain": "BTC",
@@ -46,14 +47,15 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "",
-                    "safeConfirmNumber": "2"
+                    "safeConfirmNumber": "2",
+                    "withdrawMax": "200"
                 },
                 "id": "BTC",
                 "network": "BTC",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.000139,
+                "fee": 0.000074,
                 "precision": 1e-8,
                 "limits": {
                     "withdraw": {
@@ -86,7 +88,7 @@
         "info": {
             "name": "USDT",
             "coin": "USDT",
-            "remainAmount": "50000000000",
+            "remainAmount": "-1",
             "chains": [
                 {
                     "chainType": "Aptos",
@@ -100,7 +102,8 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
-                    "safeConfirmNumber": "1"
+                    "safeConfirmNumber": "1",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "Arbitrum One(USDT0)",
@@ -114,7 +117,8 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
-                    "safeConfirmNumber": "3360"
+                    "safeConfirmNumber": "3360",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "Berachain",
@@ -128,7 +132,8 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",
-                    "safeConfirmNumber": "12"
+                    "safeConfirmNumber": "12",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "BNB Smart Chain",
@@ -142,7 +147,8 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x55d398326f99059ff775485246999027b3197955",
-                    "safeConfirmNumber": "60"
+                    "safeConfirmNumber": "60",
+                    "withdrawMax": "500000000"
                 },
                 {
                     "chainType": "CAVAX",
@@ -156,7 +162,8 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
-                    "safeConfirmNumber": "120"
+                    "safeConfirmNumber": "120",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "CELO",
@@ -170,7 +177,8 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e",
-                    "safeConfirmNumber": "3600"
+                    "safeConfirmNumber": "3600",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "CORN",
@@ -179,12 +187,13 @@
                     "depositMin": "0.005",
                     "withdrawMin": "2",
                     "chain": "CORN",
-                    "chainDeposit": "1",
-                    "chainWithdraw": "1",
+                    "chainDeposit": "0",
+                    "chainWithdraw": "0",
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
-                    "safeConfirmNumber": "600"
+                    "safeConfirmNumber": "600",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "Ethereum",
@@ -198,7 +207,8 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-                    "safeConfirmNumber": "64"
+                    "safeConfirmNumber": "64",
+                    "withdrawMax": "50000000000"
                 },
                 {
                     "chainType": "HyperEVM",
@@ -212,7 +222,8 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
-                    "safeConfirmNumber": "30"
+                    "safeConfirmNumber": "30",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "KAVAEVM",
@@ -226,7 +237,8 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
-                    "safeConfirmNumber": "10"
+                    "safeConfirmNumber": "10",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "KAIA",
@@ -240,7 +252,8 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xd077a400968890eacc75cdc901f0356c943e4fdb",
-                    "safeConfirmNumber": "120"
+                    "safeConfirmNumber": "120",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "Mantle Network(USDT0)",
@@ -254,7 +267,8 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",
-                    "safeConfirmNumber": "700"
+                    "safeConfirmNumber": "700",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "Polygon PoS",
@@ -268,7 +282,8 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
-                    "safeConfirmNumber": "150"
+                    "safeConfirmNumber": "150",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "Monad",
@@ -282,7 +297,8 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xe7cd86e13AC4309349F30B3435a9d337750fC82D",
-                    "safeConfirmNumber": "10"
+                    "safeConfirmNumber": "10",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "OP Mainnet",
@@ -296,7 +312,8 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
-                    "safeConfirmNumber": "1800"
+                    "safeConfirmNumber": "1800",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "Plasma",
@@ -310,7 +327,8 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
-                    "safeConfirmNumber": "10"
+                    "safeConfirmNumber": "10",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "SOL",
@@ -324,7 +342,8 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-                    "safeConfirmNumber": "200"
+                    "safeConfirmNumber": "200",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "TON",
@@ -338,7 +357,8 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
-                    "safeConfirmNumber": "1"
+                    "safeConfirmNumber": "1",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "TRX",
@@ -352,7 +372,8 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-                    "safeConfirmNumber": "20"
+                    "safeConfirmNumber": "20",
+                    "withdrawMax": "500000000"
                 },
                 {
                     "chainType": "zkSync Lite",
@@ -366,7 +387,8 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-                    "safeConfirmNumber": ""
+                    "safeConfirmNumber": "",
+                    "withdrawMax": "-1"
                 }
             ]
         },
@@ -376,7 +398,7 @@
         "precision": 0.0001,
         "type": "crypto",
         "name": "USDT",
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": 0,
@@ -395,11 +417,12 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
-                    "safeConfirmNumber": "1"
+                    "safeConfirmNumber": "1",
+                    "withdrawMax": "-1"
                 },
                 "id": "APTOS",
                 "network": "APT",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0,
@@ -428,11 +451,12 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
-                    "safeConfirmNumber": "3360"
+                    "safeConfirmNumber": "3360",
+                    "withdrawMax": "-1"
                 },
                 "id": "ARBI",
                 "network": "ARBONE",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.1,
@@ -461,11 +485,12 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",
-                    "safeConfirmNumber": "12"
+                    "safeConfirmNumber": "12",
+                    "withdrawMax": "-1"
                 },
                 "id": "BERA",
                 "network": "BERA",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0,
@@ -494,11 +519,12 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x55d398326f99059ff775485246999027b3197955",
-                    "safeConfirmNumber": "60"
+                    "safeConfirmNumber": "60",
+                    "withdrawMax": "500000000"
                 },
                 "id": "BSC",
                 "network": "BEP20",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.2,
@@ -527,11 +553,12 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
-                    "safeConfirmNumber": "120"
+                    "safeConfirmNumber": "120",
+                    "withdrawMax": "-1"
                 },
                 "id": "CAVAX",
                 "network": "AVAXC",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.1,
@@ -560,11 +587,12 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e",
-                    "safeConfirmNumber": "3600"
+                    "safeConfirmNumber": "3600",
+                    "withdrawMax": "-1"
                 },
                 "id": "CELO",
                 "network": "CELO",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.5,
@@ -588,18 +616,19 @@
                     "depositMin": "0.005",
                     "withdrawMin": "2",
                     "chain": "CORN",
-                    "chainDeposit": "1",
-                    "chainWithdraw": "1",
+                    "chainDeposit": "0",
+                    "chainWithdraw": "0",
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
-                    "safeConfirmNumber": "600"
+                    "safeConfirmNumber": "600",
+                    "withdrawMax": "-1"
                 },
                 "id": "CORN",
                 "network": "CORN",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
+                "active": null,
+                "deposit": false,
+                "withdraw": false,
                 "fee": 0,
                 "precision": 0.0001,
                 "limits": {
@@ -626,11 +655,12 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-                    "safeConfirmNumber": "64"
+                    "safeConfirmNumber": "64",
+                    "withdrawMax": "50000000000"
                 },
                 "id": "ETH",
                 "network": "ERC20",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.8,
@@ -646,7 +676,7 @@
                     }
                 }
             },
-            "HYPEREVM": {
+            "HYPER": {
                 "info": {
                     "chainType": "HyperEVM",
                     "confirmation": "30",
@@ -659,11 +689,12 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
-                    "safeConfirmNumber": "30"
+                    "safeConfirmNumber": "30",
+                    "withdrawMax": "-1"
                 },
                 "id": "HYPEREVM",
-                "network": "HYPEREVM",
-                "active": true,
+                "network": "HYPER",
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0,
@@ -692,11 +723,12 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x919c1c267bc06a7039e03fcc2ef738525769109c",
-                    "safeConfirmNumber": "10"
+                    "safeConfirmNumber": "10",
+                    "withdrawMax": "-1"
                 },
                 "id": "KAVAEVM",
                 "network": "KAVAEVM",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.3,
@@ -725,11 +757,12 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xd077a400968890eacc75cdc901f0356c943e4fdb",
-                    "safeConfirmNumber": "120"
+                    "safeConfirmNumber": "120",
+                    "withdrawMax": "-1"
                 },
                 "id": "KLAY",
                 "network": "KLAY",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.1,
@@ -758,11 +791,12 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x779Ded0c9e1022225f8E0630b35a9b54bE713736",
-                    "safeConfirmNumber": "700"
+                    "safeConfirmNumber": "700",
+                    "withdrawMax": "-1"
                 },
                 "id": "MANTLE",
                 "network": "MANTLE",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0,
@@ -791,11 +825,12 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
-                    "safeConfirmNumber": "150"
+                    "safeConfirmNumber": "150",
+                    "withdrawMax": "-1"
                 },
                 "id": "MATIC",
                 "network": "MATIC",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.1,
@@ -824,11 +859,12 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xe7cd86e13AC4309349F30B3435a9d337750fC82D",
-                    "safeConfirmNumber": "10"
+                    "safeConfirmNumber": "10",
+                    "withdrawMax": "-1"
                 },
                 "id": "MONAD",
                 "network": "MONAD",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 1,
@@ -857,11 +893,12 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
-                    "safeConfirmNumber": "1800"
+                    "safeConfirmNumber": "1800",
+                    "withdrawMax": "-1"
                 },
                 "id": "OP",
                 "network": "OPTIMISM",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 1,
@@ -890,11 +927,12 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
-                    "safeConfirmNumber": "10"
+                    "safeConfirmNumber": "10",
+                    "withdrawMax": "-1"
                 },
                 "id": "PLASMA",
                 "network": "PLASMA",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0,
@@ -923,11 +961,12 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-                    "safeConfirmNumber": "200"
+                    "safeConfirmNumber": "200",
+                    "withdrawMax": "-1"
                 },
                 "id": "SOL",
                 "network": "SOL",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.5,
@@ -956,11 +995,12 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
-                    "safeConfirmNumber": "1"
+                    "safeConfirmNumber": "1",
+                    "withdrawMax": "-1"
                 },
                 "id": "TON",
                 "network": "TON",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.15,
@@ -989,11 +1029,12 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-                    "safeConfirmNumber": "20"
+                    "safeConfirmNumber": "20",
+                    "withdrawMax": "500000000"
                 },
                 "id": "TRX",
                 "network": "TRC20",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 1,
@@ -1009,7 +1050,7 @@
                     }
                 }
             },
-            "ZKSYNC": {
+            "ZKSYNCLITE": {
                 "info": {
                     "chainType": "zkSync Lite",
                     "confirmation": "",
@@ -1022,11 +1063,12 @@
                     "minAccuracy": "4",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-                    "safeConfirmNumber": ""
+                    "safeConfirmNumber": "",
+                    "withdrawMax": "-1"
                 },
                 "id": "ZKSYNC",
-                "network": "ZKSYNC",
-                "active": false,
+                "network": "ZKSYNCLITE",
+                "active": null,
                 "deposit": false,
                 "withdraw": false,
                 "fee": 0.3,
@@ -1062,63 +1104,56 @@
         "info": {
             "name": "LTC",
             "coin": "LTC",
-            "remainAmount": "10000",
+            "remainAmount": "-1",
             "chains": [
                 {
                     "chainType": "LTC",
                     "confirmation": "6",
                     "withdrawFee": "0.0001",
-                    "depositMin": "0",
+                    "depositMin": "0.00009",
                     "withdrawMin": "0.001",
                     "chain": "LTC",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": ""
+                    "contractAddress": "",
+                    "safeConfirmNumber": "60",
+                    "withdrawMax": "-1"
                 }
             ]
         },
-        "code": "LTC",
         "id": "LTC",
+        "numericId": null,
+        "code": "LTC",
+        "precision": 1e-8,
+        "type": "crypto",
         "name": "LTC",
         "active": null,
-        "deposit": null,
-        "withdraw": null,
-        "fee": null,
-        "precision": null,
-        "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "withdraw": {
-                "min": null,
-                "max": null
-            },
-            "deposit": {
-                "min": null,
-                "max": null
-            }
-        },
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0001,
+        "fees": {},
         "networks": {
             "LTC": {
                 "info": {
                     "chainType": "LTC",
                     "confirmation": "6",
                     "withdrawFee": "0.0001",
-                    "depositMin": "0",
+                    "depositMin": "0.00009",
                     "withdrawMin": "0.001",
                     "chain": "LTC",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": ""
+                    "contractAddress": "",
+                    "safeConfirmNumber": "60",
+                    "withdrawMax": "-1"
                 },
                 "id": "LTC",
                 "network": "LTC",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.0001,
@@ -1129,19 +1164,32 @@
                         "max": null
                     },
                     "deposit": {
-                        "min": 0,
+                        "min": 0.00009,
                         "max": null
                     }
                 }
             }
         },
-        "type": "crypto"
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.001,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.00009,
+                "max": null
+            }
+        }
     },
     "ETH": {
         "info": {
             "name": "ETH",
             "coin": "ETH",
-            "remainAmount": "20000",
+            "remainAmount": "-1",
             "chains": [
                 {
                     "chainType": "Arbitrum One",
@@ -1155,7 +1203,8 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "",
-                    "safeConfirmNumber": "3360"
+                    "safeConfirmNumber": "3360",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "Arbitrum Nova",
@@ -1164,12 +1213,13 @@
                     "depositMin": "0.000001",
                     "withdrawMin": "0.003",
                     "chain": "ARBINOVA",
-                    "chainDeposit": "1",
-                    "chainWithdraw": "1",
+                    "chainDeposit": "0",
+                    "chainWithdraw": "0",
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "",
-                    "safeConfirmNumber": "120"
+                    "safeConfirmNumber": "120",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "Base Mainnet",
@@ -1183,7 +1233,8 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "",
-                    "safeConfirmNumber": "1800"
+                    "safeConfirmNumber": "1800",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "BNB Smart Chain",
@@ -1197,7 +1248,8 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
-                    "safeConfirmNumber": "60"
+                    "safeConfirmNumber": "60",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "Ethereum",
@@ -1211,7 +1263,8 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "",
-                    "safeConfirmNumber": "64"
+                    "safeConfirmNumber": "64",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "LINEA",
@@ -1225,7 +1278,8 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "",
-                    "safeConfirmNumber": "4800"
+                    "safeConfirmNumber": "4800",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "Mantle Network",
@@ -1239,7 +1293,8 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xdEAddEaDdeadDEadDEADDEAddEADDEAddead1111",
-                    "safeConfirmNumber": "700"
+                    "safeConfirmNumber": "700",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "OP Mainnet",
@@ -1253,7 +1308,8 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "",
-                    "safeConfirmNumber": "1800"
+                    "safeConfirmNumber": "1800",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "zkSync Lite",
@@ -1267,7 +1323,8 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x0000000000000000000000000000000000000000",
-                    "safeConfirmNumber": ""
+                    "safeConfirmNumber": "",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "zkSync Era",
@@ -1281,7 +1338,8 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x000000000000000000000000000000000000800a",
-                    "safeConfirmNumber": "30000"
+                    "safeConfirmNumber": "30000",
+                    "withdrawMax": "-1"
                 }
             ]
         },
@@ -1291,7 +1349,7 @@
         "precision": 1e-8,
         "type": "crypto",
         "name": "ETH",
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": 0,
@@ -1310,11 +1368,12 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "",
-                    "safeConfirmNumber": "3360"
+                    "safeConfirmNumber": "3360",
+                    "withdrawMax": "-1"
                 },
                 "id": "ARBI",
                 "network": "ARBONE",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.00004,
@@ -1330,7 +1389,7 @@
                     }
                 }
             },
-            "ARBINOVA": {
+            "ARBNOVA": {
                 "info": {
                     "chainType": "Arbitrum Nova",
                     "confirmation": "100",
@@ -1338,18 +1397,19 @@
                     "depositMin": "0.000001",
                     "withdrawMin": "0.003",
                     "chain": "ARBINOVA",
-                    "chainDeposit": "1",
-                    "chainWithdraw": "1",
+                    "chainDeposit": "0",
+                    "chainWithdraw": "0",
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "",
-                    "safeConfirmNumber": "120"
+                    "safeConfirmNumber": "120",
+                    "withdrawMax": "-1"
                 },
                 "id": "ARBINOVA",
-                "network": "ARBINOVA",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
+                "network": "ARBNOVA",
+                "active": null,
+                "deposit": false,
+                "withdraw": false,
                 "fee": 0.0003,
                 "precision": 1e-8,
                 "limits": {
@@ -1376,11 +1436,12 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "",
-                    "safeConfirmNumber": "1800"
+                    "safeConfirmNumber": "1800",
+                    "withdrawMax": "-1"
                 },
                 "id": "BASE",
                 "network": "BASE",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.0003,
@@ -1409,11 +1470,12 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
-                    "safeConfirmNumber": "60"
+                    "safeConfirmNumber": "60",
+                    "withdrawMax": "-1"
                 },
                 "id": "BSC",
                 "network": "BEP20",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.0002,
@@ -1442,11 +1504,12 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "",
-                    "safeConfirmNumber": "64"
+                    "safeConfirmNumber": "64",
+                    "withdrawMax": "-1"
                 },
                 "id": "ETH",
                 "network": "ETH",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.0003,
@@ -1475,11 +1538,12 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "",
-                    "safeConfirmNumber": "4800"
+                    "safeConfirmNumber": "4800",
+                    "withdrawMax": "-1"
                 },
                 "id": "LINEA",
                 "network": "LINEA",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.0002,
@@ -1508,11 +1572,12 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0xdEAddEaDdeadDEadDEADDEAddEADDEAddead1111",
-                    "safeConfirmNumber": "700"
+                    "safeConfirmNumber": "700",
+                    "withdrawMax": "-1"
                 },
                 "id": "MANTLE",
                 "network": "MANTLE",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0,
@@ -1541,11 +1606,12 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "",
-                    "safeConfirmNumber": "1800"
+                    "safeConfirmNumber": "1800",
+                    "withdrawMax": "-1"
                 },
                 "id": "OP",
                 "network": "OPTIMISM",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.00015,
@@ -1561,7 +1627,7 @@
                     }
                 }
             },
-            "ZKSYNC": {
+            "ZKSYNCLITE": {
                 "info": {
                     "chainType": "zkSync Lite",
                     "confirmation": "",
@@ -1574,11 +1640,12 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x0000000000000000000000000000000000000000",
-                    "safeConfirmNumber": ""
+                    "safeConfirmNumber": "",
+                    "withdrawMax": "-1"
                 },
                 "id": "ZKSYNC",
-                "network": "ZKSYNC",
-                "active": false,
+                "network": "ZKSYNCLITE",
+                "active": null,
                 "deposit": false,
                 "withdraw": false,
                 "fee": 0.00015,
@@ -1594,7 +1661,7 @@
                     }
                 }
             },
-            "ZKV2": {
+            "ZKSYNCERA": {
                 "info": {
                     "chainType": "zkSync Era",
                     "confirmation": "100",
@@ -1607,11 +1674,12 @@
                     "minAccuracy": "8",
                     "withdrawPercentageFee": "0",
                     "contractAddress": "0x000000000000000000000000000000000000800a",
-                    "safeConfirmNumber": "30000"
+                    "safeConfirmNumber": "30000",
+                    "withdrawMax": "-1"
                 },
                 "id": "ZKV2",
-                "network": "ZKV2",
-                "active": true,
+                "network": "ZKSYNCERA",
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.0003,
@@ -1647,7 +1715,7 @@
         "info": {
             "name": "ADA",
             "coin": "ADA",
-            "remainAmount": "5000000",
+            "remainAmount": "-1",
             "chains": [
                 {
                     "chainType": "ADA",
@@ -1660,32 +1728,23 @@
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": ""
+                    "contractAddress": "",
+                    "safeConfirmNumber": "70",
+                    "withdrawMax": "-1"
                 }
             ]
         },
-        "code": "ADA",
         "id": "ADA",
+        "numericId": null,
+        "code": "ADA",
+        "precision": 0.000001,
+        "type": "crypto",
         "name": "ADA",
         "active": null,
-        "deposit": null,
-        "withdraw": null,
-        "fee": null,
-        "precision": null,
-        "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "withdraw": {
-                "min": null,
-                "max": null
-            },
-            "deposit": {
-                "min": null,
-                "max": null
-            }
-        },
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.8,
+        "fees": {},
         "networks": {
             "ADA": {
                 "info": {
@@ -1699,11 +1758,13 @@
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": ""
+                    "contractAddress": "",
+                    "safeConfirmNumber": "70",
+                    "withdrawMax": "-1"
                 },
                 "id": "ADA",
                 "network": "ADA",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.8,
@@ -1720,13 +1781,26 @@
                 }
             }
         },
-        "type": "crypto"
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 10,
+                "max": null
+            },
+            "deposit": {
+                "min": 1,
+                "max": null
+            }
+        }
     },
     "XRP": {
         "info": {
             "name": "XRP",
             "coin": "XRP",
-            "remainAmount": "13000000",
+            "remainAmount": "-1",
             "chains": [
                 {
                     "chainType": "XRP",
@@ -1737,34 +1811,25 @@
                     "chain": "XRP",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
-                    "minAccuracy": "2",
+                    "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": ""
+                    "contractAddress": "",
+                    "safeConfirmNumber": "1",
+                    "withdrawMax": "-1"
                 }
             ]
         },
-        "code": "XRP",
         "id": "XRP",
+        "numericId": null,
+        "code": "XRP",
+        "precision": 0.000001,
+        "type": "crypto",
         "name": "XRP",
         "active": null,
-        "deposit": null,
-        "withdraw": null,
-        "fee": null,
-        "precision": null,
-        "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "withdraw": {
-                "min": null,
-                "max": null
-            },
-            "deposit": {
-                "min": null,
-                "max": null
-            }
-        },
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.2,
+        "fees": {},
         "networks": {
             "XRP": {
                 "info": {
@@ -1776,17 +1841,19 @@
                     "chain": "XRP",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
-                    "minAccuracy": "2",
+                    "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": ""
+                    "contractAddress": "",
+                    "safeConfirmNumber": "1",
+                    "withdrawMax": "-1"
                 },
                 "id": "XRP",
                 "network": "XRP",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.2,
-                "precision": 0.01,
+                "precision": 0.000001,
                 "limits": {
                     "withdraw": {
                         "min": 1.2,
@@ -1799,143 +1866,296 @@
                 }
             }
         },
-        "type": "crypto"
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 1.2,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.01,
+                "max": null
+            }
+        }
     },
     "USDC": {
         "info": {
             "name": "USDC",
             "coin": "USDC",
-            "remainAmount": "20000000",
+            "remainAmount": "-1",
             "chains": [
+                {
+                    "chainType": "APTOS",
+                    "confirmation": "1",
+                    "withdrawFee": "0.05",
+                    "depositMin": "0.005",
+                    "withdrawMin": "1",
+                    "chain": "APTOS",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "0",
+                    "minAccuracy": "6",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b",
+                    "safeConfirmNumber": "1",
+                    "withdrawMax": "-1"
+                },
                 {
                     "chainType": "Arbitrum One",
                     "confirmation": "120",
-                    "withdrawFee": "1",
-                    "depositMin": "0",
+                    "withdrawFee": "0.2",
+                    "depositMin": "0.005",
                     "withdrawMin": "1",
                     "chain": "ARBI",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+                    "contractAddress": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+                    "safeConfirmNumber": "3360",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "Base Mainnet",
                     "confirmation": "30",
                     "withdrawFee": "0.5",
-                    "depositMin": "0",
+                    "depositMin": "0.005",
                     "withdrawMin": "0.5",
                     "chain": "BASE",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+                    "contractAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                    "safeConfirmNumber": "1800",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "BNB Smart Chain",
                     "confirmation": "60",
                     "withdrawFee": "0.2",
-                    "depositMin": "0",
+                    "depositMin": "0.005",
                     "withdrawMin": "0.2",
                     "chain": "BSC",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
+                    "contractAddress": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+                    "safeConfirmNumber": "60",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "CAVAX",
                     "confirmation": "30",
                     "withdrawFee": "1",
-                    "depositMin": "0",
+                    "depositMin": "0.005",
                     "withdrawMin": "1",
                     "chain": "CAVAX",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E"
+                    "contractAddress": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+                    "safeConfirmNumber": "120",
+                    "withdrawMax": "-1"
+                },
+                {
+                    "chainType": "Codex",
+                    "confirmation": "900",
+                    "withdrawFee": "1",
+                    "depositMin": "0.005",
+                    "withdrawMin": "2",
+                    "chain": "CODEX",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "1",
+                    "minAccuracy": "6",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0xd996633a415985DBd7D6D12f4A4343E31f5037cf",
+                    "safeConfirmNumber": "900",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "Ethereum",
                     "confirmation": "6",
-                    "withdrawFee": "5",
-                    "depositMin": "0",
-                    "withdrawMin": "5",
+                    "withdrawFee": "0.8",
+                    "depositMin": "0.005",
+                    "withdrawMin": "6",
                     "chain": "ETH",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+                    "contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "safeConfirmNumber": "64",
+                    "withdrawMax": "500000000"
+                },
+                {
+                    "chainType": "HBAR",
+                    "confirmation": "1",
+                    "withdrawFee": "0.5",
+                    "depositMin": "0.005",
+                    "withdrawMin": "1",
+                    "chain": "HBAR",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "1",
+                    "minAccuracy": "6",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0.0.456858",
+                    "safeConfirmNumber": "1",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "Mantle Network",
                     "confirmation": "100",
                     "withdrawFee": "0",
-                    "depositMin": "0",
+                    "depositMin": "0.005",
                     "withdrawMin": "0.3",
                     "chain": "MANTLE",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9"
+                    "contractAddress": "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9",
+                    "safeConfirmNumber": "700",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "Polygon PoS",
-                    "confirmation": "300",
+                    "confirmation": "60",
                     "withdrawFee": "1",
-                    "depositMin": "0",
+                    "depositMin": "0.005",
                     "withdrawMin": "1",
                     "chain": "MATIC",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359"
+                    "contractAddress": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+                    "safeConfirmNumber": "150",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "Polygon(bridged)",
-                    "confirmation": "300",
+                    "confirmation": "60",
                     "withdrawFee": "1",
-                    "depositMin": "0",
+                    "depositMin": "0.005",
                     "withdrawMin": "1",
                     "chain": "MATIC.E",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
+                    "contractAddress": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+                    "safeConfirmNumber": "150",
+                    "withdrawMax": "-1"
+                },
+                {
+                    "chainType": "Monad",
+                    "confirmation": "3",
+                    "withdrawFee": "1",
+                    "depositMin": "0.005",
+                    "withdrawMin": "2",
+                    "chain": "MONAD",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "1",
+                    "minAccuracy": "6",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+                    "safeConfirmNumber": "10",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "OP Mainnet",
                     "confirmation": "30",
                     "withdrawFee": "1",
-                    "depositMin": "0",
+                    "depositMin": "0.005",
                     "withdrawMin": "1",
                     "chain": "OP",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85"
+                    "contractAddress": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+                    "safeConfirmNumber": "1800",
+                    "withdrawMax": "-1"
+                },
+                {
+                    "chainType": "SEIEVM",
+                    "confirmation": "10",
+                    "withdrawFee": "0.5",
+                    "depositMin": "0.005",
+                    "withdrawMin": "1",
+                    "chain": "SEIEVM",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "1",
+                    "minAccuracy": "6",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0xe15fC38F6D8c56aF07bbCBe3BAf5708A2Bf42392",
+                    "safeConfirmNumber": "10",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "SOL",
                     "confirmation": "200",
                     "withdrawFee": "1",
-                    "depositMin": "0",
+                    "depositMin": "0.005",
                     "withdrawMin": "1",
                     "chain": "SOL",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+                    "contractAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "safeConfirmNumber": "200",
+                    "withdrawMax": "-1"
+                },
+                {
+                    "chainType": "Sonic",
+                    "confirmation": "1",
+                    "withdrawFee": "0.05",
+                    "depositMin": "0.005",
+                    "withdrawMin": "1",
+                    "chain": "SONIC",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "1",
+                    "minAccuracy": "6",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
+                    "safeConfirmNumber": "12",
+                    "withdrawMax": "-1"
+                },
+                {
+                    "chainType": "SUI",
+                    "confirmation": "1",
+                    "withdrawFee": "1",
+                    "depositMin": "0.005",
+                    "withdrawMin": "6",
+                    "chain": "SUI",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "1",
+                    "minAccuracy": "6",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+                    "safeConfirmNumber": "1",
+                    "withdrawMax": "-1"
+                },
+                {
+                    "chainType": "XDC",
+                    "confirmation": "32",
+                    "withdrawFee": "0",
+                    "depositMin": "0.005",
+                    "withdrawMin": "2",
+                    "chain": "XDC",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "1",
+                    "minAccuracy": "6",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0xfA2958CB79b0491CC627c1557F441eF849Ca8eb1",
+                    "safeConfirmNumber": "32",
+                    "withdrawMax": "-1"
                 },
                 {
                     "chainType": "zkSync Lite",
@@ -1948,53 +2168,46 @@
                     "chainWithdraw": "0",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+                    "contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "safeConfirmNumber": "",
+                    "withdrawMax": "-1"
                 }
             ]
         },
-        "code": "USDC",
         "id": "USDC",
+        "numericId": null,
+        "code": "USDC",
+        "precision": 0.000001,
+        "type": "crypto",
         "name": "USDC",
         "active": null,
-        "deposit": null,
-        "withdraw": null,
-        "fee": null,
-        "precision": null,
-        "limits": {
-            "amount": {
-                "min": null,
-                "max": null
-            },
-            "withdraw": {
-                "min": null,
-                "max": null
-            },
-            "deposit": {
-                "min": null,
-                "max": null
-            }
-        },
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0,
+        "fees": {},
         "networks": {
-            "ARBONE": {
+            "APT": {
                 "info": {
-                    "chainType": "Arbitrum One",
-                    "confirmation": "120",
-                    "withdrawFee": "1",
-                    "depositMin": "0",
+                    "chainType": "APTOS",
+                    "confirmation": "1",
+                    "withdrawFee": "0.05",
+                    "depositMin": "0.005",
                     "withdrawMin": "1",
-                    "chain": "ARBI",
+                    "chain": "APTOS",
                     "chainDeposit": "1",
-                    "chainWithdraw": "1",
+                    "chainWithdraw": "0",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+                    "contractAddress": "0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b",
+                    "safeConfirmNumber": "1",
+                    "withdrawMax": "-1"
                 },
-                "id": "ARBI",
-                "network": "ARBONE",
-                "active": true,
+                "id": "APTOS",
+                "network": "APT",
+                "active": null,
                 "deposit": true,
-                "withdraw": true,
-                "fee": 1,
+                "withdraw": false,
+                "fee": 0.05,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
@@ -2002,7 +2215,41 @@
                         "max": null
                     },
                     "deposit": {
-                        "min": 0,
+                        "min": 0.005,
+                        "max": null
+                    }
+                }
+            },
+            "ARBONE": {
+                "info": {
+                    "chainType": "Arbitrum One",
+                    "confirmation": "120",
+                    "withdrawFee": "0.2",
+                    "depositMin": "0.005",
+                    "withdrawMin": "1",
+                    "chain": "ARBI",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "1",
+                    "minAccuracy": "6",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+                    "safeConfirmNumber": "3360",
+                    "withdrawMax": "-1"
+                },
+                "id": "ARBI",
+                "network": "ARBONE",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.2,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.005,
                         "max": null
                     }
                 }
@@ -2012,18 +2259,20 @@
                     "chainType": "Base Mainnet",
                     "confirmation": "30",
                     "withdrawFee": "0.5",
-                    "depositMin": "0",
+                    "depositMin": "0.005",
                     "withdrawMin": "0.5",
                     "chain": "BASE",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+                    "contractAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                    "safeConfirmNumber": "1800",
+                    "withdrawMax": "-1"
                 },
                 "id": "BASE",
                 "network": "BASE",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.5,
@@ -2034,7 +2283,7 @@
                         "max": null
                     },
                     "deposit": {
-                        "min": 0,
+                        "min": 0.005,
                         "max": null
                     }
                 }
@@ -2044,18 +2293,20 @@
                     "chainType": "BNB Smart Chain",
                     "confirmation": "60",
                     "withdrawFee": "0.2",
-                    "depositMin": "0",
+                    "depositMin": "0.005",
                     "withdrawMin": "0.2",
                     "chain": "BSC",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
+                    "contractAddress": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+                    "safeConfirmNumber": "60",
+                    "withdrawMax": "-1"
                 },
                 "id": "BSC",
                 "network": "BEP20",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.2,
@@ -2066,7 +2317,7 @@
                         "max": null
                     },
                     "deposit": {
-                        "min": 0,
+                        "min": 0.005,
                         "max": null
                     }
                 }
@@ -2076,18 +2327,20 @@
                     "chainType": "CAVAX",
                     "confirmation": "30",
                     "withdrawFee": "1",
-                    "depositMin": "0",
+                    "depositMin": "0.005",
                     "withdrawMin": "1",
                     "chain": "CAVAX",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E"
+                    "contractAddress": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+                    "safeConfirmNumber": "120",
+                    "withdrawMax": "-1"
                 },
                 "id": "CAVAX",
                 "network": "AVAXC",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 1,
@@ -2098,7 +2351,41 @@
                         "max": null
                     },
                     "deposit": {
-                        "min": 0,
+                        "min": 0.005,
+                        "max": null
+                    }
+                }
+            },
+            "CODEX": {
+                "info": {
+                    "chainType": "Codex",
+                    "confirmation": "900",
+                    "withdrawFee": "1",
+                    "depositMin": "0.005",
+                    "withdrawMin": "2",
+                    "chain": "CODEX",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "1",
+                    "minAccuracy": "6",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0xd996633a415985DBd7D6D12f4A4343E31f5037cf",
+                    "safeConfirmNumber": "900",
+                    "withdrawMax": "-1"
+                },
+                "id": "CODEX",
+                "network": "CODEX",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.005,
                         "max": null
                     }
                 }
@@ -2107,30 +2394,66 @@
                 "info": {
                     "chainType": "Ethereum",
                     "confirmation": "6",
-                    "withdrawFee": "5",
-                    "depositMin": "0",
-                    "withdrawMin": "5",
+                    "withdrawFee": "0.8",
+                    "depositMin": "0.005",
+                    "withdrawMin": "6",
                     "chain": "ETH",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+                    "contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "safeConfirmNumber": "64",
+                    "withdrawMax": "500000000"
                 },
                 "id": "ETH",
                 "network": "ERC20",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 5,
+                "fee": 0.8,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 5,
+                        "min": 6,
                         "max": null
                     },
                     "deposit": {
-                        "min": 0,
+                        "min": 0.005,
+                        "max": null
+                    }
+                }
+            },
+            "HBAR": {
+                "info": {
+                    "chainType": "HBAR",
+                    "confirmation": "1",
+                    "withdrawFee": "0.5",
+                    "depositMin": "0.005",
+                    "withdrawMin": "1",
+                    "chain": "HBAR",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "1",
+                    "minAccuracy": "6",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0.0.456858",
+                    "safeConfirmNumber": "1",
+                    "withdrawMax": "-1"
+                },
+                "id": "HBAR",
+                "network": "HBAR",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.5,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.005,
                         "max": null
                     }
                 }
@@ -2140,18 +2463,20 @@
                     "chainType": "Mantle Network",
                     "confirmation": "100",
                     "withdrawFee": "0",
-                    "depositMin": "0",
+                    "depositMin": "0.005",
                     "withdrawMin": "0.3",
                     "chain": "MANTLE",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9"
+                    "contractAddress": "0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9",
+                    "safeConfirmNumber": "700",
+                    "withdrawMax": "-1"
                 },
                 "id": "MANTLE",
                 "network": "MANTLE",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0,
@@ -2162,7 +2487,7 @@
                         "max": null
                     },
                     "deposit": {
-                        "min": 0,
+                        "min": 0.005,
                         "max": null
                     }
                 }
@@ -2170,20 +2495,22 @@
             "MATIC": {
                 "info": {
                     "chainType": "Polygon PoS",
-                    "confirmation": "300",
+                    "confirmation": "60",
                     "withdrawFee": "1",
-                    "depositMin": "0",
+                    "depositMin": "0.005",
                     "withdrawMin": "1",
                     "chain": "MATIC",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359"
+                    "contractAddress": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+                    "safeConfirmNumber": "150",
+                    "withdrawMax": "-1"
                 },
                 "id": "MATIC",
                 "network": "MATIC",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 1,
@@ -2194,7 +2521,7 @@
                         "max": null
                     },
                     "deposit": {
-                        "min": 0,
+                        "min": 0.005,
                         "max": null
                     }
                 }
@@ -2202,20 +2529,22 @@
             "MATIC.E": {
                 "info": {
                     "chainType": "Polygon(bridged)",
-                    "confirmation": "300",
+                    "confirmation": "60",
                     "withdrawFee": "1",
-                    "depositMin": "0",
+                    "depositMin": "0.005",
                     "withdrawMin": "1",
                     "chain": "MATIC.E",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174"
+                    "contractAddress": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+                    "safeConfirmNumber": "150",
+                    "withdrawMax": "-1"
                 },
                 "id": "MATIC.E",
                 "network": "MATIC.E",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 1,
@@ -2226,7 +2555,41 @@
                         "max": null
                     },
                     "deposit": {
-                        "min": 0,
+                        "min": 0.005,
+                        "max": null
+                    }
+                }
+            },
+            "MONAD": {
+                "info": {
+                    "chainType": "Monad",
+                    "confirmation": "3",
+                    "withdrawFee": "1",
+                    "depositMin": "0.005",
+                    "withdrawMin": "2",
+                    "chain": "MONAD",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "1",
+                    "minAccuracy": "6",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0x754704Bc059F8C67012fEd69BC8A327a5aafb603",
+                    "safeConfirmNumber": "10",
+                    "withdrawMax": "-1"
+                },
+                "id": "MONAD",
+                "network": "MONAD",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.005,
                         "max": null
                     }
                 }
@@ -2236,18 +2599,20 @@
                     "chainType": "OP Mainnet",
                     "confirmation": "30",
                     "withdrawFee": "1",
-                    "depositMin": "0",
+                    "depositMin": "0.005",
                     "withdrawMin": "1",
                     "chain": "OP",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85"
+                    "contractAddress": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+                    "safeConfirmNumber": "1800",
+                    "withdrawMax": "-1"
                 },
                 "id": "OP",
                 "network": "OPTIMISM",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 1,
@@ -2258,7 +2623,41 @@
                         "max": null
                     },
                     "deposit": {
-                        "min": 0,
+                        "min": 0.005,
+                        "max": null
+                    }
+                }
+            },
+            "SEIEVM": {
+                "info": {
+                    "chainType": "SEIEVM",
+                    "confirmation": "10",
+                    "withdrawFee": "0.5",
+                    "depositMin": "0.005",
+                    "withdrawMin": "1",
+                    "chain": "SEIEVM",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "1",
+                    "minAccuracy": "6",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0xe15fC38F6D8c56aF07bbCBe3BAf5708A2Bf42392",
+                    "safeConfirmNumber": "10",
+                    "withdrawMax": "-1"
+                },
+                "id": "SEIEVM",
+                "network": "SEIEVM",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.5,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.005,
                         "max": null
                     }
                 }
@@ -2268,18 +2667,20 @@
                     "chainType": "SOL",
                     "confirmation": "200",
                     "withdrawFee": "1",
-                    "depositMin": "0",
+                    "depositMin": "0.005",
                     "withdrawMin": "1",
                     "chain": "SOL",
                     "chainDeposit": "1",
                     "chainWithdraw": "1",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+                    "contractAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "safeConfirmNumber": "200",
+                    "withdrawMax": "-1"
                 },
                 "id": "SOL",
                 "network": "SOL",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 1,
@@ -2290,12 +2691,114 @@
                         "max": null
                     },
                     "deposit": {
-                        "min": 0,
+                        "min": 0.005,
                         "max": null
                     }
                 }
             },
-            "ZKSYNC": {
+            "SONIC": {
+                "info": {
+                    "chainType": "Sonic",
+                    "confirmation": "1",
+                    "withdrawFee": "0.05",
+                    "depositMin": "0.005",
+                    "withdrawMin": "1",
+                    "chain": "SONIC",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "1",
+                    "minAccuracy": "6",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
+                    "safeConfirmNumber": "12",
+                    "withdrawMax": "-1"
+                },
+                "id": "SONIC",
+                "network": "SONIC",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.05,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.005,
+                        "max": null
+                    }
+                }
+            },
+            "SUI": {
+                "info": {
+                    "chainType": "SUI",
+                    "confirmation": "1",
+                    "withdrawFee": "1",
+                    "depositMin": "0.005",
+                    "withdrawMin": "6",
+                    "chain": "SUI",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "1",
+                    "minAccuracy": "6",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+                    "safeConfirmNumber": "1",
+                    "withdrawMax": "-1"
+                },
+                "id": "SUI",
+                "network": "SUI",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 6,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.005,
+                        "max": null
+                    }
+                }
+            },
+            "XDC": {
+                "info": {
+                    "chainType": "XDC",
+                    "confirmation": "32",
+                    "withdrawFee": "0",
+                    "depositMin": "0.005",
+                    "withdrawMin": "2",
+                    "chain": "XDC",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "1",
+                    "minAccuracy": "6",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0xfA2958CB79b0491CC627c1557F441eF849Ca8eb1",
+                    "safeConfirmNumber": "32",
+                    "withdrawMax": "-1"
+                },
+                "id": "XDC",
+                "network": "XDC",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 2,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.005,
+                        "max": null
+                    }
+                }
+            },
+            "ZKSYNCLITE": {
                 "info": {
                     "chainType": "zkSync Lite",
                     "confirmation": "",
@@ -2307,11 +2810,13 @@
                     "chainWithdraw": "0",
                     "minAccuracy": "6",
                     "withdrawPercentageFee": "0",
-                    "contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+                    "contractAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "safeConfirmNumber": "",
+                    "withdrawMax": "-1"
                 },
                 "id": "ZKSYNC",
-                "network": "ZKSYNC",
-                "active": false,
+                "network": "ZKSYNCLITE",
+                "active": null,
                 "deposit": false,
                 "withdraw": false,
                 "fee": 1,
@@ -2328,29 +2833,151 @@
                 }
             }
         },
-        "type": "crypto"
-    },
-    "TRIA": {
-        "info": null,
-        "id": "TRIA",
-        "numericId": null,
-        "code": "TRIA",
-        "precision": 0.1,
-        "type": null,
-        "name": null,
-        "active": null,
-        "deposit": null,
-        "withdraw": null,
-        "fee": null,
-        "fees": {},
-        "networks": {},
         "limits": {
-            "deposit": {
+            "amount": {
                 "min": null,
                 "max": null
             },
             "withdraw": {
+                "min": 0.2,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.005,
+                "max": null
+            }
+        }
+    },
+    "TRIA": {
+        "info": {
+            "name": "TRIA",
+            "coin": "TRIA",
+            "remainAmount": "-1",
+            "chains": [
+                {
+                    "chainType": "BNB Smart Chain",
+                    "confirmation": "60",
+                    "withdrawFee": "25",
+                    "depositMin": "0.1",
+                    "withdrawMin": "50",
+                    "chain": "BSC",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "1",
+                    "minAccuracy": "8",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0xb0b92de23bAa85fB06208277E925ceD53edab482",
+                    "safeConfirmNumber": "60",
+                    "withdrawMax": "-1"
+                },
+                {
+                    "chainType": "Ethereum",
+                    "confirmation": "6",
+                    "withdrawFee": "80",
+                    "depositMin": "0.1",
+                    "withdrawMin": "340",
+                    "chain": "ETH",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "1",
+                    "minAccuracy": "8",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0x228bEC415adE4b61D7CaF0adf8C91EAc587BA369",
+                    "safeConfirmNumber": "64",
+                    "withdrawMax": "-1"
+                }
+            ]
+        },
+        "id": "TRIA",
+        "numericId": null,
+        "code": "TRIA",
+        "precision": 1e-8,
+        "type": "crypto",
+        "name": "TRIA",
+        "active": null,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 25,
+        "fees": {},
+        "networks": {
+            "BEP20": {
+                "info": {
+                    "chainType": "BNB Smart Chain",
+                    "confirmation": "60",
+                    "withdrawFee": "25",
+                    "depositMin": "0.1",
+                    "withdrawMin": "50",
+                    "chain": "BSC",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "1",
+                    "minAccuracy": "8",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0xb0b92de23bAa85fB06208277E925ceD53edab482",
+                    "safeConfirmNumber": "60",
+                    "withdrawMax": "-1"
+                },
+                "id": "BSC",
+                "network": "BEP20",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 25,
+                "precision": 1e-8,
+                "limits": {
+                    "withdraw": {
+                        "min": 50,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.1,
+                        "max": null
+                    }
+                }
+            },
+            "ERC20": {
+                "info": {
+                    "chainType": "Ethereum",
+                    "confirmation": "6",
+                    "withdrawFee": "80",
+                    "depositMin": "0.1",
+                    "withdrawMin": "340",
+                    "chain": "ETH",
+                    "chainDeposit": "1",
+                    "chainWithdraw": "1",
+                    "minAccuracy": "8",
+                    "withdrawPercentageFee": "0",
+                    "contractAddress": "0x228bEC415adE4b61D7CaF0adf8C91EAc587BA369",
+                    "safeConfirmNumber": "64",
+                    "withdrawMax": "-1"
+                },
+                "id": "ETH",
+                "network": "ERC20",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 80,
+                "precision": 1e-8,
+                "limits": {
+                    "withdraw": {
+                        "min": 340,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 0.1,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
                 "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 50,
+                "max": null
+            },
+            "deposit": {
+                "min": 0.1,
                 "max": null
             }
         }

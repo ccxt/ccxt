@@ -1,0 +1,185 @@
+{
+    "exchange": "mudrex",
+    "skipKeys": [
+        "start_time",
+        "end_time"
+    ],
+    "options": {},
+    "methods": {
+        "fetchPositionsHistory": [
+            {
+                "description": "fetchPositionsHistory",
+                "method": "fetchPositionsHistory",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/positions/history",
+                "input": [],
+                "output": null
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/orders/019f223e-5031-7003-81ec-456940160acd",
+                "input": [
+                    "019f223e-5031-7003-81ec-456940160acd",
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "editOrder",
+                "method": "editOrder",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/orders/019f223e-5031-7003-81ec-456940160acd",
+                "input": [
+                    "019f223e-5031-7003-81ec-456940160acd",
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.055
+                ],
+                "output": "{\"quantity\":\"100\",\"order_price\":\"0.055\"}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder limit",
+                "method": "createOrder",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/DOGEUSDT/order?is_symbol=1",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.05,
+                    {
+                        "leverage": 20
+                    }
+                ],
+                "output": "{\"leverage\":\"20\",\"quantity\":\"100\",\"order_price\":\"0.05\",\"order_type\":\"LONG\",\"trigger_type\":\"LIMIT\",\"reduce_only\":false}"
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://trade.mudrex.com/fapi/v1/futures",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://trade.mudrex.com/fapi/v1/price/kline?assets=BTC%2FUSDT&aggregation=1m&start_time=1782955461&end_time=1782985461",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m"
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/fee/history",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/positions",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/positions",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetchLeverage",
+                "method": "fetchLeverage",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/BTCUSDT/leverage?is_symbol=1",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchLeverage",
+                "method": "fetchLeverage",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/DOGEUSDT/leverage?is_symbol=1",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/orders",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance swap",
+                "method": "fetchBalance",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/funds",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchBalance spot",
+                "method": "fetchBalance",
+                "url": "https://trade.mudrex.com/fapi/v1/wallet/funds",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch balance spot",
+                "method": "fetchBalance",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/funds",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/BTCUSDT?is_symbol=1",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ]
+    },
+    "outputType": "both"
+}

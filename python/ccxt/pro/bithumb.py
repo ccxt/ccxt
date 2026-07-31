@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -51,10 +51,11 @@ class bithumb(ccxt.async_support.bithumb):
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
         url = self.urls['api']['ws']['public']
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
-        request: dict = {
+        request = {
             'type': 'ticker',
             'symbols': [market['base'] + '_' + market['quote']],
             'tickTypes': [self.safe_string(params, 'tickTypes', '24H')],
@@ -71,17 +72,20 @@ class bithumb(ccxt.async_support.bithumb):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']['public']
         marketIds = []
         messageHashes = []
         symbols = self.market_symbols(symbols, None, False, True, True)
+        if symbols is None:
+            symbols = []
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
             marketIds.append(market['base'] + '_' + market['quote'])
             messageHashes.append('ticker:' + market['symbol'])
-        request: dict = {
+        request = {
             'type': 'ticker',
             'symbols': marketIds,
             'tickTypes': [self.safe_string(params, 'tickTypes', '24H')],
@@ -89,7 +93,7 @@ class bithumb(ccxt.async_support.bithumb):
         message = self.extend(request, params)
         newTicker = await self.watch_multiple(url, messageHashes, message, messageHashes)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[newTicker['symbol']] = newTicker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -126,7 +130,7 @@ class bithumb(ccxt.async_support.bithumb):
         self.tickers[symbol] = ticker
         client.resolve(self.tickers[symbol], messageHash)
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker, market: Market = None):
         #
         #    {
         #        "symbol" : "BTC_KRW",           # 통화코드
@@ -185,12 +189,13 @@ class bithumb(ccxt.async_support.bithumb):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']['public']
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'orderbook' + ':' + symbol
-        request: dict = {
+        request = {
             'type': 'orderbookdepth',
             'symbols': [market['base'] + '_' + market['quote']],
         }
@@ -271,12 +276,13 @@ class bithumb(ccxt.async_support.bithumb):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']['public']
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'trade:' + symbol
-        request: dict = {
+        request = {
             'type': 'transaction',
             'symbols': [market['base'] + '_' + market['quote']],
         }
@@ -320,7 +326,7 @@ class bithumb(ccxt.async_support.bithumb):
             messageHash = 'trade' + ':' + symbol
             client.resolve(trades, messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         #    {
         #        "symbol" : "BTC_KRW",
@@ -335,7 +341,7 @@ class bithumb(ccxt.async_support.bithumb):
         marketId = self.safe_string(trade, 'symbol')
         datetime = self.safe_string(trade, 'contDtm')
         # that date is not UTC iso8601, but exchange's local time, -9hr difference
-        timestamp = self.parse8601(datetime) - 32400000
+        timestamp = self.parse_to_int(self.parse8601(datetime)) - 32400000
         sideId = self.safe_string(trade, 'buySellGb')
         return self.safe_trade({
             'id': None,
@@ -381,7 +387,8 @@ class bithumb(ccxt.async_support.bithumb):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         url = self.urls['api']['ws']['privateV2']
         messageHash = 'myAsset'
@@ -429,10 +436,10 @@ class bithumb(ccxt.async_support.bithumb):
 
     async def authenticate(self, params={}):
         self.check_required_credentials()
-        wsOptions: dict = self.safe_dict(self.options, 'ws', {})
+        wsOptions = self.safe_dict(self.options, 'ws', {})
         authenticated = self.safe_string(wsOptions, 'token')
         if authenticated is None:
-            payload: dict = {
+            payload = {
                 'access_key': self.apiKey,
                 'nonce': self.uuid(),
                 'timestamp': self.milliseconds(),
@@ -462,7 +469,8 @@ class bithumb(ccxt.async_support.bithumb):
         :param str[] [params.codes]: market codes to filter orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         url = self.urls['api']['ws']['privateV2']
         messageHash = 'myOrder'
@@ -518,7 +526,7 @@ class bithumb(ccxt.async_support.bithumb):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(cachedOrders, symbolSpecificMessageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         #    {
         #        "type": "myOrder",
@@ -610,7 +618,7 @@ class bithumb(ccxt.async_support.bithumb):
             return
         topic = self.safe_string(message, 'type')
         if topic is not None:
-            methods: dict = {
+            methods = {
                 'ticker': self.handle_ticker,
                 'orderbookdepth': self.handle_order_book,
                 'transaction': self.handle_trades,

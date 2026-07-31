@@ -29,27 +29,24 @@ SOFTWARE.
 
 /* eslint-disable */
 
-import { Exchange }  from './src/base/Exchange.js'
+import { Exchange, BaseExchange }  from './src/base/Exchange.js'
+import PredictionExchange from './src/base/PredictionExchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL } from './src/base/types.js'
+import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, NestedDictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Precision, PredictionEvent, PredictionOutcome, PredictionMarket, PredictionSettlement, PredictionFees, PredictionOrder, PredictionTrade, PredictionPosition, PredictionTicker, PredictionOrderBook, PredictionTickers, PredictionTradingFee, PredictionOpenInterest, PredictionOrderRequest, fetchEventsParams, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL } from './src/base/types.js'
 import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError}  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.58';
-
-(Exchange as any).ccxtVersion = version
+const version = '4.5.70';
 
 //-----------------------------------------------------------------------------
 
-import aftermath from  './src/aftermath.js'
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
-import ascendex from  './src/ascendex.js'
 import aster from  './src/aster.js'
 import backpack from  './src/backpack.js'
 import bequant from  './src/bequant.js'
@@ -91,7 +88,6 @@ import coinbaseinternational from  './src/coinbaseinternational.js'
 import coincheck from  './src/coincheck.js'
 import coinex from  './src/coinex.js'
 import coinmate from  './src/coinmate.js'
-import coinmetro from  './src/coinmetro.js'
 import coinone from  './src/coinone.js'
 import coinsph from  './src/coinsph.js'
 import coinspot from  './src/coinspot.js'
@@ -108,6 +104,7 @@ import extended from  './src/extended.js'
 import fmfwio from  './src/fmfwio.js'
 import foxbit from  './src/foxbit.js'
 import gate from  './src/gate.js'
+import gateeu from  './src/gateeu.js'
 import gemini from  './src/gemini.js'
 import grvt from  './src/grvt.js'
 import hashkey from  './src/hashkey.js'
@@ -121,6 +118,7 @@ import indodax from  './src/indodax.js'
 import kraken from  './src/kraken.js'
 import krakenfutures from  './src/krakenfutures.js'
 import kucoin from  './src/kucoin.js'
+import kucoineu from  './src/kucoineu.js'
 import kucoinfutures from  './src/kucoinfutures.js'
 import latoken from  './src/latoken.js'
 import lbank from  './src/lbank.js'
@@ -129,9 +127,10 @@ import luno from  './src/luno.js'
 import mercado from  './src/mercado.js'
 import mexc from  './src/mexc.js'
 import modetrade from  './src/modetrade.js'
+import mudrex from  './src/mudrex.js'
 import myokx from  './src/myokx.js'
+import nado from  './src/nado.js'
 import ndax from  './src/ndax.js'
-import novadax from  './src/novadax.js'
 import okx from  './src/okx.js'
 import okxus from  './src/okxus.js'
 import onetrading from  './src/onetrading.js'
@@ -154,10 +153,8 @@ import zebpay from  './src/zebpay.js'
 
 
 // pro exchanges
-import aftermathPro from  './src/pro/aftermath.js'
 import alpacaPro from  './src/pro/alpaca.js'
 import apexPro from  './src/pro/apex.js'
-import ascendexPro from  './src/pro/ascendex.js'
 import asterPro from  './src/pro/aster.js'
 import backpackPro from  './src/pro/backpack.js'
 import bequantPro from  './src/pro/bequant.js'
@@ -197,6 +194,7 @@ import dydxPro from  './src/pro/dydx.js'
 import exmoPro from  './src/pro/exmo.js'
 import extendedPro from  './src/pro/extended.js'
 import gatePro from  './src/pro/gate.js'
+import gateeuPro from  './src/pro/gateeu.js'
 import geminiPro from  './src/pro/gemini.js'
 import grvtPro from  './src/pro/grvt.js'
 import hashkeyPro from  './src/pro/hashkey.js'
@@ -208,13 +206,16 @@ import independentreservePro from  './src/pro/independentreserve.js'
 import krakenPro from  './src/pro/kraken.js'
 import krakenfuturesPro from  './src/pro/krakenfutures.js'
 import kucoinPro from  './src/pro/kucoin.js'
+import kucoineuPro from  './src/pro/kucoineu.js'
 import kucoinfuturesPro from  './src/pro/kucoinfutures.js'
 import lbankPro from  './src/pro/lbank.js'
 import lighterPro from  './src/pro/lighter.js'
 import lunoPro from  './src/pro/luno.js'
 import mexcPro from  './src/pro/mexc.js'
 import modetradePro from  './src/pro/modetrade.js'
+import mudrexPro from  './src/pro/mudrex.js'
 import myokxPro from  './src/pro/myokx.js'
+import nadoPro from  './src/pro/nado.js'
 import ndaxPro from  './src/pro/ndax.js'
 import okxPro from  './src/pro/okx.js'
 import okxusPro from  './src/pro/okxus.js'
@@ -232,11 +233,15 @@ import wooPro from  './src/pro/woo.js'
 import woofiproPro from  './src/pro/woofipro.js'
 import xtPro from  './src/pro/xt.js'
 
+import hyperliquidPrediction from  './src/prediction/hyperliquid.js'
+import kalshiPrediction from  './src/prediction/kalshi.js'
+import limitlessPrediction from  './src/prediction/limitless.js'
+import myriadPrediction from  './src/prediction/myriad.js'
+import polymarketPrediction from  './src/prediction/polymarket.js'
+
 const exchanges = {
-    'aftermath':              aftermath,
     'alpaca':                 alpaca,
     'apex':                   apex,
-    'ascendex':               ascendex,
     'aster':                  aster,
     'backpack':               backpack,
     'bequant':                bequant,
@@ -278,7 +283,6 @@ const exchanges = {
     'coincheck':              coincheck,
     'coinex':                 coinex,
     'coinmate':               coinmate,
-    'coinmetro':              coinmetro,
     'coinone':                coinone,
     'coinsph':                coinsph,
     'coinspot':               coinspot,
@@ -295,6 +299,7 @@ const exchanges = {
     'fmfwio':                 fmfwio,
     'foxbit':                 foxbit,
     'gate':                   gate,
+    'gateeu':                 gateeu,
     'gemini':                 gemini,
     'grvt':                   grvt,
     'hashkey':                hashkey,
@@ -308,6 +313,7 @@ const exchanges = {
     'kraken':                 kraken,
     'krakenfutures':          krakenfutures,
     'kucoin':                 kucoin,
+    'kucoineu':               kucoineu,
     'kucoinfutures':          kucoinfutures,
     'latoken':                latoken,
     'lbank':                  lbank,
@@ -316,9 +322,10 @@ const exchanges = {
     'mercado':                mercado,
     'mexc':                   mexc,
     'modetrade':              modetrade,
+    'mudrex':                 mudrex,
     'myokx':                  myokx,
+    'nado':                   nado,
     'ndax':                   ndax,
-    'novadax':                novadax,
     'okx':                    okx,
     'okxus':                  okxus,
     'onetrading':             onetrading,
@@ -341,10 +348,8 @@ const exchanges = {
 }
 
 const pro = {
-    'aftermath':              aftermathPro,
     'alpaca':                 alpacaPro,
     'apex':                   apexPro,
-    'ascendex':               ascendexPro,
     'aster':                  asterPro,
     'backpack':               backpackPro,
     'bequant':                bequantPro,
@@ -384,6 +389,7 @@ const pro = {
     'exmo':                   exmoPro,
     'extended':               extendedPro,
     'gate':                   gatePro,
+    'gateeu':                 gateeuPro,
     'gemini':                 geminiPro,
     'grvt':                   grvtPro,
     'hashkey':                hashkeyPro,
@@ -395,13 +401,16 @@ const pro = {
     'kraken':                 krakenPro,
     'krakenfutures':          krakenfuturesPro,
     'kucoin':                 kucoinPro,
+    'kucoineu':               kucoineuPro,
     'kucoinfutures':          kucoinfuturesPro,
     'lbank':                  lbankPro,
     'lighter':                lighterPro,
     'luno':                   lunoPro,
     'mexc':                   mexcPro,
     'modetrade':              modetradePro,
+    'mudrex':                 mudrexPro,
     'myokx':                  myokxPro,
+    'nado':                   nadoPro,
     'ndax':                   ndaxPro,
     'okx':                    okxPro,
     'okxus':                  okxusPro,
@@ -433,13 +442,30 @@ for (const exchange in pro) {
 pro['Exchange'] = Exchange // now the same for rest and ts
 //-----------------------------------------------------------------------------
 
-const ccxt = Object.assign ({ version, Exchange, Precise, 'exchanges': Object.keys (exchanges), 'pro': pro}, exchanges, functions, errors)
+const prediction = {
+    'hyperliquid':            hyperliquidPrediction,
+    'kalshi':                 kalshiPrediction,
+    'limitless':              limitlessPrediction,
+    'myriad':                 myriadPrediction,
+    'polymarket':             polymarketPrediction,
+};
+
+(prediction as any).exchanges = Object.keys (prediction)
+// the namespace's `Exchange` alias must be the prediction base, not the crypto Exchange —
+// prediction instances are `instanceof PredictionExchange`, NOT `instanceof Exchange` (siblings)
+prediction['Exchange'] = PredictionExchange
+//-----------------------------------------------------------------------------
+
+const ccxt = Object.assign ({ version, Exchange, BaseExchange, PredictionExchange, Precise, 'exchanges': Object.keys (exchanges), 'pro': pro, 'prediction': prediction}, exchanges, functions, errors)
 
 export {
     version,
     Exchange,
+    BaseExchange,
+    PredictionExchange,
     exchanges,
     pro,
+    prediction,
     Precise,
     functions,
     errors,
@@ -507,11 +533,27 @@ export {
     Currency,
     ConstructorArgs,
     Dictionary,
+    NestedDictionary,
     MinMax,
     FeeInterface,
     TradingFeeInterface,
     MarketMarginModes,
+    Precision,
     MarketInterface,
+    PredictionFees,
+    PredictionEvent,
+    PredictionMarket,
+    PredictionOutcome,
+    PredictionOrder,
+    PredictionTrade,
+    PredictionPosition,
+    PredictionTicker,
+    PredictionOrderBook,
+    PredictionTickers,
+    PredictionTradingFee,
+    PredictionOpenInterest,
+    PredictionSettlement,
+    fetchEventsParams,
     Trade,
     Order,
     OrderBook,
@@ -543,6 +585,7 @@ export {
     OpenInterests,
     Liquidation,
     OrderRequest,
+    PredictionOrderRequest,
     CancellationRequest,
     FundingHistory,
     MarginMode,
@@ -563,10 +606,8 @@ export {
     IsolatedBorrowRates,
     CrossBorrowRates,
     LeverageTiers,
-    aftermath,
     alpaca,
     apex,
-    ascendex,
     aster,
     backpack,
     bequant,
@@ -608,7 +649,6 @@ export {
     coincheck,
     coinex,
     coinmate,
-    coinmetro,
     coinone,
     coinsph,
     coinspot,
@@ -625,6 +665,7 @@ export {
     fmfwio,
     foxbit,
     gate,
+    gateeu,
     gemini,
     grvt,
     hashkey,
@@ -638,6 +679,7 @@ export {
     kraken,
     krakenfutures,
     kucoin,
+    kucoineu,
     kucoinfutures,
     latoken,
     lbank,
@@ -646,9 +688,10 @@ export {
     mercado,
     mexc,
     modetrade,
+    mudrex,
     myokx,
+    nado,
     ndax,
-    novadax,
     okx,
     okxus,
     onetrading,

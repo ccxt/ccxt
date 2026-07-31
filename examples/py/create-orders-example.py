@@ -12,7 +12,6 @@ sys.path.append(root + '/python')
 # ----------------------------------------------------------------------------
 
 
-# AUTO-TRANSPILE #
 async def example():
     exchange = ccxt.binance({
         'apiKey': 'MY_API_KEY',

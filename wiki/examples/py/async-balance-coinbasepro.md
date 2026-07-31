@@ -1,7 +1,10 @@
 ```python
 # -*- coding: utf-8 -*-
 
-import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import os
 import sys
 
@@ -10,7 +13,7 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 
 async def test():
-    exchange = ccxt.coinbasepro({
+    exchange = ccxt.coinbaseexchange({
         'apiKey': "YOUR_API_KEY",
         'secret': "YOUR_SECRET",
         'password': "YOUR_PASSWORD",
@@ -21,6 +24,6 @@ async def test():
     print(await exchange.fetch_balance())
 
 
-asyncio.run(test())
+run(test())
 
 ```

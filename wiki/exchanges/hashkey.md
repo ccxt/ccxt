@@ -42,10 +42,14 @@
 * [fetchPositionsForSymbol](#fetchpositionsforsymbol)
 * [fetchLeverage](#fetchleverage)
 * [setLeverage](#setleverage)
+* [setMarginMode](#setmarginmode)
+* [addMargin](#addmargin)
+* [reduceMargin](#reducemargin)
 * [fetchLeverageTiers](#fetchleveragetiers)
 * [fetchTradingFee](#fetchtradingfee)
 * [fetchTradingFees](#fetchtradingfees)
 * [watchOHLCV](#watchohlcv)
+* [watchTicker](#watchticker)
 * [watchTrades](#watchtrades)
 * [watchOrderBook](#watchorderbook)
 * [watchOrders](#watchorders)
@@ -140,7 +144,7 @@ hashkey.fetchCurrencies (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://hashkeyglobal-apidoc.readme.io/reference/get-order-book  
 
@@ -981,6 +985,74 @@ hashkey.setLeverage (leverage, symbol, params?)
 ```
 
 
+<a name="setMarginMode" id="setmarginmode"></a>
+
+### setMarginMode{docsify-ignore}
+set margin mode to 'cross' or 'isolated'
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/change-margin-type  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| marginMode | <code>string</code> | Yes | 'cross' or 'isolated' |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hashkey.setMarginMode (marginMode, symbol, params?)
+```
+
+
+<a name="addMargin" id="addmargin"></a>
+
+### addMargin{docsify-ignore}
+add margin
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| amount | <code>float</code> | Yes | amount of margin to add |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.side | <code>string</code> | Yes | position side, either 'long' or 'short' |
+
+
+```javascript
+hashkey.addMargin (symbol, amount, params?)
+```
+
+
+<a name="reduceMargin" id="reducemargin"></a>
+
+### reduceMargin{docsify-ignore}
+remove margin from a position
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| amount | <code>float</code> | Yes | the amount of margin to remove |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.side | <code>string</code> | Yes | position side, either 'long' or 'short' |
+
+
+```javascript
+hashkey.reduceMargin (symbol, amount, params?)
+```
+
+
 <a name="fetchLeverageTiers" id="fetchleveragetiers"></a>
 
 ### fetchLeverageTiers{docsify-ignore}
@@ -1012,7 +1084,7 @@ fetch the trading fees for a market
 
 **See**
 
-- https://developers.binance.com/docs/wallet/asset/trade-fee // spot
+- https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information // spot
 - https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight // swap
 
 
@@ -1035,7 +1107,7 @@ hashkey.fetchTradingFee (symbol, params?)
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
 **Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
-**See**: https://developers.binance.com/docs/wallet/asset/trade-fee  
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1072,6 +1144,28 @@ hashkey.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
+<a name="watchTicker" id="watchticker"></a>
+
+### watchTicker{docsify-ignore}
+watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>hashkey</code>](#hashkey)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.binary | <code>bool</code> | No | true or false - default false |
+
+
+```javascript
+hashkey.watchTicker (symbol, params?)
+```
+
+
 <a name="watchTrades" id="watchtrades"></a>
 
 ### watchTrades{docsify-ignore}
@@ -1102,7 +1196,7 @@ hashkey.watchTrades (symbol, since?, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>hashkey</code>](#hashkey)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream  
 

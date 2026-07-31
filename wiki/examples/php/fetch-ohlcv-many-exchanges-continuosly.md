@@ -17,7 +17,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 // fetch and handle constinuosly
 function fetch_ohlcv_continuously($exchange, $symbol) {
     return Async\async(function () use ($exchange, $symbol) {

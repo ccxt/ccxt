@@ -8,11 +8,10 @@ namespace ccxt\pro;
 use Exception; // a common import
 
 class bequant extends \ccxt\pro\hitbtc {
-
     public function describe(): mixed {
         // eslint-disable-next-line new-cap
-        $restInstance = new \ccxt\async\bequant ();
-        $restDescribe = $restInstance->describe ();
+        $restInstance = new \ccxt\async\bequant();
+        $restDescribe = $restInstance->describe();
         $parentWsDescribe = parent::describe_data();
         $extended = $this->deep_extend($restDescribe, $parentWsDescribe);
         return $this->deep_extend($extended, array(

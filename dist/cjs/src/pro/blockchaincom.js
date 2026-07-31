@@ -131,7 +131,9 @@ class blockchaincom extends blockchaincom$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -207,7 +209,9 @@ class blockchaincom extends blockchaincom$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws'];
@@ -316,7 +320,9 @@ class blockchaincom extends blockchaincom$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws'];
@@ -415,7 +421,9 @@ class blockchaincom extends blockchaincom$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         if (symbol !== undefined) {
             const market = this.market(symbol);
@@ -584,7 +592,7 @@ class blockchaincom extends blockchaincom$1["default"] {
             'timestamp': this.parse8601(datetime),
             'status': this.parseWsOrderStatus(status),
             'symbol': this.safeSymbol(marketId, market),
-            'type': this.safeString(order, 'ordType'),
+            'type': this.safeString(order, 'ordType'), // limit, market, stop, stopLimit, trailingStop, fillOrKill
             'timeInForce': this.safeString(order, 'timeInForce'),
             'postOnly': this.safeString(order, 'execInst') === 'ALO',
             'side': this.safeString(order, 'side'),
@@ -626,10 +634,12 @@ class blockchaincom extends blockchaincom$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const url = this.urls['api']['ws'];
         const type = this.safeString(params, 'type', 'l2');

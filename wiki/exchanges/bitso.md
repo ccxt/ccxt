@@ -7,6 +7,7 @@
 
 * [fetchLedger](#fetchledger)
 * [fetchMarkets](#fetchmarkets)
+* [fetchCurrencies](#fetchcurrencies)
 * [fetchBalance](#fetchbalance)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTicker](#fetchticker)
@@ -70,6 +71,26 @@ bitso.fetchMarkets (params?)
 ```
 
 
+<a name="fetchCurrencies" id="fetchcurrencies"></a>
+
+### fetchCurrencies{docsify-ignore}
+fetches all available currencies on an exchange
+
+**Kind**: instance method of [<code>bitso</code>](#bitso)  
+**Returns**: <code>object</code> - an associative dictionary of currencies
+
+**See**: https://docs.bitso.com/bitso-payouts-funding/docs  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitso.fetchCurrencies (params?)
+```
+
+
 <a name="fetchBalance" id="fetchbalance"></a>
 
 ### fetchBalance{docsify-ignore}
@@ -96,7 +117,7 @@ bitso.fetchBalance (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitso</code>](#bitso)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.bitso.com/bitso-api/docs/list-order-book  
 

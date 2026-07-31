@@ -16,6 +16,11 @@ public partial class coincheck : Exchange
         return await this.callAsync ("publicGetExchangeOrdersRate",parameters);
     }
 
+    public async Task<object> publicGetExchangeStatus (object parameters = null)
+    {
+        return await this.callAsync ("publicGetExchangeStatus",parameters);
+    }
+
     public async Task<object> publicGetOrderBooks (object parameters = null)
     {
         return await this.callAsync ("publicGetOrderBooks",parameters);
@@ -61,9 +66,19 @@ public partial class coincheck : Exchange
         return await this.callAsync ("privateGetDepositMoney",parameters);
     }
 
+    public async Task<object> privateGetExchangeOrdersId (object parameters = null)
+    {
+        return await this.callAsync ("privateGetExchangeOrdersId",parameters);
+    }
+
     public async Task<object> privateGetExchangeOrdersOpens (object parameters = null)
     {
         return await this.callAsync ("privateGetExchangeOrdersOpens",parameters);
+    }
+
+    public async Task<object> privateGetExchangeOrdersCancelStatus (object parameters = null)
+    {
+        return await this.callAsync ("privateGetExchangeOrdersCancelStatus",parameters);
     }
 
     public async Task<object> privateGetExchangeOrdersTransactions (object parameters = null)

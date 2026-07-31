@@ -154,6 +154,11 @@ public class BybiteuApi extends BybitCore
         return this.callAsync ("publicGetV5AnnouncementsIndex", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  publicGetV5SystemStatus (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV5SystemStatus", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  publicGetV5MarketTime (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketTime", optionalArgs);
@@ -187,6 +192,16 @@ public class BybiteuApi extends BybitCore
     public java.util.concurrent.CompletableFuture<Object>  publicGetV5MarketOrderbook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketOrderbook", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetV5MarketRpiOrderbook (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV5MarketRpiOrderbook", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetV5MarketFullOrderbook (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV5MarketFullOrderbook", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  publicGetV5MarketTickers (Object... optionalArgs)
@@ -229,9 +244,34 @@ public class BybiteuApi extends BybitCore
         return this.callAsync ("publicGetV5MarketDeliveryPrice", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  publicGetV5MarketNewDeliveryPrice (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV5MarketNewDeliveryPrice", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  publicGetV5MarketAccountRatio (Object... optionalArgs)
     {
         return this.callAsync ("publicGetV5MarketAccountRatio", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetV5MarketIndexPriceComponents (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV5MarketIndexPriceComponents", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetV5MarketPriceLimit (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV5MarketPriceLimit", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetV5MarketAdlAlert (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV5MarketAdlAlert", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetV5MarketFeeGroupInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV5MarketFeeGroupInfo", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  publicGetV5SpotLeverTokenInfo (Object... optionalArgs)
@@ -624,9 +664,19 @@ public class BybiteuApi extends BybitCore
         return this.callAsync ("privateGetV5PositionClosedPnl", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5PositionGetClosedPositions (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5PositionGetClosedPositions", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privateGetV5PositionMoveHistory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5PositionMoveHistory", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5PositionSymbolInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5PositionSymbolInfo", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privateGetV5PreUpgradeOrderHistory (Object... optionalArgs)
@@ -679,6 +729,11 @@ public class BybiteuApi extends BybitCore
         return this.callAsync ("privateGetV5AccountCollateralInfo", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5AccountOptionAssetInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5AccountOptionAssetInfo", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privateGetV5AssetCoinGreeks (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetCoinGreeks", optionalArgs);
@@ -704,6 +759,26 @@ public class BybiteuApi extends BybitCore
         return this.callAsync ("privateGetV5AccountContractTransactionLog", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5AccountQueryDcpInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5AccountQueryDcpInfo", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5AccountUserSettingConfig (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5AccountUserSettingConfig", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5AccountPayInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5AccountPayInfo", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5AccountTradeInfoForAnalysis (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5AccountTradeInfoForAnalysis", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privateGetV5AccountSmpGroup (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AccountSmpGroup", optionalArgs);
@@ -717,6 +792,11 @@ public class BybiteuApi extends BybitCore
     public java.util.concurrent.CompletableFuture<Object>  privateGetV5AccountWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AccountWithdrawal", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5AssetAssetOverview (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5AssetAssetOverview", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privateGetV5AssetExchangeQueryCoinList (Object... optionalArgs)
@@ -737,6 +817,21 @@ public class BybiteuApi extends BybitCore
     public java.util.concurrent.CompletableFuture<Object>  privateGetV5AssetExchangeOrderRecord (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetExchangeOrderRecord", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5AssetFundinghistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5AssetFundinghistory", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5AssetPortfolioMargin (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5AssetPortfolioMargin", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5AssetTotalMembersAssets (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5AssetTotalMembersAssets", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privateGetV5AssetDeliveryRecord (Object... optionalArgs)
@@ -839,6 +934,16 @@ public class BybiteuApi extends BybitCore
         return this.callAsync ("privateGetV5AssetWithdrawVaspList", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5AssetCovertSmallBalanceList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5AssetCovertSmallBalanceList", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5AssetCovertSmallBalanceHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5AssetCovertSmallBalanceHistory", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privateGetV5AssetConvertSmallBalanceList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AssetConvertSmallBalanceList", optionalArgs);
@@ -909,9 +1014,24 @@ public class BybiteuApi extends BybitCore
         return this.callAsync ("privateGetV5UserSubmembers", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5UserEscrowSubMembers (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5UserEscrowSubMembers", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5UserInvitationReferrals (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5UserInvitationReferrals", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privateGetV5AffiliateAffUserList (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5AffiliateAffUserList", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5AffiliateAffiliateSubList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5AffiliateAffiliateSubList", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privateGetV5SpotLeverTokenOrderRecord (Object... optionalArgs)
@@ -942,6 +1062,31 @@ public class BybiteuApi extends BybitCore
     public java.util.concurrent.CompletableFuture<Object>  privateGetV5SpotMarginTradeCoinstate (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotMarginTradeCoinstate", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5SpotMarginTradeCurrencyData (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5SpotMarginTradeCurrencyData", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5SpotMarginTradeFixedborrowContractInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5SpotMarginTradeFixedborrowContractInfo", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5SpotMarginTradeFixedborrowOrderInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5SpotMarginTradeFixedborrowOrderInfo", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5SpotMarginTradeFixedborrowOrderQuote (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5SpotMarginTradeFixedborrowOrderQuote", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5SpotMarginTradeLiability (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5SpotMarginTradeLiability", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privateGetV5SpotMarginTradeRepaymentAvailableAmount (Object... optionalArgs)
@@ -1069,6 +1214,11 @@ public class BybiteuApi extends BybitCore
         return this.callAsync ("privateGetV5InsLoanProductInfos", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5InsLoanEnsureTokens (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5InsLoanEnsureTokens", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privateGetV5InsLoanEnsureTokensConvert (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5InsLoanEnsureTokensConvert", optionalArgs);
@@ -1084,9 +1234,19 @@ public class BybiteuApi extends BybitCore
         return this.callAsync ("privateGetV5InsLoanRepaidHistory", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5InsLoanLtv (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5InsLoanLtv", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privateGetV5InsLoanLtvConvert (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5InsLoanLtvConvert", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetV5InsLoanCoinDeltaAmount (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5InsLoanCoinDeltaAmount", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privateGetV5LendingInfo (Object... optionalArgs)
@@ -1469,6 +1629,11 @@ public class BybiteuApi extends BybitCore
         return this.callAsync ("privatePostV5OrderDisconnectedCancelAll", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privatePostV5OrderPreCheck (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5OrderPreCheck", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privatePostV5PositionSetLeverage (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5PositionSetLeverage", optionalArgs);
@@ -1569,6 +1734,11 @@ public class BybiteuApi extends BybitCore
         return this.callAsync ("privatePostV5AccountSetLimitPxAction", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privatePostV5AccountSetDeltaMode (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5AccountSetDeltaMode", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privatePostV5AssetExchangeQuoteApply (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AssetExchangeQuoteApply", optionalArgs);
@@ -1597,6 +1767,11 @@ public class BybiteuApi extends BybitCore
     public java.util.concurrent.CompletableFuture<Object>  privatePostV5AssetDepositDepositToAccount (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5AssetDepositDepositToAccount", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostV5AssetTravelRuleDepositSubmit (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5AssetTravelRuleDepositSubmit", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privatePostV5AssetWithdrawCreate (Object... optionalArgs)
@@ -1664,6 +1839,16 @@ public class BybiteuApi extends BybitCore
         return this.callAsync ("privatePostV5UserDeleteSubApi", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privatePostV5UserAgreement (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5UserAgreement", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostV5UserCreateDemoMember (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5UserCreateDemoMember", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privatePostV5SpotLeverTokenPurchase (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5SpotLeverTokenPurchase", optionalArgs);
@@ -1687,6 +1872,16 @@ public class BybiteuApi extends BybitCore
     public java.util.concurrent.CompletableFuture<Object>  privatePostV5SpotMarginTradeSetAutoRepayMode (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5SpotMarginTradeSetAutoRepayMode", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostV5SpotMarginTradeFixedborrow (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5SpotMarginTradeFixedborrow", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostV5SpotMarginTradeFixedborrowRenew (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5SpotMarginTradeFixedborrowRenew", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privatePostV5SpotCrossMarginTradeLoan (Object... optionalArgs)

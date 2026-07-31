@@ -35,7 +35,7 @@ public class TestWatchTradesForSymbols extends BaseTest {
                 }
                 now = exchange.milliseconds();
             }
-            if (Helpers.isTrue(Helpers.isEqual(success, true)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
             {
                 Assert(Helpers.isArray(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an array. "), exchange.json(response)));
                 now = exchange.milliseconds();
@@ -44,6 +44,10 @@ public class TestWatchTradesForSymbols extends BaseTest {
                 {
                     Object trade = Helpers.GetValue(response, i);
                     symbol = Helpers.GetValue(trade, "symbol");
+                    if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+                    {
+                        continue;
+                    }
                     TestTrade.testTrade(exchange, skippedProperties, method, trade, symbol, now);
                     TestSharedMethods.AssertInArray(exchange, skippedProperties, method, trade, "symbol", symbols);
                     if (!Helpers.isTrue(exchange.inArray(symbol, returnedSymbols)))

@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testLastPrice(Exchange exchange, object skippedProperties, object method, object entry, object symbol)
+    public static void testLastPrice(BaseExchange exchange, object skippedProperties, object method, object entry, object symbol)
     {
         object format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },

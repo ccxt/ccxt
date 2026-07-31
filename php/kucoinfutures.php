@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\kucoinfutures as kucoin;
 
 class kucoinfutures extends kucoin {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'kucoinfutures',
@@ -39,7 +38,7 @@ class kucoinfutures extends kucoin {
         ));
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
         /**
          * fetches the bid and ask price and volume for multiple markets
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
@@ -52,7 +51,7 @@ class kucoinfutures extends kucoin {
         return $this->fetch_tickers($symbols, $this->extend($request, $params));
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          * transfer $currency internally between wallets on the same account
          * @param {string} $code unified $currency $code
@@ -62,7 +61,9 @@ class kucoinfutures extends kucoin {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $amountToPrecision = $this->currency_to_precision($code, $amount);
         $request = array(
@@ -73,7 +74,7 @@ class kucoinfutures extends kucoin {
         $response = null;
         if ($toAccountString === 'TRADE' || $toAccountString === 'MAIN') {
             $request['recAccountType'] = $toAccountString;
-            $response = $this->futuresPrivatePostTransferOut ($this->extend($request, $params));
+            $response = $this->futuresPrivatePostTransferOut($this->extend($request, $params));
             //
             //     {
             //         "code" => "200000",
@@ -100,7 +101,7 @@ class kucoinfutures extends kucoin {
             //
         } elseif ($toAccount === 'future' || $toAccount === 'swap' || $toAccount === 'contract') {
             $request['payAccountType'] = $this->parse_transfer_type($fromAccount);
-            $response = $this->futuresPrivatePostTransferIn ($this->extend($request, $params));
+            $response = $this->futuresPrivatePostTransferIn($this->extend($request, $params));
             //
             //    {
             //        "code" => "200000",

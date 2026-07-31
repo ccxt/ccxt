@@ -7,11 +7,11 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
 
 class lighter extends \ccxt\async\lighter {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -71,7 +71,7 @@ class lighter extends \ccxt\async\lighter {
         return $hash;
     }
 
-    public function subscribe_public($messageHash, $params = array ()) {
+    public function subscribe_public($messageHash, $params = array()) {
         return Async\async(function () use ($messageHash, $params) {
             $url = $this->urls['api']['ws'];
             $request = array(
@@ -82,10 +82,10 @@ class lighter extends \ccxt\async\lighter {
                 'params' => $params,
             );
             return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
-        }) ();
+        })();
     }
 
-    public function subscribe_public_multiple($messageHashes, $params = array ()) {
+    public function subscribe_public_multiple($messageHashes, $params = array()) {
         return Async\async(function () use ($messageHashes, $params) {
             $url = $this->urls['api']['ws'];
             $request = array(
@@ -96,10 +96,10 @@ class lighter extends \ccxt\async\lighter {
                 'params' => $params,
             );
             return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscription));
-        }) ();
+        })();
     }
 
-    public function unsubscribe($messageHash, $params = array ()) {
+    public function unsubscribe($messageHash, $params = array()) {
         return Async\async(function () use ($messageHash, $params) {
             $url = $this->urls['api']['ws'];
             $request = array(
@@ -110,21 +110,21 @@ class lighter extends \ccxt\async\lighter {
                 'params' => $params,
             );
             return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscription));
-        }) ();
+        })();
     }
 
-    public function subscribe_private($messageHash, $params = array ()) {
+    public function subscribe_private($messageHash, $params = array()) {
         return Async\async(function () use ($messageHash, $params) {
-            Async\await($this->preLoadLighterLibrary ());
-            $params['auth'] = $this->createAuth ($params);
+            Async\await($this->preLoadLighterLibrary());
+            $params['auth'] = $this->createAuth($params);
             return Async\await($this->subscribe_public($messageHash, $params));
-        }) ();
+        })();
     }
 
     public function handle_delta($bookside, $delta) {
         $price = $this->safe_float($delta, 'price');
         $amount = $this->safe_float($delta, 'size');
-        $bookside->store ($price, $amount);
+        $bookside->store($price, $amount);
     }
 
     public function handle_deltas($bookside, $deltas) {
@@ -185,15 +185,15 @@ class lighter extends \ccxt\async\lighter {
         if ($type === 'subscribed/order_book') {
             $parsed = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'size');
             $parsed['nonce'] = $this->safe_integer($data, 'offset');
-            $orderbook->reset ($parsed);
+            $orderbook->reset($parsed);
         } elseif ($type === 'update/order_book') {
             $this->handle_order_book_message($client, $message, $orderbook);
         }
         $messageHash = $this->get_message_hash('orderbook', $symbol);
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -203,20 +203,22 @@ class lighter extends \ccxt\async\lighter {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'channel' => 'order_book/' . $market['id'],
             );
             $messageHash = $this->get_message_hash('orderbook', $symbol);
             $orderbook = Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
-    public function un_watch_order_book(string $symbol, $params = array ()): PromiseInterface {
+    public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -225,16 +227,18 @@ class lighter extends \ccxt\async\lighter {
              *
              * @param {string} $symbol unified $symbol of the $market
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'channel' => 'order_book/' . $market['id'],
             );
             $messageHash = $this->get_message_hash('unsubscribe', $symbol);
             return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
     public function handle_ticker(Client $client, $message) {
@@ -299,8 +303,8 @@ class lighter extends \ccxt\async\lighter {
                 $symbol = $market['symbol'];
                 $ticker = $this->parse_ticker($data[$marketId], $market);
                 $this->tickers[$symbol] = $ticker;
-                $client->resolve ($ticker, $this->get_message_hash('ticker', $symbol));
-                $client->resolve ($ticker, $this->get_message_hash('ticker'));
+                $client->resolve($ticker, $this->get_message_hash('ticker', $symbol));
+                $client->resolve($ticker, $this->get_message_hash('ticker'));
             }
         } else {
             $marketId = $this->safe_string($data, 'market_id');
@@ -308,11 +312,11 @@ class lighter extends \ccxt\async\lighter {
             $symbol = $market['symbol'];
             $ticker = $this->parse_ticker($data, $market);
             $this->tickers[$symbol] = $ticker;
-            $client->resolve ($ticker, $this->get_message_hash('ticker', $symbol));
+            $client->resolve($ticker, $this->get_message_hash('ticker', $symbol));
         }
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -323,17 +327,19 @@ class lighter extends \ccxt\async\lighter {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'channel' => 'market_stats/' . $market['id'],
             );
             $messageHash = $this->get_message_hash('ticker', $symbol);
             return Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function un_watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
@@ -344,17 +350,19 @@ class lighter extends \ccxt\async\lighter {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'channel' => 'market_stats/' . $market['id'],
             );
             $messageHash = $this->get_message_hash('unsubscribe', $symbol);
             return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
@@ -366,7 +374,9 @@ class lighter extends \ccxt\async\lighter {
              * @param {string} [$params->channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $request = array(
                 'channel' => 'market_stats/all',
@@ -391,10 +401,10 @@ class lighter extends \ccxt\async\lighter {
                 return $result;
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function un_watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
@@ -405,76 +415,70 @@ class lighter extends \ccxt\async\lighter {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'channel' => 'market_stats/all',
             );
             $messageHash = $this->get_message_hash('unsubscribe');
             return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function watch_mark_price(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-             *
-             * watches a mark price
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            return Async\await($this->watch_ticker($symbol, $params));
-        }) ();
+    public function watch_mark_price(string $symbol, $params = array()): PromiseInterface {
+        /**
+         *
+         * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
+         *
+         * watches a mark price
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return $this->watch_ticker($symbol, $params);
     }
 
-    public function watch_mark_prices(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             *
-             * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-             *
-             * watches mark prices
-             * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            return Async\await($this->watch_tickers($symbols, $params));
-        }) ();
+    public function watch_mark_prices(?array $symbols = null, $params = array()): PromiseInterface {
+        /**
+         *
+         * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
+         *
+         * watches mark prices
+         * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return $this->watch_tickers($symbols, $params);
     }
 
-    public function un_watch_mark_price(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-             *
-             * unWatches a mark price
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            return Async\await($this->un_watch_ticker($symbol, $params));
-        }) ();
+    public function un_watch_mark_price(string $symbol, $params = array()): PromiseInterface {
+        /**
+         *
+         * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
+         *
+         * unWatches a mark price
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return $this->un_watch_ticker($symbol, $params);
     }
 
-    public function un_watch_mark_prices(?array $symbols = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             *
-             * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
-             *
-             * unWatches mark prices
-             * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            return Async\await($this->un_watch_tickers($symbols, $params));
-        }) ();
+    public function un_watch_mark_prices(?array $symbols = null, $params = array()): PromiseInterface {
+        /**
+         *
+         * @see https://apidocs.lighter.xyz/docs/websocket-reference#market-stats
+         *
+         * unWatches mark prices
+         * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return $this->un_watch_tickers($symbols, $params);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         //     {
         //         "trade_id" => 526801155,
@@ -577,20 +581,20 @@ class lighter extends \ccxt\async\lighter {
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = new ArrayCache ($limit);
+            $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
             $iReversed = $dataLength - 1 - $i;
             $trade = $this->parse_ws_trade($data[$iReversed], $market);
-            $stored->append ($trade);
+            $stored->append($trade);
         }
         $messageHash = $this->get_message_hash('trade', $symbol);
-        $client->resolve ($stored, $messageHash);
+        $client->resolve($stored, $messageHash);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -603,7 +607,9 @@ class lighter extends \ccxt\async\lighter {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'channel' => 'trade/' . $market['id'],
@@ -611,10 +617,10 @@ class lighter extends \ccxt\async\lighter {
             $messageHash = $this->get_message_hash('trade', $market['symbol']);
             $trades = Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        })();
     }
 
-    public function un_watch_trades(string $symbol, $params = array ()): PromiseInterface {
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unsubscribe from the trades channel
@@ -625,17 +631,19 @@ class lighter extends \ccxt\async\lighter {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'channel' => 'trade/' . $market['id'],
             );
             $messageHash = $this->get_message_hash('unsubscribe', $symbol);
             return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function parse_ws_order_trade($trade, $market = null) {
+    public function parse_ws_order_trade($trade, ?array $market = null) {
         //
         //     {
         //         "trade_id" => 526801155,
@@ -670,18 +678,27 @@ class lighter extends \ccxt\async\lighter {
         $amountString = $this->safe_string($trade, 'size');
         $costString = $this->safe_string($trade, 'usd_amount');
         $isMakerAsk = $this->safe_bool($trade, 'is_maker_ask');
-        $side = $isMakerAsk ? 'buy' : 'sell';
         $accountIndex = $this->safe_integer($trade, 'accountIndex');
+        $bidAccountId = $this->safe_integer($trade, 'bid_account_id');
+        $askAccountId = $this->safe_integer($trade, 'ask_account_id');
+        $side = null;
         $order = null;
         $takerOrMaker = null;
         if ($accountIndex !== null) {
-            if ($this->safe_integer($trade, 'bid_account_id') === $accountIndex) {
+            if ($bidAccountId === $accountIndex) {
+                // Own trades should use the account's $order $side
+                $side = 'buy';
                 $order = $this->safe_string($trade, 'bid_id');
                 $takerOrMaker = $isMakerAsk ? 'taker' : 'maker';
-            } elseif ($this->safe_integer($trade, 'ask_account_id') === $accountIndex) {
+            } elseif ($askAccountId === $accountIndex) {
+                $side = 'sell';
                 $order = $this->safe_string($trade, 'ask_id');
                 $takerOrMaker = $isMakerAsk ? 'maker' : 'taker';
             }
+        }
+        // public trades use Lighter's taker-$side convention
+        if ($side === null) {
+            $side = $isMakerAsk ? 'buy' : 'sell';
         }
         $fee = null;
         if ($takerOrMaker !== null) {
@@ -757,7 +774,7 @@ class lighter extends \ccxt\async\lighter {
         }
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $this->myTrades = new ArrayCache ($limit);
+            $this->myTrades = new ArrayCache($limit);
         }
         $stored = $this->myTrades;
         $messageHash = $this->get_message_hash('myTrades');
@@ -771,19 +788,19 @@ class lighter extends \ccxt\async\lighter {
                 $tradeRaw = $trades[$jReversed];
                 $tradeRaw['accountIndex'] = $accountIndex;
                 $trade = $this->parse_ws_order_trade($tradeRaw, $market);
-                $stored->append ($trade);
+                $stored->append($trade);
                 $symbol = $trade['symbol'];
                 if ($symbol !== null) {
                     $symbolSpecificMessageHash = $this->get_message_hash('myTrades', $symbol);
-                    $client->resolve ($stored, $symbolSpecificMessageHash);
+                    $client->resolve($stored, $symbolSpecificMessageHash);
                 }
             }
         }
-        $client->resolve ($stored, $messageHash);
+        $client->resolve($stored, $messageHash);
         return true;
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * subscribe to recent $trades of an account.
@@ -796,9 +813,11 @@ class lighter extends \ccxt\async\lighter {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handleAccountIndex ($params, 'watchMyTrades', 'accountIndex', 'account_index'));
+            list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'watchMyTrades', 'accountIndex', 'account_index'));
             $messageHash = $this->get_message_hash('myTrades');
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -810,13 +829,13 @@ class lighter extends \ccxt\async\lighter {
             );
             $trades = Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
-        }) ();
+        })();
     }
 
-    public function un_watch_my_trades(?string $symbol = null, $params = array ()): PromiseInterface {
+    public function un_watch_my_trades(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unsubscribe from the account trades channel
@@ -828,7 +847,7 @@ class lighter extends \ccxt\async\lighter {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handleAccountIndex ($params, 'unWatchMyTrades', 'accountIndex', 'account_index'));
+            list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'unWatchMyTrades', 'accountIndex', 'account_index'));
             $messageHash = $this->get_message_hash('unsubscribe', 'myTrades');
             if ($symbol !== null) {
                 Async\await($this->load_markets());
@@ -840,10 +859,10 @@ class lighter extends \ccxt\async\lighter {
                 'channel' => 'account_all_trades/' . $accountIndex,
             );
             return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function parse_ws_liquidation($liquidation, $market = null) {
+    public function parse_ws_liquidation($liquidation, ?array $market = null) {
         //
         //     {
         //         "trade_id" => 526801155,
@@ -940,20 +959,20 @@ class lighter extends \ccxt\async\lighter {
         $stored = $this->safe_value($this->liquidations, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
-            $this->liquidations = new ArrayCache ($limit);
+            $this->liquidations = new ArrayCache($limit);
             $stored = $this->liquidations;
         }
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
             $iReversed = $dataLength - 1 - $i;
             $liquidation = $this->parse_ws_liquidation($data[$iReversed], $market);
-            $stored->append ($liquidation);
+            $stored->append($liquidation);
         }
         $messageHash = $this->get_message_hash('liquidations', $symbol);
-        $client->resolve ($stored, $messageHash);
+        $client->resolve($stored, $messageHash);
     }
 
-    public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watch the public liquidations of a trading pair
@@ -966,17 +985,19 @@ class lighter extends \ccxt\async\lighter {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'channel' => 'trade/' . $market['id'],
             );
             $messageHash = $this->get_message_hash('liquidations', $symbol);
             return Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
+    public function watch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
@@ -987,12 +1008,14 @@ class lighter extends \ccxt\async\lighter {
              * @param {string} [$params->type] 'spot' or 'swap', default is 'swap'
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $defaultType = $this->safe_string_2($this->options, 'watchBalance', 'defaultType', 'spot');
             $type = null;
             list($type, $params) = $this->handle_param_string($params, 'type', $defaultType);
             $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handleAccountIndex ($params, 'watchBalance', 'accountIndex', 'account_index'));
+            list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'watchBalance', 'accountIndex', 'account_index'));
             $messageHash = $this->get_message_hash('balances', null, $type);
             $request = array();
             if ($type === 'spot') {
@@ -1002,7 +1025,7 @@ class lighter extends \ccxt\async\lighter {
                 $request['channel'] = 'user_stats/' . $this->number_to_string($accountIndex);
                 return Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
             }
-        }) ();
+        })();
     }
 
     public function handle_balance(Client $client, $message) {
@@ -1092,11 +1115,11 @@ class lighter extends \ccxt\async\lighter {
         $balance['datetime'] = $this->iso8601($timestamp);
         $this->balance[$type] = $this->safe_balance($balance);
         $messageHash = $this->get_message_hash('balances', null, $type);
-        $client->resolve ($this->balance[$type], $messageHash);
+        $client->resolve($this->balance[$type], $messageHash);
         return true;
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -1109,9 +1132,11 @@ class lighter extends \ccxt\async\lighter {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handleAccountIndex ($params, 'watchOrders', 'accountIndex', 'account_index'));
+            list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'watchOrders', 'accountIndex', 'account_index'));
             $messageHash = null;
             $request = array();
             if ($symbol !== null) {
@@ -1124,13 +1149,13 @@ class lighter extends \ccxt\async\lighter {
             }
             $orders = Async\await($this->subscribe_private($messageHash, $this->extend($request, $params)));
             if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
+                $limit = $orders->getLimit($symbol, $limit);
             }
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        }) ();
+        })();
     }
 
-    public function un_watch_orders(?string $symbol = null, $params = array ()): PromiseInterface {
+    public function un_watch_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unWatches information on multiple orders made by the user
@@ -1141,9 +1166,11 @@ class lighter extends \ccxt\async\lighter {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handleAccountIndex ($params, 'watchOrders', 'accountIndex', 'account_index'));
+            list($accountIndex, $params) = Async\await($this->handleAccountIndex($params, 'watchOrders', 'accountIndex', 'account_index'));
             $messageHash = null;
             $request = array();
             if ($symbol !== null) {
@@ -1155,7 +1182,7 @@ class lighter extends \ccxt\async\lighter {
                 $request['channel'] = 'account_all_orders/' . $this->number_to_string($accountIndex);
             }
             return Async\await($this->unsubscribe($messageHash, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
     public function handle_orders(Client $client, $message) {
@@ -1186,7 +1213,7 @@ class lighter extends \ccxt\async\lighter {
         }
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCache ($limit);
+            $this->orders = new ArrayCache($limit);
         }
         $stored = $this->orders;
         $messageHash = $this->get_message_hash('orders');
@@ -1196,15 +1223,15 @@ class lighter extends \ccxt\async\lighter {
             $orders = $this->safe_list($data, $marketId, array());
             for ($j = 0; $j < count($orders); $j++) {
                 $order = $this->parse_order($orders[$j], $market);
-                $stored->append ($order);
+                $stored->append($order);
                 $symbol = $order['symbol'];
                 if ($symbol !== null) {
                     $symbolSpecificMessageHash = $this->get_message_hash('orders', $symbol);
-                    $client->resolve ($stored, $symbolSpecificMessageHash);
+                    $client->resolve($stored, $symbolSpecificMessageHash);
                 }
             }
         }
-        $client->resolve ($stored, $messageHash);
+        $client->resolve($stored, $messageHash);
         return true;
     }
 
@@ -1227,7 +1254,7 @@ class lighter extends \ccxt\async\lighter {
                 }
             }
         } catch (Exception $e) {
-            $client->reject ($e);
+            $client->reject($e);
         }
         return true;
     }
@@ -1324,7 +1351,7 @@ class lighter extends \ccxt\async\lighter {
             $request = array(
                 'type' => 'pong',
             );
-            Async\await($client->send ($request));
-        }) ();
+            Async\await($client->send($request));
+        })();
     }
 }

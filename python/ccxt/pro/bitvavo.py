@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Currencies, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
+from ccxt.base.types import Any, Balances, Bool, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -69,11 +69,12 @@ class bitvavo(ccxt.async_support.bitvavo):
         })
 
     async def watch_public(self, name, symbol, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = name + '@' + market['id']
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -88,7 +89,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         return await self.watch(url, messageHash, message, messageHash)
 
     async def watch_public_multiple(self, methodName, channelName: str, symbols, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         messageHashes = [methodName]
         args = []
@@ -96,7 +98,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             market = self.market(symbols[i])
             args.append(market['id'])
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -108,7 +110,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         message = self.extend(request, params)
         return await self.watch_multiple(url, messageHashes, message, messageHashes)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -118,7 +120,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.watch_public('ticker24h', symbol, params)
+        return self.watch_public('ticker24h', symbol, params)
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -130,7 +132,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         channel = 'ticker24h'
         tickers = await self.watch_public_multiple(channel, channel, symbols, params)
@@ -184,7 +187,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         channel = 'ticker24h'
         tickers = await self.watch_public_multiple('bidask', channel, symbols, params)
@@ -204,7 +208,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             client.resolve(ticker, messageHash)
         client.resolve(result, event)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         marketId = self.safe_string(ticker, 'market')
         market = self.safe_market(marketId, None, '-')
         symbol = self.safe_string(market, 'symbol')
@@ -229,7 +233,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         trades = await self.watch_public('trades', symbol, params)
         if self.newUpdates:
@@ -272,7 +277,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         name = 'candles'
@@ -280,7 +286,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = name + '@' + marketId + '_' + interval
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -356,15 +362,16 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         name = 'book'
         messageHash = name + '@' + market['id']
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -375,7 +382,7 @@ class bitvavo(ccxt.async_support.bitvavo):
                 },
             ],
         }
-        subscription: dict = {
+        subscription = {
             'messageHash': messageHash,
             'name': name,
             'symbol': symbol,
@@ -461,7 +468,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         name = 'getBook'
         messageHash = name + '@' + marketId
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'action': name,
             'market': marketId,
         }
@@ -537,7 +544,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -545,7 +553,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         url = self.urls['api']['ws']
         name = 'account'
         messageHash = 'order:' + symbol
-        request: dict = {
+        request = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -570,7 +578,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -578,7 +587,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         url = self.urls['api']['ws']
         name = 'account'
         messageHash = 'myTrades:' + symbol
-        request: dict = {
+        request = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -617,7 +626,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param bool [params.responseRequired]: Set self to 'false' when only an acknowledgement of success or failure is required, self is faster.
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         request = self.create_order_request(symbol, type, side, amount, price, params)
         return await self.watch_request('privateCreateOrder', request)
@@ -637,7 +647,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         request = self.edit_order_request(id, symbol, type, side, amount, price, params)
         return await self.watch_request('privateUpdateOrder', request)
@@ -653,7 +664,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         request = self.cancel_order_request(id, symbol, params)
         return await self.watch_request('privateCancelOrder', request)
@@ -668,9 +680,10 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
-        request: dict = {}
+        request = {}
         operatorId = None
         operatorId, params = self.handle_option_and_params(params, 'cancelAllOrdersWs', 'operatorId')
         if operatorId is not None:
@@ -716,10 +729,11 @@ class bitvavo(ccxt.async_support.bitvavo):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'orderId': id,
             'market': market['id'],
         }
@@ -739,7 +753,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrdersWs() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         request = self.fetchOrdersRequest(symbol, since, limit, params)
         orders = await self.watch_request('privateGetOrders', request)
@@ -768,9 +783,10 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
-        request: dict = {
+        request = {
             # 'market': market['id'],  # rate limit 25 without a market, 1 with market specified
         }
         market = None
@@ -794,7 +810,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTradesWs() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         request = self.fetchMyTradesRequest(symbol, since, limit, params)
         myTrades = await self.watch_request('privateGetTrades', request)
@@ -842,7 +859,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         request = self.withdrawRequest(code, amount, address, tag, params)
         return await self.watch_request('privateWithdrawAssets', request)
@@ -877,7 +895,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         request = self.fetchWithdrawalsRequest(code, since, limit, params)
         withdraws = await self.watch_request('privateGetWithdrawalHistory', request)
@@ -919,7 +938,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = self.fetchOHLCVRequest(symbol, timeframe, since, limit, params)
         action = 'getCandles'
         ohlcv = await self.watch_request(action, request)
@@ -937,7 +957,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         request = self.fetchDepositsRequest(code, since, limit, params)
         deposits = await self.watch_request('privateGetDepositHistory', request)
@@ -973,11 +994,12 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         return await self.watch_request('privateGetAccount', params)
 
-    async def fetch_markets_ws(self, params={}):
+    def fetch_markets_ws(self, params={}) -> Any:
         """
 
         https://docs.bitvavo.com/#tag/General/paths/~1markets/get
@@ -986,7 +1008,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
-        return await self.watch_request('getMarkets', params)
+        return self.watch_request('getMarkets', params)
 
     async def fetch_currencies_ws(self, params={}) -> Currencies:
         """
@@ -997,7 +1019,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :returns dict: an associative dictionary of currencies
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         return await self.watch_request('getAssets', params)
 
     def handle_fetch_currencies(self, client: Client, message):
@@ -1053,7 +1076,8 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         return await self.watch_request('privateGetBalance', params)
 
@@ -1135,7 +1159,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         client.resolve(markets, messageHash)
 
     def build_message_hash(self, action, params={}):
-        methods: dict = {
+        methods = {
             'privateCreateOrder': self.action_and_market_message_hash,
             'privateUpdateOrder': self.action_and_order_id_message_hash,
             'privateCancelOrder': self.action_and_order_id_message_hash,
@@ -1230,7 +1254,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #     }
         #
         subscriptions = self.safe_value(message, 'subscriptions', {})
-        methods: dict = {
+        methods = {
             'book': self.handle_order_book_subscriptions,
         }
         names = list(subscriptions.keys())
@@ -1253,7 +1277,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             auth = stringTimestamp + 'GET/' + self.version + '/websocket'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             action = 'authenticate'
-            request: dict = {
+            request = {
                 'action': action,
                 'key': self.apiKey,
                 'signature': signature,
@@ -1362,7 +1386,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         error = self.safe_string(message, 'error')
         if error is not None:
             self.handle_error_message(client, message)
-        methods: dict = {
+        methods = {
             'subscribed': self.handle_subscription_status,
             'book': self.handle_order_book,
             'getBook': self.handle_order_book_snapshot,

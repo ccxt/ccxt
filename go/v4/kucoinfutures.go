@@ -63,9 +63,9 @@ func (this *KucoinfuturesCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
 			"method": "futuresPublicGetAllTickers",
 		}
 
-		retRes5115 := (<-this.FetchTickers(symbols, this.Extend(request, params)))
-		PanicOnError(retRes5115)
-		ch <- retRes5115
+		retRes5515 := (<-this.FetchTickers(symbols, this.Extend(request, params)))
+		PanicOnError(retRes5515)
+		ch <- retRes5515
 		return nil
 
 	}()
@@ -90,9 +90,11 @@ func (this *KucoinfuturesCore) Transfer(code any, amount any, fromAccount any, t
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes668 := (<-this.LoadMarkets())
-		PanicOnError(retRes668)
+			retRes7112 := (<-this.LoadMarkets())
+			PanicOnError(retRes7112)
+		}
 		var currency any = this.Currency(code)
 		var amountToPrecision any = this.CurrencyToPrecision(code, amount)
 		var request any = map[string]any{
