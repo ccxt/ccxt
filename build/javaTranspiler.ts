@@ -1318,16 +1318,27 @@ class NewTranspiler {
         }
         const piscina = this.piscina;
 
-        // one file per task — better load balancing across workers than chunking
+        // Files per worker task. Default 1 keeps today's exact behaviour: one file per
+        // task, which load-balances best across workers (a slow exchange can't stall a
+        // whole chunk). CCXT_TRANSPILE_CHUNK only exists so a coarser chunk — fewer task
+        // round-trips, at the cost of that balancing — can be A/B benchmarked.
+        const chunkSize = Math.max(1, Math.floor(Number(process.env.CCXT_TRANSPILE_CHUNK)) || 1);
         const configKey = JSON.stringify(parserConfig);
         const promises: any = [];
         const now = Date.now();
-        for (let i = 0; i < allFiles.length; i++) {
-            promises.push(piscina.run({ transpilerConfig: parserConfig, configKey, files: [allFiles[i]] }));
+        for (let i = 0; i < allFiles.length; i += chunkSize) {
+            promises.push(piscina.run({ transpilerConfig: parserConfig, configKey, files: allFiles.slice(i, i + chunkSize) }));
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
         log.green('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms (webworkerTranspile @ javaTranspiler.ts)');
+        // Order-preserving flatten, and it must stay that way: callers zip the returned
+        // array positionally against their input paths (transpiledFiles[idx] <-> the idx-th
+        // exchange file, flatResult[idx] <-> tests[idx]). The mapping holds for any chunk
+        // size because chunks are consecutive slices queued in order, Promise.all resolves
+        // in input order (not completion order), and each worker returns its results in the
+        // order it received `files`. So flat() yields exactly one result per file, in
+        // allFiles order — identical to the chunk=1 case.
         const flatResult = workerResult.flat();
         return flatResult;
     }

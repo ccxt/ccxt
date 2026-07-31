@@ -8,13 +8,20 @@ import log from 'ololog'
 // (restoreFinalVarMutations) so a warm instance emits byte-identical Java.
 let cachedTranspiler = null;
 let cachedConfigKey = null;
+// Program cache built once per worker thread at module scope, deliberately OUTSIDE the
+// config-key check: if the config ever changes we rebuild the Transpiler but hand it back
+// the same cache, so the already-parsed TS SourceFiles survive and are not re-parsed.
+// Same-thread only — it holds live TS compiler objects and must NEVER be posted across
+// threads (structured clone would either throw or silently deep-copy it).
+let programCache = null;
 
 const verbose = !!process.env.CCXT_TRANSPILE_VERBOSE;
 
 export default async ({transpilerConfig, configKey, files}) => {
     const key = configKey || JSON.stringify(transpilerConfig);
     if (!cachedTranspiler || cachedConfigKey !== key) {
-        cachedTranspiler = new Transpiler(transpilerConfig);
+        if (!programCache) programCache = Transpiler.createProgramCache();
+        cachedTranspiler = new Transpiler(transpilerConfig, programCache);
         cachedTranspiler.setVerboseMode(false);
         cachedConfigKey = key;
     }
