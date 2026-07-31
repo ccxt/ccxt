@@ -237,6 +237,10 @@ public class PacificaCore extends PacificaApi
                     put( "taker", PacificaCore.this.parseNumber("0.0004") );
                     put( "maker", PacificaCore.this.parseNumber("0.00015") );
                 }} );
+                put( "spot", new java.util.HashMap<String, Object>() {{
+                    put( "taker", PacificaCore.this.parseNumber("0.0004") );
+                    put( "maker", PacificaCore.this.parseNumber("0.00015") );
+                }} );
             }} );
             put( "requiredCredentials", new java.util.HashMap<String, Object>() {{
                 put( "apiKey", false );

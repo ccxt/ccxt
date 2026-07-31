@@ -897,16 +897,22 @@ public partial class testMainClass
             try
             {
                 // the scoping contract: an unscoped fetchEvents must throw ArgumentsRequired on
-                // every prediction venue — assert it so the contract can't silently regress
-                object unscopedError = "";
-                try
+                // every prediction venue — assert it so the contract can't silently regress.
+                // venues with bounded listings may opt out via options['allowUnscopedFetchEvents']
+                object exchangeOptions = getExchangeProp(exchange, "options", new Dictionary<string, object>() {});
+                object allowUnscopedFetchEvents = exchange.safeBool(exchangeOptions, "allowUnscopedFetchEvents", false);
+                if (!isTrue(allowUnscopedFetchEvents))
                 {
-                    await callExchangeMethodDynamically(exchange, "fetchEvents", new List<object>() {new Dictionary<string, object>() {}});
-                } catch(Exception e)
-                {
-                    unscopedError = exceptionMessage(e);
+                    object unscopedError = "";
+                    try
+                    {
+                        await callExchangeMethodDynamically(exchange, "fetchEvents", new List<object>() {new Dictionary<string, object>() {}});
+                    } catch(Exception e)
+                    {
+                        unscopedError = exceptionMessage(e);
+                    }
+                    assert(isGreaterThanOrEqual(getIndexOf(unscopedError, "requires at least one of"), 0), add(add(exchange.id, " fetchEvents () without a scope must throw ArgumentsRequired, got: "), unscopedError));
                 }
-                assert(isGreaterThanOrEqual(getIndexOf(unscopedError, "requires at least one of"), 0), add(add(exchange.id, " fetchEvents () without a scope must throw ArgumentsRequired, got: "), unscopedError));
                 // every venue requires fetchEvents to be scoped; a skip-tests.json
                 // preferredEventQuery supplies a query known to match the venue's markets
                 object eventQuery = exchange.safeString(this.skippedSettingsForExchange, "preferredEventQuery");

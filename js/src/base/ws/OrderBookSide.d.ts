@@ -8,6 +8,7 @@ declare class OrderBookSide extends Array implements IOrderBookSide<any> {
     storeArray(delta: any): void;
     store(price: any, size: any): void;
     limit(): void;
+    copy(): any;
 }
 declare class CountedOrderBookSide extends OrderBookSide {
     store(price: any, size: any): void;
@@ -18,6 +19,7 @@ declare class IndexedOrderBookSide extends Array implements IOrderBookSide<any> 
     store(price: any, size: any): void;
     storeArray(delta: any): void;
     limit(): void;
+    copy(): any;
 }
 declare class Asks extends OrderBookSide {
     get side(): boolean;

@@ -310,6 +310,8 @@ public class WsClient {
             final WsClientHandler handler = new WsClientHandler(handshaker, this);
             final int finalPort = port;
 
+            // Dual-stack via NioSocketChannel + JDK resolver (no preferIPv4Stack; no HE delay API).
+
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(SHARED_EVENT_LOOP)
                     .channel(NioSocketChannel.class)

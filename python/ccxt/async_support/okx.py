@@ -6444,8 +6444,11 @@ class okx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
-            raise ExchangeError(self.id + ' fetchFundingRate() is only valid for swap markets')
+        marketInfo = self.safe_dict(market, 'info', {})
+        ruleType = self.safe_string(marketInfo, 'ruleType')
+        isExtendedPerpetual = (ruleType == 'xperp')  # long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+        if not market['swap'] and not isExtendedPerpetual:
+            raise ExchangeError(self.id + ' fetchFundingRate() is only valid for swap markets or XPERP futures')
         request = {
             'instId': market['id'],
         }
@@ -6482,7 +6485,15 @@ class okx(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, 'swap', True)
+        symbols = self.market_symbols(symbols, None, True)
+        if symbols is not None:
+            for i in range(0, len(symbols)):
+                market = self.market(symbols[i])
+                marketInfo = self.safe_dict(market, 'info', {})
+                ruleType = self.safe_string(marketInfo, 'ruleType')
+                isExtendedPerpetual = (ruleType == 'xperp')  # long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+                if not market['swap'] and not isExtendedPerpetual:
+                    raise BadRequest(self.id + ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' + symbols[i] + ' is not')
         request = {'instId': 'ANY'}
         response = await self.publicGetPublicFundingRate(self.extend(request, params))
         #

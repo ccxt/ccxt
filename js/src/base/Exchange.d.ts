@@ -338,7 +338,7 @@ export declare class BaseExchange {
      * @ignore
      * @method
      * @name Exchange#getDispatcherOptions
-     * @description builds keep-alive-tuned undici dispatcher options - every in-flight request gets its own socket (no pipelining, no h2 multiplexing), idle sockets are kept alive for reuse because exchanges are polled on the same origins repeatedly
+     * @description builds keep-alive-tuned undici dispatcher options - every in-flight request gets its own socket (no pipelining, no h2 multiplexing), idle sockets are kept alive for reuse because exchanges are polled on the same origins repeatedly - dual-stack is explicit: autoSelectFamily enables the happy eyeballs (rfc 8305) address-family racing so ipv6 and ipv4 are both attempted (off by default on node 18), without forcing either family
      * @param {boolean} [isPlainAgent] true for undici.Agent options ('connect' tls shape), false for undici.ProxyAgent options ('requestTls' shape)
      * @returns {object} undici dispatcher options
      */
@@ -348,6 +348,8 @@ export declare class BaseExchange {
         connections: number;
         pipelining: number;
         allowH2: boolean;
+        autoSelectFamily: boolean;
+        autoSelectFamilyAttemptTimeout: number;
     };
     /**
      * @ignore

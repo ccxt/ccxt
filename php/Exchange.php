@@ -2035,6 +2035,9 @@ class BaseExchange {
             curl_setopt($this->curl, CURLOPT_INTERFACE, $this->curlopt_interface);
         }
 
+        curl_setopt($this->curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_WHATEVER);
+        curl_setopt($this->curl, CURLOPT_HAPPY_EYEBALLS_TIMEOUT_MS, 1);
+
         curl_setopt($this->curl, CURLOPT_URL, $url);
         // end of proxy settings
 
@@ -8037,6 +8040,11 @@ class BaseExchange {
             return null;
         }
         $firstMarket = $this->safe_string($symbols, 0);
+        if ($firstMarket === null) {
+            // an empty $symbols list must behave like an null one,
+            // $this->market(null) would throw an unreadable error
+            return null;
+        }
         $market = $this->market($firstMarket);
         return $market;
     }

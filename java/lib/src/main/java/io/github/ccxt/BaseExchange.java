@@ -251,7 +251,7 @@ public class BaseExchange {
         } else {
             defaultConfig = new HashMap<String, Object>();
         }
-        System.setProperty("java.net.preferIPv4Stack", "true");
+        // Do not set java.net.preferIPv4Stack; JVM default dual-stack (no HE delay knob).
         this.initializeProperties(defaultConfig);
         this.initHttpClient();
         this.httpClientProxyFingerprint = currentProxyFingerprint();
@@ -1978,6 +1978,7 @@ public class BaseExchange {
     }
 
     private void initHttpClient() {
+        // HttpClient uses JVM default dual-stack DNS (no preferIPv4Stack).
         var builder = HttpClient.newBuilder();
         // Java's HttpClient defaults to Redirect.NEVER, but TS/Node fetch and
         // browsers transparently follow 3xx. Without this, requests against
@@ -11186,6 +11187,12 @@ public Object describe()
             return null;
         }
         Object firstMarket = this.safeString(symbols, 0);
+        if (Helpers.isTrue(Helpers.isEqual(firstMarket, null)))
+        {
+            // an empty symbols list must behave like an undefined one,
+            // this.market (undefined) would throw an unreadable error
+            return null;
+        }
         Object market = this.market(firstMarket);
         return market;
     }

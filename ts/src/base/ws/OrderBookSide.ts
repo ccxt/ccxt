@@ -98,6 +98,14 @@ class OrderBookSide extends Array implements IOrderBookSide<any> {
             this.length = this.depth
         }
     }
+
+    copy () {
+        const copy = new (this.constructor as any)([], this.depth)
+        for (let i = 0; i < this.length; i++) {
+            copy.storeArray (this[i].slice ())
+        }
+        return copy
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -261,6 +269,14 @@ class IndexedOrderBookSide extends Array implements IOrderBookSide<any> {
             }
             this.length = this.depth
         }
+    }
+
+    copy () {
+        const copy = new (this.constructor as any)([], this.depth)
+        for (let i = 0; i < this.length; i++) {
+            copy.storeArray (this[i].slice ())
+        }
+        return copy
     }
 }
 

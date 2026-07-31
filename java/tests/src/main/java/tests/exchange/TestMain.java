@@ -951,16 +951,22 @@ public class TestMain extends BaseTest
                 try
                 {
                     // the scoping contract: an unscoped fetchEvents must throw ArgumentsRequired on
-                    // every prediction venue — Assert it so the contract can't silently regress
-                    Object unscopedError = "";
-                    try
+                    // every prediction venue — Assert it so the contract can't silently regress.
+                    // venues with bounded listings may opt out via options['allowUnscopedFetchEvents']
+                    Object exchangeOptions = getExchangeProp(exchange, "options", new java.util.HashMap<String, Object>() {{}});
+                    Object allowUnscopedFetchEvents = exchange.safeBool(exchangeOptions, "allowUnscopedFetchEvents", false);
+                    if (!Helpers.isTrue(allowUnscopedFetchEvents))
                     {
-                        (callExchangeMethodDynamically(exchange, "fetchEvents", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{}})))).join();
-                    } catch(Exception e)
-                    {
-                        unscopedError = exceptionMessage(e);
+                        Object unscopedError = "";
+                        try
+                        {
+                            (callExchangeMethodDynamically(exchange, "fetchEvents", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{}})))).join();
+                        } catch(Exception e)
+                        {
+                            unscopedError = exceptionMessage(e);
+                        }
+                        Assert(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(unscopedError, "requires at least one of"), 0), Helpers.add(Helpers.add(exchange.id, " fetchEvents () without a scope must throw ArgumentsRequired, got: "), unscopedError));
                     }
-                    Assert(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(unscopedError, "requires at least one of"), 0), Helpers.add(Helpers.add(exchange.id, " fetchEvents () without a scope must throw ArgumentsRequired, got: "), unscopedError));
                     // every venue requires fetchEvents to be scoped; a skip-tests.json
                     // preferredEventQuery supplies a query known to match the venue's markets
                     Object eventQuery = exchange.safeString(this.skippedSettingsForExchange, "preferredEventQuery");

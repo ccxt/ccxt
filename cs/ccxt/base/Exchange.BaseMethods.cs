@@ -6432,6 +6432,12 @@ public partial class BaseExchange
             return null;
         }
         object firstMarket = this.safeString(symbols, 0);
+        if (isTrue(isEqual(firstMarket, null)))
+        {
+            // an empty symbols list must behave like an undefined one,
+            // this.market (undefined) would throw an unreadable error
+            return null;
+        }
         object market = this.market(firstMarket);
         return market;
     }

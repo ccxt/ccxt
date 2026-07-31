@@ -237,6 +237,12 @@ class pacifica extends Exchange {
                     'taker' => $this->parse_number('0.0004'),
                     'maker' => $this->parse_number('0.00015'),
                 ),
+                'spot' => array(
+                    // https://docs.pacifica.fi/trading-on-pacifica/trading-fees
+                    // one unified fee schedule for all product types
+                    'taker' => $this->parse_number('0.0004'),
+                    'maker' => $this->parse_number('0.00015'),
+                ),
             ),
             //
             // Reminder:
