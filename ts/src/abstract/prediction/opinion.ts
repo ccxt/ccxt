@@ -23,7 +23,11 @@ interface Exchange {
     opinionPrivateGetPositionsUserWalletAddress (params?: {}): Promise<implicitReturnType>;
     opinionPrivateGetTradeUserWalletAddress (params?: {}): Promise<implicitReturnType>;
     opinionPrivateGetAuthApiKey (params?: {}): Promise<implicitReturnType>;
+    opinionPrivateGetUserAuth (params?: {}): Promise<implicitReturnType>;
+    opinionPrivateGetUserBalance (params?: {}): Promise<implicitReturnType>;
     opinionPrivatePostAuthApiKey (params?: {}): Promise<implicitReturnType>;
+    opinionPrivatePostOrder (params?: {}): Promise<implicitReturnType>;
+    opinionPrivatePostOrderCancel (params?: {}): Promise<implicitReturnType>;
     opinionPrivateDeleteAuthApiKey (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
