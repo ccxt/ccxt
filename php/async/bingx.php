@@ -619,6 +619,9 @@ class bingx extends Exchange {
             ),
             'options' => array(
                 'defaultType' => 'spot',
+                'fetchOHLCV' => array(
+                    'timeZone' => 0, // candle boundary offset in hours, 0 anchors daily candles to UTC midnight, set 8 for the bingx-native UTC+8 anchoring
+                ),
                 'accountsByType' => array(
                     'funding' => 'fund',
                     'spot' => 'spot',
@@ -1210,6 +1213,13 @@ class bingx extends Exchange {
                 $request['endTime'] = $until;
             }
             if ($market['spot']) {
+                // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
+                // the $timeZone $request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
+                $timeZone = null;
+                list($timeZone, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'timeZone', 0);
+                if ($timeZone !== null) {
+                    $request['timeZone'] = $timeZone;
+                }
                 $response = Async\await($this->spotV1PublicGetMarketKline($this->extend($request, $params)));
             } else {
                 if ($market['inverse']) {
