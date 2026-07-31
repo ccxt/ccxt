@@ -523,7 +523,7 @@ class blofin(Exchange, ImplicitAPI):
         contract = swap or future
         baseId = self.safe_string(market, 'baseCurrency')
         quoteId = self.safe_string(market, 'quoteCurrency')
-        settleId = self.safe_string(market, 'quoteCurrency')
+        settleId = self.safe_string(market, 'settleCurrency', quoteId)
         settle = self.safe_currency_code(settleId)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
@@ -541,6 +541,9 @@ class blofin(Exchange, ImplicitAPI):
         maxLeverage = Precise.string_max(maxLeverage, '1')
         isActive = (self.safe_string(market, 'state') == 'live')
         isMargin = spot and (Precise.string_gt(maxLeverage, '1'))
+        contractType = self.safe_string(market, 'contractType')
+        maxLimitAmount = self.safe_number(market, 'maxLimitSize')
+        maxSpotCost = self.safe_number(market, 'maxMarketSize')  # for spot, market-buy size is denominated in the quote currency, i.e. cost
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
@@ -560,8 +563,8 @@ class blofin(Exchange, ImplicitAPI):
             'taker': taker,
             'maker': maker,
             'contract': contract,
-            'linear': (quoteId == settleId) if contract else None,
-            'inverse': (baseId == settleId) if contract else None,
+            'linear': (contractType == 'linear') if contract else None,
+            'inverse': (contractType == 'inverse') if contract else None,
             'contractSize': self.safe_number(market, 'contractValue') if contract else None,
             'expiry': expiry,
             'expiryDatetime': expiry,
@@ -579,7 +582,7 @@ class blofin(Exchange, ImplicitAPI):
                 },
                 'amount': {
                     'min': self.safe_number(market, 'minSize'),
-                    'max': None,
+                    'max': maxLimitAmount,
                 },
                 'price': {
                     'min': None,
@@ -587,7 +590,7 @@ class blofin(Exchange, ImplicitAPI):
                 },
                 'cost': {
                     'min': None,
-                    'max': None,
+                    'max': None if contract else maxSpotCost,
                 },
             },
             'info': market,
