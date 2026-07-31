@@ -598,7 +598,7 @@ class BaseExchange(SyncExchange):
             stored = self.orderbooks[symbol]
             while tries < maxRetries:
                 cache = stored.cache
-                order_book = await self.fetch_order_book(symbol, limit, params)
+                order_book = await self.fetch_rest_order_book_safe(symbol, limit, params)
                 index = self.get_cache_index(order_book, cache)
                 if index >= 0:
                     stored.reset(order_book)
