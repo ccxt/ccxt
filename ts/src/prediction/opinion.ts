@@ -4,7 +4,7 @@ import Exchange from '../abstract/prediction/opinion.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
-import type { Balances, Dict, Int, Market, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { Balances, Dict, Int, Market, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams } from '../base/types.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -36,9 +36,10 @@ export default class opinion extends Exchange {
                 'fetchEvents': true,
                 'fetchMarkets': true,
                 'fetchOHLCV': true,
-                'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrder': true,
                 'fetchOrders': true,
+                'fetchPositions': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'prediction': true,
@@ -1159,6 +1160,78 @@ export default class opinion extends Exchange {
             };
         }
         return this.safeBalance (result) as Balances;
+    }
+
+    /**
+     * @method
+     * @name opinion#fetchPositions
+     * @description fetches the authenticated user's open positions
+     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/position
+     * @param {string[]} [outcomes] filter by unified outcomes or outcome token ids
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
+        if (this.walletAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPositions() requires a walletAddress');
+        }
+        let outcomesLength = 0;
+        if (outcomes !== undefined) {
+            outcomesLength = outcomes.length;
+            await this.loadOutcomes (outcomes);
+        }
+        const request: Dict = { 'walletAddress': this.walletAddress };
+        const response = await this.opinionPrivateGetPositionsUserWalletAddress (this.extend (request, params));
+        const result = this.safeDict (response, 'result', {});
+        const positions = this.safeList (result, 'list', []);
+        const parsed = this.parsePredictionPositions (positions);
+        if (outcomesLength === 0) {
+            return parsed;
+        }
+        const wantedTokenIds: Dict = {};
+        for (let i = 0; i < outcomes.length; i++) {
+            const outcomeObj = this.outcome (outcomes[i]);
+            const tokenId = this.safeString (outcomeObj, 'outcomeId');
+            if (tokenId !== undefined) {
+                wantedTokenIds[tokenId] = true;
+            }
+        }
+        const filtered: any[] = [];
+        for (let i = 0; i < parsed.length; i++) {
+            const position = parsed[i];
+            const info = this.safeDict (position, 'info', {});
+            const tokenId = this.safeString (info, 'tokenId');
+            if ((tokenId !== undefined) && (tokenId in wantedTokenIds)) {
+                filtered.push (position);
+            }
+        }
+        return filtered as PredictionPosition[];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name opinion#parsePredictionPosition
+     * @description parses a raw opinion position object into a unified position object
+     * @param {object} position the raw opinion PositionData object
+     * @param {object} [market] the outcome object the position belongs to
+     * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
+        const tokenId = this.safeString (position, 'tokenId');
+        const outcomeObj = this.safeOutcome (tokenId, market as any);
+        const outcomeSideEnum = this.safeStringLower (position, 'outcomeSideEnum');
+        return this.safePredictionPosition ({
+            'contracts': this.safeNumber (position, 'sharesOwned'),
+            'side': outcomeSideEnum,
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPnl'),
+            'entryPrice': this.safeNumber (position, 'avgEntryPrice'),
+            'outcome': this.safeString (outcomeObj, 'outcome'),
+            'outcomeId': this.safeString2 (outcomeObj, 'outcomeId', 'id'),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString2 (outcomeObj, 'market', 'outcome'),
+            'info': position,
+        });
     }
 
     hashMessage (message: any): string {
