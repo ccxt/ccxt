@@ -3383,9 +3383,9 @@ async function runMain() {
     const examples = process.argv.includes('--examples');
     const force = process.argv.includes('--force')
     const baseClassOnly = process.argv.includes('--baseClass')
-    // optional single-process REST+WS: keeps the one piscina pool (and its warm
-    // per-thread Transpilers) alive across both stages instead of paying a second
-    // process boot + cold pool. `npm run transpileJava` stays two processes for CI.
+    // single-process REST+WS (default via npm run transpileJava / CI): keeps the one
+    // piscina pool (and its warm per-thread Transpilers) alive across both stages
+    // instead of paying a second process boot + cold pool. Omit the flag for REST-only.
     const restAndWs = process.argv.includes('--rest-and-ws')
     shouldTranspileTests = process.argv.includes('--noTests') ? false : true
     log.bright.green({ force })
