@@ -813,15 +813,20 @@ class testMainClass {
             // Java and its async lambda can't propagate (or re-throw) a checked exception
             try {
                 // the scoping contract: an unscoped fetchEvents must throw ArgumentsRequired on
-                // every prediction venue — assert it so the contract can't silently regress
-                let unscopedError = '';
-                try {
-                    await callExchangeMethodDynamically(exchange, 'fetchEvents', [{}]);
+                // every prediction venue — assert it so the contract can't silently regress.
+                // venues with bounded listings may opt out via options['allowUnscopedFetchEvents']
+                const exchangeOptions = getExchangeProp(exchange, 'options', {});
+                const allowUnscopedFetchEvents = exchange.safeBool(exchangeOptions, 'allowUnscopedFetchEvents', false);
+                if (!allowUnscopedFetchEvents) {
+                    let unscopedError = '';
+                    try {
+                        await callExchangeMethodDynamically(exchange, 'fetchEvents', [{}]);
+                    }
+                    catch (e) {
+                        unscopedError = exceptionMessage(e);
+                    }
+                    assert(unscopedError.indexOf('requires at least one of') >= 0, exchange.id + ' fetchEvents () without a scope must throw ArgumentsRequired, got: ' + unscopedError);
                 }
-                catch (e) {
-                    unscopedError = exceptionMessage(e);
-                }
-                assert(unscopedError.indexOf('requires at least one of') >= 0, exchange.id + ' fetchEvents () without a scope must throw ArgumentsRequired, got: ' + unscopedError);
                 // every venue requires fetchEvents to be scoped; a skip-tests.json
                 // preferredEventQuery supplies a query known to match the venue's markets
                 let eventQuery = exchange.safeString(this.skippedSettingsForExchange, 'preferredEventQuery');

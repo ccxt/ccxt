@@ -11,7 +11,7 @@ function testMarket(exchange, skippedProperties, method, market) {
     if (market === undefined) {
         return;
     }
-    const format = {
+    let format = {
         'id': 'btcusd', // string literal for referencing within an exchange
         'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies
         'base': 'BTC', // unified uppercase string, base currency, 3 or more letters
@@ -108,6 +108,11 @@ function testMarket(exchange, skippedProperties, method, market) {
         emptyAllowedFor.push('quoteId');
         emptyAllowedFor.push('base');
         emptyAllowedFor.push('quote');
+    }
+    if (exchange.safeString(market, 'type') === 'prediction') {
+        // prediction market rows carry the unified 'market' handle, the
+        // deprecated 'symbol' key is intentionally absent from their structures
+        format = exchange.omit(format, ['symbol']);
     }
     testSharedMethods.assertStructure(exchange, skippedProperties, method, market, format, emptyAllowedFor);
     // prediction market rows are keyed by `market`; `symbol` internally by setMarkets

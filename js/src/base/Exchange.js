@@ -7020,6 +7020,11 @@ export class BaseExchange {
             return undefined;
         }
         const firstMarket = this.safeString(symbols, 0);
+        if (firstMarket === undefined) {
+            // an empty symbols list must behave like an undefined one,
+            // this.market (undefined) would throw an unreadable error
+            return undefined;
+        }
         const market = this.market(firstMarket);
         return market;
     }
