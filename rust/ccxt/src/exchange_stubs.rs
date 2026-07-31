@@ -557,7 +557,8 @@ impl Exchange {
             Value::Str(_) => v,
             Value::Int(n) => Value::Str(n.to_string()),
             Value::Float(f) => Value::Str(f.to_string()),
-            Value::Bool(b) => Value::Str(b.to_string()),
+            // Booleans/lists/dicts are not strings or finite numbers → return
+            // the default, matching TS `safeString` (base/functions/type.ts).
             _ => arg_default(optional_args),
         }
     }
