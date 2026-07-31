@@ -2,7 +2,7 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/opinion.js';
 import { ecdsa } from '../base/functions/crypto.js';
-import type { Dict, Int, Market, OHLCV, PredictionEvent, PredictionOrderBook, PredictionTicker, fetchEventsParams } from '../base/types.js';
+import type { Dict, Int, Market, OHLCV, PredictionEvent, PredictionOrderBook, PredictionTicker, PredictionTickers, Strings, fetchEventsParams } from '../base/types.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -33,6 +33,7 @@ export default class opinion extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
+                'fetchTickers': true,
                 'prediction': true,
             },
             'timeframes': {
@@ -601,6 +602,45 @@ export default class opinion extends Exchange {
             'quoteVolume': undefined,
             'info': ticker,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name opinion#fetchTickers
+     * @description fetches tickers for multiple outcome tokens - opinion has no all-tickers endpoint, each token needs its own latest-price + orderbook request
+     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/token
+     * @param {string[]} outcomes unified outcomes or outcome token ids - required, opinion has no all-tickers endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
+     */
+    async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
+        if (outcomes === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles or token ids to fetch (discover them via fetchEvents ())');
+        }
+        await this.loadOutcomes (outcomes);
+        const outcomesLength = outcomes.length;
+        const promises: any[] = [];
+        for (let i = 0; i < outcomesLength; i++) {
+            const outcomeObj = this.outcome (outcomes[i]);
+            const tokenId = outcomeObj['outcomeId'] as string;
+            promises.push (this.opinionPublicGetTokenLatestPrice (this.extend ({ 'token_id': tokenId }, params)));
+            promises.push (this.opinionPublicGetTokenOrderbook ({ 'token_id': tokenId }));
+        }
+        const responses = await Promise.all (promises);
+        const result: PredictionTickers = {};
+        for (let i = 0; i < outcomesLength; i++) {
+            const outcomeObj = this.outcome (outcomes[i]);
+            const priceIndex = i * 2;
+            const priceResponse = responses[priceIndex];
+            const bookResponse = responses[this.sum (priceIndex, 1)];
+            const response: Dict = { 'price': priceResponse, 'book': bookResponse };
+            const ticker = this.parsePredictionTicker (response, outcomeObj as any);
+            const symbolKey = this.safeString (ticker, 'outcome');
+            if (symbolKey !== undefined) {
+                result[symbolKey] = ticker;
+            }
+        }
+        return result;
     }
 
     /**
