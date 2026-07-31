@@ -839,7 +839,9 @@ class delta(Exchange, ImplicitAPI):
         for i in range(0, len(markets)):
             market = markets[i]
             type = self.safe_string(market, 'contract_type')
-            if type == 'options_combos':
+            if (type == 'options_combos') or (type == 'binary_call_options') or (type == 'binary_put_options'):
+                # binary options can not be represented in the unified market
+                # structure, their symbols would collide with vanilla options
                 continue
             # settlingAsset = self.safe_value(market, 'settling_asset', {})
             quotingAsset = self.safe_dict(market, 'quoting_asset', {})
@@ -1383,7 +1385,12 @@ class delta(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'result', [])
         result = {}
         for i in range(0, len(tickers)):
-            ticker = self.parse_ticker(tickers[i])
+            rawTicker = tickers[i]
+            contractType = self.safe_string(rawTicker, 'contract_type')
+            if (contractType == 'options_combos') or (contractType == 'binary_call_options') or (contractType == 'binary_put_options'):
+                # these instruments are excluded from the unified markets, see fetchMarkets
+                continue
+            ticker = self.parse_ticker(rawTicker)
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)

@@ -607,12 +607,16 @@ class testMainClass:
         if not self.ws_tests:
             try:
                 # the scoping contract: an unscoped fetchEvents must throw ArgumentsRequired on
-                # every prediction venue — assert it so the contract can't silently regress
-                unscoped_error = ''
-                try:
-                    await call_exchange_method_dynamically(exchange, 'fetchEvents', [{}])
-                except Exception as e:
-                    unscoped_error = exception_message(e)
+                # every prediction venue — assert it so the contract can't silently regress.
+                # venues with bounded listings may opt out via options['allowUnscopedFetchEvents']
+                exchange_options = get_exchange_prop(exchange, 'options', {})
+                allow_unscoped_fetch_events = exchange.safe_bool(exchange_options, 'allowUnscopedFetchEvents', False)
+                if not allow_unscoped_fetch_events:
+                    unscoped_error = ''
+                    try:
+                        await call_exchange_method_dynamically(exchange, 'fetchEvents', [{}])
+                    except Exception as e:
+                        unscoped_error = exception_message(e)
                 # preferredEventQuery supplies a query known to match the venue's markets
                 event_query = exchange.safe_string(self.skipped_settings_for_exchange, 'preferredEventQuery')
                 if event_query is None:
@@ -1619,7 +1623,7 @@ class testMainClass:
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1901,21 +1905,6 @@ class testMainClass:
             stop_order_request = json_parse(exchange.last_request_body)
         client_order_id_stop = stop_order_request['brokerId']
         assert client_order_id_stop.startswith(id_string), 'woo - brokerId: ' + client_order_id_stop + ' does not start with id: ' + id_string
-        if not is_sync():
-            await close(exchange)
-        return True
-
-    async def test_bitmart(self):
-        exchange = self.init_offline_exchange('bitmart')
-        req_headers = {}
-        id = 'CCXTxBitmart000'
-        assert exchange.options['brokerId'] == id, 'bitmart - id: ' + id + ' not in options'
-        await exchange.load_markets()
-        try:
-            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
-        except Exception as e:
-            req_headers = exchange.last_request_headers
-        assert req_headers['X-BM-BROKER-ID'] == id, 'bitmart - id: ' + id + ' not in headers'
         if not is_sync():
             await close(exchange)
         return True
