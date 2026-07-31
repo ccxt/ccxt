@@ -913,9 +913,12 @@ export default class grvt extends Exchange {
         //        }
         //
         const marketId = this.safeString (ticker, 'instrument');
+        const timestamp = this.safeIntegerProduct (ticker, 'event_time', 0.000001);
         return this.safeTicker ({
             'info': ticker,
             'symbol': this.safeSymbol (marketId, market),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'open': this.safeString (ticker, 'open_price'),
             'high': this.safeString (ticker, 'high_price'),
             'low': this.safeString (ticker, 'low_price'),
