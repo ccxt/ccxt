@@ -2482,17 +2482,21 @@ ${caseStatements.join('\n')}
 
         const regex = new RegExp (pattern.replace (/[.*+?^${}()|[\]\\]/g, '\\$&'));
 
-        // let exchanges
+        // local file list — must NOT clobber the module-level `exchanges` (the parsed
+        // exchanges.json), which this function reads `.ids` off of on the next call.
+        // Assigning to it worked only because each stage ran in its own process;
+        // --rest-and-ws reuses one.
+        let exchangeFiles: string[];
         if (options.exchanges && options.exchanges.length) {
-            exchanges = options.exchanges.map ((x:string) => x + pattern);
+            exchangeFiles = options.exchanges.map ((x:string) => x + pattern);
         } else {
-            exchanges = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))));
+            exchangeFiles = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))));
         }
 
         // Only process exchanges that are in transpiledExchanges
         // (the prediction exchanges have their own id list and skip this gate)
         if (!this.isPrediction) {
-            exchanges = exchanges.filter (file => {
+            exchangeFiles = exchangeFiles.filter (file => {
                 const exchangeName = basename (file, pattern);
                 return transpiledExchanges.includes (exchangeName);
             });
@@ -2500,8 +2504,8 @@ ${caseStatements.join('\n')}
 
         // exchanges = ['bitmart.ts']
         // transpile using webworker
-        const allFilesPath = exchanges.map ((file: string) => `${jsFolder}/${file}` );
-        log.blue('[go] Transpiling [', exchanges.join(', '), ']');
+        const allFilesPath = exchangeFiles.map ((file: string) => `${jsFolder}/${file}` );
+        log.blue('[go] Transpiling [', exchangeFiles.join(', '), ']');
         const transpiledFiles = allFilesPath.length > 1 ? await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig()) : allFilesPath.map((file: string) => this.transpiler.transpileGoByPath(file));
 
         let wrapperFolder = ws ? EXCHANGES_WS_FOLDER : EXCHANGE_WRAPPER_FOLDER;
@@ -2510,14 +2514,14 @@ ${caseStatements.join('\n')}
         }
         for (let i = 0; i < transpiledFiles.length; i++) {
             const transpiled = transpiledFiles[i];
-            const exchangeName = exchanges[i].replace('.ts','');
+            const exchangeName = exchangeFiles[i].replace('.ts','');
             const path = `${wrapperFolder}/${exchangeName}_wrapper.go`;
 
             this.createGoWrappers(exchangeName, path, transpiled.methodsTypes, ws);
         }
-        exchanges.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws));
+        exchangeFiles.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws));
         // prediction packages always need their own option-structs file even with a single exchange
-        if (exchanges.length > 1 || this.isPrediction) {
+        if (exchangeFiles.length > 1 || this.isPrediction) {
             this.safeOptionsStructFile(ws);
         }
         const classes = {};
