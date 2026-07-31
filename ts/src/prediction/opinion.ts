@@ -247,11 +247,14 @@ export default class opinion extends Exchange {
         return {
             'id': marketId,
             'market': marketSymbol,
-            'base': undefined,
-            'quote': undefined,
+            // no real base asset (an outcome share, not a currency) - baseId is the market's own
+            // id, matching kalshi/polymarket. collateral is BSC USDT (0x55d398...) on every market
+            // observed live; quoteId uses the symbol like kalshi/polymarket do, not the raw address
+            'base': 'USDT',
+            'quote': 'USDT',
             'settle': undefined,
-            'baseId': undefined,
-            'quoteId': this.safeString (raw, 'quoteToken'),
+            'baseId': marketId,
+            'quoteId': 'USDT',
             'settleId': undefined,
             'type': 'prediction',
             'marketType': 'binary',
