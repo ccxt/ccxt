@@ -418,9 +418,6 @@
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
             },
-            "ticker": {
-                "positiveValues": "basis-spread instruments (typ FFMCSX) legitimately have negative prices"
-            },
             "fetchOHLCV": "https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862",
             "watchOHLCV": "same as above, needs key fix",
             "fetchPositions": {
@@ -468,6 +465,7 @@
                 "checkActiveSymbols": "todo"
             },
             "ticker": {
+                "positiveValues": "basis-spread instruments (typ FFMCSX) legitimately have negative prices",
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:437"
             }
         }
@@ -1695,8 +1693,12 @@
             "loadMarkets": {
                 "currencyIdAndCode": "futures markets use XBT while the instance currency id is BTC, same as kucoin"
             },
+            "ticker": {
+                "compareOHLC": "open can be outside the high-low range on their rolling window data"
+            },
             "fetchCurrencies": {
-                "currencyIdAndCode": "messed https://github.com/ccxt/ccxt/actions/runs/28543101209/job/84622191645?pr=29055#step:10:695"
+                "currencyIdAndCode": "messed https://github.com/ccxt/ccxt/actions/runs/28543101209/job/84622191645?pr=29055#step:10:695",
+                "activeMajorCurrencies": "eu entity disables deposit and withdraw flags for some major currencies"
             }
         }
     },
@@ -1868,7 +1870,8 @@
         "skipWs": "timeouts",
         "skipMethods": {
             "ticker": {
-                "compareOHLC": "open can exceed high on their 24h rolling window data"
+                "compareOHLC": "open can exceed high on their 24h rolling window data",
+                "compareQuoteVolumeBaseVolume": "summary endpoint volumes are inconsistent for small caps"
             },
             "fetchCurrencies": {
                 "withdraw": "not provided",

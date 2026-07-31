@@ -1409,7 +1409,13 @@ export default class delta extends Exchange {
         const tickers = this.safeList (response, 'result', []);
         const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
-            const ticker = this.parseTicker (tickers[i]);
+            const rawTicker = tickers[i];
+            const contractType = this.safeString (rawTicker, 'contract_type');
+            if ((contractType === 'options_combos') || (contractType === 'binary_call_options') || (contractType === 'binary_put_options')) {
+                // these instruments are excluded from the unified markets, see fetchMarkets
+                continue;
+            }
+            const ticker = this.parseTicker (rawTicker);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
