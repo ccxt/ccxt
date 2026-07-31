@@ -901,6 +901,13 @@ class poloniex extends \ccxt\async\poloniex {
                     $previousOrder = $this->safe_value_2($previousOrders, $orderId, $clientOrderId);
                     $trade = $this->parse_ws_trade($order);
                     $this->handle_my_trades($client, $trade);
+                    if ($previousOrder === null) {
+                        // fill event for an $order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse fresh $order instead of aggregating
+                        $parsedOrder = $this->parse_ws_order($order);
+                        $orders->append($parsedOrder);
+                        $marketIds[] = $marketId;
+                        continue;
+                    }
                     if ($previousOrder['trades'] === null) {
                         $previousOrder['trades'] = array();
                     }
