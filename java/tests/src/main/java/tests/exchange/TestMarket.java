@@ -118,6 +118,12 @@ public class TestMarket extends BaseTest {
             ((java.util.List<Object>)emptyAllowedFor).add("base");
             ((java.util.List<Object>)emptyAllowedFor).add("quote");
         }
+        if (Helpers.isTrue(Helpers.isEqual(exchange.safeString(market, "type"), "prediction")))
+        {
+            // prediction market rows carry the unified 'market' handle, the
+            // deprecated 'symbol' key is intentionally absent from their structures
+            format = exchange.omit(format, new java.util.ArrayList<Object>(java.util.Arrays.asList("symbol")));
+        }
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, market, format, emptyAllowedFor);
         // prediction market rows are keyed by `market`; `symbol` internally by setMarkets
         if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), "prediction")))

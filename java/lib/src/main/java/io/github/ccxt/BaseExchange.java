@@ -11187,6 +11187,12 @@ public Object describe()
             return null;
         }
         Object firstMarket = this.safeString(symbols, 0);
+        if (Helpers.isTrue(Helpers.isEqual(firstMarket, null)))
+        {
+            // an empty symbols list must behave like an undefined one,
+            // this.market (undefined) would throw an unreadable error
+            return null;
+        }
         Object market = this.market(firstMarket);
         return market;
     }

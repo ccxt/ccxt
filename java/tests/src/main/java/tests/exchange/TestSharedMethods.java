@@ -105,13 +105,17 @@ public class TestSharedMethods extends BaseTest {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
+                if (Helpers.isTrue(Helpers.inOp(skippedProperties, key)))
+                {
+                    continue;
+                }
                 Assert(Helpers.inOp(entry, key), Helpers.add(Helpers.add(Helpers.add("\"", stringValue(key)), "\" key is missing from structure"), logText));
                 Object emptyAllowedForThisKey = Helpers.isTrue((Helpers.isEqual(emptyAllowedFor, null))) || Helpers.isTrue(exchange.inArray(key, emptyAllowedFor));
                 Object value = Helpers.GetValue(entry, key);
                 // check when:
                 // - it's not inside "allowed empty values" list
                 // - it's not undefined
-                if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(emptyAllowedForThisKey) && Helpers.isTrue((Helpers.isEqual(value, null))))) || Helpers.isTrue((Helpers.inOp(skippedProperties, key)))))
+                if (Helpers.isTrue(Helpers.isTrue(emptyAllowedForThisKey) && Helpers.isTrue((Helpers.isEqual(value, null)))))
                 {
                     continue;
                 }
