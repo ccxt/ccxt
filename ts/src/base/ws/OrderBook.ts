@@ -128,6 +128,24 @@ class OrderBook implements CustomOrderBookProp {
         }
         return this
     }
+
+    copy () {
+        const snapshot = {}
+        if (this.outcome !== undefined) {
+            snapshot['outcome'] = this.outcome
+            snapshot['outcomeId'] = this.outcomeId
+            snapshot['market'] = this.market
+        } else {
+            snapshot['symbol'] = this.symbol
+        }
+        const copy = new (this.constructor as any)(snapshot, this.asks.depth)
+        copy.asks = this.asks.copy ()
+        copy.bids = this.bids.copy ()
+        copy.nonce = this.nonce
+        copy.timestamp = this.timestamp
+        copy.datetime = this.datetime
+        return copy
+    }
 }
 
 // ----------------------------------------------------------------------------
