@@ -2,7 +2,9 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/opinion.js';
 import { ecdsa } from '../base/functions/crypto.js';
-import type { Dict, Int, Market, OHLCV, PredictionEvent, PredictionOrderBook, PredictionTicker, PredictionTickers, Strings, fetchEventsParams } from '../base/types.js';
+import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
+import { Precise } from '../base/Precise.js';
+import type { Dict, Int, Market, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams } from '../base/types.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -27,6 +29,8 @@ export default class opinion extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'cancelOrder': true,
+                'createOrder': true,
                 'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchMarkets': true,
@@ -72,9 +76,13 @@ export default class opinion extends Exchange {
                             'positions/user/{walletAddress}': 1,
                             'trade/user/{walletAddress}': 1,
                             'auth/api-key': 1,
+                            'user/auth': 1,
+                            'user/balance': 1,
                         },
                         'post': {
                             'auth/api-key': 1,
+                            'order': 1,
+                            'order/cancel': 1,
                         },
                         'delete': {
                             'auth/api-key': 1,
@@ -754,6 +762,325 @@ export default class opinion extends Exchange {
         return [ this.safeTimestamp (ohlcv, 't'), price, price, price, price, undefined ];
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name opinion#loadQuoteToken
+     * @description fetches and caches quote-token metadata (ctfExchangeAddress, decimals) needed to sign orders
+     * @param {string} quoteTokenAddress the on-chain quote-token contract address, read from a market's 'quoteToken' field
+     * @returns {object} the matching quote-token entry
+     */
+    async loadQuoteToken (quoteTokenAddress: string): Promise<Dict> {
+        const cacheKey = quoteTokenAddress.toLowerCase ();
+        const cached = this.safeDict (this.options, 'quoteTokens', {});
+        const existing = this.safeDict (cached, cacheKey);
+        if (existing !== undefined) {
+            return existing;
+        }
+        const response = await this.opinionPublicGetQuoteToken ({});
+        const result = this.safeDict (response, 'result', {});
+        const list = this.safeList (result, 'list', []);
+        const listLength = list.length;
+        const quoteTokens: Dict = {};
+        for (let i = 0; i < listLength; i++) {
+            const entry = list[i];
+            const address = this.safeStringLower (entry, 'quoteTokenAddress');
+            if (address !== undefined) {
+                quoteTokens[address] = entry;
+            }
+        }
+        this.options['quoteTokens'] = quoteTokens;
+        return this.safeDict (quoteTokens, cacheKey, {});
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name opinion#loadMultiSigAddress
+     * @description fetches and caches the per-wallet multi-signature (Gnosis Safe) address that owns order assets - orders are made from this address, signed by the EOA
+     * @returns {string} the multi-sig wallet address for this.walletAddress on chain 56, or this.walletAddress itself if none exists yet
+     */
+    async loadMultiSigAddress (): Promise<string> {
+        const cached = this.safeString (this.options, 'multiSigAddress');
+        if (cached !== undefined) {
+            return cached;
+        }
+        const response = await this.opinionPrivateGetUserAuth ({});
+        const result = this.safeDict (response, 'result', {});
+        const walletUsers = this.safeDict (result, 'walletUsers', {});
+        const multiSigAddress = this.safeString (walletUsers, '56', this.walletAddress);
+        this.options['multiSigAddress'] = multiSigAddress;
+        return multiSigAddress;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name opinion#signOpinionOrder
+     * @description signs a CTF Exchange order via EIP-712
+     * @param {object} order the order fields to sign (salt, maker, signer, taker, tokenId, makerAmount, takerAmount, expiration, nonce, feeRateBps, side, signatureType)
+     * @param {string} exchangeAddress the CTF Exchange contract address (verifyingContract), per quote token
+     * @returns {string} the order signature
+     */
+    signOpinionOrder (order: Dict, exchangeAddress: string): string {
+        const domain: Dict = {
+            'name': 'OPINION CTF Exchange',
+            'version': '1',
+            'chainId': 56,
+            'verifyingContract': exchangeAddress,
+        };
+        const messageTypes: Dict = {
+            'Order': [
+                { 'name': 'salt', 'type': 'uint256' },
+                { 'name': 'maker', 'type': 'address' },
+                { 'name': 'signer', 'type': 'address' },
+                { 'name': 'taker', 'type': 'address' },
+                { 'name': 'tokenId', 'type': 'uint256' },
+                { 'name': 'makerAmount', 'type': 'uint256' },
+                { 'name': 'takerAmount', 'type': 'uint256' },
+                { 'name': 'expiration', 'type': 'uint256' },
+                { 'name': 'nonce', 'type': 'uint256' },
+                { 'name': 'feeRateBps', 'type': 'uint256' },
+                { 'name': 'side', 'type': 'uint8' },
+                { 'name': 'signatureType', 'type': 'uint8' },
+            ],
+        };
+        const encoded = this.ethEncodeStructuredData (domain, messageTypes, order);
+        const sig = this.signMessage (encoded, this.privateKey);
+        return '0x' + this.remove0xPrefix (sig['r']) + this.remove0xPrefix (sig['s']) + this.intToBase16 (sig['v']);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name opinion#opinionOrderRawAmounts
+     * @description computes the exact maker/taker wei amounts for a CTF Exchange order, keeping the price fraction exact
+     * @param {bool} isMarket whether the order is a market order
+     * @param {string} side 'BUY' or 'SELL'
+     * @param {float} amount order size in outcome shares (limit orders); quote-cost for a market BUY, shares for a market SELL
+     * @param {float} price the limit price (ignored for market orders)
+     * @param {int} decimals the quote token's decimals
+     * @returns {object} { makerAmount, takerAmount } wei-scaled integer strings
+     */
+    opinionOrderRawAmounts (isMarket: boolean, side: string, amount: number, price: number, decimals: number): Dict {
+        const decimalsStr = '1' + '0'.repeat (decimals);
+        const amountStr = this.numberToString (amount);
+        if (isMarket) {
+            // market order: takerAmount is filled by the matching engine; side decides what `amount`
+            // means (BUY: quote to spend, SELL: shares to sell) - matches the venue's own semantics
+            const marketMakerAmountWei = this.decimalToPrecision (Precise.stringMul (amountStr, decimalsStr), TRUNCATE, 0, DECIMAL_PLACES);
+            return { 'makerAmount': marketMakerAmountWei, 'takerAmount': '0' };
+        }
+        // limit order: amount is always shares - matches the unified createOrder() amount semantics.
+        // the price fraction is fixed at 6 decimals (matching the venue's own price.toFixed(6)), so
+        // pad the fractional part explicitly rather than trust decimalToPrecision to zero-pad
+        const priceStr = this.decimalToPrecision (this.numberToString (price), ROUND, 6, DECIMAL_PLACES);
+        const priceParts = priceStr.split ('.');
+        const priceFrac = this.safeString (priceParts, 1, '');
+        const priceNum = priceFrac.padEnd (6, '0');
+        const priceDenom = '1000000';
+        let makerRaw = amountStr;
+        if (side === 'BUY') {
+            makerRaw = Precise.stringMul (amountStr, priceStr);
+        }
+        const makerAmountWei = this.decimalToPrecision (Precise.stringMul (makerRaw, decimalsStr), TRUNCATE, 0, DECIMAL_PLACES);
+        let makerAmount: Str;
+        let takerAmount: Str;
+        if (side === 'BUY') {
+            const k = Precise.stringDiv (makerAmountWei, priceNum, 0);
+            makerAmount = Precise.stringMul (k, priceNum);
+            takerAmount = Precise.stringMul (k, priceDenom);
+        } else {
+            const k = Precise.stringDiv (makerAmountWei, priceDenom, 0);
+            makerAmount = Precise.stringMul (k, priceDenom);
+            takerAmount = Precise.stringMul (k, priceNum);
+        }
+        return { 'makerAmount': makerAmount, 'takerAmount': takerAmount };
+    }
+
+    /**
+     * @method
+     * @name opinion#createOrder
+     * @description places a limit or market order on the CLOB for the given outcome token
+     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/order
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount for limit orders, the number of outcome shares to trade; for market orders, the quote (USDT) to spend on a BUY or the shares to sell on a SELL
+     * @param {float} [price] the price per outcome token between 0 and 1; required for limit orders, ignored for market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.postOnly] limit orders only - reject the order if it would cross the spread
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+        const outcomeObj = await this.loadOutcome (outcome);
+        const tokenId = outcomeObj['outcomeId'] as string;
+        const isMarket = (type === 'market');
+        const sideStr = (side as string).toUpperCase ();
+        if (!isMarket && (price === undefined)) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price for limit orders');
+        }
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const topicId = this.safeInteger (info, 'marketId');
+        const quoteTokenAddress = this.safeString (info, 'quoteToken');
+        const quoteToken = await this.loadQuoteToken (quoteTokenAddress);
+        const exchangeAddress = this.safeString (quoteToken, 'ctfExchangeAddress');
+        const decimals = this.safeInteger (quoteToken, 'decimal', 18);
+        const amounts = this.opinionOrderRawAmounts (isMarket, sideStr, amount, price, decimals);
+        const makerAmount = this.safeString (amounts, 'makerAmount');
+        const takerAmount = this.safeString (amounts, 'takerAmount');
+        const sideInt = (sideStr === 'BUY') ? 0 : 1;
+        const salt = this.numberToString (this.milliseconds ());
+        const postOnly = this.safeBool (params, 'postOnly', false);
+        const rest = this.omit (params, [ 'postOnly' ]);
+        // orders are owned by the per-wallet multi-sig (Gnosis Safe); the EOA behind
+        // this.privateKey only signs on its behalf (signatureType 2, POLY_GNOSIS_SAFE)
+        const maker = await this.loadMultiSigAddress ();
+        const signatureType = (maker === this.walletAddress) ? 0 : 2;
+        const order: Dict = {
+            'salt': salt,
+            'maker': maker,
+            'signer': this.walletAddress,
+            'taker': '0x0000000000000000000000000000000000000000',
+            'tokenId': tokenId,
+            'makerAmount': makerAmount,
+            'takerAmount': takerAmount,
+            'expiration': '0',
+            'nonce': '0',
+            'feeRateBps': '0',
+            'side': sideInt,
+            'signatureType': signatureType,
+        };
+        const signature = this.signOpinionOrder (order, exchangeAddress);
+        const orderBody: Dict = this.extend ({
+            'salt': salt,
+            'maker': maker,
+            'signer': this.walletAddress,
+            'taker': '0x0000000000000000000000000000000000000000',
+            'tokenId': tokenId,
+            'makerAmount': makerAmount,
+            'takerAmount': takerAmount,
+            'expiration': '0',
+            'nonce': '0',
+            'feeRateBps': '0',
+            'side': sideInt.toString (),
+            'signatureType': signatureType.toString (),
+            'signature': signature,
+            'sign': this.remove0xPrefix (signature).slice (0, 64),
+            'contractAddress': '',
+            'currencyAddress': quoteTokenAddress,
+            'topicId': topicId,
+            'price': isMarket ? '0' : this.numberToString (price),
+            'tradingMethod': isMarket ? 1 : 2,
+            'timestamp': this.seconds (),
+            'safeRate': '0',
+            'orderExpTime': '0',
+            'postOnly': postOnly,
+        }, rest);
+        const response = await this.opinionPrivatePostOrder (orderBody);
+        const result = this.safeDict (response, 'result', {});
+        const orderData = this.safeDict (result, 'orderData', {});
+        return this.parsePredictionOrder (orderData, outcomeObj as any);
+    }
+
+    /**
+     * @method
+     * @name opinion#cancelOrder
+     * @description cancels a single open order by id
+     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/order
+     * @param {string} id the order id
+     * @param {string} [outcome] not used by opinion cancelOrder
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async cancelOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+        const request: Dict = { 'orderId': id };
+        const response = await this.opinionPrivatePostOrderCancel (this.extend (request, params));
+        const result = this.safeDict (response, 'result', {});
+        const canceled = this.safeBool (result, 'result', false);
+        const status = canceled ? 'canceled' : 'open';
+        return this.safePredictionOrder ({ 'id': id, 'status': status, 'info': response }) as PredictionOrder;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name opinion#parseOrderStatus
+     * @description maps an opinion order statusEnum string to the unified status vocabulary
+     * @param {string} status the raw opinion order statusEnum
+     * @returns {string} a unified order status
+     */
+    parseOrderStatus (status: Str): Str {
+        const statuses: Dict = {
+            'Pending': 'open',
+            'Finished': 'closed',
+            'Canceled': 'canceled',
+            'Expired': 'canceled',
+            'Failed': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    /**
+     * @method
+     * @name opinion#parsePredictionOrder
+     * @description parses a raw opinion order object into a unified prediction order structure
+     * @param {object} order the raw opinion OrderData object
+     * @param {object} [market] the outcome object the order belongs to
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
+        //
+        //     {
+        //         "orderId": "...",
+        //         "marketId": 1094,
+        //         "side": 0,
+        //         "sideEnum": "Buy",
+        //         "tradingMethod": 2,
+        //         "tradingMethodEnum": "Limit",
+        //         "price": "0.01",
+        //         "orderShares": "5",
+        //         "orderAmount": "0.05",
+        //         "filledShares": "0",
+        //         "filledAmount": "0",
+        //         "profit": "0",
+        //         "status": 1,
+        //         "statusEnum": "Pending",
+        //         "createdAt": 1785500000,
+        //         "expiresAt": 0,
+        //         "postOnly": false
+        //     }
+        //
+        const id = this.safeString (order, 'orderId');
+        const marketAny = market as any;
+        const statusEnum = this.safeString (order, 'statusEnum');
+        const status = this.parseOrderStatus (statusEnum);
+        const sideEnum = this.safeStringLower (order, 'sideEnum');
+        const tradingMethodEnum = this.safeStringLower (order, 'tradingMethodEnum');
+        const timestamp = this.safeTimestamp (order, 'createdAt');
+        return this.safePredictionOrder ({
+            'id': id,
+            'clientOrderId': undefined,
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': status,
+            'outcome': this.safeString (marketAny, 'outcome'),
+            'outcomeId': this.safeString2 (marketAny, 'outcomeId', 'id'),
+            'label': this.safeString (marketAny, 'label'),
+            'market': this.safeString2 (marketAny, 'market', 'outcome'),
+            'type': tradingMethodEnum,
+            'side': sideEnum,
+            'price': this.safeNumber (order, 'price'),
+            'amount': this.safeNumber (order, 'orderShares'),
+            'cost': this.safeNumber (order, 'orderAmount'),
+            'filled': this.safeNumber (order, 'filledShares'),
+            'fee': undefined,
+            'trades': [],
+        }, market as any);
+    }
+
     hashMessage (message: any): string {
         return '0x' + this.hash (message, keccak, 'hex');
     }
@@ -846,7 +1173,7 @@ export default class opinion extends Exchange {
 
     setApiCredentials (response: Dict): Dict {
         //
-        //     { "apiKey": "8ZXXKZhF07MQK22oQaN9MAQ7mxjWf20m", "walletAddress": "0x513959919bce49bb8fee6421291a192c1cbbecd0" }
+        //     { "apiKey": "...", "walletAddress": "..." }
         //
         const creds: Dict = {
             'apiKey': this.safeString (response, 'apiKey'),
