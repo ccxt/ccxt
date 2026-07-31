@@ -2283,7 +2283,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             }
             // guard against concurrent listenKey requests with a future on the base
             // spot ws client - the first caller fetches the listenKey, concurrent
-            // callers await the future and resume as soon as the response arrives,
+            // callers wait on the future and resume when the listenKey is ready,
             // otherwise the user-data subscriptions would be split across two connections
             Client client = this.client(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot"));
             Object messageHash = "authenticate:listenKey";
@@ -2294,7 +2294,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 return this.safeString(this.options, "listenKey");
             }
             Helpers.addElementToObject(this.options, "listenKeyFetching", true);
-            client.future((String)messageHash); // create it before the await below, so concurrent callers can find it
+            client.future((String)messageHash); // created ahead of the request below, so concurrent callers can find it
             Object response = null;
             try
             {
