@@ -796,32 +796,23 @@ export default class opinion extends Exchange {
     /**
      * @ignore
      * @method
-     * @name opinion#loadMultiSigAddress
+     * @name opinion#loadMultiSignAddress
      * @description fetches and caches the per-wallet multi-signature (Gnosis Safe) address that owns order assets - orders are made from this address, signed by the EOA
      * @returns {string} the multi-sig wallet address for this.walletAddress on chain 56, or this.walletAddress itself if none exists yet
      */
-    async loadMultiSigAddress (): Promise<string> {
-        const cached = this.safeString (this.options, 'multiSigAddress');
+    async loadMultiSignAddress (): Promise<string> {
+        const cached = this.safeString (this.options, 'multiSignAddress');
         if (cached !== undefined) {
             return cached;
         }
         const response = await this.opinionPrivateGetUserAuth ({});
         const result = this.safeDict (response, 'result', {});
         const walletUsers = this.safeDict (result, 'walletUsers', {});
-        const multiSigAddress = this.safeString (walletUsers, '56', this.walletAddress);
-        this.options['multiSigAddress'] = multiSigAddress;
-        return multiSigAddress;
+        const multiSignAddress = this.safeString (walletUsers, '56', this.walletAddress);
+        this.options['multiSignAddress'] = multiSignAddress;
+        return multiSignAddress;
     }
 
-    /**
-     * @ignore
-     * @method
-     * @name opinion#signOpinionOrder
-     * @description signs a CTF Exchange order via EIP-712
-     * @param {object} order the order fields to sign (salt, maker, signer, taker, tokenId, makerAmount, takerAmount, expiration, nonce, feeRateBps, side, signatureType)
-     * @param {string} exchangeAddress the CTF Exchange contract address (verifyingContract), per quote token
-     * @returns {string} the order signature
-     */
     signOpinionOrder (order: Dict, exchangeAddress: string): string {
         const domain: Dict = {
             'name': 'OPINION CTF Exchange',
@@ -850,18 +841,6 @@ export default class opinion extends Exchange {
         return '0x' + this.remove0xPrefix (sig['r']) + this.remove0xPrefix (sig['s']) + this.intToBase16 (sig['v']);
     }
 
-    /**
-     * @ignore
-     * @method
-     * @name opinion#opinionOrderRawAmounts
-     * @description computes the exact maker/taker wei amounts for a CTF Exchange order, keeping the price fraction exact
-     * @param {bool} isMarket whether the order is a market order
-     * @param {string} side 'BUY' or 'SELL'
-     * @param {float} amount order size in outcome shares (limit orders); quote-cost for a market BUY, shares for a market SELL
-     * @param {float} price the limit price (ignored for market orders)
-     * @param {int} decimals the quote token's decimals
-     * @returns {object} { makerAmount, takerAmount } wei-scaled integer strings
-     */
     opinionOrderRawAmounts (isMarket: boolean, side: string, amount: number, price: number, decimals: number): Dict {
         // build 10^decimals as a string - no .repeat(), no unprecedented codebase pattern
         let decimalsStr = '1';
@@ -939,7 +918,7 @@ export default class opinion extends Exchange {
         const rest = this.omit (params, [ 'postOnly' ]);
         // orders are owned by the per-wallet multi-sig (Gnosis Safe); the EOA behind
         // this.privateKey only signs on its behalf (signatureType 2, POLY_GNOSIS_SAFE)
-        const maker = await this.loadMultiSigAddress ();
+        const maker = await this.loadMultiSignAddress ();
         const signatureType = (maker === this.walletAddress) ? 0 : 2;
         const order: Dict = {
             'salt': salt,
