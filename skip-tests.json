@@ -418,6 +418,9 @@
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies"
             },
+            "ticker": {
+                "positiveValues": "basis-spread instruments (typ FFMCSX) legitimately have negative prices"
+            },
             "fetchOHLCV": "https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862",
             "watchOHLCV": "same as above, needs key fix",
             "fetchPositions": {
@@ -1197,6 +1200,7 @@
                 "limits": "broken minmax https://github.com/ccxt/ccxt/actions/runs/20442073656/job/58737611337?pr=27375#step:11:856"
             },
             "ticker": {
+                "lastBetweenBidAsk": "illiquid pairs can have stale last price outside the current bid-ask range",
                 "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269352042#L3690",
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16075871000/job/45371060374?pr=26334#step:9:324"
             },
@@ -1234,6 +1238,9 @@
     },
     "foxbit": {
         "skipMethods": {
+            "ticker": {
+                "lastBetweenBidAsk": "low liquidity, stale last price outside the current bid-ask range"
+            },
             "fetchOHLCV": {
                 "compareOHLCV": "api engine broken : https://github.com/ccxt/ccxt/actions/runs/21000025491/job/60367774165?pr=27676#step:10:1479"
             }
@@ -1286,7 +1293,8 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes",
-                "active": "not provided"
+                "active": "not provided",
+                "contractSize": "not available in the coarse v1/symbols response"
             },
             "fetchCurrencies": {
                 "withdraw": "not provided",
@@ -1336,6 +1344,9 @@
         "httpsProxy": "http://188.245.226.105:8911",
         "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
+            "ticker": {
+                "compareQuoteVolumeBaseVolume": "swap kline volume is denominated in contracts, todo: multiply by contractSize in parseTicker"
+            },
             "fetchCurrencies": {
                 "precision": "not provided",
                 "type": "todo"
@@ -1508,6 +1519,7 @@
         "until": "2026-08-31"
     },
     "extended": {
+        "skip": "loadMarkets is geo-blocked from the test environment (403)",
         "skipWs": "loadMarkets is geo-blocked from the test environment, ws tests can not bootstrap",
         "until": "2026-08-31"
     },
@@ -1626,6 +1638,7 @@
             },
             "ticker": {
                 "bid": "messed bid-ask",
+                "maxIncrease": "inactive inverse contracts return empty tickers with zero values",
                 "compareQuoteVolumeBaseVolume": "quoteVolume <= baseVolume * high https://app.travis-ci.com/github/ccxt/ccxt/builds/263304041#L2190",
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16059129227/job/45320923643?pr=26334#step:9:317"
             },
@@ -1679,6 +1692,9 @@
     },
     "kucoineu": {
         "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "futures markets use XBT while the instance currency id is BTC, same as kucoin"
+            },
             "fetchCurrencies": {
                 "currencyIdAndCode": "messed https://github.com/ccxt/ccxt/actions/runs/28543101209/job/84622191645?pr=29055#step:10:695"
             }
@@ -1728,6 +1744,8 @@
     },
     "lbank": {
         "httpsProxy": "http://188.245.226.105:8911",
+        "skipWs": "rate limited (429) through the shared test proxy",
+        "until": "2026-08-31",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes"
@@ -1849,6 +1867,9 @@
     "ndax": {
         "skipWs": "timeouts",
         "skipMethods": {
+            "ticker": {
+                "compareOHLC": "open can exceed high on their 24h rolling window data"
+            },
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided",
