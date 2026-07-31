@@ -4,7 +4,7 @@ import Exchange from '../abstract/prediction/opinion.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
-import type { Dict, Int, Market, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { Balances, Dict, Int, Market, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams } from '../base/types.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -31,6 +31,7 @@ export default class opinion extends Exchange {
                 'option': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'fetchBalance': true,
                 'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchMarkets': true,
@@ -1062,6 +1063,54 @@ export default class opinion extends Exchange {
             'fee': undefined,
             'trades': [],
         }, market as any);
+    }
+
+    /**
+     * @method
+     * @name opinion#fetchBalance
+     * @description fetches the authenticated user's quote-token balances
+     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/quote-token
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+     */
+    async fetchBalance (params = {}): Promise<Balances> {
+        const request: Dict = { 'chain_id': '56' };
+        const response = await this.opinionPrivateGetUserBalance (this.extend (request, params));
+        const result = this.safeDict (response, 'result', {});
+        const rawBalances = this.safeList (result, 'balances', []);
+        const rawBalancesLength = rawBalances.length;
+        for (let i = 0; i < rawBalancesLength; i++) {
+            const rawBalance = rawBalances[i];
+            const quoteTokenAddress = this.safeString (rawBalance, 'quoteToken');
+            const quoteToken = await this.loadQuoteToken (quoteTokenAddress);
+            rawBalance['symbol'] = this.safeString (quoteToken, 'symbol', 'USDT');
+        }
+        return this.parseBalance (response);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name opinion#parseBalance
+     * @description parses an opinion user-balance response into a unified balances object
+     * @param {object} response the raw user-balance response
+     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+     */
+    parseBalance (response): Balances {
+        const result: Dict = { 'info': response };
+        const data = this.safeDict (response, 'result', {});
+        const balances = this.safeList (data, 'balances', []);
+        const balancesLength = balances.length;
+        for (let i = 0; i < balancesLength; i++) {
+            const balance = balances[i];
+            const code = this.safeString (balance, 'symbol', 'USDT');
+            result[code] = {
+                'free': this.safeNumber (balance, 'availableBalance'),
+                'used': this.safeNumber (balance, 'frozenBalance'),
+                'total': this.safeNumber (balance, 'totalBalance'),
+            };
+        }
+        return this.safeBalance (result) as Balances;
     }
 
     hashMessage (message: any): string {
