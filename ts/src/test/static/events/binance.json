@@ -41,7 +41,7 @@
                 "tierBased": false,
                 "feeSide": "get",
                 "precision": {
-                    "amount": null,
+                    "amount": 0.01,
                     "price": 0.001
                 },
                 "limits": {
@@ -73,7 +73,7 @@
                         "winner": null,
                         "settleFraction": null,
                         "precision": {
-                            "amount": null,
+                            "amount": 0.01,
                             "price": 0.001
                         },
                         "info": {
@@ -105,7 +105,7 @@
                         "winner": null,
                         "settleFraction": null,
                         "precision": {
-                            "amount": null,
+                            "amount": 0.01,
                             "price": 0.001
                         },
                         "info": {
@@ -215,7 +215,7 @@
                 "tierBased": false,
                 "feeSide": "get",
                 "precision": {
-                    "amount": null,
+                    "amount": 0.01,
                     "price": 0.001
                 },
                 "limits": {
@@ -247,7 +247,7 @@
                         "winner": null,
                         "settleFraction": null,
                         "precision": {
-                            "amount": null,
+                            "amount": 0.01,
                             "price": 0.001
                         },
                         "info": {
@@ -279,7 +279,7 @@
                         "winner": null,
                         "settleFraction": null,
                         "precision": {
-                            "amount": null,
+                            "amount": 0.01,
                             "price": 0.001
                         },
                         "info": {
@@ -389,7 +389,7 @@
                 "tierBased": false,
                 "feeSide": "get",
                 "precision": {
-                    "amount": null,
+                    "amount": 0.01,
                     "price": 0.001
                 },
                 "limits": {
@@ -421,7 +421,7 @@
                         "winner": null,
                         "settleFraction": null,
                         "precision": {
-                            "amount": null,
+                            "amount": 0.01,
                             "price": 0.001
                         },
                         "info": {
@@ -453,7 +453,7 @@
                         "winner": null,
                         "settleFraction": null,
                         "precision": {
-                            "amount": null,
+                            "amount": 0.01,
                             "price": 0.001
                         },
                         "info": {
@@ -563,7 +563,7 @@
                 "tierBased": false,
                 "feeSide": "get",
                 "precision": {
-                    "amount": null,
+                    "amount": 0.01,
                     "price": 0.001
                 },
                 "limits": {
@@ -595,7 +595,7 @@
                         "winner": null,
                         "settleFraction": null,
                         "precision": {
-                            "amount": null,
+                            "amount": 0.01,
                             "price": 0.001
                         },
                         "info": {
@@ -627,7 +627,7 @@
                         "winner": null,
                         "settleFraction": null,
                         "precision": {
-                            "amount": null,
+                            "amount": 0.01,
                             "price": 0.001
                         },
                         "info": {
@@ -737,7 +737,7 @@
                 "tierBased": false,
                 "feeSide": "get",
                 "precision": {
-                    "amount": null,
+                    "amount": 0.01,
                     "price": 0.001
                 },
                 "limits": {
@@ -769,7 +769,7 @@
                         "winner": null,
                         "settleFraction": null,
                         "precision": {
-                            "amount": null,
+                            "amount": 0.01,
                             "price": 0.001
                         },
                         "info": {
@@ -801,7 +801,7 @@
                         "winner": null,
                         "settleFraction": null,
                         "precision": {
-                            "amount": null,
+                            "amount": 0.01,
                             "price": 0.001
                         },
                         "info": {
