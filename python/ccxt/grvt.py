@@ -896,9 +896,12 @@ class grvt(Exchange, ImplicitAPI):
         #        }
         #
         marketId = self.safe_string(ticker, 'instrument')
+        timestamp = self.safe_integer_product(ticker, 'event_time', 0.000001)
         return self.safe_ticker({
             'info': ticker,
             'symbol': self.safe_symbol(marketId, market),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'open': self.safe_string(ticker, 'open_price'),
             'high': self.safe_string(ticker, 'high_price'),
             'low': self.safe_string(ticker, 'low_price'),
