@@ -863,7 +863,11 @@ export default class opinion extends Exchange {
      * @returns {object} { makerAmount, takerAmount } wei-scaled integer strings
      */
     opinionOrderRawAmounts (isMarket: boolean, side: string, amount: number, price: number, decimals: number): Dict {
-        const decimalsStr = '1' + '0'.repeat (decimals);
+        // build 10^decimals as a string - no .repeat(), no unprecedented codebase pattern
+        let decimalsStr = '1';
+        for (let i = 0; i < decimals; i++) {
+            decimalsStr = decimalsStr + '0';
+        }
         const amountStr = this.numberToString (amount);
         if (isMarket) {
             // market order: takerAmount is filled by the matching engine; side decides what `amount`
@@ -1198,7 +1202,7 @@ export default class opinion extends Exchange {
      * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    sign (path: string, api: any = 'opinion', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path: any, api: any = 'opinion', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup: string = typeof api === 'string' ? api : api[0];
         const access: string = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'] as Dict;
