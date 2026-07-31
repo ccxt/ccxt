@@ -10,7 +10,7 @@ import { spawnSync } from 'child_process';
 import fs from 'fs';
 import log from 'ololog';
 import ansi from 'ansicolor';
-import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
+import {Transpiler as OldTranspiler } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import Piscina from 'piscina';
 import os from 'os';
@@ -2294,15 +2294,13 @@ ${caseStatements.join('\n')}
 
     }
 
-    async transpileEverything (force = false, child = false, baseOnly = false, examplesOnly = false, prediction = false) {
+    async transpileEverything (force = false, baseOnly = false, examplesOnly = false, prediction = false) {
 
         let exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'));
         const goFolder = prediction ? EXCHANGES_PREDICTION_FOLDER : EXCHANGES_FOLDER
             , tsFolder = prediction ? './ts/src/prediction' : './ts/src';
 
-        if (!child) {
-            createFolderRecursively (goFolder);
-        }
+        createFolderRecursively (goFolder);
         const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
         if (transpilingSingleExchange) {
             force = true; // when transpiling single exchange, we always force
@@ -2311,8 +2309,8 @@ ${caseStatements.join('\n')}
             if (exchanges.length) {
                 const predictionOnly = exchanges.filter ((x: string) => predictionIds.includes (x));
                 if (!predictionOnly.length) {
-                    // a scoped regular-exchange run (e.g. a --multi worker chunk) has no
-                    // prediction work — ts/src/prediction/ has no files for those ids
+                    // a scoped regular-exchange run has no prediction work —
+                    // ts/src/prediction/ has no files for those ids
                     return;
                 }
             }
@@ -2326,7 +2324,7 @@ ${caseStatements.join('\n')}
         this.transpileBaseMethods (TS_BASE_FILE); // now we always need the baseMethods info
         // the dynamic-instance / typed-interface files belong to package ccxt; the
         // prediction package reuses them and must not regenerate them
-        if (!transpilingSingleExchange && !child && !prediction) {
+        if (!transpilingSingleExchange && !prediction) {
             this.transpilePredictionBaseMethods ();
             this.createDynamicInstanceFile();
             this.createTypedInterfaceFile();
@@ -2338,7 +2336,7 @@ ${caseStatements.join('\n')}
 
         if (!baseOnly && !examplesOnly) {
             this.isPrediction = prediction;
-            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length));
+            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(exchanges.length));
             this.isPrediction = false;
         }
 
@@ -2347,10 +2345,6 @@ ${caseStatements.join('\n')}
             // prediction ids); the base one in package ccxt only knows regular ids
             this.createDynamicInstanceFile (false, true);
             log.bright.green ('Transpiled prediction exchanges successfully.');
-            return;
-        }
-
-        if (child) {
             return;
         }
 
@@ -2363,7 +2357,7 @@ ${caseStatements.join('\n')}
         }
 
         // full builds also transpile the prediction-market exchanges (ts/src/prediction/)
-        await this.transpileEverything (force, child, false, false, true);
+        await this.transpileEverything (force, false, false, true);
 
         this.transpileTests();
 
@@ -2372,27 +2366,54 @@ ${caseStatements.join('\n')}
         log.bright.green ('Transpiled successfully.');
     }
 
+    goWorkerThreads () {
+        const n = Number (process.env.CCXT_TRANSPILE_PROCESSES)
+        if (n > 0) {
+            return Math.floor (n)
+        }
+        return Math.max (1, Math.min (4, os.availableParallelism ()))
+    }
+
     async webworkerTranspile (allFiles: any[], parserConfig: any) {
 
         // create worker
-        const maxThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ())
-        const piscina = new Piscina({
-            filename: resolve(__dirname, 'go-worker.js'),
-            maxThreads,
-        });
+        const maxThreads = this.goWorkerThreads ()
+        if (!this.piscina) {
+            this.piscina = new Piscina({
+                filename: resolve(__dirname, 'go-worker.js'),
+                maxThreads,
+            });
+        }
+        const piscina = this.piscina;
 
-        const chunkSize = 20;
+        const configKey = JSON.stringify(parserConfig);
         const promises: any = [];
         const now = Date.now();
-        for (let i = 0; i < allFiles.length; i += chunkSize) {
-            const chunk = allFiles.slice(i, i + chunkSize);
-            promises.push(piscina.run({transpilerConfig:parserConfig, files:chunk}));
+        for (const file of allFiles) {
+            promises.push(piscina.run({transpilerConfig:parserConfig, configKey, file}));
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
         log.green ('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms');
-        const flatResult = workerResult.flat();
+        const flatResult = [];
+        for (const res of workerResult) {
+            flatResult.push(res.file);
+            this.mergeWorkerGoComments(res.goComments);
+        }
         return flatResult;
+    }
+
+    mergeWorkerGoComments (workerComments: any) {
+        if (!workerComments) {
+            return;
+        }
+        for (const exchangeName in workerComments) {
+            const exchangeData = goComments[exchangeName] || (goComments[exchangeName] = {});
+            const workerMethods = workerComments[exchangeName];
+            for (const methodName in workerMethods) {
+                exchangeData[methodName] = workerMethods[methodName];
+            }
+        }
     }
 
     safeOptionsStructFile(ws: boolean = false) {
@@ -2480,9 +2501,8 @@ ${caseStatements.join('\n')}
         // exchanges = ['bitmart.ts']
         // transpile using webworker
         const allFilesPath = exchanges.map ((file: string) => `${jsFolder}/${file}` );
-        // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[go] Transpiling [', exchanges.join(', '), ']');
-        const transpiledFiles =  allFilesPath.map((file: string) => this.transpiler.transpileGoByPath(file));
+        const transpiledFiles = allFilesPath.length > 1 ? await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig()) : allFilesPath.map((file: string) => this.transpiler.transpileGoByPath(file));
 
         let wrapperFolder = ws ? EXCHANGES_WS_FOLDER : EXCHANGE_WRAPPER_FOLDER;
         if (this.isPrediction) {
@@ -3260,7 +3280,6 @@ if (isMainEntry(import.meta.url)) {
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests');
     const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force');
-    const child = process.argv.includes ('--child');
     const baseClassOnly = process.argv.includes ('--baseClass')
     const exchange = process.argv.includes ('--exchange');
     if (exchange) {
@@ -3269,11 +3288,8 @@ if (isMainEntry(import.meta.url)) {
     if (prediction) {
         transpiledExchanges = predictionIds;
     }
-    const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi');
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true;
-    if (!child && !multiprocess) {
-        log.bright.green ({ force });
-    }
+    log.bright.green ({ force });
     const inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'));
     const transpiler = new NewTranspiler (ws);
     if (baseClassOnly) {
@@ -3291,11 +3307,7 @@ if (isMainEntry(import.meta.url)) {
         }
     } else if (test) {
         transpiler.transpileTests ();
-    } else if (multiprocess) {
-        await parallelizeTranspiling (exchangeIds);
-        // the prediction exchanges are few — transpile them serially after the workers finish
-        await transpiler.transpileEverything (force, false, false, false, true);
     } else {
-        await transpiler.transpileEverything (force, child, baseOnly, examples, prediction);
+        await transpiler.transpileEverything (force, baseOnly, examples, prediction);
     }
 }
