@@ -3,7 +3,7 @@ import { ecdsa } from '../base/functions/crypto.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { AuthenticationError, ArgumentsRequired } from '../base/errors.js';
-import type { Dict, Market, PredictionEvent, fetchEventsParams } from '../base/types.js';
+import type { Dict, Int, Market, PredictionEvent, PredictionOrderBook, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -30,6 +30,7 @@ export default class opinion extends Exchange {
                 'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchMarkets': true,
+                'fetchOrderBook': true,
                 'prediction': true,
             },
             'timeframes': {
@@ -481,6 +482,43 @@ export default class opinion extends Exchange {
             'image': this.safeString2 (rawEvent, 'coverUrl', 'thumbnailUrl'),
             'info': rawEvent,
         };
+    }
+
+    /**
+     * @method
+     * @name opinion#fetchOrderBook
+     * @description fetches the order book for a single outcome token
+     * @param {string} outcome unified outcome or outcome token id
+     * @param {int} [limit] not used by opinion fetchOrderBook
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a prediction order book structure
+     */
+    async fetchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+        const outcomeObj = await this.loadOutcome (outcome);
+        const tokenId = outcomeObj['outcomeId'] as string;
+        const request: Dict = {
+            'token_id': tokenId,
+        };
+        const response = await this.opinionPublicGetTokenOrderbook (this.extend (request, params));
+        //
+        //     {
+        //         "errmsg": "",
+        //         "errno": 0,
+        //         "result": {
+        //             "asks": [
+        //                 { "price": "0.999", "size": "5500" }
+        //             ],
+        //             "bids": [],
+        //             "market": "ff7d2d935d0cce2922ea05a363e5a87439e1f8f86f01dacf7238d4c4cc542f6c",
+        //             "timestamp": 1785488076901,
+        //             "tokenId": "56915117085756475550546730127709511264652860289185956800398231821503615918119"
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        const timestamp = this.safeInteger (result, 'timestamp');
+        const orderbook = this.parseOrderBook (result, this.safeOutcomeSymbol (outcome, outcomeObj), timestamp, 'bids', 'asks', 'price', 'size');
+        return this.safePredictionOrderBook (orderbook, outcomeObj);
     }
 
     hashMessage (message: any): string {
