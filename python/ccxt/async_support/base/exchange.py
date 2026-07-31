@@ -24,7 +24,7 @@ from ccxt.async_support.base.throttler import Throttler
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.errors import BaseError, BadSymbol, BadRequest, BadResponse, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidAddress, RateLimitExceeded, OperationFailed
+from ccxt.base.errors import BadSymbol, BadRequest, BadResponse, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidAddress, RateLimitExceeded, OperationFailed
 from ccxt.base.types import ConstructorArgs, OrderType, OrderSide, OrderRequest, CancellationRequest, Order
 
 # -----------------------------------------------------------------------------
@@ -591,6 +591,7 @@ class BaseExchange(SyncExchange):
         if symbol not in self.orderbooks:
             client.reject(ExchangeError(self.id + ' loadOrderBook() orderbook is not initiated'), messageHash)
             return
+        error = None
         try:
             maxRetries = self.handle_option('watchOrderBook', 'maxRetries', 3)
             tries = 0
@@ -606,11 +607,19 @@ class BaseExchange(SyncExchange):
                     client.resolve(stored, messageHash)
                     return
                 tries += 1
-            client.reject(ExchangeError(self.id + ' nonce is behind cache after ' + str(maxRetries) + ' tries.'), messageHash)
+            error = ExchangeError(self.id + ' nonce is behind the cache after ' + str(maxRetries) + ' tries.')
+        except Exception as e:
+            error = e
+        # a failed synchronization must not recurse into another attempt with the
+        # same broken state - previously the except-branch invoked load_order_book
+        # again, recursing endlessly when the snapshot request kept failing, see
+        # https://github.com/ccxt/ccxt/pull/24224 and https://github.com/ccxt/ccxt/issues/14567
+        # instead, reject the watcher and drop the connection and the cached
+        # orderbook, so the next watch_order_book() call resubscribes cleanly
+        client.reject(error, messageHash)
+        if client.url in self.clients:
             del self.clients[client.url]
-        except BaseError as e:
-            client.reject(e, messageHash)
-            await self.load_order_book(client, messageHash, symbol, limit, params)
+        self.orderbooks[symbol] = self.order_book()  # clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
 
     def format_scientific_notation_ftx(self, n):
         if n == 0:
