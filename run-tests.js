@@ -248,8 +248,11 @@ const exec = (bin, ...args) => {
             // real [TEST_FAILURE] from before the hang.
             const hung = unfinishedMethods (ansi.strip (output));
             const hungMessage = hung.length ? ' (methods that never finished: ' + hung.join (', ') + ')' : '';
+            // the [TEST_WARNING] tag goes into `output` only: generateResultFromOutput
+            // both regex-matches the tag in stderr AND pushes the whole stderr, so
+            // tagging the stderr copy too would print the message twice in the summary
             output += '\n[TEST_WARNING] RUNTEST_TIMED_OUT' + hungMessage;
-            stderr += '\n[TEST_WARNING] RUNTEST_TIMED_OUT' + hungMessage;
+            stderr += '\nRUNTEST_TIMED_OUT' + hungMessage;
             const result = generateResultFromOutput (output, stderr, 0);
             return result;
         }
