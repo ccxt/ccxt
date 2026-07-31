@@ -516,7 +516,7 @@ class blofin extends blofin$1["default"] {
         const contract = swap || future;
         const baseId = this.safeString(market, 'baseCurrency');
         const quoteId = this.safeString(market, 'quoteCurrency');
-        const settleId = this.safeString(market, 'quoteCurrency');
+        const settleId = this.safeString(market, 'settleCurrency', quoteId);
         const settle = this.safeCurrencyCode(settleId);
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
@@ -535,6 +535,9 @@ class blofin extends blofin$1["default"] {
         maxLeverage = Precise["default"].stringMax(maxLeverage, '1');
         const isActive = (this.safeString(market, 'state') === 'live');
         const isMargin = spot && (Precise["default"].stringGt(maxLeverage, '1'));
+        const contractType = this.safeString(market, 'contractType');
+        const maxLimitAmount = this.safeNumber(market, 'maxLimitSize');
+        const maxSpotCost = this.safeNumber(market, 'maxMarketSize'); // for spot, market-buy size is denominated in the quote currency, i.e. cost
         return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
@@ -554,8 +557,8 @@ class blofin extends blofin$1["default"] {
             'taker': taker,
             'maker': maker,
             'contract': contract,
-            'linear': contract ? (quoteId === settleId) : undefined,
-            'inverse': contract ? (baseId === settleId) : undefined,
+            'linear': contract ? (contractType === 'linear') : undefined,
+            'inverse': contract ? (contractType === 'inverse') : undefined,
             'contractSize': contract ? this.safeNumber(market, 'contractValue') : undefined,
             'expiry': expiry,
             'expiryDatetime': expiry,
@@ -573,7 +576,7 @@ class blofin extends blofin$1["default"] {
                 },
                 'amount': {
                     'min': this.safeNumber(market, 'minSize'),
-                    'max': undefined,
+                    'max': maxLimitAmount,
                 },
                 'price': {
                     'min': undefined,
@@ -581,7 +584,7 @@ class blofin extends blofin$1["default"] {
                 },
                 'cost': {
                     'min': undefined,
-                    'max': undefined,
+                    'max': contract ? undefined : maxSpotCost,
                 },
             },
             'info': market,
