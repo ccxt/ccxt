@@ -861,7 +861,9 @@ class delta extends Exchange {
             for ($i = 0; $i < count($markets); $i++) {
                 $market = $markets[$i];
                 $type = $this->safe_string($market, 'contract_type');
-                if ($type === 'options_combos') {
+                if (($type === 'options_combos') || ($type === 'binary_call_options') || ($type === 'binary_put_options')) {
+                    // binary options can not be represented in the unified $market
+                    // structure, their symbols would collide with vanilla options
                     continue;
                 }
                 // $settlingAsset = $this->safe_value($market, 'settling_asset', array());
@@ -1419,7 +1421,13 @@ class delta extends Exchange {
             $tickers = $this->safe_list($response, 'result', array());
             $result = array();
             for ($i = 0; $i < count($tickers); $i++) {
-                $ticker = $this->parse_ticker($tickers[$i]);
+                $rawTicker = $tickers[$i];
+                $contractType = $this->safe_string($rawTicker, 'contract_type');
+                if (($contractType === 'options_combos') || ($contractType === 'binary_call_options') || ($contractType === 'binary_put_options')) {
+                    // these instruments are excluded from the unified markets, see fetchMarkets
+                    continue;
+                }
+                $ticker = $this->parse_ticker($rawTicker);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }

@@ -16,23 +16,28 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, linux, x64, go ]
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - name: Generate App token
+        if: github.ref == 'refs/heads/master'
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.CCXT_APP_CLIENT_ID }}
+          private-key: ${{ secrets.CCXT_APP_PRIVATE_KEY }}
+          permission-contents: write
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 2
           clean: false
-      - name: Setup Golang with cache
-        uses: magnetikonline/action-golang-cache@v5
-        with:
-          go-version: ~1.26
+          token: ${{ github.ref == 'refs/heads/master' && steps.app-token.outputs.token || github.token }}
       - name: Install dependencies
         run: go mod download
         working-directory: ./go
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v5
       - name: Install npm dependencies
         run: npm ci --include=dev
       - name: Determine modified files
@@ -140,37 +145,64 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: go-files
-          path: go/
+          path: |
+            go/
+            !go/main
+          retention-days: 1
       - name: Upload shared_env.txt
         uses: actions/upload-artifact@v4
         with:
             name: shared_env
             path: shared_env.txt
 
-      - name: Push GO changes to master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get App bot user ID
         if: github.ref == 'refs/heads/master'
+        id: app-user
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-            git config --global user.name "github-actions[bot]"
-            git config --global user.email "github-actions[bot]@users.noreply.github.com"
-            git checkout HEAD README.md wiki  # only JS does wiki pushback
-            git pull origin master
-            rm -f ./go/tests/main
-            rm -f ./go/v4/ccxt
-            rm -f ./go/main
-            git add go/
-            git commit -m "[Automated changes] GO files" || echo "No changes to commit."
-            git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
-            git config --global pull.rebase false
-            git pull --rebase --autostash origin master
-            git push
+          id=$(curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" \
+            "https://api.github.com/users/${{ steps.app-token.outputs.app-slug }}%5Bbot%5D" \
+            | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).id")
+          echo "id=${id}" >> "$GITHUB_OUTPUT"
+
+      - name: Push GO changes to master
+        if: github.ref == 'refs/heads/master' && github.actor != 'ccxt-release[bot]'
+        env:
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          git config user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
+          git config user.email "${{ steps.app-user.outputs.id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+
+          git remote set-url origin \
+            "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+          git checkout HEAD README.md wiki  # only JS does wiki pushback
+
+          rm -f ./go/tests/main
+          rm -f ./go/v4/ccxt
+          rm -f ./go/main
+
+          git add go/
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "[Automated changes] GO files"
+
+          git fetch origin master
+          git rebase --autostash origin/master
+          git push origin HEAD:master
 
   live-tests:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          clean: false
       - name: Download shared_env
         uses: actions/download-artifact@v4
         with:
@@ -180,7 +212,7 @@ jobs:
       #   with:
       #     name: go-files
       #     path: go/
-      # - uses: actions/checkout@v4
+      # - uses: actions/checkout@v5
       - name: Download Go Binary
         uses: actions/download-artifact@v4
         with:
@@ -212,5 +244,3 @@ jobs:
       - name: Live tests (specific)
         if: env.important_modified == 'false'
         run: ./run-tests-simul.sh --go "${{ env.rest_files }}" "${{ env.ws_files }}"
-
-

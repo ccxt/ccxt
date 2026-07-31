@@ -232,6 +232,10 @@ func (this *PacificaCore) Describe() any {
 				"taker": this.ParseNumber("0.0004"),
 				"maker": this.ParseNumber("0.00015"),
 			},
+			"spot": map[string]any{
+				"taker": this.ParseNumber("0.0004"),
+				"maker": this.ParseNumber("0.00015"),
+			},
 		},
 		"requiredCredentials": map[string]any{
 			"apiKey":        false,
@@ -547,8 +551,8 @@ func (this *PacificaCore) InitializeClient() <-chan any {
 				}()
 				// try block:
 
-				retRes53612 := (<-this.HandleBuilderFeeApproval())
-				PanicOnError(retRes53612)
+				retRes54212 := (<-this.HandleBuilderFeeApproval())
+				PanicOnError(retRes54212)
 				return nil
 			}(this)
 
@@ -601,8 +605,8 @@ func (this *PacificaCore) HandleBuilderFeeApproval() <-chan any {
 				var builder any = this.SafeString(this.Options, "builderCode", "CCXT") // case sensitive
 				var maxFeeRate any = this.SafeString(this.Options, "feeRate", "0.01")
 
-				retRes55812 := (<-this.ApproveBuilderCode(builder, maxFeeRate))
-				PanicOnError(retRes55812)
+				retRes56412 := (<-this.ApproveBuilderCode(builder, maxFeeRate))
+				PanicOnError(retRes56412)
 				AddElementToObject(this.Options, "approvedBuilderFee", true)
 				return nil
 			}(this)
@@ -931,12 +935,12 @@ func (this *PacificaCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes8348 := (<-this.LoadAccountSettings())
-		PanicOnError(retRes8348)
+		retRes8408 := (<-this.LoadAccountSettings())
+		PanicOnError(retRes8408)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes83612 := (<-this.LoadMarkets())
-			PanicOnError(retRes83612)
+			retRes84212 := (<-this.LoadMarkets())
+			PanicOnError(retRes84212)
 		}
 		var market any = this.Market(symbol)
 		var userAccount any = nil
@@ -1105,8 +1109,8 @@ func (this *PacificaCore) FetchMarginMode(symbol any, optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes9638 := (<-this.LoadAccountSettings())
-		PanicOnError(retRes9638)
+		retRes9698 := (<-this.LoadAccountSettings())
+		PanicOnError(retRes9698)
 		var userAccount any = nil
 		userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchMarginMode", params)
 		userAccount = GetValue(userAccountparamsVariable, 0)
@@ -1191,8 +1195,8 @@ func (this *PacificaCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes102912 := (<-this.LoadMarkets())
-			PanicOnError(retRes102912)
+			retRes103512 := (<-this.LoadMarkets())
+			PanicOnError(retRes103512)
 		}
 		var market any = this.Market(symbol)
 		var aggLevel any = nil
@@ -1390,8 +1394,8 @@ func (this *PacificaCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any
 		var defaultMaxLimit any = 3950 // 4000 by docs, but in fact >~3960 returns error
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes118912 := (<-this.LoadMarkets())
-			PanicOnError(retRes118912)
+			retRes119512 := (<-this.LoadMarkets())
+			PanicOnError(retRes119512)
 		}
 		var market any = this.Market(symbol)
 		var paginate any = false
@@ -1400,9 +1404,9 @@ func (this *PacificaCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes119519 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))
-			PanicOnError(retRes119519)
-			ch <- retRes119519
+			retRes120119 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))
+			PanicOnError(retRes120119)
+			ch <- retRes120119
 			return nil
 		}
 		var tf any = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -1504,8 +1508,8 @@ func (this *PacificaCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes128212 := (<-this.LoadMarkets())
-			PanicOnError(retRes128212)
+			retRes128812 := (<-this.LoadMarkets())
+			PanicOnError(retRes128812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1571,8 +1575,8 @@ func (this *PacificaCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes132812 := (<-this.LoadMarkets())
-			PanicOnError(retRes132812)
+			retRes133412 := (<-this.LoadMarkets())
+			PanicOnError(retRes133412)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1589,9 +1593,9 @@ func (this *PacificaCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		var defaultLimit any = 100 // Default max limit
 		if IsTrue(paginate) {
 
-			retRes134019 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-			PanicOnError(retRes134019)
-			ch <- retRes134019
+			retRes134619 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+			PanicOnError(retRes134619)
+			ch <- retRes134619
 			return nil
 		}
 		var request any = map[string]any{}
@@ -1755,12 +1759,12 @@ func (this *PacificaCore) CreateOrder(symbol any, typeVar any, side any, amount 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes148412 := (<-this.LoadMarkets())
-			PanicOnError(retRes148412)
+			retRes149012 := (<-this.LoadMarkets())
+			PanicOnError(retRes149012)
 		}
 
-		retRes14868 := (<-this.InitializeClient())
-		PanicOnError(retRes14868)
+		retRes14928 := (<-this.InitializeClient())
+		PanicOnError(retRes14928)
 		requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 		request := GetValue(requestoperationTypeVariable, 0)
 		operationType := GetValue(requestoperationTypeVariable, 1)
@@ -2015,12 +2019,12 @@ func (this *PacificaCore) CreateOrders(orders any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes171412 := (<-this.LoadMarkets())
-			PanicOnError(retRes171412)
+			retRes172012 := (<-this.LoadMarkets())
+			PanicOnError(retRes172012)
 		}
 
-		retRes17168 := (<-this.InitializeClient())
-		PanicOnError(retRes17168)
+		retRes17228 := (<-this.InitializeClient())
+		PanicOnError(retRes17228)
 		var request any = this.CreateOrdersRequest(orders)
 
 		response := (<-this.PrivatePostOrdersBatch(this.Extend(request, params)))
@@ -2094,12 +2098,12 @@ func (this *PacificaCore) CancelOrders(ids any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes177012 := (<-this.LoadMarkets())
-			PanicOnError(retRes177012)
+			retRes177612 := (<-this.LoadMarkets())
+			PanicOnError(retRes177612)
 		}
 
-		retRes17728 := (<-this.InitializeClient())
-		PanicOnError(retRes17728)
+		retRes17788 := (<-this.InitializeClient())
+		PanicOnError(retRes17788)
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a \"symbol\" argument!")))
 		}
@@ -2207,12 +2211,12 @@ func (this *PacificaCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes185712 := (<-this.LoadMarkets())
-			PanicOnError(retRes185712)
+			retRes186312 := (<-this.LoadMarkets())
+			PanicOnError(retRes186312)
 		}
 
-		retRes18598 := (<-this.InitializeClient())
-		PanicOnError(retRes18598)
+		retRes18658 := (<-this.InitializeClient())
+		PanicOnError(retRes18658)
 		var request any = this.CancelAllOrdersRequest(symbol, params)
 		params = this.Omit(params, []any{"excludeReduceOnly", "expiryWindow"})
 
@@ -2280,12 +2284,12 @@ func (this *PacificaCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes191212 := (<-this.LoadMarkets())
-			PanicOnError(retRes191212)
+			retRes191812 := (<-this.LoadMarkets())
+			PanicOnError(retRes191812)
 		}
 
-		retRes19148 := (<-this.InitializeClient())
-		PanicOnError(retRes19148)
+		retRes19208 := (<-this.InitializeClient())
+		PanicOnError(retRes19208)
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
@@ -2378,12 +2382,12 @@ func (this *PacificaCore) EditOrder(id any, symbol any, typeVar any, side any, o
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes197912 := (<-this.LoadMarkets())
-			PanicOnError(retRes197912)
+			retRes198512 := (<-this.LoadMarkets())
+			PanicOnError(retRes198512)
 		}
 
-		retRes19818 := (<-this.InitializeClient())
-		PanicOnError(retRes19818)
+		retRes19878 := (<-this.InitializeClient())
+		PanicOnError(retRes19878)
 		var market any = this.Market(symbol)
 		var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, market, params)
 		params = this.Omit(params, []any{"expiryWindow", "clientOrderId"})
@@ -2468,8 +2472,8 @@ func (this *PacificaCore) FetchFundingRateHistory(optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes204112 := (<-this.LoadMarkets())
-			PanicOnError(retRes204112)
+			retRes204712 := (<-this.LoadMarkets())
+			PanicOnError(retRes204712)
 		}
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
@@ -2482,9 +2486,9 @@ func (this *PacificaCore) FetchFundingRateHistory(optionalArgs ...any) <-chan an
 		var defaultLimit any = 100 // Default max limit
 		if IsTrue(paginate) {
 
-			retRes205119 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-			PanicOnError(retRes205119)
-			ch <- retRes205119
+			retRes205719 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+			PanicOnError(retRes205719)
+			ch <- retRes205719
 			return nil
 		}
 		var request any = map[string]any{
@@ -2556,8 +2560,8 @@ func (this *PacificaCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes210612 := (<-this.LoadMarkets())
-			PanicOnError(retRes210612)
+			retRes211212 := (<-this.LoadMarkets())
+			PanicOnError(retRes211212)
 		}
 		symbols = this.MarketSymbols(symbols)
 
@@ -2660,8 +2664,8 @@ func (this *PacificaCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes218812 := (<-this.LoadMarkets())
-			PanicOnError(retRes218812)
+			retRes219412 := (<-this.LoadMarkets())
+			PanicOnError(retRes219412)
 		}
 
 		orders := (<-this.FetchOrders(symbol, nil, nil, params))
@@ -2702,8 +2706,8 @@ func (this *PacificaCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes220912 := (<-this.LoadMarkets())
-			PanicOnError(retRes220912)
+			retRes221512 := (<-this.LoadMarkets())
+			PanicOnError(retRes221512)
 		}
 
 		orders := (<-this.FetchOrders(symbol, nil, nil, params))
@@ -2744,8 +2748,8 @@ func (this *PacificaCore) FetchCanceledAndClosedOrders(optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes223012 := (<-this.LoadMarkets())
-			PanicOnError(retRes223012)
+			retRes223612 := (<-this.LoadMarkets())
+			PanicOnError(retRes223612)
 		}
 
 		orders := (<-this.FetchOrders(symbol, nil, nil, params))
@@ -2786,8 +2790,8 @@ func (this *PacificaCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes225112 := (<-this.LoadMarkets())
-			PanicOnError(retRes225112)
+			retRes225712 := (<-this.LoadMarkets())
+			PanicOnError(retRes225712)
 		}
 		var userAddress any = nil
 		userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchOpenOrders", params)
@@ -2867,8 +2871,8 @@ func (this *PacificaCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes230912 := (<-this.LoadMarkets())
-			PanicOnError(retRes230912)
+			retRes231512 := (<-this.LoadMarkets())
+			PanicOnError(retRes231512)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate", false)
@@ -2877,9 +2881,9 @@ func (this *PacificaCore) FetchOrders(optionalArgs ...any) <-chan any {
 		var defaultLimit any = 100 // max default 100
 		if IsTrue(paginate) {
 
-			retRes231519 := (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-			PanicOnError(retRes231519)
-			ch <- retRes231519
+			retRes232119 := (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+			PanicOnError(retRes232119)
+			ch <- retRes232119
 			return nil
 		}
 		var userAddress any = nil
@@ -2973,8 +2977,8 @@ func (this *PacificaCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes239112 := (<-this.LoadMarkets())
-			PanicOnError(retRes239112)
+			retRes239712 := (<-this.LoadMarkets())
+			PanicOnError(retRes239712)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -3270,8 +3274,8 @@ func (this *PacificaCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes266112 := (<-this.LoadMarkets())
-			PanicOnError(retRes266112)
+			retRes266712 := (<-this.LoadMarkets())
+			PanicOnError(retRes266712)
 		}
 		var userAddress any = nil
 		userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchPositions", params)
@@ -3395,8 +3399,8 @@ func (this *PacificaCore) SetMarginMode(marginMode any, optionalArgs ...any) <-c
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes276612 := (<-this.LoadMarkets())
-			PanicOnError(retRes276612)
+			retRes277212 := (<-this.LoadMarkets())
+			PanicOnError(retRes277212)
 		}
 		var market any = this.Market(symbol)
 		var isIsolated any = (IsEqual(marginMode, "isolated"))
@@ -3446,8 +3450,8 @@ func (this *PacificaCore) SetLeverage(leverage any, optionalArgs ...any) <-chan 
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes280012 := (<-this.LoadMarkets())
-			PanicOnError(retRes280012)
+			retRes280612 := (<-this.LoadMarkets())
+			PanicOnError(retRes280612)
 		}
 		var market any = this.Market(symbol)
 		var sigPayload any = map[string]any{
@@ -3495,8 +3499,8 @@ func (this *PacificaCore) Withdraw(code any, amount any, address any, optionalAr
 		var operationType any = "withdraw"
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes283212 := (<-this.LoadMarkets())
-			PanicOnError(retRes283212)
+			retRes283812 := (<-this.LoadMarkets())
+			PanicOnError(retRes283812)
 		}
 		this.CheckAddress(address)
 		var sigPayload any = map[string]any{
@@ -3536,8 +3540,8 @@ func (this *PacificaCore) FetchTradingFee(symbol any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes285612 := (<-this.LoadMarkets())
-			PanicOnError(retRes285612)
+			retRes286212 := (<-this.LoadMarkets())
+			PanicOnError(retRes286212)
 		}
 		var userAddress any = nil
 		userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchTradingFee", params)
@@ -3634,8 +3638,8 @@ func (this *PacificaCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes293412 := (<-this.LoadMarkets())
-			PanicOnError(retRes293412)
+			retRes294012 := (<-this.LoadMarkets())
+			PanicOnError(retRes294012)
 		}
 		symbols = this.MarketSymbols(symbols)
 
@@ -3668,8 +3672,8 @@ func (this *PacificaCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-c
 		symbol = this.Symbol(symbol)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes295312 := (<-this.LoadMarkets())
-			PanicOnError(retRes295312)
+			retRes295912 := (<-this.LoadMarkets())
+			PanicOnError(retRes295912)
 		}
 
 		ois := (<-this.FetchOpenInterests([]any{symbol}, params))
@@ -3750,8 +3754,8 @@ func (this *PacificaCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes301312 := (<-this.LoadMarkets())
-			PanicOnError(retRes301312)
+			retRes301912 := (<-this.LoadMarkets())
+			PanicOnError(retRes301912)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate", false)
@@ -3764,9 +3768,9 @@ func (this *PacificaCore) FetchLedger(optionalArgs ...any) <-chan any {
 		var defaultLimit any = 100 // Default max limit
 		if IsTrue(paginate) {
 
-			retRes302119 := (<-this.FetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-			PanicOnError(retRes302119)
-			ch <- retRes302119
+			retRes302719 := (<-this.FetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+			PanicOnError(retRes302719)
+			ch <- retRes302719
 			return nil
 		}
 		var request any = map[string]any{
@@ -3885,8 +3889,8 @@ func (this *PacificaCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes311912 := (<-this.LoadMarkets())
-			PanicOnError(retRes311912)
+			retRes312512 := (<-this.LoadMarkets())
+			PanicOnError(retRes312512)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -3909,9 +3913,9 @@ func (this *PacificaCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		var defaultLimit any = 100
 		if IsTrue(paginate) {
 
-			retRes313719 := (<-this.FetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-			PanicOnError(retRes313719)
-			ch <- retRes313719
+			retRes314319 := (<-this.FetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+			PanicOnError(retRes314319)
+			ch <- retRes314319
 			return nil
 		}
 
@@ -4159,9 +4163,9 @@ func (this *PacificaCore) BindAgentWallet(agentAddress any, optionalArgs ...any)
 		}
 		var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-		retRes333515 := (<-this.PrivatePostAgentBind(this.Extend(request, params)))
-		PanicOnError(retRes333515)
-		ch <- retRes333515
+		retRes334115 := (<-this.PrivatePostAgentBind(this.Extend(request, params)))
+		PanicOnError(retRes334115)
+		ch <- retRes334115
 		return nil
 
 	}()
@@ -4178,9 +4182,9 @@ func (this *PacificaCore) CreateApiKey(optionalArgs ...any) <-chan any {
 		var sigPayload any = map[string]any{}
 		var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-		retRes334215 := (<-this.PrivatePostAccountApiKeysCreate(this.Extend(request, params)))
-		PanicOnError(retRes334215)
-		ch <- retRes334215
+		retRes334815 := (<-this.PrivatePostAccountApiKeysCreate(this.Extend(request, params)))
+		PanicOnError(retRes334815)
+		ch <- retRes334815
 		return nil
 
 	}()
@@ -4199,9 +4203,9 @@ func (this *PacificaCore) RevokeApiKey(apiKey any, optionalArgs ...any) <-chan a
 		}
 		var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-		retRes335115 := (<-this.PrivatePostAccountApiKeysRevoke(this.Extend(request, params)))
-		PanicOnError(retRes335115)
-		ch <- retRes335115
+		retRes335715 := (<-this.PrivatePostAccountApiKeysRevoke(this.Extend(request, params)))
+		PanicOnError(retRes335715)
+		ch <- retRes335715
 		return nil
 
 	}()
@@ -4218,9 +4222,9 @@ func (this *PacificaCore) FetchApiKeys(optionalArgs ...any) <-chan any {
 		var sigPayload any = map[string]any{}
 		var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-		retRes335815 := (<-this.PrivatePostAccountApiKeys(this.Extend(request, params)))
-		PanicOnError(retRes335815)
-		ch <- retRes335815
+		retRes336415 := (<-this.PrivatePostAccountApiKeys(this.Extend(request, params)))
+		PanicOnError(retRes336415)
+		ch <- retRes336415
 		return nil
 
 	}()
@@ -4240,9 +4244,9 @@ func (this *PacificaCore) ApproveBuilderCode(builderCode any, maxFeeRate any, op
 		}
 		var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-		retRes336815 := (<-this.PrivatePostAccountBuilderCodesApprove(this.Extend(request, params)))
-		PanicOnError(retRes336815)
-		ch <- retRes336815
+		retRes337415 := (<-this.PrivatePostAccountBuilderCodesApprove(this.Extend(request, params)))
+		PanicOnError(retRes337415)
+		ch <- retRes337415
 		return nil
 
 	}()
@@ -4257,9 +4261,9 @@ func (this *PacificaCore) FetchBuilderApprovals(address any) <-chan any {
 			"account": address,
 		}
 
-		retRes337515 := (<-this.PublicGetAccountBuilderCodesApprovals(this.Extend(request)))
-		PanicOnError(retRes337515)
-		ch <- retRes337515
+		retRes338115 := (<-this.PublicGetAccountBuilderCodesApprovals(this.Extend(request)))
+		PanicOnError(retRes338115)
+		ch <- retRes338115
 		return nil
 
 	}()
@@ -4278,9 +4282,9 @@ func (this *PacificaCore) RevokeBuilderCode(builderCode any, optionalArgs ...any
 		}
 		var request any = this.PostActionRequest(operationType, sigPayload, params)
 
-		retRes338415 := (<-this.PrivatePostAccountBuilderCodesRevoke(this.Extend(request, params)))
-		PanicOnError(retRes338415)
-		ch <- retRes338415
+		retRes339015 := (<-this.PrivatePostAccountBuilderCodesRevoke(this.Extend(request, params)))
+		PanicOnError(retRes339015)
+		ch <- retRes339015
 		return nil
 
 	}()

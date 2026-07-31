@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.69'
+__version__ = '4.5.70'
 
 # -----------------------------------------------------------------------------
 
@@ -126,7 +126,10 @@ class BaseExchange(SyncExchange):
 
         if self.own_session and self.session is None:
             # Pass this SSL context to aiohttp and create a TCPConnector
-            self.tcp_connector = aiohttp.TCPConnector(ssl=self.ssl_context, loop=self.asyncio_loop, enable_cleanup_closed=True)
+            # family=socket.AF_UNSPEC makes dual-stack (IPv4 + IPv6) resolution explicit,
+            # happy_eyeballs_delay enables RFC 8305 Happy Eyeballs to avoid IPv6 fallback stalls
+            # 0 = race the other family immediately (aiohttp minimum; not Node's 10ms floor)
+            self.tcp_connector = aiohttp.TCPConnector(ssl=self.ssl_context, loop=self.asyncio_loop, enable_cleanup_closed=True, family=socket.AF_UNSPEC, happy_eyeballs_delay=0)
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.tcp_connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self, clean_instance_data=False):
@@ -1447,6 +1450,10 @@ class BaseExchange(SyncExchange):
         maxCalls = None
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
         maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
+        # paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
+        # pagination always walks forward internally, so strip it here to avoid leaking an
+        # unrecognized param into the underlying exchange request(e.g. binance -1104 errors)
+        params = self.omit(params, 'paginationDirection')
         current = self.milliseconds()
         tasks = []
         time = self.parse_timeframe(timeframe) * 1000

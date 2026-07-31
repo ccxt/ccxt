@@ -82,20 +82,16 @@ public partial class testMainClass : BaseTest
                 {
                     object emptyAllowedForThisKey = isTrue((isEqual(emptyAllowedFor, null))) || isTrue(exchange.inArray(i, emptyAllowedFor));
                     object value = getValue(entry, i);
-                    if (isTrue(inOp(skippedProperties, i)))
-                    {
-                        continue;
-                    }
                     // check when:
                     // - it's not inside "allowe empty values" list
                     // - it's not undefined
-                    if (isTrue(isTrue(emptyAllowedForThisKey) && isTrue((isEqual(value, null)))))
+                    if (isTrue(isTrue((isTrue(emptyAllowedForThisKey) && isTrue((isEqual(value, null))))) || isTrue((inOp(skippedProperties, i)))))
                     {
                         continue;
                     }
                     assert(!isEqual(value, null), add(add(((object)i).ToString(), " index is expected to have a value"), logText));
                     // because of other langs, this is needed for arrays
-                    object typeAssertion = assertType(exchange, skippedProperties, entry, i, format);
+                    object typeAssertion = assertType(exchange, new Dictionary<string, object>() {}, entry, i, format);
                     assert(typeAssertion, add(add(((object)i).ToString(), " index does not have an expected type "), logText));
                 }
             } else
@@ -110,14 +106,10 @@ public partial class testMainClass : BaseTest
                         continue;
                     }
                     assert(inOp(entry, key), add(add(add("\"", stringValue(key)), "\" key is missing from structure"), logText));
-                    if (isTrue(inOp(skippedProperties, key)))
-                    {
-                        continue;
-                    }
                     object emptyAllowedForThisKey = isTrue((isEqual(emptyAllowedFor, null))) || isTrue(exchange.inArray(key, emptyAllowedFor));
                     object value = getValue(entry, key);
                     // check when:
-                    // - it's not inside "allowe empty values" list
+                    // - it's not inside "allowed empty values" list
                     // - it's not undefined
                     if (isTrue(isTrue(emptyAllowedForThisKey) && isTrue((isEqual(value, null)))))
                     {
@@ -128,7 +120,7 @@ public partial class testMainClass : BaseTest
                     // add exclusion for info key, as it can be any type
                     if (isTrue(!isEqual(key, "info")))
                     {
-                        object typeAssertion = assertType(exchange, skippedProperties, entry, key, format);
+                        object typeAssertion = assertType(exchange, new Dictionary<string, object>() {}, entry, key, format);
                         assert(typeAssertion, add(add(add("\"", stringValue(key)), "\" key is neither undefined, neither of expected type"), logText));
                         if (isTrue(deep))
                         {

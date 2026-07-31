@@ -748,12 +748,17 @@ class testMainClass {
         if (!$this->ws_tests) {
             try {
                 // the scoping contract: an unscoped fetchEvents must throw ArgumentsRequired on
-                // every prediction venue — assert it so the contract can't silently regress
-                $unscoped_error = '';
-                try {
-                    call_exchange_method_dynamically($exchange, 'fetchEvents', [array()]);
-                } catch(\Throwable $e) {
-                    $unscoped_error = exception_message($e);
+                // every prediction venue — assert it so the contract can't silently regress.
+                // venues with bounded listings may opt out via options['allowUnscopedFetchEvents']
+                $exchange_options = get_exchange_prop($exchange, 'options', array());
+                $allow_unscoped_fetch_events = $exchange->safe_bool($exchange_options, 'allowUnscopedFetchEvents', false);
+                if (!$allow_unscoped_fetch_events) {
+                    $unscoped_error = '';
+                    try {
+                        call_exchange_method_dynamically($exchange, 'fetchEvents', [array()]);
+                    } catch(\Throwable $e) {
+                        $unscoped_error = exception_message($e);
+                    }
                 }
                 // preferredEventQuery supplies a query known to match the venue's markets
                 $event_query = $exchange->safe_string($this->skipped_settings_for_exchange, 'preferredEventQuery');

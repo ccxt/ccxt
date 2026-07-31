@@ -95,12 +95,40 @@ public partial class BaseExchange
 
     public static string SafeString(object obj, object key, object defaultValue = null)
     {
-        var res = SafeStringN(obj, new List<object> { key });
-        return res == null ? defaultValue as string : (string)res;
+        var result = SafeValue(obj, key);
+        if (result != null) {
+            if (result is string && ((string)result).Length > 0)
+            {
+                return (string)result;
+            }
+            else if (result is float)
+            {
+                return ((float)result).ToString(CultureInfo.InvariantCulture);
+            }
+            else if (result is double)
+            {
+                return ((double)result).ToString(CultureInfo.InvariantCulture);
+            }
+            else if (result is decimal)
+            {
+                return ((decimal)result).ToString(CultureInfo.InvariantCulture);
+            }
+            else if (result is int || result is long || result is uint || result is ulong || result is sbyte || result is byte || result is short || result is ushort)
+            {
+                return Convert.ToString(result, CultureInfo.InvariantCulture);
+            }
+        }
+        return defaultValue as string;
     }
-    public string? safeString(object obj, object key, object defaultValue = null) => safeStringN(obj, new List<object> { key }, defaultValue);
 
-    public string? safeString2(object obj, object key1, object key2, object defaultValue = null) => safeStringN(obj, new List<object> { key1, key2 }, defaultValue);
+    public static string SafeString2(object obj, object key1, object key2, object defaultValue = null)
+    {
+        var result = SafeString (obj, key1);
+        return result != null ? result : SafeString (obj, key2, defaultValue);
+    }
+    public string? safeString(object obj, object key, object defaultValue = null) => SafeString(obj, key, defaultValue);
+
+    public string? safeString2(object obj, object key1, object key2, object defaultValue = null) => SafeString2(obj, key1, key2, defaultValue);
 
     public object safeValue2(object obj, object key1, object key2, object defaultValue = null) => safeValueN(obj, new List<object> { key1, key2 }, defaultValue);
 
@@ -110,38 +138,38 @@ public partial class BaseExchange
 
     public string? safeStringUpper(object obj, object key, object defaultValue = null)
     {
-        var result = toStringOrNull(safeString(obj, key));
+        var result = safeString(obj, key);
         return result == null ? defaultValue as string : result.ToUpper();
     }
 
     public string? safeStringUpper2(object obj, object key1, object key2, object defaultValue = null)
     {
         var result = safeString2(obj, key1, key2);
-        return result == null ? defaultValue as string : ((string)result).ToUpper();
+        return result == null ? defaultValue as string : result.ToUpper();
     }
 
     public string? safeStringUpperN(object obj, List<object> keys, object defaultValue = null)
     {
         var result = safeStringN(obj, keys);
-        return result == null ? defaultValue as string : ((string)result).ToUpper();
+        return result == null ? defaultValue as string : result.ToUpper();
     }
 
     public string? safeStringLower(object obj, object key, object defaultValue = null)
     {
         var result = safeString(obj, key);
-        return result == null ? defaultValue as string : ((string)result).ToLower();
+        return result == null ? defaultValue as string : result.ToLower();
     }
 
     public string? safeStringLower2(object obj, object key1, object key2, object defaultValue = null)
     {
         var result = safeString2(obj, key1, key2);
-        return result == null ? defaultValue as string : ((string)result).ToLower();
+        return result == null ? defaultValue as string : result.ToLower();
     }
 
     public string? safeStringLowerN(object obj, List<object> keys, string defaultValue = null)
     {
         var result = safeStringN(obj, keys);
-        return result == null ? defaultValue : ((string)result).ToLower();
+        return result == null ? defaultValue : result.ToLower();
     }
 
     public Int64? safeIntegerProduct(object obj, object key, object multiplier = null, object defaultValue = null)

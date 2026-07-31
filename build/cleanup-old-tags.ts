@@ -10,9 +10,18 @@ const { groupBy } = ccxt;
 log.noLocate();
 function cleanupOldTags () {
 
-    const tags = execSync ('git tag').toString ().split ('\n').filter (s => s).map (t => {
+    const tags = execSync ('git tag').toString ().split ('\n').filter (s => s).filter (t => {
+        // version tags only - plain releases (4.5.70) and go module tags (go/v4.5.70);
+        // anything else is not ours to prune and must not crash the release pipeline
+        const isVersionTag = /^(go\/)?v?\d+\.\d+\.\d+$/.test (t)
+        if (!isVersionTag) {
+            log.yellow ('Skipping non-version tag', t)
+        }
+        return isVersionTag
+    }).map (t => {
 
-        const [major, minor, patch] = t.replace ('v', '').split ('.').map (Number)
+        // go module tags prune on the same schedule as the release they duplicate
+        const [major, minor, patch] = t.replace (/^go\//, '').replace ('v', '').split ('.').map (Number)
 
         assert (major < 100)
         assert (minor < 100)

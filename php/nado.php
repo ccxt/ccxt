@@ -317,33 +317,69 @@ class nado extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
-         * create a trade $order
+         * create a trade order
          *
-         * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/place-$order
-         * @see https://docs.nado.xyz/developer-resources/api/trigger/executes/place-$order
+         * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/place-order
+         * @see https://docs.nado.xyz/developer-resources/api/trigger/executes/place-order
          *
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type must be 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subaccount] the 12-byte subaccount identifier, defaults to 'default'
+         * @param {string|int} [$params->expiration] order expiration timestamp in seconds, defaults to 4294967295
+         * @param {string|int} [$params->appendix] pre-encoded order appendix
+         * @param {boolean} [$params->reduceOnly] true if the order should only reduce position
+         * @param {boolean} [$params->postOnly] true to create a post-only order
+         * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK', or 'PO'
+         * @param {boolean} [$params->spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias $params->spot_leverage
+         * @param {float} [$params->triggerPrice] *swap only* The $price at which a trigger order is triggered at
+         * @param {float} [$params->stopLossPrice] *swap only* The $price at which a stop loss order is triggered at
+         * @param {float} [$params->takeProfitPrice] *swap only* The $price at which a take profit order is triggered at
+         * @param {string} [$params->triggerDirection] trigger direction, above, below
+         * @param {int} [$params->id] client-provided $request id, returned by the exchange in the $response
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->check_required_credentials();
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+        $placeOrder = $this->safe_dict($request, 'place_order', array());
+        $isTriggerOrder = (is_array($placeOrder) && array_key_exists('trigger', $placeOrder));
+        $response = null;
+        if ($isTriggerOrder) {
+            $response = $this->triggerPrivatePostExecute($request);
+        } else {
+            $response = $this->gatewayPrivatePostExecute($request);
+        }
+        //
+        //     {
+        //         "status" => "success",
+        //         "signature" => "0x...",
+        //         "data" => array(
+        //             "digest" => "0x..."
+        //         ),
+        //         "request_type" => "execute_place_order",
+        //         "id" => 100
+        //     }
+        //
+        return $this->parse_order($this->extend(array( 'place_order' => $placeOrder ), $response), $market);
+    }
+
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
+        /**
+         * @ignore
+         * build and sign the place_order execute payload
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type must be 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->subaccount] the 12-byte $subaccount identifier, defaults to 'default'
-         * @param {string|int} [$params->expiration] $order $expiration timestamp in seconds, defaults to 4294967295
-         * @param {string|int} [$params->appendix] pre-encoded $order $appendix
-         * @param {boolean} [$params->reduceOnly] true if the $order should only reduce position
-         * @param {boolean} [$params->postOnly] true to create a post-only $order
-         * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK', or 'PO'
-         * @param {boolean} [$params->spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias $params->spot_leverage
-         * @param {float} [$params->triggerPrice] *swap only* The $price at which a $trigger $order is triggered at
-         * @param {float} [$params->stopLossPrice] *swap only* The $price at which a stop loss $order is triggered at
-         * @param {float} [$params->takeProfitPrice] *swap only* The $price at which a take profit $order is triggered at
-         * @param {string} [$params->triggerDirection] $trigger direction, above, below
-         * @param {int} [$params->id] client-provided $request id, returned by the exchange in the $response
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+         * @return {array} the $request payload for the place_order execute
          */
-        $this->check_required_credentials();
-        $this->load_markets();
         $market = $this->market($symbol);
         if ($type !== 'limit') {
             throw new InvalidOrder($this->id . ' createOrder() supports limit orders only');
@@ -439,12 +475,38 @@ class nado extends Exchange {
         $request = array(
             'place_order' => $placeOrder,
         );
-        $response = null;
-        if ($isTriggerOrder) {
-            $response = $this->triggerPrivatePostExecute($this->extend($request, $params));
-        } else {
-            $response = $this->gatewayPrivatePostExecute($this->extend($request, $params));
-        }
+        return $this->extend($request, $params);
+    }
+
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
+        /**
+         * edit a trade order
+         *
+         * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-and-place
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market to edit an order in
+         * @param {string} $type must be 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subaccount] the 12-byte subaccount identifier, defaults to 'default'
+         * @param {string|int} [$params->expiration] order expiration timestamp in seconds, defaults to 4294967295
+         * @param {string|int} [$params->appendix] pre-encoded order appendix
+         * @param {boolean} [$params->reduceOnly] true if the order should only reduce position
+         * @param {boolean} [$params->postOnly] true to create a post-only order
+         * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK', or 'PO'
+         * @param {boolean} [$params->spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias $params->spot_leverage
+         * @param {boolean} [$params->placeRequiresUnfilled] when true, aborts the new order if the canceled order had partial fills or the cancel failed, exchange-specific alias $params->place_requires_unfilled, defaults to true
+         * @param {int} [$params->id] client-provided $request $id, returned by the exchange in the $response
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
+        $this->check_required_credentials();
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
+        $response = $this->gatewayPrivatePostExecute($request);
         //
         //     {
         //         "status" => "success",
@@ -452,19 +514,18 @@ class nado extends Exchange {
         //         "data" => array(
         //             "digest" => "0x..."
         //         ),
-        //         "request_type" => "execute_place_order",
-        //         "id" => 100
+        //         "request_type" => "execute_cancel_and_place"
         //     }
         //
+        $cancelAndPlace = $this->safe_dict($request, 'cancel_and_place', array());
+        $placeOrder = $this->safe_dict($cancelAndPlace, 'place_order', array());
         return $this->parse_order($this->extend(array( 'place_order' => $placeOrder ), $response), $market);
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
+    public function edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
-         * edit a trade $order
-         *
-         * @see https://docs.nado.xyz/developer-resources/api/gateway/executes/cancel-and-place
-         *
+         * @ignore
+         * build and sign the cancel_and_place execute payload
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market to edit an $order in
          * @param {string} $type must be 'limit'
@@ -472,19 +533,8 @@ class nado extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->subaccount] the 12-byte $subaccount identifier, defaults to 'default'
-         * @param {string|int} [$params->expiration] $order $expiration timestamp in seconds, defaults to 4294967295
-         * @param {string|int} [$params->appendix] pre-encoded $order $appendix
-         * @param {boolean} [$params->reduceOnly] true if the $order should only reduce position
-         * @param {boolean} [$params->postOnly] true to create a post-only $order
-         * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK', or 'PO'
-         * @param {boolean} [$params->spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias $params->spot_leverage
-         * @param {boolean} [$params->placeRequiresUnfilled] when true, aborts the new $order if the canceled $order had partial fills or the cancel failed, exchange-specific alias $params->place_requires_unfilled, defaults to true
-         * @param {int} [$params->id] client-provided $request $id, returned by the exchange in the $response
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         * @return {array} the $request payload for the cancel_and_place execute
          */
-        $this->check_required_credentials();
-        $this->load_markets();
         $market = $this->market($symbol);
         if ($type !== 'limit') {
             throw new InvalidOrder($this->id . ' editOrder() supports limit orders only');
@@ -563,18 +613,7 @@ class nado extends Exchange {
         $request = array(
             'cancel_and_place' => $cancelAndPlace,
         );
-        $response = $this->gatewayPrivatePostExecute($this->extend($request, $params));
-        //
-        //     {
-        //         "status" => "success",
-        //         "signature" => "0x...",
-        //         "data" => array(
-        //             "digest" => "0x..."
-        //         ),
-        //         "request_type" => "execute_cancel_and_place"
-        //     }
-        //
-        return $this->parse_order($this->extend(array( 'place_order' => $placeOrder ), $response), $market);
+        return $this->extend($request, $params);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -603,7 +642,7 @@ class nado extends Exchange {
          *
          * @param {string} [$symbol] unified $market $symbol, when null all orders for all products are canceled
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->subaccount] the 12-byte $subaccount identifier, defaults to 'default'
+         * @param {string} [$params->subaccount] the 12-byte subaccount identifier, defaults to 'default'
          * @param {int} [$params->id] client-provided $request id, returned by the exchange in the $response
          * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account $trigger or conditional orders
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
@@ -611,54 +650,24 @@ class nado extends Exchange {
         $this->check_required_credentials();
         $this->load_markets();
         $market = null;
-        $productIds = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $productIds[] = $this->parse_to_int($market['id']);
         }
-        $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'subaccount', 'default');
-        $sender = $this->create_subaccount($this->walletAddress, $subaccount);
-        $recvWindow = null;
-        list($recvWindow, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'recvWindow', 5000);
-        $nonce = $this->create_order_nonce($recvWindow);
-        $tx = array(
-            'sender' => $sender,
-            'productIds' => $productIds,
-            'nonce' => $nonce,
-        );
-        $contracts = $this->query_contracts();
-        $chainId = $this->safe_string($contracts, 'chain_id');
-        $endpointAddress = $this->safe_string($contracts, 'endpoint_addr');
-        if ($endpointAddress === null) {
-            throw new ExchangeError($this->id . ' cancelAllOrders() requires endpoint_addr from $contracts query');
-        }
-        $signature = $this->sign_cancellation_products($tx, $chainId, $endpointAddress);
-        $requestId = $this->safe_integer($params, 'id');
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
-        $params = $this->omit($params, array( 'id', 'stop', 'trigger' ));
-        $cancelProductOrders = array(
-            'tx' => $tx,
-            'signature' => $signature,
-        );
-        if ($requestId !== null) {
-            $cancelProductOrders['id'] = $requestId;
-        }
-        $request = array(
-            'cancel_product_orders' => $cancelProductOrders,
-        );
+        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $request = $this->cancel_all_orders_request($symbol, $params);
         $response = null;
         if ($trigger) {
-            $response = $this->triggerPrivatePostExecute($this->extend($request, $params));
+            $response = $this->triggerPrivatePostExecute($request);
             //
             // {
             //     "status" => "success",
-            //     "signature" => {$signature},
+            //     "signature" => {signature},
             //     "request_type" => "execute_cancel_product_orders"
             // }
             //
         } else {
-            $response = $this->gatewayPrivatePostExecute($this->extend($request, $params));
+            $response = $this->gatewayPrivatePostExecute($request);
             //
             //     {
             //         "status" => "success",
@@ -694,6 +703,52 @@ class nado extends Exchange {
         return $result;
     }
 
+    public function cancel_all_orders_request(?string $symbol = null, $params = array()): array {
+        /**
+         * @ignore
+         * build and sign the cancel_product_orders execute payload
+         * @param {string} [$symbol] unified $market $symbol, when null all orders for all products are canceled
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the $request payload for the cancel_product_orders execute
+         */
+        $productIds = array();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $productIds[] = $this->parse_to_int($market['id']);
+        }
+        $subaccount = null;
+        list($subaccount, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'subaccount', 'default');
+        $sender = $this->create_subaccount($this->walletAddress, $subaccount);
+        $recvWindow = null;
+        list($recvWindow, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'recvWindow', 5000);
+        $nonce = $this->create_order_nonce($recvWindow);
+        $tx = array(
+            'sender' => $sender,
+            'productIds' => $productIds,
+            'nonce' => $nonce,
+        );
+        $contracts = $this->query_contracts();
+        $chainId = $this->safe_string($contracts, 'chain_id');
+        $endpointAddress = $this->safe_string($contracts, 'endpoint_addr');
+        if ($endpointAddress === null) {
+            throw new ExchangeError($this->id . ' cancelAllOrders() requires endpoint_addr from $contracts query');
+        }
+        $signature = $this->sign_cancellation_products($tx, $chainId, $endpointAddress);
+        $requestId = $this->safe_integer($params, 'id');
+        $params = $this->omit($params, array( 'id' ));
+        $cancelProductOrders = array(
+            'tx' => $tx,
+            'signature' => $signature,
+        );
+        if ($requestId !== null) {
+            $cancelProductOrders['id'] = $requestId;
+        }
+        $request = array(
+            'cancel_product_orders' => $cancelProductOrders,
+        );
+        return $this->extend($request, $params);
+    }
+
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): array {
         /**
          * cancel multiple orders
@@ -703,7 +758,7 @@ class nado extends Exchange {
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->subaccount] the 12-byte $subaccount identifier, defaults to 'default'
+         * @param {string} [$params->subaccount] the 12-byte subaccount identifier, defaults to 'default'
          * @param {string} [$params->requiredUnfilledAmount] cancel only if the order's absolute remaining unfilled amount matches this amount, exchange-specific raw x18 alias $params->required_unfilled_amount
          * @param {int} [$params->id] client-provided $request id, returned by the exchange in the $response
          * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account $trigger or conditional orders
@@ -711,66 +766,25 @@ class nado extends Exchange {
          */
         $this->check_required_credentials();
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' $cancelOrders() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $productId = $this->parse_to_int($market['id']);
-        $subaccount = null;
-        list($subaccount, $params) = $this->handle_option_and_params($params, 'cancelOrders', 'subaccount', 'default');
-        $sender = $this->create_subaccount($this->walletAddress, $subaccount);
-        $productIds = array();
-        for ($i = 0; $i < count($ids); $i++) {
-            $productIds[] = $productId;
-        }
-        $recvWindow = null;
-        list($recvWindow, $params) = $this->handle_option_and_params($params, 'cancelOrders', 'recvWindow', 5000);
-        $nonce = $this->create_order_nonce($recvWindow);
-        $tx = array(
-            'sender' => $sender,
-            'productIds' => $productIds,
-            'digests' => $ids,
-            'nonce' => $nonce,
-        );
-        $contracts = $this->query_contracts();
-        $chainId = $this->safe_string($contracts, 'chain_id');
-        $endpointAddress = $this->safe_string($contracts, 'endpoint_addr');
-        if ($endpointAddress === null) {
-            throw new ExchangeError($this->id . ' $cancelOrders() requires endpoint_addr from $contracts query');
-        }
-        $signature = $this->sign_cancellation($tx, $chainId, $endpointAddress);
-        $requestId = $this->safe_integer($params, 'id');
-        $requiredUnfilledAmountRaw = $this->safe_string($params, 'required_unfilled_amount');
-        $requiredUnfilledAmount = $this->safe_string($params, 'requiredUnfilledAmount');
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
-        $params = $this->omit($params, array( 'id', 'requiredUnfilledAmount', 'required_unfilled_amount', 'stop', 'trigger' ));
-        $cancelOrders = array(
-            'tx' => $tx,
-            'signature' => $signature,
-        );
-        if ($requiredUnfilledAmountRaw !== null) {
-            $cancelOrders['required_unfilled_amount'] = $requiredUnfilledAmountRaw;
-        } elseif ($requiredUnfilledAmount !== null) {
-            $cancelOrders['required_unfilled_amount'] = $this->convert_to_x18($requiredUnfilledAmount);
-        }
-        if ($requestId !== null) {
-            $cancelOrders['id'] = $requestId;
-        }
-        $request = array(
-            'cancel_orders' => $cancelOrders,
-        );
+        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        $request = $this->cancel_orders_request($ids, $symbol, $params);
         $response = null;
         if ($trigger) {
-            $response = $this->triggerPrivatePostExecute($this->extend($request, $params));
+            $response = $this->triggerPrivatePostExecute($request);
             //
             // {
             //     "status" => "success",
-            //     "signature" => {$signature},
+            //     "signature" => {signature},
             //     "request_type" => "execute_cancel_orders"
             // }
             //
         } else {
-            $response = $this->gatewayPrivatePostExecute($this->extend($request, $params));
+            $response = $this->gatewayPrivatePostExecute($request);
             //
             //     {
             //         "status" => "success",
@@ -804,6 +818,62 @@ class nado extends Exchange {
             $result[] = $this->parse_order($this->extend(array( 'status' => 'canceled' ), $cancelledOrders[$i]), $market);
         }
         return $result;
+    }
+
+    public function cancel_orders_request(array $ids, ?string $symbol = null, $params = array()): array {
+        /**
+         * @ignore
+         * build and sign the cancel_orders execute payload
+         * @param {string[]} $ids order $ids
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the $request payload for the cancel_orders execute
+         */
+        $market = $this->market($symbol);
+        $productId = $this->parse_to_int($market['id']);
+        $subaccount = null;
+        list($subaccount, $params) = $this->handle_option_and_params($params, 'cancelOrders', 'subaccount', 'default');
+        $sender = $this->create_subaccount($this->walletAddress, $subaccount);
+        $productIds = array();
+        for ($i = 0; $i < count($ids); $i++) {
+            $productIds[] = $productId;
+        }
+        $recvWindow = null;
+        list($recvWindow, $params) = $this->handle_option_and_params($params, 'cancelOrders', 'recvWindow', 5000);
+        $nonce = $this->create_order_nonce($recvWindow);
+        $tx = array(
+            'sender' => $sender,
+            'productIds' => $productIds,
+            'digests' => $ids,
+            'nonce' => $nonce,
+        );
+        $contracts = $this->query_contracts();
+        $chainId = $this->safe_string($contracts, 'chain_id');
+        $endpointAddress = $this->safe_string($contracts, 'endpoint_addr');
+        if ($endpointAddress === null) {
+            throw new ExchangeError($this->id . ' $cancelOrders() requires endpoint_addr from $contracts query');
+        }
+        $signature = $this->sign_cancellation($tx, $chainId, $endpointAddress);
+        $requestId = $this->safe_integer($params, 'id');
+        $requiredUnfilledAmountRaw = $this->safe_string($params, 'required_unfilled_amount');
+        $requiredUnfilledAmount = $this->safe_string($params, 'requiredUnfilledAmount');
+        $params = $this->omit($params, array( 'id', 'requiredUnfilledAmount', 'required_unfilled_amount' ));
+        $cancelOrders = array(
+            'tx' => $tx,
+            'signature' => $signature,
+        );
+        if ($requiredUnfilledAmountRaw !== null) {
+            $cancelOrders['required_unfilled_amount'] = $requiredUnfilledAmountRaw;
+        } elseif ($requiredUnfilledAmount !== null) {
+            $cancelOrders['required_unfilled_amount'] = $this->convert_to_x18($requiredUnfilledAmount);
+        }
+        if ($requestId !== null) {
+            $cancelOrders['id'] = $requestId;
+        }
+        $request = array(
+            'cancel_orders' => $cancelOrders,
+        );
+        return $this->extend($request, $params);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -953,7 +1023,6 @@ class nado extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires walletAddress');
         }
         $this->load_markets();
-        $market = $this->market($symbol);
         $subaccount = null;
         list($subaccount, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'subaccount', 'default');
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
@@ -968,6 +1037,7 @@ class nado extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
+        $market = $this->market($symbol);
         $request = array(
             'sender' => $sender,
             'type' => 'subaccount_orders',
@@ -1521,8 +1591,18 @@ class nado extends Exchange {
         $symbols = $this->safe_list($responses, 0, array());
         $pairs = $this->safe_list($responses, 1, array());
         $assets = $this->safe_list($responses, 2, array());
-        $pairsById = $this->index_by($pairs, 'product_id');
-        $assetsById = $this->index_by($assets, 'product_id');
+        // product_id is a JSON number => JS object keys are always strings but a Python
+        // dict keeps int keys, so indexBy would never match the safeString lookups below
+        $pairsById = array();
+        for ($i = 0; $i < count($pairs); $i++) {
+            $rawPair = $pairs[$i];
+            $pairsById[$this->safe_string($rawPair, 'product_id')] = $rawPair;
+        }
+        $assetsById = array();
+        for ($i = 0; $i < count($assets); $i++) {
+            $rawAsset = $assets[$i];
+            $assetsById[$this->safe_string($rawAsset, 'product_id')] = $rawAsset;
+        }
         $assetsByCode = array();
         for ($i = 0; $i < count($assets); $i++) {
             $rawAsset = $assets[$i];

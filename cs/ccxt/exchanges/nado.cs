@@ -344,6 +344,50 @@ public partial class nado : Exchange
         this.checkRequiredCredentials();
         await this.loadMarkets();
         object market = this.market(symbol);
+        object request = await this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        object placeOrder = this.safeDict(request, "place_order", new Dictionary<string, object>() {});
+        object isTriggerOrder = (inOp(placeOrder, "trigger"));
+        object response = null;
+        if (isTrue(isTriggerOrder))
+        {
+            response = await this.triggerPrivatePostExecute(request);
+        } else
+        {
+            response = await this.gatewayPrivatePostExecute(request);
+        }
+        //
+        //     {
+        //         "status": "success",
+        //         "signature": "0x...",
+        //         "data": {
+        //             "digest": "0x..."
+        //         },
+        //         "request_type": "execute_place_order",
+        //         "id": 100
+        //     }
+        //
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {
+            { "place_order", placeOrder },
+        }, response), market);
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name nado#createOrderRequest
+     * @description build and sign the place_order execute payload
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the request payload for the place_order execute
+     */
+    public async virtual Task<object> createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object market = this.market(symbol);
         if (isTrue(!isEqual(type, "limit")))
         {
             throw new InvalidOrder ((string)add(this.id, " createOrder() supports limit orders only")) ;
@@ -455,28 +499,7 @@ public partial class nado : Exchange
         object request = new Dictionary<string, object>() {
             { "place_order", placeOrder },
         };
-        object response = null;
-        if (isTrue(isTriggerOrder))
-        {
-            response = await this.triggerPrivatePostExecute(this.extend(request, parameters));
-        } else
-        {
-            response = await this.gatewayPrivatePostExecute(this.extend(request, parameters));
-        }
-        //
-        //     {
-        //         "status": "success",
-        //         "signature": "0x...",
-        //         "data": {
-        //             "digest": "0x..."
-        //         },
-        //         "request_type": "execute_place_order",
-        //         "id": 100
-        //     }
-        //
-        return this.parseOrder(this.extend(new Dictionary<string, object>() {
-            { "place_order", placeOrder },
-        }, response), market);
+        return this.extend(request, parameters);
     }
 
     /**
@@ -507,6 +530,43 @@ public partial class nado : Exchange
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = await this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+        object response = await this.gatewayPrivatePostExecute(request);
+        //
+        //     {
+        //         "status": "success",
+        //         "signature": "0x...",
+        //         "data": {
+        //             "digest": "0x..."
+        //         },
+        //         "request_type": "execute_cancel_and_place"
+        //     }
+        //
+        object cancelAndPlace = this.safeDict(request, "cancel_and_place", new Dictionary<string, object>() {});
+        object placeOrder = this.safeDict(cancelAndPlace, "place_order", new Dictionary<string, object>() {});
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {
+            { "place_order", placeOrder },
+        }, response), market);
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name nado#editOrderRequest
+     * @description build and sign the cancel_and_place execute payload
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market to edit an order in
+     * @param {string} type must be 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the request payload for the cancel_and_place execute
+     */
+    public async virtual Task<object> editOrderRequest(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
         if (isTrue(!isEqual(type, "limit")))
         {
@@ -599,20 +659,7 @@ public partial class nado : Exchange
         object request = new Dictionary<string, object>() {
             { "cancel_and_place", cancelAndPlace },
         };
-        object response = await this.gatewayPrivatePostExecute(this.extend(request, parameters));
-        //
-        //     {
-        //         "status": "success",
-        //         "signature": "0x...",
-        //         "data": {
-        //             "digest": "0x..."
-        //         },
-        //         "request_type": "execute_cancel_and_place"
-        //     }
-        //
-        return this.parseOrder(this.extend(new Dictionary<string, object>() {
-            { "place_order", placeOrder },
-        }, response), market);
+        return this.extend(request, parameters);
     }
 
     /**
@@ -653,10 +700,49 @@ public partial class nado : Exchange
         this.checkRequiredCredentials();
         await this.loadMarkets();
         object market = null;
-        object productIds = new List<object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
+        }
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        object request = await this.cancelAllOrdersRequest(symbol, parameters);
+        object response = null;
+        if (isTrue(trigger))
+        {
+            response = await this.triggerPrivatePostExecute(request);
+        } else
+        {
+            response = await this.gatewayPrivatePostExecute(request);
+        }
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object cancelledOrders = this.safeList(data, "cancelled_orders", new List<object>() {});
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(cancelledOrders)); postFixIncrement(ref i))
+        {
+            ((IList<object>)result).Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
+                { "status", "canceled" },
+            }, getValue(cancelledOrders, i)), market));
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name nado#cancelAllOrdersRequest
+     * @description build and sign the cancel_product_orders execute payload
+     * @param {string} [symbol] unified market symbol, when undefined all orders for all products are canceled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the request payload for the cancel_product_orders execute
+     */
+    public async virtual Task<object> cancelAllOrdersRequest(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object productIds = new List<object>() {};
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            object market = this.market(symbol);
             ((IList<object>)productIds).Add(this.parseToInt(getValue(market, "id")));
         }
         object subaccount = null;
@@ -683,8 +769,7 @@ public partial class nado : Exchange
         }
         object signature = this.signCancellationProducts(tx, chainId, endpointAddress);
         object requestId = this.safeInteger(parameters, "id");
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
-        parameters = this.omit(parameters, new List<object>() {"id", "stop", "trigger"});
+        parameters = this.omit(parameters, new List<object>() {"id"});
         object cancelProductOrders = new Dictionary<string, object>() {
             { "tx", tx },
             { "signature", signature },
@@ -696,24 +781,7 @@ public partial class nado : Exchange
         object request = new Dictionary<string, object>() {
             { "cancel_product_orders", cancelProductOrders },
         };
-        object response = null;
-        if (isTrue(trigger))
-        {
-            response = await this.triggerPrivatePostExecute(this.extend(request, parameters));
-        } else
-        {
-            response = await this.gatewayPrivatePostExecute(this.extend(request, parameters));
-        }
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object cancelledOrders = this.safeList(data, "cancelled_orders", new List<object>() {});
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(cancelledOrders)); postFixIncrement(ref i))
-        {
-            ((IList<object>)result).Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
-                { "status", "canceled" },
-            }, getValue(cancelledOrders, i)), market));
-        }
-        return result;
+        return this.extend(request, parameters);
     }
 
     /**
@@ -739,6 +807,43 @@ public partial class nado : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument")) ;
         }
         await this.loadMarkets();
+        object market = this.market(symbol);
+        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
+        object request = await this.cancelOrdersRequest(ids, symbol, parameters);
+        object response = null;
+        if (isTrue(trigger))
+        {
+            response = await this.triggerPrivatePostExecute(request);
+        } else
+        {
+            response = await this.gatewayPrivatePostExecute(request);
+        }
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object cancelledOrders = this.safeList(data, "cancelled_orders", new List<object>() {});
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(cancelledOrders)); postFixIncrement(ref i))
+        {
+            ((IList<object>)result).Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
+                { "status", "canceled" },
+            }, getValue(cancelledOrders, i)), market));
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name nado#cancelOrdersRequest
+     * @description build and sign the cancel_orders execute payload
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} the request payload for the cancel_orders execute
+     */
+    public async virtual Task<object> cancelOrdersRequest(object ids, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
         object productId = this.parseToInt(getValue(market, "id"));
         object subaccount = null;
@@ -773,8 +878,7 @@ public partial class nado : Exchange
         object requestId = this.safeInteger(parameters, "id");
         object requiredUnfilledAmountRaw = this.safeString(parameters, "required_unfilled_amount");
         object requiredUnfilledAmount = this.safeString(parameters, "requiredUnfilledAmount");
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
-        parameters = this.omit(parameters, new List<object>() {"id", "requiredUnfilledAmount", "required_unfilled_amount", "stop", "trigger"});
+        parameters = this.omit(parameters, new List<object>() {"id", "requiredUnfilledAmount", "required_unfilled_amount"});
         object cancelOrders = new Dictionary<string, object>() {
             { "tx", tx },
             { "signature", signature },
@@ -793,24 +897,7 @@ public partial class nado : Exchange
         object request = new Dictionary<string, object>() {
             { "cancel_orders", cancelOrders },
         };
-        object response = null;
-        if (isTrue(trigger))
-        {
-            response = await this.triggerPrivatePostExecute(this.extend(request, parameters));
-        } else
-        {
-            response = await this.gatewayPrivatePostExecute(this.extend(request, parameters));
-        }
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object cancelledOrders = this.safeList(data, "cancelled_orders", new List<object>() {});
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(cancelledOrders)); postFixIncrement(ref i))
-        {
-            ((IList<object>)result).Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
-                { "status", "canceled" },
-            }, getValue(cancelledOrders, i)), market));
-        }
-        return result;
+        return this.extend(request, parameters);
     }
 
     /**
@@ -975,7 +1062,6 @@ public partial class nado : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires walletAddress")) ;
         }
         await this.loadMarkets();
-        object market = this.market(symbol);
         object subaccount = null;
         var subaccountparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "subaccount", "default");
         subaccount = ((IList<object>)subaccountparametersVariable)[0];
@@ -992,6 +1078,7 @@ public partial class nado : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
         }
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "sender", sender },
             { "type", "subaccount_orders" },
@@ -1599,8 +1686,20 @@ public partial class nado : Exchange
         object symbols = this.safeList(responses, 0, new List<object>() {});
         object pairs = this.safeList(responses, 1, new List<object>() {});
         object assets = this.safeList(responses, 2, new List<object>() {});
-        object pairsById = this.indexBy(pairs, "product_id");
-        object assetsById = this.indexBy(assets, "product_id");
+        // product_id is a JSON number: JS object keys are always strings but a Python
+        // dict keeps int keys, so indexBy would never match the safeString lookups below
+        object pairsById = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(pairs)); postFixIncrement(ref i))
+        {
+            object rawPair = getValue(pairs, i);
+            ((IDictionary<string,object>)pairsById)[(string)this.safeString(rawPair, "product_id")] = rawPair;
+        }
+        object assetsById = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
+        {
+            object rawAsset = getValue(assets, i);
+            ((IDictionary<string,object>)assetsById)[(string)this.safeString(rawAsset, "product_id")] = rawAsset;
+        }
         object assetsByCode = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
         {

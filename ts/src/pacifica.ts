@@ -235,6 +235,12 @@ export default class pacifica extends Exchange {
                     'taker': this.parseNumber ('0.0004'),
                     'maker': this.parseNumber ('0.00015'),
                 },
+                'spot': {
+                    // https://docs.pacifica.fi/trading-on-pacifica/trading-fees
+                    // one unified fee schedule for all product types
+                    'taker': this.parseNumber ('0.0004'),
+                    'maker': this.parseNumber ('0.00015'),
+                },
             },
             //
             // Reminder:

@@ -30,10 +30,8 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success = false;
             }
-            if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
+            if (isTrue(isEqual(success, true)))
             {
-                // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-                assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return a dictionary. "), exchange.json(response)));
                 now = exchange.milliseconds();
                 testOrderBook(exchange, skippedProperties, method, response, symbol);
             }

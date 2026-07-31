@@ -68,18 +68,15 @@ func AssertStructure(exchange ccxt.ICoreExchange, skippedProperties any, method 
 		for i := 0; IsLessThan(i, GetArrayLength(format)); i++ {
 			var emptyAllowedForThisKey any = IsTrue((IsEqual(emptyAllowedFor, nil))) || IsTrue(exchange.InArray(i, emptyAllowedFor))
 			var value any = GetValue(entry, i)
-			if IsTrue(InOp(skippedProperties, i)) {
-				continue
-			}
 			// check when:
 			// - it's not inside "allowe empty values" list
 			// - it's not undefined
-			if IsTrue(IsTrue(emptyAllowedForThisKey) && IsTrue((IsEqual(value, nil)))) {
+			if IsTrue(IsTrue((IsTrue(emptyAllowedForThisKey) && IsTrue((IsEqual(value, nil))))) || IsTrue((InOp(skippedProperties, i)))) {
 				continue
 			}
 			Assert(!IsEqual(value, nil), Add(Add(ToString(i), " index is expected to have a value"), logText))
 			// because of other langs, this is needed for arrays
-			var typeAssertion any = AssertType(exchange, skippedProperties, entry, i, format)
+			var typeAssertion any = AssertType(exchange, map[string]any{}, entry, i, format)
 			Assert(typeAssertion, Add(Add(ToString(i), " index does not have an expected type "), logText))
 		}
 	} else {
@@ -91,13 +88,10 @@ func AssertStructure(exchange ccxt.ICoreExchange, skippedProperties any, method 
 				continue
 			}
 			Assert(InOp(entry, key), Add(Add(Add("\"", StringValue(key)), "\" key is missing from structure"), logText))
-			if IsTrue(InOp(skippedProperties, key)) {
-				continue
-			}
 			var emptyAllowedForThisKey any = IsTrue((IsEqual(emptyAllowedFor, nil))) || IsTrue(exchange.InArray(key, emptyAllowedFor))
 			var value any = GetValue(entry, key)
 			// check when:
-			// - it's not inside "allowe empty values" list
+			// - it's not inside "allowed empty values" list
 			// - it's not undefined
 			if IsTrue(IsTrue(emptyAllowedForThisKey) && IsTrue((IsEqual(value, nil)))) {
 				continue
@@ -106,7 +100,7 @@ func AssertStructure(exchange ccxt.ICoreExchange, skippedProperties any, method 
 			Assert(!IsEqual(value, nil), Add(Add(Add("\"", StringValue(key)), "\" key is expected to have a value"), logText))
 			// add exclusion for info key, as it can be any type
 			if IsTrue(!IsEqual(key, "info")) {
-				var typeAssertion any = AssertType(exchange, skippedProperties, entry, key, format)
+				var typeAssertion any = AssertType(exchange, map[string]any{}, entry, key, format)
 				Assert(typeAssertion, Add(Add(Add("\"", StringValue(key)), "\" key is neither undefined, neither of expected type"), logText))
 				if IsTrue(deep) {
 					if IsTrue(IsTrue(exchange.IsDictionary(value)) || IsTrue(IsArray(value))) {

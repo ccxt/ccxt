@@ -31,11 +31,9 @@ function test_watch_order_book_for_symbols($exchange, $skipped_properties, $symb
                 $current_time = $exchange->milliseconds();
                 $succeeded = false;
             }
-            if (($succeeded === true) && ($response !== null)) {
-                assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($symbols) . ' must return a dictionary. ' . $exchange->json($response));
-                $current_time = $exchange->milliseconds();
-                assert_in_array($exchange, $skipped_properties, $method, $response, 'symbol', $symbols);
+            if ($succeeded === true) {
                 test_order_book($exchange, $skipped_properties, $method, $response, null);
+                assert_in_array($exchange, $skipped_properties, $method, $response, 'symbol', $symbols);
                 $symbol = $response['symbol'];
                 if (($symbol !== null) && !$exchange->in_array($symbol, $seen_symbols)) {
                     $seen_symbols[] = $symbol;
