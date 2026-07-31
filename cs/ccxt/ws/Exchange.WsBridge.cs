@@ -109,7 +109,7 @@ public partial class BaseExchange
         // orderbook, so the next watchOrderBook() call resubscribes cleanly
         (client).reject(error, messageHash);
         this.clients.TryRemove(client.url, out _);
-        this.orderbooks[(string)symbol] = this.orderBook();
+        ((System.Collections.Generic.IDictionary<string, object>)this.orderbooks)[(string)symbol] = this.orderBook();
     }
 
 
