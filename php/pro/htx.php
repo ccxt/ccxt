@@ -579,7 +579,7 @@ class htx extends \ccxt\async\htx {
                 // retry to synchronize if we have not reached $maxAttempts yet
                 if ($numAttempts < $maxAttempts) {
                     // safety guard
-                    if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                    if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                         $numAttempts = $this->sum($numAttempts, 1);
                         $delayTime = $this->sum(1000, $lastTimestamp - $snapshotTimestamp);
                         $subscription['numAttempts'] = $numAttempts;
@@ -813,7 +813,7 @@ class htx extends \ccxt\async\htx {
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $symbol = $this->safe_symbol($marketId);
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $size = $this->safe_string($parts, 3);
             $sizeParts = explode('_', $size);
             $limit = $this->safe_integer($sizeParts, 1);
@@ -2162,11 +2162,11 @@ class htx extends \ccxt\async\htx {
                 // return; commented out to clean up
             }
             // clean up
-            if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($id ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$id]);
             }
         }
-        if (is_array($message) && array_key_exists('unsubbed', $message)) {
+        if (is_array($message) && array_key_exists('unsubbed' ?? '', $message)) {
             $this->handle_un_subscription($client, $subscription);
         }
     }
@@ -2436,7 +2436,7 @@ class htx extends \ccxt\async\htx {
                     $messageHash = $this->safe_string($subscription, 'messageHash');
                     $client->reject($e, $messageHash);
                     $client->reject($e, $id);
-                    if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
+                    if (is_array($client->subscriptions) && array_key_exists($id ?? '', $client->subscriptions)) {
                         unset($client->subscriptions[$id]);
                     }
                 }
@@ -2453,7 +2453,7 @@ class htx extends \ccxt\async\htx {
                 if ($e instanceof AuthenticationError) {
                     $client->reject($e, 'auth');
                     $method = 'auth';
-                    if (is_array($client->subscriptions) && array_key_exists($method, $client->subscriptions)) {
+                    if (is_array($client->subscriptions) && array_key_exists($method ?? '', $client->subscriptions)) {
                         unset($client->subscriptions[$method]);
                     }
                     return false;
@@ -2511,11 +2511,11 @@ class htx extends \ccxt\async\htx {
             //         }
             //     }
             //
-            if (is_array($message) && array_key_exists('id', $message)) {
+            if (is_array($message) && array_key_exists('id' ?? '', $message)) {
                 $this->handle_subscription_status($client, $message);
                 return;
             }
-            if (is_array($message) && array_key_exists('action', $message)) {
+            if (is_array($message) && array_key_exists('action' ?? '', $message)) {
                 $action = $this->safe_string($message, 'action');
                 if ($action === 'ping') {
                     $this->handle_ping($client, $message);
@@ -2526,7 +2526,7 @@ class htx extends \ccxt\async\htx {
                     return;
                 }
             }
-            if (is_array($message) && array_key_exists('ch', $message)) {
+            if (is_array($message) && array_key_exists('ch' ?? '', $message)) {
                 if ($message['ch'] === 'auth') {
                     $this->handle_authenticate($client, $message);
                     return;
@@ -2536,7 +2536,7 @@ class htx extends \ccxt\async\htx {
                     return;
                 }
             }
-            if (is_array($message) && array_key_exists('op', $message)) {
+            if (is_array($message) && array_key_exists('op' ?? '', $message)) {
                 $op = $this->safe_string($message, 'op');
                 if ($op === 'ping') {
                     $this->handle_ping($client, $message);
@@ -2555,7 +2555,7 @@ class htx extends \ccxt\async\htx {
                     return;
                 }
             }
-            if (is_array($message) && array_key_exists('ping', $message)) {
+            if (is_array($message) && array_key_exists('ping' ?? '', $message)) {
                 $this->handle_ping($client, $message);
             }
         }

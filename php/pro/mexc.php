@@ -680,7 +680,7 @@ class mexc extends \ccxt\async\mexc {
         //
         $symbol = null;
         $timeframe = null;
-        if (is_array($message) && array_key_exists('publicSpotKline', $message)) {
+        if (is_array($message) && array_key_exists('publicSpotKline' ?? '', $message)) {
             $symbol = $this->symbol($this->safe_string($message, 'symbol'));
             $data = $this->safe_dict($message, 'publicSpotKline', array());
             $timeframeId = $this->safe_string($data, 'interval');
@@ -908,7 +908,7 @@ class mexc extends \ccxt\async\mexc {
         $messageHash = 'orderbook:' . $symbol;
         $subscription = $this->safe_value($client->subscriptions, $messageHash);
         $limit = $this->safe_integer($subscription, 'limit');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $storedOrderBook = $this->orderbooks[$symbol];
@@ -1629,7 +1629,7 @@ class mexc extends \ccxt\async\mexc {
         $data = $this->safe_dict_n($message, array( 'data', 'privateAccount' ));
         $futuresTimestamp = $this->safe_integer_2($message, 'ts', 'createTime');
         $timestamp = $this->safe_integer_2($data, 'time', $futuresTimestamp);
-        if (!(is_array($this->balance) && array_key_exists($type, $this->balance))) {
+        if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }
         $this->balance[$type]['info'] = $data;
@@ -1983,12 +1983,12 @@ class mexc extends \ccxt\async\mexc {
                     for ($j = 0; $j < count($symbols); $j++) {
                         unset($this->tickers[$symbols[$j]]);
                     }
-                } elseif (is_array($this->tickers) && array_key_exists($symbol, $this->tickers)) {
+                } elseif (is_array($this->tickers) && array_key_exists($symbol ?? '', $this->tickers)) {
                     unset($this->tickers[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'bidask') !== false) {
                 $symbol = str_replace('unsubscribe:bidask:', '', $messageHash);
-                if (is_array($this->bidsasks) && array_key_exists($symbol, $this->bidsasks)) {
+                if (is_array($this->bidsasks) && array_key_exists($symbol ?? '', $this->bidsasks)) {
                     unset($this->bidsasks[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'candles') !== false) {
@@ -1997,22 +1997,22 @@ class mexc extends \ccxt\async\mexc {
                 if (strlen($splitHashes) > 4) {
                     $symbol .= ':' . $this->safe_string($splitHashes, 3);
                 }
-                if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
+                if (is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs)) {
                     unset($this->ohlcvs[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'orderbook') !== false) {
                 $symbol = str_replace('unsubscribe:orderbook:', '', $messageHash);
-                if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+                if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
                     unset($this->orderbooks[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'trades') !== false) {
                 $symbol = str_replace('unsubscribe:trades:', '', $messageHash);
-                if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+                if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
                     unset($this->trades[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'fundingRate') !== false) {
                 $symbol = str_replace('unsubscribe:fundingRate:', '', $messageHash);
-                if (is_array($this->fundingRates) && array_key_exists($symbol, $this->fundingRates)) {
+                if (is_array($this->fundingRates) && array_key_exists($symbol ?? '', $this->fundingRates)) {
                     unset($this->fundingRates[$symbol]);
                 }
             }
@@ -2145,7 +2145,7 @@ class mexc extends \ccxt\async\mexc {
             $this->handle_protobuf_message($client, $message);
             return;
         }
-        if (is_array($message) && array_key_exists('msg', $message)) {
+        if (is_array($message) && array_key_exists('msg' ?? '', $message)) {
             $this->handle_subscription_status($client, $message);
             return;
         }
@@ -2178,7 +2178,7 @@ class mexc extends \ccxt\async\mexc {
             'pong' => array($this, 'handle_pong'),
             'push.funding.rate' => array($this, 'handle_funding_rate'),
         );
-        if (is_array($methods) && array_key_exists($channel, $methods)) {
+        if (is_array($methods) && array_key_exists($channel ?? '', $methods)) {
             $method = $methods[$channel];
             $method($client, $message);
         }

@@ -239,7 +239,7 @@ class blofin extends \ccxt\async\blofin {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $messageHash = $channelName . ':' . $symbol;
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -529,7 +529,7 @@ class blofin extends \ccxt\async\blofin {
         //     }
         //
         $marketType = 'swap'; // for now
-        if (!(is_array($this->balance) && array_key_exists($marketType, $this->balance))) {
+        if (!(is_array($this->balance) && array_key_exists($marketType ?? '', $this->balance))) {
             $this->balance[$marketType] = array();
         }
         $this->balance[$marketType] = $this->parse_ws_balance($message);

@@ -647,7 +647,7 @@ class whitebit extends Exchange {
         // $name = $this->safe_string(currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
         $id = $this->safe_string($rawCurrency, '_coin_id');
         $code = $this->safe_currency_code($id);
-        $hasProvider = (is_array($rawCurrency) && array_key_exists('providers', $rawCurrency));
+        $hasProvider = (is_array($rawCurrency) && array_key_exists('providers' ?? '', $rawCurrency));
         $networks = array();
         $rawNetworks = $this->safe_dict($rawCurrency, 'networks', array());
         $depositsNetworks = $this->safe_list($rawNetworks, 'deposits', array());

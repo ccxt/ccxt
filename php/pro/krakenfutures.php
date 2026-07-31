@@ -1592,7 +1592,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
 
     public function subscription_exists_for_hash(string $url, string $hash) {
         $client = $this->client($url);
-        return (is_array($client->subscriptions) && array_key_exists($hash, $client->subscriptions));
+        return (is_array($client->subscriptions) && array_key_exists($hash ?? '', $client->subscriptions));
     }
 
     public function get_message_hash(string $unifiedElementName, ?string $subChannelName = null, ?string $symbol = null) {
@@ -1699,7 +1699,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         } else {
             $error = new AuthenticationError($this->id . ' ' . $this->json($message));
             $client->reject($error, $messageHash);
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }

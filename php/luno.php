@@ -623,7 +623,7 @@ class luno extends Exchange {
             $balance = $this->safe_string($wallet, 'balance');
             $reservedUnconfirmed = Precise::string_add($reserved, $unconfirmed);
             $balanceUnconfirmed = Precise::string_add($balance, $unconfirmed);
-            if (is_array($result) && array_key_exists($code, $result)) {
+            if (is_array($result) && array_key_exists($code ?? '', $result)) {
                 $result[$code]['used'] = Precise::string_add($result[$code]['used'], $reservedUnconfirmed);
                 $result[$code]['total'] = Precise::string_add($result[$code]['total'], $balanceUnconfirmed);
             } else {

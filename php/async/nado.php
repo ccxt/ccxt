@@ -360,7 +360,7 @@ class nado extends Exchange {
             $market = $this->market($symbol);
             $request = Async\await($this->create_order_request($symbol, $type, $side, $amount, $price, $params));
             $placeOrder = $this->safe_dict($request, 'place_order', array());
-            $isTriggerOrder = (is_array($placeOrder) && array_key_exists('trigger', $placeOrder));
+            $isTriggerOrder = (is_array($placeOrder) && array_key_exists('trigger' ?? '', $placeOrder));
             $response = null;
             if ($isTriggerOrder) {
                 $response = Async\await($this->triggerPrivatePostExecute($request));

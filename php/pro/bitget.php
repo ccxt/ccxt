@@ -934,7 +934,7 @@ class bitget extends \ccxt\async\bitget {
         $incrementalBook = $channel === 'books';
         if ($incrementalBook) {
             // $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
                 // $ob = $this->order_book(array());
                 $ob = $this->counted_order_book(array());
                 $ob['symbol'] = $symbol;
@@ -980,13 +980,13 @@ class bitget extends \ccxt\async\bitget {
             $bidsKey = 'bids';
             $asksKey = 'asks';
             // bitget UTA has `a` and `b` instead of `$asks` and `$bids`
-            if (is_array($rawOrderBook) && array_key_exists('a', $rawOrderBook)) {
-                if (!(is_array($rawOrderBook) && array_key_exists('asks', $rawOrderBook))) {
+            if (is_array($rawOrderBook) && array_key_exists('a' ?? '', $rawOrderBook)) {
+                if (!(is_array($rawOrderBook) && array_key_exists('asks' ?? '', $rawOrderBook))) {
                     $asksKey = 'a';
                 }
             }
-            if (is_array($rawOrderBook) && array_key_exists('b', $rawOrderBook)) {
-                if (!(is_array($rawOrderBook) && array_key_exists('bids', $rawOrderBook))) {
+            if (is_array($rawOrderBook) && array_key_exists('b' ?? '', $rawOrderBook)) {
+                if (!(is_array($rawOrderBook) && array_key_exists('bids' ?? '', $rawOrderBook))) {
                     $bidsKey = 'b';
                 }
             }
@@ -1452,7 +1452,7 @@ class bitget extends \ccxt\async\bitget {
             $this->positions = array();
         }
         $action = $this->safe_string($message, 'action');
-        if (!(is_array($this->positions) && array_key_exists($instType, $this->positions)) || ($action === 'snapshot')) {
+        if (!(is_array($this->positions) && array_key_exists($instType ?? '', $this->positions)) || ($action === 'snapshot')) {
             $this->positions[$instType] = new ArrayCacheBySymbolBySide();
         }
         $cache = $this->positions[$instType];
@@ -1992,8 +1992,8 @@ class bitget extends \ccxt\async\bitget {
         //         "stpMode" => "none"
         //     }
         //
-        $isSpot = !(is_array($order) && array_key_exists('posMode', $order));
-        $isMargin = (is_array($order) && array_key_exists('loanType', $order));
+        $isSpot = !(is_array($order) && array_key_exists('posMode' ?? '', $order));
+        $isMargin = (is_array($order) && array_key_exists('loanType' ?? '', $order));
         $category = $this->safe_string_lower($order, 'category');
         if ($category === 'spot') {
             $isSpot = true;
@@ -2469,7 +2469,7 @@ class bitget extends \ccxt\async\bitget {
                     $entry = $coins[$j];
                     $currencyId = $this->safe_string($entry, 'coin');
                     $code = $this->safe_currency_code($currencyId);
-                    $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
+                    $account = (is_array($this->balance) && array_key_exists($code ?? '', $this->balance)) ? $this->balance[$code] : $this->account();
                     $borrow = $this->safe_string($entry, 'borrow');
                     $debts = $this->safe_string($entry, 'debts');
                     if (($borrow !== null) || ($debts !== null)) {
@@ -2483,13 +2483,13 @@ class bitget extends \ccxt\async\bitget {
             } else {
                 $currencyId = $this->safe_string_2($rawBalance, 'coin', 'marginCoin');
                 $code = $this->safe_currency_code($currencyId);
-                $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
+                $account = (is_array($this->balance) && array_key_exists($code ?? '', $this->balance)) ? $this->balance[$code] : $this->account();
                 $borrow = $this->safe_string($rawBalance, 'borrow');
                 if ($borrow !== null) {
                     $interest = $this->safe_string($rawBalance, 'interest');
                     $account['debt'] = Precise::string_add($borrow, $interest);
                 }
-                $freeQuery = (is_array($rawBalance) && array_key_exists('maxTransferOut', $rawBalance)) ? 'maxTransferOut' : 'available';
+                $freeQuery = (is_array($rawBalance) && array_key_exists('maxTransferOut' ?? '', $rawBalance)) ? 'maxTransferOut' : 'available';
                 $account['free'] = $this->safe_string($rawBalance, $freeQuery);
                 $account['total'] = $this->safe_string($rawBalance, 'equity');
                 $account['used'] = $this->safe_string($rawBalance, 'frozen');
@@ -2650,7 +2650,7 @@ class bitget extends \ccxt\async\bitget {
             if ($e instanceof AuthenticationError) {
                 $messageHash = 'authenticated';
                 $client->reject($e, $messageHash);
-                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                     unset($client->subscriptions[$messageHash]);
                 }
             } else {
@@ -2834,17 +2834,17 @@ class bitget extends \ccxt\async\bitget {
         $symbol = $market['symbol'];
         $messageHash = 'unsubscribe:orderbook:' . $market['symbol'];
         $subMessageHash = 'orderbook:' . $symbol;
-        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+        if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
-        if (is_array($client->subscriptions) && array_key_exists($subMessageHash, $client->subscriptions)) {
+        if (is_array($client->subscriptions) && array_key_exists($subMessageHash ?? '', $client->subscriptions)) {
             unset($client->subscriptions[$subMessageHash]);
         }
-        if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+        if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
             unset($client->subscriptions[$messageHash]);
         }
         $error = new UnsubscribeError($this->id . ' orderbook ' . $symbol);
-        if (is_array($client->futures) && array_key_exists($subMessageHash, $client->futures)) {
+        if (is_array($client->futures) && array_key_exists($subMessageHash ?? '', $client->futures)) {
             $client->reject($error, $subMessageHash);
         }
         $client->resolve(true, $messageHash);
@@ -2862,17 +2862,17 @@ class bitget extends \ccxt\async\bitget {
         $symbol = $market['symbol'];
         $messageHash = 'unsubscribe:trade:' . $market['symbol'];
         $subMessageHash = 'trade:' . $symbol;
-        if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+        if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
             unset($this->trades[$symbol]);
         }
-        if (is_array($client->subscriptions) && array_key_exists($subMessageHash, $client->subscriptions)) {
+        if (is_array($client->subscriptions) && array_key_exists($subMessageHash ?? '', $client->subscriptions)) {
             unset($client->subscriptions[$subMessageHash]);
         }
-        if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+        if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
             unset($client->subscriptions[$messageHash]);
         }
         $error = new UnsubscribeError($this->id . ' trades ' . $symbol);
-        if (is_array($client->futures) && array_key_exists($subMessageHash, $client->futures)) {
+        if (is_array($client->futures) && array_key_exists($subMessageHash ?? '', $client->futures)) {
             $client->reject($error, $subMessageHash);
         }
         $client->resolve(true, $messageHash);
@@ -2890,17 +2890,17 @@ class bitget extends \ccxt\async\bitget {
         $symbol = $market['symbol'];
         $messageHash = 'unsubscribe:ticker:' . $market['symbol'];
         $subMessageHash = 'ticker:' . $symbol;
-        if (is_array($this->tickers) && array_key_exists($symbol, $this->tickers)) {
+        if (is_array($this->tickers) && array_key_exists($symbol ?? '', $this->tickers)) {
             unset($this->tickers[$symbol]);
         }
-        if (is_array($client->subscriptions) && array_key_exists($subMessageHash, $client->subscriptions)) {
+        if (is_array($client->subscriptions) && array_key_exists($subMessageHash ?? '', $client->subscriptions)) {
             unset($client->subscriptions[$subMessageHash]);
         }
-        if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+        if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
             unset($client->subscriptions[$messageHash]);
         }
         $error = new UnsubscribeError($this->id . ' ticker ' . $symbol);
-        if (is_array($client->futures) && array_key_exists($subMessageHash, $client->futures)) {
+        if (is_array($client->futures) && array_key_exists($subMessageHash ?? '', $client->futures)) {
             $client->reject($error, $subMessageHash);
         }
         $client->resolve(true, $messageHash);
@@ -2940,8 +2940,8 @@ class bitget extends \ccxt\async\bitget {
             $messageHash = 'unsubscribe:candles:' . $timeframe . ':' . $symbol;
             $subMessageHash = 'candles:' . $timeframe . ':' . $symbol;
         }
-        if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
-            if (($timeframe !== null) && (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs)) {
+            if (($timeframe !== null) && (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
                 unset($this->ohlcvs[$symbol][$timeframe]);
             }
         }

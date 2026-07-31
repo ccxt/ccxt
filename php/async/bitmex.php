@@ -1186,7 +1186,7 @@ class bitmex extends Exchange {
             // why the hassle? urlencode in python is kinda broken for nested dicts.
             // E.g. self.urlencode(array("filter" => array("open" => True))) will return "filter=array('open':+True)"
             // Bitmex doesn't like that. Hence resorting to this hack.
-            if (is_array($request) && array_key_exists('filter', $request)) {
+            if (is_array($request) && array_key_exists('filter' ?? '', $request)) {
                 $request['filter'] = $this->json($request['filter']);
             }
             $response = Async\await($this->privateGetOrder($request));
@@ -1278,7 +1278,7 @@ class bitmex extends Exchange {
             // why the hassle? urlencode in python is kinda broken for nested dicts.
             // E.g. self.urlencode(array("filter" => array("open" => True))) will return "filter=array('open':+True)"
             // Bitmex doesn't like that. Hence resorting to this hack.
-            if (is_array($request) && array_key_exists('filter', $request)) {
+            if (is_array($request) && array_key_exists('filter' ?? '', $request)) {
                 $request['filter'] = $this->json($request['filter']);
             }
             $response = Async\await($this->privateGetExecutionTradeHistory($request));
@@ -2909,7 +2909,7 @@ class bitmex extends Exchange {
             }
             $request = array();
             $market = null;
-            if (is_array($this->currencies) && array_key_exists($symbol, $this->currencies)) {
+            if (is_array($this->currencies) && array_key_exists($symbol ?? '', $this->currencies)) {
                 $code = $this->currency($symbol);
                 $request['symbol'] = $code['id'];
             } elseif ($symbol !== null) {

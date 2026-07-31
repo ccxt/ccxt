@@ -575,7 +575,7 @@ class exmo extends \ccxt\async\exmo {
         $orderBook = $this->safe_value($message, 'data', array());
         $messageHash = 'orderbook:' . $symbol;
         $timestamp = $this->safe_integer($message, 'ts');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book(array());
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -770,7 +770,7 @@ class exmo extends \ccxt\async\exmo {
             $type = $orderType;
         }
         $trades = null;
-        if (is_array($order) && array_key_exists('last_trade_id', $order)) {
+        if (is_array($order) && array_key_exists('last_trade_id' ?? '', $order)) {
             $trade = $this->parse_ws_trade($order, $market);
             $trades = array( $trade );
         }
