@@ -2026,7 +2026,28 @@ class mexc extends \ccxt\async\mexc {
             if ($listenKey !== null) {
                 return $listenKey;
             }
-            $response = Async\await($this->spotPrivatePostUserDataStream($params));
+            // guard against concurrent $listenKey requests with a future on the base
+            // spot ws $client - the first caller fetches the $listenKey, concurrent
+            // callers wait on the future and resume when the $listenKey is ready,
+            // otherwise the user-data subscriptions would be split across two connections
+            $client = $this->client($this->urls['api']['ws']['spot']);
+            $messageHash = 'authenticate:listenKey';
+            $isFetching = $this->safe_bool($this->options, 'listenKeyFetching', false);
+            if ($isFetching) {
+                Async\await($client->future($messageHash));
+                return $this->safe_string($this->options, 'listenKey');
+            }
+            $this->options['listenKeyFetching'] = true;
+            $client->future($messageHash); // created ahead of the request below, so concurrent callers can find it
+            $response = null;
+            try {
+                $response = Async\await($this->spotPrivatePostUserDataStream($params));
+            } catch (Exception $e) {
+                $this->options['listenKeyFetching'] = false;
+                $client->reject($e, $messageHash);
+                throw $e;
+            }
+            $this->options['listenKeyFetching'] = false;
             //
             //    {
             //        "listenKey" => "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
@@ -2034,6 +2055,7 @@ class mexc extends \ccxt\async\mexc {
             //
             $listenKey = $this->safe_string($response, 'listenKey');
             $this->options['listenKey'] = $listenKey;
+            $client->resolve($listenKey, $messageHash);
             $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
             $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $listenKey, $params);
             return $listenKey;
