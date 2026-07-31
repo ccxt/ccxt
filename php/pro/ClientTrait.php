@@ -237,6 +237,7 @@ trait ClientTrait {
                 $client->reject(new ExchangeError($this->id . ' loadOrderBook() orderbook is not initiated'), $messageHash);
                 return;
             }
+            $error = null;
             try {
                 $stored = $this->orderbooks[$symbol];
                 $maxRetries = $this->handle_option('watchOrderBook', 'maxRetries', 3);
@@ -253,12 +254,19 @@ trait ClientTrait {
                     }
                     $tries++;
                 }
-                $client->reject (new ExchangeError ($this->id . ' nonce is behind the cache after ' . strval($tries) . ' tries.' ), $messageHash);
-                unset($this->clients[$client->url]);
-            } catch (BaseError $e) {
-                $client->reject($e, $messageHash);
-                Async\await($this->load_order_book($client, $messageHash, $symbol, $limit, $params));
+                $error = new ExchangeError ($this->id . ' nonce is behind the cache after ' . strval($tries) . ' tries.' );
+            } catch (\Throwable $e) {
+                $error = $e;
             }
+            // a failed synchronization must not recurse into another attempt with the
+            // same broken state - previously the catch invoked load_order_book again,
+            // recursing endlessly when the snapshot request kept failing, see
+            // https://github.com/ccxt/ccxt/pull/24224 and https://github.com/ccxt/ccxt/issues/14567
+            // instead, reject the watcher and drop the connection and the cached
+            // orderbook, so the next watch_order_book() call resubscribes cleanly
+            $client->reject($error, $messageHash);
+            unset($this->clients[$client->url]);
+            $this->orderbooks[$symbol] = $this->order_book(); // clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
         }) ();
     }
 }
