@@ -1710,7 +1710,7 @@
             {
                 "description": "spot ohlcv",
                 "method": "fetchOHLCV",
-                "url": "https://open-api.bingx.com/openApi/spot/v1/market/kline?interval=1m&symbol=BTC-USDT&timestamp=1709992986762",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/market/kline?interval=1m&symbol=BTC-USDT&timeZone=0&timestamp=1709992986762",
                 "input": [
                     "BTC/USDT"
                 ]
