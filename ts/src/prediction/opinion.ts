@@ -5,7 +5,7 @@ import { ecdsa } from '../base/functions/crypto.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import type { Balances, Dict, Int, Market, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
-import { AuthenticationError, ArgumentsRequired, BadRequest } from '../base/errors.js';
+import { AuthenticationError, ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
 
@@ -113,8 +113,20 @@ export default class opinion extends Exchange {
                 'exact': {
                     '11001': AuthenticationError, // "This API Key has no related Opinion Login Wallet yet"
                     '11002': AuthenticationError, // "Invalid API key"
+                    '10610': InvalidOrder, // "postOnly is not allowed for market orders"
+                    '11004': AuthenticationError, // "Self-service key issuance is temporarily disabled"
+                    '11005': AuthenticationError, // "Wallet is not a registered Opinion account"
+                    '11009': AuthenticationError, // "API key already exists"
+                    '11010': AuthenticationError, // "No API key found for this wallet"
+                    '11011': AuthenticationError, // "Invalid signature"
+                    '11012': AuthenticationError, // "Signature expired"
+                    '11013': AuthenticationError, // "Signature already used"
                 },
-                'broad': {},
+                'broad': {
+                    'Insufficient token balance': InsufficientFunds,
+                    'below the minimum required value': InvalidOrder,
+                    'must be the current multi-signature wallet': InvalidOrder,
+                },
             },
             'options': {
                 'eventScopeParams': [ 'labelId' ],
@@ -1440,6 +1452,24 @@ export default class opinion extends Exchange {
         // in the struct-based languages (C#/Go/Java)
         this.options['apiKey'] = creds['apiKey'];
         return creds;
+    }
+
+    handleErrors (code: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+        // opinion always responds 200 OK and signals failure through a nonzero errno in the
+        // body - without this, a failed order/cancel/etc. would silently parse into an empty
+        // result instead of raising, since the base http-status handling never sees an error
+        if (response === undefined) {
+            return undefined;
+        }
+        const errno = this.safeInteger (response, 'errno');
+        if ((errno !== undefined) && (errno !== 0)) {
+            const errmsg = this.safeString (response, 'errmsg', '');
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], this.numberToString (errno), feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errmsg, feedback);
+            throw new ExchangeError (feedback);
+        }
+        return undefined;
     }
 
     /**
