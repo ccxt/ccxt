@@ -2371,7 +2371,7 @@ ${caseStatements.join('\n')}
         if (n > 0) {
             return Math.floor (n)
         }
-        return Math.max (1, os.availableParallelism ())
+        return Math.max (1, Math.min (4, os.availableParallelism ()))
     }
 
     async webworkerTranspile (allFiles: any[], parserConfig: any) {
