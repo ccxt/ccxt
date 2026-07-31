@@ -358,7 +358,6 @@ class BaseExchange {
         'bitflyer',
         'bitget',
         'bithumb',
-        'bitmart',
         'bitmex',
         'bitopro',
         'bitrue',
