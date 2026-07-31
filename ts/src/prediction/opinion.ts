@@ -952,6 +952,7 @@ export default class opinion extends Exchange {
             'signatureType': signatureType,
         };
         const signature = this.signOpinionOrder (order, exchangeAddress);
+        const signatureNo0x = this.remove0xPrefix (signature);
         const orderBody: Dict = this.extend ({
             'salt': salt,
             'maker': maker,
@@ -966,7 +967,7 @@ export default class opinion extends Exchange {
             'side': sideInt.toString (),
             'signatureType': signatureType.toString (),
             'signature': signature,
-            'sign': this.remove0xPrefix (signature).slice (0, 64),
+            'sign': signatureNo0x.slice (0, 64),
             'contractAddress': '',
             'currencyAddress': quoteTokenAddress,
             'topicId': topicId,
