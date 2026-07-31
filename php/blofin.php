@@ -512,7 +512,7 @@ class blofin extends Exchange {
         $contract = $swap || $future;
         $baseId = $this->safe_string($market, 'baseCurrency');
         $quoteId = $this->safe_string($market, 'quoteCurrency');
-        $settleId = $this->safe_string($market, 'quoteCurrency');
+        $settleId = $this->safe_string($market, 'settleCurrency', $quoteId);
         $settle = $this->safe_currency_code($settleId);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
@@ -531,6 +531,9 @@ class blofin extends Exchange {
         $maxLeverage = Precise::string_max($maxLeverage, '1');
         $isActive = ($this->safe_string($market, 'state') === 'live');
         $isMargin = $spot && (Precise::string_gt($maxLeverage, '1'));
+        $contractType = $this->safe_string($market, 'contractType');
+        $maxLimitAmount = $this->safe_number($market, 'maxLimitSize');
+        $maxSpotCost = $this->safe_number($market, 'maxMarketSize'); // for $spot, $market-buy size is denominated in the $quote currency, i.e. cost
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -550,8 +553,8 @@ class blofin extends Exchange {
             'taker' => $taker,
             'maker' => $maker,
             'contract' => $contract,
-            'linear' => $contract ? ($quoteId === $settleId) : null,
-            'inverse' => $contract ? ($baseId === $settleId) : null,
+            'linear' => $contract ? ($contractType === 'linear') : null,
+            'inverse' => $contract ? ($contractType === 'inverse') : null,
             'contractSize' => $contract ? $this->safe_number($market, 'contractValue') : null,
             'expiry' => $expiry,
             'expiryDatetime' => $expiry,
@@ -569,7 +572,7 @@ class blofin extends Exchange {
                 ),
                 'amount' => array(
                     'min' => $this->safe_number($market, 'minSize'),
-                    'max' => null,
+                    'max' => $maxLimitAmount,
                 ),
                 'price' => array(
                     'min' => null,
@@ -577,7 +580,7 @@ class blofin extends Exchange {
                 ),
                 'cost' => array(
                     'min' => null,
-                    'max' => null,
+                    'max' => $contract ? null : $maxSpotCost,
                 ),
             ),
             'info' => $market,
