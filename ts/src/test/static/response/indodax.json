@@ -56,6 +56,220 @@
                     }
                 }
             }
+        ],
+        "fetchOrder": [
+            {
+                "description": "filled buy order with receive_base and order_rp",
+                "method": "fetchOrder",
+                "input": [
+                    "1019792",
+                    "BTC/IDR"
+                ],
+                "httpResponse": {
+                    "success": 1,
+                    "return": {
+                        "order": {
+                            "order_id": "1019792",
+                            "price": "1000000000",
+                            "type": "buy",
+                            "order_rp": "10999",
+                            "fee": 35,
+                            "receive_btc": "0.00001099",
+                            "status": "filled",
+                            "submit_time": "1578648363"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": 1,
+                        "return": {
+                            "order": {
+                                "order_id": "1019792",
+                                "price": "1000000000",
+                                "type": "buy",
+                                "order_rp": "10999",
+                                "fee": 35,
+                                "receive_btc": "0.00001099",
+                                "status": "filled",
+                                "submit_time": "1578648363"
+                            }
+                        }
+                    },
+                    "id": "1019792",
+                    "clientOrderId": null,
+                    "timestamp": 1578648363000,
+                    "datetime": "2020-01-10T09:26:03.000Z",
+                    "lastTradeTimestamp": null,
+                    "status": "closed",
+                    "symbol": "BTC/IDR",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 1000000000,
+                    "amount": 0.00001099,
+                    "filled": 0.00001099,
+                    "remaining": 0,
+                    "average": 1000818926.2966332,
+                    "cost": 10999,
+                    "fee": {
+                        "currency": "IDR",
+                        "cost": 35,
+                        "rate": null
+                    },
+                    "trades": [],
+                    "fees": [
+                        {
+                            "currency": "IDR",
+                            "cost": 35,
+                            "rate": null
+                        }
+                    ],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "filled sell order with order_base and remain_base",
+                "method": "fetchOrder",
+                "input": [
+                    "49326856",
+                    "BTC/IDR"
+                ],
+                "httpResponse": {
+                    "success": 1,
+                    "return": {
+                        "order": {
+                            "order_id": "49326856",
+                            "type": "sell",
+                            "price": "1000000000",
+                            "submit_time": "1618314671",
+                            "finish_time": "1618314671",
+                            "status": "filled",
+                            "order_btc": "0.00003045",
+                            "remain_btc": "0.00000000"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": 1,
+                        "return": {
+                            "order": {
+                                "order_id": "49326856",
+                                "type": "sell",
+                                "price": "1000000000",
+                                "submit_time": "1618314671",
+                                "finish_time": "1618314671",
+                                "status": "filled",
+                                "order_btc": "0.00003045",
+                                "remain_btc": "0.00000000"
+                            }
+                        }
+                    },
+                    "id": "49326856",
+                    "clientOrderId": null,
+                    "timestamp": 1618314671000,
+                    "datetime": "2021-04-13T11:51:11.000Z",
+                    "lastTradeTimestamp": null,
+                    "status": "closed",
+                    "symbol": "BTC/IDR",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "sell",
+                    "price": 1000000000,
+                    "amount": 0.00003045,
+                    "filled": 0.00003045,
+                    "remaining": 0,
+                    "average": null,
+                    "cost": 30450,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            },
+            {
+                "description": "cancelled buy order does not use receive_idr as amount",
+                "method": "fetchOrder",
+                "input": [
+                    "59639504",
+                    "BTC/IDR"
+                ],
+                "httpResponse": {
+                    "success": 1,
+                    "return": {
+                        "order": {
+                            "order_id": "59639504",
+                            "price": "100207000",
+                            "type": "buy",
+                            "order_rp": "336058",
+                            "remain_rp": "336058",
+                            "submit_time": "1578648363",
+                            "finish_time": "1578649332",
+                            "status": "cancelled",
+                            "receive_idr": "336058",
+                            "client_order_id": "clientx-sj82ks82j"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "success": 1,
+                        "return": {
+                            "order": {
+                                "order_id": "59639504",
+                                "price": "100207000",
+                                "type": "buy",
+                                "order_rp": "336058",
+                                "remain_rp": "336058",
+                                "submit_time": "1578648363",
+                                "finish_time": "1578649332",
+                                "status": "cancelled",
+                                "receive_idr": "336058",
+                                "client_order_id": "clientx-sj82ks82j"
+                            }
+                        }
+                    },
+                    "id": "59639504",
+                    "clientOrderId": "clientx-sj82ks82j",
+                    "timestamp": 1578648363000,
+                    "datetime": "2020-01-10T09:26:03.000Z",
+                    "lastTradeTimestamp": null,
+                    "status": "canceled",
+                    "symbol": "BTC/IDR",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 100207000,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "average": null,
+                    "cost": 336058,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
         ]
     }
 }
