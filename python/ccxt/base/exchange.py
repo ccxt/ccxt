@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.67'
+__version__ = '4.5.70'
 
 # -----------------------------------------------------------------------------
 
@@ -426,6 +426,9 @@ class BaseExchange(object):
                         setattr(self, camelcase, attr)
 
         if not self.session and self.synchronous:
+            # requests/urllib3 connects via socket.create_connection, which resolves
+            # with AF_UNSPEC and tries IPv4 and IPv6 addresses in getaddrinfo order,
+            # so the default Session is already dual-stack (no family is forced here)
             self.session = Session()
             self.session.trust_env = self.requests_trust_env
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
@@ -732,8 +735,12 @@ class BaseExchange(object):
     def safe_string(dictionary, key, default_value=None):
         try:
             value = dictionary[key]
-            if value is not None and value != '':
-                return str(value)
+            if value is not None:
+                t = type(value)
+                if t is str and value != '':
+                    return value
+                if t is float or t is int:  # or t is Decimal
+                    return str(value)
         except Exception:
             pass
         return default_value
@@ -742,8 +749,12 @@ class BaseExchange(object):
     def safe_string_lower(dictionary, key, default_value=None):
         try:
             value = dictionary[key]
-            if value is not None and value != '':
-                return str(value).lower()
+            if value is not None:
+                t = type(value)
+                if t is str and value != '':
+                    return value.lower()
+                if t is float or t is int:
+                    return str(value).lower()
         except Exception:
             pass
         return default_value
@@ -752,8 +763,12 @@ class BaseExchange(object):
     def safe_string_upper(dictionary, key, default_value=None):
         try:
             value = dictionary[key]
-            if value is not None and value != '':
-                return str(value).upper()
+            if value is not None:
+                t = type(value)
+                if t is str and value != '':
+                    return value.upper()
+                if t is float or t is int:
+                    return str(value).upper()
         except Exception:
             pass
         return default_value
@@ -806,27 +821,73 @@ class BaseExchange(object):
     def safe_string_2(dictionary, key1, key2, default_value=None):
         try:
             value = dictionary[key1]
-            if value is not None and value != '':
-                return str(value)
+            if value is not None:
+                t = type(value)
+                if t is str and value != '':
+                    return value
+                if t is float or t is int:  # or t is Decimal
+                    return str(value)
         except Exception:
             pass
         try:
             value = dictionary[key2]
-            if value is not None and value != '':
-                return str(value)
+            if value is not None:
+                t = type(value)
+                if t is str and value != '':
+                    return value
+                if t is float or t is int:  # or t is Decimal
+                    return str(value)
         except Exception:
             pass
         return default_value
 
     @staticmethod
     def safe_string_lower_2(dictionary, key1, key2, default_value=None):
-        value = Exchange.safe_string_2(dictionary, key1, key2)
-        return value.lower() if value is not None else default_value
+        try:
+            value = dictionary[key1]
+            if value is not None:
+                t = type(value)
+                if t is str and value != '':
+                    return value.lower()
+                if t is float or t is int:  # or t is Decimal
+                    return str(value).lower()
+        except Exception:
+            pass
+        try:
+            value = dictionary[key2]
+            if value is not None:
+                t = type(value)
+                if t is str and value != '':
+                    return value.lower()
+                if t is float or t is int:  # or t is Decimal
+                    return str(value).lower()
+        except Exception:
+            pass
+        return default_value
 
     @staticmethod
     def safe_string_upper_2(dictionary, key1, key2, default_value=None):
-        value = Exchange.safe_string_2(dictionary, key1, key2)
-        return value.upper() if value is not None else default_value
+        try:
+            value = dictionary[key1]
+            if value is not None:
+                t = type(value)
+                if t is str and value != '':
+                    return value.upper()
+                if t is float or t is int:  # or t is Decimal
+                    return str(value).upper()
+        except Exception:
+            pass
+        try:
+            value = dictionary[key2]
+            if value is not None:
+                t = type(value)
+                if t is str and value != '':
+                    return value.upper()
+                if t is float or t is int:  # or t is Decimal
+                    return str(value).upper()
+        except Exception:
+            pass
+        return default_value
 
     @staticmethod
     def safe_integer_2(dictionary, key1, key2, default_value=None):
@@ -883,20 +944,34 @@ class BaseExchange(object):
     @staticmethod
     def safe_string_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
-        return str(value) if value is not None else default_value
+        if value is not None:
+            t = type(value)
+            if t is str:
+                return value
+            if t is float or t is int:
+                return str(value)
+        return default_value
 
     @staticmethod
     def safe_string_lower_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         if value is not None:
-            return str(value).lower()
+            t = type(value)
+            if t is str:
+                return value.lower()
+            if t is float or t is int:
+                return str(value).lower()
         return default_value
 
     @staticmethod
     def safe_string_upper_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
         if value is not None:
-            return str(value).upper()
+            t = type(value)
+            if t is str:
+                return value.upper()
+            if t is float or t is int:
+                return str(value).upper()
         return default_value
 
     @staticmethod
@@ -6985,6 +7060,10 @@ class BaseExchange(object):
         maxCalls = None
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
         maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
+        # paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
+        # pagination always walks forward internally, so strip it here to avoid leaking an
+        # unrecognized param into the underlying exchange request(e.g. binance -1104 errors)
+        params = self.omit(params, 'paginationDirection')
         current = self.milliseconds()
         tasks = []
         time = self.parse_timeframe(timeframe) * 1000

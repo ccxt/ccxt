@@ -798,6 +798,7 @@ public class  Mexc: mexc { public Mexc(object args = null) : base(args) { } }
 public class  Modetrade: modetrade { public Modetrade(object args = null) : base(args) { } }
 public class  Mudrex: mudrex { public Mudrex(object args = null) : base(args) { } }
 public class  Myokx: myokx { public Myokx(object args = null) : base(args) { } }
+public class  Nado: nado { public Nado(object args = null) : base(args) { } }
 public class  Ndax: ndax { public Ndax(object args = null) : base(args) { } }
 public class  Okx: okx { public Okx(object args = null) : base(args) { } }
 public class  Okxus: okxus { public Okxus(object args = null) : base(args) { } }

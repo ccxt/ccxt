@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.67';
+$version = '4.5.70';
 
 class BaseExchange extends \ccxt\BaseExchange {
 
-    const VERSION = '4.5.67';
+    const VERSION = '4.5.70';
 
     public $browser;
     public $marketsLoading = null;
@@ -85,6 +85,9 @@ class BaseExchange extends \ccxt\BaseExchange {
     public function create_connector($connector_options = array()) {
         $connector = new React\Socket\Connector(array_merge(array(
             'timeout' => $this->timeout,
+            // explicitly use happy eyeballs for dual-stack IPv4/IPv6 connections
+            // (supported since react/socket 1.12, enabled by default, composer.json pins 1.17)
+            'happy_eyeballs' => true,
         ), $connector_options), Loop::get());
         return $connector;
     }
@@ -5809,6 +5812,10 @@ class BaseExchange extends \ccxt\BaseExchange {
             $maxCalls = null;
             list($maxCalls, $params) = $this->handle_option_and_params($params, $method, 'paginationCalls', 10);
             list($maxEntriesPerRequest, $params) = $this->handle_max_entries_per_request_and_params($method, $maxEntriesPerRequest, $params);
+            // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
+            // pagination always walks forward internally, so strip it here to avoid leaking an
+            // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
+            $params = $this->omit($params, 'paginationDirection');
             $current = $this->milliseconds();
             $tasks = array();
             $time = $this->parse_timeframe($timeframe) * 1000;

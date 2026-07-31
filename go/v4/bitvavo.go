@@ -1819,7 +1819,7 @@ func (this *BitvavoCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	if IsTrue(!IsEqual(operatorId, nil)) {
 		AddElementToObject(request, "operatorId", this.ParseToInt(operatorId))
 	} else {
-		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires an operatorId in params or options, eg: exchange.options[\\'operatorId\\'] = 1234567890")))
+		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")))
 	}
 	var selfTradePrevention any = nil
 	selfTradePreventionparamsVariable := this.HandleOptionAndParams(params, "createOrder", "selfTradePrevention")
@@ -1964,7 +1964,7 @@ func (this *BitvavoCore) EditOrderRequest(id any, symbol any, typeVar any, side 
 	if IsTrue(!IsEqual(operatorId, nil)) {
 		AddElementToObject(request, "operatorId", this.ParseToInt(operatorId))
 	} else {
-		panic(ArgumentsRequired(Add(this.Id, " editOrder() requires an operatorId in params or options, eg: exchange.options[\\'operatorId\\'] = 1234567890")))
+		panic(ArgumentsRequired(Add(this.Id, " editOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")))
 	}
 	AddElementToObject(request, "market", GetValue(market, "id"))
 	return request
@@ -2035,7 +2035,7 @@ func (this *BitvavoCore) CancelOrderRequest(id any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(operatorId, nil)) {
 		AddElementToObject(request, "operatorId", this.ParseToInt(operatorId))
 	} else {
-		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires an operatorId in params or options, eg: exchange.options[\\'operatorId\\'] = 1234567890")))
+		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")))
 	}
 	return this.Extend(request, params)
 }
@@ -2118,7 +2118,7 @@ func (this *BitvavoCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(operatorId, nil)) {
 			AddElementToObject(request, "operatorId", this.ParseToInt(operatorId))
 		} else {
-			panic(ArgumentsRequired(Add(this.Id, " canceAllOrders() requires an operatorId in params or options, eg: exchange.options[\\'operatorId\\'] = 1234567890")))
+			panic(ArgumentsRequired(Add(this.Id, " canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")))
 		}
 
 		response := (<-this.PrivateDeleteOrders(this.Extend(request, params)))

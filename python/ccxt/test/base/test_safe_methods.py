@@ -36,6 +36,7 @@ def helper_default_input_dict():
         'zeroString': '0',
         'undefined': None,
         'emptyString': '',
+        'randomList': ['Hi', 4],
         'floatNumeric': 0.123,
         'floatString': '0.123',
         'longInt': 123456789012345,
@@ -49,60 +50,100 @@ def test_safe_string():
     input_dict = helper_default_input_dict()
     input_list = ['Hi', 2]
     # safeString
-    assert exchange.safe_string(input_dict, 'i') == '1'
-    assert exchange.safe_string(input_dict, 'f') == '0.123'
-    # assert (exchange.safeString (inputDict, 'bool') === 'true'); returns True in python and 'true' in js
-    assert exchange.safe_string(input_dict, 'str') == 'heLlo'
-    assert exchange.safe_string(input_dict, 'strNumber') == '3'
-    assert exchange.safe_string(input_list, 0) == 'Hi'
+    assert exchange.safe_string(input_dict, 'i') == '1', 'safeString failed for integer'
+    assert exchange.safe_string(input_dict, 'f') == '0.123', 'safeString failed for float'
+    assert exchange.safe_string(input_dict, 'bool') is None, 'safeString failed for boolean'
+    assert exchange.safe_string(input_dict, 'list') is None, 'safeString failed for list'
+    assert exchange.safe_string(input_dict, 'dict') is None, 'safeString failed for dict'
+    assert exchange.safe_string(input_dict, 'str') == 'heLlo', 'safeString failed for string'
+    assert exchange.safe_string(input_dict, 'strNumber') == '3', 'safeString failed for string number'
+    assert exchange.safe_string(input_dict, 'zeroNumeric') == '0', 'safeString failed for zero numeric'
+    assert exchange.safe_string(input_dict, 'zeroString') == '0', 'safeString failed for zero string'
+    assert exchange.safe_string(input_dict, 'undefined') is None, 'safeString failed for undefined'
+    assert exchange.safe_string(input_dict, 'emptyString') is None, 'safeString failed for empty string'
+    assert exchange.safe_string(input_list, 0) == 'Hi', 'safeString failed for list element'
+    assert exchange.safe_string(input_dict, 'floatNumeric') == '0.123', 'safeString failed for float numeric'
+    assert exchange.safe_string(input_dict, 'floatString') == '0.123', 'safeString failed for float string'
+    assert exchange.safe_string(input_dict, 'longInt') == '123456789012345', 'safeString failed for long integer'
+    # With defaults
+    assert exchange.safe_string(input_dict, 'nonexistent', 'MiXed_Case') == 'MiXed_Case', 'safeString failed for nonexistent key with default'
+    # the below fails in other langs
+    # # @ts-expect-error
+    # assert (exchange.safeString (inputDict, 'nonexistent', 1) === 1, 'safeString failed for nonexistent key with default integer');
+    # # @ts-expect-error
+    # assert (exchange.safeString (inputDict, 'nonexistent', true) === true, 'safeString failed for nonexistent key with default bool');
+    # # @ts-expect-error
+    # assert (exchange.safeString (inputDict, 'nonexistent', 0.2) === 0.2 , 'safeString failed for nonexistent key with default float');
     # safeString2
     assert exchange.safe_string_2(input_dict, 'a', 'i') == '1'
     assert exchange.safe_string_2(input_dict, 'a', 'f') == '0.123'
     assert exchange.safe_string_2(input_dict, 'a', 'str') == 'heLlo'
     assert exchange.safe_string_2(input_dict, 'a', 'strNumber') == '3'
     assert exchange.safe_string_2(input_list, 2, 0) == 'Hi'
+    assert exchange.safe_string_2(input_list, 2, 'emptyString') is None
     # safeStringN
     assert exchange.safe_string_n(input_dict, ['a', 'b', 'i']) == '1'
     assert exchange.safe_string_n(input_dict, ['a', 'b', 'f']) == '0.123'
     assert exchange.safe_string_n(input_dict, ['a', 'b', 'str']) == 'heLlo'
     assert exchange.safe_string_n(input_dict, ['a', 'b', 'strNumber']) == '3'
+    assert exchange.safe_string_n(input_dict, ['a', 'b', 'emptyString']) is None
     assert exchange.safe_string_n(input_list, [3, 2, 0]) == 'Hi'
+    # With defaults
+    assert exchange.safe_string_n(input_dict, ['a', 'b', 'nonexistent'], 'MiXed_Case') == 'MiXed_Case'
     # safeStringLower
     assert exchange.safe_string_lower(input_dict, 'i') == '1'
     assert exchange.safe_string_lower(input_dict, 'f') == '0.123'
     assert exchange.safe_string_lower(input_dict, 'str') == 'hello'
     assert exchange.safe_string_lower(input_dict, 'strNumber') == '3'
+    assert exchange.safe_string_lower(input_dict, 'emptyString') is None
     assert exchange.safe_string_lower(input_list, 0) == 'hi'
+    # With defaults
+    assert exchange.safe_string_lower(input_dict, 'nonexistent', 'MiXed_Case') == 'MiXed_Case'
     # safeStringLower2testSafeString
     assert exchange.safe_string_lower_2(input_dict, 'a', 'i') == '1'
     assert exchange.safe_string_lower_2(input_dict, 'a', 'f') == '0.123'
     assert exchange.safe_string_lower_2(input_dict, 'a', 'str') == 'hello'
     assert exchange.safe_string_lower_2(input_dict, 'a', 'strNumber') == '3'
+    assert exchange.safe_string_lower_2(input_dict, 'a', 'emptyString') is None
     assert exchange.safe_string_lower_2(input_list, 2, 0) == 'hi'
+    # With defaults
+    assert exchange.safe_string_lower_2(input_dict, 'a', 'nonexistent', 'MiXed_Case') == 'MiXed_Case'
     # safeStringLowerN
     assert exchange.safe_string_lower_n(input_dict, ['a', 'b', 'i']) == '1'
     assert exchange.safe_string_lower_n(input_dict, ['a', 'b', 'f']) == '0.123'
     assert exchange.safe_string_lower_n(input_dict, ['a', 'b', 'str']) == 'hello'
+    assert exchange.safe_string_lower_n(input_dict, ['a', 'b', 'emptyString']) is None
     assert exchange.safe_string_lower_n(input_dict, ['a', 'b', 'strNumber']) == '3'
     assert exchange.safe_string_lower_n(input_list, [3, 2, 0]) == 'hi'
+    # With defaults
+    assert exchange.safe_string_lower_n(input_dict, ['a', 'b', 'nonexistent'], 'MiXed_Case') == 'MiXed_Case'
     # safeStringUpper
     assert exchange.safe_string_upper(input_dict, 'i') == '1'
     assert exchange.safe_string_upper(input_dict, 'f') == '0.123'
     assert exchange.safe_string_upper(input_dict, 'str') == 'HELLO'
     assert exchange.safe_string_upper(input_dict, 'strNumber') == '3'
+    assert exchange.safe_string_upper(input_dict, 'emptyString') is None
     assert exchange.safe_string_upper(input_list, 0) == 'HI'
+    # With defaults
+    assert exchange.safe_string_upper(input_dict, 'nonexistent', 'MiXed_Case') == 'MiXed_Case'
     # safeStringUpper2
     assert exchange.safe_string_upper_2(input_dict, 'a', 'i') == '1'
     assert exchange.safe_string_upper_2(input_dict, 'a', 'f') == '0.123'
     assert exchange.safe_string_upper_2(input_dict, 'a', 'str') == 'HELLO'
+    assert exchange.safe_string_upper_2(input_dict, 'a', 'emptyString') is None
     assert exchange.safe_string_upper_2(input_dict, 'a', 'strNumber') == '3'
     assert exchange.safe_string_upper_2(input_list, 2, 0) == 'HI'
+    # With defaults
+    assert exchange.safe_string_upper_2(input_dict, 'a', 'nonexistent', 'MiXed_Case') == 'MiXed_Case'
     # safeStringUpperN
     assert exchange.safe_string_upper_n(input_dict, ['a', 'b', 'i']) == '1'
     assert exchange.safe_string_upper_n(input_dict, ['a', 'b', 'f']) == '0.123'
     assert exchange.safe_string_upper_n(input_dict, ['a', 'b', 'str']) == 'HELLO'
+    assert exchange.safe_string_upper_n(input_dict, ['a', 'b', 'emptyString']) is None
     assert exchange.safe_string_upper_n(input_dict, ['a', 'b', 'strNumber']) == '3'
     assert exchange.safe_string_upper_n(input_list, [3, 2, 0]) == 'HI'
+    # With defaults
+    assert exchange.safe_string_upper_n(input_dict, ['a', 'b', 'nonexistent'], 'MiXed_Case') == 'MiXed_Case'
 
 
 def test_safe_value():

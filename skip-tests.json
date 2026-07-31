@@ -1822,6 +1822,18 @@
             }
         }
     },
+    "nado": {
+        "skipWs": "timeouts",
+        "skipMethods": {
+            "loadMarkets": {
+                "precisionAmountAbnormal": "some markets report integer amount tick sizes such as 5"
+            },
+            "fetchCurrencies": {
+                "precision": "not provided",
+                "activeMajorCurrencies": "perp assets are included for market currency id validation but are not depositable or withdrawable"
+            }
+        }
+    },
     "ndax": {
         "skipWs": "timeouts",
         "skipMethods": {

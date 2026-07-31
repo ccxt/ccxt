@@ -6826,8 +6826,11 @@ export default class okx extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        if (!market['swap']) {
-            throw new ExchangeError(this.id + ' fetchFundingRate() is only valid for swap markets');
+        const marketInfo = this.safeDict(market, 'info', {});
+        const ruleType = this.safeString(marketInfo, 'ruleType');
+        const isExtendedPerpetual = (ruleType === 'xperp'); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+        if (!market['swap'] && !isExtendedPerpetual) {
+            throw new ExchangeError(this.id + ' fetchFundingRate() is only valid for swap markets or XPERP futures');
         }
         const request = {
             'instId': market['id'],
@@ -6866,7 +6869,18 @@ export default class okx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, 'swap', true);
+        symbols = this.marketSymbols(symbols, undefined, true);
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market(symbols[i]);
+                const marketInfo = this.safeDict(market, 'info', {});
+                const ruleType = this.safeString(marketInfo, 'ruleType');
+                const isExtendedPerpetual = (ruleType === 'xperp'); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+                if (!market['swap'] && !isExtendedPerpetual) {
+                    throw new BadRequest(this.id + ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' + symbols[i] + ' is not');
+                }
+            }
+        }
         const request = { 'instId': 'ANY' };
         const response = await this.publicGetPublicFundingRate(this.extend(request, params));
         //

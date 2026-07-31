@@ -1783,6 +1783,17 @@ class bitget extends \ccxt\async\bitget {
         $isLinearSwap = ($category === 'usdt-futures');
         $isInverseSwap = ($category === 'coin-futures');
         $isUSDCFutures = ($category === 'usdc-futures');
+        if ($instType === 'uta') {
+            // UTA order/fill pushes carry the real product in 'category' (spot / *-futures);
+            // the $instType->marketType mapping above defaults UTA to 'contract', which
+            // mis-resolves a UTA SPOT $order to the swap $market and yields a $messageHash the
+            // watcher never matches. Derive $marketType from $category for UTA.
+            if (($category === 'spot') || ($category === 'margin')) {
+                $marketType = 'spot';
+            } else {
+                $marketType = 'contract';
+            }
+        }
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById($limit);
@@ -2272,9 +2283,24 @@ class bitget extends \ccxt\async\bitget {
         $data = $this->safe_list($message, 'data', array());
         $length = count($data);
         $messageHash = 'myTrades';
+        $arg = $this->safe_dict($message, 'arg', array());
+        $instType = $this->safe_string_lower($arg, 'instType');
         for ($i = 0; $i < $length; $i++) {
             $trade = $data[$i];
-            $parsed = $this->parse_ws_trade($trade);
+            $market = null;
+            if ($instType === 'uta') {
+                // UTA fills carry the product in 'category'; resolve the matching
+                // $market so parseWsTrade yields the correct $symbol (a UTA SPOT fill
+                // otherwise resolves to the swap $market and the $messageHash never matches).
+                $category = $this->safe_string_lower($trade, 'category');
+                $marketType = 'contract';
+                if (($category === 'spot') || ($category === 'margin')) {
+                    $marketType = 'spot';
+                }
+                $marketId = $this->safe_string_2($trade, 'instId', 'symbol');
+                $market = $this->safe_market($marketId, null, null, $marketType);
+            }
+            $parsed = $this->parse_ws_trade($trade, $market);
             $stored->append($parsed);
             $symbol = $parsed['symbol'];
             $symbolSpecificMessageHash = 'myTrades:' . $symbol;

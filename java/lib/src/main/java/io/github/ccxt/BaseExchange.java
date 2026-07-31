@@ -251,7 +251,7 @@ public class BaseExchange {
         } else {
             defaultConfig = new HashMap<String, Object>();
         }
-        System.setProperty("java.net.preferIPv4Stack", "true");
+        // Do not set java.net.preferIPv4Stack; JVM default dual-stack (no HE delay knob).
         this.initializeProperties(defaultConfig);
         this.initHttpClient();
         this.httpClientProxyFingerprint = currentProxyFingerprint();
@@ -1978,6 +1978,7 @@ public class BaseExchange {
     }
 
     private void initHttpClient() {
+        // HttpClient uses JVM default dual-stack DNS (no preferIPv4Stack).
         var builder = HttpClient.newBuilder();
         // Java's HttpClient defaults to Redirect.NEVER, but TS/Node fetch and
         // browsers transparently follow 3xx. Without this, requests against
@@ -11487,6 +11488,10 @@ public Object describe()
             var maxEntriesPerRequestparametersVariable = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
             maxEntriesPerRequest = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(1);
+            // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
+            // pagination always walks forward internally, so strip it here to avoid leaking an
+            // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
+            parameters = this.omit(parameters, "paginationDirection");
             Object current = this.milliseconds();
             Object tasks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object time = Helpers.multiply(this.parseTimeframe(timeframe), 1000);

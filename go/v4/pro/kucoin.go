@@ -2002,7 +2002,7 @@ func (this *KucoinCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...an
 		}
 		if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
 			if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(limit, 20))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 100)))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 50)))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 5)))) {
-				panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchOrderBook \\'limit\\' argument must be undefined, 5, 20, 50 or 100")))
+				panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchOrderBook 'limit' argument must be undefined, 5, 20, 50 or 100")))
 			}
 		}
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {

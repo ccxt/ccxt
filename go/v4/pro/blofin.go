@@ -570,7 +570,7 @@ func (this *BlofinCore) WatchOHLCVForSymbols(symbolsAndTimeframes any, optionalA
 		_ = params
 		var symbolsLength any = ccxt.GetArrayLength(symbolsAndTimeframes)
 		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) || !ccxt.IsTrue(ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)))) {
-			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [[\\'BTC/USDT\\', \\'1m\\'], [\\'LTC/USDT\\', \\'5m\\']]")))
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")))
 		}
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 

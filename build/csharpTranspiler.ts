@@ -1201,7 +1201,7 @@ class NewTranspiler {
 
         // one shared pool — concurrent callers (base/exchange/ws tests) queue into the
         // same threads instead of each spawning their own full-size pool
-        const maxThreads = Math.max (1, os.cpus ().length - 1);
+        const maxThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ())
         if (!this.piscina) {
             this.piscina = new Piscina({
                 filename: resolve(__dirname, 'csharp-worker.js'),

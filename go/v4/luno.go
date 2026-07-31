@@ -1699,7 +1699,7 @@ func (this *LunoCore) FetchLedger(optionalArgs ...any) <-chan any {
 			max_row = 0           // Default to most recent transactions
 			min_row = OpNeg(1000) // Maximum number of records supported
 		} else if IsTrue(IsTrue(IsEqual(min_row, nil)) || IsTrue(IsEqual(max_row, nil))) {
-			panic(ExchangeError(Add(this.Id, " fetchLedger() require both params \\'max_row\\' and \\'min_row\\' or neither to be defined")))
+			panic(ExchangeError(Add(this.Id, " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined")))
 		}
 		if IsTrue(IsTrue(!IsEqual(limit, nil)) && IsTrue(IsGreaterThan(Subtract(max_row, min_row), limit))) {
 			if IsTrue(IsLessThanOrEqual(max_row, 0)) {
@@ -1709,7 +1709,7 @@ func (this *LunoCore) FetchLedger(optionalArgs ...any) <-chan any {
 			}
 		}
 		if IsTrue(IsGreaterThan(Subtract(max_row, min_row), 1000)) {
-			panic(ExchangeError(Add(this.Id, " fetchLedger() requires the params \\'max_row\\' - \\'min_row\\' <= 1000")))
+			panic(ExchangeError(Add(this.Id, " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000")))
 		}
 		var request any = map[string]any{
 			"id":      id,

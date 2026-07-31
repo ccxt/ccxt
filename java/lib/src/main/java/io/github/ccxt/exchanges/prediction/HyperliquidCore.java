@@ -128,7 +128,10 @@ public class HyperliquidCore extends HyperliquidApi
                 put( "outcomeQuoteCurrency", "USDH" );
                 put( "defaultSlippage", 0.05 );
                 put( "zeroAddress", "0x0000000000000000000000000000000000000000" );
-                put( "builderFee", false );
+                put( "builderFee", true );
+                put( "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6" );
+                put( "feeRate", "0%" );
+                put( "feeInt", 0 );
             }} );
             put( "exceptions", new java.util.HashMap<String, Object>() {{
                 put( "exact", new java.util.HashMap<String, Object>() {{
@@ -1479,6 +1482,22 @@ public class HyperliquidCore extends HyperliquidApi
                 put( "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList(orderObj)) );
                 put( "grouping", "na" );
             }};
+            if (Helpers.isTrue(this.safeBool(this.options, "approvedBuilderFee", false)))
+            {
+                Object wallet = this.safeStringLower(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
+                // feeInt defaults to 0: the builder is attached for statistics purposes only and the
+                // user is not charged; set options.feeInt (tenths of a bp) together with feeRate to charge
+                Object feeInt = this.safeInteger(this.options, "feeInt", 0);
+                if (!Helpers.isTrue(this.safeBool(this.options, "builderFee", true)))
+                {
+                    feeInt = 0;
+                }
+                final Object finalFeeInt = feeInt;
+                Helpers.addElementToObject(orderAction, "builder", new java.util.HashMap<String, Object>() {{
+        put( "b", wallet );
+        put( "f", finalFeeInt );
+    }});
+            }
             Object signature = this.signL1Action(orderAction, nonce, vaultAddress);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "action", orderAction );
@@ -2478,6 +2497,83 @@ public class HyperliquidCore extends HyperliquidApi
         return this.signMessage(msg, this.privateKey);
     }
 
+    public Object signUserSignedAction(Object messageTypes, Object message)
+    {
+        Object zeroAddress = this.safeString(this.options, "zeroAddress");
+        Object chainId = 421614;
+        Object domain = new java.util.HashMap<String, Object>() {{
+            put( "chainId", chainId );
+            put( "name", "HyperliquidSignTransaction" );
+            put( "verifyingContract", zeroAddress );
+            put( "version", "1" );
+        }};
+        Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
+        Object signature = this.signMessage(msg, this.privateKey);
+        return signature;
+    }
+
+    public Object buildApproveBuilderFeeSig(Object message)
+    {
+        Object messageTypes = new java.util.HashMap<String, Object>() {{
+            put( "HyperliquidTransaction:ApproveBuilderFee", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
+    put( "name", "hyperliquidChain" );
+    put( "type", "string" );
+}}, new java.util.HashMap<String, Object>() {{
+    put( "name", "maxFeeRate" );
+    put( "type", "string" );
+}}, new java.util.HashMap<String, Object>() {{
+    put( "name", "builder" );
+    put( "type", "address" );
+}}, new java.util.HashMap<String, Object>() {{
+    put( "name", "nonce" );
+    put( "type", "uint64" );
+}})) );
+        }};
+        return this.signUserSignedAction(messageTypes, message);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#approveBuilderFee
+     * @ignore
+     * @description approves the builder for the given max fee rate, required before orders can carry a builder attribution
+     * @param {string} builder the builder wallet address
+     * @param {string} maxFeeRate the maximum builder fee rate to approve, e.g. '0%'
+     * @returns {object} the raw exchange response
+     */
+    public java.util.concurrent.CompletableFuture<Object> approveBuilderFee(Object builder, Object maxFeeRate)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object nonce = this.milliseconds();
+            Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            Object payload = new java.util.HashMap<String, Object>() {{
+                put( "hyperliquidChain", ((Helpers.isTrue(isSandboxMode))) ? "Testnet" : "Mainnet" );
+                put( "maxFeeRate", maxFeeRate );
+                put( "builder", builder );
+                put( "nonce", nonce );
+            }};
+            Object sig = this.buildApproveBuilderFeeSig(payload);
+            Object action = new java.util.HashMap<String, Object>() {{
+                put( "hyperliquidChain", Helpers.GetValue(payload, "hyperliquidChain") );
+                put( "signatureChainId", "0x66eee" );
+                put( "maxFeeRate", Helpers.GetValue(payload, "maxFeeRate") );
+                put( "builder", Helpers.GetValue(payload, "builder") );
+                put( "nonce", nonce );
+                put( "type", "approveBuilderFee" );
+            }};
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "action", action );
+                put( "nonce", nonce );
+                put( "signature", sig );
+                put( "vaultAddress", null );
+            }};
+            return (this.privatePostExchange(request)).join();
+        });
+
+    }
+
     public java.util.concurrent.CompletableFuture<Object> initializeClient()
     {
 
@@ -2492,7 +2588,22 @@ public class HyperliquidCore extends HyperliquidApi
             {
                 return null;
             }
-            // builder fee approval would go here if needed
+            if (Helpers.isTrue(this.safeBool(this.options, "approvedBuilderFee", false)))
+            {
+                return null;  // already approved
+            }
+            try
+            {
+                Object builder = this.safeString(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
+                // the default feeRate is '0%': the builder is approved and attached for statistics
+                // purposes only and the user is not charged; set options.feeRate/feeInt to charge a fee
+                Object maxFeeRate = this.safeString(this.options, "feeRate", "0%");
+                (this.approveBuilderFee(builder, maxFeeRate)).join();
+                Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
+            } catch(Exception e)
+            {
+                Helpers.addElementToObject(this.options, "builderFee", false); // disable builder fee if an error occurs
+            }
             return null;
         });
 

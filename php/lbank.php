@@ -722,6 +722,7 @@ class lbank extends Exchange {
         // swap => fetchTickers
         //
         //     {
+        //         "lastTime" => 1784884932,
         //         "prePositionFeeRate" => "0.000053",
         //         "volume" => "2435.459",
         //         "symbol" => "BTCUSDT",
@@ -734,6 +735,9 @@ class lbank extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'timestamp');
+        if ($timestamp === null) {
+            $timestamp = $this->safe_timestamp($ticker, 'lastTime');
+        }
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $tickerData = $this->safe_value($ticker, 'ticker', array());

@@ -13,6 +13,7 @@ import ansi from 'ansicolor';
 import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import Piscina from 'piscina';
+import os from 'os';
 import { isMainEntry } from "./transpile.js";
 
 type dict = { [key: string]: string };
@@ -1125,6 +1126,10 @@ class NewTranspiler {
         //     ''
         // ]
         const blacklistMethods = new Set ([
+            'createOrderRequest',
+            'editOrderRequest',
+            'cancelOrdersRequest',
+            'cancelAllOrdersRequest',
             'createContractOrder',
             'createNetworksByIdObject',
             'createSpotOrder',
@@ -2370,8 +2375,10 @@ ${caseStatements.join('\n')}
     async webworkerTranspile (allFiles: any[], parserConfig: any) {
 
         // create worker
+        const maxThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ())
         const piscina = new Piscina({
-            filename: resolve(__dirname, 'go-worker.js')
+            filename: resolve(__dirname, 'go-worker.js'),
+            maxThreads,
         });
 
         const chunkSize = 20;

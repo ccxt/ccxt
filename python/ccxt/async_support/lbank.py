@@ -730,6 +730,7 @@ class lbank(Exchange, ImplicitAPI):
         # swap: fetchTickers
         #
         #     {
+        #         "lastTime": 1784884932,
         #         "prePositionFeeRate": "0.000053",
         #         "volume": "2435.459",
         #         "symbol": "BTCUSDT",
@@ -742,6 +743,8 @@ class lbank(Exchange, ImplicitAPI):
         #     }
         #
         timestamp = self.safe_integer(ticker, 'timestamp')
+        if timestamp is None:
+            timestamp = self.safe_timestamp(ticker, 'lastTime')
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         tickerData = self.safe_value(ticker, 'ticker', {})

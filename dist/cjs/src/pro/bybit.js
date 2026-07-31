@@ -2427,15 +2427,18 @@ class bybit extends bybit$1["default"] {
             return false;
         }
         catch (error) {
-            if (error instanceof errors.AuthenticationError) {
-                const messageHash = 'authenticated';
+            const messageHash = this.safeString2(message, 'req_id', 'reqId');
+            if (messageHash !== undefined) {
                 client.reject(error, messageHash);
-                if (messageHash in client.subscriptions) {
-                    delete client.subscriptions[messageHash];
+            }
+            else if (error instanceof errors.AuthenticationError) {
+                const authenticatedHash = 'authenticated';
+                client.reject(error, authenticatedHash);
+                if (authenticatedHash in client.subscriptions) {
+                    delete client.subscriptions[authenticatedHash];
                 }
             }
             else {
-                const messageHash = this.safeString2(message, 'req_id', 'reqId');
                 client.reject(error, messageHash);
             }
             return true;

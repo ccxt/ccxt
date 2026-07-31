@@ -7241,9 +7241,12 @@ public partial class okx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        if (!isTrue(getValue(market, "swap")))
+        object marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
+        object ruleType = this.safeString(marketInfo, "ruleType");
+        object isExtendedPerpetual = (isEqual(ruleType, "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+        if (isTrue(!isTrue(getValue(market, "swap")) && !isTrue(isExtendedPerpetual)))
         {
-            throw new ExchangeError ((string)add(this.id, " fetchFundingRate() is only valid for swap markets")) ;
+            throw new ExchangeError ((string)add(this.id, " fetchFundingRate() is only valid for swap markets or XPERP futures")) ;
         }
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
@@ -7286,7 +7289,21 @@ public partial class okx : Exchange
         {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols, "swap", true);
+        symbols = this.marketSymbols(symbols, null, true);
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object market = this.market(getValue(symbols, i));
+                object marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
+                object ruleType = this.safeString(marketInfo, "ruleType");
+                object isExtendedPerpetual = (isEqual(ruleType, "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+                if (isTrue(!isTrue(getValue(market, "swap")) && !isTrue(isExtendedPerpetual)))
+                {
+                    throw new BadRequest ((string)add(add(add(this.id, " fetchFundingRates() symbols must be swap markets or XPERP futures, "), getValue(symbols, i)), " is not")) ;
+                }
+            }
+        }
         object request = new Dictionary<string, object>() {
             { "instId", "ANY" },
         };

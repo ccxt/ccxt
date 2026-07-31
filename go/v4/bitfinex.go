@@ -2169,7 +2169,7 @@ func (this *BitfinexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(cid, nil)) {
 			var cidDate any = this.SafeValue(params, "cidDate") // client order id date
 			if IsTrue(IsEqual(cidDate, nil)) {
-				panic(InvalidOrder(Add(this.Id, " canceling an order by clientOrderId (\\'cid\\') requires both \\'cid\\' and \\'cid_date\\' (\\'YYYY-MM-DD\\')")))
+				panic(InvalidOrder(Add(this.Id, " canceling an order by clientOrderId ('cid') requires both 'cid' and 'cid_date' ('YYYY-MM-DD')")))
 			}
 			request = map[string]any{
 				"cid":      cid,
@@ -2776,7 +2776,7 @@ func (this *BitfinexCore) FetchDepositAddress(code any, optionalArgs ...any) <-c
 		var currencyNetwork any = this.SafeValue(currencyNetworks, network)
 		var networkId any = this.SafeString(currencyNetwork, "id")
 		if IsTrue(IsEqual(networkId, nil)) {
-			panic(ArgumentsRequired(Add(Add(Add(this.Id, " fetchDepositAddress() could not find a network for \\'"), code), "\\'. You can specify it by providing the \\'network\\' value inside params")))
+			panic(ArgumentsRequired(Add(Add(Add(this.Id, " fetchDepositAddress() could not find a network for '"), code), "'. You can specify it by providing the 'network' value inside params")))
 		}
 		var wallet any = this.SafeString(params, "wallet", "exchange") // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
 		params = this.Omit(params, "network", "wallet")
@@ -3235,7 +3235,7 @@ func (this *BitfinexCore) Withdraw(code any, amount any, address any, optionalAr
 		var currencyNetwork any = this.SafeValue(currencyNetworks, network)
 		var networkId any = this.SafeString(currencyNetwork, "id")
 		if IsTrue(IsEqual(networkId, nil)) {
-			panic(ArgumentsRequired(Add(Add(Add(this.Id, " withdraw() could not find a network for \\'"), code), "\\'. You can specify it by providing the \\'network\\' value inside params")))
+			panic(ArgumentsRequired(Add(Add(Add(this.Id, " withdraw() could not find a network for '"), code), "'. You can specify it by providing the 'network' value inside params")))
 		}
 		var wallet any = this.SafeString(params, "wallet", "exchange") // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
 		params = this.Omit(params, "network", "wallet")
