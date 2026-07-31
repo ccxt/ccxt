@@ -2399,9 +2399,18 @@
                 "currencyIdAndCode": "messed",
                 "precision":"is undefined"
             },
+            "ticker": {
+                "maxIncrease": "listed joke tokens (TEST etc) have abnormal price swings"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "not all active markets are returned by the tickers endpoint"
+            },
             "fetchCurrencies": {
                 "withdraw": "not provided",
-                "deposit": "not provided"
+                "deposit": "not provided",
+                "precision": "not provided by the exchange api",
+                "networks": "not provided by the exchange api",
+                "activeMajorCurrencies": "deposit and withdraw flags are not provided by the exchange api"
             }
         }
     },
