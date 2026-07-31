@@ -126,6 +126,25 @@ const timeout = (s, promise) => Promise.race ([ promise, sleep (s).then (() => {
     throw new Error ('RUNTEST_TIMED_OUT');
 }) ])
 
+/*  tests.ts unconditionally dumps "[INFO] TESTING  <exchange> <method>" when a method
+    test starts and a matching "TESTING DONE" / "TESTING FAILED" line when it finishes.
+    On a timeout, the started-but-never-finished markers identify the hung method(s) —
+    there can be several at once, because tests.ts runs each batch through Promise.all.
+    Counts (not a set) are used because testSafe retries re-emit the same markers.       */
+const unfinishedMethods = (output) => {
+    const counts = {}
+    const bump = (regex, delta) => {
+        let match
+        while ((match = regex.exec (output))) {
+            const key = match[1] + '.' + match[2]
+            counts[key] = (counts[key] || 0) + delta
+        }
+    }
+    bump (/\[INFO\] TESTING(?!\s+(?:DONE|FAILED)\b)\s+(\S+)\s+([A-Za-z]\w*)/g, 1)
+    bump (/\[INFO\] TESTING (?:DONE|FAILED)\s+(\S+)\s+([A-Za-z]\w*)/g, -1)
+    return Object.keys (counts).filter (key => counts[key] > 0)
+}
+
 //  --------------------------------------------------------------------------- //
 
 const exec = (bin, ...args) => { 
@@ -225,8 +244,10 @@ const exec = (bin, ...args) => {
             // silently hid 12 hung WS exchanges across every language lane on every
             // CI run (e.g. bybit which times out in all 6 langs). A killed-after-180s
             // process is a real failure, not a transient warning — should be visible.
-            output += '\n[TEST_FAILURE] RUNTEST_TIMED_OUT';
-            stderr += '\n' + 'RUNTEST_TIMED_OUT: ';
+            const hung = unfinishedMethods (ansi.strip (output));
+            const hungMessage = hung.length ? ' (methods that never finished: ' + hung.join (', ') + ')' : '';
+            output += '\n[TEST_FAILURE] RUNTEST_TIMED_OUT' + hungMessage;
+            stderr += '\n' + 'RUNTEST_TIMED_OUT: ' + hungMessage;
             const result = generateResultFromOutput (output, stderr, 1);
             return result;
         }
