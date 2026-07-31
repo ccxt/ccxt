@@ -1,10 +1,9 @@
 import Transpiler from "ast-transpiler";
-// "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API (typescript@7 is the native compiler and only provides the tsc binary)
-import ts from "typescript6";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
+import { setupCsharpPrinter } from './csharpPrinterSetup.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
 import { platform } from 'process'
 import os from 'os'
@@ -75,9 +74,8 @@ const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 const EXAMPLES_OUTPUT_FOLDER = './examples/cs/examples/';
 const csharpComments: any = {};
 
-// every extra worker rebuilds the whole typescript program (seconds of cpu on top of the
-// real per-file work), so oversubscribing a wide CI runner costs more than it wins.
-// Cap the pool unless CCXT_TRANSPILE_PROCESSES asks for a specific size.
+// every extra worker rebuilds the whole typescript program, so oversubscribing a wide CI
+// runner costs more than it wins — cap unless CCXT_TRANSPILE_PROCESSES asks for a size
 function csharpWorkerThreads () {
     const requested = Number (process.env.CCXT_TRANSPILE_PROCESSES);
     if (requested > 0) {
@@ -307,33 +305,8 @@ class NewTranspiler {
 
     setupTranspiler() {
         this.transpiler = new Transpiler (this.getTranspilerConfig())
-        this.transpiler.setVerboseMode(false);
+        setupCsharpPrinter (this.transpiler);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
-        // TS >= 5/6 (ast-transpiler 0.0.91) can report dictionary key types like `Str`
-        // (string | undefined) as a union whose first member is not the string one.
-        // The default printer only inspects the first union member, so dictionary
-        // assignments (`result[symbol] = value`) would be wrongly emitted as list index
-        // writes (`((List<object>)result)[Convert.ToInt32(symbol)]`). Handle unions
-        // containing a string member here (matches the previous TS 4.9 output).
-        const csharp = this.transpiler.csharpTranspiler;
-        csharp.printElementAccessExpressionExceptionIfAny = (node: any) => {
-            const { expression, argumentExpression } = node;
-            const parent = node.parent;
-            const isLeftSideOfAssignment = parent?.kind === ts.SyntaxKind.BinaryExpression
-                && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken || parent.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken)
-                && parent?.left === node;
-            if (isLeftSideOfAssignment && csharp.ELEMENT_ACCESS_WRAPPER_OPEN && csharp.ELEMENT_ACCESS_WRAPPER_CLOSE) {
-                const type = (global as any).checker.getTypeAtLocation (argumentExpression);
-                const isUnion = ((type.flags & ts.TypeFlags.Union) !== 0) && Array.isArray (type.types);
-                if (isUnion && type.types.some ((t: any) => csharp.isStringType (t.flags))) {
-                    const expressionAsString = csharp.printNode (expression, 0);
-                    const argumentAsString = csharp.printNode (argumentExpression, 0);
-                    const cast = ts.isStringLiteralLike (argumentExpression) ? '' : '(string)';
-                    return `((IDictionary<string,object>)${expressionAsString})[${cast}${argumentAsString}]`;
-                }
-            }
-            return undefined;
-        };
     }
 
     createGeneratedHeader() {
@@ -1202,14 +1175,6 @@ class NewTranspiler {
         log.bright.green ('Transpiled successfully.')
     }
 
-    async closeWorkerPool () {
-        if (this.piscina) {
-            const pool = this.piscina;
-            this.piscina = undefined;
-            await pool.destroy ();
-        }
-    }
-
     async webworkerTranspile (allFiles: any[], parserConfig: any) {
 
         // one shared pool — concurrent callers (base/exchange/ws tests) queue into the
@@ -1224,27 +1189,21 @@ class NewTranspiler {
         const piscina = this.piscina;
         const configKey = JSON.stringify (parserConfig);
 
-        // one file per task so worker threads always run different files (Piscina queues
-        // the rest). The Transpiler is cached per thread, so extra threads only pay the
-        // program warm-up once — see csharpWorkerThreads for why the pool stays small.
+        // one file per task, so every thread always works on a different file
         const promises: any = [];
         const now = Date.now();
-        for (let i = 0; i < allFiles.length; i++) {
-            promises.push(piscina.run({transpilerConfig:parserConfig, configKey, files: [allFiles[i]]}));
+        for (const file of allFiles) {
+            promises.push(piscina.run({transpilerConfig:parserConfig, configKey, files: [file]}));
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
         log.green ('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms');
         const flatResult: any[] = [];
         for (const chunk of workerResult) {
-            if (Array.isArray (chunk)) {
-                flatResult.push (...chunk);
-                continue;
-            }
             flatResult.push (...chunk.result);
             // csharpComments lives on the main thread (the wrapper writer reads it), so
             // replay the raw comments the worker saw through the same transform
-            for (const comment of chunk.comments || []) {
+            for (const comment of chunk.comments) {
                 this.transformLeadingComment (comment);
             }
         }
@@ -1837,27 +1796,23 @@ async function runMain () {
     log.bright.green ({ force })
     const transpiler = new NewTranspiler ();
     const inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
-    try {
-        if (baseClassOnly) {
-            transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
-            transpiler.transpilePredictionBaseMethods ()
-        } else if (ws) {
-            if (prediction) {
-                await transpiler.transpileWS (force, true)
-            } else {
-                await transpiler.transpileWS (force)
-                if (!inputExchanges.length) {
-                    // full ws builds also transpile the prediction ws exchanges
-                    await transpiler.transpileWS (force, true)
-                }
-            }
-        } else if (test) {
-            await transpiler.transpileTests ()
+    if (baseClassOnly) {
+        transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
+        transpiler.transpilePredictionBaseMethods ()
+    } else if (ws) {
+        if (prediction) {
+            await transpiler.transpileWS (force, true)
         } else {
-            await transpiler.transpileEverything (force, baseOnly, examples, prediction)
+            await transpiler.transpileWS (force)
+            if (!inputExchanges.length) {
+                // full ws builds also transpile the prediction ws exchanges
+                await transpiler.transpileWS (force, true)
+            }
         }
-    } finally {
-        await transpiler.closeWorkerPool ()
+    } else if (test) {
+        await transpiler.transpileTests ()
+    } else {
+        await transpiler.transpileEverything (force, baseOnly, examples, prediction)
     }
 }
 
