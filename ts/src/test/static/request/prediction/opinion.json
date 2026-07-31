@@ -1,0 +1,150 @@
+{
+    "exchange": "opinion",
+    "asyncOnly": true,
+    "skipKeys": [
+        "salt",
+        "signature",
+        "sign",
+        "timestamp"
+    ],
+    "walletAddress": "0xabababababababababababababababababababab",
+    "outputType": "json",
+    "options": {
+        "multiSignAddress": "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+        "quoteTokens": {
+            "0x55d398326f99059ff775485246999027b3197955": {
+                "chainId": "56",
+                "createdAt": 0,
+                "ctfExchangeAddress": "0x5f45344126d6488025b0b84a3a8189f2487a7246",
+                "decimal": 18,
+                "id": 4,
+                "quoteTokenAddress": "0x55d398326f99059fF775485246999027B3197955",
+                "quoteTokenName": "USDT",
+                "symbol": "USDT"
+            }
+        }
+    },
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets lists both standalone and categorical markets",
+                "method": "fetchMarkets",
+                "url": "https://openapi.opinion.trade/openapi/market?marketType=2&limit=20&page=1",
+                "input": []
+            }
+        ],
+        "fetchEvents": [
+            {
+                "description": "fetchEvents default listing",
+                "method": "fetchEvents",
+                "url": "https://openapi.opinion.trade/openapi/market?marketType=1&limit=20&page=1",
+                "input": [
+                    {
+                        "query": "bitcoin"
+                    }
+                ]
+            }
+        ],
+        "fetchEvent": [
+            {
+                "description": "fetchEvent by numeric marketId",
+                "method": "fetchEvent",
+                "url": "https://openapi.opinion.trade/openapi/market/categorical/1275",
+                "input": [
+                    "1275"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook for a yes outcome",
+                "method": "fetchOrderBook",
+                "url": "https://openapi.opinion.trade/openapi/token/orderbook?token_id=51273966613355583788335739241751598970759122577876193917139307154133885400260",
+                "input": [
+                    "BITCOIN_PRICE_AUGUST_7_LT_THAN_54000:YES"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV daily",
+                "method": "fetchOHLCV",
+                "url": "https://openapi.opinion.trade/openapi/token/price-history?token_id=51273966613355583788335739241751598970759122577876193917139307154133885400260&interval=1d",
+                "input": [
+                    "BITCOIN_PRICE_AUGUST_7_LT_THAN_54000:YES",
+                    "1d"
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders for a specific outcome",
+                "method": "fetchOrders",
+                "url": "https://openapi.opinion.trade/openapi/order?marketId=26199",
+                "input": [
+                    "BITCOIN_PRICE_AUGUST_7_LT_THAN_54000:YES"
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder by id",
+                "method": "fetchOrder",
+                "url": "https://openapi.opinion.trade/openapi/order/12345",
+                "input": [
+                    "12345"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades without an outcome filter",
+                "method": "fetchMyTrades",
+                "url": "https://openapi.opinion.trade/openapi/trade/user/0xabababababababababababababababababababab",
+                "input": []
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://openapi.opinion.trade/openapi/user/balance?chain_id=56",
+                "input": []
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions for the authenticated wallet",
+                "method": "fetchPositions",
+                "url": "https://openapi.opinion.trade/openapi/positions/user/0xabababababababababababababababababababab",
+                "input": []
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder limit buy",
+                "method": "createOrder",
+                "url": "https://openapi.opinion.trade/openapi/order",
+                "input": [
+                    "BITCOIN_PRICE_AUGUST_7_LT_THAN_54000:YES",
+                    "limit",
+                    "buy",
+                    5,
+                    0.5
+                ],
+                "output": "{\"salt\":\"1785538488091\",\"maker\":\"0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd\",\"signer\":\"0xabababababababababababababababababababab\",\"taker\":\"0x0000000000000000000000000000000000000000\",\"tokenId\":\"51273966613355583788335739241751598970759122577876193917139307154133885400260\",\"makerAmount\":\"2500000000000000000\",\"takerAmount\":\"5000000000000000000\",\"expiration\":\"0\",\"nonce\":\"0\",\"feeRateBps\":\"0\",\"side\":\"0\",\"signatureType\":\"2\",\"signature\":\"0x2a99d7799dd74bf0f23e913d824af93a68f13a715e2b94a23483b5649b1e07762ca10bf599fb7e7cbbafecdfe39869ec2ef4eead9af9ce8b6376188f69e5ed051c\",\"sign\":\"2a99d7799dd74bf0f23e913d824af93a68f13a715e2b94a23483b5649b1e0776\",\"contractAddress\":\"\",\"currencyAddress\":\"0x55d398326f99059fF775485246999027B3197955\",\"topicId\":26199,\"price\":\"0.5\",\"tradingMethod\":2,\"timestamp\":1785538488,\"safeRate\":\"0\",\"orderExpTime\":\"0\",\"postOnly\":false}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder by id",
+                "method": "cancelOrder",
+                "url": "https://openapi.opinion.trade/openapi/order/cancel",
+                "input": [
+                    "12345"
+                ],
+                "output": "{\"orderId\":\"12345\"}"
+            }
+        ]
+    }
+}
