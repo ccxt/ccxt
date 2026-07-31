@@ -650,7 +650,8 @@ pub fn safe_string(obj: &Value, key: &str, default: Option<&str>) -> Option<Stri
         Value::Str(s)  => Some(s),
         Value::Int(n)  => Some(n.to_string()),
         Value::Float(f)=> Some(f.to_string()),
-        Value::Bool(b) => Some(b.to_string()),
+        // Booleans are not strings/finite numbers → TS `safeString` returns the
+        // default for them (not "true"/"false"), same as lists/dicts.
         Value::Null    => default.map(str::to_owned),
         _              => default.map(str::to_owned),
     }

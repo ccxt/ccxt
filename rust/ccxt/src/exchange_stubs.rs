@@ -678,7 +678,9 @@ impl Exchange {
             Value::Str(_) => v,
             Value::Int(n) => Value::Str(n.to_string()),
             Value::Float(f) => Value::Str(f.to_string()),
-            Value::Bool(b) => Value::Str(b.to_string()),
+            // A boolean is NOT a string or finite number — TS `safeString`
+            // (base/functions/type.ts) returns the default for it, not "true"/
+            // "false". Same for lists/dicts (the `_` arm).
             Value::Null => arg_default(optional_args),
             _ => arg_default(optional_args),
         }
