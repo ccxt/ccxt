@@ -1739,7 +1739,7 @@ export default class kraken extends Exchange {
         result['usingCost'] = isUsingCost;
         // it's impossible to know if the order was created using cost or base currency
         // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
-        // this usingCost flag is used to help the parsing but omited from the order
+        // this usingCost flag is used to help the parsing but omitted from the order
         return this.parseOrder (result);
     }
 

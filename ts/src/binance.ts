@@ -1381,7 +1381,7 @@ export default class binance extends Exchange {
                     'margin': 'MARGIN',
                     'cross': 'MARGIN',
                     'future': 'UMFUTURE', // backwards compatibility
-                    'delivery': 'CMFUTURE', // backwards compatbility
+                    'delivery': 'CMFUTURE', // backwards compatibility
                     'linear': 'UMFUTURE',
                     'swap': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
@@ -4755,7 +4755,7 @@ export default class binance extends Exchange {
         //         "0",                    // Ignore
         //         1591256519999,          // Close time
         //         "0",                    // Ignore
-        //         60,                     // Number of bisic data
+        //         60,                     // Number of basic data
         //         "0",                    // Ignore
         //         "0",                    // Ignore
         //         "0"                     // Ignore
@@ -10407,7 +10407,7 @@ export default class binance extends Exchange {
         //         "breakEvenPrice": "0.0"
         //     }
         //
-        // inverse portoflio margin
+        // inverse portfolio margin
         //
         //     {
         //         "symbol": "TRXUSD_PERP",
@@ -12457,7 +12457,7 @@ export default class binance extends Exchange {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
-        // following block cointains legacy checks against message patterns in "msg" property
+        // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if (code >= 400) {
             if (body.indexOf ('Price * QTY is zero or less') >= 0) {

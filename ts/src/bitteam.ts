@@ -629,7 +629,7 @@ export default class bitteam extends Exchange {
         //
         const responseResult = this.safeValue (response, 'result', {});
         const currencies = this.safeValue (responseResult, 'currencies', []);
-        // usding another endpoint to fetch statuses of deposits and withdrawals
+        // using another endpoint to fetch statuses of deposits and withdrawals
         let statusesResponse = await this.publicGetTradeApiCmcAssets ();
         //
         //     {
