@@ -5531,11 +5531,27 @@ class bitget extends Exchange {
             } else {
                 if ($hasStopLoss) {
                     $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice');
+                    if ($slTriggerPrice === null) {
+                        throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice or a stopPrice inside the $stopLoss parameter');
+                    }
                     $request['presetStopLossPrice'] = $this->price_to_precision($symbol, $slTriggerPrice);
+                    $slLimitPrice = $this->safe_value($stopLoss, 'price');
+                    if ($slLimitPrice !== null) {
+                        // without the execute $price the exchange fills the attached stop loss
+                        // at the $market $price, see https://github.com/ccxt/ccxt/issues/23459
+                        $request['presetStopLossExecutePrice'] = $this->price_to_precision($symbol, $slLimitPrice);
+                    }
                 }
                 if ($hasTakeProfit) {
                     $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice');
+                    if ($tpTriggerPrice === null) {
+                        throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice or a stopPrice inside the $takeProfit parameter');
+                    }
                     $request['presetStopSurplusPrice'] = $this->price_to_precision($symbol, $tpTriggerPrice);
+                    $tpLimitPrice = $this->safe_value($takeProfit, 'price');
+                    if ($tpLimitPrice !== null) {
+                        $request['presetStopSurplusExecutePrice'] = $this->price_to_precision($symbol, $tpLimitPrice);
+                    }
                 }
             }
             if (!$isStopLossOrTakeProfitTrigger) {
