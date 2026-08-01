@@ -597,7 +597,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $trade = $this->parse_ws_trade($message);
         $symbol = $trade['symbol'];
         $channel = $this->safe_string($message, 'channel');
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $tradesArrayCache = new ArrayCache($limit);
             $this->trades[$symbol] = $tradesArrayCache;
@@ -711,7 +711,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $symbol = $this->safe_symbol($marketId);
         $datetime = $this->safe_string($message, 'time');
         $channel = $this->safe_string($message, 'channel');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $limit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         }

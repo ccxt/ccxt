@@ -416,13 +416,13 @@ class lighter extends Exchange {
     }
 
     public function init_auth_object(string $strAccountIndex, string $strApiKeyIndex) {
-        if (!(is_array($this->options) && array_key_exists('auths', $this->options))) {
+        if (!(is_array($this->options) && array_key_exists('auths' ?? '', $this->options))) {
             $this->options['auths'] = array();
         }
-        if (!(is_array($this->options['auths']) && array_key_exists($strAccountIndex, $this->options['auths']))) {
+        if (!(is_array($this->options['auths']) && array_key_exists($strAccountIndex ?? '', $this->options['auths']))) {
             $this->options['auths'][$strAccountIndex] = array();
         }
-        if (!(is_array($this->options['auths'][$strAccountIndex]) && array_key_exists($strApiKeyIndex, $this->options['auths'][$strAccountIndex]))) {
+        if (!(is_array($this->options['auths'][$strAccountIndex]) && array_key_exists($strApiKeyIndex ?? '', $this->options['auths'][$strAccountIndex]))) {
             $this->options['auths'][$strAccountIndex][$strApiKeyIndex] = array(
                 'signer' => null,
                 'lighterPrivateKey' => null,
@@ -433,16 +433,16 @@ class lighter extends Exchange {
     }
 
     public function get_lighter_private_key(string $strAccountIndex, string $strApiKeyIndex) {
-        if (!(is_array($this->options) && array_key_exists('auths', $this->options))) {
+        if (!(is_array($this->options) && array_key_exists('auths' ?? '', $this->options))) {
             return null;
         }
-        if (!(is_array($this->options['auths']) && array_key_exists($strAccountIndex, $this->options['auths']))) {
+        if (!(is_array($this->options['auths']) && array_key_exists($strAccountIndex ?? '', $this->options['auths']))) {
             return null;
         }
-        if (!(is_array($this->options['auths'][$strAccountIndex]) && array_key_exists($strApiKeyIndex, $this->options['auths'][$strAccountIndex]))) {
+        if (!(is_array($this->options['auths'][$strAccountIndex]) && array_key_exists($strApiKeyIndex ?? '', $this->options['auths'][$strAccountIndex]))) {
             return null;
         }
-        if (!(is_array($this->options['auths'][$strAccountIndex][$strApiKeyIndex]) && array_key_exists('lighterPrivateKey', $this->options['auths'][$strAccountIndex][$strApiKeyIndex]))) {
+        if (!(is_array($this->options['auths'][$strAccountIndex][$strApiKeyIndex]) && array_key_exists('lighterPrivateKey' ?? '', $this->options['auths'][$strAccountIndex][$strApiKeyIndex]))) {
             return null;
         }
         return $this->options['auths'][$strAccountIndex][$strApiKeyIndex]['lighterPrivateKey'];
@@ -892,7 +892,7 @@ class lighter extends Exchange {
             if (($accountIndex === null) || ($apiKeyIndex === null)) {
                 throw new ArgumentsRequired($this->id . ' fetchNonce() requires $accountIndex and $apiKeyIndex->');
             }
-            if (is_array($params) && array_key_exists('nonce', $params)) {
+            if (is_array($params) && array_key_exists('nonce' ?? '', $params)) {
                 return $this->safe_integer($params, 'nonce');
             }
             $nonceInOptions = $this->safe_integer($this->options, 'nonce');

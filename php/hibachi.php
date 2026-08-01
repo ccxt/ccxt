@@ -1789,7 +1789,7 @@ class hibachi extends Exchange {
         if ($response === null) {
             return null; // fallback to default error handler
         }
-        if (is_array($response) && array_key_exists('status', $response)) {
+        if (is_array($response) && array_key_exists('status' ?? '', $response)) {
             //
             //     array("errorCode":4,"message":"Invalid input => Invalid quantity => 0","status":"failed")
             //

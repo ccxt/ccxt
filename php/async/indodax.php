@@ -824,7 +824,7 @@ class indodax extends Exchange {
         //    }
         //
         $side = null;
-        if (is_array($order) && array_key_exists('type', $order)) {
+        if (is_array($order) && array_key_exists('type' ?? '', $order)) {
             $side = $order['type'];
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status', 'open'));
@@ -839,10 +839,10 @@ class indodax extends Exchange {
             $symbol = $market['symbol'];
             $quoteId = $market['quoteId'];
             $baseId = $market['baseId'];
-            if (($market['quoteId'] === 'idr') && (is_array($order) && array_key_exists('order_rp', $order))) {
+            if (($market['quoteId'] === 'idr') && (is_array($order) && array_key_exists('order_rp' ?? '', $order))) {
                 $quoteId = 'rp';
             }
-            if (($market['baseId'] === 'idr') && (is_array($order) && array_key_exists('remain_rp', $order))) {
+            if (($market['baseId'] === 'idr') && (is_array($order) && array_key_exists('remain_rp' ?? '', $order))) {
                 $baseId = 'rp';
             }
             $cost = $this->safe_string($order, 'order_' . $quoteId);
@@ -1461,7 +1461,7 @@ class indodax extends Exchange {
                 if (($address !== null) && (($codes === null) || ($this->in_array($code, $codes)))) {
                     $this->check_address($address);
                     $network = null;
-                    if (is_array($networks) && array_key_exists($marketId, $networks)) {
+                    if (is_array($networks) && array_key_exists($marketId ?? '', $networks)) {
                         $networkId = $this->safe_string($networks, $marketId);
                         if (mb_strpos($networkId, ',') !== false) {
                             $network = array();
@@ -1524,7 +1524,7 @@ class indodax extends Exchange {
             return null; // public endpoints may return array()-arrays
         }
         $error = $this->safe_value($response, 'error', '');
-        if (!(is_array($response) && array_key_exists('success', $response)) && $error === '') {
+        if (!(is_array($response) && array_key_exists('success' ?? '', $response)) && $error === '') {
             return null; // no 'success' property on public responses
         }
         $status = $this->safe_string($response, 'success');
@@ -1533,7 +1533,7 @@ class indodax extends Exchange {
         }
         if ($this->safe_integer($response, 'success', 0) === 1) {
             // array( success => 1, return => array( orders => array() ))
-            if (!(is_array($response) && array_key_exists('return', $response))) {
+            if (!(is_array($response) && array_key_exists('return' ?? '', $response))) {
                 throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json($response));
             } else {
                 return null;

@@ -2708,7 +2708,15 @@ class bybit(Exchange, ImplicitAPI):
         if limit is None:
             limit = 200  # default is 200 when requested with `since`
         if since is not None:
-            request['start'] = since
+            # bybit returns the candle that contains `start`, whose timestamp is
+            # before a mid-interval `since` and gets dropped by the client-side
+            # since-filter, emptying a limit=1 request entirely, see issue
+            # https://github.com/ccxt/ccxt/issues/26736 - align the requested
+            # start up to the interval boundary so that the exchange returns
+            # candles from the first bucket at or after `since`
+            duration = self.parse_timeframe(timeframe) * 1000
+            rounded = self.parse_to_int(since / duration) * duration
+            request['start'] = since if (rounded == since) else self.sum(rounded, duration)
         if limit is not None:
             request['limit'] = limit  # max 1000, default 1000
         request, params = self.handle_until_option('end', request, params)

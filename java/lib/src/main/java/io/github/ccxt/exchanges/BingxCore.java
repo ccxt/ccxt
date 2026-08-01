@@ -616,6 +616,9 @@ public class BingxCore extends BingxApi
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
                 put( "defaultType", "spot" );
+                put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
+                    put( "timeZone", 0 );
+                }} );
                 put( "accountsByType", new java.util.HashMap<String, Object>() {{
                     put( "funding", "fund" );
                     put( "spot", "spot" );
@@ -1274,6 +1277,16 @@ public class BingxCore extends BingxApi
             Object response = null;
             if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
+                // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
+                // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
+                Object timeZone = null;
+                var timeZoneparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "timeZone", 0);
+                timeZone = ((java.util.List<Object>) timeZoneparametersVariable).get(0);
+                parameters = ((java.util.List<Object>) timeZoneparametersVariable).get(1);
+                if (Helpers.isTrue(!Helpers.isEqual(timeZone, null)))
+                {
+                    Helpers.addElementToObject(request, "timeZone", timeZone);
+                }
                 response = (this.spotV1PublicGetMarketKline(this.extend(request, parameters))).join();
             } else
             {

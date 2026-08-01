@@ -5512,7 +5512,7 @@ class bitget extends Exchange {
             } elseif ($isStopLossOrTakeProfitTrigger) {
                 if ($price !== null) {
                     $request['executePrice'] = $this->price_to_precision($symbol, $price);
-                    if (is_array($request) && array_key_exists('price', $request)) {
+                    if (is_array($request) && array_key_exists('price' ?? '', $request)) {
                         unset($request['price']);
                     }
                 }
@@ -6671,7 +6671,7 @@ class bitget extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
                 $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
-                $marketType = (is_array($market) && array_key_exists('type', $market)) ? $market['type'] : $defaultType;
+                $marketType = (is_array($market) && array_key_exists('type' ?? '', $market)) ? $market['type'] : $defaultType;
                 $type = $this->safe_string($params, 'type', $marketType);
             } else {
                 $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');

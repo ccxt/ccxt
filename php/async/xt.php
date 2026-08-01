@@ -1915,7 +1915,7 @@ class xt extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 's');
         $marketType = ($market !== null) ? $market['type'] : null;
-        $hasSpotKeys = (is_array($ticker) && array_key_exists('cv', $ticker)) || (is_array($ticker) && array_key_exists('aq', $ticker));
+        $hasSpotKeys = (is_array($ticker) && array_key_exists('cv' ?? '', $ticker)) || (is_array($ticker) && array_key_exists('aq' ?? '', $ticker));
         if ($marketType === null) {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
         }
@@ -2252,7 +2252,7 @@ class xt extends Exchange {
         //
         $marketId = $this->safe_string_2($trade, 's', 'symbol');
         $marketType = ($market !== null) ? $market['type'] : null;
-        $hasSpotKeys = (is_array($trade) && array_key_exists('b', $trade)) || (is_array($trade) && array_key_exists('bizType', $trade)) || (is_array($trade) && array_key_exists('oi', $trade));
+        $hasSpotKeys = (is_array($trade) && array_key_exists('b' ?? '', $trade)) || (is_array($trade) && array_key_exists('bizType' ?? '', $trade)) || (is_array($trade) && array_key_exists('oi' ?? '', $trade));
         if ($marketType === null) {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
         }
@@ -3691,7 +3691,7 @@ class xt extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
-        $marketType = (is_array($order) && array_key_exists('result', $order)) || (is_array($order) && array_key_exists('positionSide', $order)) ? 'contract' : 'spot';
+        $marketType = (is_array($order) && array_key_exists('result' ?? '', $order)) || (is_array($order) && array_key_exists('positionSide' ?? '', $order)) ? 'contract' : 'spot';
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
         $timestamp = $this->safe_integer_2($order, 'time', 'createdTime');
@@ -4142,7 +4142,7 @@ class xt extends Exchange {
         //         "id" => 950898
         //     }
         //
-        $type = (is_array($transaction) && array_key_exists('fromAddr', $transaction)) ? 'deposit' : 'withdraw';
+        $type = (is_array($transaction) && array_key_exists('fromAddr' ?? '', $transaction)) ? 'deposit' : 'withdraw';
         $timestamp = $this->safe_integer($transaction, 'createdTime');
         $address = $this->safe_string($transaction, 'address');
         $memo = $this->safe_string($transaction, 'memo');

@@ -476,7 +476,7 @@ class mudrex extends Exchange {
                     if (strlen(!$items)) {
                         $items = $this->safe_list($data, 'results', array());
                     }
-                    if (strlen(!$items) && (is_array($data) && array_key_exists('symbol', $data))) {
+                    if (strlen(!$items) && (is_array($data) && array_key_exists('symbol' ?? '', $data))) {
                         $items = array( $data );
                     }
                 } else {

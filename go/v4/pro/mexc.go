@@ -2315,9 +2315,50 @@ func (this *MexcCore) Authenticate(subscriptionHash any, optionalArgs ...any) <-
 			ch <- listenKey
 			return nil
 		}
+		// guard against concurrent listenKey requests with a future on the base
+		// spot ws client - the first caller fetches the listenKey, concurrent
+		// callers wait on the future and resume when the listenKey is ready,
+		// otherwise the user-data subscriptions would be split across two connections
+		var client any = this.Client(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "spot"))
+		var messageHash any = "authenticate:listenKey"
+		var isFetching any = this.SafeBool(this.Options, "listenKeyFetching", false)
+		if ccxt.IsTrue(isFetching) {
 
-		response := (<-this.SpotPrivatePostUserDataStream(params))
-		ccxt.PanicOnError(response)
+			retRes200612 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+			ccxt.PanicOnError(retRes200612)
+
+			ch <- this.SafeString(this.Options, "listenKey")
+			return nil
+		}
+		ccxt.AddElementToObject(this.Options, "listenKeyFetching", true)
+		client.(ccxt.ClientInterface).Future(messageHash) // created ahead of the request below, so concurrent callers can find it
+		var response any = nil
+
+		{
+			func(this *MexcCore) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *MexcCore) any {
+							// catch block:
+							ccxt.AddElementToObject(this.Options, "listenKeyFetching", false)
+							client.(ccxt.ClientInterface).Reject(e, messageHash)
+							panic(e)
+
+						}(this)
+					}
+				}()
+				// try block:
+
+				response = (<-this.SpotPrivatePostUserDataStream(params))
+				ccxt.PanicOnError(response)
+				return nil
+			}(this)
+
+		}
+		ccxt.AddElementToObject(this.Options, "listenKeyFetching", false)
 		//
 		//    {
 		//        "listenKey": "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
@@ -2325,6 +2366,7 @@ func (this *MexcCore) Authenticate(subscriptionHash any, optionalArgs ...any) <-
 		//
 		listenKey = this.SafeString(response, "listenKey")
 		ccxt.AddElementToObject(this.Options, "listenKey", listenKey)
+		client.(ccxt.ClientInterface).Resolve(listenKey, messageHash)
 		var listenKeyRefreshRate any = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
 		this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, listenKey, params)
 
@@ -2369,8 +2411,8 @@ func (this *MexcCore) KeepAliveListenKey(listenKey any, optionalArgs ...any) <-c
 				}()
 				// try block:
 
-				retRes201912 := (<-this.SpotPrivatePutUserDataStream(this.Extend(request, params)))
-				ccxt.PanicOnError(retRes201912)
+				retRes204112 := (<-this.SpotPrivatePutUserDataStream(this.Extend(request, params)))
+				ccxt.PanicOnError(retRes204112)
 				var listenKeyRefreshRate any = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
 				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, listenKey, params)
 				return nil

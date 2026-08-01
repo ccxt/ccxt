@@ -2631,6 +2631,14 @@ public partial class htx : ccxt.htx
                     {
                         ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
                     }
+                    // the subscription is keyed by the messageHash, not by the id -
+                    // without removing it a repeated watch call attaches to a future
+                    // that nothing will resolve instead of resubscribing, see
+                    // https://github.com/ccxt/ccxt/issues/10280
+                    if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
+                    {
+                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+                    }
                 }
             }
             return false;

@@ -209,6 +209,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                     'invalidAccount': errors.BadRequest, // the fromAccount or the toAccount are invalid
                     'invalidAmount': errors.BadRequest,
                     'insufficientFunds': errors.InsufficientFunds,
+                    'INSUFFICIENT_MARGIN': errors.InsufficientFunds, // 500 with {"errors":[{"code":92,"message":"INSUFFICIENT_MARGIN"}]}, see https://github.com/ccxt/ccxt/issues/19896
                     'Bad Request': errors.BadRequest, // The URL contains invalid characters. (Please encode the json URL parameter)
                     'Unavailable': errors.ExchangeNotAvailable, // https://github.com/ccxt/ccxt/issues/24338
                     'invalidUnit': errors.BadRequest,
@@ -2727,7 +2728,9 @@ class krakenfutures extends krakenfutures$1["default"] {
     }
     parsePositions(response, symbols = undefined, params = {}) {
         const result = [];
-        const positions = this.safeValue(response, 'openPositions');
+        // a degraded response can omit openPositions entirely - default to an
+        // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
+        const positions = this.safeList(response, 'openPositions', []);
         for (let i = 0; i < positions.length; i++) {
             const position = this.parsePosition(positions[i]);
             result.push(position);

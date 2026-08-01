@@ -1059,6 +1059,14 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
                     Object previousOrder = this.safeValue2(previousOrders, orderId, clientOrderId);
                     Object trade = this.parseWsTrade(order);
                     this.handleMyTrades(client, trade);
+                    if (Helpers.isTrue(Helpers.isEqual(previousOrder, null)))
+                    {
+                        // fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
+                        Object parsedOrder = this.parseWsOrder(order);
+                        Helpers.callDynamically(orders, "append", new Object[]{parsedOrder});
+                        ((java.util.List<Object>)marketIds).add(marketId);
+                        continue;
+                    }
                     if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(previousOrder, "trades"), null)))
                     {
                         Helpers.addElementToObject(previousOrder, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));

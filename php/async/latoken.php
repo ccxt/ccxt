@@ -864,7 +864,7 @@ class latoken extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+        if (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets)) {
             $market = $this->market($symbol);
         }
         $id = $this->safe_string($trade, 'id');
@@ -1154,7 +1154,7 @@ class latoken extends Exchange {
         $symbol = null;
         if (($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
-            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+            if (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets)) {
                 $market = $this->market($symbol);
             }
         }

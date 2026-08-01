@@ -993,10 +993,10 @@ class blockchaincom extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $state = $this->safe_string($transaction, 'state');
-        if (is_array($transaction) && array_key_exists('depositId', $transaction)) {
+        if (is_array($transaction) && array_key_exists('depositId' ?? '', $transaction)) {
             $type = 'deposit';
             $id = $this->safe_string($transaction, 'depositId');
-        } elseif (is_array($transaction) && array_key_exists('withdrawalId', $transaction)) {
+        } elseif (is_array($transaction) && array_key_exists('withdrawalId' ?? '', $transaction)) {
             $type = 'withdrawal';
             $id = $this->safe_string($transaction, 'withdrawalId');
         }

@@ -213,7 +213,7 @@ class luno extends \ccxt\async\luno {
         $symbol = $subscription['symbol'];
         $messageHash = 'orderbook:' . $symbol;
         $timestamp = $this->safe_integer($message, 'timestamp');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->indexed_order_book(array());
         }
         $asks = $this->safe_value($message, 'asks');

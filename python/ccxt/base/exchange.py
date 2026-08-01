@@ -6908,6 +6908,10 @@ class BaseExchange(object):
         if symbols is None:
             return None
         firstMarket = self.safe_string(symbols, 0)
+        if firstMarket is None:
+            # an empty symbols list must behave like an None one,
+            # self.market(None) would raise an unreadable error
+            return None
         market = self.market(firstMarket)
         return market
 
