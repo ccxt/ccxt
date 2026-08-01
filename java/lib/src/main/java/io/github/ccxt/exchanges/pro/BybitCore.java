@@ -135,7 +135,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                     put( "awaitPositionsSnapshot", true );
                 }} );
                 put( "watchMyTrades", new java.util.HashMap<String, Object>() {{
-                    put( "filterExecTypes", new java.util.ArrayList<Object>(java.util.Arrays.asList("Trade", "AdlTrade", "BustTrade", "Settle")) );
+                    put( "execType", new java.util.ArrayList<Object>(java.util.Arrays.asList("Trade", "AdlTrade", "BustTrade", "Settle")) );
                 }} );
                 put( "spot", new java.util.HashMap<String, Object>() {{
                     put( "timeframes", new java.util.HashMap<String, Object>() {{
@@ -1768,7 +1768,25 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         }
         Object trades = this.myTrades;
         Object symbols = new java.util.HashMap<String, Object>() {{}};
-        Object filterExecTypes = this.handleOption("watchMyTrades", "filterExecTypes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        // the option was renamed from filterExecTypes to execType to mirror
+        // the exchange's own field name, the old key is still read as a
+        // fallback for backward compatibility
+        // see https://github.com/ccxt/ccxt/issues/17244
+        // and https://github.com/ccxt/ccxt/issues/28181
+        Object execTypeOption = this.handleOption("watchMyTrades", "execType");
+        if (Helpers.isTrue(Helpers.isEqual(execTypeOption, null)))
+        {
+            execTypeOption = this.handleOption("watchMyTrades", "filterExecTypes");
+        }
+        Object execTypes = null;
+        if (Helpers.isTrue((execTypeOption instanceof String)))
+        {
+            // a single execution type is accepted as a plain string as well
+            execTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList(execTypeOption));
+        } else
+        {
+            execTypes = execTypeOption;
+        }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object rawTrade = Helpers.GetValue(data, i);
@@ -1784,7 +1802,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 {
                     execType = "Trade";
                 }
-                if (!Helpers.isTrue(this.inArray(execType, filterExecTypes)))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(execTypes, null))) && !Helpers.isTrue(this.inArray(execType, execTypes))))
                 {
                     continue;
                 }

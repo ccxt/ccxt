@@ -6539,7 +6539,12 @@ final Object finalMinNotional = minNotional;
                 if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
                 {
                     Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
-                    Helpers.addElementToObject(request, "executePrice", this.priceToPrecision(symbol, price));
+                    // market plan orders carry no execute price, follow up to
+                    // https://github.com/ccxt/ccxt/issues/25427
+                    if (Helpers.isTrue(!Helpers.isEqual(price, null)))
+                    {
+                        Helpers.addElementToObject(request, "executePrice", this.priceToPrecision(symbol, price));
+                    }
                 } else
                 {
                     Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
