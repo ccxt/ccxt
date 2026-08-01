@@ -1813,7 +1813,7 @@ public partial class coinbaseinternational : Exchange
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "asset", getValue(currency, "id") },
-            { "ammount", amount },
+            { "amount", amount },
             { "from", fromAccount },
             { "to", toAccount },
         };
@@ -2044,7 +2044,7 @@ public partial class coinbaseinternational : Exchange
      * @description cancels an open order
      * @see https://docs.cloud.coinbase.com/intx/reference/cancelorder
      * @param {string} id order id
-     * @param {string} symbol not used by coinbaseinternational cancelOrder()
+     * @param {string} symbol not used by cancelOrder()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */

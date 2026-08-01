@@ -1168,7 +1168,7 @@ public partial class woo : Exchange
         //     "success": true
         // }
         //
-        // only make one request for currrencies...
+        // only make one request for currencies...
         object tokenNetworkResponsePromise = this.v1PublicGetTokenNetwork(parameters);
         //
         // {

@@ -473,7 +473,7 @@ public partial class bingx
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the exchange api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -1395,7 +1395,7 @@ public partial class bingx
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : parameters specific to the bingx api endpoint
+    /// object : parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>

@@ -2012,7 +2012,7 @@ public partial class backpack : Exchange
      * @description fetch an open order by it's id
      * @see https://docs.backpack.exchange/#tag/Order/operation/get_order
      * @param {string} id order id
-     * @param {string} symbol not used by hollaex fetchOpenOrder ()
+     * @param {string} symbol not used by fetchOpenOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */

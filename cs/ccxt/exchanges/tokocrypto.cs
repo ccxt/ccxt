@@ -1434,7 +1434,7 @@ public partial class tokocrypto : Exchange
         //         "0",                    // Ignore
         //         1591256519999,          // Close time
         //         "0",                    // Ignore
-        //         60,                     // Number of bisic data
+        //         60,                     // Number of basic data
         //         "0",                    // Ignore
         //         "0",                    // Ignore
         //         "0"                     // Ignore
@@ -2777,7 +2777,7 @@ public partial class tokocrypto : Exchange
             throw new DDoSProtection ((string)add(add(add(add(add(add(this.id, " "), ((object)code).ToString()), " "), reason), " "), body)) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
-        // following block cointains legacy checks against message patterns in "msg" property
+        // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if (isTrue(isGreaterThanOrEqual(code, 400)))
         {

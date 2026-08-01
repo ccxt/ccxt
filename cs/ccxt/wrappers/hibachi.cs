@@ -67,7 +67,7 @@ public partial class hibachi
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the hibachi api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -90,7 +90,7 @@ public partial class hibachi
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the hibachi api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>

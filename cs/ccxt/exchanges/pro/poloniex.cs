@@ -201,7 +201,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] GTC (default), IOC, FOK
      * @param {string} [params.clientOrderId] Maximum 64-character length.*
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
@@ -283,7 +283,7 @@ public partial class poloniex : ccxt.poloniex
      * @description cancel multiple orders
      * @param {string} id order id
      * @param {string} [symbol] unified market symbol
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
@@ -308,7 +308,7 @@ public partial class poloniex : ccxt.poloniex
      * @description cancel multiple orders
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol, default is undefined
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
@@ -332,7 +332,7 @@ public partial class poloniex : ccxt.poloniex
      * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders
      * @description cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)

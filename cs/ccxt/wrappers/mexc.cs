@@ -1544,7 +1544,7 @@ public partial class mexc
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the exchange api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>

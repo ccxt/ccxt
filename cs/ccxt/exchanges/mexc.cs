@@ -5429,7 +5429,7 @@ public partial class mexc : Exchange
      * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry
      * @param {string} id transfer id
      * @param {string} [code] not used by mexc fetchTransfer
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> fetchTransfer(object id, object code = null, object parameters = null)
@@ -5829,7 +5829,7 @@ public partial class mexc : Exchange
      * @description set hedged to true or false for a market
      * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-user-position-mode
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by mexc setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
@@ -6200,7 +6200,7 @@ public partial class mexc : Exchange
      * @param {string[]} [symbols] unified contract symbols
      * @param {int} [since] not used by mexc fetchPositionsHistory
      * @param {int} [limit] the maximum amount of candles to fetch, default=1000
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {int} [params.type] position type，1: long, 2: short

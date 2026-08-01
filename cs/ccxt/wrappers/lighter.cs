@@ -1015,7 +1015,7 @@ public partial class lighter
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : parameters specific to the bingx api endpoint
+    /// object : parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>

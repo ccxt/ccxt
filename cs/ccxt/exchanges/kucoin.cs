@@ -4461,7 +4461,7 @@ public partial class kucoin : Exchange
                 }
             }
         }
-        // handling with coinditional orders
+        // handling with conditional orders
         var triggerPricestopLossPricetakeProfitPriceVariable = this.handleTriggerPrices(parameters);
         var triggerPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[0];
         var stopLossPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[1];
@@ -11937,7 +11937,7 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} side not used by kucoin closePositions
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id of the order
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */

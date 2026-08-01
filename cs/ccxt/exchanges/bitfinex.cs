@@ -2445,7 +2445,7 @@ public partial class bitfinex : Exchange
             { "id", orderId },
             { "symbol", getValue(market, "id") },
         };
-        // valid for trades upto 10 days old
+        // valid for trades up to 10 days old
         object response = await this.privatePostAuthROrderSymbolIdTrades(this.extend(request, parameters));
         object tradesList = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
