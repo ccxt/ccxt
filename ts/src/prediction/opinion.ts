@@ -959,7 +959,9 @@ export default class opinion extends Exchange {
         // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
         // against a differently-cased walletAddress with strict equality would pick the wrong
         // signatureType (0 EOA vs 2 Gnosis Safe) and break order signing/validation
-        const signatureType = (maker.toLowerCase () === this.walletAddress.toLowerCase ()) ? 0 : 2;
+        const makerLower = maker.toLowerCase ();
+        const walletAddressLower = this.walletAddress.toLowerCase ();
+        const signatureType = (makerLower === walletAddressLower) ? 0 : 2;
         const order: Dict = {
             'salt': salt,
             'maker': maker,
