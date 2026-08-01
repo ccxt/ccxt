@@ -1559,7 +1559,7 @@ func (this *KrakenfuturesCore) CancelOrders(ids any, optionalArgs ...any) <-chan
  * @name krakenfutures#cancelAllOrders
  * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders
  * @description Cancels all orders on the exchange, including trigger orders
- * @param {str} symbol Unified market symbol
+ * @param {string} [symbol] Unified market symbol
  * @param {dict} [params] Exchange specific params
  * @returns Response from exchange api
  */

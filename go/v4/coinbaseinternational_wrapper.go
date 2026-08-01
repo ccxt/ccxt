@@ -719,7 +719,7 @@ func (this *Coinbaseinternational) CancelOrder(id string, options ...CancelOrder
  * @method
  * @name coinbaseinternational#cancelAllOrders
  * @description cancel all open orders
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */

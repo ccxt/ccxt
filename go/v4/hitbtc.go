@@ -2564,7 +2564,7 @@ func (this *HitbtcCore) FetchOpenOrder(id any, optionalArgs ...any) <-chan any {
  * @see https://api.hitbtc.com/#cancel-all-spot-orders
  * @see https://api.hitbtc.com/#cancel-futures-orders
  * @see https://api.hitbtc.com/#cancel-all-margin-orders
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
  * @param {bool} [params.margin] true for canceling margin orders

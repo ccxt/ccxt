@@ -3070,7 +3070,7 @@ func (this *KrakenCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
  * @name kraken#cancelAllOrders
  * @description cancel all open orders
  * @see https://docs.kraken.com/api-reference/trading/cancel-all-orders
- * @param {string} symbol unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
+ * @param {string} [symbol] unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
