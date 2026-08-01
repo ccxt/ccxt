@@ -589,7 +589,7 @@ public class KucoinCore extends KucoinApi
                     put( "order not exist", OrderNotFound.class );
                     put( "order not exist.", OrderNotFound.class );
                     put( "order_not_exist", OrderNotFound.class );
-                    put( "order_not_exist_or_not_allow_to_cancel", InvalidOrder.class );
+                    put( "order_not_exist_or_not_allow_to_cancel", OrderNotFound.class );
                     put( "Order size below the minimum requirement.", InvalidOrder.class );
                     put( "Order size increment invalid.", InvalidOrder.class );
                     put( "The withdrawal amount is below the minimum requirement.", ExchangeError.class );
