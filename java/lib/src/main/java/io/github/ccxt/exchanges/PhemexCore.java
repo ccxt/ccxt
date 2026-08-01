@@ -3649,7 +3649,7 @@ public class PhemexCore extends PhemexApi
                 {
                     return new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 }
-                throw e;
+                throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isArray(data)))

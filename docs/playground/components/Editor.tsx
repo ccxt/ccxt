@@ -12,7 +12,7 @@ const Monaco = dynamic(() => import("@monaco-editor/react"), {
 });
 
 // Load CCXT's type declarations into Monaco's built-in TypeScript service once,
-// so JS/TS get IntelliSense (`exchange.` lists every unified method). No LSP.
+// so TypeScript gets IntelliSense (`exchange.` lists every unified method). No LSP.
 let ccxtTypesConfigured = false;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function configureCcxtTypes(monaco: any) {
@@ -27,24 +27,22 @@ async function configureCcxtTypes(monaco: any) {
       packageJson: string;
     };
     const ts = monaco.languages.typescript;
-    for (const defaults of [ts.typescriptDefaults, ts.javascriptDefaults]) {
-      defaults.setCompilerOptions({
-        target: ts.ScriptTarget.ESNext,
-        module: ts.ModuleKind.ESNext,
-        moduleResolution: ts.ModuleResolutionKind.NodeJs,
-        allowJs: true,
-        allowNonTsExtensions: true,
-        esModuleInterop: true,
-        skipLibCheck: true,
-        noEmit: true,
-        strict: false,
-      });
-      // Completions without red squiggles — a playground shouldn't nag about types.
-      defaults.setDiagnosticsOptions({ noSemanticValidation: true, noSyntaxValidation: false });
-      defaults.addExtraLib(packageJson, "file:///node_modules/ccxt/package.json");
-      defaults.addExtraLib(entry, "file:///node_modules/ccxt/js/ccxt.d.ts");
-      for (const lib of libs) defaults.addExtraLib(lib.content, lib.uri);
-    }
+    const defaults = ts.typescriptDefaults;
+    defaults.setCompilerOptions({
+      target: ts.ScriptTarget.ESNext,
+      module: ts.ModuleKind.ESNext,
+      moduleResolution: ts.ModuleResolutionKind.NodeJs,
+      allowNonTsExtensions: true,
+      esModuleInterop: true,
+      skipLibCheck: true,
+      noEmit: true,
+      strict: false,
+    });
+    // Completions without red squiggles — a playground shouldn't nag about types.
+    defaults.setDiagnosticsOptions({ noSemanticValidation: true, noSyntaxValidation: false });
+    defaults.addExtraLib(packageJson, "file:///node_modules/ccxt/package.json");
+    defaults.addExtraLib(entry, "file:///node_modules/ccxt/js/ccxt.d.ts");
+    for (const lib of libs) defaults.addExtraLib(lib.content, lib.uri);
   } catch {
     ccxtTypesConfigured = false; // allow a retry on next mount
   }
@@ -69,7 +67,7 @@ export default function Editor({
         language={language.monaco}
         // Root-level file:// path so Monaco's TS module resolver can find the
         // virtual file:///node_modules/ccxt declarations for `import 'ccxt'`.
-        path={`file:///main.${language.ext}`}
+        path={`file:///main.${language.monacoExt ?? language.ext}`}
         theme={theme === "dark" ? "vs-dark" : "vs"}
         value={value}
         onChange={(v) => onChange(v ?? "")}

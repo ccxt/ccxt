@@ -2303,7 +2303,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 Helpers.addElementToObject(this.options, "listenKeyFetching", false);
                 client.reject(e, messageHash);
-                throw e;
+                throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
             Helpers.addElementToObject(this.options, "listenKeyFetching", false);
             //

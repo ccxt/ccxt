@@ -1,17 +1,16 @@
 import Transpiler from "ast-transpiler";
-// "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API (typescript@7 is the native compiler and only provides the tsc binary)
-import ts from "typescript6";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
+import { setupCsharpPrinter } from './csharp-worker.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
 import { platform } from 'process'
 import os from 'os'
 import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
-import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
+import {Transpiler as OldTranspiler } from "./transpile.js";
 import { writeFile } from 'fs/promises';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
@@ -74,6 +73,16 @@ const EXCHANGE_GENERATED_FOLDER = './cs/tests/Generated/Exchange/';
 const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 const EXAMPLES_OUTPUT_FOLDER = './examples/cs/examples/';
 const csharpComments: any = {};
+
+// default min(2, AP): 2w + shared-Program chunks is within ~10–15% of 4w and uses fewer cores.
+// Override with CCXT_TRANSPILE_PROCESSES.
+function csharpWorkerThreads () {
+    const requested = Number (process.env.CCXT_TRANSPILE_PROCESSES);
+    if (requested > 0) {
+        return requested;
+    }
+    return Math.max (1, Math.min (2, os.availableParallelism ()));
+}
 
 class NewTranspiler {
 
@@ -296,39 +305,8 @@ class NewTranspiler {
 
     setupTranspiler() {
         this.transpiler = new Transpiler (this.getTranspilerConfig())
-        this.transpiler.setVerboseMode(false);
+        setupCsharpPrinter (this.transpiler);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
-        // TS >= 5/6 (ast-transpiler 0.0.91) can report dictionary key types like `Str`
-        // (string | undefined) as a union whose first member is not the string one.
-        // The default printer only inspects the first union member, so dictionary
-        // assignments (`result[symbol] = value`) would be wrongly emitted as list index
-        // writes (`((List<object>)result)[Convert.ToInt32(symbol)]`). Handle unions
-        // containing a string member here (matches the previous TS 4.9 output).
-        const csharp = this.transpiler.csharpTranspiler;
-        csharp.printElementAccessExpressionExceptionIfAny = (node: any) => {
-            const { expression, argumentExpression } = node;
-            const parent = node.parent;
-            const isLeftSideOfAssignment = parent?.kind === ts.SyntaxKind.BinaryExpression
-                && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken || parent.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken)
-                && parent?.left === node;
-            if (isLeftSideOfAssignment && csharp.ELEMENT_ACCESS_WRAPPER_OPEN && csharp.ELEMENT_ACCESS_WRAPPER_CLOSE) {
-                // ast-transpiler >= 0.0.95 no longer publishes the checker on `global` - prefer the
-                // instance accessor and skip this workaround gracefully when no checker is available
-                const checker = (typeof (csharp as any).getChecker === 'function') ? (csharp as any).getChecker () : (global as any).checker;
-                if (!checker) {
-                    return undefined;
-                }
-                const type = checker.getTypeAtLocation (argumentExpression);
-                const isUnion = ((type.flags & ts.TypeFlags.Union) !== 0) && Array.isArray (type.types);
-                if (isUnion && type.types.some ((t: any) => csharp.isStringType (t.flags))) {
-                    const expressionAsString = csharp.printNode (expression, 0);
-                    const argumentAsString = csharp.printNode (argumentExpression, 0);
-                    const cast = ts.isStringLiteralLike (argumentExpression) ? '' : '(string)';
-                    return `((IDictionary<string,object>)${expressionAsString})[${cast}${argumentAsString}]`;
-                }
-            }
-            return undefined;
-        };
     }
 
     createGeneratedHeader() {
@@ -1126,29 +1104,26 @@ class NewTranspiler {
         const options = { csharpFolder, exchanges:inputExchanges }
         // const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:['bitget'] }
         this.isPrediction = prediction
-        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true )
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, true )
         this.isPrediction = false
     }
 
-    async transpileEverything (force = false, child = false, baseOnly = false, examplesOnly = false, prediction = false) {
+    async transpileEverything (force = false, baseOnly = false, examplesOnly = false, prediction = false) {
 
         let exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
         const csharpFolder = prediction ? EXCHANGES_PREDICTION_FOLDER : EXCHANGES_FOLDER
             , tsFolder = prediction ? './ts/src/prediction/' : './ts/src/'
             , exchangeBase = './ts/src/base/Exchange.ts'
 
-        if (!child) {
-            createFolderRecursively (csharpFolder)
-        }
+        createFolderRecursively (csharpFolder)
         const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
         if (transpilingSingleExchange) {
             force = true; // when transpiling single exchange, we always force
         }
         if (prediction) {
-            // a scoped run (e.g. a --multi worker chunk of regular exchanges) carries regular
-            // ids in argv — the prediction pass must not try to transpile those from
-            // ts/src/prediction/ (the files don't exist there); the multi parent transpiles
-            // the prediction set itself after the workers finish
+            // a scoped run (e.g. `csharpTranspiler.ts binance`) carries regular ids in argv —
+            // the prediction pass must not try to transpile those from ts/src/prediction/
+            // (the files don't exist there)
             const predictionOnly = exchanges.filter ((x: string) => predictionIds.includes (x))
             if (exchanges.length && !predictionOnly.length) {
                 return;
@@ -1159,7 +1134,7 @@ class NewTranspiler {
 
         if (!baseOnly && !examplesOnly) {
             this.isPrediction = prediction
-            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force)
             this.isPrediction = false
         }
 
@@ -1180,12 +1155,9 @@ class NewTranspiler {
         if (transpilingSingleExchange) {
             return;
         }
-        if (child) {
-            return;
-        }
 
         // full builds also transpile the prediction-market exchanges (ts/src/prediction/)
-        await this.transpileEverything (force, child, false, false, true)
+        await this.transpileEverything (force, false, false, true)
 
         this.transpileBaseMethods (exchangeBase)
 
@@ -1207,7 +1179,7 @@ class NewTranspiler {
 
         // one shared pool — concurrent callers (base/exchange/ws tests) queue into the
         // same threads instead of each spawning their own full-size pool
-        const maxThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ())
+        const maxThreads = csharpWorkerThreads ();
         if (!this.piscina) {
             this.piscina = new Piscina({
                 filename: resolve(__dirname, 'csharp-worker.js'),
@@ -1215,20 +1187,27 @@ class NewTranspiler {
             });
         }
         const piscina = this.piscina;
+        const configKey = JSON.stringify (parserConfig);
 
-        // one chunk per thread — a fixed chunkSize of 20 left most cores idle
-        // (e.g. 90 test files → 5 chunks → 5 busy threads on an 18-core machine)
-        const chunkSize = Math.max (1, Math.ceil (allFiles.length / maxThreads));
+        // One file per task. `roots` is the FULL stage list on every task so each worker
+        // builds ONE sticky ts.Program (build/worker-program-batch.js) and prints off it.
         const promises: any = [];
         const now = Date.now();
-        for (let i = 0; i < allFiles.length; i += chunkSize) {
-            const chunk = allFiles.slice(i, i + chunkSize);
-            promises.push(piscina.run({transpilerConfig:parserConfig, files:chunk}));
+        for (const file of allFiles) {
+            promises.push(piscina.run({transpilerConfig:parserConfig, configKey, roots: allFiles, files: [file]}));
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
         log.green ('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms');
-        const flatResult = workerResult.flat();
+        const flatResult: any[] = [];
+        for (const chunk of workerResult) {
+            flatResult.push (...chunk.result);
+            // csharpComments lives on the main thread (the wrapper writer reads it), so
+            // replay the raw comments the worker saw through the same transform
+            for (const comment of chunk.comments) {
+                this.transformLeadingComment (comment);
+            }
+        }
         return flatResult;
     }
 
@@ -1241,10 +1220,10 @@ class NewTranspiler {
         }
         const csharpFolder = ws ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_PREDICTION_FOLDER;
         const options = { csharpFolder, exchanges: inputExchanges }
-        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, true, ws, true)
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, ws, true)
     }
 
-    async transpileDerivedExchangeFiles (jsFolder: string, options: any, pattern = '.ts', force = false, child = false, ws = false, prediction = false) {
+    async transpileDerivedExchangeFiles (jsFolder: string, options: any, pattern = '.ts', force = false, ws = false, prediction = false) {
 
         // todo normalize jsFolder and other arguments
 
@@ -1257,24 +1236,30 @@ class NewTranspiler {
 
         const regex = new RegExp (pattern.replace (/[.*+?^${}()|[\]\\]/g, '\\$&'))
 
-        // let exchanges
+        // local file list — must NOT clobber the module-level `exchanges` (the parsed
+        // exchanges.json), which this function reads `.ids` off of on the next call.
+        // Assigning to it worked only because each stage ran in its own process;
+        // --rest-and-ws reuses one.
+        let exchangeFiles: string[]
         if (options.exchanges && options.exchanges.length) {
-            exchanges = options.exchanges.map ((x: string) => x + pattern)
+            exchangeFiles = options.exchanges.map ((x: string) => x + pattern)
         } else {
-            exchanges = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))))
+            exchangeFiles = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))))
         }
 
         // transpile using webworker
-        const allFilesPath = exchanges.map ((file: string) => jsFolder + file );
-        // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
-        log.blue('[csharp] Transpiling [', exchanges.join(', '), ']');
-        const transpiledFiles =  allFilesPath.map((file: string) => this.transpiler.transpileCSharpByPath(file));
+        const allFilesPath = exchangeFiles.map ((file: string) => jsFolder + file );
+        log.blue('[csharp] Transpiling [', exchangeFiles.join(', '), ']');
+        // a single exchange (scoped/debug run) is not worth a cold pool
+        const transpiledFiles = (allFilesPath.length > 1)
+            ? await this.webworkerTranspile (allFilesPath, this.getTranspilerConfig())
+            : allFilesPath.map((file: string) => this.transpiler.transpileCSharpByPath(file));
 
         if (!ws) {
             const wrapperFolder = this.isPrediction ? EXCHANGE_PREDICTION_WRAPPER_FOLDER : EXCHANGE_WRAPPER_FOLDER;
             for (let i = 0; i < transpiledFiles.length; i++) {
                 const transpiled = transpiledFiles[i];
-                const exchangeName = exchanges[i].replace('.ts','');
+                const exchangeName = exchangeFiles[i].replace('.ts','');
                 const path = wrapperFolder + exchangeName + '.cs';
                 this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes)
             }
@@ -1283,12 +1268,12 @@ class NewTranspiler {
             const wrapperFolder = this.isPrediction ? EXCHANGE_PREDICTION_WS_WRAPPER_FOLDER : EXCHANGE_WS_WRAPPER_FOLDER;
             for (let i = 0; i < transpiledFiles.length; i++) {
                 const transpiled = transpiledFiles[i];
-                const exchangeName = exchanges[i].replace('.ts','');
+                const exchangeName = exchangeFiles[i].replace('.ts','');
                 const path = wrapperFolder + exchangeName + '.cs';
                 this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
             }
         }
-        exchanges.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws, prediction))
+        exchangeFiles.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws, prediction))
 
         const classes = {}
 
@@ -1811,18 +1796,29 @@ async function runMain () {
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
     const examples = process.argv.includes ('--examples');
     const force = process.argv.includes ('--force')
-    const child = process.argv.includes ('--child')
     const baseClassOnly = process.argv.includes ('--baseClass')
-    const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
+    // single-process REST+WS (default via npm run transpileCS / CI): keeps the one
+    // piscina pool (and its warm per-thread Transpilers) alive across both stages
+    // instead of paying a second process boot + cold pool. Omit the flag for REST-only.
+    const restAndWs = process.argv.includes ('--rest-and-ws')
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
-    if (!child && !multiprocess) {
-        log.bright.green ({ force })
-    }
+    log.bright.green ({ force })
     const transpiler = new NewTranspiler ();
     const inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
     if (baseClassOnly) {
         transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
         transpiler.transpilePredictionBaseMethods ()
+    } else if (restAndWs) {
+        // same work as `transpileCS --force` followed by `transpileCSWs --force`, but on
+        // one transpiler instance, so the single piscina pool (and its warm per-thread
+        // Transpilers) survives into the ws stage instead of paying a second process
+        // boot + cold pool. `npm run transpileCS` is the default full path; --ws stays ws-only.
+        await transpiler.transpileEverything (force, baseOnly, examples, prediction)
+        await transpiler.transpileWS (force)
+        if (!inputExchanges.length) {
+            // full ws builds also transpile the prediction ws exchanges
+            await transpiler.transpileWS (force, true)
+        }
     } else if (ws) {
         if (prediction) {
             await transpiler.transpileWS (force, true)
@@ -1835,22 +1831,8 @@ async function runMain () {
         }
     } else if (test) {
         await transpiler.transpileTests ()
-    } else if (multiprocess) {
-        // run the serial tail (base methods, tests, error hierarchy) in the parent
-        // CONCURRENTLY with the exchange fan-out — previously the first fork ran it
-        // after finishing its own exchange chunk, serializing most of the build time
-        await Promise.all ([
-            parallelizeTranspiling (exchangeIds, undefined, force, false, false, true),
-            (async () => {
-                transpiler.transpileBaseMethods ('./ts/src/base/Exchange.ts')
-                await transpiler.transpileTests ()
-                transpiler.transpileErrorHierarchy ()
-            }) (),
-        ])
-        // the prediction exchanges are few — transpile them serially after the workers finish
-        await transpiler.transpileEverything (force, false, false, false, true)
     } else {
-        await transpiler.transpileEverything (force, child, baseOnly, examples, prediction)
+        await transpiler.transpileEverything (force, baseOnly, examples, prediction)
     }
 }
 

@@ -2143,7 +2143,7 @@ public class GrvtCore extends GrvtApi
                 {
                     throw new PermissionDenied((String)Helpers.add(Helpers.add(this.id, " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: "), msg)) ;
                 }
-                throw error;
+                throw (error instanceof RuntimeException ? (RuntimeException)error : new RuntimeException(error));
             }
             //
             // {

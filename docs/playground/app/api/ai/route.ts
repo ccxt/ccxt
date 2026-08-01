@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "no messages" }, { status: 400 });
   }
   const model = body.model && isFreeModel(body.model) ? body.model : DEFAULT_MODEL;
-  const language: LanguageId = isLanguageId(body.language ?? "") ? (body.language as LanguageId) : "js";
+  const language: LanguageId = isLanguageId(body.language ?? "") ? (body.language as LanguageId) : "ts";
   const code = typeof body.code === "string" ? body.code : "";
 
   const lastUser = [...messages].reverse().find((m) => m.role === "user");

@@ -5285,10 +5285,22 @@ class bitget(Exchange, ImplicitAPI):
             else:
                 if hasStopLoss:
                     slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice')
+                    if slTriggerPrice is None:
+                        raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter')
                     request['presetStopLossPrice'] = self.price_to_precision(symbol, slTriggerPrice)
+                    slLimitPrice = self.safe_value(stopLoss, 'price')
+                    if slLimitPrice is not None:
+                        # without the execute price the exchange fills the attached stop loss
+                        # at the market price, see https://github.com/ccxt/ccxt/issues/23459
+                        request['presetStopLossExecutePrice'] = self.price_to_precision(symbol, slLimitPrice)
                 if hasTakeProfit:
                     tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice')
+                    if tpTriggerPrice is None:
+                        raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter')
                     request['presetStopSurplusPrice'] = self.price_to_precision(symbol, tpTriggerPrice)
+                    tpLimitPrice = self.safe_value(takeProfit, 'price')
+                    if tpLimitPrice is not None:
+                        request['presetStopSurplusExecutePrice'] = self.price_to_precision(symbol, tpLimitPrice)
             if not isStopLossOrTakeProfitTrigger:
                 if marginMode is None:
                     marginMode = 'cross'

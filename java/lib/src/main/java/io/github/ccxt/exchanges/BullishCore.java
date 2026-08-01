@@ -1462,12 +1462,12 @@ public class BullishCore extends BullishApi
                 {
                     if (Helpers.isTrue(Helpers.isInstance(e, RateLimitExceeded.class)))
                     {
-                        throw e;
+                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
                     errors = Helpers.add(errors, 1);
                     if (Helpers.isTrue(Helpers.isGreaterThan(errors, maxRetries)))
                     {
-                        throw e;
+                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
                 }
             }

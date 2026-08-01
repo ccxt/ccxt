@@ -2439,6 +2439,13 @@ class htx extends \ccxt\async\htx {
                     if (is_array($client->subscriptions) && array_key_exists($id ?? '', $client->subscriptions)) {
                         unset($client->subscriptions[$id]);
                     }
+                    // the $subscription is keyed by the $messageHash, not by the $id -
+                    // without removing it a repeated watch call attaches to a future
+                    // that nothing will resolve instead of resubscribing, see
+                    // https://github.com/ccxt/ccxt/issues/10280
+                    if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
+                        unset($client->subscriptions[$messageHash]);
+                    }
                 }
             }
             return false;
