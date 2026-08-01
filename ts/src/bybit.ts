@@ -1630,7 +1630,18 @@ export default class bybit extends Exchange {
     }
 
     safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
-        const isOption = (marketId !== undefined) && ((marketId.indexOf ('-C') > -1) || (marketId.indexOf ('-P') > -1));
+        let isOption = false;
+        if (marketId !== undefined) {
+            const parts = marketId.split ('-');
+            const partsLength = parts.length;
+            // a valid bybit option carries expiry+strike segments and ends with the call/put flag,
+            // optionally followed by the USDT settle suffix on current-generation options,
+            // e.g. the legacy market id BTC-30DEC22-18000-C with 4 parts, the current market id
+            // BTC-26MAR27-67000-P-USDT with 5 parts or the unified symbol
+            // BTC/USDT:USDT-250530-68000-P with 4 parts, so require more than 3 dash-separated
+            // parts to avoid misclassifying ids that merely contain "-C"/"-P"
+            isOption = (partsLength > 3) && ((marketId.endsWith ('-C')) || (marketId.endsWith ('-P')) || (marketId.endsWith ('-C-USDT')) || (marketId.endsWith ('-P-USDT')));
+        }
         if (isOption && !(marketId in this.markets_by_id)) {
             // handle expired option contracts
             return this.createExpiredOptionMarket (marketId);
