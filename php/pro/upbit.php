@@ -347,7 +347,7 @@ class upbit extends \ccxt\async\upbit {
         //     stream_type => 'REALTIME'
         //   }
         $marketId = $this->safe_string($message, 'code');
-        $symbol = $this->safe_symbol($marketId, null);
+        $symbol = $this->safe_symbol($marketId);
         $messageHash = 'candle.1s:' . $symbol;
         $ohlcv = $this->parse_ohlcv($message);
         $client->resolve($ohlcv, $messageHash);

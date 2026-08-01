@@ -285,7 +285,7 @@ class grvt extends \ccxt\async\grvt {
         $selector = $this->safe_string($message, 'selector', '');
         $parts = explode('@', $selector);
         $marketId = $this->safe_string($parts, 0);
-        $market = $this->safe_market($marketId, null);
+        $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $ticker = $this->parse_ws_ticker($data, $market);
         $this->tickers[$symbol] = $ticker;
@@ -381,7 +381,7 @@ class grvt extends \ccxt\async\grvt {
         $selector = $this->safe_string($message, 'selector', '');
         $parts = explode('@', $selector);
         $marketId = $this->safe_string($parts, 0);
-        $market = $this->safe_market($marketId, null);
+        $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -488,7 +488,7 @@ class grvt extends \ccxt\async\grvt {
         $selector = $this->safe_string($message, 'selector', '');
         $parts = explode('@', $selector);
         $marketId = $this->safe_string($parts, 0);
-        $market = $this->safe_market($marketId, null);
+        $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $secondPart = $this->safe_string($parts, 1, '');
         $timeframeId = str_replace('-TRADE', '', $secondPart);
@@ -611,7 +611,7 @@ class grvt extends \ccxt\async\grvt {
         $selector = $this->safe_string($message, 'selector', '');
         $parts = explode('@', $selector);
         $marketId = $this->safe_string($parts, 0);
-        $market = $this->safe_market($marketId, null);
+        $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_product($data, 'event_time', 0.000001);
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {

@@ -1162,7 +1162,7 @@ class toobit extends \ccxt\async\toobit {
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
-            'symbol' => $this->safe_symbol($marketId, null),
+            'symbol' => $this->safe_symbol($marketId),
             'notional' => $this->omit_zero($this->safe_string($position, 'pv')),
             'marginMode' => $this->safe_string_lower($position, 'mt'),
             'liquidationPrice' => $this->safe_string($position, 'f'),

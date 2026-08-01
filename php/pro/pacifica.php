@@ -79,7 +79,7 @@ class pacifica extends \ccxt\async\pacifica {
         if ($key !== null) {
             $headers['PF-API-KEY'] = $key;
         } else {
-            if ($this->handle_option('setupApiKeyHeaders', 'apiKey', null) !== null) {
+            if ($this->handle_option('setupApiKeyHeaders', 'apiKey') !== null) {
                 $headers['PF-API-KEY'] = $this->options['apiKey'];
             }
         }
@@ -297,7 +297,7 @@ class pacifica extends \ccxt\async\pacifica {
             $ordersToReturn = array();
             for ($i = 0; $i < count($results); $i++) {
                 $order = $results[$i];
-                $error = $this->safe_string($order, 'error', null);
+                $error = $this->safe_string($order, 'error');
                 $success = $this->safe_bool($order, 'success', false);
                 $marketId = $this->safe_string($order, 'symbol');
                 $market = $this->safe_market($marketId);
@@ -1398,7 +1398,7 @@ class pacifica extends \ccxt\async\pacifica {
         if ($this->handle_error_message($client, $message)) {
             return;
         }
-        $postType = $this->safe_string($message, 'type', null);
+        $postType = $this->safe_string($message, 'type');
         $topic = $this->safe_string($message, 'channel', '');
         $methods = array(
             'pong' => array($this, 'handle_pong'),

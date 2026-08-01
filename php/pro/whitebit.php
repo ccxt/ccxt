@@ -341,7 +341,7 @@ class whitebit extends \ccxt\async\whitebit {
         //
         $tickers = $this->safe_value($message, 'params', array());
         $marketId = $this->safe_string($tickers, 0);
-        $market = $this->safe_market($marketId, null);
+        $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $rawTicker = $this->safe_value($tickers, 1, array());
         $messageHash = 'ticker' . ':' . $symbol;

@@ -1974,7 +1974,7 @@ class paradex extends Exchange {
         for ($i = 0; $i < count($results); $i++) {
             $result = $results[$i];
             $marketId = $this->safe_string($result, 'market');
-            $market = $this->safe_market($marketId, null);
+            $market = $this->safe_market($marketId);
             $status = $this->safe_string($result, 'status');
             $orderStatus = null;
             if ($status === 'QUEUED_FOR_CANCELLATION') {

@@ -3494,7 +3494,7 @@ class hyperliquid extends Exchange {
             $marketId = $this->coin_to_market_id($coin);
         }
         if ($this->safe_string($entry, 'id') === null) {
-            $market = $this->safe_market($marketId, null);
+            $market = $this->safe_market($marketId);
         } else {
             $market = $this->safe_market($marketId, $market);
         }
@@ -3659,7 +3659,7 @@ class hyperliquid extends Exchange {
         $amount = $this->safe_string($trade, 'sz');
         $coin = $this->safe_string($trade, 'coin');
         $marketId = $this->coin_to_market_id($coin);
-        $market = $this->safe_market($marketId, null);
+        $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $id = $this->safe_string($trade, 'tid');
         $side = $this->safe_string($trade, 'side');
@@ -3851,7 +3851,7 @@ class hyperliquid extends Exchange {
         $entry = $this->safe_dict($position, 'position', array());
         $coin = $this->safe_string($entry, 'coin');
         $marketId = $this->coin_to_market_id($coin);
-        $market = $this->safe_market($marketId, null);
+        $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $leverage = $this->safe_dict($entry, 'leverage', array());
         $marginMode = $this->safe_string($leverage, 'type');

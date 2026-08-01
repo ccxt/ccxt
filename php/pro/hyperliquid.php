@@ -776,7 +776,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $amount = $this->safe_string($trade, 'sz');
         $coin = $this->safe_string($trade, 'coin');
         $marketId = $this->coinToMarketId($coin);
-        $market = $this->safe_market($marketId, null);
+        $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $id = $this->safe_string($trade, 'tid');
         $side = $this->safe_string($trade, 'side');
