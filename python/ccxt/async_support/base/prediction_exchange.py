@@ -8,7 +8,7 @@
 
 from typing import Any, List
 from ccxt.async_support.base.exchange import BaseExchange
-from ccxt.base.types import Str, Strings, Int, Num, Market, OrderType, OrderSide, PredictionOrderRequest, fetchEventsParams
+from ccxt.base.types import Str, Strings, Int, Num, OrderType, OrderSide, PredictionOrderRequest, fetchEventsParams
 from ccxt.base.precise import Precise
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol

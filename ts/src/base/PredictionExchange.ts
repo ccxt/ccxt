@@ -3,7 +3,7 @@
 import { BaseExchange } from './Exchange.js';
 import { Precise } from './Precise.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
-import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams } from './types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1504,23 +1504,23 @@ export default class PredictionExchange extends BaseExchange {
         return this.omit (orderbook, 'symbol') as PredictionOrderBook;
     }
 
-    parsePredictionTicker (ticker: Dict, market: Market = undefined): PredictionTicker {
+    parsePredictionTicker (ticker: Dict, outcomeObj: any = undefined): PredictionTicker {
         throw new NotSupported (this.id + ' parsePredictionTicker() is not supported yet');
     }
 
-    parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
+    parsePredictionOrder (order: Dict, outcomeObj: any = undefined): PredictionOrder {
         throw new NotSupported (this.id + ' parsePredictionOrder() is not supported yet');
     }
 
-    parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
+    parsePredictionTrade (trade: Dict, outcomeObj: any = undefined): PredictionTrade {
         throw new NotSupported (this.id + ' parsePredictionTrade() is not supported yet');
     }
 
-    parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
+    parsePredictionPosition (position: Dict, outcomeObj: any = undefined): PredictionPosition {
         throw new NotSupported (this.id + ' parsePredictionPosition() is not supported yet');
     }
 
-    parsePredictionOpenInterest (interest: Dict, market: Market = undefined): PredictionOpenInterest {
+    parsePredictionOpenInterest (interest: Dict, outcomeObj: any = undefined): PredictionOpenInterest {
         throw new NotSupported (this.id + ' parsePredictionOpenInterest() is not supported yet');
     }
 

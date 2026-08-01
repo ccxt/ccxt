@@ -25,7 +25,7 @@ import type {
     Market, PredictionOrderBook, OHLCV,
     Bool,
     Account, fetchEventsParams,
-    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
+    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOutcome,
 } from '../base/types.js';
 import { ArgumentsRequired, BadRequest, InvalidAddress, InvalidOrder, OrderNotFound } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
@@ -974,10 +974,10 @@ export default class limitless extends Exchange {
      * @name limitless#parsePredictionTicker
      * @description parses a raw market object, or a composite market + book dict, into a unified ticker for the specified outcome token
      * @param {object} ticker a raw limitless market object or a dict with market and book entries
-     * @param {object} [market] the outcome object the ticker belongs to
+     * @param {object} [outcomeObj] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    parsePredictionTicker (ticker: Dict, market: Market = undefined): PredictionTicker {
+    parsePredictionTicker (ticker: Dict, outcomeObj: PredictionOutcome = undefined): PredictionTicker {
         //
         //     {
         //         "id": "36814",
@@ -1048,7 +1048,7 @@ export default class limitless extends Exchange {
             raw = this.safeDict (ticker, 'market', {});
             book = this.safeDict (ticker, 'book');
         }
-        const rawLabel = (market !== undefined) ? this.safeString (market, 'label', this.safeString (market['info'], 'outcomeLabel', 'yes')) : 'yes';
+        const rawLabel = (outcomeObj !== undefined) ? this.safeString (outcomeObj, 'label', this.safeString (outcomeObj['info'], 'outcomeLabel', 'yes')) : 'yes';
         const isYes = rawLabel.toLowerCase () !== 'no';
         let bidStr = undefined;
         let askStr = undefined;
@@ -1112,12 +1112,12 @@ export default class limitless extends Exchange {
             askSizeStr = Precise.stringDiv (askSizeStr, '1000000');
         }
         const now = this.milliseconds ();
-        const outcomeSymbol = this.safeOutcomeSymbol (undefined, market);
+        const outcomeSymbol = this.safeOutcomeSymbol (undefined, outcomeObj);
         return this.safePredictionTicker ({
             'outcome': outcomeSymbol,
-            'outcomeId': this.safeString (market, 'outcomeId'),
-            'label': this.safeString (market, 'label'),
-            'market': this.safeString (market, 'market'),
+            'outcomeId': this.safeString (outcomeObj, 'outcomeId'),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
             'timestamp': now,
             'datetime': this.iso8601 (now),
             'high': undefined,
@@ -1724,10 +1724,10 @@ export default class limitless extends Exchange {
      * @name limitless#parsePredictionOrder
      * @description parses a raw limitless order object into a unified order object
      * @param {object} order the raw order object
-     * @param {object} [market] the outcome object the order belongs to
+     * @param {object} [outcomeObj] the outcome object the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
+    parsePredictionOrder (order: Dict, outcomeObj: PredictionOutcome = undefined): PredictionOrder {
         //
         // fetchOrders, fetchOpenOrders, fetchClosedOrders
         //     {
@@ -1846,7 +1846,7 @@ export default class limitless extends Exchange {
         }
         const id = this.safeString (rawOrder, 'id');
         const tokenId = this.safeString2 (rawOrder, 'token', 'tokenId');
-        const mkt = this.safeOutcome (tokenId, market as any);
+        const mkt = this.safeOutcome (tokenId, outcomeObj as any);
         const outcomeSymbol = this.safeString (mkt, 'outcome');
         const rawSide = this.safeString (rawOrder, 'side');
         const side = this.parseOrderSide (rawSide);
@@ -2528,10 +2528,10 @@ export default class limitless extends Exchange {
      * @name limitless#parsePredictionTrade
      * @description parses a raw trade from either the public market events feed or the private portfolio history into a unified trade object
      * @param {object} trade the raw trade object
-     * @param {object} [market] the outcome object the trade belongs to
+     * @param {object} [outcomeObj] the outcome object the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
+    parsePredictionTrade (trade: Dict, outcomeObj: PredictionOutcome = undefined): PredictionTrade {
         const matchedSize = this.safeString (trade, 'matchedSize');
         if (matchedSize !== undefined) {
             // public market events feed trade, see fetchTrades for the response sample
@@ -2549,16 +2549,16 @@ export default class limitless extends Exchange {
             if (priceStr !== undefined) {
                 costStr = Precise.stringMul (priceStr, amountStr);
             }
-            const feedOutcome = this.safeOutcomeSymbol (undefined, market);
+            const feedOutcome = this.safeOutcomeSymbol (undefined, outcomeObj);
             return this.safePredictionTrade ({
                 'id': this.safeString (trade, 'txHash'),
                 'info': trade,
                 'timestamp': ts,
                 'datetime': this.iso8601 (ts),
                 'outcome': feedOutcome,
-                'outcomeId': this.safeString (market, 'outcomeId'),
-                'label': this.safeString (market, 'label'),
-                'market': this.safeString (market, 'market'),
+                'outcomeId': this.safeString (outcomeObj, 'outcomeId'),
+                'label': this.safeString (outcomeObj, 'label'),
+                'market': this.safeString (outcomeObj, 'market'),
                 'order': undefined,
                 'type': undefined,
                 'side': feedSide,
@@ -2804,10 +2804,10 @@ export default class limitless extends Exchange {
      * @name limitless#parsePredictionPosition
      * @description parses a raw limitless portfolio position into a unified position object
      * @param {object} position the raw position object
-     * @param {object} [market] the outcome object the position belongs to
+     * @param {object} [outcomeObj] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
+    parsePredictionPosition (position: Dict, outcomeObj: PredictionOutcome = undefined): PredictionPosition {
         //
         //     {
         //         "cost": "995720",
@@ -2817,7 +2817,7 @@ export default class limitless extends Exchange {
         //         "unrealizedPnl": "0"
         //     }
         //
-        const outcomeSymbol = this.safeString (market, 'outcome');
+        const outcomeSymbol = this.safeString (outcomeObj, 'outcome');
         const notional = this.applyScale (this.safeString (position, 'marketValue'));
         const unrealizedPnl = this.applyScale (this.safeString (position, 'unrealizedPnl'));
         const realizedPnl = this.applyScale (this.safeString (position, 'realisedPnl'));
@@ -2826,9 +2826,9 @@ export default class limitless extends Exchange {
         return {
             'id': undefined,
             'outcome': outcomeSymbol,
-            'outcomeId': this.safeString (market, 'outcomeId'),
-            'label': this.safeString (market, 'label'),
-            'market': this.safeString (market, 'market'),
+            'outcomeId': this.safeString (outcomeObj, 'outcomeId'),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
             'timestamp': undefined,
             'datetime': undefined,
             'contracts': undefined,

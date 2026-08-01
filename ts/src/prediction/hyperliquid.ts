@@ -9,6 +9,7 @@ import type {
     Balances, fetchEventsParams,
     Strings,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
+    PredictionOutcome,
 } from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, RateLimitExceeded } from '../base/errors.js';
 
@@ -713,10 +714,10 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#parsePredictionTicker
      * @description parses a raw l2Book response (or a synthetic mid dict) into a unified ticker object
      * @param {object} raw l2Book response or { mid, time } object
-     * @param {object} [market] the market the ticker belongs to
+     * @param {object} [outcomeObj] the outcome the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    parsePredictionTicker (raw: Dict, market: Market = undefined): PredictionTicker {
+    parsePredictionTicker (raw: Dict, outcomeObj: PredictionOutcome = undefined): PredictionTicker {
         //
         //     {
         //         "coin": "#10",
@@ -730,7 +731,7 @@ export default class hyperliquid extends Exchange {
         const now = this.milliseconds ();
         const timestamp = this.safeInteger (raw, 'time', now);
         // the 2nd arg carries the outcome object (callers pass the resolved outcome)
-        const mkt = this.safeOutcome (undefined, market);
+        const mkt = this.safeOutcome (undefined, outcomeObj);
         const outcome = this.safeString (mkt, 'outcome');
         const levels = this.safeList (raw, 'levels', []);
         const rawBids = this.safeList (levels, 0, []);
@@ -775,7 +776,7 @@ export default class hyperliquid extends Exchange {
             'baseVolume': undefined,
             'quoteVolume': dayVolume,
             'info': raw,
-        }, market);
+        }, outcomeObj);
     }
 
     /**
@@ -1039,14 +1040,14 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#parsePredictionPosition
      * @description parses a spot balance entry for an outcome token into a unified position object
      * @param {object} position the raw balance entry
-     * @param {object} [market] the outcome object the position belongs to
+     * @param {object} [outcomeObj] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
+    parsePredictionPosition (position: Dict, outcomeObj: PredictionOutcome = undefined): PredictionPosition {
         // `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
         // enriched with the current mid price (markPx); hyperliquid does not return the position
         // value / entry price / pnl for outcome tokens, so they are computed here
-        const outcomeObj = this.safeOutcome (undefined, market);
+        outcomeObj = this.safeOutcome (undefined, outcomeObj);
         const totalStr = this.safeString (position, 'total');
         const total = this.parseNumber (totalStr);
         const entryNtlStr = this.safeString (position, 'entryNtl');
@@ -1569,10 +1570,10 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#parsePredictionOrder
      * @description parses a raw hyperliquid order object into a unified order object
      * @param {object} order the raw order object
-     * @param {object} [market] the market the order belongs to
+     * @param {object} [outcomeObj] the outcome the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
+    parsePredictionOrder (order: Dict, outcomeObj: PredictionOutcome = undefined): PredictionOrder {
         //
         // from frontendOpenOrders:
         // {
@@ -1595,9 +1596,9 @@ export default class hyperliquid extends Exchange {
         let entry = this.safeDict (order, 'order', order); // eslint-disable-line
         const status = this.parseOrderStatus (this.safeString2 (order, 'ccxtStatus', 'status'));
         const coin = this.safeString (entry, 'coin');
-        const outcomeObj = this.safeOutcome (coin, market as any);
+        outcomeObj = this.safeOutcome (coin, outcomeObj as any);
         const marketSymbol = this.safeString (outcomeObj, 'outcome');
-        const resolvedMarket = marketSymbol ? this.safeMarket (marketSymbol, market as any) : market;
+        const resolvedMarket = marketSymbol ? this.safeMarket (marketSymbol, outcomeObj as any) : outcomeObj;
         const sideRaw = this.safeString (entry, 'side');
         const side = (sideRaw === 'B') ? 'buy' : 'sell';
         const totalAmount = this.safeString (entry, 'origSz');
@@ -1756,10 +1757,10 @@ export default class hyperliquid extends Exchange {
      * @name hyperliquid#parsePredictionTrade
      * @description parses a single hyperliquid fill into a unified trade object
      * @param {object} trade the raw fill object
-     * @param {object} [market] the market the trade belongs to
+     * @param {object} [outcomeObj] the market the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
+    parsePredictionTrade (trade: Dict, outcomeObj: PredictionOutcome = undefined): PredictionTrade {
         //
         // {
         //   "closedPnl": "0.19343",
@@ -1783,9 +1784,9 @@ export default class hyperliquid extends Exchange {
         const price = this.safeString (trade, 'px');
         const amount = this.safeString (trade, 'sz');
         const coin = this.safeString (trade, 'coin');
-        const outcomeObj = this.safeOutcome (coin, market as any);
+        outcomeObj = this.safeOutcome (coin, outcomeObj as any);
         const marketSymbol = this.safeString (outcomeObj, 'outcome');
-        const resolvedMarket = marketSymbol ? this.safeMarket (marketSymbol, market as any) : market;
+        const resolvedMarket = marketSymbol ? this.safeMarket (marketSymbol, outcomeObj as any) : outcomeObj;
         const rawSide = this.safeString (trade, 'side');
         const side = (rawSide === 'B') ? 'buy' : 'sell';
         const fee = this.safeNumber (trade, 'fee');
