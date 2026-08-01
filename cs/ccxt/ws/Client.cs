@@ -234,7 +234,19 @@ public partial class BaseExchange
                 {
                     Console.WriteLine($"PingLoop error: {ex.Message}");
                 }
-                this.onError(this, ex);
+                // PingLoop is async void, so anything escaping this catch is rethrown on
+                // the thread pool and kills the host process instead of faulting a task
+                try
+                {
+                    this.onError(this, ex);
+                }
+                catch (Exception cleanupError)
+                {
+                    if (this.verbose)
+                    {
+                        Console.WriteLine($"PingLoop cleanup error: {cleanupError.Message}");
+                    }
+                }
             }
         }
 

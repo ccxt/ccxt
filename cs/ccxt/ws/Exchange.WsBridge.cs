@@ -58,7 +58,9 @@ public partial class BaseExchange
         {
             urlClient.subscriptions.Remove(KeyValue.Key);
             Future existingFuture = null;
-            if (urlClient.futures.TryGetValue(KeyValue.Key, out existingFuture))
+            // remove instead of read, so two concurrent cleanup passes (the ping loop
+            // and the receive loop both failing at once) cannot pick up the same future
+            if ((urlClient.futures as ConcurrentDictionary<string, Future>).TryRemove(KeyValue.Key, out existingFuture))
             {
                 existingFuture.reject(error);
             }
