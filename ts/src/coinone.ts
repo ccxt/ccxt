@@ -872,18 +872,23 @@ export default class coinone extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        // the v1 order/limit_buy and order/limit_sell endpoints were retired by
+        // the exchange and return 404, the v2.1 order endpoint replaces them,
+        // see https://github.com/ccxt/ccxt/issues/23174
         const request: Dict = {
-            'price': price,
-            'currency': market['id'],
-            'qty': amount,
+            'quote_currency': market['quoteId'],
+            'target_currency': market['baseId'],
+            'type': 'LIMIT',
+            'side': (side === 'buy') ? 'BUY' : 'SELL',
+            'price': this.priceToPrecision (symbol, price),
+            'qty': this.amountToPrecision (symbol, amount),
         };
-        const method = 'privatePostOrder' + this.capitalize (type) + this.capitalize ((side as string));
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.v2_1PrivatePostOrderLimit (this.extend (request, params));
         //
         //     {
         //         "result": "success",
-        //         "errorCode": "0",
-        //         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
+        //         "error_code": "0",
+        //         "order_id": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         //     }
         //
         return this.parseOrder (response, market);
@@ -990,9 +995,9 @@ export default class coinone extends Exchange {
         //         "feeRate": "-0.0015"
         //     }
         //
-        const id = this.safeString (order, 'orderId');
-        const baseId = this.safeString (order, 'baseCurrency');
-        const quoteId = this.safeString (order, 'targetCurrency');
+        const id = this.safeString2 (order, 'orderId', 'order_id');
+        const baseId = this.safeString2 (order, 'baseCurrency', 'target_currency');
+        const quoteId = this.safeString2 (order, 'targetCurrency', 'quote_currency');
         let base: Str = undefined;
         let quote: Str = undefined;
         if (baseId !== undefined) {
@@ -1006,15 +1011,25 @@ export default class coinone extends Exchange {
             symbol = base + '/' + quote;
             market = this.safeMarket (symbol, market, '/');
         }
-        const timestamp = this.safeTimestamp2 (order, 'timestamp', 'updatedAt');
+        let timestamp = this.safeTimestamp2 (order, 'timestamp', 'updatedAt');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger2 (order, 'ordered_at', 'updated_at'); // v2.1 sends milliseconds
+        }
         let side = this.safeString2 (order, 'type', 'side');
+        if ((side === 'LIMIT') || (side === 'MARKET') || (side === 'STOP_LIMIT')) {
+            side = this.safeString (order, 'side'); // in v2.1 rows the type field carries the order type, the side lives in side
+        }
         if (side === 'ask') {
             side = 'sell';
         } else if (side === 'bid') {
             side = 'buy';
+        } else if (side === 'BUY') {
+            side = 'buy';
+        } else if (side === 'SELL') {
+            side = 'sell';
         }
-        const remainingString = this.safeString (order, 'remainQty');
-        const amountString = this.safeString2 (order, 'originalQty', 'qty');
+        const remainingString = this.safeString2 (order, 'remainQty', 'remain_qty');
+        const amountString = this.safeStringN (order, [ 'originalQty', 'qty', 'original_qty' ]);
         let status = this.safeString (order, 'status');
         // https://github.com/ccxt/ccxt/pull/7067
         if (status === 'live') {
@@ -1082,9 +1097,10 @@ export default class coinone extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'currency': market['id'],
+            'quote_currency': market['quoteId'],
+            'target_currency': market['baseId'],
         };
-        const response = await this.privatePostOrderLimitOrders (this.extend (request, params));
+        const response = await this.v2_1PrivatePostOrderOpenOrders (this.extend (request, params));
         //
         //     {
         //         "result": "success",
@@ -1102,8 +1118,8 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const limitOrders = this.safeList (response, 'limitOrders', []);
-        return this.parseOrders (limitOrders, market, since, limit);
+        const openOrders = this.safeList2 (response, 'open_orders', 'limitOrders', []);
+        return this.parseOrders (openOrders, market, since, limit);
     }
 
     /**
@@ -1274,7 +1290,13 @@ export default class coinone extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             url += request;
-            const nonce = this.nonce ().toString ();
+            // the v2.1 api requires a uuid nonce, the older apis use a numeric one
+            let nonce = undefined;
+            if (api === 'v2_1Private') {
+                nonce = this.uuid ();
+            } else {
+                nonce = this.nonce ().toString ();
+            }
             const json = this.json (this.extend ({
                 'access_token': this.apiKey,
                 'nonce': nonce,
