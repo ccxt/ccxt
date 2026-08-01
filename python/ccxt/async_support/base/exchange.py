@@ -91,7 +91,27 @@ class BaseExchange(SyncExchange):
         self.throttler = Throttler(self.tokenBucket, self.asyncio_loop)
 
     async def throttle(self, cost=None):
-        return await self.throttler(cost)
+        task = self._register_request_task()
+        try:
+            return await self.throttler(cost)
+        finally:
+            self._discard_request_task(task)
+
+    _request_tasks = None
+
+    def _register_request_task(self):
+        # tracks the current task across the awaits of a rest request, the
+        # throttler wait, the http request itself and the retry delay, so that
+        # close() can cancel requests still in flight, see issue 27418
+        task = asyncio.current_task()
+        if self._request_tasks is None:
+            self._request_tasks = set()
+        self._request_tasks.add(task)
+        return task
+
+    def _discard_request_task(self, task):
+        if self._request_tasks is not None:
+            self._request_tasks.discard(task)
 
     def get_session(self):
         return self.session
@@ -136,6 +156,20 @@ class BaseExchange(SyncExchange):
         # ##### language-specific cleanup of WS & REST resources #####
         # [WS]
         await self.close_ws_clients()
+        # cancel rest request tasks still waiting in the throttler queue, in
+        # flight, or sleeping between retries - sibling tasks orphaned by a
+        # gathered call, e.g. a failing loadMarkets sub-request still in its
+        # maxRetriesOnFailure loop, would otherwise emerge after this close
+        # and recreate the session through the lazy open() inside fetch,
+        # leaking it, see issue 27418
+        if self._request_tasks:
+            current = asyncio.current_task()
+            pending = [task for task in self._request_tasks if (task is not current) and (not task.done())]
+            for task in pending:
+                task.cancel()
+            if pending:
+                await asyncio.gather(*pending, return_exceptions=True)
+            self._request_tasks = None
         if self.session is not None:
             if self.own_session:
                 await self.session.close()
@@ -166,134 +200,139 @@ class BaseExchange(SyncExchange):
     async def fetch(self, url, method='GET', headers=None, body=None):
         """Perform a HTTP request and return decoded JSON data"""
 
-        # ##### PROXY & HEADERS #####
-        request_headers = self.prepare_request_headers(headers)
-        self.last_request_headers = request_headers
-        # proxy-url
-        proxyUrl = self.check_proxy_url_settings(url, method, headers, body)
-        if proxyUrl is not None:
-            request_headers.update({'Origin': self.origin})
-            url = proxyUrl + self.url_encoder_for_proxy_url(url)
-        # proxy agents
-        final_proxy = None  # set default
-        proxy_session = None
-        httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
-        if httpProxy:
-            final_proxy = httpProxy
-        elif httpsProxy:
-            final_proxy = httpsProxy
-        elif socksProxy:
-            # override session
-            if (self.socks_proxy_sessions is None):
-                self.socks_proxy_sessions = {}
-            if (socksProxy not in self.socks_proxy_sessions):
-                # Create our SSL context object with our CA cert file
-                self.open()  # ensure `asyncio_loop` is set
-            proxy_session = self.get_socks_proxy_session(socksProxy)
-        # add aiohttp_proxy for python as exclusion
-        elif self.aiohttp_proxy:
-            final_proxy = self.aiohttp_proxy
-
-        proxyAgentSet = final_proxy is not None or socksProxy is not None
-        self.check_conflicting_proxies(proxyAgentSet, proxyUrl)
-
-        # avoid old proxies mixing
-        if (self.aiohttp_proxy is not None) and (proxyUrl is not None or httpProxy is not None or httpsProxy is not None or socksProxy is not None):
-            raise NotSupported(self.id + ' you have set multiple proxies, please use one or another')
-
-        # log
-        if self.verbose:
-            self.log("\nfetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body)
-        self.logger.debug("%s %s, Request: %s %s", method, url, headers, body)
-        # end of proxies & headers
-
-        request_body = body
-        # check content-type is multipart/form-data for lighter
-        has_multipart = False
-        content_type_key = None
-        for k, v in request_headers.items():
-            lk = k.lower()
-            if lk == 'content-type':
-                if v == 'multipart/form-data':
-                    content_type_key = k
-                    has_multipart = True
-                    data = aiohttp.FormData()
-                    # TODO: attach file?
-                    for k, v in body.items():
-                        data.add_field(k, v)
-                    encoded_body = data
-                    break
-                else:
-                    break
-        if not has_multipart:
-            encoded_body = body.encode() if body else None
-        else:
-            # asyncio would handle it for multipart/form-data
-            del request_headers[content_type_key]
-        self.open()
-        final_session = proxy_session if proxy_session is not None else self.session
-        session_method = getattr(final_session, method.lower())
-
-        http_response = None
-        http_status_code = None
-        http_status_text = None
-        json_response = None
+        task = self._register_request_task()
         try:
-            async with session_method(yarl.URL(url, encoded=True),
-                                      data=encoded_body,
-                                      headers=request_headers,
-                                      timeout=(self.timeout / 1000),
-                                      proxy=final_proxy) as response:
-                http_response = await response.text(errors='replace')
-                # CIMultiDictProxy
-                raw_headers = response.headers
-                headers = {}
-                for header in raw_headers:
-                    if header in headers:
-                        headers[header] = headers[header] + ', ' + raw_headers[header]
+
+            # ##### PROXY & HEADERS #####
+            request_headers = self.prepare_request_headers(headers)
+            self.last_request_headers = request_headers
+            # proxy-url
+            proxyUrl = self.check_proxy_url_settings(url, method, headers, body)
+            if proxyUrl is not None:
+                request_headers.update({'Origin': self.origin})
+                url = proxyUrl + self.url_encoder_for_proxy_url(url)
+            # proxy agents
+            final_proxy = None  # set default
+            proxy_session = None
+            httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
+            if httpProxy:
+                final_proxy = httpProxy
+            elif httpsProxy:
+                final_proxy = httpsProxy
+            elif socksProxy:
+                # override session
+                if (self.socks_proxy_sessions is None):
+                    self.socks_proxy_sessions = {}
+                if (socksProxy not in self.socks_proxy_sessions):
+                    # Create our SSL context object with our CA cert file
+                    self.open()  # ensure `asyncio_loop` is set
+                proxy_session = self.get_socks_proxy_session(socksProxy)
+            # add aiohttp_proxy for python as exclusion
+            elif self.aiohttp_proxy:
+                final_proxy = self.aiohttp_proxy
+
+            proxyAgentSet = final_proxy is not None or socksProxy is not None
+            self.check_conflicting_proxies(proxyAgentSet, proxyUrl)
+
+            # avoid old proxies mixing
+            if (self.aiohttp_proxy is not None) and (proxyUrl is not None or httpProxy is not None or httpsProxy is not None or socksProxy is not None):
+                raise NotSupported(self.id + ' you have set multiple proxies, please use one or another')
+
+            # log
+            if self.verbose:
+                self.log("\nfetch Request:", self.id, method, url, "RequestHeaders:", request_headers, "RequestBody:", body)
+            self.logger.debug("%s %s, Request: %s %s", method, url, headers, body)
+            # end of proxies & headers
+
+            request_body = body
+            # check content-type is multipart/form-data for lighter
+            has_multipart = False
+            content_type_key = None
+            for k, v in request_headers.items():
+                lk = k.lower()
+                if lk == 'content-type':
+                    if v == 'multipart/form-data':
+                        content_type_key = k
+                        has_multipart = True
+                        data = aiohttp.FormData()
+                        # TODO: attach file?
+                        for k, v in body.items():
+                            data.add_field(k, v)
+                        encoded_body = data
+                        break
                     else:
-                        headers[header] = raw_headers[header]
-                http_status_code = response.status
-                http_status_text = response.reason
-                http_response = self.on_rest_response(http_status_code, http_status_text, url, method, headers, http_response, request_headers, request_body)
-                json_response = self.parse_json(http_response)
-                if self.enableLastHttpResponse:
-                    self.last_http_response = http_response
-                if self.enableLastResponseHeaders:
-                    self.last_response_headers = headers
-                if self.enableLastJsonResponse:
-                    self.last_json_response = json_response
-                if self.verbose:
-                    self.log("\nfetch Response:", self.id, method, url, http_status_code, "ResponseHeaders:", headers, "ResponseBody:", http_response)
-                if json_response and not isinstance(json_response, list) and self.returnResponseHeaders:
-                    json_response['responseHeaders'] = headers
-                self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
+                        break
+            if not has_multipart:
+                encoded_body = body.encode() if body else None
+            else:
+                # asyncio would handle it for multipart/form-data
+                del request_headers[content_type_key]
+            self.open()
+            final_session = proxy_session if proxy_session is not None else self.session
+            session_method = getattr(final_session, method.lower())
 
-        except socket.gaierror as e:
-            details = ' '.join([self.id, method, url])
-            raise ExchangeNotAvailable(details) from e
+            http_response = None
+            http_status_code = None
+            http_status_text = None
+            json_response = None
+            try:
+                async with session_method(yarl.URL(url, encoded=True),
+                                          data=encoded_body,
+                                          headers=request_headers,
+                                          timeout=(self.timeout / 1000),
+                                          proxy=final_proxy) as response:
+                    http_response = await response.text(errors='replace')
+                    # CIMultiDictProxy
+                    raw_headers = response.headers
+                    headers = {}
+                    for header in raw_headers:
+                        if header in headers:
+                            headers[header] = headers[header] + ', ' + raw_headers[header]
+                        else:
+                            headers[header] = raw_headers[header]
+                    http_status_code = response.status
+                    http_status_text = response.reason
+                    http_response = self.on_rest_response(http_status_code, http_status_text, url, method, headers, http_response, request_headers, request_body)
+                    json_response = self.parse_json(http_response)
+                    if self.enableLastHttpResponse:
+                        self.last_http_response = http_response
+                    if self.enableLastResponseHeaders:
+                        self.last_response_headers = headers
+                    if self.enableLastJsonResponse:
+                        self.last_json_response = json_response
+                    if self.verbose:
+                        self.log("\nfetch Response:", self.id, method, url, http_status_code, "ResponseHeaders:", headers, "ResponseBody:", http_response)
+                    if json_response and not isinstance(json_response, list) and self.returnResponseHeaders:
+                        json_response['responseHeaders'] = headers
+                    self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
 
-        except (concurrent.futures.TimeoutError, asyncio.TimeoutError) as e:
-            details = ' '.join([self.id, method, url])
-            raise RequestTimeout(details) from e
+            except socket.gaierror as e:
+                details = ' '.join([self.id, method, url])
+                raise ExchangeNotAvailable(details) from e
 
-        except aiohttp.ClientConnectionError as e:
-            details = ' '.join([self.id, method, url])
-            raise ExchangeNotAvailable(details) from e
+            except (concurrent.futures.TimeoutError, asyncio.TimeoutError) as e:
+                details = ' '.join([self.id, method, url])
+                raise RequestTimeout(details) from e
 
-        except aiohttp.ClientError as e:  # base exception class
-            details = ' '.join([self.id, method, url])
-            raise ExchangeError(details) from e
+            except aiohttp.ClientConnectionError as e:
+                details = ' '.join([self.id, method, url])
+                raise ExchangeNotAvailable(details) from e
 
-        self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
-        self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
-        if json_response is not None:
-            return json_response
-        if self.is_text_response(headers):
-            return http_response
-        if http_response == '' or http_response is None:
-            return http_response
-        return response.content
+            except aiohttp.ClientError as e:  # base exception class
+                details = ' '.join([self.id, method, url])
+                raise ExchangeError(details) from e
+
+            self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
+            self.handle_http_status_code(http_status_code, http_status_text, url, method, http_response)
+            if json_response is not None:
+                return json_response
+            if self.is_text_response(headers):
+                return http_response
+            if http_response == '' or http_response is None:
+                return http_response
+            return response.content
+        finally:
+            self._discard_request_task(task)
 
     def get_socks_proxy_session(self, socksProxy):
         if (self.socks_proxy_sessions is None):
@@ -399,7 +438,11 @@ class BaseExchange(SyncExchange):
         return await self.fetch_tickers(symbols, params)
 
     async def sleep(self, milliseconds):
-        return await asyncio.sleep(milliseconds / 1000)
+        task = self._register_request_task()
+        try:
+            return await asyncio.sleep(milliseconds / 1000)
+        finally:
+            self._discard_request_task(task)
 
     async def spawn_async(self, method, *args):
         try:
