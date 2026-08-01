@@ -37,8 +37,9 @@ function overwriteFileAndFolder(path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder(path);
     }
+    // overwriteFile() already opens+truncates+writes the file; the extra
+    // fs.writeFileSync below wrote every generated file a second time
     overwriteFile(path, content);
-    fs.writeFileSync(path, content);
 }
 
 // User-facing typed-wrapper methods that ship BOTH a typed sync overload
@@ -1355,7 +1356,7 @@ class NewTranspiler {
         }
 
 
-        this.transpileTests(force)
+        await this.transpileTests(force)
 
         this.transpileErrorHierarchy(force)
 
@@ -3188,7 +3189,7 @@ class NewTranspiler {
         overwriteFileAndFolder(files.javaFile, file);
     }
 
-    transpileExchangeTests(force = true) {
+    async transpileExchangeTests(force = true) {
         const baseFolders = {
             ts: './ts/src/test/Exchange/',
             tsBase: './ts/src/test/Exchange/base/',
@@ -3235,10 +3236,10 @@ class NewTranspiler {
             'javaFile': BASE_TESTS_FILE,
         });
 
-        this.transpileAndSaveJavaExchangeTests(tests);
+        await this.transpileAndSaveJavaExchangeTests(tests);
     }
 
-    transpileWsExchangeTests(force = true) {
+    async transpileWsExchangeTests(force = true) {
 
         const baseFolders = {
             ts: './ts/src/pro/test/Exchange/',
@@ -3457,14 +3458,18 @@ class NewTranspiler {
         });
     }
 
-    transpileTests(force = true) {
+    async transpileTests(force = true) {
         if (!shouldTranspileTests) {
             log.bright.yellow('Skipping tests transpilation');
             return;
         }
-        this.transpileBaseTestsToJava(force);
-        this.transpileExchangeTests(force);
-        this.transpileWsExchangeTests(force);
+        // each stage is awaited: transpileAndSaveJavaExchangeTests is async, and leaving the
+        // promises floating meant transpileEverything logged "Transpiled successfully" and
+        // runMain started transpileWS with ~84 test files still in flight — three root sets
+        // then alternated against the worker sticky-Program LRU (MAX_CACHED_BATCHES = 3)
+        await this.transpileBaseTestsToJava(force);
+        await this.transpileExchangeTests(force);
+        await this.transpileWsExchangeTests(force);
     }
 }
 
@@ -3498,7 +3503,7 @@ async function runMain() {
     } else if (ws) {
         await transpiler.transpileWS(force)
     } else if (test) {
-        transpiler.transpileTests()
+        await transpiler.transpileTests()
     } else {
         await transpiler.transpileEverything(force, baseOnly, examples)
     }
