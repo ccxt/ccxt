@@ -20,7 +20,7 @@ export class SafetyError extends Error {
 
 const CONFIG_HINT = 'The user must edit the ccxt-mcp config file to change this. This cannot be enabled from the conversation.';
 
-const TIER_HINT = 'call get_safety_status to see which tiers are enabled; enabling one requires editing the config file, which no tool can do';
+const TIER_HINT = 'Tell the user to enable this in the ccxt-mcp config file — e.g. add "trading": true (sandbox/demo) to the account, or "trading": "live" with a "maxOrderValue" — then restart the server. Call get_safety_status for the exact config path and current tiers. No tool can enable it from the conversation.';
 
 export function requireTier (account: AccountConfig, tier: 'trading' | 'funds'): void {
     const flag = account[tier] ?? false;

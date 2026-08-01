@@ -2,7 +2,7 @@ import { Agent } from 'https';
 import { log } from './logging.js';
 import { registerSecret, redact } from './redact.js';
 import { ensureMarketsLoaded } from './markets.js';
-import { unescapePem } from './config.js';
+import { unescapePem, credentialSetupHelp } from './config.js';
 import type { AccountConfig, ResolvedConfig } from './types.js';
 import { CREDENTIAL_FIELDS } from './types.js';
 
@@ -30,8 +30,10 @@ export class UnknownExchangeError extends Error {
 }
 
 export class UnknownAccountError extends Error {
-    constructor (account: string, known: string[]) {
-        super ('unknown account ' + JSON.stringify (account) + (known.length ? ' — configured accounts: ' + known.join (', ') : ' — no accounts are configured; add one to the ccxt-mcp config file'));
+    hint: string;
+    constructor (account: string, known: string[], hint = '') {
+        super ('unknown account ' + JSON.stringify (account) + (known.length ? ' — configured accounts: ' + known.join (', ') : ' — no accounts are configured'));
+        this.hint = hint;
     }
 }
 
@@ -172,7 +174,7 @@ export class ExchangePools {
     account (name: string): AccountConfig {
         const account = this.config.accounts[name];
         if (account === undefined) {
-            throw new UnknownAccountError (name, Object.keys (this.config.accounts));
+            throw new UnknownAccountError (name, Object.keys (this.config.accounts), credentialSetupHelp (this.config.configPath));
         }
         return account;
     }

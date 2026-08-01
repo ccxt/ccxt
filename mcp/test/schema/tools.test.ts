@@ -19,9 +19,9 @@ const TRADE_TOOLS = [ 'create_order', 'edit_order', 'cancel_order', 'cancel_all_
 const FUNDS_TOOLS = [ 'withdraw', 'transfer', 'get_deposit_address' ];
 const IMPLICIT_WRITE_TOOLS = [ 'call_implicit_write' ];
 
-async function listToolNames (accounts: any): Promise<{ names: string[], tools: any[] }> {
+function makeClient (accounts: any, settings: any = {}) {
     const { server } = createServer ({
-        'config': makeConfig (accounts),
+        'config': makeConfig (accounts, settings),
         'ccxtModule': fakeCcxtModule,
         'poolsDeps': fakePoolsDeps,
         'version': 'test',
@@ -29,25 +29,59 @@ async function listToolNames (accounts: any): Promise<{ names: string[], tools: 
     });
     const [ clientTransport, serverTransport ] = InMemoryTransport.createLinkedPair ();
     const client = new Client ({ 'name': 'schema-test', 'version': '0.0.1' });
-    await Promise.all ([ client.connect (clientTransport), server.connect (serverTransport) ]);
+    return { client, 'ready': Promise.all ([ client.connect (clientTransport), server.connect (serverTransport) ]) };
+}
+
+async function listToolNames (accounts: any, settings: any = {}): Promise<{ names: string[], tools: any[] }> {
+    const { client, ready } = makeClient (accounts, settings);
+    await ready;
     const result = await client.listTools ();
     await client.close ();
     return { 'names': result.tools.map ((tool: any) => tool.name).sort (), 'tools': result.tools };
 }
 
-test ('empty config registers the market tier only', async () => {
+async function callTool (accounts: any, name: string, args: any, settings: any = {}): Promise<any> {
+    const { client, ready } = makeClient (accounts, settings);
+    await ready;
+    const result: any = await client.callTool ({ name, 'arguments': args });
+    await client.close ();
+    return JSON.parse (result.content[0].text);
+}
+
+const ALL_TOOLS = [ ...MARKET_TOOLS, ...READ_TOOLS, ...TRADE_TOOLS, ...FUNDS_TOOLS, ...IMPLICIT_WRITE_TOOLS ];
+
+test ('default: every tool tier is listed even with no accounts (disabled tiers error at call time)', async () => {
     const { names } = await listToolNames ({});
+    assert.deepEqual (names, [ ...ALL_TOOLS ].sort ());
+});
+
+test ('default: full activation still lists every tier', async () => {
+    const { names } = await listToolNames ({ 'acc': { 'apiKey': 'FAKEKEY123456', 'secret': 'FAKESECRET123456', 'sandbox': true, 'trading': true, 'funds': true, 'implicitWrites': true } });
+    assert.deepEqual (names, [ ...ALL_TOOLS ].sort ());
+});
+
+test ('hideDisabledTools: empty config registers the market tier only', async () => {
+    const { names } = await listToolNames ({}, { 'hideDisabledTools': true });
     assert.deepEqual (names, [ ...MARKET_TOOLS ].sort ());
 });
 
-test ('accounts without trading add the read tier only', async () => {
-    const { names } = await listToolNames ({ 'acc': { 'apiKey': 'FAKEKEY123456', 'secret': 'FAKESECRET123456' } });
+test ('hideDisabledTools: accounts without trading add the read tier only', async () => {
+    const { names } = await listToolNames ({ 'acc': { 'apiKey': 'FAKEKEY123456', 'secret': 'FAKESECRET123456' } }, { 'hideDisabledTools': true });
     assert.deepEqual (names, [ ...MARKET_TOOLS, ...READ_TOOLS ].sort ());
 });
 
-test ('full activation registers every tier', async () => {
-    const { names } = await listToolNames ({ 'acc': { 'apiKey': 'FAKEKEY123456', 'secret': 'FAKESECRET123456', 'sandbox': true, 'trading': true, 'funds': true, 'implicitWrites': true } });
-    assert.deepEqual (names, [ ...MARKET_TOOLS, ...READ_TOOLS, ...TRADE_TOOLS, ...FUNDS_TOOLS, ...IMPLICIT_WRITE_TOOLS ].sort ());
+test ('hideDisabledTools: full activation registers every tier', async () => {
+    const { names } = await listToolNames ({ 'acc': { 'apiKey': 'FAKEKEY123456', 'secret': 'FAKESECRET123456', 'sandbox': true, 'trading': true, 'funds': true, 'implicitWrites': true } }, { 'hideDisabledTools': true });
+    assert.deepEqual (names, [ ...ALL_TOOLS ].sort ());
+});
+
+test ('a write tool called with no account errors with actionable credential setup guidance', async () => {
+    const result = await callTool ({}, 'create_order', { 'account': 'binance', 'symbol': 'BTC/USDT', 'type': 'limit', 'side': 'buy', 'amount': 0.001, 'price': 10000 });
+    assert.equal (result.ok, false);
+    assert.equal (result.error.code, 'UNKNOWN_ACCOUNT');
+    // the hint tells the AI exactly how to have the user configure credentials
+    assert.match (result.error.hint, /config file|config\.json|get_safety_status/);
+    assert.match (result.error.hint, /never in this chat|only in that file|ONLY in that file/i);
 });
 
 test ('annotations: reads are readOnly, writes are destructive, cancel is the exception', async () => {

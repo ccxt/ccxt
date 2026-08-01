@@ -7,30 +7,37 @@ import { registerFundsTools, registerImplicitWriteTool } from './funds.js';
 import { registerWatchTools } from './watch.js';
 import { log } from '../logging.js';
 
-// Tiered dynamic registration: a tier's tools do not exist in tools/list unless the
-// user's config activates it — a read-only install has no create_order at all, which is
-// both a smaller prompt-injection surface and less context spent on schemas. Handlers
-// still re-check the targeted account (registration is never trusted as authorization).
+// By default every tier's tools are listed so the model can discover them and, when a
+// private one is unusable, get a clear "configure an account" error it can relay to the
+// user (rather than the tool silently not existing). Execution is always gated at the
+// handler (account + tier re-checked; registration is never trusted as authorization), so
+// exposing a tool that will error is safe. Set settings.hideDisabledTools to fall back to
+// tiered registration — a leaner, deliberately read-only/monitoring deployment.
 export function registerAllTools (server: McpServer, ctx: ServerContext): void {
     const accounts = Object.values (ctx.config.accounts);
+    const hideDisabled = ctx.config.settings.hideDisabledTools === true;
+    const tradingEnabled = accounts.some ((account) => (account.trading ?? false) !== false);
+    const fundsEnabled = accounts.some ((account) => (account.funds ?? false) !== false);
+    const implicitWritesEnabled = accounts.some ((account) => account.implicitWrites === true);
     registerMarketTools (server, ctx);
     registerWatchTools (server, ctx);
-    if (accounts.length > 0) {
+    if (!hideDisabled || accounts.length > 0) {
         registerReadTools (server, ctx);
     }
-    if (accounts.some ((account) => (account.trading ?? false) !== false)) {
+    if (!hideDisabled || tradingEnabled) {
         registerTradeTools (server, ctx);
     }
-    if (accounts.some ((account) => (account.funds ?? false) !== false)) {
+    if (!hideDisabled || fundsEnabled) {
         registerFundsTools (server, ctx);
     }
-    if (accounts.some ((account) => account.implicitWrites === true)) {
+    if (!hideDisabled || implicitWritesEnabled) {
         registerImplicitWriteTool (server, ctx);
     }
     log ('info', 'tools registered — accounts: ' + accounts.length
-        + ', trading: ' + accounts.some ((account) => (account.trading ?? false) !== false)
-        + ', funds: ' + accounts.some ((account) => (account.funds ?? false) !== false)
-        + ', implicitWrites: ' + accounts.some ((account) => account.implicitWrites === true));
+        + ', hideDisabledTools: ' + hideDisabled
+        + ', enabled tiers — trading: ' + tradingEnabled
+        + ', funds: ' + fundsEnabled
+        + ', implicitWrites: ' + implicitWritesEnabled);
 }
 
 export const SERVER_INSTRUCTIONS = `ccxt-mcp: unified access to 100+ cryptocurrency exchanges (and prediction markets) through the ccxt library. Full manual: https://docs.ccxt.com/
@@ -43,6 +50,6 @@ Conventions:
 - List results are capped: search tools report meta.returned/offset/hasMore (or available); fetch tools report meta.count plus meta.hasMore when the count hit the limit — page with since/offset rather than assuming completeness. Host-oversized results are tail-trimmed and flagged meta.truncated.
 - The long tail of read methods (funding rates, ledger, open interest, settlements, …) is available via call_read_method; raw exchange-specific GET endpoints via call_implicit_get.
 - For LIVE data over WebSocket, use watch_subscribe (e.g. watchOHLCV/watchTicker/watchOrderBook/watchTrades, or watchOrders/watchMyTrades with an account) to open a background stream, then poll watch_read for new updates and watch_unsubscribe to stop. One-shot fetch* tools are simpler when you just need a current snapshot.
-- Private tools take an "account" name (list_accounts). API credentials live only in the local config — they are never tool parameters and never appear in results; capability tiers (trading, funds, implicitWrites) can only be enabled by the user editing the config file, never from the conversation.
-- Which tools exist depends on configuration: with no account only market-data tools are present; read/trading/funds tools appear as their tiers are enabled. Call get_safety_status to see the configured accounts and enabled tiers before assuming a private tool exists.
+- Private tools (balances, orders, positions, create_order, withdraw, …) take an "account" name (list_accounts). API credentials live only in the local config — they are never tool parameters and never appear in results; capability tiers (trading, funds, implicitWrites) can only be enabled by the user editing the config file, never from the conversation.
+- Every tool is listed by default, but a private one whose account or tier is not configured returns a clear error: relay its "hint" to the user (it has the config-file path + an example) so they can set it up — keys go only in that file, never in chat — then they restart the server. Call get_safety_status for the config path, configured accounts and enabled tiers. (A deployment may set hideDisabledTools to hide unconfigured tiers instead.)
 - Write tools may return a preview with a confirmToken instead of executing — show the preview to the user, then repeat the identical call with "confirm" set to execute. get_safety_status shows what is currently enabled.`;

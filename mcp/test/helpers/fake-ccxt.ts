@@ -312,14 +312,14 @@ export const fakePoolsDeps: PoolsDeps = {
     'closestMatches': () => [ 'fakex' ],
 };
 
-export function makeConfig (accounts: Record<string, Partial<AccountConfig>> = {}): ResolvedConfig {
+export function makeConfig (accounts: Record<string, Partial<AccountConfig>> = {}, settings: Record<string, any> = {}): ResolvedConfig {
     const resolved: Record<string, AccountConfig> = {};
     for (const [ name, account ] of Object.entries (accounts)) {
         resolved[name] = { name, 'exchange': 'fakex', ...account } as AccountConfig;
     }
     return {
         'accounts': resolved,
-        'settings': { 'refreshMarketsTimeout': 86400000, 'maxResults': 100, 'strictPermissions': false, 'exchangeOptions': {} },
+        'settings': { 'refreshMarketsTimeout': 86400000, 'maxResults': 100, 'strictPermissions': false, 'exchangeOptions': {}, ...settings } as any,
         'problems': [],
         'configPath': undefined,
     };

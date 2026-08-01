@@ -48,6 +48,10 @@ const settingsSchema = z.object ({
     'strictPermissions': z.boolean ().optional (),
     'maxSubscriptions': z.number ().int ().nonnegative ().optional (), // 0 = unlimited (the default sentinel)
     'exchangeOptions': z.record (z.record (z.any ())).optional (),
+    // by default every tool (incl. trading/funds) is listed and a disabled tier errors at
+    // call time; set true to hide disabled tiers from tools/list (a leaner, deliberately
+    // read-only deployment) — execution is gated by the account either way
+    'hideDisabledTools': z.boolean ().optional (),
 }).passthrough ();
 
 export function defaultConfigPath (): string {
@@ -59,6 +63,17 @@ export function defaultConfigPath (): string {
         return path.join (home, 'Library', 'Application Support', 'ccxt-mcp', 'config.json');
     }
     return path.join (process.env['XDG_CONFIG_HOME'] || path.join (home, '.config'), 'ccxt-mcp', 'config.json');
+}
+
+// Actionable guidance an error can hand back so the AI can walk the user through configuring
+// credentials — points at the real config path and shows the exact shape. Credentials are
+// never entered in chat; they only ever live in this file.
+export function credentialSetupHelp (loadedPath?: string): string {
+    const configPath = (loadedPath !== undefined && loadedPath !== '') ? loadedPath : defaultConfigPath ();
+    return 'To fix: tell the user to add an account to the ccxt-mcp config file at "' + configPath
+        + '" — e.g. {"accounts":{"binance":{"exchange":"binance","apiKey":"...","secret":"...","sandbox":true,"trading":true}}} — then restart the server. '
+        + 'Use the exchange id and its required credentials (describe_exchange shows requiredCredentials). API keys go ONLY in that file, never in this chat. '
+        + 'Call get_safety_status to see the exact path and which accounts and tiers are active.';
 }
 
 export function cacheDirectory (): string {
@@ -332,6 +347,7 @@ export function loadConfig (): ResolvedConfig {
         // idle TTL + shared sockets + exchange-side stream limits are the real backstops,
         // so a count cap isn't needed — set a positive value only if you want one.
         'maxSubscriptions': validSettings.maxSubscriptions ?? 0,
+        'hideDisabledTools': validSettings.hideDisabledTools ?? false,
     };
 
     for (const problem of problems) {

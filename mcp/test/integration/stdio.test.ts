@@ -33,8 +33,10 @@ test ('compiled server initializes and lists tools over real stdio', { 'skip': !
     const names = tools.tools.map ((tool: any) => tool.name);
     assert.ok (names.includes ('list_exchanges'));
     assert.ok (names.includes ('get_safety_status'));
-    assert.ok (!names.includes ('create_order'), 'trading tools must not exist with an empty config');
-    assert.ok (!names.includes ('withdraw'));
+    // tools are listed by default even with no account (they return an actionable
+    // "configure an account" error at call time; execution stays gated at the handler)
+    assert.ok (names.includes ('create_order'));
+    assert.ok (names.includes ('withdraw'));
     // instructions ship with the initialize result
     assert.ok (String (client.getInstructions ()).includes ('docs.ccxt.com'));
     await client.close ();

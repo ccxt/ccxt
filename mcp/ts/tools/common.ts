@@ -59,7 +59,7 @@ export async function run (context: ErrorContext, fn: () => Promise<Envelope>): 
             return toContent ({ 'ok': false, 'error': { 'code': 'UNKNOWN_EXCHANGE', 'message': error.message, 'retryable': false, 'hint': 'closest matches: ' + error.suggestions.join (', ') + ' — see list_exchanges' } });
         }
         if (error instanceof UnknownAccountError) {
-            return toContent ({ 'ok': false, 'error': { 'code': 'UNKNOWN_ACCOUNT', 'message': error.message, 'retryable': false, 'hint': 'list configured accounts with list_accounts' } });
+            return toContent ({ 'ok': false, 'error': { 'code': 'UNKNOWN_ACCOUNT', 'message': error.message, 'retryable': false, 'hint': error.hint || 'list configured accounts with list_accounts' } });
         }
         return toContent (toErrorEnvelope (error, context));
     }
