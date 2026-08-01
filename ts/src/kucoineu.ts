@@ -26,6 +26,11 @@ export default class kucoineu extends kucoin {
             },
             'options': {
                 'mica': true,
+                'fetchMarkets': {
+                    'types': [
+                        'spot',
+                    ],
+                }
             },
         });
     }
