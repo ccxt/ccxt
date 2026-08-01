@@ -1873,7 +1873,7 @@ class htx extends Exchange {
             $settleId = null;
             $id = null;
             $lowercaseId = null;
-            $contract = (is_array($market) && array_key_exists('contract_code', $market));
+            $contract = (is_array($market) && array_key_exists('contract_code' ?? '', $market));
             $spot = !$contract;
             $swap = false;
             $future = false;
@@ -2043,18 +2043,18 @@ class htx extends Exchange {
     }
 
     public function try_get_symbol_from_future_markets(string $symbolOrMarketId) {
-        if (is_array($this->markets) && array_key_exists($symbolOrMarketId, $this->markets)) {
+        if (is_array($this->markets) && array_key_exists($symbolOrMarketId ?? '', $this->markets)) {
             return $symbolOrMarketId;
         }
         // only on "future" $market type (inverse & linear), $market-id differs between "fetchMarkets" and "fetchTicker"
         // so we have to create a mapping
         // - $market-id from fetchMarkts =>    `BTC-USDT-240419` (linear future) or `BTC240412` (inverse future)
         // - $market-id from fetchTciker[s] => `BTC-USDT-CW`     (linear future) or `BTC_CW`    (inverse future)
-        if (!(is_array($this->options) && array_key_exists('futureMarketIdsForSymbols', $this->options))) {
+        if (!(is_array($this->options) && array_key_exists('futureMarketIdsForSymbols' ?? '', $this->options))) {
             $this->options['futureMarketIdsForSymbols'] = array();
         }
         $futureMarketIdsForSymbols = $this->safe_dict($this->options, 'futureMarketIdsForSymbols', array());
-        if (is_array($futureMarketIdsForSymbols) && array_key_exists($symbolOrMarketId, $futureMarketIdsForSymbols)) {
+        if (is_array($futureMarketIdsForSymbols) && array_key_exists($symbolOrMarketId ?? '', $futureMarketIdsForSymbols)) {
             return $futureMarketIdsForSymbols[$symbolOrMarketId];
         }
         $futureMarkets = $this->filter_by($this->markets, 'future', true);
@@ -2136,7 +2136,7 @@ class htx extends Exchange {
         $bidVolume = null;
         $ask = null;
         $askVolume = null;
-        if (is_array($ticker) && array_key_exists('bid', $ticker)) {
+        if (is_array($ticker) && array_key_exists('bid' ?? '', $ticker)) {
             if ($ticker['bid'] !== null && (gettype($ticker['bid']) === 'array' && array_keys($ticker['bid']) === array_keys(array_keys($ticker['bid'])))) {
                 $bid = $this->safe_string($ticker['bid'], 0);
                 $bidVolume = $this->safe_string($ticker['bid'], 1);
@@ -2145,7 +2145,7 @@ class htx extends Exchange {
                 $bidVolume = $this->safe_string($ticker, 'bidSize');
             }
         }
-        if (is_array($ticker) && array_key_exists('ask', $ticker)) {
+        if (is_array($ticker) && array_key_exists('ask' ?? '', $ticker)) {
             if ($ticker['ask'] !== null && (gettype($ticker['ask']) === 'array' && array_keys($ticker['ask']) === array_keys(array_keys($ticker['ask'])))) {
                 $ask = $this->safe_string($ticker['ask'], 0);
                 $askVolume = $this->safe_string($ticker['ask'], 1);
@@ -2289,7 +2289,7 @@ class htx extends Exchange {
         if ($first !== null) {
             $market = $this->market($first);
         }
-        $isSubTypeRequested = (is_array($params) && array_key_exists('subType', $params)) || (is_array($params) && array_key_exists('business_type', $params));
+        $isSubTypeRequested = (is_array($params) && array_key_exists('subType' ?? '', $params)) || (is_array($params) && array_key_exists('business_type' ?? '', $params));
         $type = null;
         $subType = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
@@ -2586,7 +2586,7 @@ class htx extends Exchange {
         //         }
         //     }
         //
-        if (is_array($response) && array_key_exists('tick', $response)) {
+        if (is_array($response) && array_key_exists('tick' ?? '', $response)) {
             if (!$response['tick']) {
                 throw new BadSymbol($this->id . ' fetchOrderBook() returned empty $response => ' . $this->json($response));
             }
@@ -3418,10 +3418,10 @@ class htx extends Exchange {
     }
 
     public function parse_currency(array $rawCurrency): array {
-        if (!(is_array($this->options) && array_key_exists('networkNamesByChainIds', $this->options))) {
+        if (!(is_array($this->options) && array_key_exists('networkNamesByChainIds' ?? '', $this->options))) {
             $this->options['networkNamesByChainIds'] = array();
         }
-        if (!(is_array($this->options) && array_key_exists('networkChainIdsByNames', $this->options))) {
+        if (!(is_array($this->options) && array_key_exists('networkChainIdsByNames' ?? '', $this->options))) {
             $this->options['networkChainIdsByNames'] = array();
         }
         $currencyId = $this->safe_string($rawCurrency, 'currency');
@@ -3512,7 +3512,7 @@ class htx extends Exchange {
             throw new ExchangeError($this->id . ' networkCodeToId() - markets need to be loaded at first');
         }
         $uniqueNetworkIds = $this->safe_value($this->options['networkChainIdsByNames'], $currencyCode, array());
-        if (is_array($uniqueNetworkIds) && array_key_exists($networkCode, $uniqueNetworkIds)) {
+        if (is_array($uniqueNetworkIds) && array_key_exists($networkCode ?? '', $uniqueNetworkIds)) {
             return $uniqueNetworkIds[$networkCode];
         } else {
             $networkTitle = parent::network_code_to_id($networkCode, $currencyCode);
@@ -4002,7 +4002,7 @@ class htx extends Exchange {
 
     public function parse_margin_balance_helper($balance, $code, $result) {
         $account = null;
-        if (is_array($result) && array_key_exists($code, $result)) {
+        if (is_array($result) && array_key_exists($code ?? '', $result)) {
             $account = $result[$code];
         } else {
             $account = $this->account();
@@ -5226,7 +5226,7 @@ class htx extends Exchange {
         $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'stop-price' ));
         if ($triggerPrice === null) {
             $stopOrderTypes = $this->safe_value($options, 'stopOrderTypes', array());
-            if (is_array($stopOrderTypes) && array_key_exists($orderType, $stopOrderTypes)) {
+            if (is_array($stopOrderTypes) && array_key_exists($orderType ?? '', $stopOrderTypes)) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice for a trigger order');
             }
         } else {
@@ -5297,7 +5297,7 @@ class htx extends Exchange {
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
         }
         $limitOrderTypes = $this->safe_value($options, 'limitOrderTypes', array());
-        if (is_array($limitOrderTypes) && array_key_exists($orderType, $limitOrderTypes)) {
+        if (is_array($limitOrderTypes) && array_key_exists($orderType ?? '', $limitOrderTypes)) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $params = $this->omit($params, array( 'triggerPrice', 'stopPrice', 'stop-price', 'clientOrderId', 'client-order-id', 'operator', 'timeInForce' ));
@@ -7799,7 +7799,7 @@ class htx extends Exchange {
         if ($response === null) {
             return null; // fallback to default error handler
         }
-        if (is_array($response) && array_key_exists('status', $response)) {
+        if (is_array($response) && array_key_exists('status' ?? '', $response)) {
             //
             //     array("status":"error","err-$code":"o-amount-min-error","err-msg":"limit order amount error, min => `0.001`","data":null)
             //     array("status":"ok","data":array("errors":[array("order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist.")],"successes":""),"ts":1741773744526)
@@ -7815,7 +7815,7 @@ class htx extends Exchange {
                 throw new ExchangeError($feedback);
             }
         }
-        if (is_array($response) && array_key_exists('code', $response)) {
+        if (is_array($response) && array_key_exists('code' ?? '', $response)) {
             // array($code => '1003', $message => 'invalid signature')
             $feedback = $this->id . ' ' . $body;
             $code = $this->safe_string($response, 'code');
@@ -9790,7 +9790,7 @@ class htx extends Exchange {
          *
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {string} $side 'buy' or 'sell', the $side of the closing order, opposite $side side
-         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
          * @param {array} [$params->marginMode] 'cross' or 'isolated', required for linear markets
          *

@@ -1873,7 +1873,7 @@ public partial class okx : Exchange
                 } },
                 { "amount", new Dictionary<string, object>() {
                     { "min", this.safeNumber(market, "minSz") },
-                    { "max", null },
+                    { "max", this.safeNumber(market, "maxLmtSz") },
                 } },
                 { "price", new Dictionary<string, object>() {
                     { "min", null },

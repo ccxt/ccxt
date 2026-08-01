@@ -488,7 +488,7 @@ fetch orders by the list of order id
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | No | list of order id |
 | symbol | <code>string</code> | No | unified ccxt market symbol |
-| params | <code>object</code> | No | extra parameters specific to the kraken api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -765,7 +765,7 @@ fetch deposit methods for a currency associated with this account
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
-| params | <code>object</code> | No | extra parameters specific to the kraken api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -830,7 +830,7 @@ fetch all open positions
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | not used by kraken fetchPositions () |
+| symbols | <code>Array&lt;string&gt;</code> | No | not used by fetchPositions () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 

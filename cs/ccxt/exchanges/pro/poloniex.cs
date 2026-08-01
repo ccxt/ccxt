@@ -941,6 +941,14 @@ public partial class poloniex : ccxt.poloniex
                     object previousOrder = this.safeValue2(previousOrders, orderId, clientOrderId);
                     object trade = this.parseWsTrade(order);
                     this.handleMyTrades(client as WebSocketClient, trade);
+                    if (isTrue(isEqual(previousOrder, null)))
+                    {
+                        // fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
+                        object parsedOrder = this.parseWsOrder(order);
+                        callDynamically(orders, "append", new object[] {parsedOrder});
+                        ((IList<object>)marketIds).Add(marketId);
+                        continue;
+                    }
                     if (isTrue(isEqual(getValue(previousOrder, "trades"), null)))
                     {
                         ((IDictionary<string,object>)previousOrder)["trades"] = new List<object>() {};

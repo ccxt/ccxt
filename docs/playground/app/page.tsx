@@ -27,7 +27,7 @@ function initialCode(): Record<RunnableLanguageId, string> {
 }
 
 export default function Page() {
-  const [language, setLanguage] = useState<LanguageId>("js");
+  const [language, setLanguage] = useState<LanguageId>("ts");
   const [codeByLang, setCodeByLang] = useState<Record<RunnableLanguageId, string>>(initialCode);
   const [run, setRun] = useState<RunState>({ status: "idle" });
   const [aiOpen, setAiOpen] = useState(true);

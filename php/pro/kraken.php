@@ -629,7 +629,7 @@ class kraken extends \ccxt\async\kraken {
         $first = $data[0];
         $marketId = $this->safe_string($first, 'symbol');
         $symbol = $this->safe_symbol($marketId);
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
         $interval = $this->safe_integer($first, 'interval');
@@ -1265,7 +1265,7 @@ class kraken extends \ccxt\async\kraken {
             $symbol = $market['symbol'];
         }
         $fee = null;
-        if (is_array($trade) && array_key_exists('fees', $trade)) {
+        if (is_array($trade) && array_key_exists('fees' ?? '', $trade)) {
             $fees = $this->safe_list($trade, 'fees', array());
             $firstFee = $this->safe_dict($fees, 0, array());
             $fee = array(
@@ -1361,7 +1361,7 @@ class kraken extends \ccxt\async\kraken {
                 if ($length === $limit && ($previousOrder === null)) {
                     $first = $stored[0];
                     $symbolsByOrderId = $this->safe_value($this->options, 'symbolsByOrderId', array());
-                    if (is_array($symbolsByOrderId) && array_key_exists($first['id'], $symbolsByOrderId)) {
+                    if (is_array($symbolsByOrderId) && array_key_exists($first['id'] ?? '', $symbolsByOrderId)) {
                         unset($symbolsByOrderId[$first['id']]);
                     }
                 }
@@ -1597,7 +1597,7 @@ class kraken extends \ccxt\async\kraken {
             $client->subscriptions[$channelId] = $message;
         }
         // $requestId = $this->safe_string($message, "reqid");
-        // if (is_array($client->futures) && array_key_exists($requestId, $client->futures)) {
+        // if (is_array($client->futures) && array_key_exists($requestId ?? '', $client->futures)) {
         //     unset($client->futures[$requestId]);
         // }
     }

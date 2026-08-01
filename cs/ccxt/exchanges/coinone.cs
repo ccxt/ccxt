@@ -806,40 +806,50 @@ public partial class coinone : Exchange
      * @method
      * @name coinone#createOrder
      * @description create a trade order
-     * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
-     * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+     * @see https://docs.coinone.co.kr/reference/order-v21
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type must be 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, required for the limit orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(!isEqual(type, "limit")))
+        object orderType = ((string)((string)type)).ToUpper(); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+        object orderSide = ((string)((string)side)).ToUpper(); // unified lowercase order sides, same override rule
+        if (isTrue(!isEqual(orderType, "LIMIT")))
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() allows limit orders only")) ;
+        }
+        if (isTrue(isEqual(price, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a price argument for the limit orders")) ;
         }
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        // the v1 order/limit_buy and order/limit_sell endpoints were retired by
+        // the exchange and return 404, the v2.1 order endpoint replaces them,
+        // see https://github.com/ccxt/ccxt/issues/23174
         object request = new Dictionary<string, object>() {
-            { "price", price },
-            { "currency", getValue(market, "id") },
-            { "qty", amount },
+            { "quote_currency", getValue(market, "quoteId") },
+            { "target_currency", getValue(market, "baseId") },
+            { "type", orderType },
+            { "side", orderSide },
+            { "price", this.priceToPrecision(symbol, price) },
+            { "qty", this.amountToPrecision(symbol, amount) },
         };
-        object method = add(add("privatePostOrder", this.capitalize(type)), this.capitalize(((string)side)));
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = await this.v2_1PrivatePostOrderLimit(this.extend(request, parameters));
         //
         //     {
         //         "result": "success",
-        //         "errorCode": "0",
-        //         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
+        //         "error_code": "0",
+        //         "order_id": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         //     }
         //
         return this.parseOrder(response, market);
@@ -952,9 +962,9 @@ public partial class coinone : Exchange
         //         "feeRate": "-0.0015"
         //     }
         //
-        object id = this.safeString(order, "orderId");
-        object baseId = this.safeString(order, "baseCurrency");
-        object quoteId = this.safeString(order, "targetCurrency");
+        object id = this.safeString2(order, "orderId", "order_id");
+        object baseId = this.safeString2(order, "baseCurrency", "target_currency");
+        object quoteId = this.safeString2(order, "targetCurrency", "quote_currency");
         object bs = null;
         object quote = null;
         if (isTrue(!isEqual(baseId, null)))
@@ -972,7 +982,15 @@ public partial class coinone : Exchange
             market = this.safeMarket(symbol, market, "/");
         }
         object timestamp = this.safeTimestamp2(order, "timestamp", "updatedAt");
-        object side = this.safeString2(order, "type", "side");
+        if (isTrue(isEqual(timestamp, null)))
+        {
+            timestamp = this.safeInteger2(order, "ordered_at", "updated_at"); // v2.1 sends milliseconds
+        }
+        object side = this.safeStringLower2(order, "type", "side");
+        if (isTrue(isTrue(isTrue((isEqual(side, "limit"))) || isTrue((isEqual(side, "market")))) || isTrue((isEqual(side, "stop_limit")))))
+        {
+            side = this.safeStringLower(order, "side"); // in v2.1 rows the type field carries the order type, the side lives in side
+        }
         if (isTrue(isEqual(side, "ask")))
         {
             side = "sell";
@@ -980,8 +998,8 @@ public partial class coinone : Exchange
         {
             side = "buy";
         }
-        object remainingString = this.safeString(order, "remainQty");
-        object amountString = this.safeString2(order, "originalQty", "qty");
+        object remainingString = this.safeString2(order, "remainQty", "remain_qty");
+        object amountString = this.safeStringN(order, new List<object>() {"originalQty", "qty", "original_qty"});
         object status = this.safeString(order, "status");
         // https://github.com/ccxt/ccxt/pull/7067
         if (isTrue(isEqual(status, "live")))
@@ -1003,7 +1021,7 @@ public partial class coinone : Exchange
             object feeCurrencyCode = ((bool) isTrue((isEqual(side, "sell")))) ? quote : bs;
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
-                { "rate", this.safeString(order, "feeRate") },
+                { "rate", this.safeString2(order, "feeRate", "fee_rate") },
                 { "currency", feeCurrencyCode },
             };
         }
@@ -1022,9 +1040,9 @@ public partial class coinone : Exchange
             { "price", this.safeString(order, "price") },
             { "triggerPrice", null },
             { "cost", null },
-            { "average", this.safeString(order, "averageExecutedPrice") },
+            { "average", this.safeString2(order, "averageExecutedPrice", "average_executed_price") },
             { "amount", amountString },
-            { "filled", this.safeString(order, "executedQty") },
+            { "filled", this.safeString2(order, "executedQty", "executed_qty") },
             { "remaining", remainingString },
             { "status", status },
             { "fee", fee },
@@ -1057,9 +1075,10 @@ public partial class coinone : Exchange
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "currency", getValue(market, "id") },
+            { "quote_currency", getValue(market, "quoteId") },
+            { "target_currency", getValue(market, "baseId") },
         };
-        object response = await this.privatePostOrderLimitOrders(this.extend(request, parameters));
+        object response = await this.v2_1PrivatePostOrderOpenOrders(this.extend(request, parameters));
         //
         //     {
         //         "result": "success",
@@ -1077,8 +1096,8 @@ public partial class coinone : Exchange
         //         ]
         //     }
         //
-        object limitOrders = this.safeList(response, "limitOrders", new List<object>() {});
-        return this.parseOrders(limitOrders, market, since, limit);
+        object openOrders = this.safeList2(response, "open_orders", "limitOrders", new List<object>() {});
+        return this.parseOrders(openOrders, market, since, limit);
     }
 
     /**
@@ -1275,7 +1294,15 @@ public partial class coinone : Exchange
         {
             this.checkRequiredCredentials();
             url = add(url, request);
-            object nonce = ((object)this.nonce()).ToString();
+            // the v2.1 api requires a uuid nonce, the older apis use a numeric one
+            object nonce = null;
+            if (isTrue(isEqual(api, "v2_1Private")))
+            {
+                nonce = this.uuid();
+            } else
+            {
+                nonce = ((object)this.nonce()).ToString();
+            }
             object json = this.json(this.extend(new Dictionary<string, object>() {
                 { "access_token", this.apiKey },
                 { "nonce", nonce },

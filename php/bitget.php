@@ -1471,7 +1471,7 @@ class bitget extends Exchange {
             ),
             'options' => array(
                 'uta' => null,
-                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'fetchMarkets' => array(
                     'types' => array( 'spot', 'swap' ), // there is future markets but they use the same endpoints
@@ -5455,7 +5455,7 @@ class bitget extends Exchange {
             } elseif ($isStopLossOrTakeProfitTrigger) {
                 if ($price !== null) {
                     $request['executePrice'] = $this->price_to_precision($symbol, $price);
-                    if (is_array($request) && array_key_exists('price', $request)) {
+                    if (is_array($request) && array_key_exists('price' ?? '', $request)) {
                         unset($request['price']);
                     }
                 }
@@ -5474,11 +5474,27 @@ class bitget extends Exchange {
             } else {
                 if ($hasStopLoss) {
                     $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice');
+                    if ($slTriggerPrice === null) {
+                        throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice or a stopPrice inside the $stopLoss parameter');
+                    }
                     $request['presetStopLossPrice'] = $this->price_to_precision($symbol, $slTriggerPrice);
+                    $slLimitPrice = $this->safe_value($stopLoss, 'price');
+                    if ($slLimitPrice !== null) {
+                        // without the execute $price the exchange fills the attached stop loss
+                        // at the $market $price, see https://github.com/ccxt/ccxt/issues/23459
+                        $request['presetStopLossExecutePrice'] = $this->price_to_precision($symbol, $slLimitPrice);
+                    }
                 }
                 if ($hasTakeProfit) {
                     $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice');
+                    if ($tpTriggerPrice === null) {
+                        throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice or a stopPrice inside the $takeProfit parameter');
+                    }
                     $request['presetStopSurplusPrice'] = $this->price_to_precision($symbol, $tpTriggerPrice);
+                    $tpLimitPrice = $this->safe_value($takeProfit, 'price');
+                    if ($tpLimitPrice !== null) {
+                        $request['presetStopSurplusExecutePrice'] = $this->price_to_precision($symbol, $tpLimitPrice);
+                    }
                 }
             }
             if (!$isStopLossOrTakeProfitTrigger) {
@@ -6597,7 +6613,7 @@ class bitget extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
             $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
-            $marketType = (is_array($market) && array_key_exists('type', $market)) ? $market['type'] : $defaultType;
+            $marketType = (is_array($market) && array_key_exists('type' ?? '', $market)) ? $market['type'] : $defaultType;
             $type = $this->safe_string($params, 'type', $marketType);
         } else {
             $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
@@ -9292,7 +9308,7 @@ class bitget extends Exchange {
          * @see https://www.bitget.com/api-doc/uta/account/Change-Position-Mode
          *
          * @param {bool} $hedged set to true to use dualSidePosition
-         * @param {string} $symbol not used by bitget setPositionMode ()
+         * @param {string} $symbol not used by setPositionMode ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->productType] required if not $uta and $symbol is null => 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
@@ -10693,7 +10709,7 @@ class bitget extends Exchange {
          * @param {string[]} [$symbols] unified contract $symbols
          * @param {int} [$since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for $params["until"] - $since is 3 months
          * @param {int} [$limit] the maximum amount of records to fetch, default=20, max=100
-         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest position to fetch, max range for $params["until"] - $since is 3 months
          * @param {string} [$params->productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false

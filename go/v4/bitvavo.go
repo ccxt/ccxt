@@ -352,7 +352,7 @@ func (this *BitvavoCore) Describe() any {
 				"230": ExchangeError,
 				"231": ExchangeError,
 				"232": BadRequest,
-				"233": InvalidOrder,
+				"233": OrderNotFound,
 				"234": InvalidOrder,
 				"235": ExchangeError,
 				"236": BadRequest,

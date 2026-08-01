@@ -119,7 +119,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $extraNames = '';
         for ($i = 0; $i < $extraScopeParamsLength; $i++) {
             $scopeKey = $extraScopeParams[$i];
-            if (is_array($params) && array_key_exists($scopeKey, $params)) {
+            if (is_array($params) && array_key_exists($scopeKey ?? '', $params)) {
                 return null;
             }
             $extraNames = $extraNames . ', ' . $scopeKey;
@@ -372,7 +372,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         for ($i = 0; $i < count($keys); $i++) {
             $event = $this->events[$keys[$i]];
             $identity = $this->safe_string_2($event, 'id', 'event', $keys[$i]);
-            if (!(is_array($seen) && array_key_exists($identity, $seen))) {
+            if (!(is_array($seen) && array_key_exists($identity ?? '', $seen))) {
                 $seen[$identity] = true;
                 $result[] = $event;
             }
@@ -405,10 +405,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     public function get_event(string $eventIdOrSlug) {
         // cache-only event resolver (the event analogue of array($this, 'outcome')) - the cache fills
         // through fetchEvents; this never fetches
-        if (($this->events !== null) && (is_array($this->events) && array_key_exists($eventIdOrSlug, $this->events))) {
+        if (($this->events !== null) && (is_array($this->events) && array_key_exists($eventIdOrSlug ?? '', $this->events))) {
             return $this->events[$eventIdOrSlug];
         }
-        if (($this->events_by_slug !== null) && (is_array($this->events_by_slug) && array_key_exists($eventIdOrSlug, $this->events_by_slug))) {
+        if (($this->events_by_slug !== null) && (is_array($this->events_by_slug) && array_key_exists($eventIdOrSlug ?? '', $this->events_by_slug))) {
             return $this->events_by_slug[$eventIdOrSlug];
         }
         throw new BadSymbol($this->id . ' has no cached event ' . $eventIdOrSlug . " - call fetchEvents (array( 'query' => ... )) first");
@@ -418,10 +418,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         if (($this->outcomes === null) || $this->is_empty($this->outcomes)) {
             throw new ExchangeError($this->id . ' outcomes not loaded - call loadOutcomes () or an outcome-addressed method first');
         }
-        if (is_array($this->outcomes) && array_key_exists($outcomeSymbol, $this->outcomes)) {
+        if (is_array($this->outcomes) && array_key_exists($outcomeSymbol ?? '', $this->outcomes)) {
             return $this->outcomes[$outcomeSymbol];
         }
-        if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeSymbol, $this->outcomes_by_id))) {
+        if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeSymbol ?? '', $this->outcomes_by_id))) {
             return $this->outcomes_by_id[$outcomeSymbol];
         }
         throw new BadSymbol($this->id . ' does not have outcome ' . $outcomeSymbol . ' - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first');
@@ -431,10 +431,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // sync cache-only membership probe — never throws and never fetches. this is the predicate
         // behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome (stub on miss)
         // and outcome (throws on miss) are the accessors
-        if (($this->outcomes !== null) && (is_array($this->outcomes) && array_key_exists($outcomeIdOrSymbol, $this->outcomes))) {
+        if (($this->outcomes !== null) && (is_array($this->outcomes) && array_key_exists($outcomeIdOrSymbol ?? '', $this->outcomes))) {
             return true;
         }
-        if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeIdOrSymbol, $this->outcomes_by_id))) {
+        if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeIdOrSymbol ?? '', $this->outcomes_by_id))) {
             return true;
         }
         return false;
@@ -442,10 +442,10 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
 
     public function safe_outcome(?string $outcomeIdOrSymbol, mixed $outcomeObj = null) {
         if ($outcomeIdOrSymbol !== null) {
-            if (($this->outcomes !== null) && (is_array($this->outcomes) && array_key_exists($outcomeIdOrSymbol, $this->outcomes))) {
+            if (($this->outcomes !== null) && (is_array($this->outcomes) && array_key_exists($outcomeIdOrSymbol ?? '', $this->outcomes))) {
                 return $this->outcomes[$outcomeIdOrSymbol];
             }
-            if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeIdOrSymbol, $this->outcomes_by_id))) {
+            if (($this->outcomes_by_id !== null) && (is_array($this->outcomes_by_id) && array_key_exists($outcomeIdOrSymbol ?? '', $this->outcomes_by_id))) {
                 return $this->outcomes_by_id[$outcomeIdOrSymbol];
             }
         }

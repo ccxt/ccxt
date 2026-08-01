@@ -234,7 +234,7 @@ class bullish extends bullish$1["default"] {
             'precisionMode': number.TICK_SIZE,
             // exchange-specific options
             'options': {
-                'timeDifference': 0, // the difference between system clock and Binance clock
+                'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'networks': {
                     'BTC': 'BTC',

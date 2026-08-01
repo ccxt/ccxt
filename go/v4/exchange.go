@@ -2190,6 +2190,8 @@ func (this *Exchange) LoadOrderBook(client any, messageHash any, symbol any, opt
 		errorMsg := fmt.Sprintf("%s nonce is behind the cache after %v tries.", this.Id, maxRetries)
 		client.(*Client).Reject(ExchangeError(errorMsg), messageHash)
 		delete(this.Clients, client.(*Client).Url)
+		// clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753 (parity with the other ports, see #29399)
+		this.Orderbooks.Store(symbol.(string), this.OrderBook())
 	} else {
 		client.(*Client).Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
 		return nil

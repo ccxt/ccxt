@@ -3599,7 +3599,7 @@ public partial class kucoin
     /// <item>
     /// <term>symbol</term>
     /// <description>
-    /// string : not used by bybit setPositionMode ()
+    /// string : not used by setPositionMode ()
     /// </description>
     /// </item>
     /// <item>

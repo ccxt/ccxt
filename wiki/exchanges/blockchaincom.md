@@ -445,7 +445,7 @@ fetch information on a deposit
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | deposit id |
-| code | <code>string</code> | Yes | not used by blockchaincom fetchDeposit () |
+| code | <code>string</code> | Yes | not used by fetchDeposit () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 

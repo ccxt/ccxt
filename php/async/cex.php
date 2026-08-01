@@ -905,7 +905,7 @@ class cex extends Exchange {
         }
         for ($i = 0; $i < count($this->symbols); $i++) {
             $symbol = $this->symbols[$i];
-            if (!(is_array($result) && array_key_exists($symbol, $result))) {
+            if (!(is_array($result) && array_key_exists($symbol ?? '', $result))) {
                 $market = $this->market($symbol);
                 $result[$symbol] = $this->parse_trading_fee($response, $market);
             }

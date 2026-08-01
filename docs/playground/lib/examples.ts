@@ -7,8 +7,8 @@ export type Example = {
   id: string;
   label: string;
   description: string;
-  // Rich snippets exist for the interpreted trio; TypeScript reuses the JS
-  // snippet (valid TS), and Go/C# fall back to their language defaultCode.
+  // Rich snippets exist for the interpreted trio (TypeScript, Python, PHP);
+  // Go/C# fall back to their language defaultCode.
   code: Partial<Record<RunnableLanguageId, string>>;
 };
 
@@ -18,7 +18,7 @@ export const examples: Example[] = [
     label: "Fetch ticker",
     description: "Latest price snapshot for one symbol on one exchange.",
     code: {
-      js: `import ccxt from 'ccxt';
+      ts: `import ccxt from 'ccxt';
 
 const exchange = new ccxt.binance ();
 const ticker = await exchange.fetchTicker ('BTC/USDT');
@@ -42,7 +42,7 @@ echo $ticker['symbol'] . '  last=' . $ticker['last'] . '  bid=' . $ticker['bid']
     label: "Fetch order book",
     description: "Top bids and asks for a symbol.",
     code: {
-      js: `import ccxt from 'ccxt';
+      ts: `import ccxt from 'ccxt';
 
 const exchange = new ccxt.kraken ();
 const ob = await exchange.fetchOrderBook ('BTC/USD', 5);
@@ -71,7 +71,7 @@ foreach ($ob['asks'] as $ask) { echo '  ' . $ask[0] . ' x ' . $ask[1] . "\\n"; }
     label: "Fetch OHLCV candles",
     description: "Recent hourly candlesticks for charting / analysis.",
     code: {
-      js: `import ccxt from 'ccxt';
+      ts: `import ccxt from 'ccxt';
 
 const exchange = new ccxt.binance ();
 const candles = await exchange.fetchOHLCV ('ETH/USDT', '1h', undefined, 5);
@@ -101,7 +101,7 @@ foreach ($candles as $c) {
     label: "List markets",
     description: "Load every market an exchange offers.",
     code: {
-      js: `import ccxt from 'ccxt';
+      ts: `import ccxt from 'ccxt';
 
 const exchange = new ccxt.coinbase ();
 const markets = await exchange.loadMarkets ();
@@ -131,7 +131,7 @@ echo implode(', ', array_slice($symbols, 0, 20)) . "\\n";
     label: "Compare prices across exchanges",
     description: "Fan out the same query across several exchanges at once.",
     code: {
-      js: `import ccxt from 'ccxt';
+      ts: `import ccxt from 'ccxt';
 
 const ids = ['binance', 'kraken', 'coinbase', 'bitfinex', 'okx'];
 const rows = await Promise.all (ids.map (async (id) => {
@@ -175,46 +175,6 @@ foreach ($ids as $id) {
     label: "Prediction market (Polymarket)",
     description: "Search Polymarket events by keyword, then fetch an outcome's ticker.",
     code: {
-      js: `import ccxt from 'ccxt';
-
-// Prediction markets live under the ccxt.prediction namespace (Polymarket,
-// Kalshi, Limitless, Myriad, Hyperliquid). Requires ccxt >= 4.5.66.
-const exchange = new ccxt.prediction.polymarket ();
-
-// 1) search events by keyword (fetchEvents must be scoped — by query, queries, tags, eventId or slug)
-const events = await exchange.fetchEvents ({ query: 'Bitcoin', limit: 5 });
-console.log (\`found \${events.length} events for "Bitcoin"\`);
-
-// 2) collect the outcome tokens of still-open markets (resolved ones have no book)
-const outcomes = [];
-for (const event of events) {
-    for (const market of (event.markets || [])) {
-        if (market.resolved) continue;
-        for (const outcome of (market.outcomes || [])) {
-            outcomes.push ({ event: event.title, market: market.market, outcome });
-        }
-    }
-}
-
-// 3) fetch the ticker of the first outcome that has a live order book —
-//    its price is the market-implied probability of that outcome.
-for (const candidate of outcomes) {
-    try {
-        const ticker = await exchange.fetchTicker (candidate.outcome.outcome);
-        console.log ('event:  ', candidate.event);
-        console.log ('market: ', candidate.market);
-        console.log ('outcome:', candidate.outcome.label, '->', candidate.outcome.outcome);
-        console.log (\`bid=\${ticker.bid}  ask=\${ticker.ask}  last=\${ticker.last}\`);
-        const prob = (ticker.last !== undefined) ? ticker.last : ticker.bid;
-        if (prob !== undefined) {
-            console.log (\`implied probability: \${(prob * 100).toFixed (1)}%\`);
-        }
-        break;
-    } catch (e) {
-        continue; // no order book for this outcome — try the next one
-    }
-}
-`,
       ts: `import ccxt from 'ccxt';
 
 // Prediction markets live under the ccxt.prediction namespace (Polymarket,
@@ -297,17 +257,6 @@ asyncio.run(main())
     label: "Watch ticker (WebSocket)",
     description: "Stream live ticker updates with CCXT Pro (ccxt.pro / watch*).",
     code: {
-      js: `import ccxt from 'ccxt';
-
-// ccxt.pro = WebSockets. Use the .pro namespace for watch* methods.
-const exchange = new ccxt.pro.binance ();
-// Stream a few live updates, then close the socket so the run finishes.
-for (let i = 0; i < 5; i++) {
-    const ticker = await exchange.watchTicker ('BTC/USDT');
-    console.log (ticker['datetime'], ticker['symbol'], 'last=' + ticker['last']);
-}
-await exchange.close ();
-`,
       ts: `import ccxt from 'ccxt';
 
 // ccxt.pro = WebSockets. Use the .pro namespace for watch* methods.
@@ -339,10 +288,9 @@ asyncio.run(main())
 export const defaultExample = examples[0];
 
 // Resolve the snippet to show for an example in a given language:
-// explicit snippet → TypeScript reuses the JS one → the language's defaultCode.
+// explicit snippet → the language's defaultCode.
 export function codeFor(example: Example, lang: RunnableLanguageId): string {
   const explicit = example.code[lang];
   if (explicit !== undefined) return explicit;
-  if (lang === "ts" && example.code.js !== undefined) return example.code.js;
   return getLanguage(lang)?.defaultCode ?? "";
 }

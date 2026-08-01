@@ -1697,9 +1697,9 @@ class coinbaseexchange extends Exchange {
             'amount' => $amount,
         );
         $method = 'privatePostWithdrawals';
-        if (is_array($params) && array_key_exists('payment_method_id', $params)) {
+        if (is_array($params) && array_key_exists('payment_method_id' ?? '', $params)) {
             $method .= 'PaymentMethod';
-        } elseif (is_array($params) && array_key_exists('coinbase_account_id', $params)) {
+        } elseif (is_array($params) && array_key_exists('coinbase_account_id' ?? '', $params)) {
             $method .= 'CoinbaseAccount';
         } else {
             $method .= 'Crypto';
@@ -2187,7 +2187,7 @@ class coinbaseexchange extends Exchange {
     public function request($path, $api = 'public', $method = 'GET', $params = array(), $headers = null, $body = null, $config = array()) {
         $response = $this->fetch2($path, $api, $method, $params, $headers, $body, $config);
         if (gettype($response) !== 'string') {
-            if (is_array($response) && array_key_exists('message', $response)) {
+            if (is_array($response) && array_key_exists('message' ?? '', $response)) {
                 throw new ExchangeError($this->id . ' ' . $this->json($response));
             }
         }

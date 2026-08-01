@@ -584,7 +584,7 @@ func (this *KucoinCore) Describe() any {
 				"order not exist":                                          OrderNotFound,
 				"order not exist.":                                         OrderNotFound,
 				"order_not_exist":                                          OrderNotFound,
-				"order_not_exist_or_not_allow_to_cancel":                   InvalidOrder,
+				"order_not_exist_or_not_allow_to_cancel":                   OrderNotFound,
 				"Order size below the minimum requirement.":                InvalidOrder,
 				"Order size increment invalid.":                            InvalidOrder,
 				"The withdrawal amount is below the minimum requirement.":  ExchangeError,
@@ -12967,7 +12967,7 @@ func (this *KucoinCore) SetMarginMode(marginMode any, optionalArgs ...any) <-cha
  * @description set hedged to true or false for a market
  * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-position-mode
  * @param {bool} hedged set to true to use two way position
- * @param {string} [symbol] not used by bybit setPositionMode ()
+ * @param {string} [symbol] not used by setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a response from the exchange
  */

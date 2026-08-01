@@ -1491,7 +1491,7 @@ class paradex extends Exchange {
         $lastUpdateTimestamp = $this->safe_integer($order, 'last_updated_at');
         $flags = $this->safe_list($order, 'flags', array());
         $reduceOnly = null;
-        if (is_array($flags) && array_key_exists('REDUCE_ONLY', $flags)) {
+        if (is_array($flags) && array_key_exists('REDUCE_ONLY' ?? '', $flags)) {
             $reduceOnly = true;
         }
         return $this->safe_order(array(
@@ -1921,7 +1921,7 @@ class paradex extends Exchange {
          * @see https://docs.paradex.trade/api/prod/orders/cancel-batch
          *
          * @param {string[]} $ids order $ids
-         * @param {string} [$symbol] unified $market $symbol, not used by paradex cancelOrders()
+         * @param {string} [$symbol] unified $market $symbol, not used by cancelOrders()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string[]} [$params->clientOrderIds] client order $ids
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~

@@ -598,7 +598,7 @@ class hibachi extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch (maximum value is 100)
-             * @param {array} [$params] extra parameters specific to the hibachi api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of recent [trade structures]
              */
             if ($this->markets === null) {
@@ -635,7 +635,7 @@ class hibachi extends Exchange {
              *
              * fetches a price $ticker and the related information for the past 24h
              * @param {string} $symbol unified $symbol of the $market
-             * @param {array} [$params] extra parameters specific to the hibachi api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
             if ($this->markets === null) {
@@ -1840,7 +1840,7 @@ class hibachi extends Exchange {
         if ($response === null) {
             return null; // fallback to default error handler
         }
-        if (is_array($response) && array_key_exists('status', $response)) {
+        if (is_array($response) && array_key_exists('status' ?? '', $response)) {
             //
             //     array("errorCode":4,"message":"Invalid input => Invalid quantity => 0","status":"failed")
             //

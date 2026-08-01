@@ -6032,12 +6032,32 @@ final Object finalMinNotional = minNotional;
                 if (Helpers.isTrue(hasStopLoss))
                 {
                     Object slTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice");
+                    if (Helpers.isTrue(Helpers.isEqual(slTriggerPrice, null)))
+                    {
+                        throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter")) ;
+                    }
                     Helpers.addElementToObject(request, "presetStopLossPrice", this.priceToPrecision(symbol, slTriggerPrice));
+                    Object slLimitPrice = this.safeValue(stopLoss, "price");
+                    if (Helpers.isTrue(!Helpers.isEqual(slLimitPrice, null)))
+                    {
+                        // without the execute price the exchange fills the attached stop loss
+                        // at the market price, see https://github.com/ccxt/ccxt/issues/23459
+                        Helpers.addElementToObject(request, "presetStopLossExecutePrice", this.priceToPrecision(symbol, slLimitPrice));
+                    }
                 }
                 if (Helpers.isTrue(hasTakeProfit))
                 {
                     Object tpTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice");
+                    if (Helpers.isTrue(Helpers.isEqual(tpTriggerPrice, null)))
+                    {
+                        throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter")) ;
+                    }
                     Helpers.addElementToObject(request, "presetStopSurplusPrice", this.priceToPrecision(symbol, tpTriggerPrice));
+                    Object tpLimitPrice = this.safeValue(takeProfit, "price");
+                    if (Helpers.isTrue(!Helpers.isEqual(tpLimitPrice, null)))
+                    {
+                        Helpers.addElementToObject(request, "presetStopSurplusExecutePrice", this.priceToPrecision(symbol, tpLimitPrice));
+                    }
                 }
             }
             if (!Helpers.isTrue(isStopLossOrTakeProfitTrigger))

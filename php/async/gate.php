@@ -1308,7 +1308,7 @@ class gate extends Exchange {
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1));
-        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
             // handle expired option contracts
             return $this->create_expired_option_market($marketId);
         }
@@ -3026,7 +3026,7 @@ class gate extends Exchange {
         //     }
         //
         $marketId = $this->safe_string_n($ticker, array( 'currency_pair', 'contract', 'name' ));
-        $marketType = (is_array($ticker) && array_key_exists('mark_price', $ticker)) ? 'contract' : 'spot';
+        $marketType = (is_array($ticker) && array_key_exists('mark_price' ?? '', $ticker)) ? 'contract' : 'spot';
         $symbol = $this->safe_symbol($marketId, $market, '_', $marketType);
         $last = $this->safe_string_2($ticker, 'last', 'last_price');
         $ask = $this->safe_string_n($ticker, array( 'lowest_ask', 'a', 'ask1_price' ));
@@ -3121,7 +3121,7 @@ class gate extends Exchange {
         $account['used'] = $this->safe_string_2($entry, 'freeze', 'locked');
         $account['free'] = $this->safe_string($entry, 'available');
         $account['total'] = $this->safe_string($entry, 'total');
-        if (is_array($entry) && array_key_exists('borrowed', $entry)) {
+        if (is_array($entry) && array_key_exists('borrowed' ?? '', $entry)) {
             $account['debt'] = $this->safe_string($entry, 'borrowed');
         }
         return $account;
@@ -3386,7 +3386,7 @@ class gate extends Exchange {
             );
             $isolated = $marginMode === 'margin' && $type === 'spot';
             $data = $response;
-            if (is_array($data) && array_key_exists('balances', $data)) { // True for cross_margin and unified
+            if (is_array($data) && array_key_exists('balances' ?? '', $data)) { // True for cross_margin and unified
                 $flatBalances = array();
                 $balances = $this->safe_value($data, 'balances', array());
                 // inject currency and create an artificial balance object
@@ -3441,7 +3441,7 @@ class gate extends Exchange {
              * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
              * @param {int} [$params->until] timestamp in ms of the latest candle $to fetch
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units, quote currency))
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units ?? '', quote currency))
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -4052,7 +4052,7 @@ class gate extends Exchange {
             $timestamp = $this->safe_timestamp_2($trade, 'time', 'create_time');
         }
         $marketId = $this->safe_string_2($trade, 'currency_pair', 'contract');
-        $marketType = (is_array($trade) && array_key_exists('contract', $trade)) ? 'contract' : 'spot';
+        $marketType = (is_array($trade) && array_key_exists('contract' ?? '', $trade)) ? 'contract' : 'spot';
         $market = $this->safe_market($marketId, $market, '_', $marketType);
         $amountString = $this->safe_string_2($trade, 'amount', 'size');
         $priceString = $this->safe_string($trade, 'price');
@@ -5254,7 +5254,7 @@ class gate extends Exchange {
             }
         }
         $marketType = 'contract';
-        if ((is_array($order) && array_key_exists('currency_pair', $order)) || (is_array($order) && array_key_exists('market', $order))) {
+        if ((is_array($order) && array_key_exists('currency_pair' ?? '', $order)) || (is_array($order) && array_key_exists('market' ?? '', $order))) {
             $marketType = 'spot';
         }
         $exchangeSymbol = $this->safe_string_2($order, 'currency_pair', 'market', $contract);
@@ -5310,9 +5310,9 @@ class gate extends Exchange {
         $reduceOnly = $this->safe_bool($order, 'is_reduce_only', $reduceOnlyInitial);
         $clientOrderId = $this->safe_string($order, 'text');
         if ($clientOrderId === null) {
-            if (is_array($order) && array_key_exists('initial', $order)) {
+            if (is_array($order) && array_key_exists('initial' ?? '', $order)) {
                 $clientOrderId = $this->safe_string($order['initial'], 'text');
-            } elseif (is_array($order) && array_key_exists('trigger', $order)) {
+            } elseif (is_array($order) && array_key_exists('trigger' ?? '', $order)) {
                 $clientOrderId = $this->safe_string($order['trigger'], 'text');
             }
         }
@@ -6093,13 +6093,13 @@ class gate extends Exchange {
                 'currency' => $currency['id'], // todo => currencies have network-junctions
                 'amount' => $truncated,
             );
-            if (!(is_array($this->options['accountsByType']) && array_key_exists($fromId, $this->options['accountsByType']))) {
+            if (!(is_array($this->options['accountsByType']) && array_key_exists($fromId ?? '', $this->options['accountsByType']))) {
                 $request['from'] = 'margin';
                 $request['currency_pair'] = $fromId;
             } else {
                 $request['from'] = $fromId;
             }
-            if (!(is_array($this->options['accountsByType']) && array_key_exists($toId, $this->options['accountsByType']))) {
+            if (!(is_array($this->options['accountsByType']) && array_key_exists($toId ?? '', $this->options['accountsByType']))) {
                 $request['to'] = 'margin';
                 $request['currency_pair'] = $toId;
             } else {
@@ -8289,7 +8289,7 @@ class gate extends Exchange {
              *
              * @param {string} $symbol Unified CCXT market $symbol
              * @param {string} $side 'buy' or 'sell'
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} ~@link https://docs.ccxt.com/?id=position-structure A list of position structures~
              */
             $request = array(
@@ -8684,7 +8684,7 @@ class gate extends Exchange {
              * @param {string[]} $symbols unified conract $symbols, must all have the same settle currency and the same $market type
              * @param {int} [$since] the earliest time in ms to fetch positions for
              * @param {int} [$limit] the maximum amount of records to fetch, default=1000
-             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch positions for
              *
              * EXCHANGE SPECIFIC PARAMETERS

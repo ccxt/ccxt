@@ -57,12 +57,7 @@ const exchangeSpecificFlags = {
 let exchanges = []
 let symbol = 'all'
 let method = undefined
-// Java JVMs are ~700 MB each at peak; 5 concurrent × 2 simul streams (REST + WS)
-// = 10 JVMs OOMs CI's 7 GB / 4-core runner before tests complete (the runner
-// receives a shutdown signal at ~7 min with 6+ orphan java procs). Lower the
-// Java cap so peak memory stays in budget; ~110/80 exchanges still finish in
-// ~30 min wall-clock locally with cap=3.
-let maxConcurrency = process.argv.includes('--java') ? 3 : 5
+let maxConcurrency = undefined // a bare numeric CLI arg always wins; otherwise computed per-language after the args are parsed
 
 for (const arg of args) {
     if (arg in exchangeSpecificFlags)        { exchangeSpecificFlags[arg] = true }
@@ -81,13 +76,15 @@ for (const arg of args) {
     else                                     { exchanges.push (arg) }
 }
 
+if (maxConcurrency === undefined) {
+    const lightLangKeys = [ '--js', '--ts', '--python', '--python-async', '--php', '--php-async' ]
+    const selectedLangs = Object.keys (langKeys).filter (key => langKeys[key])
+    const onlyLightLangs = (selectedLangs.length > 0) && selectedLangs.every (key => lightLangKeys.includes (key))
+    maxConcurrency = langKeys['--java'] ? 3 : (onlyLightLangs ? 20 : 5)
+}
+
 const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
 
-// for REST exchange test, we might need to wait for 200+ seconds for some exchanges
-// for WS, watchOHLCV might need 60 seconds for update (so, spot & swap ~ 120sec)
-// Java needs extra headroom for gradle daemon dispatch + JVM start + loadMarkets
-// (binance-class exchanges have 4000+ markets); without it, ~22 WS exchanges
-// hit the per-test timeout despite passing on their own.
 const timeoutSeconds = wsFlag ? (langKeys['--java'] ? 180 : 120) : 250;
 
 
@@ -126,6 +123,25 @@ const sleep = s => new Promise (resolve => setTimeout (resolve, s*1000))
 const timeout = (s, promise) => Promise.race ([ promise, sleep (s).then (() => {
     throw new Error ('RUNTEST_TIMED_OUT');
 }) ])
+
+/*  tests.ts unconditionally dumps "[INFO] TESTING  <exchange> <method>" when a method
+    test starts and a matching "TESTING DONE" / "TESTING FAILED" line when it finishes.
+    On a timeout, the started-but-never-finished markers identify the hung method(s) —
+    there can be several at once, because tests.ts runs each batch through Promise.all.
+    Counts (not a set) are used because testSafe retries re-emit the same markers.       */
+const unfinishedMethods = (output) => {
+    const counts = {}
+    const bump = (regex, delta) => {
+        let match
+        while ((match = regex.exec (output))) {
+            const key = match[1] + '.' + match[2]
+            counts[key] = (counts[key] || 0) + delta
+        }
+    }
+    bump (/\[INFO\] TESTING(?!\s+(?:DONE|FAILED)\b)\s+(\S+)\s+([A-Za-z]\w*)/g, 1)
+    bump (/\[INFO\] TESTING (?:DONE|FAILED)\s+(\S+)\s+([A-Za-z]\w*)/g, -1)
+    return Object.keys (counts).filter (key => counts[key] > 0)
+}
 
 //  --------------------------------------------------------------------------- //
 
@@ -220,15 +236,22 @@ const exec = (bin, ...args) => {
     })).catch (e => {
         const isTimeout = e.message === 'RUNTEST_TIMED_OUT';
         if (isTimeout) {
-            // Tag the output so the FAIL path picks it up (generateResultFromOutput
-            // looks for [TEST_FAILURE] / AssertionError / [...Error] patterns).
-            // Without this tag the harness was bucketing timeouts into WARN, which
-            // silently hid 12 hung WS exchanges across every language lane on every
-            // CI run (e.g. bybit which times out in all 6 langs). A killed-after-180s
-            // process is a real failure, not a transient warning — should be visible.
-            output += '\n[TEST_FAILURE] RUNTEST_TIMED_OUT';
-            stderr += '\n' + 'RUNTEST_TIMED_OUT: ';
-            const result = generateResultFromOutput (output, stderr, 1);
+            // Timeouts are bucketed into WARN, not FAIL, so a hung exchange doesn't
+            // fail the whole CI lane. They were FAIL for a while because WARN used to
+            // hide them completely (a bare RUNTEST_TIMED_OUT with no context) — that's
+            // mitigated now: the [TEST_WARNING] tag below carries the exact methods
+            // that never finished (diffed from the TESTING / TESTING DONE markers that
+            // tests.ts dumps), so hung exchanges stay visible in the WARN summary.
+            // Exit code 0 keeps `failed` false unless the output already contains a
+            // real [TEST_FAILURE] from before the hang.
+            const hung = unfinishedMethods (ansi.strip (output));
+            const hungMessage = hung.length ? ' (methods that never finished: ' + hung.join (', ') + ')' : '';
+            // the [TEST_WARNING] tag goes into `output` only: generateResultFromOutput
+            // both regex-matches the tag in stderr AND pushes the whole stderr, so
+            // tagging the stderr copy too would print the message twice in the summary
+            output += '\n[TEST_WARNING] RUNTEST_TIMED_OUT' + hungMessage;
+            stderr += '\nRUNTEST_TIMED_OUT' + hungMessage;
+            const result = generateResultFromOutput (output, stderr, 0);
             return result;
         }
         return {
@@ -242,13 +265,24 @@ const exec = (bin, ...args) => {
 
 //  ------------------------------------------------------------------------ //
 
-// const execWithRetry = () => {
+/*  Failures whose output points at connectivity rather than a code bug get one
+    re-run — a transient network blip on the CI server shouldn't fail a lane.
+    The bracketed class names come from exceptionMessage() in tests.helpers.ts
+    ("[RequestTimeout] ..."), identical across all transpiled languages; the bare
+    tokens cover process-level socket errors. RUNTEST_TIMED_OUT is deliberately
+    not retried: it lands in WARN (failed=false), and re-running a hung exchange
+    would double the lane's wall-clock for no benefit.                           */
 
-//     // Sometimes execution (on a remote CI server) is just fails with no
-//     // apparent reason, leaving an empty stdout/stderr behind. I suspect
-//     // it's related to out-of-memory errors. So in that case we will re-try
-//     // until it eventually finalizes.
-// }
+const networkErrorRegex = /\[(?:NetworkError|OperationFailed|RequestTimeout|ExchangeNotAvailable|OnMaintenance|DDoSProtection|RateLimitExceeded|InvalidNonce)\]|ECONNRESET|ECONNREFUSED|ETIMEDOUT|EAI_AGAIN|socket hang up|getaddrinfo/
+
+const execWithRetry = async (bin, ...args) => {
+    const result = await exec (bin, ...args)
+    if (result.failed && networkErrorRegex.test (result.output)) {
+        log.bright.yellow ('Network error detected, retrying once:', [ bin, ...args ].join (' ').white)
+        return exec (bin, ...args)
+    }
+    return result
+}
 
 //  ------------------------------------------------------------------------ //
 
@@ -352,7 +386,7 @@ const testExchange = async (exchange) => {
         selectedTests = selectedTests.filter (t => t.key !== '--python' && t.key !== '--php');
     }
 
-    const completeTests  = await sequentialMap (selectedTests, async test => Object.assign (test, await  exec (...test.exec)));
+    const completeTests  = await sequentialMap (selectedTests, async test => Object.assign (test, await execWithRetry (...test.exec)));
     const failed         = completeTests.find (test => test.failed);
     const hasWarnings    = completeTests.find (test => test.warnings.length);
     const warnings       = completeTests.reduce (

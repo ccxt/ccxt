@@ -108,7 +108,7 @@ class extended extends \ccxt\async\extended {
         $timestamp = $this->safe_integer($message, 'ts');
         $nonce = $this->safe_integer($message, 'seq');
         $type = $this->safe_string($message, 'type', $this->safe_string($data, 't'));
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
             $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
             $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
@@ -154,7 +154,7 @@ class extended extends \ccxt\async\extended {
         return Async\async(function () use ($messageHash, $subscription) {
             $this->check_required_credentials();
             $url = $this->urls['api']['ws'] . '/account';
-            if (($this->clients === null) || !(is_array($this->clients) && array_key_exists($url, $this->clients))) {
+            if (($this->clients === null) || !(is_array($this->clients) && array_key_exists($url ?? '', $this->clients))) {
                 $defaultOptions = array(
                     'ws' => array(
                         'options' => array(
@@ -903,21 +903,21 @@ class extended extends \ccxt\async\extended {
                 $this->handle_ohlcv($client, $message);
             }
         } elseif ($data !== null) {
-            if (($type === 'ORDER') || (is_array($data) && array_key_exists('orders', $data))) {
+            if (($type === 'ORDER') || (is_array($data) && array_key_exists('orders' ?? '', $data))) {
                 $this->handle_orders($client, $message);
             }
-            if (($type === 'TRADE') || (is_array($data) && array_key_exists('trades', $data))) {
+            if (($type === 'TRADE') || (is_array($data) && array_key_exists('trades' ?? '', $data))) {
                 $this->handle_my_trades($client, $message);
             }
-            if (($type === 'POSITION') || (is_array($data) && array_key_exists('positions', $data))) {
+            if (($type === 'POSITION') || (is_array($data) && array_key_exists('positions' ?? '', $data))) {
                 $this->handle_positions($client, $message);
             }
-            if (($type === 'BALANCE') || (is_array($data) && array_key_exists('balance', $data)) || (is_array($data) && array_key_exists('spotBalances', $data))) {
+            if (($type === 'BALANCE') || (is_array($data) && array_key_exists('balance' ?? '', $data)) || (is_array($data) && array_key_exists('spotBalances' ?? '', $data))) {
                 $this->handle_balance($client, $message);
             }
             if ($type === 'MP') {
                 $this->handle_mark_price($client, $message);
-            } elseif (is_array($data) && array_key_exists('f', $data)) {
+            } elseif (is_array($data) && array_key_exists('f' ?? '', $data)) {
                 $this->handle_funding_rate($client, $message);
             } else {
                 $this->handle_order_book($client, $message);

@@ -246,6 +246,12 @@ class pacifica(Exchange, ImplicitAPI):
                     'taker': self.parse_number('0.0004'),
                     'maker': self.parse_number('0.00015'),
                 },
+                'spot': {
+                    # https://docs.pacifica.fi/trading-on-pacifica/trading-fees
+                    # one unified fee schedule for all product types
+                    'taker': self.parse_number('0.0004'),
+                    'maker': self.parse_number('0.00015'),
+                },
             },
             #
             # Reminder:

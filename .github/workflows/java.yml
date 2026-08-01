@@ -60,7 +60,7 @@ jobs:
       run: npm run pre-transpile-java
     - name: Transpile to Java
       if: env.important_modified == 'true'
-      run: npm run transpileJava
+      run: npm run force-transpileJava
     - name: Transpile to Java (specific)
       if: env.important_modified == 'false'
       run: |

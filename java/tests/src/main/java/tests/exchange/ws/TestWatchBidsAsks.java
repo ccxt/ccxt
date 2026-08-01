@@ -52,7 +52,7 @@ public class TestWatchBidsAsks extends BaseTest {
                     shouldReturn = true;
                 } else if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
                 {
-                    throw new RuntimeException(e);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
                 now = exchange.milliseconds();
                 // continue;

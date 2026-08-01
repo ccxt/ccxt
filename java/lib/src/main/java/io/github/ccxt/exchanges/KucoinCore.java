@@ -589,7 +589,7 @@ public class KucoinCore extends KucoinApi
                     put( "order not exist", OrderNotFound.class );
                     put( "order not exist.", OrderNotFound.class );
                     put( "order_not_exist", OrderNotFound.class );
-                    put( "order_not_exist_or_not_allow_to_cancel", InvalidOrder.class );
+                    put( "order_not_exist_or_not_allow_to_cancel", OrderNotFound.class );
                     put( "Order size below the minimum requirement.", InvalidOrder.class );
                     put( "Order size increment invalid.", InvalidOrder.class );
                     put( "The withdrawal amount is below the minimum requirement.", ExchangeError.class );
@@ -12613,7 +12613,7 @@ public class KucoinCore extends KucoinApi
      * @description set hedged to true or false for a market
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-position-mode
      * @param {bool} hedged set to true to use two way position
-     * @param {string} [symbol] not used by bybit setPositionMode ()
+     * @param {string} [symbol] not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a response from the exchange
      */

@@ -279,7 +279,7 @@ class myriad extends Exchange {
                     $networkId = $this->safe_string($raw, 'networkId');
                     $marketId = $this->safe_string($raw, 'id');
                     $key = $networkId . ':' . $marketId;
-                    if (!(is_array($seen) && array_key_exists($key, $seen))) {
+                    if (!(is_array($seen) && array_key_exists($key ?? '', $seen))) {
                         $seen[$key] = true;
                         $rawMarkets[] = $raw;
                     }
@@ -457,7 +457,7 @@ class myriad extends Exchange {
                 for ($j = 0; $j < count($found); $j++) {
                     $raw = $found[$j];
                     $questionId = $this->safe_string($raw, 'id');
-                    if (($questionId !== null) && !(is_array($seen) && array_key_exists($questionId, $seen))) {
+                    if (($questionId !== null) && !(is_array($seen) && array_key_exists($questionId ?? '', $seen))) {
                         $seen[$questionId] = true;
                         $rawQuestions[] = $raw;
                     }
@@ -502,7 +502,7 @@ class myriad extends Exchange {
                 for ($i = 0; $i < $rawQuestionsLength; $i++) {
                     $rawQuestion = $rawQuestions[$i];
                     $questionId = $this->safe_string($rawQuestion, 'id');
-                    if (($questionId !== null) && (is_array($seen) && array_key_exists($questionId, $seen))) {
+                    if (($questionId !== null) && (is_array($seen) && array_key_exists($questionId ?? '', $seen))) {
                         continue;
                     }
                     if ($questionId !== null) {
@@ -2159,7 +2159,7 @@ class myriad extends Exchange {
         $marketTradingModel = $this->safe_string($raw, 'tradingModel', 'amm');
         $marketExecutionModel = ($marketTradingModel === 'amm') ? 'amm' : 'clob';
         $outcomesLength = count($outcomes);
-        // effectively-final copy for the market object literal below (is_array(the loop) && array_key_exists(reassigned, the loop))
+        // effectively-final copy for the market object literal below (is_array(the loop) && array_key_exists(reassigned ?? '', the loop))
         $marketResolvedOutcome = $resolvedOutcome;
         return array(
             'id' => $networkId . ':' . $marketId,
@@ -2848,7 +2848,7 @@ class myriad extends Exchange {
                 $networkId = $this->safe_string($info, 'networkId');
                 $marketId = $this->safe_string($info, 'marketId');
                 $key = $networkId . ':' . $marketId;
-                if (!(is_array($outcomesByMarket) && array_key_exists($key, $outcomesByMarket))) {
+                if (!(is_array($outcomesByMarket) && array_key_exists($key ?? '', $outcomesByMarket))) {
                     $outcomesByMarket[$key] = array();
                     $marketKeys[] = $key;
                 }
@@ -3077,7 +3077,7 @@ class myriad extends Exchange {
                     $m = $this->safe_dict($evMarkets, $j, array());
                     $marketHandle = $this->safe_string($m, 'market');
                     if ($marketHandle !== null) {
-                        if (is_array($seenMarketHandles) && array_key_exists($marketHandle, $seenMarketHandles)) {
+                        if (is_array($seenMarketHandles) && array_key_exists($marketHandle ?? '', $seenMarketHandles)) {
                             continue;
                         }
                         $seenMarketHandles[$marketHandle] = true;
@@ -3097,7 +3097,7 @@ class myriad extends Exchange {
                 $raw = $rawMarkets[$i];
                 $m = $this->parse_myriad_market($raw);
                 $marketHandle = $this->safe_string($m, 'market');
-                if (($marketHandle !== null) && (is_array($seenMarketHandles) && array_key_exists($marketHandle, $seenMarketHandles))) {
+                if (($marketHandle !== null) && (is_array($seenMarketHandles) && array_key_exists($marketHandle ?? '', $seenMarketHandles))) {
                     $this->markets[$marketHandle] = $m;
                     continue;
                 }

@@ -864,7 +864,7 @@ class latoken extends Exchange {
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+        if (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets)) {
             $market = $this->market($symbol);
         }
         $id = $this->safe_string($trade, 'id');
@@ -1154,7 +1154,7 @@ class latoken extends Exchange {
         $symbol = null;
         if (($base !== null) && ($quote !== null)) {
             $symbol = $base . '/' . $quote;
-            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+            if (is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets)) {
                 $market = $this->market($symbol);
             }
         }
@@ -1465,7 +1465,7 @@ class latoken extends Exchange {
              * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  // stop
              *
              * @param {string} $id order $id
-             * @param {string} $symbol not used by latoken cancelOrder ()
+             * @param {string} $symbol not used by cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->trigger] true if cancelling a trigger order
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~

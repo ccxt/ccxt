@@ -472,7 +472,7 @@ class weex extends Exchange {
             ),
             'options' => array(
                 'partner' => 'b-WEEX111125',
-                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'accountsByType' => array(
                     'spot' => 'spot',

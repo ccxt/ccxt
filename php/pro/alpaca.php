@@ -273,7 +273,7 @@ class alpaca extends \ccxt\async\alpaca {
         $datetime = $this->safe_string($message, 't');
         $timestamp = $this->parse8601($datetime);
         $isSnapshot = $this->safe_bool($message, 'r', false);
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];

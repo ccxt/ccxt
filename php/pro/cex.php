@@ -243,7 +243,7 @@ class cex extends \ccxt\async\cex {
     public function handle_trades_inner(Client $client, $message) {
         $data = $this->safe_list($message, 'data', array());
         $symbol = $this->safe_string($this->options['watchTrades'], 'symbol');
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->trades[$symbol] = new ArrayCache($limit);
         }
@@ -350,7 +350,7 @@ class cex extends \ccxt\async\cex {
              *
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             if ($this->markets === null) {
@@ -468,7 +468,7 @@ class cex extends \ccxt\async\cex {
              * @see https://docs.cex.io/#ws-api-get-balance
              *
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             if ($this->markets === null) {
@@ -1184,7 +1184,7 @@ class cex extends \ccxt\async\cex {
         for ($i = 0; $i < count($sorted); $i++) {
             $stored->append($this->parse_ohlcv($sorted[$i], $market));
         }
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
         $this->ohlcvs[$symbol]['unknown'] = $stored;
@@ -1277,7 +1277,7 @@ class cex extends \ccxt\async\cex {
              *
              * @param {string} $id the order $id
              * @param {string} $symbol not used by cex fetchOrder
-             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             if ($this->markets === null) {
@@ -1313,7 +1313,7 @@ class cex extends \ccxt\async\cex {
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             if ($symbol === null) {
@@ -1351,7 +1351,7 @@ class cex extends \ccxt\async\cex {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->maker_only] Optional, maker only places an order only if offers best sell (<= max) or buy(>= max) $price for this pair, if not order placement will be rejected with an error - "Order is not maker"
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
              */
@@ -1394,7 +1394,7 @@ class cex extends \ccxt\async\cex {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
              * @param {float|null} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
              */
             if ($amount === null) {
@@ -1435,8 +1435,8 @@ class cex extends \ccxt\async\cex {
              *
              * cancels an open order
              * @param {string} $id order $id
-             * @param {string} $symbol not used by cex cancelOrder ()
-             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @param {string} $symbol not used by cancelOrder ()
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             if ($this->markets === null) {
@@ -1470,8 +1470,8 @@ class cex extends \ccxt\async\cex {
              * @see https://docs.cex.io/#ws-api-mass-cancel-place
              *
              * @param {string[]} $ids order $ids
-             * @param {string} $symbol not used by cex cancelOrders()
-             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @param {string} $symbol not used by cancelOrders()
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             if ($symbol !== null) {

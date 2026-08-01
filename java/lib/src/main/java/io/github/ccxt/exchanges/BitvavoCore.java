@@ -357,7 +357,7 @@ public class BitvavoCore extends BitvavoApi
                     put( "230", ExchangeError.class );
                     put( "231", ExchangeError.class );
                     put( "232", BadRequest.class );
-                    put( "233", InvalidOrder.class );
+                    put( "233", OrderNotFound.class );
                     put( "234", InvalidOrder.class );
                     put( "235", ExchangeError.class );
                     put( "236", BadRequest.class );

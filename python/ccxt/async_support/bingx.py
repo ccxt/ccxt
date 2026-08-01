@@ -627,6 +627,9 @@ class bingx(Exchange, ImplicitAPI):
             },
             'options': {
                 'defaultType': 'spot',
+                'fetchOHLCV': {
+                    'timeZone': 0,  # candle boundary offset in hours, 0 anchors daily candles to UTC midnight, set 8 for the bingx-native UTC+8 anchoring
+                },
                 'accountsByType': {
                     'funding': 'fund',
                     'spot': 'spot',
@@ -1181,6 +1184,12 @@ class bingx(Exchange, ImplicitAPI):
             request['endTime'] = until
         response: dict
         if market['spot']:
+            # bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
+            # the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
+            timeZone = None
+            timeZone, params = self.handle_option_and_params(params, 'fetchOHLCV', 'timeZone', 0)
+            if timeZone is not None:
+                request['timeZone'] = timeZone
             response = await self.spotV1PublicGetMarketKline(self.extend(request, params))
         else:
             if market['inverse']:
@@ -5136,8 +5145,15 @@ class bingx(Exchange, ImplicitAPI):
         currency = self.safe_currency(currencyId, currency)
         code = currency['code']
         address = self.safe_string(depositAddress, 'addressWithPrefix')
-        networkdId = self.safe_string(depositAddress, 'network')
-        networkCode = self.network_id_to_code(networkdId, code)
+        networkId = self.safe_string(depositAddress, 'network')
+        networkCode = self.network_id_to_code(networkId, code)
+        # despite its name the addressWithPrefix field sometimes arrives without
+        # the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
+        if address is not None:
+            isPrefixed = address.startswith('0x') or address.startswith('0X')
+            evmNetworks = ['BEP20', 'BSC', 'ERC20', 'ETH', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'ARB', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB']
+            if not isPrefixed and self.in_array(networkCode, evmNetworks):
+                address = '0x' + address
         self.check_address(address)
         return {
             'info': depositAddress,

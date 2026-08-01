@@ -339,7 +339,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         );
         $timestamp = $this->safe_integer($entry, 'time');
         $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'px', 'sz');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $ob = $this->order_book($snapshot);
             $this->orderbooks[$symbol] = $ob;
         }
@@ -722,7 +722,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $marketId = $this->coinToMarketId($coin);
         $market = $this->market($marketId);
         $symbol = $market['symbol'];
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
@@ -895,10 +895,10 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $marketId = $this->coinToMarketId($base);
         $symbol = $this->safe_symbol($marketId);
         $timeframe = $this->safe_string($data, 'i');
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
@@ -1499,7 +1499,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $subMessageHash = 'orderbook:' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+        if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
     }
@@ -1512,7 +1512,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $subMessageHash = 'trade:' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+        if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
             unset($this->trades[$symbol]);
         }
     }
@@ -1537,8 +1537,8 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $subMessageHash = 'candles:' . $timeframe . ':' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
-            if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+        if (is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs)) {
+            if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol])) {
                 unset($this->ohlcvs[$symbol][$timeframe]);
             }
         }
@@ -1573,7 +1573,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         );
         $this->clean_cache($topicStructure);
         // clean swap balance if it existed
-        if (is_array($this->balance) && array_key_exists('swap', $this->balance)) {
+        if (is_array($this->balance) && array_key_exists('swap' ?? '', $this->balance)) {
             unset($this->balance['swap']);
         }
     }
@@ -1582,7 +1582,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $subHash = 'spotState';
         $unSubHash = 'unsubscribe:' . $subHash;
         $this->clean_unsubscription($client, $subHash, $unSubHash, true);
-        if (is_array($this->balance) && array_key_exists('spot', $this->balance)) {
+        if (is_array($this->balance) && array_key_exists('spot' ?? '', $this->balance)) {
             unset($this->balance['spot']);
         }
     }

@@ -28,7 +28,7 @@ public partial class binance
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : exchange specific parameters for the bitmex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -63,7 +63,7 @@ public partial class binance
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : exchange specific parameters for the bitmex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -98,7 +98,7 @@ public partial class binance
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : exchange specific parameters for the bitmex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -133,7 +133,7 @@ public partial class binance
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : exchange specific parameters for the bitmex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>

@@ -1802,7 +1802,7 @@ class bitopro extends Exchange {
             'amount' => $this->number_to_string($amount),
             'address' => $address,
         );
-        if (is_array($params) && array_key_exists('network', $params)) {
+        if (is_array($params) && array_key_exists('network' ?? '', $params)) {
             $networks = $this->safe_dict($this->options, 'networks', array());
             $requestedNetwork = $this->safe_string_upper($params, 'network');
             $params = $this->omit($params, array( 'network' ));

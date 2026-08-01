@@ -1359,7 +1359,7 @@ class binance extends binance$1["default"] {
                     'method': 'positionRisk', // or 'account' or 'option'
                 },
                 'recvWindow': 10 * 1000, // 10 sec
-                'timeDifference': 0, // the difference between system clock and Binance clock
+                'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'newOrderRespType': {
                     'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
@@ -8625,7 +8625,7 @@ class binance extends binance$1["default"] {
      * @name binance#fetchMyDustTrades
      * @description fetch all dust trades made by the user
      * @see https://developers.binance.com/docs/wallet/asset/dust-log
-     * @param {string} symbol not used by binance fetchMyDustTrades ()
+     * @param {string} symbol not used by fetchMyDustTrades ()
      * @param {int} [since] the earliest time in ms to fetch my dust trades for
      * @param {int} [limit] the maximum number of dust trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -9653,7 +9653,7 @@ class binance extends binance$1["default"] {
      * @deprecated
      * @description please use fetchDepositWithdrawFees instead
      * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
-     * @param {string[]|undefined} codes not used by binance fetchTransactionFees ()
+     * @param {string[]|undefined} codes not used by fetchTransactionFees ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
@@ -9769,7 +9769,7 @@ class binance extends binance$1["default"] {
      * @name binance#fetchDepositWithdrawFees
      * @description fetch deposit and withdraw fees
      * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
-     * @param {string[]|undefined} codes not used by binance fetchDepositWithdrawFees ()
+     * @param {string[]|undefined} codes not used by fetchDepositWithdrawFees ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
@@ -11912,7 +11912,7 @@ class binance extends binance$1["default"] {
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by binance setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.portfolioMargin] set to true if you would like to set the position mode for a portfolio margin account
      * @param {string} [params.subType] "linear" or "inverse"
@@ -14358,7 +14358,7 @@ class binance extends binance$1["default"] {
      * @param {string} [type] "add" or "reduce"
      * @param {int} [since] timestamp in ms of the earliest change to fetch
      * @param {int} [limit] the maximum amount of changes to fetch
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest change to fetch
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */

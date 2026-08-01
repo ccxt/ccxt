@@ -8,6 +8,7 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import bybitRest from '../bybit.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest, NotSupported } from '../base/errors.js';
+import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class bybit extends bybitRest {
@@ -2298,9 +2299,23 @@ export default class bybit extends bybitRest {
         const account = this.account();
         const currencyId = this.safeString2(balance, 'a', 'coin');
         const code = this.safeCurrencyCode(currencyId);
-        account['free'] = this.safeStringN(balance, ['availableToWithdraw', 'f', 'free', 'availableToWithdraw']);
-        account['used'] = this.safeString2(balance, 'l', 'locked');
-        account['total'] = this.safeString(balance, 'walletBalance');
+        account['free'] = this.safeStringN(balance, ['availableToWithdraw', 'f', 'free']);
+        const used = this.safeString2(balance, 'l', 'locked');
+        if (used !== undefined) {
+            account['used'] = used;
+        }
+        else {
+            // the unified account wallet stream has no locked field, the margin
+            // lives in the per coin initial margin fields, so the used amount
+            // is derived from those, see https://github.com/ccxt/ccxt/issues/24365
+            const totalPositionIm = this.safeString(balance, 'totalPositionIM', '0');
+            const totalOrderIm = this.safeString(balance, 'totalOrderIM', '0');
+            account['used'] = Precise.stringAdd(totalPositionIm, totalOrderIm);
+        }
+        // on the unified rows the free amount and the margin are both measured
+        // against the equity, which includes the unrealized pnl, so the equity
+        // is the consistent total, the spot rows fall back to the wallet balance
+        account['total'] = this.safeString2(balance, 'equity', 'walletBalance');
         if (accountType !== undefined) {
             if (this.safeValue(this.balance, accountType) === undefined) {
                 this.balance[accountType] = {};

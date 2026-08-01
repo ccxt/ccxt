@@ -182,6 +182,8 @@
         }
     },
     "binanceus": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "ticker": {
                 "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing, https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L2466"
@@ -224,6 +226,8 @@
         }
     },
     "bingx": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "taker": "is undefined",
@@ -333,6 +337,9 @@
         }
     },
     "bitflyer": {
+        "skip": true,
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "preferredSpotSymbol": "BTC/JPY",
         "skipMethods": {
             "loadMarkets": {
@@ -619,7 +626,6 @@
     },
     "btcbox": {
         "skip": "temporary reorg on exchange, lets wait few more weeks",
-        "until": "2026-08-01",
         "skipMethods": {
             "loadMarkets": {
                 "precision": "is undefined"
@@ -1174,6 +1180,8 @@
         }
     },
     "dydx": {
+        "httpsProxy": "http://188.245.226.105:8911",
+        "wsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "taker": "missing",
@@ -1384,6 +1392,7 @@
         }
     },
     "hitbtc": {
+        "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes"

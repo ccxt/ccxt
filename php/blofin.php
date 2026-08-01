@@ -512,7 +512,7 @@ class blofin extends Exchange {
         $contract = $swap || $future;
         $baseId = $this->safe_string($market, 'baseCurrency');
         $quoteId = $this->safe_string($market, 'quoteCurrency');
-        $settleId = $this->safe_string($market, 'quoteCurrency');
+        $settleId = $this->safe_string($market, 'settleCurrency', $quoteId);
         $settle = $this->safe_currency_code($settleId);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
@@ -531,6 +531,9 @@ class blofin extends Exchange {
         $maxLeverage = Precise::string_max($maxLeverage, '1');
         $isActive = ($this->safe_string($market, 'state') === 'live');
         $isMargin = $spot && (Precise::string_gt($maxLeverage, '1'));
+        $contractType = $this->safe_string($market, 'contractType');
+        $maxLimitAmount = $this->safe_number($market, 'maxLimitSize');
+        $maxSpotCost = $this->safe_number($market, 'maxMarketSize'); // for $spot, $market-buy size is denominated in the $quote currency, i.e. cost
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -550,8 +553,8 @@ class blofin extends Exchange {
             'taker' => $taker,
             'maker' => $maker,
             'contract' => $contract,
-            'linear' => $contract ? ($quoteId === $settleId) : null,
-            'inverse' => $contract ? ($baseId === $settleId) : null,
+            'linear' => $contract ? ($contractType === 'linear') : null,
+            'inverse' => $contract ? ($contractType === 'inverse') : null,
             'contractSize' => $contract ? $this->safe_number($market, 'contractValue') : null,
             'expiry' => $expiry,
             'expiryDatetime' => $expiry,
@@ -569,7 +572,7 @@ class blofin extends Exchange {
                 ),
                 'amount' => array(
                     'min' => $this->safe_number($market, 'minSize'),
-                    'max' => null,
+                    'max' => $maxLimitAmount,
                 ),
                 'price' => array(
                     'min' => null,
@@ -577,7 +580,7 @@ class blofin extends Exchange {
                 ),
                 'cost' => array(
                     'min' => null,
-                    'max' => null,
+                    'max' => $contract ? null : $maxSpotCost,
                 ),
             ),
             'info' => $market,
@@ -2225,7 +2228,7 @@ class blofin extends Exchange {
          * @param {string[]} [$symbols] unified contract $symbols
          * @param {int} [$since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for $params["until"] - $since is 3 months
          * @param {int} [$limit] the maximum amount of records to fetch, default=20, max=100
-         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest position to fetch, max range for $params["until"] - $since is 3 months
          * @param {string} [$params->productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
          * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
@@ -2583,7 +2586,7 @@ class blofin extends Exchange {
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} [$side] 'buy' or 'sell', leave in net mode
-         * @param {array} [$params] extra parameters specific to the blofin api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] a unique identifier for the order
          * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross;
          * @param {string} [$params->code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -2767,7 +2770,7 @@ class blofin extends Exchange {
          * @see https://docs.blofin.com/index.html#set-position-mode
          *
          * @param {bool} $hedged set to true to use $hedged mode, false for one-way mode
-         * @param {string} [$symbol] not used by blofin setPositionMode ()
+         * @param {string} [$symbol] not used by setPositionMode ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} response from the exchange
          */
