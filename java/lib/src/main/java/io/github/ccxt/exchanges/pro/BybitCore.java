@@ -2759,9 +2759,24 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         Object account = this.account();
         Object currencyId = this.safeString2(balance, "a", "coin");
         Object code = this.safeCurrencyCode(currencyId);
-        Helpers.addElementToObject(account, "free", this.safeStringN(balance, new java.util.ArrayList<Object>(java.util.Arrays.asList("availableToWithdraw", "f", "free", "availableToWithdraw"))));
-        Helpers.addElementToObject(account, "used", this.safeString2(balance, "l", "locked"));
-        Helpers.addElementToObject(account, "total", this.safeString(balance, "walletBalance"));
+        Helpers.addElementToObject(account, "free", this.safeStringN(balance, new java.util.ArrayList<Object>(java.util.Arrays.asList("availableToWithdraw", "f", "free"))));
+        Object used = this.safeString2(balance, "l", "locked");
+        if (Helpers.isTrue(!Helpers.isEqual(used, null)))
+        {
+            Helpers.addElementToObject(account, "used", used);
+        } else
+        {
+            // the unified account wallet stream has no locked field, the margin
+            // lives in the per coin initial margin fields, so the used amount
+            // is derived from those, see https://github.com/ccxt/ccxt/issues/24365
+            Object totalPositionIm = this.safeString(balance, "totalPositionIM", "0");
+            Object totalOrderIm = this.safeString(balance, "totalOrderIM", "0");
+            Helpers.addElementToObject(account, "used", Precise.stringAdd(totalPositionIm, totalOrderIm));
+        }
+        // on the unified rows the free amount and the margin are both measured
+        // against the equity, which includes the unrealized pnl, so the equity
+        // is the consistent total, the spot rows fall back to the wallet balance
+        Helpers.addElementToObject(account, "total", this.safeString2(balance, "equity", "walletBalance"));
         if (Helpers.isTrue(!Helpers.isEqual(accountType, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.balance, accountType), null)))
