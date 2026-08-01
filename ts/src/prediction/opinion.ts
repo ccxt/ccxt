@@ -147,7 +147,7 @@ export default class opinion extends Exchange {
      * categorical parents double as our unified "events" and are cached into this.events as a side effect
      * @see https://docs.opinion.trade/developer-guide/opinion-open-api/market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.limit] max number of markets to collect (defaults to options.maxMarketsPages, 1000)
+     * @param {int} [params.limit] max number of markets to collect (defaults to options.marketsPageLimit * options.maxMarketsPages, 1000)
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
@@ -864,9 +864,13 @@ export default class opinion extends Exchange {
         }
         const priceStr = this.decimalToPrecision (this.numberToString (price), ROUND, 6, DECIMAL_PLACES);
         const priceParts = priceStr.split ('.');
+        const priceInt = this.safeString (priceParts, 0, '0');
         const priceFrac = this.safeString (priceParts, 1, '');
-        const priceNum = priceFrac.padEnd (6, '0');
         const priceDenom = '1000000';
+        const priceNum = Precise.stringAdd (Precise.stringMul (priceInt, priceDenom), priceFrac.padEnd (6, '0'));
+        if (priceNum === '0') {
+            throw new InvalidOrder (this.id + ' createOrder() invalid price ' + priceStr);
+        }
         let makerRaw = amountStr;
         if (side === 'BUY') {
             makerRaw = Precise.stringMul (amountStr, priceStr);
@@ -1184,8 +1188,9 @@ export default class opinion extends Exchange {
         const tradesLength = trades.length;
         for (let i = 0; i < tradesLength; i++) {
             const trade = trades[i];
+            const tokenId = this.safeString (trade, 'tokenId');
             const marketId = this.safeInteger (trade, 'marketId');
-            if (marketId !== undefined) {
+            if ((tokenId === undefined) && (marketId !== undefined)) {
                 const tradeMarket = await this.loadTradeMarket (marketId);
                 const info = this.safeDict (tradeMarket, 'info', {});
                 const isYes = (this.safeStringLower (trade, 'outcomeSideEnum') === 'yes');
