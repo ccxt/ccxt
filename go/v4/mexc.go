@@ -36,7 +36,7 @@ func (this *MexcCore) Describe() any {
 			"cancelAllOrders":                true,
 			"cancelOrder":                    true,
 			"cancelOrders":                   nil,
-			"closeAllPositions":              false,
+			"closeAllPositions":              true,
 			"closePosition":                  false,
 			"createDepositAddress":           true,
 			"createMarketBuyOrderWithCost":   true,
@@ -158,7 +158,7 @@ func (this *MexcCore) Describe() any {
 				},
 			},
 			"www":      "https://www.mexc.com/",
-			"doc":      []any{"https://mexcdevelop.github.io/apidocs/"},
+			"doc":      []any{"https://www.mexc.com/api-docs/spot-v3/introduction", "https://www.mexc.com/api-docs/futures/integration-guide"},
 			"fees":     []any{"https://www.mexc.com/fee"},
 			"referral": "https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1",
 		},
@@ -170,16 +170,16 @@ func (this *MexcCore) Describe() any {
 						"time":              1,
 						"defaultSymbols":    1,
 						"symbol/offline":    10,
-						"exchangeInfo":      10,
-						"depth":             1,
+						"exchangeInfo":      25,
+						"depth":             3,
 						"trades":            5,
 						"historicalTrades":  1,
 						"aggTrades":         1,
 						"klines":            1,
 						"avgPrice":          1,
-						"ticker/24hr":       1,
-						"ticker/price":      1,
-						"ticker/bookTicker": 1,
+						"ticker/24hr":       25,
+						"ticker/price":      10,
+						"ticker/bookTicker": 10,
 						"etf/info":          1,
 					},
 				},
@@ -194,12 +194,12 @@ func (this *MexcCore) Describe() any {
 						"myTrades":                              10,
 						"strategy/group":                        20,
 						"strategy/group/uid":                    20,
-						"tradeFee":                              10,
+						"tradeFee":                              20,
 						"sub-account/list":                      1,
 						"sub-account/apiKey":                    1,
 						"sub-account/asset":                     1,
 						"capital/config/getall":                 10,
-						"capital/deposit/hisrec":                1,
+						"capital/deposit/hisrec":                10,
 						"capital/withdraw/history":              1,
 						"capital/withdraw/address":              10,
 						"capital/deposit/address":               10,
@@ -233,6 +233,7 @@ func (this *MexcCore) Describe() any {
 						"rebate/affiliate/campaign":             1,
 						"rebate/affiliate/referral":             1,
 						"rebate/affiliate/subaffiliates":        1,
+						"rebate/affiliate/list":                 1,
 						"mxDeduct/enable":                       1,
 						"userDataStream":                        1,
 						"selfSymbols":                           1,
@@ -241,6 +242,7 @@ func (this *MexcCore) Describe() any {
 					"post": map[string]any{
 						"order":                                 1,
 						"order/test":                            1,
+						"apiKeyInfo":                            1,
 						"sub-account/virtualSubAccount":         1,
 						"sub-account/apiKey":                    1,
 						"sub-account/futures":                   1,
@@ -249,7 +251,7 @@ func (this *MexcCore) Describe() any {
 						"strategy/group":                        20,
 						"capital/withdraw/apply":                1,
 						"capital/withdraw":                      1,
-						"capital/transfer":                      1,
+						"capital/transfer":                      50,
 						"capital/transfer/internal":             1,
 						"capital/deposit/address":               1,
 						"capital/sub-account/universalTransfer": 1,
@@ -263,6 +265,7 @@ func (this *MexcCore) Describe() any {
 					"delete": map[string]any{
 						"order":              1,
 						"openOrders":         1,
+						"order/all":          1,
 						"sub-account/apiKey": 1,
 						"strategy/group":     1,
 						"strategy/group/uid": 1,
@@ -347,7 +350,7 @@ func (this *MexcCore) Describe() any {
 						"position/change_leverage":                   2,
 						"position/change_position_mode":              2,
 						"position/reverse":                           2,
-						"position/close_all":                         2,
+						"position/close_all":                         10,
 						"order/create":                               2,
 						"order/submit":                               2,
 						"order/submit_batch":                         40,
@@ -728,6 +731,28 @@ func (this *MexcCore) Describe() any {
 				"-1128":  BadRequest,
 				"-2011":  BadRequest,
 				"-1121":  BadSymbol,
+				"401":    AuthenticationError,
+				"402":    AuthenticationError,
+				"403":    PermissionDenied,
+				"406":    PermissionDenied,
+				"429":    RateLimitExceeded,
+				"500":    ExchangeError,
+				"501":    ExchangeNotAvailable,
+				"503":    ExchangeNotAvailable,
+				"504":    RequestTimeout,
+				"510":    RateLimitExceeded,
+				"511":    PermissionDenied,
+				"513":    BadRequest,
+				"601":    BadRequest,
+				"603":    BadRequest,
+				"604":    OnMaintenance,
+				"701":    PermissionDenied,
+				"702":    PermissionDenied,
+				"703":    PermissionDenied,
+				"704":    PermissionDenied,
+				"801":    OnMaintenance,
+				"1000":   AuthenticationError,
+				"1001":   BadSymbol,
 				"10101":  InsufficientFunds,
 				"2009":   InvalidOrder,
 				"2011":   BadRequest,
@@ -775,6 +800,7 @@ func (this *MexcCore) Describe() any {
 				"10259":  ExchangeError,
 				"10265":  ExchangeError,
 				"10268":  BadRequest,
+				"11444":  OnMaintenance,
 				"20001":  ExchangeError,
 				"20002":  ExchangeError,
 				"22222":  BadRequest,
@@ -846,8 +872,8 @@ func (this *MexcCore) Describe() any {
  * @method
  * @name mexc#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#test-connectivity
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/test-connectivity // spot
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-server-time // swap
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
@@ -902,8 +928,8 @@ func (this *MexcCore) FetchStatus(optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#check-server-time
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/check-server-time // spot
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-server-time // swap
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -950,7 +976,7 @@ func (this *MexcCore) FetchTime(optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -1070,8 +1096,8 @@ func (this *MexcCore) ParseCurrency(rawCurrency any) any {
  * @method
  * @name mexc#fetchMarkets
  * @description retrieves data on all markets for mexc
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/exchange-information // spot
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info // swap
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -1084,8 +1110,8 @@ func (this *MexcCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes121612 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes121612)
+			retRes124312 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes124312)
 		}
 		var spotMarketPromise any = this.FetchSpotMarkets(params)
 		var swapMarketPromise any = this.FetchSwapMarkets(params)
@@ -1105,7 +1131,7 @@ func (this *MexcCore) FetchMarkets(optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#fetchMarkets
  * @description retrieves data on all spot markets for mexc
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/exchange-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -1245,7 +1271,7 @@ func (this *MexcCore) FetchSpotMarkets(optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#fetchMarkets
  * @description retrieves data on all swap markets for mexc
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -1382,8 +1408,8 @@ func (this *MexcCore) FetchSwapMarkets(optionalArgs ...any) <-chan any {
 /**
  * @method
  * @name mexc#fetchOrderBook
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#order-book
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-s-depth-information
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/order-book // spot
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-order-book-depth // swap
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
@@ -1399,9 +1425,11 @@ func (this *MexcCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes14898 := (<-this.LoadMarkets())
-		PanicOnError(retRes14898)
+			retRes151712 := (<-this.LoadMarkets())
+			PanicOnError(retRes151712)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -1484,9 +1512,9 @@ func (this *MexcCore) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) any 
 /**
  * @method
  * @name mexc#fetchTrades
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#recent-trades-list
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#compressed-aggregate-trades-list
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-transaction-data
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/recent-trades-list // spot
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/compressedaggregate-trades-list // spot aggregated
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-recent-trades // swap
  * @description get the list of most recent trades for a particular symbol
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -1506,9 +1534,11 @@ func (this *MexcCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes15708 := (<-this.LoadMarkets())
-		PanicOnError(retRes15708)
+			retRes160012 := (<-this.LoadMarkets())
+			PanicOnError(retRes160012)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -1518,7 +1548,7 @@ func (this *MexcCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		}
 		var trades any = []any{}
 		if IsTrue(GetValue(market, "spot")) {
-			var until any = this.SafeIntegerN(params, []any{"endTime", "until"})
+			var until any = this.SafeInteger2(params, "endTime", "until")
 			if IsTrue(!IsEqual(since, nil)) {
 				AddElementToObject(request, "startTime", since)
 				if IsTrue(IsEqual(until, nil)) {
@@ -1729,8 +1759,10 @@ func (this *MexcCore) ParseTrade(trade any, optionalArgs ...any) any {
 /**
  * @method
  * @name mexc#fetchOHLCV
- * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints#klinecandlestick-data
- * @see https://www.mexc.com/api-docs/futures/market-endpoints#get-candlestick-data
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/klinecandlestick-data // spot
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-candlestick-data // swap
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-index-price-candles // index
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-fair-price-candles // mark
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -1754,9 +1786,11 @@ func (this *MexcCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes18208 := (<-this.LoadMarkets())
-		PanicOnError(retRes18208)
+			retRes185412 := (<-this.LoadMarkets())
+			PanicOnError(retRes185412)
+		}
 		var market any = this.Market(symbol)
 		var maxLimit any = Ternary(IsTrue((GetValue(market, "spot"))), 500, 2000) // docs say 1000 for spot, but in practice it's 500
 		var paginate any = false
@@ -1765,9 +1799,9 @@ func (this *MexcCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes182619 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
-			PanicOnError(retRes182619)
-			ch <- retRes182619
+			retRes186119 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+			PanicOnError(retRes186119)
+			ch <- retRes186119
 			return nil
 		}
 		var options any = this.SafeValue(this.Options, "timeframes", map[string]any{})
@@ -1779,7 +1813,7 @@ func (this *MexcCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 			"interval": timeframeValue,
 		}
 		var candles any = []any{}
-		var until any = this.SafeIntegerN(params, []any{"until", "endTime"})
+		var until any = this.SafeInteger2(params, "until", "endTime")
 		var start any = since
 		if IsTrue(IsTrue((!IsEqual(until, nil))) && IsTrue((IsEqual(since, nil)))) {
 			params = this.Omit(params, []any{"until"})
@@ -1883,8 +1917,8 @@ func (this *MexcCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @method
  * @name mexc#fetchTickers
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/api-24hr-ticker-price-change-statistics // spot
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-ticker-contract-market-data // swap
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1898,9 +1932,11 @@ func (this *MexcCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes19418 := (<-this.LoadMarkets())
-		PanicOnError(retRes19418)
+			retRes197712 := (<-this.LoadMarkets())
+			PanicOnError(retRes197712)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		var isSingularMarket any = false
@@ -1970,8 +2006,8 @@ func (this *MexcCore) FetchTickers(optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#fetchTicker
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/api-24hr-ticker-price-change-statistics // spot
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-ticker-contract-market-data // swap
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -1983,9 +2019,11 @@ func (this *MexcCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20318 := (<-this.LoadMarkets())
-		PanicOnError(retRes20318)
+			retRes206912 := (<-this.LoadMarkets())
+			PanicOnError(retRes206912)
+		}
 		var market any = this.Market(symbol)
 		marketTypequeryVariable := this.HandleMarketTypeAndParams("fetchTicker", market, params)
 		marketType := GetValue(marketTypequeryVariable, 0)
@@ -2160,7 +2198,7 @@ func (this *MexcCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @method
  * @name mexc#fetchBidsAsks
  * @description fetches the bid and ask price and volume for multiple markets
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#symbol-order-book-ticker
+ * @see https://www.mexc.com/api-docs/spot-v3/market-data-endpoints/symbol-order-book-ticker
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2174,9 +2212,11 @@ func (this *MexcCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes22228 := (<-this.LoadMarkets())
-		PanicOnError(retRes22228)
+			retRes226212 := (<-this.LoadMarkets())
+			PanicOnError(retRes226212)
+		}
 		var market any = nil
 		var isSingularMarket any = false
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -2211,7 +2251,7 @@ func (this *MexcCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#createMarketBuyOrderWithCost
  * @description create a market buy order by providing the symbol and cost
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2224,9 +2264,11 @@ func (this *MexcCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optiona
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes22668 := (<-this.LoadMarkets())
-		PanicOnError(retRes22668)
+			retRes230812 := (<-this.LoadMarkets())
+			PanicOnError(retRes230812)
+		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
@@ -2235,9 +2277,9 @@ func (this *MexcCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optiona
 			"cost": cost,
 		}
 
-		retRes227415 := (<-this.CreateOrder(symbol, "market", "buy", 0, nil, this.Extend(req, params)))
-		PanicOnError(retRes227415)
-		ch <- retRes227415
+		retRes231715 := (<-this.CreateOrder(symbol, "market", "buy", 0, nil, this.Extend(req, params)))
+		PanicOnError(retRes231715)
+		ch <- retRes231715
 		return nil
 
 	}()
@@ -2248,7 +2290,7 @@ func (this *MexcCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optiona
  * @method
  * @name mexc#createMarketSellOrderWithCost
  * @description create a market sell order by providing the symbol and cost
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2261,9 +2303,11 @@ func (this *MexcCore) CreateMarketSellOrderWithCost(symbol any, cost any, option
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes22888 := (<-this.LoadMarkets())
-		PanicOnError(retRes22888)
+			retRes233212 := (<-this.LoadMarkets())
+			PanicOnError(retRes233212)
+		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
@@ -2272,9 +2316,9 @@ func (this *MexcCore) CreateMarketSellOrderWithCost(symbol any, cost any, option
 			"cost": cost,
 		}
 
-		retRes229615 := (<-this.CreateOrder(symbol, "market", "sell", 0, nil, this.Extend(req, params)))
-		PanicOnError(retRes229615)
-		ch <- retRes229615
+		retRes234115 := (<-this.CreateOrder(symbol, "market", "sell", 0, nil, this.Extend(req, params)))
+		PanicOnError(retRes234115)
+		ch <- retRes234115
 		return nil
 
 	}()
@@ -2285,10 +2329,9 @@ func (this *MexcCore) CreateMarketSellOrderWithCost(symbol any, cost any, option
  * @method
  * @name mexc#createOrder
  * @description create a trade order
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
- * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints#place-order
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-order // swap
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-plan-order // swap trigger
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -2318,24 +2361,26 @@ func (this *MexcCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes23288 := (<-this.LoadMarkets())
-		PanicOnError(retRes23288)
+			retRes237312 := (<-this.LoadMarkets())
+			PanicOnError(retRes237312)
+		}
 		var market any = this.Market(symbol)
 		marginModequeryVariable := this.HandleMarginModeAndParams("createOrder", params)
 		marginMode := GetValue(marginModequeryVariable, 0)
 		query := GetValue(marginModequeryVariable, 1)
 		if IsTrue(GetValue(market, "spot")) {
 
-			retRes233219 := (<-this.CreateSpotOrder(market, typeVar, side, amount, price, marginMode, query))
-			PanicOnError(retRes233219)
-			ch <- retRes233219
+			retRes237819 := (<-this.CreateSpotOrder(market, typeVar, side, amount, price, marginMode, query))
+			PanicOnError(retRes237819)
+			ch <- retRes237819
 			return nil
 		} else {
 
-			retRes233419 := (<-this.CreateSwapOrder(market, typeVar, side, amount, price, marginMode, query))
-			PanicOnError(retRes233419)
-			ch <- retRes233419
+			retRes238019 := (<-this.CreateSwapOrder(market, typeVar, side, amount, price, marginMode, query))
+			PanicOnError(retRes238019)
+			ch <- retRes238019
 			return nil
 		}
 
@@ -2413,7 +2458,7 @@ func (this *MexcCore) CreateSpotOrderRequest(market any, typeVar any, side any, 
  * @method
  * @name mexc#createSpotOrder
  * @description create a trade order
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/new-order
  * @param {string} market unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -2435,9 +2480,11 @@ func (this *MexcCore) CreateSpotOrder(market any, typeVar any, side any, amount 
 		_ = marginMode
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes24138 := (<-this.LoadMarkets())
-		PanicOnError(retRes24138)
+			retRes246012 := (<-this.LoadMarkets())
+			PanicOnError(retRes246012)
+		}
 		var test any = this.SafeBool(params, "test", false)
 		params = this.Omit(params, "test")
 		var request any = this.CreateSpotOrderRequest(market, typeVar, side, amount, price, marginMode, params)
@@ -2492,10 +2539,8 @@ func (this *MexcCore) CreateSpotOrder(market any, typeVar any, side any, amount 
  * @method
  * @name mexc#createSwapOrder
  * @description create a trade order
- * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints#place-order
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-order
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/place-plan-order
  * @param {string} market unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -2526,9 +2571,11 @@ func (this *MexcCore) CreateSwapOrder(market any, typeVar any, side any, amount 
 		_ = marginMode
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes24838 := (<-this.LoadMarkets())
-		PanicOnError(retRes24838)
+			retRes253012 := (<-this.LoadMarkets())
+			PanicOnError(retRes253012)
+		}
 		var symbol any = GetValue(market, "symbol")
 		var openType any = nil
 		if IsTrue(!IsEqual(marginMode, nil)) {
@@ -2637,7 +2684,7 @@ func (this *MexcCore) CreateSwapOrder(market any, typeVar any, side any, amount 
  * @method
  * @name mexc#createOrders
  * @description *spot only*  *all orders must have the same symbol* create a list of trade orders
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#batch-orders
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/batch-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to api endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2649,9 +2696,11 @@ func (this *MexcCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes26048 := (<-this.LoadMarkets())
-		PanicOnError(retRes26048)
+			retRes265312 := (<-this.LoadMarkets())
+			PanicOnError(retRes265312)
+		}
 		var ordersRequests any = []any{}
 		var symbol any = nil
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -2718,8 +2767,8 @@ func (this *MexcCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#fetchOrder
  * @description fetches information on an order made by the user
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-order
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/query-order // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-order-information-by-order-id // swap
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2738,9 +2787,11 @@ func (this *MexcCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes26748 := (<-this.LoadMarkets())
-		PanicOnError(retRes26748)
+			retRes272512 := (<-this.LoadMarkets())
+			PanicOnError(retRes272512)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2820,9 +2871,9 @@ func (this *MexcCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders // swap
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2844,9 +2895,11 @@ func (this *MexcCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes27978 := (<-this.LoadMarkets())
-		PanicOnError(retRes27978)
+			retRes285012 := (<-this.LoadMarkets())
+			PanicOnError(retRes285012)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -3052,9 +3105,11 @@ func (this *MexcCore) FetchOrdersByIds(ids any, optionalArgs ...any) <-chan any 
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes29778 := (<-this.LoadMarkets())
-		PanicOnError(retRes29778)
+			retRes303212 := (<-this.LoadMarkets())
+			PanicOnError(retRes303212)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -3119,9 +3174,9 @@ func (this *MexcCore) FetchOrdersByIds(ids any, optionalArgs ...any) <-chan any 
  * @method
  * @name mexc#fetchOpenOrders
  * @description fetch all unfilled currently open orders
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#current-open-orders
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/current-open-orders // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-current-orders // swap
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -3142,9 +3197,11 @@ func (this *MexcCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes30448 := (<-this.LoadMarkets())
-		PanicOnError(retRes30448)
+			retRes310112 := (<-this.LoadMarkets())
+			PanicOnError(retRes310112)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		var marketType any = nil
@@ -3246,9 +3303,9 @@ func (this *MexcCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#fetchClosedOrders
  * @description fetches information on multiple closed orders made by the user
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders // swap
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3269,9 +3326,9 @@ func (this *MexcCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes313915 := (<-this.FetchOrdersByState(3, symbol, since, limit, params))
-		PanicOnError(retRes313915)
-		ch <- retRes313915
+		retRes319715 := (<-this.FetchOrdersByState(3, symbol, since, limit, params))
+		PanicOnError(retRes319715)
+		ch <- retRes319715
 		return nil
 
 	}()
@@ -3282,9 +3339,9 @@ func (this *MexcCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#fetchCanceledOrders
  * @description fetches information on multiple canceled orders made by the user
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#all-orders
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-of-the-user-39-s-historical-orders
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#gets-the-trigger-order-list
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/all-orders // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-historical-orders // swap
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-plan-order-list // swap trigger
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] max number of orders to return, default is undefined
@@ -3305,9 +3362,9 @@ func (this *MexcCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes315615 := (<-this.FetchOrdersByState(4, symbol, since, limit, params))
-		PanicOnError(retRes315615)
-		ch <- retRes315615
+		retRes321415 := (<-this.FetchOrdersByState(4, symbol, since, limit, params))
+		PanicOnError(retRes321415)
+		ch <- retRes321415
 		return nil
 
 	}()
@@ -3326,9 +3383,11 @@ func (this *MexcCore) FetchOrdersByState(state any, optionalArgs ...any) <-chan 
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes31608 := (<-this.LoadMarkets())
-		PanicOnError(retRes31608)
+			retRes321912 := (<-this.LoadMarkets())
+			PanicOnError(retRes321912)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -3341,9 +3400,9 @@ func (this *MexcCore) FetchOrdersByState(state any, optionalArgs ...any) <-chan 
 		} else {
 			AddElementToObject(request, "states", state)
 
-			retRes317119 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-			PanicOnError(retRes317119)
-			ch <- retRes317119
+			retRes323119 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+			PanicOnError(retRes323119)
+			ch <- retRes323119
 			return nil
 		}
 
@@ -3355,9 +3414,9 @@ func (this *MexcCore) FetchOrdersByState(state any, optionalArgs ...any) <-chan 
  * @method
  * @name mexc#cancelOrder
  * @description cancels an open order
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-order
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-stop-limit-trigger-order-under-maintenance
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-order // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-orders // swap
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-planned-orders // swap trigger
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3373,9 +3432,11 @@ func (this *MexcCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes31898 := (<-this.LoadMarkets())
-		PanicOnError(retRes31898)
+			retRes325012 := (<-this.LoadMarkets())
+			PanicOnError(retRes325012)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -3464,7 +3525,7 @@ func (this *MexcCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#cancelOrders
  * @description cancel multiple orders
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-the-order-under-maintenance
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-orders
  * @param {string[]} ids order ids
  * @param {string} symbol unified market symbol, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3479,9 +3540,11 @@ func (this *MexcCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes33028 := (<-this.LoadMarkets())
-		PanicOnError(retRes33028)
+			retRes336512 := (<-this.LoadMarkets())
+			PanicOnError(retRes336512)
+		}
 		var market any = Ternary(IsTrue((!IsEqual(symbol, nil))), this.Market(symbol), nil)
 		marketTypeVariable := this.HandleMarketTypeAndParams("cancelOrders", market, params)
 		marketType := GetValue(marketTypeVariable, 0)
@@ -3518,12 +3581,12 @@ func (this *MexcCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#cancelAllOrders
  * @description cancel all open orders
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#cancel-all-open-orders-on-a-symbol
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-orders-under-a-contract-under-maintenance
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#cancel-all-trigger-orders-under-maintenance
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-all-open-orders-on-a-symbol // spot
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-all-orders // spot all symbols
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-orders-under-a-contract // swap
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-planned-orders // swap trigger
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *MexcCore) CancelAllOrders(optionalArgs ...any) <-chan any {
@@ -3535,36 +3598,40 @@ func (this *MexcCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes33408 := (<-this.LoadMarkets())
-		PanicOnError(retRes33408)
-		var market any = Ternary(IsTrue((!IsEqual(symbol, nil))), this.Market(symbol), nil)
+			retRes340512 := (<-this.LoadMarkets())
+			PanicOnError(retRes340512)
+		}
+		var market any = nil
+		if IsTrue(!IsEqual(symbol, nil)) {
+			market = this.Market(symbol)
+		}
 		var request any = map[string]any{}
 		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrders", market, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
-		marginModequeryVariable := this.HandleMarginModeAndParams("cancelAllOrders", params)
-		marginMode := GetValue(marginModequeryVariable, 0)
-		query := GetValue(marginModequeryVariable, 1)
 		if IsTrue(IsEqual(marketType, "spot")) {
 			if IsTrue(IsEqual(symbol, nil)) {
-				panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument on spot")))
+
+				retRes341616 := (<-this.SpotPrivateDeleteOrderAll(params))
+				PanicOnError(retRes341616)
+
+				//
+				//     {
+				//         "code": 200,
+				//         "msg": "success",
+				//         "timestamp": 1778744778528
+				//     }
+				//
+				ch <- []any{}
+				return nil
 			}
 			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
-			var response any = nil
-			if IsTrue(!IsEqual(marginMode, nil)) {
-				if IsTrue(!IsEqual(marginMode, "isolated")) {
-					panic(BadRequest(Add(Add(Add(this.Id, " cancelAllOrders() does not support marginMode "), marginMode), " for spot-margin trading")))
-				}
 
-				response = (<-this.SpotPrivateDeleteMarginOpenOrders(this.Extend(request, query)))
-				PanicOnError(response)
-			} else {
-
-				response = (<-this.SpotPrivateDeleteOpenOrders(this.Extend(request, query)))
-				PanicOnError(response)
-			}
+			response := (<-this.SpotPrivateDeleteOpenOrders(this.Extend(request, params)))
+			PanicOnError(response)
 
 			//
 			// spot
@@ -3580,28 +3647,6 @@ func (this *MexcCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			//         },
 			//     ]
 			//
-			// margin
-			//
-			//     [
-			//         {
-			//             "symbol": "BTCUSDT",
-			//             "orderId": "762640232574226432",
-			//             "orderListId": "-1",
-			//             "clientOrderId": null,
-			//             "price": "18000",
-			//             "origQty": "0.00147",
-			//             "executedQty": "0",
-			//             "cummulativeQuoteQty": "0",
-			//             "status": "NEW",
-			//             "type": "LIMIT",
-			//             "side": "BUY",
-			//             "isIsolated": true,
-			//             "isWorking": true,
-			//             "time": 1661994066000,
-			//             "updateTime": 1661994066000
-			//         }
-			//     ]
-			//
 			ch <- this.ParseOrders(response, market)
 			return nil
 		} else {
@@ -3611,15 +3656,15 @@ func (this *MexcCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			// method can be either: contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
 			// the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
 			var method any = this.SafeString(this.Options, "cancelAllOrders", "contractPrivatePostOrderCancelAll")
-			method = this.SafeString(query, "method", method)
+			method = this.SafeString(params, "method", method)
 			var response any = map[string]any{}
 			if IsTrue(IsEqual(method, "contractPrivatePostOrderCancelAll")) {
 
-				response = (<-this.ContractPrivatePostOrderCancelAll(this.Extend(request, query)))
+				response = (<-this.ContractPrivatePostOrderCancelAll(this.Extend(request, params)))
 				PanicOnError(response)
 			} else if IsTrue(IsEqual(method, "contractPrivatePostPlanorderCancelAll")) {
 
-				response = (<-this.ContractPrivatePostPlanorderCancelAll(this.Extend(request, query)))
+				response = (<-this.ContractPrivatePostPlanorderCancelAll(this.Extend(request, params)))
 				PanicOnError(response)
 			}
 			//
@@ -3927,9 +3972,9 @@ func (this *MexcCore) FetchAccountHelper(typeVar any, params any) <-chan any {
 		defer ReturnPanicError(ch)
 		if IsTrue(IsEqual(typeVar, "spot")) {
 
-			retRes371419 := (<-this.SpotPrivateGetAccount(params))
-			PanicOnError(retRes371419)
-			ch <- retRes371419
+			retRes376019 := (<-this.SpotPrivateGetAccount(params))
+			PanicOnError(retRes376019)
+			ch <- retRes376019
 			return nil
 		} else if IsTrue(IsEqual(typeVar, "swap")) {
 
@@ -3968,8 +4013,8 @@ func (this *MexcCore) FetchAccountHelper(typeVar any, params any) <-chan any {
  * @method
  * @name mexc#fetchAccounts
  * @description fetch all the accounts associated with a profile
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-information // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-account-assets // swap
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
@@ -3984,9 +4029,11 @@ func (this *MexcCore) FetchAccounts(optionalArgs ...any) <-chan any {
 		marketTypequeryVariable := this.HandleMarketTypeAndParams("fetchAccounts", nil, params)
 		marketType := GetValue(marketTypequeryVariable, 0)
 		query := GetValue(marketTypequeryVariable, 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes37808 := (<-this.LoadMarkets())
-		PanicOnError(retRes37808)
+			retRes382712 := (<-this.LoadMarkets())
+			PanicOnError(retRes382712)
+		}
 
 		response := (<-this.FetchAccountHelper(marketType, query))
 		PanicOnError(response)
@@ -4015,7 +4062,7 @@ func (this *MexcCore) FetchAccounts(optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#fetchTradingFee
  * @description fetch the trading fees for a market
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-mx-deduct-status
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/query-symbol-commission
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -4027,9 +4074,11 @@ func (this *MexcCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan an
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes38088 := (<-this.LoadMarkets())
-		PanicOnError(retRes38088)
+			retRes385712 := (<-this.LoadMarkets())
+			PanicOnError(retRes385712)
+		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(BadRequest(Add(this.Id, " fetchTradingFee() supports spot markets only")))
@@ -4192,8 +4241,8 @@ func (this *MexcCore) ParseBalanceHelper(entry any) any {
  * @method
  * @name mexc#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-information
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-informations-of-user-39-s-asset
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-information // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-all-account-assets // swap
  * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#isolated-account
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.symbols] // required for margin, market id's separated by commas
@@ -4206,9 +4255,11 @@ func (this *MexcCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes39728 := (<-this.LoadMarkets())
-		PanicOnError(retRes39728)
+			retRes402312 := (<-this.LoadMarkets())
+			PanicOnError(retRes402312)
+		}
 		var marketType any = nil
 		var request any = map[string]any{}
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
@@ -4347,8 +4398,8 @@ func (this *MexcCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-transaction-details-of-the-user-s-order
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-trade-list // spot
+ * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-all-transaction-details-of-the-user-s-order // swap legacy endpoint
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -4372,9 +4423,11 @@ func (this *MexcCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes41118 := (<-this.LoadMarkets())
-		PanicOnError(retRes41118)
+			retRes416412 := (<-this.LoadMarkets())
+			PanicOnError(retRes416412)
+		}
 		var market any = this.Market(symbol)
 		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
@@ -4450,8 +4503,8 @@ func (this *MexcCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#account-trade-list
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number
+ * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/account-trade-list // spot
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-trade-records-by-order-id // swap
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -4472,9 +4525,11 @@ func (this *MexcCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes42078 := (<-this.LoadMarkets())
-		PanicOnError(retRes42078)
+			retRes426212 := (<-this.LoadMarkets())
+			PanicOnError(retRes426212)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -4541,9 +4596,11 @@ func (this *MexcCore) ModifyMarginHelper(symbol any, amount any, addOrReduce any
 		if IsTrue(IsEqual(positionId, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " modifyMarginHelper() requires a positionId parameter")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes42798 := (<-this.LoadMarkets())
-		PanicOnError(retRes42798)
+			retRes433612 := (<-this.LoadMarkets())
+			PanicOnError(retRes433612)
+		}
 		var request any = map[string]any{
 			"positionId": positionId,
 			"amount":     amount,
@@ -4569,7 +4626,7 @@ func (this *MexcCore) ModifyMarginHelper(symbol any, amount any, addOrReduce any
  * @method
  * @name mexc#reduceMargin
  * @description remove margin from a position
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-position-margin
  * @param {string} symbol unified market symbol
  * @param {float} amount the amount of margin to remove
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4583,9 +4640,9 @@ func (this *MexcCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes430515 := (<-this.ModifyMarginHelper(symbol, amount, "SUB", params))
-		PanicOnError(retRes430515)
-		ch <- retRes430515
+		retRes436315 := (<-this.ModifyMarginHelper(symbol, amount, "SUB", params))
+		PanicOnError(retRes436315)
+		ch <- retRes436315
 		return nil
 
 	}()
@@ -4596,7 +4653,7 @@ func (this *MexcCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) 
  * @method
  * @name mexc#addMargin
  * @description add margin
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#increase-or-decrease-margin
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-position-margin
  * @param {string} symbol unified market symbol
  * @param {float} amount amount of margin to add
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4610,9 +4667,9 @@ func (this *MexcCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-c
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes431915 := (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
-		PanicOnError(retRes431915)
-		ch <- retRes431915
+		retRes437715 := (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
+		PanicOnError(retRes437715)
+		ch <- retRes437715
 		return nil
 
 	}()
@@ -4623,7 +4680,7 @@ func (this *MexcCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-c
  * @method
  * @name mexc#setLeverage
  * @description set the level of leverage for a market
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-leverage
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4638,9 +4695,11 @@ func (this *MexcCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any 
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes43338 := (<-this.LoadMarkets())
-		PanicOnError(retRes43338)
+			retRes439212 := (<-this.LoadMarkets())
+			PanicOnError(retRes439212)
+		}
 		var request any = map[string]any{
 			"leverage": leverage,
 		}
@@ -4660,9 +4719,9 @@ func (this *MexcCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any 
 			AddElementToObject(request, "positionId", positionId)
 		}
 
-		retRes435215 := (<-this.ContractPrivatePostPositionChangeLeverage(this.Extend(request, params)))
-		PanicOnError(retRes435215)
-		ch <- retRes435215
+		retRes441215 := (<-this.ContractPrivatePostPositionChangeLeverage(this.Extend(request, params)))
+		PanicOnError(retRes441215)
+		ch <- retRes441215
 		return nil
 
 	}()
@@ -4673,7 +4732,7 @@ func (this *MexcCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any 
  * @method
  * @name mexc#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-details-of-user-s-funding-rate
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-funding-fee-details
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -4693,9 +4752,11 @@ func (this *MexcCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes43678 := (<-this.LoadMarkets())
-		PanicOnError(retRes43678)
+			retRes442812 := (<-this.LoadMarkets())
+			PanicOnError(retRes442812)
+		}
 		var market any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -4821,7 +4882,7 @@ func (this *MexcCore) ParseFundingRate(contract any, optionalArgs ...any) any {
  * @method
  * @name mexc#fetchFundingInterval
  * @description fetch the current funding rate interval
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -4834,9 +4895,9 @@ func (this *MexcCore) FetchFundingInterval(symbol any, optionalArgs ...any) <-ch
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes449615 := (<-this.FetchFundingRate(symbol, params))
-		PanicOnError(retRes449615)
-		ch <- retRes449615
+		retRes455815 := (<-this.FetchFundingRate(symbol, params))
+		PanicOnError(retRes455815)
+		ch <- retRes455815
 		return nil
 
 	}()
@@ -4847,7 +4908,7 @@ func (this *MexcCore) FetchFundingInterval(symbol any, optionalArgs ...any) <-ch
  * @method
  * @name mexc#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -4859,9 +4920,11 @@ func (this *MexcCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan a
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes45098 := (<-this.LoadMarkets())
-		PanicOnError(retRes45098)
+			retRes457212 := (<-this.LoadMarkets())
+			PanicOnError(retRes457212)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4897,7 +4960,7 @@ func (this *MexcCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan a
  * @method
  * @name mexc#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-funding-rate-history
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-funding-rate-history
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] not used by mexc, but filtered internally by ccxt
  * @param {int} [limit] mexc limit is page_size default 20, maximum is 100
@@ -4920,9 +4983,11 @@ func (this *MexcCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes45498 := (<-this.LoadMarkets())
-		PanicOnError(retRes45498)
+			retRes461412 := (<-this.LoadMarkets())
+			PanicOnError(retRes461412)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4986,7 +5051,7 @@ func (this *MexcCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#fetchLeverageTiers
  * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+ * @see https://www.mexc.com/api-docs/futures/market-endpoints/get-contract-info
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
@@ -5000,9 +5065,11 @@ func (this *MexcCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes46148 := (<-this.LoadMarkets())
-		PanicOnError(retRes46148)
+			retRes468112 := (<-this.LoadMarkets())
+			PanicOnError(retRes468112)
+		}
 		symbols = this.MarketSymbols(symbols, "swap", true, true)
 
 		response := (<-this.ContractPublicGetDetail(params))
@@ -5172,7 +5239,7 @@ func (this *MexcCore) ParseDepositAddress(depositAddress any, optionalArgs ...an
  * @method
  * @name mexc#fetchDepositAddressesByNetwork
  * @description fetch a dictionary of addresses for a currency, indexed by network
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-address-supporting-network
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
@@ -5184,9 +5251,11 @@ func (this *MexcCore) FetchDepositAddressesByNetwork(code any, optionalArgs ...a
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes47838 := (<-this.LoadMarkets())
-		PanicOnError(retRes47838)
+			retRes485212 := (<-this.LoadMarkets())
+			PanicOnError(retRes485212)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"coin": GetValue(currency, "id"),
@@ -5236,7 +5305,7 @@ func (this *MexcCore) FetchDepositAddressesByNetwork(code any, optionalArgs ...a
  * @method
  * @name mexc#createDepositAddress
  * @description create a currency deposit address
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#generate-deposit-address-supporting-network
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/generate-deposit-address-supporting-network
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] the blockchain network name
@@ -5249,9 +5318,11 @@ func (this *MexcCore) CreateDepositAddress(code any, optionalArgs ...any) <-chan
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes48338 := (<-this.LoadMarkets())
-		PanicOnError(retRes48338)
+			retRes490412 := (<-this.LoadMarkets())
+			PanicOnError(retRes490412)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"coin": GetValue(currency, "id"),
@@ -5296,7 +5367,7 @@ func (this *MexcCore) CreateDepositAddress(code any, optionalArgs ...any) <-chan
  * @method
  * @name mexc#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-address-supporting-network
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] the chain of currency, this only apply for multi-chain currency, and there is no need for single chain currency
@@ -5340,7 +5411,7 @@ func (this *MexcCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan 
  * @method
  * @name mexc#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/deposit-historysupporting-network
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -5360,9 +5431,11 @@ func (this *MexcCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes49128 := (<-this.LoadMarkets())
-		PanicOnError(retRes49128)
+			retRes498512 := (<-this.LoadMarkets())
+			PanicOnError(retRes498512)
+		}
 		var request any = map[string]any{}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -5419,7 +5492,7 @@ func (this *MexcCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/withdraw-history-supporting-network
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -5439,9 +5512,11 @@ func (this *MexcCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes49768 := (<-this.LoadMarkets())
-		PanicOnError(retRes49768)
+			retRes505112 := (<-this.LoadMarkets())
+			PanicOnError(retRes505112)
+		}
 		var request any = map[string]any{}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -5632,9 +5707,48 @@ func (this *MexcCore) ParseTransactionStatusByType(status any, optionalArgs ...a
 
 /**
  * @method
+ * @name mexc#closeAllPositions
+ * @description closes all open swap positions
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/close-all
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+ */
+func (this *MexcCore) CloseAllPositions(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
+
+			retRes524812 := (<-this.LoadMarkets())
+			PanicOnError(retRes524812)
+		}
+
+		response := (<-this.ContractPrivatePostPositionCloseAll(params))
+		PanicOnError(response)
+		//
+		//     {
+		//         "success": true,
+		//         "code": 0,
+		//         "data": []
+		//     }
+		//
+		var data any = this.SafeList(response, "data", []any{})
+
+		ch <- this.ParsePositions(data)
+		return nil
+
+	}()
+	return ch
+}
+
+/**
+ * @method
  * @name mexc#fetchPosition
  * @description fetch data on a single open contract trade position
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-open-positions
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -5646,9 +5760,11 @@ func (this *MexcCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any 
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes51728 := (<-this.LoadMarkets())
-		PanicOnError(retRes51728)
+			retRes527312 := (<-this.LoadMarkets())
+			PanicOnError(retRes527312)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -5668,7 +5784,7 @@ func (this *MexcCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any 
  * @method
  * @name mexc#fetchPositions
  * @description fetch all open positions
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-open-positions
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -5682,9 +5798,11 @@ func (this *MexcCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes51918 := (<-this.LoadMarkets())
-		PanicOnError(retRes51918)
+			retRes529412 := (<-this.LoadMarkets())
+			PanicOnError(retRes529412)
+		}
 
 		response := (<-this.ContractPrivateGetPositionOpenPositions(params))
 		PanicOnError(response)
@@ -5854,9 +5972,11 @@ func (this *MexcCore) FetchTransfer(id any, optionalArgs ...any) <-chan any {
 		marketTypequeryVariable := this.HandleMarketTypeAndParams("fetchTransfer", nil, params)
 		marketType := GetValue(marketTypequeryVariable, 0)
 		query := GetValue(marketTypequeryVariable, 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes53438 := (<-this.LoadMarkets())
-		PanicOnError(retRes53438)
+			retRes544812 := (<-this.LoadMarkets())
+			PanicOnError(retRes544812)
+		}
 		if IsTrue(IsEqual(marketType, "spot")) {
 			var request any = map[string]any{
 				"transact_id": id,
@@ -5895,9 +6015,8 @@ func (this *MexcCore) FetchTransfer(id any, optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#fetchTransfers
  * @description fetch a history of internal transfers made on an account
- * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#get-internal-assets-transfer-records
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-39-s-asset-transfer-records
- * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#query-user-universal-transfer-history
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-user-universal-transfer-history // spot universal transfer
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-asset-transfer-records // swap
  * @param {string} [code] unified currency code of the currency transferred
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of  transfers structures to retrieve
@@ -5923,9 +6042,11 @@ func (this *MexcCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchTransfers", nil, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes53888 := (<-this.LoadMarkets())
-		PanicOnError(retRes53888)
+			retRes549412 := (<-this.LoadMarkets())
+			PanicOnError(retRes549412)
+		}
 		var request any = map[string]any{}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -6011,7 +6132,7 @@ func (this *MexcCore) FetchTransfers(optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/user-universal-transfer
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from
@@ -6027,9 +6148,11 @@ func (this *MexcCore) Transfer(code any, amount any, fromAccount any, toAccount 
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes54958 := (<-this.LoadMarkets())
-		PanicOnError(retRes54958)
+			retRes560312 := (<-this.LoadMarkets())
+			PanicOnError(retRes560312)
+		}
 		var currency any = this.Currency(code)
 		var accounts any = map[string]any{
 			"spot":   "SPOT",
@@ -6179,8 +6302,8 @@ func (this *MexcCore) ParseTransferStatus(status any) any {
  * @method
  * @name mexc#withdraw
  * @description make a withdrawal
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#withdraw-new
- * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints#internal-transfer
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/withdrawnew // on-chain withdrawal
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/internal-transfer // internal transfer
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
@@ -6199,9 +6322,11 @@ func (this *MexcCore) Withdraw(code any, amount any, address any, optionalArgs .
 		_ = tag
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes56518 := (<-this.LoadMarkets())
-		PanicOnError(retRes56518)
+			retRes576112 := (<-this.LoadMarkets())
+			PanicOnError(retRes576112)
+		}
 		var currency any = this.Currency(code)
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 		tag = GetValue(tagparamsVariable, 0)
@@ -6267,7 +6392,7 @@ func (this *MexcCore) Withdraw(code any, amount any, address any, optionalArgs .
  * @method
  * @name mexc#setPositionMode
  * @description set hedged to true or false for a market
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#change-position-mode
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-user-position-mode
  * @param {bool} hedged set to true to use dualSidePosition
  * @param {string} symbol not used by mexc setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6306,7 +6431,7 @@ func (this *MexcCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan an
  * @method
  * @name mexc#fetchPositionMode
  * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-position-mode
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-user-position-mode
  * @param {string} symbol not used by mexc fetchPositionMode
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
@@ -6346,7 +6471,7 @@ func (this *MexcCore) FetchPositionMode(optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#fetchTransactionFees
  * @description fetch deposit and withdrawal fees
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information
  * @param {string[]|undefined} codes returns fees for all currencies if undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -6360,9 +6485,11 @@ func (this *MexcCore) FetchTransactionFees(optionalArgs ...any) <-chan any {
 		_ = codes
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes57598 := (<-this.LoadMarkets())
-		PanicOnError(retRes57598)
+			retRes587112 := (<-this.LoadMarkets())
+			PanicOnError(retRes587112)
+		}
 
 		response := (<-this.SpotPrivateGetCapitalConfigGetall(params))
 		PanicOnError(response)
@@ -6466,7 +6593,7 @@ func (this *MexcCore) ParseTransactionFee(transaction any, optionalArgs ...any) 
  * @method
  * @name mexc#fetchDepositWithdrawFees
  * @description fetch deposit and withdrawal fees
- * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+ * @see https://www.mexc.com/api-docs/spot-v3/wallet-endpoints/query-the-currency-information
  * @param {string[]|undefined} codes returns fees for all currencies if undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -6480,9 +6607,11 @@ func (this *MexcCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any {
 		_ = codes
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes58608 := (<-this.LoadMarkets())
-		PanicOnError(retRes58608)
+			retRes597412 := (<-this.LoadMarkets())
+			PanicOnError(retRes597412)
+		}
 
 		response := (<-this.SpotPrivateGetCapitalConfigGetall(params))
 		PanicOnError(response)
@@ -6575,7 +6704,7 @@ func (this *MexcCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any 
  * @method
  * @name mexc#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-leverage
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-position-leverage-multipliers
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
@@ -6587,9 +6716,11 @@ func (this *MexcCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any 
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes59518 := (<-this.LoadMarkets())
-		PanicOnError(retRes59518)
+			retRes606712 := (<-this.LoadMarkets())
+			PanicOnError(retRes606712)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -6689,7 +6820,7 @@ func (this *MexcCore) HandleMarginModeAndParams(methodName any, optionalArgs ...
  * @method
  * @name mexc#fetchPositionsHistory
  * @description fetches historical positions
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-user-s-history-position-information
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/get-historical-positions
  * @param {string[]} [symbols] unified contract symbols
  * @param {int} [since] not used by mexc fetchPositionsHistory
  * @param {int} [limit] the maximum amount of candles to fetch, default=1000
@@ -6713,9 +6844,11 @@ func (this *MexcCore) FetchPositionsHistory(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes60508 := (<-this.LoadMarkets())
-		PanicOnError(retRes60508)
+			retRes616812 := (<-this.LoadMarkets())
+			PanicOnError(retRes616812)
+		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbols, nil)) {
 			var symbolsLength any = GetArrayLength(symbols)
@@ -6784,7 +6917,7 @@ func (this *MexcCore) FetchPositionsHistory(optionalArgs ...any) <-chan any {
  * @method
  * @name mexc#setMarginMode
  * @description set margin mode to 'cross' or 'isolated'
- * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#switch-leverage
+ * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-leverage
  * @param {string} marginMode 'cross' or 'isolated'
  * @param {string} [symbol] required when there is no position, else provide params["positionId"]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6801,9 +6934,11 @@ func (this *MexcCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan 
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes61218 := (<-this.LoadMarkets())
-		PanicOnError(retRes61218)
+			retRes624112 := (<-this.LoadMarkets())
+			PanicOnError(retRes624112)
+		}
 		var market any = this.Market(symbol)
 		if IsTrue(GetValue(market, "spot")) {
 			panic(BadSymbol(Add(this.Id, " setMarginMode() supports contract markets only")))

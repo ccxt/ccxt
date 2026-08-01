@@ -10,6 +10,7 @@ use ccxt\NotSupported;
 use ccxt\ChecksumError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
 
 class independentreserve extends \ccxt\async\independentreserve {
     public function describe(): mixed {
@@ -53,7 +54,9 @@ class independentreserve extends \ccxt\async\independentreserve {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $url = $this->urls['api']['ws'] . '?subscribe=ticker-' . $market['base'] . '-' . $market['quote'];
@@ -139,7 +142,9 @@ class independentreserve extends \ccxt\async\independentreserve {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             if ($limit === null) {
@@ -194,7 +199,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         $receivedSnapshot = $this->safe_bool($subscription, 'receivedSnapshot', false);
         $timestamp = $this->safe_integer($message, 'Time');
         // $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book(array());
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -292,7 +297,7 @@ class independentreserve extends \ccxt\async\independentreserve {
             'OrderBookSnapshot' => array($this, 'handle_order_book'),
             'OrderBookChange' => array($this, 'handle_order_book'),
         );
-        $handler = $this->safe_value($handlers, $event);
+        $handler = ($event === null) ? null : $this->safe_value($handlers, $event);
         if ($handler !== null) {
             $handler($client, $message);
             return;

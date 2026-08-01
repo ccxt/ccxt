@@ -448,3 +448,123 @@ exchange = ccxt.apex({
     },
 })
 ```
+
+## How to use the Prediction Exchanges in CCXT?
+
+Prediction-market exchanges (Polymarket, Kalshi, Hyperliquid, Limitless, Myriad) live in their own `prediction` namespace and work like any other CCXT exchange, with one key difference: instead of a market `symbol` you address an **outcome** — a handle of the form `MARKET:LABEL` (for example `TRUMP_WIN_2024:YES`). Wherever an outcome is accepted you can pass either the unified handle or the venue's raw `outcomeId` (a Polymarket token id, a Kalshi ticker, ...) — both resolve to the same outcome. Prices are probabilities between 0 and 1, amounts are shares, and costs are in the collateral currency (usually USDC/USD).
+
+Everything on a prediction venue is organized as a three-level hierarchy — **Event → Markets → Outcomes**:
+
+- an **event** is the real-world topic being traded ("US Presidential Election 2024")
+- each event contains one or more **markets** — a concrete yes/no or multi-choice question within the topic ("Will Trump win?")
+- each market contains its **outcomes** — the individual sides you can actually buy and sell (`YES` / `NO`, or one outcome per candidate)
+
+```text
+Event    "US Presidential Election 2024"
+├── Market    "Will Trump win?"
+│   ├── Outcome    TRUMP_WIN_2024:YES
+│   └── Outcome    TRUMP_WIN_2024:NO
+└── Market    "Will Biden win?"
+    ├── Outcome    BIDEN_WIN_2024:YES
+    └── Outcome    BIDEN_WIN_2024:NO
+```
+
+`fetchEvents` returns this full hierarchy (events carrying their markets, markets carrying their outcomes), and all trading and market-data methods operate at the bottom level — the outcome handle is what you pass wherever a regular exchange would take a symbol.
+
+The namespace per language:
+
+```Python
+import ccxt.prediction
+exchange = ccxt.prediction.polymarket({...})
+```
+```Javascript
+const exchange = new ccxt.prediction.polymarket ({...})
+```
+```PHP
+$exchange = new \ccxt\prediction\polymarket([...]);
+```
+```Go
+import ccxtprediction "github.com/ccxt/ccxt/go/v4/prediction"
+exchange := ccxtprediction.NewPolymarket(map[string]any{...})
+```
+```Java
+import io.github.ccxt.exchanges.prediction.Polymarket;
+Polymarket exchange = new Polymarket();
+```
+C# uses `new ccxt.prediction.polymarket(...)`.
+
+> **Note:** unlike regular exchanges, do **not** start with `loadMarkets()` / `fetchMarkets()` on prediction exchanges. Use `fetchEvents(params)` as the entry point instead: it searches the venue and returns full event structures, and the outcome handles it returns are resolved on demand by every unified method, no market loading required.
+
+The usual entry point is `fetchEvents`, which returns event structures (each carrying its markets and their outcomes). It must be scoped by at least one selector — `query` (free-text search), `tags`, `eventId` or `slug` — and also accepts `status`, `sort` and `limit`:
+
+```Python
+# search events by free text
+events = await exchange.fetch_events({'query': 'bitcoin', 'limit': 10})
+for event in events:
+    print(event['title'])
+    for market in event['markets']:
+        for outcome in market['outcomes']:
+            print('   ', outcome['outcome'], '->', outcome['price'])  # price = probability 0..1
+
+# or address a known event directly by its slug
+events = await exchange.fetch_events({'slug': 'will-bitcoin-hit-150k-in-2026'})
+
+# every unified method takes the outcome handle where a symbol would normally go
+outcome = events[0]['markets'][0]['outcomes'][0]['outcome']  # "MARKET:LABEL" handle
+ticker = await exchange.fetch_ticker(outcome)
+order = await exchange.create_order(outcome, 'limit', 'buy', 5, 0.02)
+```
+
+All the familiar unified methods (`fetchTicker`, `fetchOrderBook`, `fetchTrades`, `fetchOHLCV`, `createOrder`, `cancelOrder`, `fetchBalance`, `fetchPositions`, `watch*`, ...) take the outcome handle where a symbol would normally go. Complete runnable end-to-end examples for every language live under `examples/<lang>/prediction/`.
+
+### How to use the Prediction Exchange Polymarket?
+
+Polymarket requires two credentials:
+
+- `privateKey`: the private key of the EOA (the wallet you log in with) — used to derive the L2 API credentials and to sign orders
+- `walletAddress`: your **polymarket account wallet** — the proxy / deposit wallet shown in your polymarket profile, **not** the EOA itself (the EOA holds no funds; polymarket keeps your USDC in a proxy wallet it created for your account)
+
+```Python
+exchange = ccxt.prediction.polymarket({
+    'privateKey': '0x...',       # EOA private key
+    'walletAddress': '0x...',    # polymarket account wallet (profile / deposit wallet)
+})
+```
+
+You can find the account wallet address in your polymarket profile page (it is also returned as `proxyWallet` by `https://gamma-api.polymarket.com/public-profile?address=<your EOA>`).
+
+Notes:
+
+- Accounts created recently use the **deposit wallet** flow and work with the defaults shown above.
+- Older accounts (browser-wallet / Gnosis-Safe proxies) need the signature type switched: `exchange.options['signatureType'] = 2` — and if you pass your EOA as `walletAddress`, also set `exchange.options['funder']` to the proxy wallet that holds the USDC.
+- Alternatively to the `privateKey`, you can supply previously created L2 API credentials directly as `apiKey`, `secret` and `password` (the POLY passphrase).
+
+### How to use the Prediction Exchange Kalshi?
+
+Kalshi uses classic API credentials generated in the account settings (https://kalshi.com/account/profile → API keys):
+
+- `apiKey`: the access key (a UUID, sent as `KALSHI-ACCESS-KEY`)
+- `privateKey`: the RSA private key (PEM) that kalshi generates alongside the access key — requests are RSA-signed, there is no `secret`
+
+```Python
+exchange = ccxt.prediction.kalshi({
+    'apiKey': 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+    'privateKey': '-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----',
+})
+```
+
+### How to use the Prediction Exchange Hyperliquid?
+
+Hyperliquid prediction markets use exactly the same credentials as the regular hyperliquid DEX:
+
+- `walletAddress`: your wallet address
+- `privateKey`: the private key of that wallet (or of an API/agent wallet created on https://app.hyperliquid.xyz/API — in that case `walletAddress` stays your main wallet address and `privateKey` is the agent key)
+
+```Python
+exchange = ccxt.prediction.hyperliquid({
+    'walletAddress': '0x...',
+    'privateKey': '0x...',
+})
+```
+
+The id `hyperliquid` exists both as a regular crypto DEX (`ccxt.hyperliquid`) and as a prediction exchange (`ccxt.prediction.hyperliquid`) — the prediction class only exposes the prediction markets, addressed by outcome handles. Public market data works without any credentials.

@@ -443,7 +443,7 @@ export default class modetrade extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
-    parseLeverage(leverage: any, market?: any): Leverage;
+    parseLeverage(leverage: any, market?: Market): Leverage;
     /**
      * @method
      * @name modetrade#fetchLeverage

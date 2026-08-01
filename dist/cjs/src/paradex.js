@@ -154,7 +154,9 @@ class paradex extends paradex$1["default"] {
                         'bbo/{market}/interactive': 1,
                         'funding/data': 1,
                         'markets': 1,
+                        'markets/history': 1,
                         'markets/klines': 1,
+                        'markets/settlement-price': 1,
                         'markets/summary': 1,
                         'orderbook/{market}': 1,
                         'orderbook/{market}/impact-price': 1,
@@ -728,7 +730,9 @@ class paradex extends paradex$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchTradingFee() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -766,7 +770,9 @@ class paradex extends paradex$1["default"] {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetMarkets(params);
         //
         //     {
@@ -811,7 +817,9 @@ class paradex extends paradex$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'resolution': this.safeString(this.timeframes, timeframe, timeframe),
@@ -891,7 +899,9 @@ class paradex extends paradex$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const request = {
             'market': 'ALL',
@@ -931,7 +941,9 @@ class paradex extends paradex$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -1024,7 +1036,9 @@ class paradex extends paradex$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = { 'market': market['id'] };
         const response = await this.publicGetOrderbookMarket(this.extend(request, params));
@@ -1069,7 +1083,9 @@ class paradex extends paradex$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
         if (paginate) {
@@ -1184,7 +1200,9 @@ class paradex extends paradex$1["default"] {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['contract']) {
             throw new errors.BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
@@ -1676,7 +1694,9 @@ class paradex extends paradex$1["default"] {
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let request = this.createOrderRequest(symbol, type, side, amount, price, params);
         request = await this.signOrderRequest(request);
@@ -1716,7 +1736,7 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#editOrder
      * @description edit an open limit order or TPSL order
-     * @see https://docs.paradex.trade/api-reference/prod/orders/modify
+     * @see https://docs.paradex.trade/api/prod/orders/modify
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to edit an order in
      * @param {string} type 'limit' or a TPSL order type
@@ -1736,7 +1756,9 @@ class paradex extends paradex$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' editOrder() requires a price argument');
         }
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let request = this.createOrderRequest(symbol, type, side, amount, price, params);
         request = this.omit(request, ['instruction', 'client_id', 'flags']);
@@ -1791,7 +1813,9 @@ class paradex extends paradex$1["default"] {
      */
     async createOrders(orders, params = {}) {
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
@@ -1854,7 +1878,9 @@ class paradex extends paradex$1["default"] {
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         let response;
@@ -1884,7 +1910,9 @@ class paradex extends paradex$1["default"] {
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const clientOrderIds = this.safeListN(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         params = this.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         const hasOrderIds = (ids !== undefined) && (Array.isArray(ids));
@@ -1965,7 +1993,9 @@ class paradex extends paradex$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
         }
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -1990,7 +2020,9 @@ class paradex extends paradex$1["default"] {
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const clientOrderId = this.safeStringN(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
         params = this.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id']);
@@ -2047,7 +2079,9 @@ class paradex extends paradex$1["default"] {
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
         if (paginate) {
@@ -2124,7 +2158,9 @@ class paradex extends paradex$1["default"] {
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -2177,7 +2213,9 @@ class paradex extends paradex$1["default"] {
      */
     async fetchBalance(params = {}) {
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetBalance();
         //
         //     {
@@ -2220,7 +2258,9 @@ class paradex extends paradex$1["default"] {
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -2280,7 +2320,9 @@ class paradex extends paradex$1["default"] {
      */
     async fetchPosition(symbol, params = {}) {
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const positions = await this.fetchPositions([market['symbol']], params);
         return this.safeDict(positions, 0, {});
@@ -2296,7 +2338,9 @@ class paradex extends paradex$1["default"] {
      */
     async fetchPositions(symbols = undefined, params = {}) {
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.privateGetPositions();
         //
@@ -2398,7 +2442,9 @@ class paradex extends paradex$1["default"] {
      */
     async fetchMyLiquidations(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let request = {};
         if (since !== undefined) {
             request['from'] = since;
@@ -2461,7 +2507,9 @@ class paradex extends paradex$1["default"] {
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'paginate');
         if (paginate) {
@@ -2522,7 +2570,9 @@ class paradex extends paradex$1["default"] {
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
@@ -2583,7 +2633,9 @@ class paradex extends paradex$1["default"] {
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTransfers', 'paginate');
         if (paginate) {
@@ -2740,7 +2792,9 @@ class paradex extends paradex$1["default"] {
      */
     async fetchMarginMode(symbol, params = {}) {
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -2785,7 +2839,9 @@ class paradex extends paradex$1["default"] {
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
         this.checkRequiredArgument('setMarginMode', symbol, 'symbol');
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let leverage = undefined;
         [leverage, params] = this.handleOptionAndParams(params, 'setMarginMode', 'leverage', 1);
@@ -2807,7 +2863,9 @@ class paradex extends paradex$1["default"] {
      */
     async fetchLeverage(symbol, params = {}) {
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -2861,7 +2919,9 @@ class paradex extends paradex$1["default"] {
     async setLeverage(leverage, symbol = undefined, params = {}) {
         this.checkRequiredArgument('setLeverage', symbol, 'symbol');
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('setLeverage', params, 'cross');
@@ -2882,7 +2942,9 @@ class paradex extends paradex$1["default"] {
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     async fetchGreeks(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -2936,7 +2998,9 @@ class paradex extends paradex$1["default"] {
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     async fetchAllGreeks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const request = {
             'market': 'ALL',
@@ -3058,7 +3122,9 @@ class paradex extends paradex$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingHistory() requires a symbol argument');
         }
         await this.authenticateRest();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
@@ -3140,7 +3206,9 @@ class paradex extends paradex$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],

@@ -107,7 +107,10 @@ public partial class paradex : ccxt.paradex
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object messageHash = "trades.";
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -182,7 +185,10 @@ public partial class paradex : ccxt.paradex
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add(add("order_book.", getValue(market, "id")), ".snapshot@15@100ms");
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -277,7 +283,10 @@ public partial class paradex : ccxt.paradex
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object channel = "markets_summary";
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -304,7 +313,10 @@ public partial class paradex : ccxt.paradex
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object channel = "markets_summary";
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -351,7 +363,10 @@ public partial class paradex : ccxt.paradex
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object messageHash = "orders";
         object channel = "orders.";
@@ -481,7 +496,10 @@ public partial class paradex : ccxt.paradex
     public async override Task<object> watchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object channel = "funding_data";
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -508,7 +526,10 @@ public partial class paradex : ccxt.paradex
     public async override Task<object> watchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object channel = "funding_data";
         object url = getValue(getValue(this.urls, "api"), "ws");

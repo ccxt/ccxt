@@ -79,7 +79,8 @@ class whitebit(ccxt.async_support.whitebit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         timeframes = self.safe_value(self.options, 'timeframes', {})
@@ -148,7 +149,8 @@ class whitebit(ccxt.async_support.whitebit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if limit is None:
             limit = 10  # max 100
@@ -248,7 +250,8 @@ class whitebit(ccxt.async_support.whitebit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         method = 'market_subscribe'
@@ -266,7 +269,8 @@ class whitebit(ccxt.async_support.whitebit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         method = 'market_subscribe'
         url = self.urls['api']['ws']
@@ -344,7 +348,8 @@ class whitebit(ccxt.async_support.whitebit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'trades' + ':' + symbol
@@ -410,7 +415,8 @@ class whitebit(ccxt.async_support.whitebit):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -433,7 +439,10 @@ class whitebit(ccxt.async_support.whitebit):
         #         "56.78",
         #         "0.16717",
         #         "0.0094919126",
-        #         ''
+        #         '',
+        #         "2",
+        #         "2",
+        #         "LTC"
         #       ],
         #       "id": null
         #   }
@@ -459,7 +468,10 @@ class whitebit(ccxt.async_support.whitebit):
         #         "56.78",  # price
         #         "0.16717",  # amount
         #         "0.0094919126",  # fee
-        #         ''  # client order id
+        #         '',  # client order id
+        #         "2",  # side, 1 = sell, 2 = buy
+        #         "2",  # role, 1 = maker, 2 = taker
+        #         "LTC"  # fee asset
         #    ]
         #
         orderId = self.safe_string(trade, 3)
@@ -472,10 +484,24 @@ class whitebit(ccxt.async_support.whitebit):
         fee = None
         feeCost = self.safe_string(trade, 6)
         if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 10)
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId) if (feeCurrencyId is not None) else market['quote']
             fee = {
                 'cost': feeCost,
-                'currency': market['quote'],
+                'currency': feeCurrencyCode,
             }
+        rawSide = self.safe_integer(trade, 8)
+        side = None
+        if rawSide == 1:
+            side = 'sell'
+        elif rawSide == 2:
+            side = 'buy'
+        role = self.safe_integer(trade, 9)
+        takerOrMaker = None
+        if role == 1:
+            takerOrMaker = 'maker'
+        elif role == 2:
+            takerOrMaker = 'taker'
         return self.safe_trade({
             'id': id,
             'info': trade,
@@ -484,8 +510,8 @@ class whitebit(ccxt.async_support.whitebit):
             'symbol': market['symbol'],
             'order': orderId,
             'type': None,
-            'side': None,
-            'takerOrMaker': None,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': None,
@@ -506,7 +532,8 @@ class whitebit(ccxt.async_support.whitebit):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -669,7 +696,8 @@ class whitebit(ccxt.async_support.whitebit):
         :param str [params.type]: spot or contract if not provided self.options['defaultType'] is used
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         messageHash = 'wallet:'
@@ -730,7 +758,8 @@ class whitebit(ccxt.async_support.whitebit):
         return await self.watch(url, messageHash, message, messageHash)
 
     async def watch_multiple_subscription(self, messageHash, method, symbol, isNested=False, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']
         id = self.nonce()
         client = self.safe_value(self.clients, url)

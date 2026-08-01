@@ -93,6 +93,7 @@ Suggestions and contributions are always welcome! Make sure to read the [contrib
 - [candlestick-convert](https://github.com/valamidev/candlestick-convert) - [Object,Object] => [[],[]]
 - [crypto-exporter](https://github.com/ix-ai/crypto-exporter) - An exporter capable of connecting to multiple exchanges and getting account balances and exchange rates
 - [ccxtreplay](https://github.com/xCuri0/ccxtreplay) - collect data from ccxt exchanges and replay it for backtesting
+- [quant-backtest-utils](https://github.com/braddyyguyuing/quant-backtest-utils) - zero-dependency strategy evaluation helpers (Sharpe ratio, max drawdown, win rate) that pair with ccxt OHLCV data. #javascript
 
 ## Languages
 

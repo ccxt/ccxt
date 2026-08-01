@@ -54,11 +54,25 @@ Note, in some languages you can also set your custom agent like, eg:
 
 ############################ JAVASCRIPT ############################
 
-const SocksProxyAgent = require ('socks-proxy-agent');
-const socks = 'socks5h://127.0.0.1:1080';
-const myAgent = new SocksProxyAgent (socks);
+// ccxt's node REST transport is undici-based: set the unified proxy property and
+// ccxt creates (and caches) an undici.ProxyAgent dispatcher for you internally
+
+const socks = 'socks5://127.0.0.1:1080';
 const exchange = new ccxt.binance ({
-    'httpsAgent': myAgent,
+    'socksProxy': socks, // or 'httpProxy' / 'httpsProxy'
+});
+
+// advanced: inject a custom-tuned undici ProxyAgent for that proxy url
+// (custom tls options, proxy headers, pooling limits, ...)
+
+const { ProxyAgent } = require ('undici');
+exchange.proxyDictionaries[socks] = new ProxyAgent ({ 'uri': socks });
+
+// websocket connections still use node-style agents ("npm i socks-proxy-agent" first):
+
+const SocksProxyAgent = require ('socks-proxy-agent');
+const myAgent = new SocksProxyAgent (socks);
+const wsExchange = new ccxt.pro.binance ({
     'options': {
         'ws': {
             'options': { 'agent': myAgent },

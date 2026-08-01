@@ -4,6 +4,10 @@
 import os
 import sys
 import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import time
 from pprint import pprint
 from datetime import datetime, timezone
@@ -67,6 +71,6 @@ async def main():
     pprint(priceChanges)
 
 
-asyncio.run(main())
+run(main())
 
 ```

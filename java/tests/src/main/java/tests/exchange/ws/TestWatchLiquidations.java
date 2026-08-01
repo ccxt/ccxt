@@ -32,7 +32,7 @@ public class TestWatchLiquidations extends BaseTest {
             System.out.println(m2);
             return false;
         }
-        Object response = null;
+        Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object now = System.currentTimeMillis();
         Object ends = Helpers.add(now, 10000);
         while (Helpers.isLessThan(now, ends))
@@ -54,7 +54,7 @@ public class TestWatchLiquidations extends BaseTest {
             {
                 if (!Helpers.isTrue((Helpers.isInstance(e, NetworkError.class))))
                 {
-                    throw new RuntimeException(e);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
                 now = System.currentTimeMillis();
             }

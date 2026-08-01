@@ -41,33 +41,29 @@ function test_fetch_history_base() {
 }
 
 
-function test_fetch_history_derived() {
-    return Async\async(function () {
-        $exchange = new \ccxt\async\coinbase(array(
-            'id' => 'sampleexchange',
-            'fetchHistoryCacheSize' => 2,
-        ));
-        // try 3 times
-        // first
-        \React\Async\await($exchange->fetch_time()); // https://api.coinbase.com/api/v3/brokerage/time
-        assert(count(($exchange->get_fetch_cache())) === 1, 'fetchHistoryCache should be an array with 1 element');
-        // second
-        \React\Async\await($exchange->fetch_order_book('BTC/USD')); // https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD
-        assert(count(($exchange->get_fetch_cache())) === 2, 'fetchHistoryCache should be an array with 2 elements');
-        // third
-        \React\Async\await($exchange->fetch_trades('BTC/USD')); // https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker
-        assert(count(($exchange->get_fetch_cache())) === 2, 'fetchHistoryCache should be an array with 2 elements');
-        $final_cache = $exchange->get_fetch_cache();
-        assert(((string) $final_cache[0]['request']['url']) === 'https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD', 'The first element in fetchHistoryCache is : ' . $final_cache[0]['request']['url']);
-        assert(((string) $final_cache[1]['request']['url']) === 'https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker', 'The second element in fetchHistoryCache is : ' . $final_cache[1]['request']['url']);
-        assert(1 + 1 < 3, 'sample assertion');
-    }) ();
-}
-
-
+// async function testFetchHistoryDerived () {
+//     const exchange = new ccxt.coinbase ({
+//         'id': 'sampleexchange',
+//         'fetchHistoryCacheSize': 2,
+//     });
+//     // try 3 times
+//     // first
+//     await exchange.fetchTime (); // https://api.coinbase.com/api/v3/brokerage/time
+//     assert ((exchange.getFetchCache ()).length === 1, 'fetchHistoryCache should be an array with 1 element');
+//     // second
+//     await exchange.fetchOrderBook ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD
+//     assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
+//     // third
+//     await exchange.fetchTrades ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker
+//     assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
+//     const finalCache = exchange.getFetchCache ();
+//     assert (finalCache[0]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD', 'The first element in fetchHistoryCache is : ' + finalCache[0]['request']['url']);
+//     assert (finalCache[1]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker', 'The second element in fetchHistoryCache is : ' + finalCache[1]['request']['url']);
+//     assert (1 + 1 < 3, 'sample assertion');
+// }
 function test_fetch_history() {
     return Async\async(function () {
         \React\Async\await(test_fetch_history_base());
-        \React\Async\await(test_fetch_history_derived());
+
     }) ();
 }

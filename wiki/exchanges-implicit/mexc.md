@@ -1,6 +1,6 @@
 Every endpoint in `mexc`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/mexc) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C# and Go. Call them by the camelCase name shown in the tables below (e.g. `spotPublicGetPing`); the snake_case alias (`spot_public_get_ping`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`SpotPublicGetPing`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `spotPublicGetPing`); the snake_case alias (`spot_public_get_ping`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`SpotPublicGetPing`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -53,9 +53,9 @@ response := <-mexc.SpotPublicGetPing(params)
 
 Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; everything else in `params` is sent as the query string or request body. **Cost** is the rate-limiter weight of each call.
 
-📚 **Official mexc API documentation:** [mexcdevelop.github.io](https://mexcdevelop.github.io/apidocs/)
+📚 **Official mexc API documentation:** [mexc.com](https://www.mexc.com/api-docs/spot-v3/introduction) · [mexc.com](https://www.mexc.com/api-docs/futures/integration-guide)
 
-> 234 implicit endpoints across 4 access groups.
+> 237 implicit endpoints across 4 access groups.
 
 ## spot
 
@@ -65,16 +65,16 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `spotPublicGetTime` | GET | `time` | 1 |
 | `spotPublicGetDefaultSymbols` | GET | `defaultSymbols` | 1 |
 | `spotPublicGetSymbolOffline` | GET | `symbol/offline` | 10 |
-| `spotPublicGetExchangeInfo` | GET | `exchangeInfo` | 10 |
-| `spotPublicGetDepth` | GET | `depth` | 1 |
+| `spotPublicGetExchangeInfo` | GET | `exchangeInfo` | 25 |
+| `spotPublicGetDepth` | GET | `depth` | 3 |
 | `spotPublicGetTrades` | GET | `trades` | 5 |
 | `spotPublicGetHistoricalTrades` | GET | `historicalTrades` | 1 |
 | `spotPublicGetAggTrades` | GET | `aggTrades` | 1 |
 | `spotPublicGetKlines` | GET | `klines` | 1 |
 | `spotPublicGetAvgPrice` | GET | `avgPrice` | 1 |
-| `spotPublicGetTicker24hr` | GET | `ticker/24hr` | 1 |
-| `spotPublicGetTickerPrice` | GET | `ticker/price` | 1 |
-| `spotPublicGetTickerBookTicker` | GET | `ticker/bookTicker` | 1 |
+| `spotPublicGetTicker24hr` | GET | `ticker/24hr` | 25 |
+| `spotPublicGetTickerPrice` | GET | `ticker/price` | 10 |
+| `spotPublicGetTickerBookTicker` | GET | `ticker/bookTicker` | 10 |
 | `spotPublicGetEtfInfo` | GET | `etf/info` | 1 |
 | `spotPrivateGetKycStatus` | GET | `kyc/status` | 1 |
 | `spotPrivateGetUid` | GET | `uid` | 1 |
@@ -85,12 +85,12 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `spotPrivateGetMyTrades` | GET | `myTrades` | 10 |
 | `spotPrivateGetStrategyGroup` | GET | `strategy/group` | 20 |
 | `spotPrivateGetStrategyGroupUid` | GET | `strategy/group/uid` | 20 |
-| `spotPrivateGetTradeFee` | GET | `tradeFee` | 10 |
+| `spotPrivateGetTradeFee` | GET | `tradeFee` | 20 |
 | `spotPrivateGetSubAccountList` | GET | `sub-account/list` | 1 |
 | `spotPrivateGetSubAccountApiKey` | GET | `sub-account/apiKey` | 1 |
 | `spotPrivateGetSubAccountAsset` | GET | `sub-account/asset` | 1 |
 | `spotPrivateGetCapitalConfigGetall` | GET | `capital/config/getall` | 10 |
-| `spotPrivateGetCapitalDepositHisrec` | GET | `capital/deposit/hisrec` | 1 |
+| `spotPrivateGetCapitalDepositHisrec` | GET | `capital/deposit/hisrec` | 10 |
 | `spotPrivateGetCapitalWithdrawHistory` | GET | `capital/withdraw/history` | 1 |
 | `spotPrivateGetCapitalWithdrawAddress` | GET | `capital/withdraw/address` | 10 |
 | `spotPrivateGetCapitalDepositAddress` | GET | `capital/deposit/address` | 10 |
@@ -124,12 +124,14 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `spotPrivateGetRebateAffiliateCampaign` | GET | `rebate/affiliate/campaign` | 1 |
 | `spotPrivateGetRebateAffiliateReferral` | GET | `rebate/affiliate/referral` | 1 |
 | `spotPrivateGetRebateAffiliateSubaffiliates` | GET | `rebate/affiliate/subaffiliates` | 1 |
+| `spotPrivateGetRebateAffiliateList` | GET | `rebate/affiliate/list` | 1 |
 | `spotPrivateGetMxDeductEnable` | GET | `mxDeduct/enable` | 1 |
 | `spotPrivateGetUserDataStream` | GET | `userDataStream` | 1 |
 | `spotPrivateGetSelfSymbols` | GET | `selfSymbols` | 1 |
 | `spotPrivateGetAssetInternalTransferRecord` | GET | `asset/internal/transfer/record` | 10 |
 | `spotPrivatePostOrder` | POST | `order` | 1 |
 | `spotPrivatePostOrderTest` | POST | `order/test` | 1 |
+| `spotPrivatePostApiKeyInfo` | POST | `apiKeyInfo` | 1 |
 | `spotPrivatePostSubAccountVirtualSubAccount` | POST | `sub-account/virtualSubAccount` | 1 |
 | `spotPrivatePostSubAccountApiKey` | POST | `sub-account/apiKey` | 1 |
 | `spotPrivatePostSubAccountFutures` | POST | `sub-account/futures` | 1 |
@@ -138,7 +140,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `spotPrivatePostStrategyGroup` | POST | `strategy/group` | 20 |
 | `spotPrivatePostCapitalWithdrawApply` | POST | `capital/withdraw/apply` | 1 |
 | `spotPrivatePostCapitalWithdraw` | POST | `capital/withdraw` | 1 |
-| `spotPrivatePostCapitalTransfer` | POST | `capital/transfer` | 1 |
+| `spotPrivatePostCapitalTransfer` | POST | `capital/transfer` | 50 |
 | `spotPrivatePostCapitalTransferInternal` | POST | `capital/transfer/internal` | 1 |
 | `spotPrivatePostCapitalDepositAddress` | POST | `capital/deposit/address` | 1 |
 | `spotPrivatePostCapitalSubAccountUniversalTransfer` | POST | `capital/sub-account/universalTransfer` | 1 |
@@ -148,6 +150,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `spotPrivatePutUserDataStream` | PUT | `userDataStream` | 1 |
 | `spotPrivateDeleteOrder` | DELETE | `order` | 1 |
 | `spotPrivateDeleteOpenOrders` | DELETE | `openOrders` | 1 |
+| `spotPrivateDeleteOrderAll` | DELETE | `order/all` | 1 |
 | `spotPrivateDeleteSubAccountApiKey` | DELETE | `sub-account/apiKey` | 1 |
 | `spotPrivateDeleteStrategyGroup` | DELETE | `strategy/group` | 1 |
 | `spotPrivateDeleteStrategyGroupUid` | DELETE | `strategy/group/uid` | 1 |
@@ -225,7 +228,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `contractPrivatePostPositionChangeLeverage` | POST | `position/change_leverage` | 2 |
 | `contractPrivatePostPositionChangePositionMode` | POST | `position/change_position_mode` | 2 |
 | `contractPrivatePostPositionReverse` | POST | `position/reverse` | 2 |
-| `contractPrivatePostPositionCloseAll` | POST | `position/close_all` | 2 |
+| `contractPrivatePostPositionCloseAll` | POST | `position/close_all` | 10 |
 | `contractPrivatePostOrderCreate` | POST | `order/create` | 2 |
 | `contractPrivatePostOrderSubmit` | POST | `order/submit` | 2 |
 | `contractPrivatePostOrderSubmitBatch` | POST | `order/submit_batch` | 40 |

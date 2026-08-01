@@ -24,7 +24,7 @@ export default class hashkey extends hashkeyRest {
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
-     * @name hahskey#watchTicker
+     * @name hashkey#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
      * @param {string} symbol unified symbol of the market to fetch the ticker for

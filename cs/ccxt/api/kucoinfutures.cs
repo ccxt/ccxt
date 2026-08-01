@@ -1581,6 +1581,16 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync ("utaGetMarketBorrowableCurrency",parameters);
     }
 
+    public async Task<object> utaGetUserMyIp (object parameters = null)
+    {
+        return await this.callAsync ("utaGetUserMyIp",parameters);
+    }
+
+    public async Task<object> utaGetMarketFiatPrice (object parameters = null)
+    {
+        return await this.callAsync ("utaGetMarketFiatPrice",parameters);
+    }
+
     public async Task<object> utaPrivateGetMarketOrderbook (object parameters = null)
     {
         return await this.callAsync ("utaPrivateGetMarketOrderbook",parameters);

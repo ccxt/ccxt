@@ -64,11 +64,6 @@ public class KrakenApi extends Exchange
         return this.callAsync ("publicGetDepth", optionalArgs);
     }
 
-    public java.util.concurrent.CompletableFuture<Object>  publicGetLevel3 (Object... optionalArgs)
-    {
-        return this.callAsync ("publicGetLevel3", optionalArgs);
-    }
-
     public java.util.concurrent.CompletableFuture<Object>  publicGetGroupedBook (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGroupedBook", optionalArgs);
@@ -92,6 +87,11 @@ public class KrakenApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  publicGetPostTrade (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPostTrade", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostLevel3 (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostLevel3", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privatePostBalance (Object... optionalArgs)

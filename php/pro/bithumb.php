@@ -9,6 +9,8 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class bithumb extends \ccxt\async\bithumb {
     public function describe(): mixed {
@@ -51,7 +53,9 @@ class bithumb extends \ccxt\async\bithumb {
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
              */
             $url = $this->urls['api']['ws']['public'];
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $messageHash = 'ticker:' . $market['symbol'];
             $request = array(
@@ -74,11 +78,16 @@ class bithumb extends \ccxt\async\bithumb {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws']['public'];
             $marketIds = array();
             $messageHashes = array();
             $symbols = $this->market_symbols($symbols, null, false, true, true);
+            if ($symbols === null) {
+                $symbols = array();
+            }
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
@@ -195,7 +204,9 @@ class bithumb extends \ccxt\async\bithumb {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws']['public'];
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
@@ -240,7 +251,7 @@ class bithumb extends \ccxt\async\bithumb {
         $symbol = $this->safe_symbol($marketId, null, '_');
         $timestampStr = $this->safe_string($content, 'datetime');
         $timestamp = $this->parse_to_int(mb_substr($timestampStr, 0, 13 - 0));
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $ob = $this->order_book();
             $ob['symbol'] = $symbol;
             $this->orderbooks[$symbol] = $ob;
@@ -289,7 +300,9 @@ class bithumb extends \ccxt\async\bithumb {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws']['public'];
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
@@ -331,7 +344,7 @@ class bithumb extends \ccxt\async\bithumb {
             $rawTrade = $rawTrades[$i];
             $marketId = $this->safe_string($rawTrade, 'symbol');
             $symbol = $this->safe_symbol($marketId, null, '_');
-            if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+            if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
                 $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
                 $stored = new ArrayCache($limit);
                 $this->trades[$symbol] = $stored;
@@ -385,7 +398,7 @@ class bithumb extends \ccxt\async\bithumb {
         //        "resmsg" : "Invalid Filter Syntax"
         //    }
         //
-        if (!(is_array($message) && array_key_exists('status', $message))) {
+        if (!(is_array($message) && array_key_exists('status' ?? '', $message))) {
             return true;
         }
         $errorCode = $this->safe_string($message, 'status');
@@ -411,7 +424,9 @@ class bithumb extends \ccxt\async\bithumb {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['privateV2'];
             $messageHash = 'myAsset';
@@ -500,7 +515,9 @@ class bithumb extends \ccxt\async\bithumb {
              * @param {string[]} [$params->codes] $market $codes to filter $orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['privateV2'];
             $messageHash = 'myOrder';

@@ -23,6 +23,11 @@ const isWindows = typeof process !== 'undefined' && process.platform === "win32"
 
 const isDeno = typeof Deno !== 'undefined'
 
+// bun is node-compatible (isNode stays true there), but its native fetch differs (e.g. built-in `proxy` option)
+const isBun = typeof process !== 'undefined' &&
+              typeof process.versions !== 'undefined' &&
+              typeof process.versions.bun !== 'undefined'
+
 const isNode = !(isBrowser || isWebWorker || isDeno)
 
 // ----------------------------------------------------------------------------
@@ -33,5 +38,6 @@ export {
     isWebWorker,
     isNode,
     isDeno,
+    isBun,
     isWindows,
 }

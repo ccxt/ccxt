@@ -88,6 +88,22 @@ func (this *Bitso) FetchMarkets(params ...any) ([]MarketInterface, error) {
 
 /**
  * @method
+ * @name bitso#fetchCurrencies
+ * @description fetches all available currencies on an exchange
+ * @see https://docs.bitso.com/bitso-payouts-funding/docs
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an associative dictionary of currencies
+ */
+func (this *Bitso) FetchCurrencies(params ...any) (Currencies, error) {
+	res := <-this.Core.FetchCurrencies(params...)
+	if IsError(res) {
+		return Currencies{}, CreateReturnError(res)
+	}
+	return NewCurrencies(res), nil
+}
+
+/**
+ * @method
  * @name bitso#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.bitso.com/bitso-api/docs/get-account-balance
@@ -923,9 +939,6 @@ func (this *Bitso) FetchCrossBorrowRate(code string, options ...FetchCrossBorrow
 }
 func (this *Bitso) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
-}
-func (this *Bitso) FetchCurrencies(params ...any) (Currencies, error) {
-	return this.exchangeTyped.FetchCurrencies(params...)
 }
 func (this *Bitso) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)

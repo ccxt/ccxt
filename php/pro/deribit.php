@@ -11,6 +11,9 @@ use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class deribit extends \ccxt\async\deribit {
     public function describe(): mixed {
@@ -179,12 +182,16 @@ class deribit extends \ccxt\async\deribit {
              * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $interval = $this->safe_string($params, 'interval', '100ms');
             $params = $this->omit($params, 'interval');
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($interval === 'raw') {
                 Async\await($this->authenticate());
             }
@@ -214,18 +221,22 @@ class deribit extends \ccxt\async\deribit {
              * @param {str} [$params->interval] specify aggregation and frequency of notifications. Possible values => 100ms, raw
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $url = $this->urls['api']['ws'];
             $interval = $this->safe_string($params, 'interval', '100ms');
             $params = $this->omit($params, 'interval');
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($interval === 'raw') {
                 Async\await($this->authenticate());
             }
             $channels = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $market = $this->market($symbols[$i]);
+            for ($i = 0; $i < count(($symbols)); $i++) {
+                $market = $this->market(($symbols)[$i]);
                 $channels[] = 'ticker.' . $market['id'] . '.' . $interval;
             }
             $message = array(
@@ -298,12 +309,14 @@ class deribit extends \ccxt\async\deribit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $url = $this->urls['api']['ws'];
             $channels = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $market = $this->market($symbols[$i]);
+            for ($i = 0; $i < count(($symbols)); $i++) {
+                $market = $this->market(($symbols)[$i]);
                 $channels[] = 'quote.' . $market['id'];
             }
             $message = array(
@@ -667,7 +680,7 @@ class deribit extends \ccxt\async\deribit {
         $marketId = $this->safe_string($data, 'instrument_name');
         $symbol = $this->safe_symbol($marketId);
         $timestamp = $this->safe_integer($data, 'timestamp');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->counted_order_book();
         }
         $storedOrderBook = $this->orderbooks[$symbol];
@@ -729,7 +742,9 @@ class deribit extends \ccxt\async\deribit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate($params));
             if ($symbol !== null) {
                 $symbol = $this->symbol($symbol);
@@ -827,7 +842,9 @@ class deribit extends \ccxt\async\deribit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $ohlcvs = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
             return $ohlcvs[$symbol][$timeframe];
@@ -929,7 +946,9 @@ class deribit extends \ccxt\async\deribit {
 
     public function watch_multiple_wrapper(string $channelName, ?string $channelDescriptor, $symbolsArray = null, $params = array()) {
         return Async\async(function () use ($channelName, $channelDescriptor, $symbolsArray, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws'];
             $rawSubscriptions = array();
             $messageHashes = array();

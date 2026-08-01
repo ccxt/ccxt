@@ -107,7 +107,10 @@ public partial class blofin : ccxt.blofin
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object trades = await this.watchMultipleWrapper(true, "trades", "watchTradesForSymbols", symbols, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -194,7 +197,10 @@ public partial class blofin : ccxt.blofin
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object callerMethodName = null;
         var callerMethodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
         callerMethodName = ((IList<object>)callerMethodNameparametersVariable)[0];
@@ -353,7 +359,10 @@ public partial class blofin : ccxt.blofin
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object symbolsList = (IList<string>)(symbols);
         object firstMarket = this.market(getValue(symbolsList, 0));
@@ -362,7 +371,7 @@ public partial class blofin : ccxt.blofin
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "public"));
+        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "public");
         object messageHashes = new List<object>() {};
         object args = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbolsList)); postFixIncrement(ref i))
@@ -455,7 +464,10 @@ public partial class blofin : ccxt.blofin
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         var symboltimeframecandlesVariable = await this.watchMultipleWrapper(true, "candle", "watchOHLCVForSymbols", symbolsAndTimeframes, parameters);
         var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
         var timeframe = ((IList<object>) symboltimeframecandlesVariable)[1];
@@ -521,7 +533,10 @@ public partial class blofin : ccxt.blofin
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
@@ -536,7 +551,7 @@ public partial class blofin : ccxt.blofin
             { "channel", "account" },
         };
         object request = this.getSubscriptionRequest(new List<object>() {sub});
-        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "private"));
+        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "private");
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
     }
 
@@ -603,7 +618,10 @@ public partial class blofin : ccxt.blofin
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object trigger = this.safeValue2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object channel = ((bool) isTrue(trigger)) ? "orders-algo" : "orders";
@@ -668,7 +686,10 @@ public partial class blofin : ccxt.blofin
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object newPositions = await this.watchMultipleWrapper(false, "positions", "watchPositions", symbols, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -723,7 +744,10 @@ public partial class blofin : ccxt.blofin
     public async override Task<object> watchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchFundingRate", market, parameters);
@@ -735,7 +759,7 @@ public partial class blofin : ccxt.blofin
             { "instId", getValue(market, "id") },
         };
         object request = this.getSubscriptionRequest(new List<object>() {requestParams});
-        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "public"));
+        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "public");
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
     }
 
@@ -769,7 +793,10 @@ public partial class blofin : ccxt.blofin
     {
         // underlier method for all watch-multiple symbols
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         var callerMethodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", callerMethodName);
         callerMethodName = ((IList<object>)callerMethodNameparametersVariable)[0];
         parameters = ((IList<object>)callerMethodNameparametersVariable)[1];
@@ -839,7 +866,7 @@ public partial class blofin : ccxt.blofin
         }
         object request = this.getSubscriptionRequest(rawSubscriptions);
         object privateOrPublic = ((bool) isTrue(isPublic)) ? "public" : "private";
-        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), privateOrPublic));
+        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), privateOrPublic);
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
     }
 
@@ -932,7 +959,7 @@ public partial class blofin : ccxt.blofin
 }} },
         };
         object marketType = "swap"; // for now
-        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "private"));
+        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "private");
         await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
     }
 }

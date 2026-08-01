@@ -167,12 +167,16 @@ class deribit extends deribit$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const url = this.urls['api']['ws'];
         const interval = this.safeString(params, 'interval', '100ms');
         params = this.omit(params, 'interval');
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (interval === 'raw') {
             await this.authenticate();
         }
@@ -199,12 +203,16 @@ class deribit extends deribit$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const url = this.urls['api']['ws'];
         const interval = this.safeString(params, 'interval', '100ms');
         params = this.omit(params, 'interval');
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (interval === 'raw') {
             await this.authenticate();
         }
@@ -279,7 +287,9 @@ class deribit extends deribit$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const url = this.urls['api']['ws'];
         const channels = [];
@@ -685,7 +695,9 @@ class deribit extends deribit$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate(params);
         if (symbol !== undefined) {
             symbol = this.symbol(symbol);
@@ -780,7 +792,9 @@ class deribit extends deribit$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const ohlcvs = await this.watchOHLCVForSymbols([[symbol, timeframe]], since, limit, params);
         return ohlcvs[symbol][timeframe];
@@ -874,7 +888,9 @@ class deribit extends deribit$1["default"] {
         ];
     }
     async watchMultipleWrapper(channelName, channelDescriptor, symbolsArray = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws'];
         const rawSubscriptions = [];
         const messageHashes = [];

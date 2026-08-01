@@ -14,6 +14,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class bitflyer extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -435,7 +437,9 @@ class bitflyer extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->privateGetGetbalance($params));
             //
             //     array(
@@ -472,7 +476,9 @@ class bitflyer extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'product_code' => $market['id'],
@@ -521,7 +527,9 @@ class bitflyer extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'product_code' => $market['id'],
@@ -567,7 +575,7 @@ class bitflyer extends Exchange {
         $order = null;
         if ($side !== null) {
             $idInner = $side . '_child_order_acceptance_id';
-            if (is_array($trade) && array_key_exists($idInner, $trade)) {
+            if (is_array($trade) && array_key_exists($idInner ?? '', $trade)) {
                 $order = $trade[$idInner];
             }
         }
@@ -609,7 +617,9 @@ class bitflyer extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'product_code' => $market['id'],
@@ -646,7 +656,9 @@ class bitflyer extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$fee-structure $fee structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'product_code' => $market['id'],
@@ -684,7 +696,9 @@ class bitflyer extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'product_code' => $this->market_id($symbol),
                 'child_order_type' => strtoupper($type),
@@ -717,7 +731,9 @@ class bitflyer extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'product_code' => $this->market_id($symbol),
                 'child_order_acceptance_id' => $id,
@@ -805,7 +821,9 @@ class bitflyer extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'product_code' => $market['id'],
@@ -877,7 +895,7 @@ class bitflyer extends Exchange {
             }
             $orders = Async\await($this->fetch_orders($symbol));
             $ordersById = $this->index_by($orders, 'id');
-            if (is_array($ordersById) && array_key_exists($id, $ordersById)) {
+            if (is_array($ordersById) && array_key_exists($id ?? '', $ordersById)) {
                 return $ordersById[$id];
             }
             throw new OrderNotFound($this->id . ' No order found with $id ' . $id);
@@ -900,7 +918,9 @@ class bitflyer extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'product_code' => $market['id'],
@@ -941,7 +961,9 @@ class bitflyer extends Exchange {
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions() requires a `$symbols` argument, exactly one symbol in an array');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'product_code' => $this->market_ids($symbols),
             );
@@ -983,7 +1005,9 @@ class bitflyer extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             $this->check_address($address);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($code !== 'JPY' && $code !== 'USD' && $code !== 'EUR') {
                 throw new ExchangeError($this->id . ' allows withdrawing JPY, USD, EUR only, ' . $code . ' is not supported');
             }
@@ -1016,7 +1040,9 @@ class bitflyer extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             $request = array();
             if ($code !== null) {
@@ -1057,7 +1083,9 @@ class bitflyer extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             $request = array();
             if ($code !== null) {
@@ -1150,7 +1178,7 @@ class bitflyer extends Exchange {
         $type = null;
         $status = null;
         $fee = null;
-        if (is_array($transaction) && array_key_exists('fee', $transaction)) {
+        if (is_array($transaction) && array_key_exists('fee' ?? '', $transaction)) {
             $type = 'withdrawal';
             $status = $this->parse_withdrawal_status($rawStatus);
             $feeCost = $this->safe_string($transaction, 'fee');
@@ -1195,7 +1223,9 @@ class bitflyer extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'product_code' => $market['id'],

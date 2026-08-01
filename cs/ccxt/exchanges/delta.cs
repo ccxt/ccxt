@@ -793,7 +793,7 @@ public partial class delta : Exchange
         {
             object market = getValue(markets, i);
             object type = this.safeString(market, "contract_type");
-            if (isTrue(isEqual(type, "options_combos")))
+            if (isTrue(isTrue(isTrue((isEqual(type, "options_combos"))) || isTrue((isEqual(type, "binary_call_options")))) || isTrue((isEqual(type, "binary_put_options")))))
             {
                 continue;
             }
@@ -1363,7 +1363,13 @@ public partial class delta : Exchange
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
-            object ticker = this.parseTicker(getValue(tickers, i));
+            object rawTicker = getValue(tickers, i);
+            object contractType = this.safeString(rawTicker, "contract_type");
+            if (isTrue(isTrue(isTrue((isEqual(contractType, "options_combos"))) || isTrue((isEqual(contractType, "binary_call_options")))) || isTrue((isEqual(contractType, "binary_put_options")))))
+            {
+                continue;
+            }
+            object ticker = this.parseTicker(rawTicker);
             object symbol = getValue(ticker, "symbol");
             ((IDictionary<string,object>)result)[(string)symbol] = ticker;
         }
@@ -3663,7 +3669,7 @@ public partial class delta : Exchange
         object request = new Dictionary<string, object>() {
             { "margin_mode", marginMode },
         };
-        return await ((Task<object>)callDynamically(this, "privatePutUsersMarginMode", new object[] { this.extend(request, parameters) }));
+        return await this.privatePutUsersMarginMode(this.extend(request, parameters));
     }
 
     /**

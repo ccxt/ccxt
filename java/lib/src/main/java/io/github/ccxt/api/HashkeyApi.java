@@ -159,6 +159,11 @@ public class HashkeyApi extends Exchange
         return this.callAsync ("privateGetApiV1FuturesGetBestOrder", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1CoinInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1CoinInfo", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1AccountVipInfo (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AccountVipInfo", optionalArgs);
@@ -177,6 +182,11 @@ public class HashkeyApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1AccountType (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1AccountType", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1AccountChainType (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1AccountChainType", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privateGetApiV1AccountCheckApiKey (Object... optionalArgs)
@@ -267,6 +277,16 @@ public class HashkeyApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  privatePostApiV1FuturesOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostApiV1FuturesOrder", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostApiV1FuturesMarginType (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostApiV1FuturesMarginType", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostApiV1FuturesPositionMargin (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostApiV1FuturesPositionMargin", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privatePostApiV1FuturesPositionTradingStop (Object... optionalArgs)

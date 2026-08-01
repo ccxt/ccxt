@@ -11,6 +11,8 @@ use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class onetrading extends \ccxt\async\onetrading {
     public function describe(): mixed {
@@ -29,7 +31,7 @@ class onetrading extends \ccxt\async\onetrading {
             ),
             'urls' => array(
                 'api' => array(
-                    'ws' => 'wss://streams.onetrading.com/',
+                    'ws' => 'wss://streams.fast.onetrading.com',
                 ),
             ),
             'options' => array(
@@ -154,7 +156,9 @@ class onetrading extends \ccxt\async\onetrading {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $subscriptionHash = 'MARKET_TICKER';
@@ -183,7 +187,9 @@ class onetrading extends \ccxt\async\onetrading {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an array of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             if ($symbols === null) {
                 $symbols = array();
@@ -286,7 +292,9 @@ class onetrading extends \ccxt\async\onetrading {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'myTrades';
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -324,7 +332,7 @@ class onetrading extends \ccxt\async\onetrading {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
-             * @see https://developers.bitpanda.com/exchange/#$market-ticker-channel
+             * @see https://docs.onetrading.com/websocket/orderbook/introduction
              *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -332,7 +340,9 @@ class onetrading extends \ccxt\async\onetrading {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'book:' . $symbol;
@@ -453,7 +463,9 @@ class onetrading extends \ccxt\async\onetrading {
              * @param {string} [$params->channel] can listen to $orders using ACCOUNT_HISTORY or TRADING
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'orders';
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -1077,7 +1089,9 @@ class onetrading extends \ccxt\async\onetrading {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $marketId = $market['id'];

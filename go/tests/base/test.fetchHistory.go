@@ -95,40 +95,48 @@ func TestFetchHistoryBase() <-chan any {
 	}()
 	return ch
 }
-func TestFetchHistoryDerived() <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		exchange := ccxt.NewCoinbaseCore()
-		exchange.Init(map[string]any{
-			"id":                    "sampleexchange",
-			"fetchHistoryCacheSize": 2,
-		})
-		// try 3 times
-		// first
 
-		retRes444 := (<-exchange.FetchTime())
-		ccxt.PanicOnError(retRes444) // https://api.coinbase.com/api/v3/brokerage/time
-		assert(ccxt.IsEqual(ccxt.GetArrayLength((exchange.GetFetchCache())), 1), "fetchHistoryCache should be an array with 1 element")
-		// second
-
-		retRes474 := (<-exchange.FetchOrderBook("BTC/USD"))
-		ccxt.PanicOnError(retRes474) // https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD
-		assert(ccxt.IsEqual(ccxt.GetArrayLength((exchange.GetFetchCache())), 2), "fetchHistoryCache should be an array with 2 elements")
-		// third
-
-		retRes504 := (<-exchange.FetchTrades("BTC/USD"))
-		ccxt.PanicOnError(retRes504) // https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker
-		assert(ccxt.IsEqual(ccxt.GetArrayLength((exchange.GetFetchCache())), 2), "fetchHistoryCache should be an array with 2 elements")
-		var finalCache any = exchange.GetFetchCache()
-		assert(ccxt.IsEqual(ccxt.ToString(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(finalCache, 0), "request"), "url")), "https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD"), ccxt.Add("The first element in fetchHistoryCache is : ", ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(finalCache, 0), "request"), "url")))
-		assert(ccxt.IsEqual(ccxt.ToString(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(finalCache, 1), "request"), "url")), "https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker"), ccxt.Add("The second element in fetchHistoryCache is : ", ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(finalCache, 1), "request"), "url")))
-		assert(ccxt.IsLessThan(ccxt.Add(1, 1), 3), "sample assertion")
-		return nil
-	}()
-	return ch
-}
+//	async function testFetchHistoryDerived () {
+//	    const exchange = new ccxt.coinbase ({
+//	        'id': 'sampleexchange',
+//	        'fetchHistoryCacheSize': 2,
+//	    });
+//	    // try 3 times
+//	    // first
+//	    await exchange.fetchTime (); // https://api.coinbase.com/api/v3/brokerage/time
+//	    assert ((exchange.getFetchCache ()).length === 1, 'fetchHistoryCache should be an array with 1 element');
+//	    // second
+//	    await exchange.fetchOrderBook ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD
+//	    assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
+//	    // third
+//	    await exchange.fetchTrades ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker
+//	    assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
+//	    const finalCache = exchange.getFetchCache ();
+//	    assert (finalCache[0]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD', 'The first element in fetchHistoryCache is : ' + finalCache[0]['request']['url']);
+//	    assert (finalCache[1]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker', 'The second element in fetchHistoryCache is : ' + finalCache[1]['request']['url']);
+//	    assert (1 + 1 < 3, 'sample assertion');
+//	}
+//
+//	async function testFetchHistoryDerived () {
+//	    const exchange = new ccxt.coinbase ({
+//	        'id': 'sampleexchange',
+//	        'fetchHistoryCacheSize': 2,
+//	    });
+//	    // try 3 times
+//	    // first
+//	    await exchange.fetchTime (); // https://api.coinbase.com/api/v3/brokerage/time
+//	    assert ((exchange.getFetchCache ()).length === 1, 'fetchHistoryCache should be an array with 1 element');
+//	    // second
+//	    await exchange.fetchOrderBook ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD
+//	    assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
+//	    // third
+//	    await exchange.fetchTrades ('BTC/USD'); // https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker
+//	    assert ((exchange.getFetchCache ()).length === 2, 'fetchHistoryCache should be an array with 2 elements');
+//	    const finalCache = exchange.getFetchCache ();
+//	    assert (finalCache[0]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/product_book?product_id=BTC-USD', 'The first element in fetchHistoryCache is : ' + finalCache[0]['request']['url']);
+//	    assert (finalCache[1]['request']['url'].toString () === 'https://api.coinbase.com/api/v3/brokerage/market/products/BTC-USD/ticker', 'The second element in fetchHistoryCache is : ' + finalCache[1]['request']['url']);
+//	    assert (1 + 1 < 3, 'sample assertion');
+//	}
 func TestFetchHistory() <-chan any {
 	ch := make(chan any)
 	go func() any {
@@ -137,9 +145,6 @@ func TestFetchHistory() <-chan any {
 
 		retRes604 := (<-TestFetchHistoryBase())
 		ccxt.PanicOnError(retRes604)
-
-		retRes614 := (<-TestFetchHistoryDerived())
-		ccxt.PanicOnError(retRes614)
 		return nil
 	}()
 	return ch

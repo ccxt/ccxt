@@ -11,6 +11,8 @@ use ccxt\AuthenticationError;
 use ccxt\UnsubscribeError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class derive extends \ccxt\async\derive {
     public function describe(): mixed {
@@ -88,7 +90,9 @@ class derive extends \ccxt\async\derive {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($limit === null) {
                 $limit = 10;
             }
@@ -130,14 +134,14 @@ class derive extends \ccxt\async\derive {
         // }
         //
         $params = $this->safe_dict($message, 'params');
-        $data = $this->safe_dict($params, 'data');
+        $data = $this->safe_dict($params, 'data', array());
         $marketId = $this->safe_string($data, 'instrument_name');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $topic = $this->safe_string($params, 'channel');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
-            $subscription = $client->subscriptions[$topic];
+            $subscription = ($topic === null) ? null : $client->subscriptions[$topic];
             $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
         }
@@ -159,7 +163,9 @@ class derive extends \ccxt\async\derive {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $topic = 'ticker.' . $market['id'] . '.100';
             $request = array(
@@ -246,10 +252,13 @@ class derive extends \ccxt\async\derive {
         //
         $params = $this->safe_dict($message, 'params');
         $rawData = $this->safe_dict($params, 'data');
-        $data = $this->safe_dict($rawData, 'instrument_ticker');
+        $data = $this->safe_dict($rawData, 'instrument_ticker', array());
         $topic = $this->safe_value($params, 'channel');
         $ticker = $this->parse_ticker($data);
-        $this->tickers[$ticker['symbol']] = $ticker;
+        $tickerSymbol = $ticker['symbol'];
+        if ($tickerSymbol !== null) {
+            $this->tickers[$tickerSymbol] = $ticker;
+        }
         $client->resolve($ticker, $topic);
         return $message;
     }
@@ -263,7 +272,9 @@ class derive extends \ccxt\async\derive {
              * @param {int} [$params->limit] orderbook $limit, default is null
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $limit = $this->safe_integer($params, 'limit');
             if ($limit === null) {
                 $limit = 10;
@@ -294,7 +305,9 @@ class derive extends \ccxt\async\derive {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {any} status of the unwatch $request
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $topic = 'trades.' . $market['id'];
             $messageHah = 'unwatch' . $topic;
@@ -333,10 +346,10 @@ class derive extends \ccxt\async\derive {
         $marketId = $this->safe_string($parsedTopic, 1);
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+        if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
-        if (is_array($client->subscriptions) && array_key_exists($topic, $client->subscriptions)) {
+        if (is_array($client->subscriptions) && array_key_exists($topic ?? '', $client->subscriptions)) {
             unset($client->subscriptions[$topic]);
         }
         $error = new UnsubscribeError($this->id . ' orderbook ' . $symbol);
@@ -349,10 +362,10 @@ class derive extends \ccxt\async\derive {
         $marketId = $this->safe_string($parsedTopic, 1);
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+        if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
             unset($this->trades[$symbol]);
         }
-        if (is_array($client->subscriptions) && array_key_exists($topic, $client->subscriptions)) {
+        if (is_array($client->subscriptions) && array_key_exists($topic ?? '', $client->subscriptions)) {
             unset($client->subscriptions[$topic]);
         }
         $error = new UnsubscribeError($this->id . ' trades ' . $symbol);
@@ -399,7 +412,9 @@ class derive extends \ccxt\async\derive {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $topic = 'trades.' . $market['id'];
             $request = array(
@@ -427,7 +442,7 @@ class derive extends \ccxt\async\derive {
         //
         //
         $params = $this->safe_dict($message, 'params');
-        $data = $this->safe_dict($params, 'data');
+        $data = $this->safe_dict($params, 'data', array());
         $topic = $this->safe_value($params, 'channel');
         $parsedTopic = explode('.', $topic);
         $marketId = $this->safe_string($parsedTopic, 1);
@@ -510,7 +525,9 @@ class derive extends \ccxt\async\derive {
              * @param {string} [$params->subaccount_id] *required* the subaccount id
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $subaccountId = null;
             list($subaccountId, $params) = $this->handleDeriveSubaccountId('watchOrders', $params);
             $topic = $this->number_to_string($subaccountId) . '.orders';
@@ -585,7 +602,7 @@ class derive extends \ccxt\async\derive {
         //
         $params = $this->safe_dict($message, 'params');
         $topic = $this->safe_string($params, 'channel');
-        $rawOrders = $this->safe_list($params, 'data');
+        $rawOrders = $this->safe_list($params, 'data', array());
         for ($i = 0; $i < count($rawOrders); $i++) {
             $data = $rawOrders[$i];
             $parsed = $this->parse_order($data);
@@ -598,7 +615,7 @@ class derive extends \ccxt\async\derive {
                 }
                 $cachedOrders = $this->orders;
                 $orders = $this->safe_value($cachedOrders->hashmap, $symbol, array());
-                $order = $this->safe_value($orders, $orderId);
+                $order = ($orderId === null) ? null : $this->safe_value($orders, $orderId);
                 if ($order !== null) {
                     $fee = $this->safe_value($order, 'fee');
                     if ($fee !== null) {
@@ -634,7 +651,9 @@ class derive extends \ccxt\async\derive {
              * @param {string} [$params->subaccount_id] *required* the subaccount id
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $subaccountId = null;
             list($subaccountId, $params) = $this->handleDeriveSubaccountId('watchMyTrades', $params);
             $topic = $this->number_to_string($subaccountId) . '.trades';
@@ -675,7 +694,7 @@ class derive extends \ccxt\async\derive {
         }
         $params = $this->safe_dict($message, 'params');
         $topic = $this->safe_string($params, 'channel');
-        $rawTrades = $this->safe_list($params, 'data');
+        $rawTrades = $this->safe_list($params, 'data', array());
         for ($i = 0; $i < count($rawTrades); $i++) {
             $trade = $this->parse_trade($message);
             $myTrades->append($trade);
@@ -692,7 +711,7 @@ class derive extends \ccxt\async\derive {
         //     $error => array( code => -32600, $message => 'Invalid Request' )
         // }
         //
-        if (!(is_array($message) && array_key_exists('error', $message))) {
+        if (!(is_array($message) && array_key_exists('error' ?? '', $message))) {
             return false;
         }
         $errorMessage = $this->safe_dict($message, 'error');
@@ -708,7 +727,7 @@ class derive extends \ccxt\async\derive {
             if ($error instanceof AuthenticationError) {
                 $messageHash = 'authenticated';
                 $client->reject($error, $messageHash);
-                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                     unset($client->subscriptions[$messageHash]);
                 }
             } else {
@@ -746,16 +765,16 @@ class derive extends \ccxt\async\derive {
                 }
             }
         }
-        $method = $this->safe_value($methods, $event);
+        $method = ($event === null) ? null : $this->safe_value($methods, $event);
         if ($method !== null) {
             $method($client, $message);
             return;
         }
-        if (is_array($message) && array_key_exists('id', $message)) {
+        if (is_array($message) && array_key_exists('id' ?? '', $message)) {
             $id = $this->safe_string($message, 'id');
             $subscriptionsById = $this->index_by($client->subscriptions, 'id');
-            $subscription = $this->safe_value($subscriptionsById, $id, array());
-            if (is_array($subscription) && array_key_exists('method', $subscription)) {
+            $subscription = ($id === null) ? array() : $this->safe_value($subscriptionsById, $id, array());
+            if (is_array($subscription) && array_key_exists('method' ?? '', $subscription)) {
                 if ($subscription['method'] === 'public/login') {
                     $this->handle_auth($client, $message);
                 } elseif ($subscription['method'] === 'unsubscribe') {
@@ -774,7 +793,7 @@ class derive extends \ccxt\async\derive {
         // }
         //
         $messageHash = 'authenticated';
-        $ids = $this->safe_list($message, 'result');
+        $ids = $this->safe_list($message, 'result', array());
         if (strlen($ids) > 0) {
             // $client->resolve($message, $messageHash);
             $future = $this->safe_value($client->futures, 'authenticated');
@@ -783,7 +802,7 @@ class derive extends \ccxt\async\derive {
             $error = new AuthenticationError($this->json($message));
             $client->reject($error, $messageHash);
             // allows further authentication attempts
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions['authenticated']);
             }
         }

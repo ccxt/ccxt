@@ -1,11 +1,11 @@
-import { Exchange } from './src/base/Exchange.js';
+import { Exchange, BaseExchange } from './src/base/Exchange.js';
+import PredictionExchange from './src/base/PredictionExchange.js';
 import { Precise } from './src/base/Precise.js';
 import * as functions from './src/base/functions.js';
 import * as errors from './src/base/errors.js';
-import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, NestedDictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL } from './src/base/types.js';
+import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, NestedDictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Precision, PredictionEvent, PredictionOutcome, PredictionMarket, PredictionSettlement, PredictionFees, PredictionOrder, PredictionTrade, PredictionPosition, PredictionTicker, PredictionOrderBook, PredictionTickers, PredictionTradingFee, PredictionOpenInterest, PredictionOrderRequest, fetchEventsParams, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarketMarginModes, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL } from './src/base/types.js';
 import { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError } from './src/base/errors.js';
-declare const version = "4.5.63";
-import aftermath from './src/aftermath.js';
+declare const version = "4.5.70";
 import alpaca from './src/alpaca.js';
 import apex from './src/apex.js';
 import aster from './src/aster.js';
@@ -24,7 +24,6 @@ import bitfinex from './src/bitfinex.js';
 import bitflyer from './src/bitflyer.js';
 import bitget from './src/bitget.js';
 import bithumb from './src/bithumb.js';
-import bitmart from './src/bitmart.js';
 import bitmex from './src/bitmex.js';
 import bitopro from './src/bitopro.js';
 import bitrue from './src/bitrue.js';
@@ -88,7 +87,9 @@ import luno from './src/luno.js';
 import mercado from './src/mercado.js';
 import mexc from './src/mexc.js';
 import modetrade from './src/modetrade.js';
+import mudrex from './src/mudrex.js';
 import myokx from './src/myokx.js';
+import nado from './src/nado.js';
 import ndax from './src/ndax.js';
 import okx from './src/okx.js';
 import okxus from './src/okxus.js';
@@ -109,7 +110,6 @@ import woofipro from './src/woofipro.js';
 import xt from './src/xt.js';
 import zaif from './src/zaif.js';
 import zebpay from './src/zebpay.js';
-import aftermathPro from './src/pro/aftermath.js';
 import alpacaPro from './src/pro/alpaca.js';
 import apexPro from './src/pro/apex.js';
 import asterPro from './src/pro/aster.js';
@@ -123,7 +123,6 @@ import bingxPro from './src/pro/bingx.js';
 import bitfinexPro from './src/pro/bitfinex.js';
 import bitgetPro from './src/pro/bitget.js';
 import bithumbPro from './src/pro/bithumb.js';
-import bitmartPro from './src/pro/bitmart.js';
 import bitmexPro from './src/pro/bitmex.js';
 import bitoproPro from './src/pro/bitopro.js';
 import bitruePro from './src/pro/bitrue.js';
@@ -170,7 +169,9 @@ import lighterPro from './src/pro/lighter.js';
 import lunoPro from './src/pro/luno.js';
 import mexcPro from './src/pro/mexc.js';
 import modetradePro from './src/pro/modetrade.js';
+import mudrexPro from './src/pro/mudrex.js';
 import myokxPro from './src/pro/myokx.js';
+import nadoPro from './src/pro/nado.js';
 import ndaxPro from './src/pro/ndax.js';
 import okxPro from './src/pro/okx.js';
 import okxusPro from './src/pro/okxus.js';
@@ -187,8 +188,12 @@ import whitebitPro from './src/pro/whitebit.js';
 import wooPro from './src/pro/woo.js';
 import woofiproPro from './src/pro/woofipro.js';
 import xtPro from './src/pro/xt.js';
+import hyperliquidPrediction from './src/prediction/hyperliquid.js';
+import kalshiPrediction from './src/prediction/kalshi.js';
+import limitlessPrediction from './src/prediction/limitless.js';
+import myriadPrediction from './src/prediction/myriad.js';
+import polymarketPrediction from './src/prediction/polymarket.js';
 declare const exchanges: {
-    aftermath: typeof aftermath;
     alpaca: typeof alpaca;
     apex: typeof apex;
     aster: typeof aster;
@@ -207,7 +212,6 @@ declare const exchanges: {
     bitflyer: typeof bitflyer;
     bitget: typeof bitget;
     bithumb: typeof bithumb;
-    bitmart: typeof bitmart;
     bitmex: typeof bitmex;
     bitopro: typeof bitopro;
     bitrue: typeof bitrue;
@@ -271,7 +275,9 @@ declare const exchanges: {
     mercado: typeof mercado;
     mexc: typeof mexc;
     modetrade: typeof modetrade;
+    mudrex: typeof mudrex;
     myokx: typeof myokx;
+    nado: typeof nado;
     ndax: typeof ndax;
     okx: typeof okx;
     okxus: typeof okxus;
@@ -294,7 +300,6 @@ declare const exchanges: {
     zebpay: typeof zebpay;
 };
 declare const pro: {
-    aftermath: typeof aftermathPro;
     alpaca: typeof alpacaPro;
     apex: typeof apexPro;
     aster: typeof asterPro;
@@ -308,7 +313,6 @@ declare const pro: {
     bitfinex: typeof bitfinexPro;
     bitget: typeof bitgetPro;
     bithumb: typeof bithumbPro;
-    bitmart: typeof bitmartPro;
     bitmex: typeof bitmexPro;
     bitopro: typeof bitoproPro;
     bitrue: typeof bitruePro;
@@ -355,7 +359,9 @@ declare const pro: {
     luno: typeof lunoPro;
     mexc: typeof mexcPro;
     modetrade: typeof modetradePro;
+    mudrex: typeof mudrexPro;
     myokx: typeof myokxPro;
+    nado: typeof nadoPro;
     ndax: typeof ndaxPro;
     okx: typeof okxPro;
     okxus: typeof okxusPro;
@@ -373,13 +379,21 @@ declare const pro: {
     woofipro: typeof woofiproPro;
     xt: typeof xtPro;
 };
+declare const prediction: {
+    hyperliquid: typeof hyperliquidPrediction;
+    kalshi: typeof kalshiPrediction;
+    limitless: typeof limitlessPrediction;
+    myriad: typeof myriadPrediction;
+    polymarket: typeof polymarketPrediction;
+};
 declare const ccxt: {
     version: string;
     Exchange: typeof Exchange;
+    BaseExchange: typeof BaseExchange;
+    PredictionExchange: typeof PredictionExchange;
     Precise: typeof Precise;
     exchanges: string[];
     pro: {
-        aftermath: typeof aftermathPro;
         alpaca: typeof alpacaPro;
         apex: typeof apexPro;
         aster: typeof asterPro;
@@ -393,7 +407,6 @@ declare const ccxt: {
         bitfinex: typeof bitfinexPro;
         bitget: typeof bitgetPro;
         bithumb: typeof bithumbPro;
-        bitmart: typeof bitmartPro;
         bitmex: typeof bitmexPro;
         bitopro: typeof bitoproPro;
         bitrue: typeof bitruePro;
@@ -440,7 +453,9 @@ declare const ccxt: {
         luno: typeof lunoPro;
         mexc: typeof mexcPro;
         modetrade: typeof modetradePro;
+        mudrex: typeof mudrexPro;
         myokx: typeof myokxPro;
+        nado: typeof nadoPro;
         ndax: typeof ndaxPro;
         okx: typeof okxPro;
         okxus: typeof okxusPro;
@@ -458,8 +473,14 @@ declare const ccxt: {
         woofipro: typeof woofiproPro;
         xt: typeof xtPro;
     };
+    prediction: {
+        hyperliquid: typeof hyperliquidPrediction;
+        kalshi: typeof kalshiPrediction;
+        limitless: typeof limitlessPrediction;
+        myriad: typeof myriadPrediction;
+        polymarket: typeof polymarketPrediction;
+    };
 } & {
-    aftermath: typeof aftermath;
     alpaca: typeof alpaca;
     apex: typeof apex;
     aster: typeof aster;
@@ -478,7 +499,6 @@ declare const ccxt: {
     bitflyer: typeof bitflyer;
     bitget: typeof bitget;
     bithumb: typeof bithumb;
-    bitmart: typeof bitmart;
     bitmex: typeof bitmex;
     bitopro: typeof bitopro;
     bitrue: typeof bitrue;
@@ -542,7 +562,9 @@ declare const ccxt: {
     mercado: typeof mercado;
     mexc: typeof mexc;
     modetrade: typeof modetrade;
+    mudrex: typeof mudrex;
     myokx: typeof myokx;
+    nado: typeof nado;
     ndax: typeof ndax;
     okx: typeof okx;
     okxus: typeof okxus;
@@ -564,5 +586,5 @@ declare const ccxt: {
     zaif: typeof zaif;
     zebpay: typeof zebpay;
 } & typeof functions & typeof errors;
-export { version, Exchange, exchanges, pro, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError, Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, ConstructorArgs, Dictionary, NestedDictionary, MinMax, FeeInterface, TradingFeeInterface, MarketMarginModes, MarketInterface, Trade, Order, OrderBook, OrderBooks, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, OpenInterests, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, LongShortRatio, ADL, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, aftermath, alpaca, apex, aster, backpack, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbns, bitfinex, bitflyer, bitget, bithumb, bitmart, bitmex, bitopro, bitrue, bitso, bitstamp, bitteam, bittrade, bitvavo, blockchaincom, blofin, btcbox, btcmarkets, btcturk, bullish, bybit, bybiteu, bydfi, cex, coinbase, coinbaseexchange, coinbaseinternational, coincheck, coinex, coinmate, coinone, coinsph, coinspot, cryptocom, cryptomus, deepcoin, delta, deribit, derive, digifinex, dydx, exmo, extended, fmfwio, foxbit, gate, gateeu, gemini, grvt, hashkey, hibachi, hitbtc, hollaex, htx, hyperliquid, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoineu, kucoinfutures, latoken, lbank, lighter, luno, mercado, mexc, modetrade, myokx, ndax, okx, okxus, onetrading, p2b, pacifica, paradex, paymium, phemex, poloniex, tokocrypto, toobit, upbit, weex, whitebit, woo, woofipro, xt, zaif, zebpay, };
+export { version, Exchange, BaseExchange, PredictionExchange, exchanges, pro, prediction, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError, Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, ConstructorArgs, Dictionary, NestedDictionary, MinMax, FeeInterface, TradingFeeInterface, MarketMarginModes, Precision, MarketInterface, PredictionFees, PredictionEvent, PredictionMarket, PredictionOutcome, PredictionOrder, PredictionTrade, PredictionPosition, PredictionTicker, PredictionOrderBook, PredictionTickers, PredictionTradingFee, PredictionOpenInterest, PredictionSettlement, fetchEventsParams, Trade, Order, OrderBook, OrderBooks, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, OpenInterests, Liquidation, OrderRequest, PredictionOrderRequest, CancellationRequest, FundingHistory, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, LongShortRatio, ADL, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, alpaca, apex, aster, backpack, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbns, bitfinex, bitflyer, bitget, bithumb, bitmex, bitopro, bitrue, bitso, bitstamp, bitteam, bittrade, bitvavo, blockchaincom, blofin, btcbox, btcmarkets, btcturk, bullish, bybit, bybiteu, bydfi, cex, coinbase, coinbaseexchange, coinbaseinternational, coincheck, coinex, coinmate, coinone, coinsph, coinspot, cryptocom, cryptomus, deepcoin, delta, deribit, derive, digifinex, dydx, exmo, extended, fmfwio, foxbit, gate, gateeu, gemini, grvt, hashkey, hibachi, hitbtc, hollaex, htx, hyperliquid, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoineu, kucoinfutures, latoken, lbank, lighter, luno, mercado, mexc, modetrade, mudrex, myokx, nado, ndax, okx, okxus, onetrading, p2b, pacifica, paradex, paymium, phemex, poloniex, tokocrypto, toobit, upbit, weex, whitebit, woo, woofipro, xt, zaif, zebpay, };
 export default ccxt;

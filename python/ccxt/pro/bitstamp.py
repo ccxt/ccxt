@@ -58,7 +58,8 @@ class bitstamp(ccxt.async_support.bitstamp):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
@@ -161,7 +162,8 @@ class bitstamp(ccxt.async_support.bitstamp):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'trades:' + symbol
@@ -266,7 +268,8 @@ class bitstamp(ccxt.async_support.bitstamp):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         channel = 'private-my_orders'
@@ -306,7 +309,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         if self.orders is None:
             self.orders = ArrayCacheBySymbolById(limit)
         stored = self.orders
-        subscription = self.safe_value(client.subscriptions, channel)
+        subscription = None if (channel is None) else self.safe_value(client.subscriptions, channel)
         symbol = self.safe_string(subscription, 'symbol')
         market = self.market(symbol)
         order['event'] = self.safe_string(message, 'event')

@@ -18,7 +18,7 @@ from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 async def test_fetch_last_prices(exchange, skipped_properties, symbol):
     method = 'fetchLastprices'
     # log ('fetching all tickers at once...')
-    response = None
+    response = {}
     checked_symbol = None
     try:
         response = await exchange.fetch_last_prices()

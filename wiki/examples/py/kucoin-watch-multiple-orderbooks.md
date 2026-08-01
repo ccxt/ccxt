@@ -2,7 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import ccxt.pro
-from asyncio import gather, run
+from asyncio import gather
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 
 
 async def symbol_loop(exchange, symbol):

@@ -99,6 +99,13 @@ class OrderBookSide extends Array {
             this.length = this.depth;
         }
     }
+    copy() {
+        const copy = new this.constructor([], this.depth);
+        for (let i = 0; i < this.length; i++) {
+            copy.storeArray(this[i].slice());
+        }
+        return copy;
+    }
 }
 // ----------------------------------------------------------------------------
 // overwrites absolute volumes at price levels
@@ -258,6 +265,13 @@ class IndexedOrderBookSide extends Array {
             }
             this.length = this.depth;
         }
+    }
+    copy() {
+        const copy = new this.constructor([], this.depth);
+        for (let i = 0; i < this.length; i++) {
+            copy.storeArray(this[i].slice());
+        }
+        return copy;
     }
 }
 // ----------------------------------------------------------------------------

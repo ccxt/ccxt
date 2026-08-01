@@ -19,11 +19,13 @@ func TestFetchLedgerEntry(exchange ccxt.ICoreExchange, skippedProperties any, co
 		if IsTrue(IsGreaterThan(length, 0)) {
 			var firstItem any = GetValue(items, 0)
 			var id any = GetValue(firstItem, "id")
+			if IsTrue(!IsEqual(id, nil)) {
 
-			item := (<-exchange.FetchLedgerEntry(id))
-			PanicOnError(item)
-			var now any = exchange.Milliseconds()
-			TestLedgerEntry(exchange, skippedProperties, method, item, code, now)
+				item := (<-exchange.FetchLedgerEntry(id))
+				PanicOnError(item)
+				var now any = exchange.Milliseconds()
+				TestLedgerEntry(exchange, skippedProperties, method, item, code, now)
+			}
 		}
 
 		ch <- true

@@ -157,6 +157,7 @@ public class ArrayCache extends ArrayList<Object> {
         private final HashMap<String, HashMap<String, Object>> symbolMap = new HashMap<>();
         // Maps composite key (symbol:id) -> list index for O(1) lookup
         private final HashMap<String, Integer> sizeIndex = new HashMap<>();
+        protected String keyField = "symbol"; // first nesting level (overridden by ArrayCacheByOutcomeById)
 
         public ArrayCacheBySymbolById(int maxSize) { super(maxSize); }
         public ArrayCacheBySymbolById() { super(); }
@@ -170,7 +171,7 @@ public class ArrayCache extends ArrayList<Object> {
         public synchronized void append(Object item) {
             if (item instanceof Map) {
                 Map<String, Object> map = (Map<String, Object>) item;
-                String symbol = map.get("symbol") != null ? map.get("symbol").toString() : "";
+                String symbol = map.get(this.keyField) != null ? map.get(this.keyField).toString() : "";
                 String id = map.get("id") != null ? map.get("id").toString() : null;
 
                 if (id != null) {
@@ -196,7 +197,7 @@ public class ArrayCache extends ArrayList<Object> {
                 Object evicted = this.get(0);
                 if (evicted instanceof Map) {
                     Map<String, Object> evictedMap = (Map<String, Object>) evicted;
-                    String eSymbol = evictedMap.get("symbol") != null ? evictedMap.get("symbol").toString() : "";
+                    String eSymbol = evictedMap.get(this.keyField) != null ? evictedMap.get(this.keyField).toString() : "";
                     String eId = evictedMap.get("id") != null ? evictedMap.get("id").toString() : null;
                     if (eId != null) {
                         this.sizeIndex.remove(compositeKey(eSymbol, eId));
@@ -211,7 +212,7 @@ public class ArrayCache extends ArrayList<Object> {
             // Record index for the new item
             if (item instanceof Map) {
                 Map<String, Object> map = (Map<String, Object>) item;
-                String symbol = map.get("symbol") != null ? map.get("symbol").toString() : "";
+                String symbol = map.get(this.keyField) != null ? map.get(this.keyField).toString() : "";
                 String id = map.get("id") != null ? map.get("id").toString() : null;
                 if (id != null) {
                     this.sizeIndex.put(compositeKey(symbol, id), willEvict ? this.maxSize - 1 : this.size());
@@ -219,6 +220,14 @@ public class ArrayCache extends ArrayList<Object> {
             }
             super.append(item);
         }
+    }
+
+    /**
+     * Cache indexed by outcome then by id (prediction markets).
+     */
+    public static class ArrayCacheByOutcomeById extends ArrayCacheBySymbolById {
+        public ArrayCacheByOutcomeById(int maxSize) { super(maxSize); this.keyField = "outcome"; }
+        public ArrayCacheByOutcomeById() { super(); this.keyField = "outcome"; }
     }
 
     /**

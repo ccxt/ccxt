@@ -360,7 +360,9 @@ class mercado extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'coin' => $market['base'],
@@ -416,7 +418,9 @@ class mercado extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'coin' => $market['base'],
@@ -482,7 +486,9 @@ class mercado extends Exchange {
          * @param {array} [$params] extra parameters specific $to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $method = 'publicGetCoinTrades';
         $request = array(
@@ -508,7 +514,7 @@ class mercado extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            if (is_array($balances) && array_key_exists($currencyId, $balances)) {
+            if (is_array($balances) && array_key_exists($currencyId ?? '', $balances)) {
                 $balance = $this->safe_value($balances, $currencyId, array());
                 $account = $this->account();
                 $account['free'] = $this->safe_string($balance, 'available');
@@ -525,7 +531,9 @@ class mercado extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->privatePostGetAccountInfo($params);
         return $this->parse_balance($response);
     }
@@ -541,7 +549,9 @@ class mercado extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'coin_pair' => $market['id'],
@@ -584,7 +594,9 @@ class mercado extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'coin_pair' => $market['id'],
@@ -657,7 +669,7 @@ class mercado extends Exchange {
         $id = $this->safe_string($order, 'order_id');
         $order_type = $this->safe_string($order, 'order_type');
         $side = null;
-        if (is_array($order) && array_key_exists('order_type', $order)) {
+        if (is_array($order) && array_key_exists('order_type' ?? '', $order)) {
             $side = ($order_type === '1') ? 'buy' : 'sell';
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -712,7 +724,9 @@ class mercado extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'coin_pair' => $market['id'],
@@ -736,7 +750,9 @@ class mercado extends Exchange {
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
@@ -744,18 +760,18 @@ class mercado extends Exchange {
             'address' => $address,
         );
         if ($code === 'BRL') {
-            $account_ref = (is_array($params) && array_key_exists('account_ref', $params));
+            $account_ref = (is_array($params) && array_key_exists('account_ref' ?? '', $params));
             if (!$account_ref) {
                 throw new ArgumentsRequired($this->id . ' withdraw() requires $account_ref parameter to withdraw ' . $code);
             }
         } elseif ($code !== 'LTC') {
-            $tx_fee = (is_array($params) && array_key_exists('tx_fee', $params));
+            $tx_fee = (is_array($params) && array_key_exists('tx_fee' ?? '', $params));
             if (!$tx_fee) {
                 throw new ArgumentsRequired($this->id . ' withdraw() requires $tx_fee parameter to withdraw ' . $code);
             }
             if ($code === 'XRP') {
                 if ($tag === null) {
-                    if (!(is_array($params) && array_key_exists('destination_tag', $params))) {
+                    if (!(is_array($params) && array_key_exists('destination_tag' ?? '', $params))) {
                         throw new ArgumentsRequired($this->id . ' withdraw() requires a $tag argument or destination_tag parameter to withdraw ' . $code);
                     }
                 } else {
@@ -848,7 +864,9 @@ class mercado extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
@@ -881,7 +899,9 @@ class mercado extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'coin_pair' => $market['id'],
@@ -904,7 +924,9 @@ class mercado extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'coin_pair' => $market['id'],
@@ -928,7 +950,9 @@ class mercado extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'coin_pair' => $market['id'],

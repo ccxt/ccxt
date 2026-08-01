@@ -10,6 +10,10 @@ use ccxt\ExchangeError;
 use ccxt\InvalidNonce;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class extended extends \ccxt\async\extended {
     public function describe(): mixed {
@@ -60,7 +64,9 @@ class extended extends \ccxt\async\extended {
              * @param {string} [$params->depth] set to '1' to receive best bid and ask snapshots only
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'orderbook:' . $symbol;
@@ -102,7 +108,7 @@ class extended extends \ccxt\async\extended {
         $timestamp = $this->safe_integer($message, 'ts');
         $nonce = $this->safe_integer($message, 'seq');
         $type = $this->safe_string($message, 'type', $this->safe_string($data, 't'));
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
             $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
             $limit = $this->safe_integer($subscription, 'limit', $defaultLimit);
@@ -144,11 +150,11 @@ class extended extends \ccxt\async\extended {
         }
     }
 
-    public function watch_private(string $messageHash, $subscription = null) {
+    public function watch_private(string $messageHash, ?array $subscription = null) {
         return Async\async(function () use ($messageHash, $subscription) {
             $this->check_required_credentials();
             $url = $this->urls['api']['ws'] . '/account';
-            if (($this->clients === null) || !(is_array($this->clients) && array_key_exists($url, $this->clients))) {
+            if (($this->clients === null) || !(is_array($this->clients) && array_key_exists($url ?? '', $this->clients))) {
                 $defaultOptions = array(
                     'ws' => array(
                         'options' => array(
@@ -186,7 +192,9 @@ class extended extends \ccxt\async\extended {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'orders';
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -214,7 +222,9 @@ class extended extends \ccxt\async\extended {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             return Async\await($this->watch_private('balance', $params));
         })();
     }
@@ -292,7 +302,9 @@ class extended extends \ccxt\async\extended {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'myTrades';
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -383,7 +395,9 @@ class extended extends \ccxt\async\extended {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $messageHash = 'positions';
             if ($symbols !== null) {
@@ -502,8 +516,8 @@ class extended extends \ccxt\async\extended {
         if ($first === null) {
             return;
         }
-        for ($i = 0; $i < count($rawOrders); $i++) {
-            $order = $this->parse_order($rawOrders[$i]);
+        for ($i = 0; $i < count(($rawOrders)); $i++) {
+            $order = $this->parse_order(($rawOrders)[$i]);
             $symbol = $this->safe_string($order, 'symbol');
             $symbols[$symbol] = true;
             $orders->append($order);
@@ -534,7 +548,9 @@ class extended extends \ccxt\async\extended {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'fundingRate:' . $symbol;
@@ -570,7 +586,7 @@ class extended extends \ccxt\async\extended {
         $client->resolve($fundingRate, $messageHash);
     }
 
-    public function parse_ws_funding_rate($fundingRate, $market = null, $message = null): array {
+    public function parse_ws_funding_rate($fundingRate, ?array $market = null, $message = null): array {
         $marketId = $this->safe_string($fundingRate, 'm');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($message, 'ts');
@@ -608,7 +624,9 @@ class extended extends \ccxt\async\extended {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'markPrice:' . $symbol;
@@ -671,7 +689,9 @@ class extended extends \ccxt\async\extended {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'trades:' . $symbol;
@@ -755,7 +775,9 @@ class extended extends \ccxt\async\extended {
              * @param {string} [$params->price] *ignored if $params->candleType is set* 'mark' or 'index' for mark $price and index $price candles
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $price = $this->safe_string($params, 'price');
@@ -881,21 +903,21 @@ class extended extends \ccxt\async\extended {
                 $this->handle_ohlcv($client, $message);
             }
         } elseif ($data !== null) {
-            if (($type === 'ORDER') || (is_array($data) && array_key_exists('orders', $data))) {
+            if (($type === 'ORDER') || (is_array($data) && array_key_exists('orders' ?? '', $data))) {
                 $this->handle_orders($client, $message);
             }
-            if (($type === 'TRADE') || (is_array($data) && array_key_exists('trades', $data))) {
+            if (($type === 'TRADE') || (is_array($data) && array_key_exists('trades' ?? '', $data))) {
                 $this->handle_my_trades($client, $message);
             }
-            if (($type === 'POSITION') || (is_array($data) && array_key_exists('positions', $data))) {
+            if (($type === 'POSITION') || (is_array($data) && array_key_exists('positions' ?? '', $data))) {
                 $this->handle_positions($client, $message);
             }
-            if (($type === 'BALANCE') || (is_array($data) && array_key_exists('balance', $data)) || (is_array($data) && array_key_exists('spotBalances', $data))) {
+            if (($type === 'BALANCE') || (is_array($data) && array_key_exists('balance' ?? '', $data)) || (is_array($data) && array_key_exists('spotBalances' ?? '', $data))) {
                 $this->handle_balance($client, $message);
             }
             if ($type === 'MP') {
                 $this->handle_mark_price($client, $message);
-            } elseif (is_array($data) && array_key_exists('f', $data)) {
+            } elseif (is_array($data) && array_key_exists('f' ?? '', $data)) {
                 $this->handle_funding_rate($client, $message);
             } else {
                 $this->handle_order_book($client, $message);

@@ -163,8 +163,12 @@ public class Generic {
         // that another thread may be writing concurrently. Iterating directly
         // would throw ConcurrentModificationException; the snapshot is cheap
         // and decouples us from the caller's locking discipline.
-        for (Map.Entry<String, Object> e : snapshotEntries(a)) {
-            out.put(e.getKey(), e.getValue());
+        // a may be null/undefined in transpiled code (extend(this.safeDict(...), x)) —
+        // JS Object.assign tolerates that, so must we
+        if (a != null) {
+            for (Map.Entry<String, Object> e : snapshotEntries(a)) {
+                out.put(e.getKey(), e.getValue());
+            }
         }
         if (bb != null) {
             Map<String, Object> b = (Map<String, Object>) bb;

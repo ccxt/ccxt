@@ -45,8 +45,6 @@ func TestWatchOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, symb
 
 			}
 			if IsTrue(IsEqual(success, true)) {
-				// [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-				Assert(exchange.IsDictionary(response), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " must return an object. "), exchange.Json(response)))
 				now = exchange.Milliseconds()
 				TestOrderBook(exchange, skippedProperties, method, response, symbol)
 			}

@@ -4,14 +4,35 @@ type ExchangeTyped struct {
 	*Exchange
 }
 
+type BaseExchangeTyped struct {
+	*BaseExchange
+}
+
 func NewExchangeTyped(exchangePointer *Exchange) *ExchangeTyped {
 	return &ExchangeTyped{
 		Exchange: exchangePointer,
 	}
 }
 
+// NewBaseExchangeTyped wraps a bare *BaseExchange (used by prediction venues, which
+// embed BaseExchange via PredictionExchange rather than the concrete Exchange). It exposes
+// the base unified methods only — never the 62 symbol-based trading methods.
+func NewBaseExchangeTyped(base *BaseExchange) *BaseExchangeTyped {
+	return &BaseExchangeTyped{
+		BaseExchange: base,
+	}
+}
+
 func (this *ExchangeTyped) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	res := <-this.Exchange.LoadMarkets(params...)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewMarketsMap(res), nil
+}
+
+func (this *BaseExchangeTyped) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
+	res := <-this.BaseExchange.LoadMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -41,62 +62,6 @@ func (this *ExchangeTyped) FetchAccounts(params ...any) ([]Account, error) {
 		return nil, CreateReturnError(res)
 	}
 	return NewAccountArray(res), nil
-}
-func (this *ExchangeTyped) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
-
-	opts := FetchTradesOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchTrades(symbol, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewTradeArray(res), nil
-}
-func (this *ExchangeTyped) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
-
-	opts := FetchTradesWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchTradesWs(symbol, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewTradeArray(res), nil
 }
 func (this *ExchangeTyped) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
 
@@ -210,34 +175,6 @@ func (this *ExchangeTyped) WatchMyLiquidationsForSymbols(symbols []string, optio
 	}
 	return NewLiquidationArray(res), nil
 }
-func (this *ExchangeTyped) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
-
-	opts := WatchTradesOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.WatchTrades(symbol, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewTradeArray(res), nil
-}
 func (this *ExchangeTyped) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 
 	opts := UnWatchOrdersOptionsStruct{}
@@ -279,34 +216,6 @@ func (this *ExchangeTyped) UnWatchTrades(symbol string, options ...UnWatchTrades
 	}
 	return res, nil
 }
-func (this *ExchangeTyped) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
-
-	opts := WatchTradesForSymbolsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.WatchTradesForSymbols(symbols, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewTradeArray(res), nil
-}
 func (this *ExchangeTyped) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 
 	opts := UnWatchTradesForSymbolsOptionsStruct{}
@@ -324,62 +233,6 @@ func (this *ExchangeTyped) UnWatchTradesForSymbols(symbols []string, options ...
 		return nil, CreateReturnError(res)
 	}
 	return res, nil
-}
-func (this *ExchangeTyped) WatchMyTradesForSymbols(symbols []string, options ...WatchMyTradesForSymbolsOptions) ([]Trade, error) {
-
-	opts := WatchMyTradesForSymbolsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.WatchMyTradesForSymbols(symbols, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewTradeArray(res), nil
-}
-func (this *ExchangeTyped) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
-
-	opts := WatchOrdersForSymbolsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.WatchOrdersForSymbols(symbols, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewOrderArray(res), nil
 }
 func (this *ExchangeTyped) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
 
@@ -426,29 +279,6 @@ func (this *ExchangeTyped) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]strin
 		return nil, CreateReturnError(res)
 	}
 	return res, nil
-}
-func (this *ExchangeTyped) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
-
-	opts := WatchOrderBookForSymbolsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.WatchOrderBookForSymbols(symbols, limit, params)
-	if IsError(res) {
-		return OrderBook{}, CreateReturnError(res)
-	}
-	return NewOrderBookFromWs(res), nil
 }
 func (this *ExchangeTyped) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 
@@ -573,52 +403,6 @@ func (this *ExchangeTyped) FetchDepositAddresses(options ...FetchDepositAddresse
 	}
 	return NewDepositAddressArray(res), nil
 }
-func (this *ExchangeTyped) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
-
-	opts := FetchOrderBookOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchOrderBook(symbol, limit, params)
-	if IsError(res) {
-		return OrderBook{}, CreateReturnError(res)
-	}
-	return NewOrderBook(res), nil
-}
-func (this *ExchangeTyped) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
-
-	opts := FetchOrderBookWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchOrderBookWs(symbol, limit, params)
-	if IsError(res) {
-		return OrderBook{}, CreateReturnError(res)
-	}
-	return NewOrderBook(res), nil
-}
 func (this *ExchangeTyped) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
 
 	opts := FetchMarginModeOptionsStruct{}
@@ -659,52 +443,6 @@ func (this *ExchangeTyped) FetchMarginModes(options ...FetchMarginModesOptions) 
 		return MarginModes{}, CreateReturnError(res)
 	}
 	return NewMarginModes(res), nil
-}
-func (this *ExchangeTyped) FetchRestOrderBookSafe(symbol any, options ...FetchRestOrderBookSafeOptions) (OrderBook, error) {
-
-	opts := FetchRestOrderBookSafeOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchRestOrderBookSafe(symbol, limit, params)
-	if IsError(res) {
-		return OrderBook{}, CreateReturnError(res)
-	}
-	return NewOrderBook(res), nil
-}
-func (this *ExchangeTyped) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
-
-	opts := WatchOrderBookOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.WatchOrderBook(symbol, limit, params)
-	if IsError(res) {
-		return OrderBook{}, CreateReturnError(res)
-	}
-	return NewOrderBookFromWs(res), nil
 }
 func (this *ExchangeTyped) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 
@@ -1256,24 +994,6 @@ func (this *ExchangeTyped) FetchOpenInterestHistory(symbol string, options ...Fe
 	}
 	return NewOpenInterestArray(res), nil
 }
-func (this *ExchangeTyped) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
-
-	opts := FetchOpenInterestOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchOpenInterest(symbol, params)
-	if IsError(res) {
-		return OpenInterest{}, CreateReturnError(res)
-	}
-	return NewOpenInterest(res), nil
-}
 func (this *ExchangeTyped) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
 
 	opts := FetchOpenInterestsOptionsStruct{}
@@ -1510,29 +1230,6 @@ func (this *ExchangeTyped) FetchWebEndpoint(method any, endpointMethod any, retu
 	}
 	return res.(map[string]any), nil
 }
-func (this *ExchangeTyped) FetchL2OrderBook(symbol string, options ...FetchL2OrderBookOptions) (map[string]any, error) {
-
-	opts := FetchL2OrderBookOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchL2OrderBook(symbol, limit, params)
-	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
-	}
-	return res.(map[string]any), nil
-}
 func (this *ExchangeTyped) Fetch2(path any, options ...Fetch2Options) (map[string]any, error) {
 
 	opts := Fetch2OptionsStruct{}
@@ -1575,412 +1272,6 @@ func (this *ExchangeTyped) Fetch2(path any, options ...Fetch2Options) (map[strin
 		return map[string]any{}, CreateReturnError(res)
 	}
 	return res.(map[string]any), nil
-}
-func (this *ExchangeTyped) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {
-
-	opts := EditLimitBuyOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.EditLimitBuyOrder(id, symbol, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
-
-	opts := EditLimitSellOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.EditLimitSellOrder(id, symbol, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {
-
-	opts := EditLimitOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.EditLimitOrder(id, symbol, side, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
-
-	opts := EditOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var amount any = nil
-	if opts.Amount != nil {
-		amount = *opts.Amount
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.EditOrder(id, symbol, typeVar, side, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
-
-	opts := EditOrderWithClientOrderIdOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var amount any = nil
-	if opts.Amount != nil {
-		amount = *opts.Amount
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
-
-	opts := EditOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var amount any = nil
-	if opts.Amount != nil {
-		amount = *opts.Amount
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.EditOrderWs(id, symbol, typeVar, side, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
-
-	opts := FetchPositionOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchPosition(symbol, params)
-	if IsError(res) {
-		return Position{}, CreateReturnError(res)
-	}
-	return NewPosition(res), nil
-}
-func (this *ExchangeTyped) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
-
-	opts := FetchPositionWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchPositionWs(symbol, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewPositionArray(res), nil
-}
-func (this *ExchangeTyped) WatchPosition(options ...WatchPositionOptions) (Position, error) {
-
-	opts := WatchPositionOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.WatchPosition(symbol, params)
-	if IsError(res) {
-		return Position{}, CreateReturnError(res)
-	}
-	return NewPosition(res), nil
-}
-func (this *ExchangeTyped) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
-
-	opts := WatchPositionsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.WatchPositions(symbols, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewPositionArray(res), nil
-}
-func (this *ExchangeTyped) WatchPositionForSymbols(options ...WatchPositionForSymbolsOptions) ([]Position, error) {
-
-	opts := WatchPositionForSymbolsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.WatchPositionForSymbols(symbols, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewPositionArray(res), nil
-}
-func (this *ExchangeTyped) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
-
-	opts := FetchPositionsForSymbolOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchPositionsForSymbol(symbol, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewPositionArray(res), nil
-}
-func (this *ExchangeTyped) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
-
-	opts := FetchPositionsForSymbolWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchPositionsForSymbolWs(symbol, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewPositionArray(res), nil
-}
-func (this *ExchangeTyped) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
-
-	opts := FetchPositionsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchPositions(symbols, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewPositionArray(res), nil
-}
-func (this *ExchangeTyped) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
-
-	opts := FetchPositionsWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchPositionsWs(symbols, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewPositionArray(res), nil
-}
-func (this *ExchangeTyped) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {
-
-	opts := FetchPositionsRiskOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchPositionsRisk(symbols, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewPositionArray(res), nil
-}
-func (this *ExchangeTyped) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
-
-	opts := FetchBidsAsksOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchBidsAsks(symbols, params)
-	if IsError(res) {
-		return Tickers{}, CreateReturnError(res)
-	}
-	return NewTickers(res), nil
 }
 func (this *ExchangeTyped) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 
@@ -2261,101 +1552,6 @@ func (this *ExchangeTyped) FetchIsolatedBorrowRate(symbol string, options ...Fet
 	}
 	return NewIsolatedBorrowRate(res), nil
 }
-func (this *ExchangeTyped) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
-
-	opts := FetchTickerOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchTicker(symbol, params)
-	if IsError(res) {
-		return Ticker{}, CreateReturnError(res)
-	}
-	return NewTicker(res), nil
-}
-func (this *ExchangeTyped) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {
-
-	opts := FetchMarkPriceOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchMarkPrice(symbol, params)
-	if IsError(res) {
-		return Ticker{}, CreateReturnError(res)
-	}
-	return NewTicker(res), nil
-}
-func (this *ExchangeTyped) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
-
-	opts := FetchTickerWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchTickerWs(symbol, params)
-	if IsError(res) {
-		return Ticker{}, CreateReturnError(res)
-	}
-	return NewTicker(res), nil
-}
-func (this *ExchangeTyped) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
-
-	opts := WatchTickerOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.WatchTicker(symbol, params)
-	if IsError(res) {
-		return Ticker{}, CreateReturnError(res)
-	}
-	return NewTicker(res), nil
-}
-func (this *ExchangeTyped) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
-
-	opts := FetchTickersOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchTickers(symbols, params)
-	if IsError(res) {
-		return Tickers{}, CreateReturnError(res)
-	}
-	return NewTickers(res), nil
-}
 func (this *ExchangeTyped) FetchSpotTickers(options ...FetchSpotTickersOptions) (Tickers, error) {
 
 	opts := FetchSpotTickersOptionsStruct{}
@@ -2402,52 +1598,6 @@ func (this *ExchangeTyped) FetchContractTickers(options ...FetchContractTickersO
 	}
 	return NewTickers(res), nil
 }
-func (this *ExchangeTyped) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
-
-	opts := FetchMarkPricesOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchMarkPrices(symbols, params)
-	if IsError(res) {
-		return Tickers{}, CreateReturnError(res)
-	}
-	return NewTickers(res), nil
-}
-func (this *ExchangeTyped) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
-
-	opts := FetchTickersWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchTickersWs(symbols, params)
-	if IsError(res) {
-		return Tickers{}, CreateReturnError(res)
-	}
-	return NewTickers(res), nil
-}
 func (this *ExchangeTyped) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 
 	opts := FetchOrderBooksOptionsStruct{}
@@ -2475,52 +1625,6 @@ func (this *ExchangeTyped) FetchOrderBooks(options ...FetchOrderBooksOptions) (O
 		return OrderBooks{}, CreateReturnError(res)
 	}
 	return NewOrderBooks(res), nil
-}
-func (this *ExchangeTyped) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
-
-	opts := WatchBidsAsksOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.WatchBidsAsks(symbols, params)
-	if IsError(res) {
-		return Tickers{}, CreateReturnError(res)
-	}
-	return NewTickers(res), nil
-}
-func (this *ExchangeTyped) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
-
-	opts := WatchTickersOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.WatchTickers(symbols, params)
-	if IsError(res) {
-		return Tickers{}, CreateReturnError(res)
-	}
-	return NewTickers(res), nil
 }
 func (this *ExchangeTyped) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 
@@ -2562,139 +1666,6 @@ func (this *ExchangeTyped) UnWatchFundingRate(symbol string, options ...UnWatchF
 		return nil, CreateReturnError(res)
 	}
 	return res, nil
-}
-func (this *ExchangeTyped) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
-
-	opts := FetchOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchOrder(id, symbol, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
-
-	opts := FetchOrderWithClientOrderIdOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchOrderWithClientOrderId(clientOrderId, symbol, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
-
-	opts := FetchOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchOrderWs(id, symbol, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
-
-	opts := FetchOrderStatusOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchOrderStatus(id, symbol, params)
-	if IsError(res) {
-		return "", CreateReturnError(res)
-	}
-	return res.(string), nil
-}
-func (this *ExchangeTyped) FetchUnifiedOrder(order any, options ...FetchUnifiedOrderOptions) (Order, error) {
-
-	opts := FetchUnifiedOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchUnifiedOrder(order, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
-
-	opts := CreateOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateOrder(symbol, typeVar, side, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
 }
 func (this *ExchangeTyped) CreateTwapOrder(symbol string, side string, amount float64, duration float64, options ...CreateTwapOrderOptions) (Order, error) {
 
@@ -2875,462 +1846,6 @@ func (this *ExchangeTyped) FetchPositionADLRank(symbol string, options ...FetchP
 	}
 	return NewADL(res), nil
 }
-func (this *ExchangeTyped) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {
-
-	opts := CreateTrailingAmountOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var trailingAmount any = nil
-	if opts.TrailingAmount != nil {
-		trailingAmount = *opts.TrailingAmount
-	}
-
-	var trailingTriggerPrice any = nil
-	if opts.TrailingTriggerPrice != nil {
-		trailingTriggerPrice = *opts.TrailingTriggerPrice
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateTrailingAmountOrder(symbol, typeVar, side, amount, price, trailingAmount, trailingTriggerPrice, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
-
-	opts := CreateTrailingAmountOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var trailingAmount any = nil
-	if opts.TrailingAmount != nil {
-		trailingAmount = *opts.TrailingAmount
-	}
-
-	var trailingTriggerPrice any = nil
-	if opts.TrailingTriggerPrice != nil {
-		trailingTriggerPrice = *opts.TrailingTriggerPrice
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, price, trailingAmount, trailingTriggerPrice, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {
-
-	opts := CreateTrailingPercentOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var trailingPercent any = nil
-	if opts.TrailingPercent != nil {
-		trailingPercent = *opts.TrailingPercent
-	}
-
-	var trailingTriggerPrice any = nil
-	if opts.TrailingTriggerPrice != nil {
-		trailingTriggerPrice = *opts.TrailingTriggerPrice
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateTrailingPercentOrder(symbol, typeVar, side, amount, price, trailingPercent, trailingTriggerPrice, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
-
-	opts := CreateTrailingPercentOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var trailingPercent any = nil
-	if opts.TrailingPercent != nil {
-		trailingPercent = *opts.TrailingPercent
-	}
-
-	var trailingTriggerPrice any = nil
-	if opts.TrailingTriggerPrice != nil {
-		trailingTriggerPrice = *opts.TrailingTriggerPrice
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, price, trailingPercent, trailingTriggerPrice, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {
-
-	opts := CreateMarketOrderWithCostOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateMarketOrderWithCost(symbol, side, cost, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
-
-	opts := CreateMarketBuyOrderWithCostOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateMarketBuyOrderWithCost(symbol, cost, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
-
-	opts := CreateMarketSellOrderWithCostOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateMarketSellOrderWithCost(symbol, cost, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
-
-	opts := CreateMarketOrderWithCostWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateMarketOrderWithCostWs(symbol, side, cost, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {
-
-	opts := CreateTriggerOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var triggerPrice any = nil
-	if opts.TriggerPrice != nil {
-		triggerPrice = *opts.TriggerPrice
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateTriggerOrder(symbol, typeVar, side, amount, price, triggerPrice, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
-
-	opts := CreateTriggerOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var triggerPrice any = nil
-	if opts.TriggerPrice != nil {
-		triggerPrice = *opts.TriggerPrice
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateTriggerOrderWs(symbol, typeVar, side, amount, price, triggerPrice, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {
-
-	opts := CreateStopLossOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var stopLossPrice any = nil
-	if opts.StopLossPrice != nil {
-		stopLossPrice = *opts.StopLossPrice
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateStopLossOrder(symbol, typeVar, side, amount, price, stopLossPrice, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
-
-	opts := CreateStopLossOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var stopLossPrice any = nil
-	if opts.StopLossPrice != nil {
-		stopLossPrice = *opts.StopLossPrice
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateStopLossOrderWs(symbol, typeVar, side, amount, price, stopLossPrice, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {
-
-	opts := CreateTakeProfitOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var takeProfitPrice any = nil
-	if opts.TakeProfitPrice != nil {
-		takeProfitPrice = *opts.TakeProfitPrice
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateTakeProfitOrder(symbol, typeVar, side, amount, price, takeProfitPrice, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
-
-	opts := CreateTakeProfitOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var takeProfitPrice any = nil
-	if opts.TakeProfitPrice != nil {
-		takeProfitPrice = *opts.TakeProfitPrice
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, price, takeProfitPrice, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
-
-	opts := CreateOrderWithTakeProfitAndStopLossOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var takeProfit any = nil
-	if opts.TakeProfit != nil {
-		takeProfit = *opts.TakeProfit
-	}
-
-	var stopLoss any = nil
-	if opts.StopLoss != nil {
-		stopLoss = *opts.StopLoss
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, price, takeProfit, stopLoss, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
-
-	opts := CreateOrderWithTakeProfitAndStopLossWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var takeProfit any = nil
-	if opts.TakeProfit != nil {
-		takeProfit = *opts.TakeProfit
-	}
-
-	var stopLoss any = nil
-	if opts.StopLoss != nil {
-		stopLoss = *opts.StopLoss
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, price, takeProfit, stopLoss, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
-
-	opts := CreateOrdersOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateOrders(ConvertOrderRequestListToArray(orders), params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewOrderArray(res), nil
-}
 func (this *ExchangeTyped) CreateSpotOrders(orders []OrderRequest, options ...CreateSpotOrdersOptions) ([]Order, error) {
 
 	opts := CreateSpotOrdersOptionsStruct{}
@@ -3366,70 +1881,6 @@ func (this *ExchangeTyped) CreateContractOrders(orders []OrderRequest, options .
 		return nil, CreateReturnError(res)
 	}
 	return NewOrderArray(res), nil
-}
-func (this *ExchangeTyped) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
-
-	opts := EditOrdersOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.EditOrders(orders, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewOrderArray(res), nil
-}
-func (this *ExchangeTyped) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
-
-	opts := CreateOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateOrderWs(symbol, typeVar, side, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
-
-	opts := CancelOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CancelOrder(id, symbol, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
 }
 func (this *ExchangeTyped) CancelSpotOrder(id string, options ...CancelSpotOrderOptions) (Order, error) {
 
@@ -3476,144 +1927,6 @@ func (this *ExchangeTyped) CancelContractOrder(id string, options ...CancelContr
 		return Order{}, CreateReturnError(res)
 	}
 	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
-
-	opts := CancelOrderWithClientOrderIdOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CancelOrderWithClientOrderId(clientOrderId, symbol, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
-
-	opts := CancelOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CancelOrderWs(id, symbol, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
-
-	opts := CancelOrdersOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CancelOrders(ids, symbol, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewOrderArray(res), nil
-}
-func (this *ExchangeTyped) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
-
-	opts := CancelOrdersWithClientOrderIdsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CancelOrdersWithClientOrderIds(clientOrderIds, symbol, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewOrderArray(res), nil
-}
-func (this *ExchangeTyped) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
-
-	opts := CancelOrdersWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CancelOrdersWs(ids, symbol, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewOrderArray(res), nil
-}
-func (this *ExchangeTyped) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
-
-	opts := CancelAllOrdersOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CancelAllOrders(symbol, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewOrderArray(res), nil
 }
 func (this *ExchangeTyped) CancelAllSpotOrders(options ...CancelAllSpotOrdersOptions) ([]Order, error) {
 
@@ -3697,410 +2010,6 @@ func (this *ExchangeTyped) CancelOrdersForSymbols(orders []CancellationRequest, 
 	}
 	return NewOrderArray(res), nil
 }
-func (this *ExchangeTyped) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
-
-	opts := CancelAllOrdersWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CancelAllOrdersWs(symbol, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewOrderArray(res), nil
-}
-func (this *ExchangeTyped) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrderOptions) (map[string]any, error) {
-
-	opts := CancelUnifiedOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CancelUnifiedOrder(order, params)
-	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
-	}
-	return res.(map[string]any), nil
-}
-func (this *ExchangeTyped) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
-
-	opts := FetchOrdersOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchOrders(symbol, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewOrderArray(res), nil
-}
-func (this *ExchangeTyped) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
-
-	opts := FetchOrdersWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchOrdersWs(symbol, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewOrderArray(res), nil
-}
-func (this *ExchangeTyped) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
-
-	opts := FetchOrderTradesOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchOrderTrades(id, symbol, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewTradeArray(res), nil
-}
-func (this *ExchangeTyped) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
-
-	opts := WatchOrdersOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.WatchOrders(symbol, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewOrderArray(res), nil
-}
-func (this *ExchangeTyped) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
-
-	opts := FetchOpenOrdersOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchOpenOrders(symbol, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewOrderArray(res), nil
-}
-func (this *ExchangeTyped) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
-
-	opts := FetchOpenOrdersWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchOpenOrdersWs(symbol, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewOrderArray(res), nil
-}
-func (this *ExchangeTyped) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
-
-	opts := FetchClosedOrdersOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchClosedOrders(symbol, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewOrderArray(res), nil
-}
-func (this *ExchangeTyped) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
-
-	opts := FetchCanceledOrdersOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchCanceledOrders(symbol, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewOrderArray(res), nil
-}
-func (this *ExchangeTyped) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
-
-	opts := FetchCanceledAndClosedOrdersOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchCanceledAndClosedOrders(symbol, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewOrderArray(res), nil
-}
-func (this *ExchangeTyped) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
-
-	opts := FetchClosedOrdersWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchClosedOrdersWs(symbol, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewOrderArray(res), nil
-}
-func (this *ExchangeTyped) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
-
-	opts := FetchMyTradesOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchMyTrades(symbol, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewTradeArray(res), nil
-}
 func (this *ExchangeTyped) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
 
 	opts := FetchMyLiquidationsOptionsStruct{}
@@ -4161,72 +2070,6 @@ func (this *ExchangeTyped) FetchLiquidations(symbol string, options ...FetchLiqu
 		return nil, CreateReturnError(res)
 	}
 	return NewLiquidationArray(res), nil
-}
-func (this *ExchangeTyped) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
-
-	opts := FetchMyTradesWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchMyTradesWs(symbol, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewTradeArray(res), nil
-}
-func (this *ExchangeTyped) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
-
-	opts := WatchMyTradesOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.WatchMyTrades(symbol, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewTradeArray(res), nil
 }
 func (this *ExchangeTyped) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
 
@@ -4559,29 +2402,6 @@ func (this *ExchangeTyped) FetchFundingHistory(options ...FetchFundingHistoryOpt
 	}
 	return NewFundingHistoryArray(res), nil
 }
-func (this *ExchangeTyped) FetchL3OrderBook(symbol string, options ...FetchL3OrderBookOptions) (OrderBook, error) {
-
-	opts := FetchL3OrderBookOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchL3OrderBook(symbol, limit, params)
-	if IsError(res) {
-		return OrderBook{}, CreateReturnError(res)
-	}
-	return NewOrderBook(res), nil
-}
 func (this *ExchangeTyped) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
 	opts := FetchDepositAddressOptionsStruct{}
@@ -4618,232 +2438,6 @@ func (this *ExchangeTyped) FetchContractDepositAddress(code string, options ...F
 	}
 	return NewDepositAddress(res), nil
 }
-func (this *ExchangeTyped) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {
-
-	opts := CreateLimitOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateLimitOrder(symbol, side, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
-
-	opts := CreateLimitOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateLimitOrderWs(symbol, side, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {
-
-	opts := CreateMarketOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateMarketOrder(symbol, side, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
-
-	opts := CreateMarketOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateMarketOrderWs(symbol, side, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {
-
-	opts := CreateLimitBuyOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateLimitBuyOrder(symbol, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
-
-	opts := CreateLimitBuyOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateLimitBuyOrderWs(symbol, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {
-
-	opts := CreateLimitSellOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateLimitSellOrder(symbol, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
-
-	opts := CreateLimitSellOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateLimitSellOrderWs(symbol, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {
-
-	opts := CreateMarketBuyOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateMarketBuyOrder(symbol, amount, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
-
-	opts := CreateMarketBuyOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateMarketBuyOrderWs(symbol, amount, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {
-
-	opts := CreateMarketSellOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateMarketSellOrder(symbol, amount, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
-
-	opts := CreateMarketSellOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateMarketSellOrderWs(symbol, amount, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
 func (this *ExchangeTyped) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 
 	opts := FetchMarketLeverageTiersOptionsStruct{}
@@ -4861,226 +2455,6 @@ func (this *ExchangeTyped) FetchMarketLeverageTiers(symbol string, options ...Fe
 		return nil, CreateReturnError(res)
 	}
 	return NewLeverageTierArray(res), nil
-}
-func (this *ExchangeTyped) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {
-
-	opts := CreatePostOnlyOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreatePostOnlyOrder(symbol, typeVar, side, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
-
-	opts := CreatePostOnlyOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {
-
-	opts := CreateReduceOnlyOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateReduceOnlyOrder(symbol, typeVar, side, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
-
-	opts := CreateReduceOnlyOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, price, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {
-
-	opts := CreateStopOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var triggerPrice any = nil
-	if opts.TriggerPrice != nil {
-		triggerPrice = *opts.TriggerPrice
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateStopOrder(symbol, typeVar, side, amount, price, triggerPrice, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
-
-	opts := CreateStopOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
-
-	var triggerPrice any = nil
-	if opts.TriggerPrice != nil {
-		triggerPrice = *opts.TriggerPrice
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateStopOrderWs(symbol, typeVar, side, amount, price, triggerPrice, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {
-
-	opts := CreateStopLimitOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateStopLimitOrder(symbol, side, amount, price, triggerPrice, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
-
-	opts := CreateStopLimitOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {
-
-	opts := CreateStopMarketOrderOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateStopMarketOrder(symbol, side, amount, triggerPrice, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
-}
-func (this *ExchangeTyped) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
-
-	opts := CreateStopMarketOrderWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, params)
-	if IsError(res) {
-		return Order{}, CreateReturnError(res)
-	}
-	return NewOrder(res), nil
 }
 func (this *ExchangeTyped) CreateSubAccount(name string, options ...CreateSubAccountOptions) (map[string]any, error) {
 
@@ -5136,24 +2510,6 @@ func (this *ExchangeTyped) FetchTradingFeesWs(params ...any) (TradingFees, error
 		return TradingFees{}, CreateReturnError(res)
 	}
 	return NewTradingFees(res), nil
-}
-func (this *ExchangeTyped) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
-
-	opts := FetchTradingFeeOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchTradingFee(symbol, params)
-	if IsError(res) {
-		return TradingFeeInterface{}, CreateReturnError(res)
-	}
-	return NewTradingFeeInterface(res), nil
 }
 func (this *ExchangeTyped) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	res := <-this.Exchange.FetchConvertCurrencies(params...)
@@ -5512,67 +2868,6 @@ func (this *ExchangeTyped) FetchPaginatedCallIncremental(method string, options 
 	}
 	return res.(map[string]any), nil
 }
-func (this *ExchangeTyped) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
-
-	opts := FetchPositionHistoryOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchPositionHistory(symbol, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewPositionArray(res), nil
-}
-func (this *ExchangeTyped) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
-
-	opts := FetchPositionsHistoryOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
-
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
-
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.FetchPositionsHistory(symbols, since, limit, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewPositionArray(res), nil
-}
 func (this *ExchangeTyped) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
 
 	opts := FetchTransferOptionsStruct{}
@@ -5652,47 +2947,6 @@ func (this *ExchangeTyped) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOp
 	}
 	return res, nil
 }
-func (this *ExchangeTyped) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
-
-	opts := WatchMarkPriceOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.WatchMarkPrice(symbol, params)
-	if IsError(res) {
-		return Ticker{}, CreateReturnError(res)
-	}
-	return NewTicker(res), nil
-}
-func (this *ExchangeTyped) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
-
-	opts := WatchMarkPricesOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.WatchMarkPrices(symbols, params)
-	if IsError(res) {
-		return Tickers{}, CreateReturnError(res)
-	}
-	return NewTickers(res), nil
-}
 func (this *ExchangeTyped) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
 
 	opts := WithdrawWsOptionsStruct{}
@@ -5738,24 +2992,6 @@ func (this *ExchangeTyped) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (a
 		return nil, CreateReturnError(res)
 	}
 	return res, nil
-}
-func (this *ExchangeTyped) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
-
-	opts := CreateOrdersWsOptionsStruct{}
-
-	for _, opt := range options {
-		opt(&opts)
-	}
-
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
-	res := <-this.Exchange.CreateOrdersWs(orders, params)
-	if IsError(res) {
-		return nil, CreateReturnError(res)
-	}
-	return NewOrderArray(res), nil
 }
 func (this *ExchangeTyped) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
 
@@ -5808,6 +3044,5798 @@ func (this *ExchangeTyped) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (a
 		params = *opts.Params
 	}
 	res := <-this.Exchange.UnWatchBidsAsks(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
+}
+func (this *ExchangeTyped) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
+
+	opts := EditOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.EditOrders(orders, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
+
+	opts := FetchCanceledAndClosedOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchCanceledAndClosedOrders(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
+
+	opts := FetchPositionHistoryOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchPositionHistory(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewPositionArray(res), nil
+}
+func (this *ExchangeTyped) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
+
+	opts := FetchPositionsHistoryOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchPositionsHistory(symbols, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewPositionArray(res), nil
+}
+func (this *ExchangeTyped) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {
+
+	opts := FetchPositionsRiskOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchPositionsRisk(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewPositionArray(res), nil
+}
+func (this *ExchangeTyped) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
+
+	opts := FetchPositionsForSymbolOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchPositionsForSymbol(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewPositionArray(res), nil
+}
+func (this *ExchangeTyped) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {
+
+	opts := FetchPositionsForSymbolWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchPositionsForSymbolWs(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewPositionArray(res), nil
+}
+func (this *ExchangeTyped) WatchPosition(options ...WatchPositionOptions) (Position, error) {
+
+	opts := WatchPositionOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.WatchPosition(symbol, params)
+	if IsError(res) {
+		return Position{}, CreateReturnError(res)
+	}
+	return NewPosition(res), nil
+}
+func (this *ExchangeTyped) WatchMyTradesForSymbols(symbols []string, options ...WatchMyTradesForSymbolsOptions) ([]Trade, error) {
+
+	opts := WatchMyTradesForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.WatchMyTradesForSymbols(symbols, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewTradeArray(res), nil
+}
+func (this *ExchangeTyped) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {
+
+	opts := WatchTradesForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.WatchTradesForSymbols(symbols, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewTradeArray(res), nil
+}
+func (this *ExchangeTyped) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
+
+	opts := FetchBidsAsksOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchBidsAsks(symbols, params)
+	if IsError(res) {
+		return Tickers{}, CreateReturnError(res)
+	}
+	return NewTickers(res), nil
+}
+func (this *ExchangeTyped) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {
+
+	opts := FetchMarkPriceOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchMarkPrice(symbol, params)
+	if IsError(res) {
+		return Ticker{}, CreateReturnError(res)
+	}
+	return NewTicker(res), nil
+}
+func (this *ExchangeTyped) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {
+
+	opts := FetchMarkPricesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchMarkPrices(symbols, params)
+	if IsError(res) {
+		return Tickers{}, CreateReturnError(res)
+	}
+	return NewTickers(res), nil
+}
+func (this *ExchangeTyped) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {
+
+	opts := WatchBidsAsksOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.WatchBidsAsks(symbols, params)
+	if IsError(res) {
+		return Tickers{}, CreateReturnError(res)
+	}
+	return NewTickers(res), nil
+}
+func (this *ExchangeTyped) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {
+
+	opts := WatchMarkPriceOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.WatchMarkPrice(symbol, params)
+	if IsError(res) {
+		return Ticker{}, CreateReturnError(res)
+	}
+	return NewTicker(res), nil
+}
+func (this *ExchangeTyped) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {
+
+	opts := WatchMarkPricesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.WatchMarkPrices(symbols, params)
+	if IsError(res) {
+		return Tickers{}, CreateReturnError(res)
+	}
+	return NewTickers(res), nil
+}
+func (this *ExchangeTyped) FetchL3OrderBook(symbol string, options ...FetchL3OrderBookOptions) (OrderBook, error) {
+
+	opts := FetchL3OrderBookOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchL3OrderBook(symbol, limit, params)
+	if IsError(res) {
+		return OrderBook{}, CreateReturnError(res)
+	}
+	return NewOrderBook(res), nil
+}
+func (this *ExchangeTyped) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {
+
+	opts := WatchOrderBookForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.WatchOrderBookForSymbols(symbols, limit, params)
+	if IsError(res) {
+		return OrderBook{}, CreateReturnError(res)
+	}
+	return NewOrderBookFromWs(res), nil
+}
+func (this *ExchangeTyped) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {
+
+	opts := WatchOrdersForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.WatchOrdersForSymbols(symbols, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
+
+	opts := CancelAllOrdersWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CancelAllOrdersWs(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {
+
+	opts := CancelOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CancelOrderWs(id, symbol, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {
+
+	opts := CancelOrdersWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CancelOrdersWs(ids, symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {
+
+	opts := CreateLimitBuyOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateLimitBuyOrderWs(symbol, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {
+
+	opts := CreateLimitOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateLimitOrderWs(symbol, side, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {
+
+	opts := CreateLimitSellOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateLimitSellOrderWs(symbol, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {
+
+	opts := CreateMarketBuyOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateMarketBuyOrderWs(symbol, amount, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {
+
+	opts := CreateMarketOrderWithCostWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateMarketOrderWithCostWs(symbol, side, cost, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {
+
+	opts := CreateMarketOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateMarketOrderWs(symbol, side, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {
+
+	opts := CreateMarketSellOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateMarketSellOrderWs(symbol, amount, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {
+
+	opts := CreateOrderWithTakeProfitAndStopLossWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var takeProfit any = nil
+	if opts.TakeProfit != nil {
+		takeProfit = *opts.TakeProfit
+	}
+
+	var stopLoss any = nil
+	if opts.StopLoss != nil {
+		stopLoss = *opts.StopLoss
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, price, takeProfit, stopLoss, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {
+
+	opts := CreateOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateOrderWs(symbol, typeVar, side, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {
+
+	opts := CreateOrdersWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateOrdersWs(orders, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {
+
+	opts := CreatePostOnlyOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {
+
+	opts := CreateReduceOnlyOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {
+
+	opts := CreateStopLimitOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {
+
+	opts := CreateStopLossOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var stopLossPrice any = nil
+	if opts.StopLossPrice != nil {
+		stopLossPrice = *opts.StopLossPrice
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateStopLossOrderWs(symbol, typeVar, side, amount, price, stopLossPrice, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {
+
+	opts := CreateStopMarketOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {
+
+	opts := CreateStopOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var triggerPrice any = nil
+	if opts.TriggerPrice != nil {
+		triggerPrice = *opts.TriggerPrice
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateStopOrderWs(symbol, typeVar, side, amount, price, triggerPrice, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {
+
+	opts := CreateTakeProfitOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var takeProfitPrice any = nil
+	if opts.TakeProfitPrice != nil {
+		takeProfitPrice = *opts.TakeProfitPrice
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, price, takeProfitPrice, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {
+
+	opts := CreateTrailingAmountOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var trailingAmount any = nil
+	if opts.TrailingAmount != nil {
+		trailingAmount = *opts.TrailingAmount
+	}
+
+	var trailingTriggerPrice any = nil
+	if opts.TrailingTriggerPrice != nil {
+		trailingTriggerPrice = *opts.TrailingTriggerPrice
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, price, trailingAmount, trailingTriggerPrice, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {
+
+	opts := CreateTrailingPercentOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var trailingPercent any = nil
+	if opts.TrailingPercent != nil {
+		trailingPercent = *opts.TrailingPercent
+	}
+
+	var trailingTriggerPrice any = nil
+	if opts.TrailingTriggerPrice != nil {
+		trailingTriggerPrice = *opts.TrailingTriggerPrice
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, price, trailingPercent, trailingTriggerPrice, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {
+
+	opts := CreateTriggerOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var triggerPrice any = nil
+	if opts.TriggerPrice != nil {
+		triggerPrice = *opts.TriggerPrice
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateTriggerOrderWs(symbol, typeVar, side, amount, price, triggerPrice, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
+
+	opts := EditOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var amount any = nil
+	if opts.Amount != nil {
+		amount = *opts.Amount
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.EditOrderWs(id, symbol, typeVar, side, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
+
+	opts := FetchClosedOrdersWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchClosedOrdersWs(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
+
+	opts := FetchMyTradesWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchMyTradesWs(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewTradeArray(res), nil
+}
+func (this *ExchangeTyped) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {
+
+	opts := FetchOpenOrdersWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchOpenOrdersWs(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {
+
+	opts := FetchOrderBookWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchOrderBookWs(symbol, limit, params)
+	if IsError(res) {
+		return OrderBook{}, CreateReturnError(res)
+	}
+	return NewOrderBook(res), nil
+}
+func (this *ExchangeTyped) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {
+
+	opts := FetchOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchOrderWs(id, symbol, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {
+
+	opts := FetchOrdersWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchOrdersWs(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {
+
+	opts := FetchPositionWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchPositionWs(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewPositionArray(res), nil
+}
+func (this *ExchangeTyped) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {
+
+	opts := FetchPositionsWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchPositionsWs(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewPositionArray(res), nil
+}
+func (this *ExchangeTyped) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {
+
+	opts := FetchTickerWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchTickerWs(symbol, params)
+	if IsError(res) {
+		return Ticker{}, CreateReturnError(res)
+	}
+	return NewTicker(res), nil
+}
+func (this *ExchangeTyped) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {
+
+	opts := FetchTickersWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchTickersWs(symbols, params)
+	if IsError(res) {
+		return Tickers{}, CreateReturnError(res)
+	}
+	return NewTickers(res), nil
+}
+func (this *ExchangeTyped) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
+
+	opts := FetchTradesWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchTradesWs(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewTradeArray(res), nil
+}
+func (this *ExchangeTyped) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
+
+	opts := FetchTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchTrades(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewTradeArray(res), nil
+}
+func (this *ExchangeTyped) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {
+
+	opts := WatchTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.WatchTrades(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewTradeArray(res), nil
+}
+func (this *ExchangeTyped) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
+
+	opts := FetchOrderBookOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchOrderBook(symbol, limit, params)
+	if IsError(res) {
+		return OrderBook{}, CreateReturnError(res)
+	}
+	return NewOrderBook(res), nil
+}
+func (this *ExchangeTyped) FetchRestOrderBookSafe(symbol any, options ...FetchRestOrderBookSafeOptions) (OrderBook, error) {
+
+	opts := FetchRestOrderBookSafeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchRestOrderBookSafe(symbol, limit, params)
+	if IsError(res) {
+		return OrderBook{}, CreateReturnError(res)
+	}
+	return NewOrderBook(res), nil
+}
+func (this *ExchangeTyped) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {
+
+	opts := WatchOrderBookOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.WatchOrderBook(symbol, limit, params)
+	if IsError(res) {
+		return OrderBook{}, CreateReturnError(res)
+	}
+	return NewOrderBookFromWs(res), nil
+}
+func (this *ExchangeTyped) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
+
+	opts := FetchOpenInterestOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchOpenInterest(symbol, params)
+	if IsError(res) {
+		return OpenInterest{}, CreateReturnError(res)
+	}
+	return NewOpenInterest(res), nil
+}
+func (this *ExchangeTyped) FetchL2OrderBook(symbol string, options ...FetchL2OrderBookOptions) (map[string]any, error) {
+
+	opts := FetchL2OrderBookOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchL2OrderBook(symbol, limit, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *ExchangeTyped) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {
+
+	opts := EditLimitBuyOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.EditLimitBuyOrder(id, symbol, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
+
+	opts := EditLimitSellOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.EditLimitSellOrder(id, symbol, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {
+
+	opts := EditLimitOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.EditLimitOrder(id, symbol, side, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
+
+	opts := EditOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var amount any = nil
+	if opts.Amount != nil {
+		amount = *opts.Amount
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.EditOrder(id, symbol, typeVar, side, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+
+	opts := EditOrderWithClientOrderIdOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var amount any = nil
+	if opts.Amount != nil {
+		amount = *opts.Amount
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
+
+	opts := FetchPositionOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchPosition(symbol, params)
+	if IsError(res) {
+		return Position{}, CreateReturnError(res)
+	}
+	return NewPosition(res), nil
+}
+func (this *ExchangeTyped) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {
+
+	opts := WatchPositionsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.WatchPositions(symbols, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewPositionArray(res), nil
+}
+func (this *ExchangeTyped) WatchPositionForSymbols(options ...WatchPositionForSymbolsOptions) ([]Position, error) {
+
+	opts := WatchPositionForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.WatchPositionForSymbols(symbols, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewPositionArray(res), nil
+}
+func (this *ExchangeTyped) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
+
+	opts := FetchPositionsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchPositions(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewPositionArray(res), nil
+}
+func (this *ExchangeTyped) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
+
+	opts := FetchTickerOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchTicker(symbol, params)
+	if IsError(res) {
+		return Ticker{}, CreateReturnError(res)
+	}
+	return NewTicker(res), nil
+}
+func (this *ExchangeTyped) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {
+
+	opts := WatchTickerOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.WatchTicker(symbol, params)
+	if IsError(res) {
+		return Ticker{}, CreateReturnError(res)
+	}
+	return NewTicker(res), nil
+}
+func (this *ExchangeTyped) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
+
+	opts := FetchTickersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchTickers(symbols, params)
+	if IsError(res) {
+		return Tickers{}, CreateReturnError(res)
+	}
+	return NewTickers(res), nil
+}
+func (this *ExchangeTyped) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {
+
+	opts := WatchTickersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.WatchTickers(symbols, params)
+	if IsError(res) {
+		return Tickers{}, CreateReturnError(res)
+	}
+	return NewTickers(res), nil
+}
+func (this *ExchangeTyped) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
+
+	opts := FetchOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchOrder(id, symbol, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+
+	opts := FetchOrderWithClientOrderIdOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchOrderWithClientOrderId(clientOrderId, symbol, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
+
+	opts := FetchOrderStatusOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchOrderStatus(id, symbol, params)
+	if IsError(res) {
+		return "", CreateReturnError(res)
+	}
+	return res.(string), nil
+}
+func (this *ExchangeTyped) FetchUnifiedOrder(order any, options ...FetchUnifiedOrderOptions) (Order, error) {
+
+	opts := FetchUnifiedOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchUnifiedOrder(order, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
+
+	opts := CreateOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateOrder(symbol, typeVar, side, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {
+
+	opts := CreateTrailingAmountOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var trailingAmount any = nil
+	if opts.TrailingAmount != nil {
+		trailingAmount = *opts.TrailingAmount
+	}
+
+	var trailingTriggerPrice any = nil
+	if opts.TrailingTriggerPrice != nil {
+		trailingTriggerPrice = *opts.TrailingTriggerPrice
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateTrailingAmountOrder(symbol, typeVar, side, amount, price, trailingAmount, trailingTriggerPrice, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {
+
+	opts := CreateTrailingPercentOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var trailingPercent any = nil
+	if opts.TrailingPercent != nil {
+		trailingPercent = *opts.TrailingPercent
+	}
+
+	var trailingTriggerPrice any = nil
+	if opts.TrailingTriggerPrice != nil {
+		trailingTriggerPrice = *opts.TrailingTriggerPrice
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateTrailingPercentOrder(symbol, typeVar, side, amount, price, trailingPercent, trailingTriggerPrice, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {
+
+	opts := CreateMarketOrderWithCostOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateMarketOrderWithCost(symbol, side, cost, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
+
+	opts := CreateMarketBuyOrderWithCostOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateMarketBuyOrderWithCost(symbol, cost, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
+
+	opts := CreateMarketSellOrderWithCostOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateMarketSellOrderWithCost(symbol, cost, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {
+
+	opts := CreateTriggerOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var triggerPrice any = nil
+	if opts.TriggerPrice != nil {
+		triggerPrice = *opts.TriggerPrice
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateTriggerOrder(symbol, typeVar, side, amount, price, triggerPrice, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {
+
+	opts := CreateStopLossOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var stopLossPrice any = nil
+	if opts.StopLossPrice != nil {
+		stopLossPrice = *opts.StopLossPrice
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateStopLossOrder(symbol, typeVar, side, amount, price, stopLossPrice, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {
+
+	opts := CreateTakeProfitOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var takeProfitPrice any = nil
+	if opts.TakeProfitPrice != nil {
+		takeProfitPrice = *opts.TakeProfitPrice
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateTakeProfitOrder(symbol, typeVar, side, amount, price, takeProfitPrice, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
+
+	opts := CreateOrderWithTakeProfitAndStopLossOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var takeProfit any = nil
+	if opts.TakeProfit != nil {
+		takeProfit = *opts.TakeProfit
+	}
+
+	var stopLoss any = nil
+	if opts.StopLoss != nil {
+		stopLoss = *opts.StopLoss
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, price, takeProfit, stopLoss, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
+
+	opts := CreateOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateOrders(ConvertOrderRequestListToArray(orders), params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
+
+	opts := CancelOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CancelOrder(id, symbol, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+
+	opts := CancelOrderWithClientOrderIdOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CancelOrderWithClientOrderId(clientOrderId, symbol, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
+
+	opts := CancelOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CancelOrders(ids, symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+
+	opts := CancelOrdersWithClientOrderIdsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CancelOrdersWithClientOrderIds(clientOrderIds, symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
+
+	opts := CancelAllOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CancelAllOrders(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrderOptions) (map[string]any, error) {
+
+	opts := CancelUnifiedOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CancelUnifiedOrder(order, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *ExchangeTyped) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
+
+	opts := FetchOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchOrders(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
+
+	opts := FetchOrderTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchOrderTrades(id, symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewTradeArray(res), nil
+}
+func (this *ExchangeTyped) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {
+
+	opts := WatchOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.WatchOrders(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
+
+	opts := FetchOpenOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchOpenOrders(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
+
+	opts := FetchClosedOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchClosedOrders(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
+
+	opts := FetchCanceledOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchCanceledOrders(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
+
+	opts := FetchMyTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchMyTrades(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewTradeArray(res), nil
+}
+func (this *ExchangeTyped) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {
+
+	opts := WatchMyTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.WatchMyTrades(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewTradeArray(res), nil
+}
+func (this *ExchangeTyped) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {
+
+	opts := CreateLimitOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateLimitOrder(symbol, side, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {
+
+	opts := CreateMarketOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateMarketOrder(symbol, side, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {
+
+	opts := CreateLimitBuyOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateLimitBuyOrder(symbol, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {
+
+	opts := CreateLimitSellOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateLimitSellOrder(symbol, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {
+
+	opts := CreateMarketBuyOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateMarketBuyOrder(symbol, amount, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {
+
+	opts := CreateMarketSellOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateMarketSellOrder(symbol, amount, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {
+
+	opts := CreatePostOnlyOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreatePostOnlyOrder(symbol, typeVar, side, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {
+
+	opts := CreateReduceOnlyOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateReduceOnlyOrder(symbol, typeVar, side, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {
+
+	opts := CreateStopOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var triggerPrice any = nil
+	if opts.TriggerPrice != nil {
+		triggerPrice = *opts.TriggerPrice
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateStopOrder(symbol, typeVar, side, amount, price, triggerPrice, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {
+
+	opts := CreateStopLimitOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateStopLimitOrder(symbol, side, amount, price, triggerPrice, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {
+
+	opts := CreateStopMarketOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateStopMarketOrder(symbol, side, amount, triggerPrice, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *ExchangeTyped) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
+
+	opts := FetchTradingFeeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchTradingFee(symbol, params)
+	if IsError(res) {
+		return TradingFeeInterface{}, CreateReturnError(res)
+	}
+	return NewTradingFeeInterface(res), nil
+}
+func (this *BaseExchangeTyped) FetchCurrencies(params ...any) (Currencies, error) {
+	res := <-this.BaseExchange.FetchCurrencies(params...)
+	if IsError(res) {
+		return Currencies{}, CreateReturnError(res)
+	}
+	return NewCurrencies(res), nil
+}
+func (this *BaseExchangeTyped) FetchMarkets(params ...any) ([]MarketInterface, error) {
+	res := <-this.BaseExchange.FetchMarkets(params...)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewMarketInterfaceArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchAccounts(params ...any) ([]Account, error) {
+	res := <-this.BaseExchange.FetchAccounts(params...)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewAccountArray(res), nil
+}
+func (this *BaseExchangeTyped) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {
+
+	opts := WatchLiquidationsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.WatchLiquidations(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewLiquidationArray(res), nil
+}
+func (this *BaseExchangeTyped) WatchLiquidationsForSymbols(symbols []string, options ...WatchLiquidationsForSymbolsOptions) ([]Liquidation, error) {
+
+	opts := WatchLiquidationsForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.WatchLiquidationsForSymbols(symbols, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewLiquidationArray(res), nil
+}
+func (this *BaseExchangeTyped) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {
+
+	opts := WatchMyLiquidationsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.WatchMyLiquidations(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewLiquidationArray(res), nil
+}
+func (this *BaseExchangeTyped) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {
+
+	opts := WatchMyLiquidationsForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.WatchMyLiquidationsForSymbols(symbols, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewLiquidationArray(res), nil
+}
+func (this *BaseExchangeTyped) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
+
+	opts := UnWatchOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.UnWatchOrders(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
+}
+func (this *BaseExchangeTyped) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
+
+	opts := UnWatchTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.UnWatchTrades(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
+}
+func (this *BaseExchangeTyped) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
+
+	opts := UnWatchTradesForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.UnWatchTradesForSymbols(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
+}
+func (this *BaseExchangeTyped) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {
+
+	opts := WatchOHLCVForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.WatchOHLCVForSymbols(symbolsAndTimeframes, since, limit, params)
+	if IsError(res) {
+		return map[string]map[string][]OHLCV{}, CreateReturnError(res)
+	}
+	return res.(map[string]map[string][]OHLCV), nil
+}
+func (this *BaseExchangeTyped) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
+
+	opts := UnWatchOHLCVForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.UnWatchOHLCVForSymbols(symbolsAndTimeframes, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
+}
+func (this *BaseExchangeTyped) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
+
+	opts := UnWatchOrderBookForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.UnWatchOrderBookForSymbols(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
+}
+func (this *BaseExchangeTyped) UnWatchPositions(options ...UnWatchPositionsOptions) (any, error) {
+
+	opts := UnWatchPositionsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.UnWatchPositions(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
+}
+func (this *BaseExchangeTyped) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
+
+	opts := UnWatchTickerOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.UnWatchTicker(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
+}
+func (this *BaseExchangeTyped) UnWatchMarkPrice(symbol string, options ...UnWatchMarkPriceOptions) (any, error) {
+
+	opts := UnWatchMarkPriceOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.UnWatchMarkPrice(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
+}
+func (this *BaseExchangeTyped) UnWatchMarkPrices(options ...UnWatchMarkPricesOptions) (any, error) {
+
+	opts := UnWatchMarkPricesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.UnWatchMarkPrices(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
+}
+func (this *BaseExchangeTyped) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
+
+	opts := FetchDepositAddressesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var codes any = nil
+	if opts.Codes != nil {
+		codes = *opts.Codes
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchDepositAddresses(codes, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewDepositAddressArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
+
+	opts := FetchMarginModeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchMarginMode(symbol, params)
+	if IsError(res) {
+		return MarginMode{}, CreateReturnError(res)
+	}
+	return NewMarginMode(res), nil
+}
+func (this *BaseExchangeTyped) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
+
+	opts := FetchMarginModesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchMarginModes(symbols, params)
+	if IsError(res) {
+		return MarginModes{}, CreateReturnError(res)
+	}
+	return NewMarginModes(res), nil
+}
+func (this *BaseExchangeTyped) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
+
+	opts := UnWatchOrderBookOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.UnWatchOrderBook(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
+}
+func (this *BaseExchangeTyped) FetchTime(params ...any) (int64, error) {
+	res := <-this.BaseExchange.FetchTime(params...)
+	if IsError(res) {
+		return -1, CreateReturnError(res)
+	}
+	return (res).(int64), nil
+}
+func (this *BaseExchangeTyped) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
+
+	opts := FetchTradingLimitsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchTradingLimits(symbols, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
+	res := <-this.BaseExchange.FetchCrossBorrowRates(params...)
+	if IsError(res) {
+		return CrossBorrowRates{}, CreateReturnError(res)
+	}
+	return NewCrossBorrowRates(res), nil
+}
+func (this *BaseExchangeTyped) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
+	res := <-this.BaseExchange.FetchIsolatedBorrowRates(params...)
+	if IsError(res) {
+		return IsolatedBorrowRates{}, CreateReturnError(res)
+	}
+	return NewIsolatedBorrowRates(res), nil
+}
+func (this *BaseExchangeTyped) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
+
+	opts := FetchLeverageTiersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchLeverageTiers(symbols, params)
+	if IsError(res) {
+		return LeverageTiers{}, CreateReturnError(res)
+	}
+	return NewLeverageTiers(res), nil
+}
+func (this *BaseExchangeTyped) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
+
+	opts := FetchFundingRatesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchFundingRates(symbols, params)
+	if IsError(res) {
+		return FundingRates{}, CreateReturnError(res)
+	}
+	return NewFundingRates(res), nil
+}
+func (this *BaseExchangeTyped) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
+
+	opts := FetchFundingIntervalsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchFundingIntervals(symbols, params)
+	if IsError(res) {
+		return FundingRates{}, CreateReturnError(res)
+	}
+	return NewFundingRates(res), nil
+}
+func (this *BaseExchangeTyped) WatchFundingRate(symbol string, options ...WatchFundingRateOptions) (FundingRate, error) {
+
+	opts := WatchFundingRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.WatchFundingRate(symbol, params)
+	if IsError(res) {
+		return FundingRate{}, CreateReturnError(res)
+	}
+	return NewFundingRate(res), nil
+}
+func (this *BaseExchangeTyped) WatchFundingRates(options ...WatchFundingRatesOptions) (FundingRates, error) {
+
+	opts := WatchFundingRatesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.WatchFundingRates(symbols, params)
+	if IsError(res) {
+		return FundingRates{}, CreateReturnError(res)
+	}
+	return NewFundingRates(res), nil
+}
+func (this *BaseExchangeTyped) UnWatchFundingRates(options ...UnWatchFundingRatesOptions) (any, error) {
+
+	opts := UnWatchFundingRatesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.UnWatchFundingRates(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
+}
+func (this *BaseExchangeTyped) WatchFundingRatesForSymbols(symbols []string, options ...WatchFundingRatesForSymbolsOptions) (map[string]any, error) {
+
+	opts := WatchFundingRatesForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.WatchFundingRatesForSymbols(symbols, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
+
+	opts := TransferOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.Transfer(code, amount, fromAccount, toAccount, params)
+	if IsError(res) {
+		return TransferEntry{}, CreateReturnError(res)
+	}
+	return NewTransferEntry(res), nil
+}
+func (this *BaseExchangeTyped) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
+
+	opts := WithdrawOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var tag any = nil
+	if opts.Tag != nil {
+		tag = *opts.Tag
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.Withdraw(code, amount, address, tag, params)
+	if IsError(res) {
+		return Transaction{}, CreateReturnError(res)
+	}
+	return NewTransaction(res), nil
+}
+func (this *BaseExchangeTyped) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
+
+	opts := CreateDepositAddressOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.CreateDepositAddress(code, params)
+	if IsError(res) {
+		return DepositAddress{}, CreateReturnError(res)
+	}
+	return NewDepositAddress(res), nil
+}
+func (this *BaseExchangeTyped) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]any, error) {
+
+	opts := SetLeverageOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.SetLeverage(leverage, symbol, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
+
+	opts := FetchLeverageOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchLeverage(symbol, params)
+	if IsError(res) {
+		return Leverage{}, CreateReturnError(res)
+	}
+	return NewLeverage(res), nil
+}
+func (this *BaseExchangeTyped) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {
+
+	opts := FetchLeveragesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchLeverages(symbols, params)
+	if IsError(res) {
+		return Leverages{}, CreateReturnError(res)
+	}
+	return NewLeverages(res), nil
+}
+func (this *BaseExchangeTyped) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
+
+	opts := SetPositionModeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.SetPositionMode(hedged, symbol, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
+
+	opts := SetMarginOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.SetMargin(symbol, amount, params)
+	if IsError(res) {
+		return MarginModification{}, CreateReturnError(res)
+	}
+	return NewMarginModification(res), nil
+}
+func (this *BaseExchangeTyped) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {
+
+	opts := FetchLongShortRatioOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var timeframe any = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchLongShortRatio(symbol, timeframe, params)
+	if IsError(res) {
+		return LongShortRatio{}, CreateReturnError(res)
+	}
+	return NewLongShortRatio(res), nil
+}
+func (this *BaseExchangeTyped) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {
+
+	opts := FetchLongShortRatioHistoryOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var timeframe any = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchLongShortRatioHistory(symbol, timeframe, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewLongShortRatioArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {
+
+	opts := FetchMarginAdjustmentHistoryOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var typeVar any = nil
+	if opts.Type != nil {
+		typeVar = *opts.Type
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchMarginAdjustmentHistory(symbol, typeVar, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewMarginModificationArray(res), nil
+}
+func (this *BaseExchangeTyped) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
+
+	opts := SetMarginModeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.SetMarginMode(marginMode, symbol, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+
+	opts := FetchDepositAddressesByNetworkOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchDepositAddressesByNetwork(code, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewDepositAddressArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
+
+	opts := FetchOpenInterestHistoryOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var timeframe any = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchOpenInterestHistory(symbol, timeframe, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOpenInterestArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
+
+	opts := FetchOpenInterestsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchOpenInterests(symbols, params)
+	if IsError(res) {
+		return OpenInterests{}, CreateReturnError(res)
+	}
+	return NewOpenInterests(res), nil
+}
+func (this *BaseExchangeTyped) FetchPaymentMethods(params ...any) (map[string]any, error) {
+	res := <-this.BaseExchange.FetchPaymentMethods(params...)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
+
+	opts := FetchBorrowRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchBorrowRate(code, amount, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {
+
+	opts := FetchOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var timeframe any = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchOHLCV(symbol, timeframe, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOHLCVArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchSpotOHLCV(symbol string, options ...FetchSpotOHLCVOptions) ([]OHLCV, error) {
+
+	opts := FetchSpotOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var timeframe any = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchSpotOHLCV(symbol, timeframe, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOHLCVArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchContractOHLCV(symbol string, options ...FetchContractOHLCVOptions) ([]OHLCV, error) {
+
+	opts := FetchContractOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var timeframe any = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchContractOHLCV(symbol, timeframe, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOHLCVArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {
+
+	opts := FetchOHLCVWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var timeframe any = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchOHLCVWs(symbol, timeframe, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOHLCVArray(res), nil
+}
+func (this *BaseExchangeTyped) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {
+
+	opts := WatchOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var timeframe any = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.WatchOHLCV(symbol, timeframe, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOHLCVArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchWebEndpoint(method any, endpointMethod any, returnAsJson any, options ...FetchWebEndpointOptions) (map[string]any, error) {
+
+	opts := FetchWebEndpointOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var startRegex any = nil
+	if opts.StartRegex != nil {
+		startRegex = *opts.StartRegex
+	}
+
+	var endRegex any = nil
+	if opts.EndRegex != nil {
+		endRegex = *opts.EndRegex
+	}
+	res := <-this.BaseExchange.FetchWebEndpoint(method, endpointMethod, returnAsJson, startRegex, endRegex)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) Fetch2(path any, options ...Fetch2Options) (map[string]any, error) {
+
+	opts := Fetch2OptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var api any = nil
+	if opts.Api != nil {
+		api = *opts.Api
+	}
+
+	var method any = nil
+	if opts.Method != nil {
+		method = *opts.Method
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+
+	var headers any = nil
+	if opts.Headers != nil {
+		headers = *opts.Headers
+	}
+
+	var body any = nil
+	if opts.Body != nil {
+		body = *opts.Body
+	}
+
+	var config any = nil
+	if opts.Config != nil {
+		config = *opts.Config
+	}
+	res := <-this.BaseExchange.Fetch2(path, api, method, params, headers, body, config)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
+
+	opts := FetchBorrowInterestOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code any = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchBorrowInterest(code, symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewBorrowInterestArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
+
+	opts := FetchLedgerOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code any = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchLedger(code, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewLedgerEntryArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
+
+	opts := FetchLedgerEntryOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code any = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchLedgerEntry(id, code, params)
+	if IsError(res) {
+		return LedgerEntry{}, CreateReturnError(res)
+	}
+	return NewLedgerEntry(res), nil
+}
+func (this *BaseExchangeTyped) FetchBalance(params ...any) (Balances, error) {
+	res := <-this.BaseExchange.FetchBalance(params...)
+	if IsError(res) {
+		return Balances{}, CreateReturnError(res)
+	}
+	return NewBalances(res), nil
+}
+func (this *BaseExchangeTyped) FetchBalanceWs(params ...any) (Balances, error) {
+	res := <-this.BaseExchange.FetchBalanceWs(params...)
+	if IsError(res) {
+		return Balances{}, CreateReturnError(res)
+	}
+	return NewBalances(res), nil
+}
+func (this *BaseExchangeTyped) WatchBalance(params ...any) (Balances, error) {
+	res := <-this.BaseExchange.WatchBalance(params...)
+	if IsError(res) {
+		return Balances{}, CreateReturnError(res)
+	}
+	return NewBalances(res), nil
+}
+func (this *BaseExchangeTyped) FetchPartialBalance(part any, options ...FetchPartialBalanceOptions) (Balance, error) {
+
+	opts := FetchPartialBalanceOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchPartialBalance(part, params)
+	if IsError(res) {
+		return Balance{}, CreateReturnError(res)
+	}
+	return NewBalance(res), nil
+}
+func (this *BaseExchangeTyped) FetchFreeBalance(params ...any) (Balance, error) {
+	res := <-this.BaseExchange.FetchFreeBalance(params...)
+	if IsError(res) {
+		return Balance{}, CreateReturnError(res)
+	}
+	return NewBalance(res), nil
+}
+func (this *BaseExchangeTyped) FetchUsedBalance(params ...any) (Balance, error) {
+	res := <-this.BaseExchange.FetchUsedBalance(params...)
+	if IsError(res) {
+		return Balance{}, CreateReturnError(res)
+	}
+	return NewBalance(res), nil
+}
+func (this *BaseExchangeTyped) FetchTotalBalance(params ...any) (Balance, error) {
+	res := <-this.BaseExchange.FetchTotalBalance(params...)
+	if IsError(res) {
+		return Balance{}, CreateReturnError(res)
+	}
+	return NewBalance(res), nil
+}
+func (this *BaseExchangeTyped) FetchStatus(params ...any) (map[string]any, error) {
+	res := <-this.BaseExchange.FetchStatus(params...)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
+
+	opts := FetchTransactionFeeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchTransactionFee(code, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
+
+	opts := FetchTransactionFeesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var codes any = nil
+	if opts.Codes != nil {
+		codes = *opts.Codes
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchTransactionFees(codes, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+
+	opts := FetchDepositWithdrawFeesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var codes any = nil
+	if opts.Codes != nil {
+		codes = *opts.Codes
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchDepositWithdrawFees(codes, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return (res).(map[string]any), nil
+}
+func (this *BaseExchangeTyped) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+
+	opts := FetchDepositWithdrawFeeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchDepositWithdrawFee(code, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return (res).(map[string]any), nil
+}
+func (this *BaseExchangeTyped) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
+
+	opts := FetchCrossBorrowRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchCrossBorrowRate(code, params)
+	if IsError(res) {
+		return CrossBorrowRate{}, CreateReturnError(res)
+	}
+	return NewCrossBorrowRate(res), nil
+}
+func (this *BaseExchangeTyped) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
+
+	opts := FetchIsolatedBorrowRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchIsolatedBorrowRate(symbol, params)
+	if IsError(res) {
+		return IsolatedBorrowRate{}, CreateReturnError(res)
+	}
+	return NewIsolatedBorrowRate(res), nil
+}
+func (this *BaseExchangeTyped) FetchSpotTickers(options ...FetchSpotTickersOptions) (Tickers, error) {
+
+	opts := FetchSpotTickersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchSpotTickers(symbols, params)
+	if IsError(res) {
+		return Tickers{}, CreateReturnError(res)
+	}
+	return NewTickers(res), nil
+}
+func (this *BaseExchangeTyped) FetchContractTickers(options ...FetchContractTickersOptions) (Tickers, error) {
+
+	opts := FetchContractTickersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchContractTickers(symbols, params)
+	if IsError(res) {
+		return Tickers{}, CreateReturnError(res)
+	}
+	return NewTickers(res), nil
+}
+func (this *BaseExchangeTyped) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
+
+	opts := FetchOrderBooksOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchOrderBooks(symbols, limit, params)
+	if IsError(res) {
+		return OrderBooks{}, CreateReturnError(res)
+	}
+	return NewOrderBooks(res), nil
+}
+func (this *BaseExchangeTyped) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
+
+	opts := UnWatchTickersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.UnWatchTickers(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
+}
+func (this *BaseExchangeTyped) UnWatchFundingRate(symbol string, options ...UnWatchFundingRateOptions) (any, error) {
+
+	opts := UnWatchFundingRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.UnWatchFundingRate(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
+}
+func (this *BaseExchangeTyped) CreateTwapOrder(symbol string, side string, amount float64, duration float64, options ...CreateTwapOrderOptions) (Order, error) {
+
+	opts := CreateTwapOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.CreateTwapOrder(symbol, side, amount, duration, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *BaseExchangeTyped) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
+
+	opts := CreateConvertTradeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var amount any = nil
+	if opts.Amount != nil {
+		amount = *opts.Amount
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.CreateConvertTrade(id, fromCode, toCode, amount, params)
+	if IsError(res) {
+		return Conversion{}, CreateReturnError(res)
+	}
+	return NewConversion(res), nil
+}
+func (this *BaseExchangeTyped) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {
+
+	opts := FetchConvertTradeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code any = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchConvertTrade(id, code, params)
+	if IsError(res) {
+		return Conversion{}, CreateReturnError(res)
+	}
+	return NewConversion(res), nil
+}
+func (this *BaseExchangeTyped) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
+
+	opts := FetchConvertTradeHistoryOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code any = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchConvertTradeHistory(code, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewConversionArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+
+	opts := FetchPositionModeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchPositionMode(symbol, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) FetchADLRank(symbol string, options ...FetchADLRankOptions) (ADL, error) {
+
+	opts := FetchADLRankOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchADLRank(symbol, params)
+	if IsError(res) {
+		return ADL{}, CreateReturnError(res)
+	}
+	return NewADL(res), nil
+}
+func (this *BaseExchangeTyped) FetchPositionsADLRank(options ...FetchPositionsADLRankOptions) ([]ADL, error) {
+
+	opts := FetchPositionsADLRankOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchPositionsADLRank(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewADLArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchPositionADLRank(symbol string, options ...FetchPositionADLRankOptions) (ADL, error) {
+
+	opts := FetchPositionADLRankOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchPositionADLRank(symbol, params)
+	if IsError(res) {
+		return ADL{}, CreateReturnError(res)
+	}
+	return NewADL(res), nil
+}
+func (this *BaseExchangeTyped) CreateSpotOrders(orders []OrderRequest, options ...CreateSpotOrdersOptions) ([]Order, error) {
+
+	opts := CreateSpotOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.CreateSpotOrders(orders, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *BaseExchangeTyped) CreateContractOrders(orders []OrderRequest, options ...CreateContractOrdersOptions) ([]Order, error) {
+
+	opts := CreateContractOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.CreateContractOrders(orders, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *BaseExchangeTyped) CancelSpotOrder(id string, options ...CancelSpotOrderOptions) (Order, error) {
+
+	opts := CancelSpotOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.CancelSpotOrder(id, symbol, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *BaseExchangeTyped) CancelContractOrder(id string, options ...CancelContractOrderOptions) (Order, error) {
+
+	opts := CancelContractOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.CancelContractOrder(id, symbol, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+func (this *BaseExchangeTyped) CancelAllSpotOrders(options ...CancelAllSpotOrdersOptions) ([]Order, error) {
+
+	opts := CancelAllSpotOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.CancelAllSpotOrders(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *BaseExchangeTyped) CancelAllContractOrders(options ...CancelAllContractOrdersOptions) ([]Order, error) {
+
+	opts := CancelAllContractOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.CancelAllContractOrders(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *BaseExchangeTyped) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
+
+	opts := CancelAllOrdersAfterOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.CancelAllOrdersAfter(timeout, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
+
+	opts := CancelOrdersForSymbolsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.CancelOrdersForSymbols(orders, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
+
+	opts := FetchMyLiquidationsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchMyLiquidations(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewLiquidationArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
+
+	opts := FetchLiquidationsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchLiquidations(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewLiquidationArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
+
+	opts := FetchGreeksOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchGreeks(symbol, params)
+	if IsError(res) {
+		return Greeks{}, CreateReturnError(res)
+	}
+	return NewGreeks(res), nil
+}
+func (this *BaseExchangeTyped) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+
+	opts := FetchAllGreeksOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchAllGreeks(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewGreeksArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
+
+	opts := FetchOptionChainOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchOptionChain(code, params)
+	if IsError(res) {
+		return OptionChain{}, CreateReturnError(res)
+	}
+	return NewOptionChain(res), nil
+}
+func (this *BaseExchangeTyped) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
+
+	opts := FetchOptionOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchOption(symbol, params)
+	if IsError(res) {
+		return Option{}, CreateReturnError(res)
+	}
+	return NewOption(res), nil
+}
+func (this *BaseExchangeTyped) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
+
+	opts := FetchConvertQuoteOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var amount any = nil
+	if opts.Amount != nil {
+		amount = *opts.Amount
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchConvertQuote(fromCode, toCode, amount, params)
+	if IsError(res) {
+		return Conversion{}, CreateReturnError(res)
+	}
+	return NewConversion(res), nil
+}
+func (this *BaseExchangeTyped) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
+
+	opts := FetchDepositsWithdrawalsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code any = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchDepositsWithdrawals(code, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewTransactionArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
+
+	opts := FetchDepositsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code any = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchDeposits(code, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewTransactionArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
+
+	opts := FetchWithdrawalsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code any = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchWithdrawals(code, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewTransactionArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+
+	opts := FetchDepositsWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code any = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchDepositsWs(code, since, limit, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+
+	opts := FetchWithdrawalsWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code any = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchWithdrawalsWs(code, since, limit, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
+
+	opts := FetchFundingRateHistoryOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchFundingRateHistory(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewFundingRateHistoryArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
+
+	opts := FetchFundingHistoryOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchFundingHistory(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewFundingHistoryArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
+
+	opts := FetchDepositAddressOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchDepositAddress(code, params)
+	if IsError(res) {
+		return DepositAddress{}, CreateReturnError(res)
+	}
+	return NewDepositAddress(res), nil
+}
+func (this *BaseExchangeTyped) FetchContractDepositAddress(code string, options ...FetchContractDepositAddressOptions) (DepositAddress, error) {
+
+	opts := FetchContractDepositAddressOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchContractDepositAddress(code, params)
+	if IsError(res) {
+		return DepositAddress{}, CreateReturnError(res)
+	}
+	return NewDepositAddress(res), nil
+}
+func (this *BaseExchangeTyped) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
+
+	opts := FetchMarketLeverageTiersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchMarketLeverageTiers(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewLeverageTierArray(res), nil
+}
+func (this *BaseExchangeTyped) CreateSubAccount(name string, options ...CreateSubAccountOptions) (map[string]any, error) {
+
+	opts := CreateSubAccountOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.CreateSubAccount(name, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
+
+	opts := FetchLastPricesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchLastPrices(symbols, params)
+	if IsError(res) {
+		return LastPrices{}, CreateReturnError(res)
+	}
+	return NewLastPrices(res), nil
+}
+func (this *BaseExchangeTyped) FetchTradingFees(params ...any) (TradingFees, error) {
+	res := <-this.BaseExchange.FetchTradingFees(params...)
+	if IsError(res) {
+		return TradingFees{}, CreateReturnError(res)
+	}
+	return NewTradingFees(res), nil
+}
+func (this *BaseExchangeTyped) FetchTradingFeesWs(params ...any) (TradingFees, error) {
+	res := <-this.BaseExchange.FetchTradingFeesWs(params...)
+	if IsError(res) {
+		return TradingFees{}, CreateReturnError(res)
+	}
+	return NewTradingFees(res), nil
+}
+func (this *BaseExchangeTyped) FetchConvertCurrencies(params ...any) (Currencies, error) {
+	res := <-this.BaseExchange.FetchConvertCurrencies(params...)
+	if IsError(res) {
+		return Currencies{}, CreateReturnError(res)
+	}
+	return NewCurrencies(res), nil
+}
+func (this *BaseExchangeTyped) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
+
+	opts := FetchFundingRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchFundingRate(symbol, params)
+	if IsError(res) {
+		return FundingRate{}, CreateReturnError(res)
+	}
+	return NewFundingRate(res), nil
+}
+func (this *BaseExchangeTyped) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
+
+	opts := FetchFundingIntervalOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchFundingInterval(symbol, params)
+	if IsError(res) {
+		return FundingRate{}, CreateReturnError(res)
+	}
+	return NewFundingRate(res), nil
+}
+func (this *BaseExchangeTyped) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {
+
+	opts := FetchMarkOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var timeframe any = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchMarkOHLCV(symbol, timeframe, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOHLCVArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {
+
+	opts := FetchIndexOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var timeframe any = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchIndexOHLCV(symbol, timeframe, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOHLCVArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
+
+	opts := FetchPremiumIndexOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var timeframe any = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchPremiumIndexOHLCV(symbol, timeframe, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOHLCVArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
+
+	opts := FetchTransactionsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code any = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchTransactions(code, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewTransactionArray(res), nil
+}
+func (this *BaseExchangeTyped) FetchPaginatedCallDynamic(method string, options ...FetchPaginatedCallDynamicOptions) (map[string]any, error) {
+
+	opts := FetchPaginatedCallDynamicOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+
+	var maxEntriesPerRequest any = nil
+	if opts.MaxEntriesPerRequest != nil {
+		maxEntriesPerRequest = *opts.MaxEntriesPerRequest
+	}
+
+	var removeRepeated any = nil
+	if opts.RemoveRepeated != nil {
+		removeRepeated = *opts.RemoveRepeated
+	}
+	res := <-this.BaseExchange.FetchPaginatedCallDynamic(method, symbol, since, limit, params, maxEntriesPerRequest, removeRepeated)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) FetchPaginatedCallDeterministic(method string, options ...FetchPaginatedCallDeterministicOptions) (map[string]any, error) {
+
+	opts := FetchPaginatedCallDeterministicOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var timeframe any = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+
+	var maxEntriesPerRequest any = nil
+	if opts.MaxEntriesPerRequest != nil {
+		maxEntriesPerRequest = *opts.MaxEntriesPerRequest
+	}
+	res := <-this.BaseExchange.FetchPaginatedCallDeterministic(method, symbol, since, limit, timeframe, params, maxEntriesPerRequest)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) FetchPaginatedCallCursor(method string, options ...FetchPaginatedCallCursorOptions) (map[string]any, error) {
+
+	opts := FetchPaginatedCallCursorOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+
+	var cursorReceived any = nil
+	if opts.CursorReceived != nil {
+		cursorReceived = *opts.CursorReceived
+	}
+
+	var cursorSent any = nil
+	if opts.CursorSent != nil {
+		cursorSent = *opts.CursorSent
+	}
+
+	var cursorIncrement any = nil
+	if opts.CursorIncrement != nil {
+		cursorIncrement = *opts.CursorIncrement
+	}
+
+	var maxEntriesPerRequest any = nil
+	if opts.MaxEntriesPerRequest != nil {
+		maxEntriesPerRequest = *opts.MaxEntriesPerRequest
+	}
+	res := <-this.BaseExchange.FetchPaginatedCallCursor(method, symbol, since, limit, params, cursorReceived, cursorSent, cursorIncrement, maxEntriesPerRequest)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) FetchPaginatedCallIncremental(method string, options ...FetchPaginatedCallIncrementalOptions) (map[string]any, error) {
+
+	opts := FetchPaginatedCallIncrementalOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+
+	var pageKey any = nil
+	if opts.PageKey != nil {
+		pageKey = *opts.PageKey
+	}
+
+	var maxEntriesPerRequest any = nil
+	if opts.MaxEntriesPerRequest != nil {
+		maxEntriesPerRequest = *opts.MaxEntriesPerRequest
+	}
+	res := <-this.BaseExchange.FetchPaginatedCallIncremental(method, symbol, since, limit, params, pageKey, maxEntriesPerRequest)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+func (this *BaseExchangeTyped) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
+
+	opts := FetchTransferOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code any = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchTransfer(id, code, params)
+	if IsError(res) {
+		return TransferEntry{}, CreateReturnError(res)
+	}
+	return NewTransferEntry(res), nil
+}
+func (this *BaseExchangeTyped) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
+
+	opts := FetchTransfersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var code any = nil
+	if opts.Code != nil {
+		code = *opts.Code
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchTransfers(code, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewTransferEntryArray(res), nil
+}
+func (this *BaseExchangeTyped) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
+
+	opts := UnWatchOHLCVOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var timeframe any = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.UnWatchOHLCV(symbol, timeframe, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
+}
+func (this *BaseExchangeTyped) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {
+
+	opts := WithdrawWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var tag any = nil
+	if opts.Tag != nil {
+		tag = *opts.Tag
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.WithdrawWs(code, amount, address, tag, params)
+	if IsError(res) {
+		return Transaction{}, CreateReturnError(res)
+	}
+	return NewTransaction(res), nil
+}
+func (this *BaseExchangeTyped) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
+
+	opts := UnWatchMyTradesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.UnWatchMyTrades(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
+}
+func (this *BaseExchangeTyped) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {
+
+	opts := FetchOrdersByStatusWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.FetchOrdersByStatusWs(status, symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *BaseExchangeTyped) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
+
+	opts := UnWatchBidsAsksOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.BaseExchange.UnWatchBidsAsks(symbols, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}

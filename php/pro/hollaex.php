@@ -9,6 +9,8 @@ use Exception; // a common import
 use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class hollaex extends \ccxt\async\hollaex {
     public function describe(): mixed {
@@ -67,7 +69,9 @@ class hollaex extends \ccxt\async\hollaex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $messageHash = 'orderbook' . ':' . $market['id'];
             $orderbook = Async\await($this->watch_public($messageHash, $params));
@@ -106,7 +110,7 @@ class hollaex extends \ccxt\async\hollaex {
         $timestampMs = $this->parse8601($timestamp);
         $snapshot = $this->parse_order_book($data, $symbol, $timestampMs);
         $orderbook = null;
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $orderbook = $this->order_book($snapshot);
             $this->orderbooks[$symbol] = $orderbook;
         } else {
@@ -130,7 +134,9 @@ class hollaex extends \ccxt\async\hollaex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'trade' . ':' . $market['id'];
@@ -191,7 +197,9 @@ class hollaex extends \ccxt\async\hollaex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'usertrade';
             $market = null;
             if ($symbol !== null) {
@@ -276,7 +284,9 @@ class hollaex extends \ccxt\async\hollaex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'order';
             $market = null;
             if ($symbol !== null) {
@@ -432,7 +442,7 @@ class hollaex extends \ccxt\async\hollaex {
             $parts = explode('_', $key);
             $currencyId = $this->safe_string($parts, 0);
             $code = $this->safe_currency_code($currencyId);
-            $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
+            $account = (is_array($this->balance) && array_key_exists($code ?? '', $this->balance)) ? $this->balance[$code] : $this->account();
             $second = $this->safe_string($parts, 1);
             $freeOrTotal = ($second === 'available') ? 'free' : 'total';
             $account[$freeOrTotal] = $this->safe_string($data, $key);

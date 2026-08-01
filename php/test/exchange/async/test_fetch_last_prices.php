@@ -15,7 +15,7 @@ function test_fetch_last_prices($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchLastprices';
         // log ('fetching all tickers at once...')
-        $response = null;
+        $response = array();
         $checked_symbol = null;
         try {
             $response = \React\Async\await($exchange->fetch_last_prices());

@@ -1,6 +1,6 @@
 Every endpoint in `hashkey`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/hashkey) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C# and Go. Call them by the camelCase name shown in the tables below (e.g. `publicGetApiV1ExchangeInfo`); the snake_case alias (`public_get_api_v1_exchangeinfo`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetApiV1ExchangeInfo`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetApiV1ExchangeInfo`); the snake_case alias (`public_get_api_v1_exchangeinfo`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetApiV1ExchangeInfo`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official hashkey API documentation:** [hashkeyglobal-apidoc.readme.io](https://hashkeyglobal-apidoc.readme.io/)
 
-> 63 implicit endpoints across 2 access groups.
+> 67 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -98,10 +98,12 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetApiV1FuturesRiskLimit` | GET | `api/v1/futures/riskLimit` | 1 |
 | `privateGetApiV1FuturesCommissionRate` | GET | `api/v1/futures/commissionRate` | 1 |
 | `privateGetApiV1FuturesGetBestOrder` | GET | `api/v1/futures/getBestOrder` | 1 |
+| `privateGetApiV1CoinInfo` | GET | `api/v1/coinInfo` | 1 |
 | `privateGetApiV1AccountVipInfo` | GET | `api/v1/account/vipInfo` | 1 |
 | `privateGetApiV1Account` | GET | `api/v1/account` | 1 |
 | `privateGetApiV1AccountTrades` | GET | `api/v1/account/trades` | 5 |
 | `privateGetApiV1AccountType` | GET | `api/v1/account/type` | 5 |
+| `privateGetApiV1AccountChainType` | GET | `api/v1/account/chainType` | 1 |
 | `privateGetApiV1AccountCheckApiKey` | GET | `api/v1/account/checkApiKey` | 1 |
 | `privateGetApiV1AccountBalanceFlow` | GET | `api/v1/account/balanceFlow` | 5 |
 | `privateGetApiV1SpotSubAccountOpenOrders` | GET | `api/v1/spot/subAccount/openOrders` | 1 |
@@ -120,6 +122,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostApiV1SpotBatchOrders` | POST | `api/v1/spot/batchOrders` | 5 |
 | `privatePostApiV1FuturesLeverage` | POST | `api/v1/futures/leverage` | 1 |
 | `privatePostApiV1FuturesOrder` | POST | `api/v1/futures/order` | 1 |
+| `privatePostApiV1FuturesMarginType` | POST | `api/v1/futures/marginType` | 1 |
+| `privatePostApiV1FuturesPositionMargin` | POST | `api/v1/futures/positionMargin` | 1 |
 | `privatePostApiV1FuturesPositionTradingStop` | POST | `api/v1/futures/position/trading-stop` | 3 |
 | `privatePostApiV1FuturesBatchOrders` | POST | `api/v1/futures/batchOrders` | 5 |
 | `privatePostApiV1AccountAssetTransfer` | POST | `api/v1/account/assetTransfer` | 1 |

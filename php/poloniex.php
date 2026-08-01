@@ -803,7 +803,7 @@ class poloniex extends Exchange {
     }
 
     public function parse_market(array $market): array {
-        if (is_array($market) && array_key_exists('ctType', $market)) {
+        if (is_array($market) && array_key_exists('ctType' ?? '', $market)) {
             return $this->parse_swap_market($market);
         } else {
             return $this->parse_spot_market($market);
@@ -1831,7 +1831,7 @@ class poloniex extends Exchange {
         }
         $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
         $params = $this->omit($params, array( 'trigger', 'stop' ));
-        $response = null;
+        $response = array();
         if ($marketType !== 'spot') {
             $raw = $this->swapPrivateGetV3TradeOrderOpens($this->extend($request, $params));
             //
@@ -1873,7 +1873,7 @@ class poloniex extends Exchange {
             //                "qCcy" => "USDT"
             //            ),
             //
-            $response = $this->safe_list($raw, 'data');
+            $response = $this->safe_list($raw, 'data', array());
         } elseif ($isTrigger) {
             $response = $this->privateGetSmartorders($this->extend($request, $params));
         } else {
@@ -2011,13 +2011,13 @@ class poloniex extends Exchange {
         );
         $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
         list($request, $params) = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
-        $response = null;
+        $response = array();
         if ($market['swap'] || $market['future']) {
             $responseInitial = $this->swapPrivatePostV3TradeOrder($this->extend($request, $params));
             //
             // array("code":200,"msg":"Success","data":array("ordId":"418876147745775616","clOrdId":"polo418876147745775616"))
             //
-            $response = $this->safe_dict($responseInitial, 'data');
+            $response = $this->safe_dict($responseInitial, 'data', array());
         } elseif ($triggerPrice !== null) {
             $response = $this->privatePostSmartorders($this->extend($request, $params));
         } else {
@@ -2032,7 +2032,7 @@ class poloniex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function order_request($symbol, $type, $side, $amount, $request, $price = null, $params = array()) {
+    public function order_request($symbol, $type, $side, $amount, $request, ?float $price = null, $params = array()) {
         $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
         $market = $this->market($symbol);
         if ($market['contract']) {
@@ -2048,7 +2048,7 @@ class poloniex extends Exchange {
                 if ($marginMode === null) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a $marginMode parameter "cross" or "isolated" for $hedged orders');
                 }
-                if (!(is_array($params) && array_key_exists('posSide', $params))) {
+                if (!(is_array($params) && array_key_exists('posSide' ?? '', $params))) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a posSide parameter "LONG" or "SHORT" for $hedged orders');
                 }
             }
@@ -2137,7 +2137,7 @@ class poloniex extends Exchange {
         );
         $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
         list($request, $params) = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
-        $response = null;
+        $response = array();
         if ($triggerPrice !== null) {
             $response = $this->privatePutSmartordersId($this->extend($request, $params));
         } else {
@@ -2189,7 +2189,7 @@ class poloniex extends Exchange {
             //        }
             //    }
             //
-            return $this->parse_order($this->safe_dict($raw, 'data'));
+            return $this->parse_order($this->safe_dict($raw, 'data', array()));
         }
         $clientOrderId = $this->safe_value($params, 'clientOrderId');
         if ($clientOrderId !== null) {
@@ -2198,7 +2198,7 @@ class poloniex extends Exchange {
         $request['id'] = $id;
         $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
         $params = $this->omit($params, array( 'clientOrderId', 'trigger', 'stop' ));
-        $response = null;
+        $response = array();
         if ($isTrigger) {
             $response = $this->privateDeleteSmartordersId($this->extend($request, $params));
         } else {
@@ -2241,7 +2241,7 @@ class poloniex extends Exchange {
                 $market['id'],
             );
         }
-        $response = null;
+        $response = array();
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
         if ($marketType === 'swap' || $marketType === 'future') {
@@ -2260,7 +2260,7 @@ class poloniex extends Exchange {
             //        )
             //    }
             //
-            $response = $this->safe_list($raw, 'data');
+            $response = $this->safe_list($raw, 'data', array());
             return $this->parse_orders($response, $market);
         }
         $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
@@ -2320,7 +2320,7 @@ class poloniex extends Exchange {
         }
         $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
         $params = $this->omit($params, array( 'trigger', 'stop' ));
-        $response = null;
+        $response = array();
         if ($isTrigger) {
             $response = $this->privateGetSmartordersId($this->extend($request, $params));
             $response = $this->safe_value($response, 0);
@@ -2357,7 +2357,7 @@ class poloniex extends Exchange {
         $this->load_markets();
         $orders = $this->fetch_open_orders($symbol, null, null, $params);
         $indexed = $this->index_by($orders, 'id');
-        return (is_array($indexed) && array_key_exists($id, $indexed)) ? 'open' : 'closed';
+        return (is_array($indexed) && array_key_exists($id ?? '', $indexed)) ? 'open' : 'closed';
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -2684,7 +2684,7 @@ class poloniex extends Exchange {
     }
 
     public function prepare_request_for_deposit_address(string $code, array $params = array()): mixed {
-        if (!(is_array($this->currencies) && array_key_exists($code, $this->currencies))) {
+        if (!(is_array($this->currencies) && array_key_exists($code ?? '', $this->currencies))) {
             throw new BadSymbol($this->id . ' fetchDepositAddress() => can not recognize ' . $code . ' $currency, you might try using unified $currency-$code and add provide specific "network" parameter, like => fetchDepositAddress("USDT", array( "network" => "TRC20" ))');
         }
         $currency = $this->currency($code);
@@ -3002,7 +3002,7 @@ class poloniex extends Exchange {
         return $this->parse_deposit_withdraw_fees($data, $codes);
     }
 
-    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+    public function parse_deposit_withdraw_fees($response, ?array $codes = null, $currencyIdKey = null) {
         //
         //         {
         //             "1CR" => array(
@@ -3064,7 +3064,8 @@ class poloniex extends Exchange {
 
     public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         $depositWithdrawFee = $this->deposit_withdraw_fee(array());
-        $depositWithdrawFee['info'][$currency['code']] = $fee;
+        $currencyCode = $this->safe_string($currency, 'code');
+        $depositWithdrawFee['info'][$currencyCode] = $fee;
         $networkId = $this->safe_string($fee, 'blockchain');
         $withdrawFee = $this->safe_number($fee, 'withdrawalFee');
         $withdrawResult = array(
@@ -3158,7 +3159,7 @@ class poloniex extends Exchange {
         //     }
         //
         // if it's being parsed from "withdraw()" method, get the original response
-        if (is_array($transaction) && array_key_exists('withdrawNetworkEntry', $transaction)) {
+        if (is_array($transaction) && array_key_exists('withdrawNetworkEntry' ?? '', $transaction)) {
             $transaction = $transaction['response'];
         }
         $timestamp = $this->safe_timestamp($transaction, 'timestamp');
@@ -3167,7 +3168,7 @@ class poloniex extends Exchange {
         $status = $this->safe_string($transaction, 'status', 'pending');
         $status = $this->parse_transaction_status($status);
         $txid = $this->safe_string($transaction, 'txid');
-        $type = (is_array($transaction) && array_key_exists('withdrawalRequestsId', $transaction)) ? 'withdrawal' : 'deposit';
+        $type = (is_array($transaction) && array_key_exists('withdrawalRequestsId' ?? '', $transaction)) ? 'withdrawal' : 'deposit';
         $id = $this->safe_string_2($transaction, 'withdrawalRequestsId', 'depositNumber');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'paymentID');
@@ -3229,7 +3230,7 @@ class poloniex extends Exchange {
         $hedged = null;
         list($hedged, $params) = $this->handle_param_bool($params, 'hedged', false);
         if ($hedged) {
-            if (!(is_array($params) && array_key_exists('posSide', $params))) {
+            if (!(is_array($params) && array_key_exists('posSide' ?? '', $params))) {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires a posSide parameter for $hedged mode => "LONG" or "SHORT"');
             }
         }
@@ -3524,7 +3525,7 @@ class poloniex extends Exchange {
             'type' => strtoupper($type), // 'ADD' or 'REDUCE'
         );
         // todo => hedged handling, tricky
-        if (!(is_array($params) && array_key_exists('posMode', $params))) {
+        if (!(is_array($params) && array_key_exists('posMode' ?? '', $params))) {
             $request['posMode'] = 'BOTH';
         }
         $response = $this->swapPrivatePostV3TradePositionMargin($this->extend($request, $params));
@@ -3598,7 +3599,7 @@ class poloniex extends Exchange {
         if ($this->in_array($api, array( 'swapPublic', 'swapPrivate' ))) {
             $url = $this->urls['api']['swap'];
         }
-        if ($method === 'GET' && (is_array($params) && array_key_exists('symbol', $params))) {
+        if ($method === 'GET' && (is_array($params) && array_key_exists('symbol' ?? '', $params))) {
             $params['symbol'] = $this->encode_uri_component($params['symbol']); // handle symbols like 索拉拉/USDT'
         }
         $query = $this->omit($params, $this->extract_params($path));

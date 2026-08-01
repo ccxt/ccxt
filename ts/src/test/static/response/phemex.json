@@ -2046,7 +2046,7 @@
                         "marginMode": "cross",
                         "side": "long",
                         "hedged": true,
-                        "percentage": null,
+                        "percentage": 9.7,
                         "stopLossPrice": null,
                         "takeProfitPrice": null
                     }
@@ -2196,7 +2196,7 @@
                         "marginMode": "cross",
                         "side": "long",
                         "hedged": true,
-                        "percentage": null,
+                        "percentage": 9.38,
                         "stopLossPrice": null,
                         "takeProfitPrice": null
                     }

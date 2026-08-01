@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import NotSupported
@@ -192,7 +192,8 @@ class bitrue(ccxt.async_support.bitrue):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order structure <https://docs.ccxt.com/?id=order-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
@@ -303,7 +304,8 @@ class bitrue(ccxt.async_support.bitrue):
         }, market)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
@@ -438,7 +440,8 @@ class bitrue(ccxt.async_support.bitrue):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         if not market['swap']:
@@ -506,7 +509,7 @@ class bitrue(ccxt.async_support.bitrue):
             messageHash = 'trades:' + symbol
             client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         symbol = market['symbol']
         timestamp = self.safe_integer(trade, 'ts')
         sideLower = self.safe_string_lower(trade, 'side')
@@ -542,7 +545,8 @@ class bitrue(ccxt.async_support.bitrue):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         if not market['swap']:
@@ -613,7 +617,7 @@ class bitrue(ccxt.async_support.bitrue):
         messageHash = 'ohlcv:' + symbol + ':' + timeframe
         client.resolve(stored, messageHash)
 
-    def parse_ws_ohlcv(self, tick, market=None) -> list:
+    def parse_ws_ohlcv(self, tick, market: Market = None) -> list:
         symbol = market['symbol']
         idSeconds = self.safe_integer(tick, 'id')
         timestamp = None if (idSeconds is None) else idSeconds * 1000
@@ -635,7 +639,8 @@ class bitrue(ccxt.async_support.bitrue):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         if not market['swap']:

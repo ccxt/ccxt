@@ -18,6 +18,7 @@ var io = require('./functions/io.js');
 /*  ------------------------------------------------------------------------ */
 
 exports.isBrowser = platform.isBrowser;
+exports.isBun = platform.isBun;
 exports.isDeno = platform.isDeno;
 exports.isElectron = platform.isElectron;
 exports.isNode = platform.isNode;

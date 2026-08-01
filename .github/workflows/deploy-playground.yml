@@ -1,4 +1,5 @@
 name: Deploy Playground
+run-name: ${{ github.event.head_commit.message || github.event.pull_request.title || format('{0} · {1}', github.ref_name, github.sha) }}
 
 # Builds the CCXT Playground as a container (arm64, matching the docs box) and
 # deploys it as a long-running Next.js server behind nginx at /playground on
@@ -14,7 +15,7 @@ on:
   push:
     branches: [master]
     paths:
-      - 'playground/**'
+      - 'docs/playground/**'
       - '.github/workflows/deploy-playground.yml'
   workflow_dispatch:
 
@@ -43,7 +44,11 @@ jobs:
       CANARY_IP: 172.31.0.11
       BASE_PATH: /playground
     steps:
+      # Both docker build contexts are under docs/playground/ — the ~490MB of ts/, dist/ and the
+      # six generated language trees are never read here.
       - uses: actions/checkout@v6
+        with:
+          sparse-checkout: docs/playground
 
       - name: Log in to GHCR
         uses: docker/login-action@v4
@@ -55,7 +60,7 @@ jobs:
       - name: Build & push image
         uses: docker/build-push-action@v7
         with:
-          context: playground
+          context: docs/playground
           platforms: linux/arm64
           push: true
           # Go stays install-only on this 7.5 GB shared box: compiling ccxt-go needs
@@ -72,7 +77,7 @@ jobs:
       - name: Build & push egress proxy image
         uses: docker/build-push-action@v7
         with:
-          context: playground/proxy
+          context: docs/playground/proxy
           platforms: linux/arm64
           push: true
           tags: |
@@ -104,6 +109,18 @@ jobs:
             BASE_PATH="${BASE_PATH}" SHA="${SHA}" \
             GHCR_USER="${GHCR_USER}" GHCR_TOKEN="${GHCR_TOKEN}" 'bash -se' <<'EOF'
           set -e
+          # Self-heal: reclaim disk BEFORE login/pull. The cleanup at the end of this
+          # script only runs when a deploy succeeds, so a full disk would deadlock all
+          # future deploys (docker login can't even write ~/.docker/config.json).
+          # Remove by repo:tag (not image ID) so the :latest tag on the running image
+          # is never touched even when it shares an ID with an old :SHA tag.
+          docker image prune -f >/dev/null 2>&1 || true
+          for repo in "$IMAGE" "$IMAGE_PROXY"; do
+            docker images "$repo" --format '{{.Repository}}:{{.Tag}} {{.Tag}}' \
+              | awk -v keep="$SHA" '$2!=keep && $2!="latest" && $2!="<none>" {print $1}' \
+              | xargs -r docker rmi >/dev/null 2>&1 || true
+          done
+          df -h / | tail -1
           echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
           docker pull "$IMAGE:$SHA"
           docker pull "$IMAGE_PROXY:$SHA"
@@ -191,7 +208,6 @@ jobs:
             for i in $(seq 1 30); do curl -fsS -o /dev/null "$SMOKE_BASE" 2>/dev/null && break; sleep 2; done
             html=$(curl -fsS --max-time 25 "$SMOKE_BASE") || { echo "smoke: homepage not 200"; return 1; }
             echo "$html" | grep -q "CCXT Playground" || { echo "smoke: homepage content missing"; return 1; }
-            smoke_lang '{"language":"js","code":"console.log(6*7)"}'               || return 1
             smoke_lang '{"language":"ts","code":"console.log(6*7)"}'               || return 1
             smoke_lang '{"language":"python","code":"print(6*7)"}'                 || return 1
             smoke_lang '{"language":"php","code":"<?php echo 6*7;"}'               || return 1

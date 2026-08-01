@@ -459,9 +459,11 @@ func (this *CoinoneCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5038 := (<-this.LoadMarkets())
-		PanicOnError(retRes5038)
+			retRes50412 := (<-this.LoadMarkets())
+			PanicOnError(retRes50412)
+		}
 
 		response := (<-this.V2PrivatePostAccountBalance(params))
 		PanicOnError(response)
@@ -492,9 +494,11 @@ func (this *CoinoneCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5198 := (<-this.LoadMarkets())
-		PanicOnError(retRes5198)
+			retRes52212 := (<-this.LoadMarkets())
+			PanicOnError(retRes52212)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"quote_currency":  GetValue(market, "quote"),
@@ -557,9 +561,11 @@ func (this *CoinoneCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5678 := (<-this.LoadMarkets())
-		PanicOnError(retRes5678)
+			retRes57212 := (<-this.LoadMarkets())
+			PanicOnError(retRes57212)
+		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{
 			"quote_currency": "KRW",
@@ -637,9 +643,11 @@ func (this *CoinoneCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6308 := (<-this.LoadMarkets())
-		PanicOnError(retRes6308)
+			retRes63712 := (<-this.LoadMarkets())
+			PanicOnError(retRes63712)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"quote_currency":  GetValue(market, "quote"),
@@ -838,9 +846,11 @@ func (this *CoinoneCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8108 := (<-this.LoadMarkets())
-		PanicOnError(retRes8108)
+			retRes81912 := (<-this.LoadMarkets())
+			PanicOnError(retRes81912)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"quote_currency":  GetValue(market, "quote"),
@@ -883,13 +893,12 @@ func (this *CoinoneCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
  * @method
  * @name coinone#createOrder
  * @description create a trade order
- * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
- * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+ * @see https://docs.coinone.co.kr/reference/order-v21
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type must be 'limit'
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of currency you want to trade in units of base currency
- * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+ * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, required for the limit orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -902,28 +911,40 @@ func (this *CoinoneCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-		if IsTrue(!IsEqual(typeVar, "limit")) {
+		var orderType any = ToUpper(typeVar) // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+		var orderSide any = ToUpper(side)    // unified lowercase order sides, same override rule
+		if IsTrue(!IsEqual(orderType, "LIMIT")) {
 			panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
 		}
-
-		retRes8608 := (<-this.LoadMarkets())
-		PanicOnError(retRes8608)
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"price":    price,
-			"currency": GetValue(market, "id"),
-			"qty":      amount,
+		if IsTrue(IsEqual(price, nil)) {
+			panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a price argument for the limit orders")))
 		}
-		var method any = Add(Add("privatePostOrder", this.Capitalize(typeVar)), this.Capitalize(side))
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		response := (<-this.CallDynamically(method, this.Extend(request, params)))
+			retRes87512 := (<-this.LoadMarkets())
+			PanicOnError(retRes87512)
+		}
+		var market any = this.Market(symbol)
+		// the v1 order/limit_buy and order/limit_sell endpoints were retired by
+		// the exchange and return 404, the v2.1 order endpoint replaces them,
+		// see https://github.com/ccxt/ccxt/issues/23174
+		var request any = map[string]any{
+			"quote_currency":  GetValue(market, "quoteId"),
+			"target_currency": GetValue(market, "baseId"),
+			"type":            orderType,
+			"side":            orderSide,
+			"price":           this.PriceToPrecision(symbol, price),
+			"qty":             this.AmountToPrecision(symbol, amount),
+		}
+
+		response := (<-this.V2_1PrivatePostOrderLimit(this.Extend(request, params)))
 		PanicOnError(response)
 
 		//
 		//     {
 		//         "result": "success",
-		//         "errorCode": "0",
-		//         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
+		//         "error_code": "0",
+		//         "order_id": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
 		//     }
 		//
 		ch <- this.ParseOrder(response, market)
@@ -954,9 +975,11 @@ func (this *CoinoneCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8928 := (<-this.LoadMarkets())
-		PanicOnError(retRes8928)
+			retRes91412 := (<-this.LoadMarkets())
+			PanicOnError(retRes91412)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"order_id": id,
@@ -1049,9 +1072,9 @@ func (this *CoinoneCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var id any = this.SafeString(order, "orderId")
-	var baseId any = this.SafeString(order, "baseCurrency")
-	var quoteId any = this.SafeString(order, "targetCurrency")
+	var id any = this.SafeString2(order, "orderId", "order_id")
+	var baseId any = this.SafeString2(order, "baseCurrency", "target_currency")
+	var quoteId any = this.SafeString2(order, "targetCurrency", "quote_currency")
 	var base any = nil
 	var quote any = nil
 	if IsTrue(!IsEqual(baseId, nil)) {
@@ -1066,14 +1089,20 @@ func (this *CoinoneCore) ParseOrder(order any, optionalArgs ...any) any {
 		market = this.SafeMarket(symbol, market, "/")
 	}
 	var timestamp any = this.SafeTimestamp2(order, "timestamp", "updatedAt")
-	var side any = this.SafeString2(order, "type", "side")
+	if IsTrue(IsEqual(timestamp, nil)) {
+		timestamp = this.SafeInteger2(order, "ordered_at", "updated_at") // v2.1 sends milliseconds
+	}
+	var side any = this.SafeStringLower2(order, "type", "side")
+	if IsTrue(IsTrue(IsTrue((IsEqual(side, "limit"))) || IsTrue((IsEqual(side, "market")))) || IsTrue((IsEqual(side, "stop_limit")))) {
+		side = this.SafeStringLower(order, "side") // in v2.1 rows the type field carries the order type, the side lives in side
+	}
 	if IsTrue(IsEqual(side, "ask")) {
 		side = "sell"
 	} else if IsTrue(IsEqual(side, "bid")) {
 		side = "buy"
 	}
-	var remainingString any = this.SafeString(order, "remainQty")
-	var amountString any = this.SafeString2(order, "originalQty", "qty")
+	var remainingString any = this.SafeString2(order, "remainQty", "remain_qty")
+	var amountString any = this.SafeStringN(order, []any{"originalQty", "qty", "original_qty"})
 	var status any = this.SafeString(order, "status")
 	// https://github.com/ccxt/ccxt/pull/7067
 	if IsTrue(IsEqual(status, "live")) {
@@ -1148,15 +1177,18 @@ func (this *CoinoneCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ExchangeError(Add(this.Id, " fetchOpenOrders() allows fetching closed orders with a specific symbol")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10658 := (<-this.LoadMarkets())
-		PanicOnError(retRes10658)
+			retRes109512 := (<-this.LoadMarkets())
+			PanicOnError(retRes109512)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
-			"currency": GetValue(market, "id"),
+			"quote_currency":  GetValue(market, "quoteId"),
+			"target_currency": GetValue(market, "baseId"),
 		}
 
-		response := (<-this.PrivatePostOrderLimitOrders(this.Extend(request, params)))
+		response := (<-this.V2_1PrivatePostOrderOpenOrders(this.Extend(request, params)))
 		PanicOnError(response)
 		//
 		//     {
@@ -1175,9 +1207,9 @@ func (this *CoinoneCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		//         ]
 		//     }
 		//
-		var limitOrders any = this.SafeList(response, "limitOrders", []any{})
+		var openOrders any = this.SafeList2(response, "open_orders", "limitOrders", []any{})
 
-		ch <- this.ParseOrders(limitOrders, market, since, limit)
+		ch <- this.ParseOrders(openOrders, market, since, limit)
 		return nil
 
 	}()
@@ -1210,9 +1242,11 @@ func (this *CoinoneCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11068 := (<-this.LoadMarkets())
-		PanicOnError(retRes11068)
+			retRes113912 := (<-this.LoadMarkets())
+			PanicOnError(retRes113912)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currency": GetValue(market, "id"),
@@ -1268,17 +1302,19 @@ func (this *CoinoneCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {\\'price\\': 12345, \\'qty\\': 1.2345, \\'is_ask\\': 0} in the params argument of cancelOrder.")))
+			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")))
 		}
 		var price any = this.SafeNumber(params, "price")
 		var qty any = this.SafeNumber(params, "qty")
 		var isAsk any = this.SafeInteger(params, "is_ask")
 		if IsTrue(IsTrue(IsTrue((IsEqual(price, nil))) || IsTrue((IsEqual(qty, nil)))) || IsTrue((IsEqual(isAsk, nil)))) {
-			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires {\\'price\\': 12345, \\'qty\\': 1.2345, \\'is_ask\\': 0} in the params argument.")))
+			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11558 := (<-this.LoadMarkets())
-		PanicOnError(retRes11558)
+			retRes119012 := (<-this.LoadMarkets())
+			PanicOnError(retRes119012)
+		}
 		var request any = map[string]any{
 			"order_id": id,
 			"price":    price,
@@ -1320,9 +1356,11 @@ func (this *CoinoneCore) FetchDepositAddresses(optionalArgs ...any) <-chan any {
 		_ = codes
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11828 := (<-this.LoadMarkets())
-		PanicOnError(retRes11828)
+			retRes121912 := (<-this.LoadMarkets())
+			PanicOnError(retRes121912)
+		}
 
 		response := (<-this.V2PrivatePostAccountDepositAddress(params))
 		PanicOnError(response)
@@ -1410,7 +1448,13 @@ func (this *CoinoneCore) Sign(path any, optionalArgs ...any) any {
 	} else {
 		this.CheckRequiredCredentials()
 		url = Add(url, request)
-		var nonce any = ToString(this.Nonce())
+		// the v2.1 api requires a uuid nonce, the older apis use a numeric one
+		var nonce any = nil
+		if IsTrue(IsEqual(api, "v2_1Private")) {
+			nonce = this.Uuid()
+		} else {
+			nonce = ToString(this.Nonce())
+		}
 		var json any = this.Json(this.Extend(map[string]any{
 			"access_token": this.ApiKey,
 			"nonce":        nonce,

@@ -18,6 +18,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class grvt extends Exchange {
     public function describe(): mixed {
         $rlOthers = 40;
@@ -852,7 +854,9 @@ class grvt extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instrument' => $this->market_id($symbol),
@@ -927,9 +931,12 @@ class grvt extends Exchange {
         //        }
         //
         $marketId = $this->safe_string($ticker, 'instrument');
+        $timestamp = $this->safe_integer_product($ticker, 'event_time', 0.000001);
         return $this->safe_ticker(array(
             'info' => $ticker,
             'symbol' => $this->safe_symbol($marketId, $market),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'open' => $this->safe_string($ticker, 'open_price'),
             'high' => $this->safe_string($ticker, 'high_price'),
             'low' => $this->safe_string($ticker, 'low_price'),
@@ -963,7 +970,9 @@ class grvt extends Exchange {
              * @param {string} [$params->loc] crypto location, default => us
              * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'instrument' => $this->market_id($symbol),
             );
@@ -1011,7 +1020,9 @@ class grvt extends Exchange {
              * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instrument' => $market['id'],
@@ -1149,7 +1160,9 @@ class grvt extends Exchange {
              * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
              */
             $maxLimit = 1000;
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
             if ($paginate) {
@@ -1243,7 +1256,9 @@ class grvt extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
             if ($paginate) {
@@ -1470,7 +1485,7 @@ class grvt extends Exchange {
             /**
              * fetch all withdrawals made from an account
              *
-             * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
+             * @see https://api-docs.grvt.io/trading_api/#withdrawal-history
              *
              * @param {string} [$code] unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch $transfers for (default 24 hours ago)
@@ -1647,7 +1662,7 @@ class grvt extends Exchange {
         $addressTo = $this->safe_string($transaction, 'to_account_id');
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        if (is_array($transaction) && array_key_exists('transfer_metadata', $transaction)) {
+        if (is_array($transaction) && array_key_exists('transfer_metadata' ?? '', $transaction)) {
             $metaData = $this->omit_zero($this->safe_string($transaction, 'transfer_metadata'));
             if ($metaData !== null) {
                 $parsedMeta = $this->parse_json($metaData);
@@ -2237,7 +2252,7 @@ class grvt extends Exchange {
                 $limitDec = $this->safe_string($limitParts, 1, '');
                 $limitDecLength = strlen($limitDec) + 0; // php tr
                 $limitDecLengthStr = (string) $limitDecLength;
-                $powerNum = $limitDecLengthStr === '0' ? 0 : $this->convert_to_big_int_custom($limitDecLengthStr);
+                $powerNum = ($limitDecLengthStr === '0') ? 0 : $this->convert_to_big_int_custom($limitDecLengthStr);
                 $priceInteger = ($this->convert_to_big_int_custom(str_replace('.', '', $price)) * $this->convert_to_big_int_custom($priceMultiplier) / (pow($bigInt10, $powerNum)));
                 $legOrder['limitPrice'] = $this->parse_to_int($priceInteger);
             } else {
@@ -3029,7 +3044,7 @@ class grvt extends Exchange {
         //        "ack" => true
         //    }
         //
-        if (is_array($order) && array_key_exists('ack', $order)) {
+        if (is_array($order) && array_key_exists('ack' ?? '', $order)) {
             return $this->safe_order(array(
                 'info' => $order,
                 'id' => null,

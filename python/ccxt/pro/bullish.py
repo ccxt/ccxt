@@ -126,7 +126,8 @@ class bullish(ccxt.async_support.bullish):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'trades::' + market['symbol']
         url = '/trading-api/v1/market-data/trades'
@@ -191,7 +192,8 @@ class bullish(ccxt.async_support.bullish):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         url = self.urls['api']['ws']['public'] + '/trading-api/v1/market-data/tick/' + market['id']
@@ -248,10 +250,8 @@ class bullish(ccxt.async_support.bullish):
         marketId = self.safe_string(data, 'symbol')
         market = self.safe_market(marketId)
         symbol = market['symbol']
-        parsed = None
-        if (updateType == 'snapshot'):
-            parsed = self.parse_ticker(data, market)
-        elif updateType == 'update':
+        parsed = self.parse_ticker(data, market)
+        if updateType == 'update':
             ticker = self.safe_dict(self.tickers, symbol, {})
             rawTicker = self.safe_dict(ticker, 'info', {})
             merged = self.extend(rawTicker, data)
@@ -271,7 +271,8 @@ class bullish(ccxt.async_support.bullish):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         url = '/trading-api/v1/market-data/orderbook'
         messageHash = 'orderbook::' + market['symbol']
@@ -354,7 +355,8 @@ class bullish(ccxt.async_support.bullish):
         :param str [params.tradingAccountId]: the trading account id to fetch entries for
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         subscribeHash = 'orders'
         messageHash = subscribeHash
         if symbol is not None:
@@ -435,7 +437,8 @@ class bullish(ccxt.async_support.bullish):
                 parsedOrder = self.parse_order(rawOrder)
                 orders.append(parsedOrder)
                 symbol = self.safe_string(parsedOrder, 'symbol')
-                symbols[symbol] = True
+                if symbol is not None:
+                    symbols[symbol] = True
             messageHash = 'orders'
             client.resolve(orders, messageHash)
             keys = list(symbols.keys())
@@ -457,7 +460,8 @@ class bullish(ccxt.async_support.bullish):
         :param str [params.tradingAccountId]: the trading account id to fetch entries for
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         subscribeHash = 'myTrades'
         messageHash = subscribeHash
         if symbol is not None:
@@ -531,7 +535,8 @@ class bullish(ccxt.async_support.bullish):
                 parsedTrade = self.parse_trade(rawTrade)
                 trades.append(parsedTrade)
                 symbol = self.safe_string(parsedTrade, 'symbol')
-                symbols[symbol] = True
+                if symbol is not None:
+                    symbols[symbol] = True
             messageHash = 'myTrades'
             client.resolve(trades, messageHash)
             keys = list(symbols.keys())
@@ -550,7 +555,8 @@ class bullish(ccxt.async_support.bullish):
         :param str [params.tradingAccountId]: the trading account id to fetch entries for
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'topic': 'assetAccounts',
         }
@@ -605,6 +611,8 @@ class bullish(ccxt.async_support.bullish):
         #     }
         #
         tradingAccountId = self.safe_string(message, 'tradingAccountId')
+        if tradingAccountId is None:
+            return
         if not (tradingAccountId in self.balance):
             self.balance[tradingAccountId] = {}
         messageType = self.safe_string(message, 'type')
@@ -638,10 +646,11 @@ class bullish(ccxt.async_support.bullish):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         subscribeHash = 'positions'
         messageHash = subscribeHash
-        if not self.is_empty(symbols):
+        if (symbols is not None) and not self.is_empty(symbols):
             symbols = self.market_symbols(symbols)
             messageHash += '::' + ','.join(symbols)
         request = {

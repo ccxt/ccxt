@@ -16,9 +16,9 @@ public partial class hibachi : Exchange
         return await this.callAsync ("publicGetMarketExchangeInfo",parameters);
     }
 
-    public async Task<object> publicGetMarketDataTrades (object parameters = null)
+    public async Task<object> publicGetMarketInventory (object parameters = null)
     {
-        return await this.callAsync ("publicGetMarketDataTrades",parameters);
+        return await this.callAsync ("publicGetMarketInventory",parameters);
     }
 
     public async Task<object> publicGetMarketDataPrices (object parameters = null)
@@ -31,19 +31,24 @@ public partial class hibachi : Exchange
         return await this.callAsync ("publicGetMarketDataStats",parameters);
     }
 
+    public async Task<object> publicGetMarketDataTrades (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarketDataTrades",parameters);
+    }
+
     public async Task<object> publicGetMarketDataKlines (object parameters = null)
     {
         return await this.callAsync ("publicGetMarketDataKlines",parameters);
     }
 
-    public async Task<object> publicGetMarketDataOrderbook (object parameters = null)
-    {
-        return await this.callAsync ("publicGetMarketDataOrderbook",parameters);
-    }
-
     public async Task<object> publicGetMarketDataOpenInterest (object parameters = null)
     {
         return await this.callAsync ("publicGetMarketDataOpenInterest",parameters);
+    }
+
+    public async Task<object> publicGetMarketDataOrderbook (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarketDataOrderbook",parameters);
     }
 
     public async Task<object> publicGetMarketDataFundingRates (object parameters = null)
@@ -56,9 +61,9 @@ public partial class hibachi : Exchange
         return await this.callAsync ("publicGetExchangeUtcTimestamp",parameters);
     }
 
-    public async Task<object> privateGetCapitalDepositInfo (object parameters = null)
+    public async Task<object> privateGetCapitalBalance (object parameters = null)
     {
-        return await this.callAsync ("privateGetCapitalDepositInfo",parameters);
+        return await this.callAsync ("privateGetCapitalBalance",parameters);
     }
 
     public async Task<object> privateGetCapitalHistory (object parameters = null)
@@ -66,9 +71,9 @@ public partial class hibachi : Exchange
         return await this.callAsync ("privateGetCapitalHistory",parameters);
     }
 
-    public async Task<object> privateGetTradeAccountTradingHistory (object parameters = null)
+    public async Task<object> privateGetCapitalDepositInfo (object parameters = null)
     {
-        return await this.callAsync ("privateGetTradeAccountTradingHistory",parameters);
+        return await this.callAsync ("privateGetCapitalDepositInfo",parameters);
     }
 
     public async Task<object> privateGetTradeAccountInfo (object parameters = null)
@@ -76,19 +81,34 @@ public partial class hibachi : Exchange
         return await this.callAsync ("privateGetTradeAccountInfo",parameters);
     }
 
-    public async Task<object> privateGetTradeOrder (object parameters = null)
-    {
-        return await this.callAsync ("privateGetTradeOrder",parameters);
-    }
-
     public async Task<object> privateGetTradeAccountTrades (object parameters = null)
     {
         return await this.callAsync ("privateGetTradeAccountTrades",parameters);
     }
 
+    public async Task<object> privateGetTradeAccountTradingHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetTradeAccountTradingHistory",parameters);
+    }
+
+    public async Task<object> privateGetTradeAccountSettlementsHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetTradeAccountSettlementsHistory",parameters);
+    }
+
     public async Task<object> privateGetTradeOrders (object parameters = null)
     {
         return await this.callAsync ("privateGetTradeOrders",parameters);
+    }
+
+    public async Task<object> privateGetTradeOrder (object parameters = null)
+    {
+        return await this.callAsync ("privateGetTradeOrder",parameters);
+    }
+
+    public async Task<object> privateGetTradeOrdersHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetTradeOrdersHistory",parameters);
     }
 
     public async Task<object> privatePutTradeOrder (object parameters = null)
@@ -119,6 +139,16 @@ public partial class hibachi : Exchange
     public async Task<object> privatePostCapitalWithdraw (object parameters = null)
     {
         return await this.callAsync ("privatePostCapitalWithdraw",parameters);
+    }
+
+    public async Task<object> privatePostCapitalTransfer (object parameters = null)
+    {
+        return await this.callAsync ("privatePostCapitalTransfer",parameters);
+    }
+
+    public async Task<object> privatePostTradeAccountLeverage (object parameters = null)
+    {
+        return await this.callAsync ("privatePostTradeAccountLeverage",parameters);
     }
 
 }

@@ -23,7 +23,7 @@ class bitstamp extends Exchange {
                 'CORS' => true,
                 'spot' => true,
                 'margin' => false,
-                'swap' => false,
+                'swap' => true,
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
@@ -847,11 +847,11 @@ class bitstamp extends Exchange {
         $minimumOrder = $this->safe_string($market, 'minimum_order_value');
         $parts = explode(' ', $minimumOrder);
         $cost = $parts[0];
-        if (!(is_array($existing) && array_key_exists($base, $existing))) {
+        if (!(is_array($existing) && array_key_exists($base ?? '', $existing))) {
             $baseDecimals = $this->safe_integer($market, 'base_decimals');
             $this->options['_temp_currencies_result'][$base] = $this->construct_currency_object($baseId, $base, $baseDescription, $baseDecimals, null, $market);
         }
-        if (!(is_array($existing) && array_key_exists($quote, $existing))) {
+        if (!(is_array($existing) && array_key_exists($quote ?? '', $existing))) {
             $counterDecimals = $this->safe_integer($market, 'counter_decimals');
             $this->options['_temp_currencies_result'][$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, $this->parse_number($cost), $market);
         }
@@ -869,7 +869,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
@@ -956,7 +958,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
@@ -990,7 +994,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->publicGetTicker($params);
         //
         // {
@@ -1067,11 +1073,11 @@ class bitstamp extends Exchange {
         }
         if ($numCurrencyIds === 2) {
             $marketId = $currencyIds[0] . $currencyIds[1];
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id)) {
                 return $this->safe_market($marketId);
             }
             $marketId = $currencyIds[1] . $currencyIds[0];
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id)) {
                 return $this->safe_market($marketId);
             }
         }
@@ -1175,7 +1181,7 @@ class bitstamp extends Exchange {
             }
         }
         // if it is a private $trade
-        if (is_array($trade) && array_key_exists('id', $trade)) {
+        if (is_array($trade) && array_key_exists('id' ?? '', $trade)) {
             if ($amountString !== null) {
                 $isAmountNeg = Precise::string_lt($amountString, '0');
                 if ($isAmountNeg) {
@@ -1234,7 +1240,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
@@ -1296,7 +1304,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
@@ -1371,7 +1381,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->privatePostAccountBalances($params);
         //
         //     array(
@@ -1397,7 +1409,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market_symbol' => $market['id'],
@@ -1454,7 +1468,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->privatePostFeesTrading($params);
         //
         //     array(
@@ -1484,7 +1500,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->privatePostFeesWithdrawal($params);
         //
         //     array(
@@ -1529,7 +1547,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->privatePostFeesWithdrawal($params);
         //
         //     array(
@@ -1590,7 +1610,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
@@ -1646,7 +1668,9 @@ class bitstamp extends Exchange {
          * @param {string} [$params->clientOrderId] a unique identifier for the $order, automatically generated if not sent
          * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'amount' => $this->amount_to_precision($symbol, $amount),
@@ -1676,7 +1700,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'id' => $id,
         );
@@ -1704,7 +1730,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $request = array();
         $response = null;
@@ -1746,7 +1774,9 @@ class bitstamp extends Exchange {
     }
 
     public function fetch_order_status(string $id, ?string $symbol = null, $params = array()) {
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
         $request = array();
         if ($clientOrderId !== null) {
@@ -1770,7 +1800,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1818,7 +1850,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $method = 'privatePostUserTransactions';
         $market = null;
@@ -1855,7 +1889,9 @@ class bitstamp extends Exchange {
         if ($paginate) {
             return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params);
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -1914,7 +1950,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1966,7 +2004,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         if ($since !== null) {
             $request['timedelta'] = $this->milliseconds() - $since;
@@ -2047,7 +2087,7 @@ class bitstamp extends Exchange {
         $feeCost = $this->safe_string($transaction, 'fee');
         $feeCurrency = null;
         $amount = null;
-        if (is_array($transaction) && array_key_exists('amount', $transaction)) {
+        if (is_array($transaction) && array_key_exists('amount' ?? '', $transaction)) {
             $amount = $this->safe_string($transaction, 'amount');
         } elseif ($currency !== null) {
             $amount = $this->safe_string($transaction, $currency['id'], $amount);
@@ -2061,11 +2101,11 @@ class bitstamp extends Exchange {
             $amount = Precise::string_abs($amount);
         }
         $status = 'ok';
-        if (is_array($transaction) && array_key_exists('status', $transaction)) {
+        if (is_array($transaction) && array_key_exists('status' ?? '', $transaction)) {
             $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         }
         $type = null;
-        if (is_array($transaction) && array_key_exists('type', $transaction)) {
+        if (is_array($transaction) && array_key_exists('type' ?? '', $transaction)) {
             // from fetchDepositsWithdrawals
             $rawType = $this->safe_string($transaction, 'type');
             if ($rawType === '0') {
@@ -2302,10 +2342,10 @@ class bitstamp extends Exchange {
         } else {
             $parsedTransaction = $this->parse_transaction($item, $currency);
             $direction = null;
-            if (is_array($item) && array_key_exists('amount', $item)) {
+            if (is_array($item) && array_key_exists('amount' ?? '', $item)) {
                 $amount = $this->safe_string($item, 'amount');
                 $direction = Precise::string_gt($amount, '0') ? 'in' : 'out';
-            } elseif ((is_array($parsedTransaction) && array_key_exists('currency', $parsedTransaction)) && $parsedTransaction['currency'] !== null) {
+            } elseif ((is_array($parsedTransaction) && array_key_exists('currency' ?? '', $parsedTransaction)) && $parsedTransaction['currency'] !== null) {
                 $currencyCode = $this->safe_string($parsedTransaction, 'currency');
                 $currency = $this->currency($currencyCode);
                 $amount = $this->safe_string($item, $currency['id']);
@@ -2343,7 +2383,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -2366,7 +2408,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market_symbol' => $market['id'],
@@ -2431,7 +2475,9 @@ class bitstamp extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $market = null;
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
@@ -2513,7 +2559,9 @@ class bitstamp extends Exchange {
         // For fiat withdrawals please provide all required additional parameters in the 'params'
         // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->check_address($address);
         $request = array(
             'amount' => $amount,
@@ -2557,7 +2605,9 @@ class bitstamp extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'amount' => $this->parse_to_numeric($this->currency_to_precision($code, $amount)),

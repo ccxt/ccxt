@@ -497,7 +497,9 @@ export default class coinone extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v2PrivatePostAccountBalance(params);
         return this.parseBalance(response);
     }
@@ -512,7 +514,9 @@ export default class coinone extends Exchange {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'quote_currency': market['quote'],
@@ -559,7 +563,9 @@ export default class coinone extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const request = {
             'quote_currency': 'KRW',
@@ -622,7 +628,9 @@ export default class coinone extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'quote_currency': market['quote'],
@@ -799,7 +807,9 @@ export default class coinone extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'quote_currency': market['quote'],
@@ -834,34 +844,45 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#createOrder
      * @description create a trade order
-     * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
-     * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+     * @see https://docs.coinone.co.kr/reference/order-v21
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type must be 'limit'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, required for the limit orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
+        const orderType = type.toUpperCase(); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+        const orderSide = side.toUpperCase(); // unified lowercase order sides, same override rule
+        if (orderType !== 'LIMIT') {
             throw new ExchangeError(this.id + ' createOrder() allows limit orders only');
         }
-        await this.loadMarkets();
+        if (price === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a price argument for the limit orders');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
+        // the v1 order/limit_buy and order/limit_sell endpoints were retired by
+        // the exchange and return 404, the v2.1 order endpoint replaces them,
+        // see https://github.com/ccxt/ccxt/issues/23174
         const request = {
-            'price': price,
-            'currency': market['id'],
-            'qty': amount,
+            'quote_currency': market['quoteId'],
+            'target_currency': market['baseId'],
+            'type': orderType,
+            'side': orderSide,
+            'price': this.priceToPrecision(symbol, price),
+            'qty': this.amountToPrecision(symbol, amount),
         };
-        const method = 'privatePostOrder' + this.capitalize(type) + this.capitalize(side);
-        const response = await this[method](this.extend(request, params));
+        const response = await this.v2_1PrivatePostOrderLimit(this.extend(request, params));
         //
         //     {
         //         "result": "success",
-        //         "errorCode": "0",
-        //         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
+        //         "error_code": "0",
+        //         "order_id": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         //     }
         //
         return this.parseOrder(response, market);
@@ -879,7 +900,9 @@ export default class coinone extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'order_id': id,
@@ -963,9 +986,9 @@ export default class coinone extends Exchange {
         //         "feeRate": "-0.0015"
         //     }
         //
-        const id = this.safeString(order, 'orderId');
-        const baseId = this.safeString(order, 'baseCurrency');
-        const quoteId = this.safeString(order, 'targetCurrency');
+        const id = this.safeString2(order, 'orderId', 'order_id');
+        const baseId = this.safeString2(order, 'baseCurrency', 'target_currency');
+        const quoteId = this.safeString2(order, 'targetCurrency', 'quote_currency');
         let base = undefined;
         let quote = undefined;
         if (baseId !== undefined) {
@@ -979,16 +1002,22 @@ export default class coinone extends Exchange {
             symbol = base + '/' + quote;
             market = this.safeMarket(symbol, market, '/');
         }
-        const timestamp = this.safeTimestamp2(order, 'timestamp', 'updatedAt');
-        let side = this.safeString2(order, 'type', 'side');
+        let timestamp = this.safeTimestamp2(order, 'timestamp', 'updatedAt');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger2(order, 'ordered_at', 'updated_at'); // v2.1 sends milliseconds
+        }
+        let side = this.safeStringLower2(order, 'type', 'side');
+        if ((side === 'limit') || (side === 'market') || (side === 'stop_limit')) {
+            side = this.safeStringLower(order, 'side'); // in v2.1 rows the type field carries the order type, the side lives in side
+        }
         if (side === 'ask') {
             side = 'sell';
         }
         else if (side === 'bid') {
             side = 'buy';
         }
-        const remainingString = this.safeString(order, 'remainQty');
-        const amountString = this.safeString2(order, 'originalQty', 'qty');
+        const remainingString = this.safeString2(order, 'remainQty', 'remain_qty');
+        const amountString = this.safeStringN(order, ['originalQty', 'qty', 'original_qty']);
         let status = this.safeString(order, 'status');
         // https://github.com/ccxt/ccxt/pull/7067
         if (status === 'live') {
@@ -1006,7 +1035,7 @@ export default class coinone extends Exchange {
             const feeCurrencyCode = (side === 'sell') ? quote : base;
             fee = {
                 'cost': feeCostString,
-                'rate': this.safeString(order, 'feeRate'),
+                'rate': this.safeString2(order, 'feeRate', 'fee_rate'),
                 'currency': feeCurrencyCode,
             };
         }
@@ -1025,9 +1054,9 @@ export default class coinone extends Exchange {
             'price': this.safeString(order, 'price'),
             'triggerPrice': undefined,
             'cost': undefined,
-            'average': this.safeString(order, 'averageExecutedPrice'),
+            'average': this.safeString2(order, 'averageExecutedPrice', 'average_executed_price'),
             'amount': amountString,
-            'filled': this.safeString(order, 'executedQty'),
+            'filled': this.safeString2(order, 'executedQty', 'executed_qty'),
             'remaining': remainingString,
             'status': status,
             'fee': fee,
@@ -1050,12 +1079,15 @@ export default class coinone extends Exchange {
         if (symbol === undefined) {
             throw new ExchangeError(this.id + ' fetchOpenOrders() allows fetching closed orders with a specific symbol');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
-            'currency': market['id'],
+            'quote_currency': market['quoteId'],
+            'target_currency': market['baseId'],
         };
-        const response = await this.privatePostOrderLimitOrders(this.extend(request, params));
+        const response = await this.v2_1PrivatePostOrderOpenOrders(this.extend(request, params));
         //
         //     {
         //         "result": "success",
@@ -1073,8 +1105,8 @@ export default class coinone extends Exchange {
         //         ]
         //     }
         //
-        const limitOrders = this.safeList(response, 'limitOrders', []);
-        return this.parseOrders(limitOrders, market, since, limit);
+        const openOrders = this.safeList2(response, 'open_orders', 'limitOrders', []);
+        return this.parseOrders(openOrders, market, since, limit);
     }
     /**
      * @method
@@ -1090,7 +1122,9 @@ export default class coinone extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'currency': market['id'],
@@ -1138,7 +1172,9 @@ export default class coinone extends Exchange {
         if ((price === undefined) || (qty === undefined) || (isAsk === undefined)) {
             throw new ArgumentsRequired(this.id + " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.");
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'order_id': id,
             'price': price,
@@ -1164,7 +1200,9 @@ export default class coinone extends Exchange {
      * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddresses(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.v2PrivatePostAccountDepositAddress(params);
         //
         //     {
@@ -1238,7 +1276,14 @@ export default class coinone extends Exchange {
         else {
             this.checkRequiredCredentials();
             url += request;
-            const nonce = this.nonce().toString();
+            // the v2.1 api requires a uuid nonce, the older apis use a numeric one
+            let nonce = undefined;
+            if (api === 'v2_1Private') {
+                nonce = this.uuid();
+            }
+            else {
+                nonce = this.nonce().toString();
+            }
             const json = this.json(this.extend({
                 'access_token': this.apiKey,
                 'nonce': nonce,

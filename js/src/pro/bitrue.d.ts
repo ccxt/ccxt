@@ -1,5 +1,5 @@
 import bitrueRest from '../bitrue.js';
-import type { Balances, Int, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
+import type { Balances, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitrue extends bitrueRest {
     describe(): any;
@@ -31,7 +31,7 @@ export default class bitrue extends bitrueRest {
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: Client, message: any): void;
     findSwapMarketByWsBaseQuote(wsBaseQuote: string): any;
-    parseContractBidsAsks(bidsAsks: any, symbol: string): any[];
+    parseContractBidsAsks(bidsAsks: any, symbol: string): List;
     convertFromRawQuantity(symbol: string, rawQuantity: any): any;
     /**
      * @method
@@ -46,7 +46,7 @@ export default class bitrue extends bitrueRest {
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name bitrue#watchOHLCV
@@ -61,7 +61,7 @@ export default class bitrue extends bitrueRest {
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: any): void;
-    parseWsOHLCV(tick: any, market?: any): OHLCV;
+    parseWsOHLCV(tick: any, market?: Market): OHLCV;
     /**
      * @method
      * @name bitrue#watchTicker

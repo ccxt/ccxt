@@ -588,9 +588,11 @@ func (this *CexCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5578 := (<-this.LoadMarkets())
-		PanicOnError(retRes5578)
+			retRes55812 := (<-this.LoadMarkets())
+			PanicOnError(retRes55812)
+		}
 
 		response := (<-this.FetchTickers([]any{symbol}, params))
 		PanicOnError(response)
@@ -620,9 +622,11 @@ func (this *CexCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5728 := (<-this.LoadMarkets())
-		PanicOnError(retRes5728)
+			retRes57512 := (<-this.LoadMarkets())
+			PanicOnError(retRes57512)
+		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbols, nil)) {
 			AddElementToObject(request, "pairs", this.MarketIds(symbols))
@@ -715,9 +719,11 @@ func (this *CexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6478 := (<-this.LoadMarkets())
-		PanicOnError(retRes6478)
+			retRes65212 := (<-this.LoadMarkets())
+			PanicOnError(retRes65212)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -815,9 +821,11 @@ func (this *CexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any 
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7278 := (<-this.LoadMarkets())
-		PanicOnError(retRes7278)
+			retRes73412 := (<-this.LoadMarkets())
+			PanicOnError(retRes73412)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -886,9 +894,11 @@ func (this *CexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(dataType, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7758 := (<-this.LoadMarkets())
-		PanicOnError(retRes7758)
+			retRes78412 := (<-this.LoadMarkets())
+			PanicOnError(retRes78412)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair":       GetValue(market, "id"),
@@ -965,9 +975,11 @@ func (this *CexCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8438 := (<-this.LoadMarkets())
-		PanicOnError(retRes8438)
+			retRes85412 := (<-this.LoadMarkets())
+			PanicOnError(retRes85412)
+		}
 
 		response := (<-this.PrivatePostGetMyCurrentFee(params))
 		PanicOnError(response)
@@ -1032,9 +1044,11 @@ func (this *CexCore) FetchAccounts(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8948 := (<-this.LoadMarkets())
-		PanicOnError(retRes8948)
+			retRes90712 := (<-this.LoadMarkets())
+			PanicOnError(retRes90712)
+		}
 
 		response := (<-this.PrivatePostGetMyAccountStatusV3(params))
 		PanicOnError(response)
@@ -1192,9 +1206,11 @@ func (this *CexCore) FetchOrdersByStatus(status any, optionalArgs ...any) <-chan
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10168 := (<-this.LoadMarkets())
-		PanicOnError(retRes10168)
+			retRes103112 := (<-this.LoadMarkets())
+			PanicOnError(retRes103112)
+		}
 		var request any = map[string]any{}
 		var isClosedOrders any = (IsEqual(status, "closed"))
 		if IsTrue(isClosedOrders) {
@@ -1298,9 +1314,9 @@ func (this *CexCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes109815 := (<-this.FetchOrdersByStatus("closed", symbol, since, limit, params))
-		PanicOnError(retRes109815)
-		ch <- retRes109815
+		retRes111415 := (<-this.FetchOrdersByStatus("closed", symbol, since, limit, params))
+		PanicOnError(retRes111415)
+		ch <- retRes111415
 		return nil
 
 	}()
@@ -1332,9 +1348,9 @@ func (this *CexCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes111315 := (<-this.FetchOrdersByStatus("open", symbol, since, limit, params))
-		PanicOnError(retRes111315)
-		ch <- retRes111315
+		retRes112915 := (<-this.FetchOrdersByStatus("open", symbol, since, limit, params))
+		PanicOnError(retRes112915)
+		ch <- retRes112915
 		return nil
 
 	}()
@@ -1360,9 +1376,11 @@ func (this *CexCore) FetchOpenOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11278 := (<-this.LoadMarkets())
-		PanicOnError(retRes11278)
+			retRes114412 := (<-this.LoadMarkets())
+			PanicOnError(retRes114412)
+		}
 		var request any = map[string]any{
 			"orderId": ParseInt(id),
 		}
@@ -1396,9 +1414,11 @@ func (this *CexCore) FetchClosedOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11468 := (<-this.LoadMarkets())
-		PanicOnError(retRes11468)
+			retRes116512 := (<-this.LoadMarkets())
+			PanicOnError(retRes116512)
+		}
 		var request any = map[string]any{
 			"orderId": ParseInt(id),
 		}
@@ -1539,9 +1559,11 @@ func (this *CexCore) CreateOrder(symbol any, typeVar any, side any, amount any, 
 		if IsTrue(IsEqual(accountId, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes12708 := (<-this.LoadMarkets())
-		PanicOnError(retRes12708)
+			retRes129112 := (<-this.LoadMarkets())
+			PanicOnError(retRes129112)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"clientOrderId": this.Uuid(),
@@ -1648,9 +1670,11 @@ func (this *CexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13588 := (<-this.LoadMarkets())
-		PanicOnError(retRes13588)
+			retRes138112 := (<-this.LoadMarkets())
+			PanicOnError(retRes138112)
+		}
 		var request any = map[string]any{
 			"orderId":         ParseInt(id),
 			"cancelRequestId": Add("c_", ToString((this.Milliseconds()))),
@@ -1689,9 +1713,11 @@ func (this *CexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13828 := (<-this.LoadMarkets())
-		PanicOnError(retRes13828)
+			retRes140712 := (<-this.LoadMarkets())
+			PanicOnError(retRes140712)
+		}
 
 		response := (<-this.PrivatePostDoCancelAllOrders(params))
 		PanicOnError(response)
@@ -1747,9 +1773,11 @@ func (this *CexCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes14178 := (<-this.LoadMarkets())
-		PanicOnError(retRes14178)
+			retRes144412 := (<-this.LoadMarkets())
+			PanicOnError(retRes144412)
+		}
 		var currency any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(code, nil)) {
@@ -1863,9 +1891,11 @@ func (this *CexCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes15108 := (<-this.LoadMarkets())
-		PanicOnError(retRes15108)
+			retRes153912 := (<-this.LoadMarkets())
+			PanicOnError(retRes153912)
+		}
 		var request any = map[string]any{}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2005,9 +2035,11 @@ func (this *CexCore) TransferBetweenMainAndSubAccount(code any, amount any, from
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16218 := (<-this.LoadMarkets())
-		PanicOnError(retRes16218)
+			retRes165212 := (<-this.LoadMarkets())
+			PanicOnError(retRes165212)
+		}
 		var currency any = this.Currency(code)
 		var fromMain any = (IsEqual(fromAccount, ""))
 		var targetAccount any = Ternary(IsTrue(fromMain), toAccount, fromAccount)
@@ -2056,9 +2088,11 @@ func (this *CexCore) TransferBetweenSubAccounts(code any, amount any, fromAccoun
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16568 := (<-this.LoadMarkets())
-		PanicOnError(retRes16568)
+			retRes168912 := (<-this.LoadMarkets())
+			PanicOnError(retRes168912)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency":      GetValue(currency, "id"),
@@ -2149,9 +2183,11 @@ func (this *CexCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan a
 		if IsTrue(IsEqual(accountId, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17318 := (<-this.LoadMarkets())
-		PanicOnError(retRes17318)
+			retRes176612 := (<-this.LoadMarkets())
+			PanicOnError(retRes176612)
+		}
 		var networkCode any = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode = GetValue(networkCodeparamsVariable, 0)

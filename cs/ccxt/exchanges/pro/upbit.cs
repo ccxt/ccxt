@@ -36,12 +36,19 @@ public partial class upbit : ccxt.upbit
     public async virtual Task<object> watchPublicMultiple(object symbols, object channel, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isEqual(symbols, null)))
         {
             symbols = this.symbols;
         }
         symbols = this.marketSymbols(symbols);
+        if (isTrue(isEqual(symbols, null)))
+        {
+            symbols = new List<object>() {};
+        }
         object marketIds = this.marketIds(symbols);
         object url = this.implodeParams(getValue(getValue(this.urls, "api"), "ws"), new Dictionary<string, object>() {
             { "hostname", this.hostname },
@@ -240,7 +247,10 @@ public partial class upbit : ccxt.upbit
         //   "stream_type": "SNAPSHOT" }
         object ticker = this.parseTicker(message);
         object symbol = getValue(ticker, "symbol");
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+        }
         object messageHash = add("ticker:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
     }
@@ -321,6 +331,10 @@ public partial class upbit : ccxt.upbit
         //   "stream_type": "REALTIME" }
         object trade = this.parseTrade(message);
         object symbol = getValue(trade, "symbol");
+        if (isTrue(isEqual(symbol, null)))
+        {
+            return;
+        }
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
@@ -453,7 +467,10 @@ public partial class upbit : ccxt.upbit
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object channel = "myOrder";
         object messageHash = "myOrder";
         object orders = await this.watchPrivate(symbol, channel, messageHash);
@@ -478,7 +495,10 @@ public partial class upbit : ccxt.upbit
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object channel = "myOrder";
         object messageHash = "myTrades";
         object trades = await this.watchPrivate(symbol, channel, messageHash);
@@ -498,6 +518,10 @@ public partial class upbit : ccxt.upbit
             { "watch", "open" },
             { "trade", "open" },
         };
+        if (isTrue(isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -654,8 +678,8 @@ public partial class upbit : ccxt.upbit
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object cachedOrders = this.orders;
-        object orders = this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
-        object order = this.safeValue(orders, orderId);
+        object orders = ((bool) isTrue((isEqual(symbol, null)))) ? new Dictionary<string, object>() {} : this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
+        object order = ((bool) isTrue((isEqual(orderId, null)))) ? null : this.safeValue(orders, orderId);
         if (isTrue(!isEqual(order, null)))
         {
             object fee = this.safeValue(order, "fee");
@@ -690,7 +714,10 @@ public partial class upbit : ccxt.upbit
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object channel = "myAsset";
         object messageHash = "myAsset";
         return await this.watchPrivate(null, channel, messageHash);
@@ -746,7 +773,7 @@ public partial class upbit : ccxt.upbit
             { "candle.1s", this.handleOHLCV },
         };
         object methodName = this.safeString(message, "type");
-        object method = this.safeValue(methods, methodName);
+        object method = ((bool) isTrue((isEqual(methodName, null)))) ? null : this.safeValue(methods, methodName);
         if (isTrue(!isEqual(method, null)))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});

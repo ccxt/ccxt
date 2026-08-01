@@ -1,4 +1,8 @@
 import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import os
 import sys
 import psutil
@@ -95,7 +99,7 @@ async def main():
     await asyncio.gather(*tasks)
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    run(main())
 
 # Results Using asyncio 3.12^
 # Performance Metrics at 2025-05-18 20:24:04:

@@ -14,7 +14,7 @@ import (
 // )
 
 // Function to replace parameters in the path
-func (this *Exchange) ImplodeParams(path any, parameter any) any {
+func (this *BaseExchange) ImplodeParams(path any, parameter any) any {
 	pathStr, ok := path.(string)
 	if !ok {
 		return path
@@ -89,7 +89,7 @@ func ParseTimeframe(timeframe2 any) int64 {
 	return int64(amount * float64(scale))
 }
 
-func (this *Exchange) RoundTimeframe(timeframe any, timestamp any, direction ...any) any {
+func (this *BaseExchange) RoundTimeframe(timeframe any, timestamp any, direction ...any) any {
 	// Default direction is ROUND_DOWN
 	roundDirection := ROUND_DOWN
 	if len(direction) > 0 {

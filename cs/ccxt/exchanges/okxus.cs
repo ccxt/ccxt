@@ -33,15 +33,11 @@ public partial class okxus : okx
                 { "CORS", null },
                 { "spot", true },
                 { "margin", null },
-                { "swap", false },
+                { "swap", true },
                 { "future", false },
                 { "option", false },
             } },
             { "features", new Dictionary<string, object>() {
-                { "swap", new Dictionary<string, object>() {
-                    { "linear", null },
-                    { "inverse", null },
-                } },
                 { "future", new Dictionary<string, object>() {
                     { "linear", null },
                     { "inverse", null },

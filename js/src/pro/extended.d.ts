@@ -1,5 +1,5 @@
 import extendedRest from '../extended.js';
-import type { Balances, Bool, FundingRate, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Balances, Bool, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class extended extends extendedRest {
     describe(): any;
@@ -18,7 +18,7 @@ export default class extended extends extendedRest {
     handleOrderBook(client: Client, message: any): void;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
-    watchPrivate(messageHash: string, subscription?: any): Promise<any>;
+    watchPrivate(messageHash: string, subscription?: NullableDict): Promise<any>;
     /**
      * @method
      * @name extended#watchOrders
@@ -79,7 +79,7 @@ export default class extended extends extendedRest {
      */
     watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     handleFundingRate(client: Client, message: any): void;
-    parseWsFundingRate(fundingRate: any, market?: any, message?: any): FundingRate;
+    parseWsFundingRate(fundingRate: any, market?: Market, message?: any): FundingRate;
     /**
      * @method
      * @name extended#watchMarkPrice

@@ -1,5 +1,5 @@
 import bydfiRest from '../bydfi.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bydfi extends bydfiRest {
     describe(): any;
@@ -52,7 +52,7 @@ export default class bydfi extends bydfiRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
-    getMessageHashesForTickersUnsubscription(): any[];
+    getMessageHashesForTickersUnsubscription(): List;
     handleTicker(client: Client, message: any): void;
     /**
      * @method
@@ -184,7 +184,7 @@ export default class bydfi extends bydfiRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     handlePositions(client: any, message: any): void;
-    parseWsPosition(position: any, market?: any): Position;
+    parseWsPosition(position: any, market?: Market): Position;
     parseWsPositionSide(rawPositionSide: Str): Str;
     /**
      * @method

@@ -29,7 +29,7 @@ func TestWatchLiquidations(exchange ccxt.ICoreExchange, skippedProperties any, s
 			ch <- false
 			return nil
 		}
-		var response any = nil
+		var response any = []any{}
 		var now any = DateNow()
 		var ends any = Add(now, 10000)
 		for IsLessThan(now, ends) {

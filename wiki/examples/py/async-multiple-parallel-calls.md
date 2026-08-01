@@ -7,7 +7,11 @@ import sys
 
 
 import ccxt.async_support as ccxt
-from asyncio import run, gather
+from asyncio import gather
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 
 print('CCXT Version:', ccxt.__version__)
 

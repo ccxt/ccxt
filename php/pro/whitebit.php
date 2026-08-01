@@ -11,6 +11,9 @@ use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class whitebit extends \ccxt\async\whitebit {
     public function describe(): mixed {
@@ -78,7 +81,9 @@ class whitebit extends \ccxt\async\whitebit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $timeframes = $this->safe_value($this->options, 'timeframes', array());
@@ -127,11 +132,11 @@ class whitebit extends \ccxt\async\whitebit {
             $messageHash = 'candles' . ':' . $symbol;
             $parsed = $this->parse_ohlcv($data, $market);
             // $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol);
-            if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+            if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
                 $this->ohlcvs[$symbol] = array();
             }
             // $stored = $this->ohlcvs[$symbol]['unknown']; // we don't know the timeframe but we need to respect the type
-            if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists('unknown', $this->ohlcvs[$symbol]))) {
+            if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists('unknown' ?? '', $this->ohlcvs[$symbol]))) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp($limit);
                 $this->ohlcvs[$symbol]['unknown'] = $stored;
@@ -155,7 +160,9 @@ class whitebit extends \ccxt\async\whitebit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if ($limit === null) {
                 $limit = 10; // max 100
@@ -222,7 +229,7 @@ class whitebit extends \ccxt\async\whitebit {
         $symbol = $market['symbol'];
         $data = $this->safe_value($params, 1);
         $timestamp = $this->safe_timestamp($data, 'timestamp');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $ob = $this->order_book();
             $this->orderbooks[$symbol] = $ob;
         }
@@ -265,7 +272,9 @@ class whitebit extends \ccxt\async\whitebit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $method = 'market_subscribe';
@@ -286,7 +295,9 @@ class whitebit extends \ccxt\async\whitebit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?$id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $method = 'market_subscribe';
             $url = $this->urls['api']['ws'];
@@ -371,7 +382,9 @@ class whitebit extends \ccxt\async\whitebit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'trades' . ':' . $symbol;
@@ -445,7 +458,9 @@ class whitebit extends \ccxt\async\whitebit {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
@@ -471,7 +486,10 @@ class whitebit extends \ccxt\async\whitebit {
         //         "56.78",
         //         "0.16717",
         //         "0.0094919126",
-        //         ''
+        //         '',
+        //         "2",
+        //         "2",
+        //         "LTC"
         //       ),
         //       "id" => null
         //   }
@@ -499,7 +517,10 @@ class whitebit extends \ccxt\async\whitebit {
         //         "56.78", // $price
         //         "0.16717", // $amount
         //         "0.0094919126", // $fee
-        //         '' // client order $id
+        //         '', // client order $id
+        //         "2", // $side, 1 = sell, 2 = buy
+        //         "2", // $role, 1 = maker, 2 = taker
+        //         "LTC" // $fee asset
         //    )
         //
         $orderId = $this->safe_string($trade, 3);
@@ -512,10 +533,26 @@ class whitebit extends \ccxt\async\whitebit {
         $fee = null;
         $feeCost = $this->safe_string($trade, 6);
         if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 10);
+            $feeCurrencyCode = ($feeCurrencyId !== null) ? $this->safe_currency_code($feeCurrencyId) : $market['quote'];
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $market['quote'],
+                'currency' => $feeCurrencyCode,
             );
+        }
+        $rawSide = $this->safe_integer($trade, 8);
+        $side = null;
+        if ($rawSide === 1) {
+            $side = 'sell';
+        } elseif ($rawSide === 2) {
+            $side = 'buy';
+        }
+        $role = $this->safe_integer($trade, 9);
+        $takerOrMaker = null;
+        if ($role === 1) {
+            $takerOrMaker = 'maker';
+        } elseif ($role === 2) {
+            $takerOrMaker = 'taker';
         }
         return $this->safe_trade(array(
             'id' => $id,
@@ -525,8 +562,8 @@ class whitebit extends \ccxt\async\whitebit {
             'symbol' => $market['symbol'],
             'order' => $orderId,
             'type' => null,
-            'side' => null,
-            'takerOrMaker' => null,
+            'side' => $side,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => null,
@@ -550,7 +587,9 @@ class whitebit extends \ccxt\async\whitebit {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
@@ -725,7 +764,9 @@ class whitebit extends \ccxt\async\whitebit {
              * @param {str} [$params->type] spot or contract if not provided $this->options['defaultType'] is used
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
             $messageHash = 'wallet:';
@@ -795,7 +836,9 @@ class whitebit extends \ccxt\async\whitebit {
 
     public function watch_multiple_subscription($messageHash, $method, $symbol, $isNested = false, $params = array()) {
         return Async\async(function () use ($messageHash, $method, $symbol, $isNested, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws'];
             $id = $this->nonce();
             $client = $this->safe_value($this->clients, $url);
@@ -842,7 +885,7 @@ class whitebit extends \ccxt\async\whitebit {
                         'method' => $method,
                         'params' => $marketIdsNew,
                     );
-                    if (is_array($client->subscriptions) && array_key_exists($method, $client->subscriptions)) {
+                    if (is_array($client->subscriptions) && array_key_exists($method ?? '', $client->subscriptions)) {
                         unset($client->subscriptions[$method]);
                     }
                     return Async\await($this->watch($url, $messageHash, $resubRequest, $method, $subscription));
@@ -934,7 +977,7 @@ class whitebit extends \ccxt\async\whitebit {
         } catch (Exception $e) {
             if ($e instanceof AuthenticationError) {
                 $client->reject($e, 'authenticated');
-                if (is_array($client->subscriptions) && array_key_exists('authenticated', $client->subscriptions)) {
+                if (is_array($client->subscriptions) && array_key_exists('authenticated' ?? '', $client->subscriptions)) {
                     unset($client->subscriptions['authenticated']);
                 }
                 return false;

@@ -77,7 +77,9 @@ export default class alpaca extends alpacaRest {
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'ticker:' + market['symbol'];
         const request: Dict = {
@@ -159,7 +161,9 @@ export default class alpaca extends alpacaRest {
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const request: Dict = {
@@ -216,7 +220,9 @@ export default class alpaca extends alpacaRest {
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook' + ':' + symbol;
@@ -300,7 +306,9 @@ export default class alpaca extends alpacaRest {
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'trade:' + symbol;
@@ -357,7 +365,9 @@ export default class alpaca extends alpacaRest {
         const url = this.urls['api']['ws']['trading'];
         await this.authenticate (url);
         let messageHash = 'myTrades';
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
@@ -388,7 +398,9 @@ export default class alpaca extends alpacaRest {
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const url = this.urls['api']['ws']['trading'];
         await this.authenticate (url);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let messageHash = 'orders';
         if (symbol !== undefined) {
             const market = this.market (symbol);

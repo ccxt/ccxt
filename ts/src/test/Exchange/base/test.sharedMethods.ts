@@ -41,7 +41,14 @@ function assertType (exchange: Exchange, skippedProperties: object, entry: objec
     const same_numeric = (typeof entryKeyVal === 'number') && (typeof formatKeyVal === 'number');
     const same_boolean = ((entryKeyVal === true) || (entryKeyVal === false)) && ((formatKeyVal === true) || (formatKeyVal === false));
     const same_array = Array.isArray (entryKeyVal) && Array.isArray (formatKeyVal);
-    const same_object = exchange.isDictionary (entryKeyVal) && exchange.isDictionary (formatKeyVal);
+    // PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
+    // returns false for an empty {} format marker — accept a dict entry against an empty-array format
+    let formatIsEmptyArray = false;
+    if (Array.isArray (formatKeyVal)) {
+        const formatLen = formatKeyVal.length;
+        formatIsEmptyArray = (formatLen === 0);
+    }
+    const same_object = exchange.isDictionary (entryKeyVal) && (exchange.isDictionary (formatKeyVal) || formatIsEmptyArray);
     const result = (entryKeyVal === undefined) || same_string || same_numeric || same_boolean || same_array || same_object;
     return result;
 }
@@ -62,18 +69,15 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
         for (let i = 0; i < format.length; i++) {
             const emptyAllowedForThisKey = (emptyAllowedFor === undefined) || exchange.inArray (i, emptyAllowedFor);
             const value = entry[i];
-            if (i in skippedProperties) {
-                continue;
-            }
             // check when:
             // - it's not inside "allowe empty values" list
             // - it's not undefined
-            if (emptyAllowedForThisKey && (value === undefined)) {
+            if ((emptyAllowedForThisKey && (value === undefined)) || (i in skippedProperties)) {
                 continue;
             }
             assert (value !== undefined, i.toString () + ' index is expected to have a value' + logText);
             // because of other langs, this is needed for arrays
-            const typeAssertion = assertType (exchange, skippedProperties, entry, i, format);
+            const typeAssertion = assertType (exchange, {}, entry, i, format);
             assert (typeAssertion, i.toString () + ' index does not have an expected type ' + logText);
         }
     } else {
@@ -82,16 +86,15 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             if (key in skippedProperties) {
+                // a skipped key must not be required to exist at all, e.g. prediction
+                // market structures are keyed by an outcome handle and omit 'symbol'
                 continue;
             }
             assert (key in entry, '"' + stringValue (key) + '" key is missing from structure' + logText);
-            if (key in skippedProperties) {
-                continue;
-            }
             const emptyAllowedForThisKey = (emptyAllowedFor === undefined) || exchange.inArray (key, emptyAllowedFor);
             const value = entry[key];
             // check when:
-            // - it's not inside "allowe empty values" list
+            // - it's not inside "allowed empty values" list
             // - it's not undefined
             if (emptyAllowedForThisKey && (value === undefined)) {
                 continue;
@@ -100,7 +103,7 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
             assert (value !== undefined, '"' + stringValue (key) + '" key is expected to have a value' + logText);
             // add exclusion for info key, as it can be any type
             if (key !== 'info') {
-                const typeAssertion = assertType (exchange, skippedProperties, entry, key, format);
+                const typeAssertion = assertType (exchange, {}, entry, key, format);
                 assert (typeAssertion, '"' + stringValue (key) + '" key is neither undefined, neither of expected type' + logText);
                 if (deep) {
                     if (exchange.isDictionary (value) || Array.isArray (value)) {
@@ -632,6 +635,29 @@ function exchangeProp (exchange: Exchange, key: string, defaultValue: any = unde
     return exchange.getProperty (exchange, keyUpper, defaultValue);
 }
 
+async function validateTickerExceptionForPercentage (ex: any, exchange: Exchange, ticker: any) {
+    // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+    const eMessage = exchange.exceptionMessage (ex, false);
+    if (eMessage.indexOf ('percentage should be above') >= 0 || eMessage.indexOf ('percentage should be below') >= 0) {
+        const symbol = ticker['symbol'];
+        if (symbol !== undefined) {
+            // if it's not in markets, then maybe newly added symbol, so can can compromise there
+            if (!(symbol in exchange.markets)) {
+                return;
+            }
+            // if OHLCV supported
+            if (exchange.featureValue (symbol, 'fetchOHLCV') !== undefined) {
+                const ohlcv = await exchange.fetchOHLCV (symbol, '1d', undefined, 5);
+                if (ohlcv.length <= 1) {
+                    // if only 1 day, then allow it
+                    return;
+                }
+            }
+        }
+    }
+    assert (eMessage === '', eMessage); // trigger error
+}
+
 
 export default {
     exchangeProp,
@@ -667,4 +693,5 @@ export default {
     assertRoundMinuteTimestamp,
     concat,
     getActiveMarkets,
+    validateTickerExceptionForPercentage,
 };

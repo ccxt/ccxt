@@ -9,6 +9,9 @@ use Exception; // a common import
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class bitrue extends \ccxt\async\bitrue {
     public function describe(): mixed {
@@ -201,7 +204,9 @@ class bitrue extends \ccxt\async\bitrue {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-structure order structure~ indexed by $market symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
@@ -320,7 +325,9 @@ class bitrue extends \ccxt\async\bitrue {
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'orderbook:' . $symbol;
@@ -409,7 +416,7 @@ class bitrue extends \ccxt\async\bitrue {
                 'buys' => $this->parse_contract_bids_asks($rawBuys, $symbol),
             );
         }
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -472,7 +479,9 @@ class bitrue extends \ccxt\async\bitrue {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             if (!$market['swap']) {
@@ -549,7 +558,7 @@ class bitrue extends \ccxt\async\bitrue {
         }
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($trade, 'ts');
         $sideLower = $this->safe_string_lower($trade, 'side');
@@ -587,7 +596,9 @@ class bitrue extends \ccxt\async\bitrue {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             if (!$market['swap']) {
@@ -655,10 +666,10 @@ class bitrue extends \ccxt\async\bitrue {
             return;
         }
         $parsed = $this->parse_ws_ohlcv($tick, $market);
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }
@@ -668,7 +679,7 @@ class bitrue extends \ccxt\async\bitrue {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_ohlcv($tick, $market = null): array {
+    public function parse_ws_ohlcv($tick, ?array $market = null): array {
         $symbol = $market['symbol'];
         $idSeconds = $this->safe_integer($tick, 'id');
         $timestamp = ($idSeconds === null) ? null : $idSeconds * 1000;
@@ -692,7 +703,9 @@ class bitrue extends \ccxt\async\bitrue {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             if (!$market['swap']) {
@@ -826,7 +839,7 @@ class bitrue extends \ccxt\async\bitrue {
     }
 
     public function handle_message(Client $client, $message) {
-        if (is_array($message) && array_key_exists('channel', $message)) {
+        if (is_array($message) && array_key_exists('channel' ?? '', $message)) {
             $channel = $this->safe_string($message, 'channel');
             if (mb_strpos($channel, '_depth_step') > -1) {
                 $this->handle_order_book($client, $message);
@@ -837,7 +850,7 @@ class bitrue extends \ccxt\async\bitrue {
             } elseif (mb_strpos($channel, '_ticker') > -1) {
                 $this->handle_ticker($client, $message);
             }
-        } elseif (is_array($message) && array_key_exists('ping', $message)) {
+        } elseif (is_array($message) && array_key_exists('ping' ?? '', $message)) {
             $this->handle_ping($client, $message);
         } else {
             $event = $this->safe_string($message, 'e');

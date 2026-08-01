@@ -84,7 +84,10 @@ public partial class derive : ccxt.derive
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isEqual(limit, null)))
         {
             limit = 10;
@@ -125,7 +128,7 @@ public partial class derive : ccxt.derive
         // }
         //
         object parameters = this.safeDict(message, "params");
-        object data = this.safeDict(parameters, "data");
+        object data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         object marketId = this.safeString(data, "instrument_name");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -133,7 +136,7 @@ public partial class derive : ccxt.derive
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             object defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
-            object subscription = getValue(((WebSocketClient)client).subscriptions, topic);
+            object subscription = ((bool) isTrue((isEqual(topic, null)))) ? null : getValue(((WebSocketClient)client).subscriptions, topic);
             object limit = this.safeInteger(subscription, "limit", defaultLimit);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
@@ -156,7 +159,10 @@ public partial class derive : ccxt.derive
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object topic = add(add("ticker.", getValue(market, "id")), ".100");
         object request = new Dictionary<string, object>() {
@@ -241,10 +247,14 @@ public partial class derive : ccxt.derive
         //
         object parameters = this.safeDict(message, "params");
         object rawData = this.safeDict(parameters, "data");
-        object data = this.safeDict(rawData, "instrument_ticker");
+        object data = this.safeDict(rawData, "instrument_ticker", new Dictionary<string, object>() {});
         object topic = this.safeValue(parameters, "channel");
         object ticker = this.parseTicker(data);
-        ((IDictionary<string,object>)this.tickers)[(string)getValue(ticker, "symbol")] = ticker;
+        object tickerSymbol = getValue(ticker, "symbol");
+        if (isTrue(!isEqual(tickerSymbol, null)))
+        {
+            ((IDictionary<string,object>)this.tickers)[(string)tickerSymbol] = ticker;
+        }
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, topic});
         return message;
     }
@@ -261,7 +271,10 @@ public partial class derive : ccxt.derive
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object limit = this.safeInteger(parameters, "limit");
         if (isTrue(isEqual(limit, null)))
         {
@@ -293,7 +306,10 @@ public partial class derive : ccxt.derive
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object topic = add("trades.", getValue(market, "id"));
         object messageHah = add("unwatch", topic);
@@ -406,7 +422,10 @@ public partial class derive : ccxt.derive
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object topic = add("trades.", getValue(market, "id"));
         object request = new Dictionary<string, object>() {
@@ -433,7 +452,7 @@ public partial class derive : ccxt.derive
         //
         //
         object parameters = this.safeDict(message, "params");
-        object data = this.safeDict(parameters, "data");
+        object data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         object topic = this.safeValue(parameters, "channel");
         object parsedTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parsedTopic, 1);
@@ -519,7 +538,10 @@ public partial class derive : ccxt.derive
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object subaccountId = null;
         var subaccountIdparametersVariable = this.handleDeriveSubaccountId("watchOrders", parameters);
         subaccountId = ((IList<object>)subaccountIdparametersVariable)[0];
@@ -596,7 +618,7 @@ public partial class derive : ccxt.derive
         //
         object parameters = this.safeDict(message, "params");
         object topic = this.safeString(parameters, "channel");
-        object rawOrders = this.safeList(parameters, "data");
+        object rawOrders = this.safeList(parameters, "data", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
         {
             object data = getValue(rawOrders, i);
@@ -612,7 +634,7 @@ public partial class derive : ccxt.derive
                 }
                 object cachedOrders = this.orders;
                 object orders = this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
-                object order = this.safeValue(orders, orderId);
+                object order = ((bool) isTrue((isEqual(orderId, null)))) ? null : this.safeValue(orders, orderId);
                 if (isTrue(!isEqual(order, null)))
                 {
                     object fee = this.safeValue(order, "fee");
@@ -652,7 +674,10 @@ public partial class derive : ccxt.derive
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object subaccountId = null;
         var subaccountIdparametersVariable = this.handleDeriveSubaccountId("watchMyTrades", parameters);
         subaccountId = ((IList<object>)subaccountIdparametersVariable)[0];
@@ -696,7 +721,7 @@ public partial class derive : ccxt.derive
         }
         object parameters = this.safeDict(message, "params");
         object topic = this.safeString(parameters, "channel");
-        object rawTrades = this.safeList(parameters, "data");
+        object rawTrades = this.safeList(parameters, "data", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
         {
             object trade = this.parseTrade(message);
@@ -783,7 +808,7 @@ public partial class derive : ccxt.derive
                 }
             }
         }
-        object method = this.safeValue(methods, eventVar);
+        object method = ((bool) isTrue((isEqual(eventVar, null)))) ? null : this.safeValue(methods, eventVar);
         if (isTrue(!isEqual(method, null)))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
@@ -793,7 +818,7 @@ public partial class derive : ccxt.derive
         {
             object id = this.safeString(message, "id");
             object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
-            object subscription = this.safeValue(subscriptionsById, id, new Dictionary<string, object>() {});
+            object subscription = ((bool) isTrue((isEqual(id, null)))) ? new Dictionary<string, object>() {} : this.safeValue(subscriptionsById, id, new Dictionary<string, object>() {});
             if (isTrue(inOp(subscription, "method")))
             {
                 if (isTrue(isEqual(getValue(subscription, "method"), "public/login")))
@@ -816,7 +841,7 @@ public partial class derive : ccxt.derive
         // }
         //
         object messageHash = "authenticated";
-        object ids = this.safeList(message, "result");
+        object ids = this.safeList(message, "result", new List<object>() {});
         if (isTrue(isGreaterThan(getArrayLength(ids), 0)))
         {
             // client.resolve (message, messageHash);

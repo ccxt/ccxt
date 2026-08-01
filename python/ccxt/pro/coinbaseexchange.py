@@ -66,7 +66,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         }
 
     async def subscribe(self, name, symbol=None, messageHashStart=None, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         messageHash = messageHashStart
         productIds = []
@@ -89,7 +90,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         return await self.watch(url, messageHash, request, messageHash)
 
     async def subscribe_multiple(self, name, symbols=[], messageHashStart=None, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         symbols = self.market_symbols(symbols)
         messageHashes = []
@@ -131,7 +133,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbolsLength = len(symbols)
         if symbolsLength == 0:
             raise BadSymbol(self.id + ' watchTickers requires a non-empty symbols array')
@@ -153,7 +156,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         name = 'matches'
         trades = await self.subscribe(name, symbol, name, params)
@@ -173,7 +177,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         symbolsLength = len(symbols)
         if symbolsLength == 0:
             raise BadRequest(self.id + ' watchTradesForSymbols() requires a non-empty array of symbols')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         name = 'matches'
         trades = await self.subscribe_multiple(name, symbols, name, params)
@@ -194,7 +199,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         name = 'user'
         messageHash = 'myTrades'
@@ -214,7 +220,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         symbols = self.market_symbols(symbols, None, False)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'user'
         messageHash = 'myTrades'
         authentication = self.authenticate()
@@ -234,7 +241,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         name = 'user'
         messageHash = 'orders'
@@ -257,7 +265,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         """
         if symbol is None:
             raise BadSymbol(self.id + ' watchMyTrades requires a symbol')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         name = 'user'
         messageHash = 'orders'
@@ -279,7 +288,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         if symbolsLength == 0:
             raise BadRequest(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
         name = 'level2'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         marketIds = self.market_ids(symbols)
         messageHashes = []
@@ -314,7 +324,8 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         name = 'level2'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = name + ':' + market['id']

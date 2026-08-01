@@ -75,7 +75,9 @@ export default class whitebit extends whitebitRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const timeframes = this.safeValue (this.options, 'timeframes', {});
@@ -150,7 +152,9 @@ export default class whitebit extends whitebitRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (limit === undefined) {
             limit = 10; // max 100
@@ -258,7 +262,9 @@ export default class whitebit extends whitebitRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const method = 'market_subscribe';
@@ -277,7 +283,9 @@ export default class whitebit extends whitebitRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         const method = 'market_subscribe';
         const url = this.urls['api']['ws'];
@@ -360,7 +368,9 @@ export default class whitebit extends whitebitRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'trades' + ':' + symbol;
@@ -432,7 +442,9 @@ export default class whitebit extends whitebitRest {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -457,7 +469,10 @@ export default class whitebit extends whitebitRest {
         //         "56.78",
         //         "0.16717",
         //         "0.0094919126",
-        //         ''
+        //         '',
+        //         "2",
+        //         "2",
+        //         "LTC"
         //       ],
         //       "id": null
         //   }
@@ -485,7 +500,10 @@ export default class whitebit extends whitebitRest {
         //         "56.78", // price
         //         "0.16717", // amount
         //         "0.0094919126", // fee
-        //         '' // client order id
+        //         '', // client order id
+        //         "2", // side, 1 = sell, 2 = buy
+        //         "2", // role, 1 = maker, 2 = taker
+        //         "LTC" // fee asset
         //    ]
         //
         const orderId = this.safeString (trade, 3);
@@ -498,10 +516,26 @@ export default class whitebit extends whitebitRest {
         let fee: NullableDict = undefined;
         const feeCost = this.safeString (trade, 6);
         if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 10);
+            const feeCurrencyCode = (feeCurrencyId !== undefined) ? this.safeCurrencyCode (feeCurrencyId) : market['quote'];
             fee = {
                 'cost': feeCost,
-                'currency': market['quote'],
+                'currency': feeCurrencyCode,
             };
+        }
+        const rawSide = this.safeInteger (trade, 8);
+        let side: Str = undefined;
+        if (rawSide === 1) {
+            side = 'sell';
+        } else if (rawSide === 2) {
+            side = 'buy';
+        }
+        const role = this.safeInteger (trade, 9);
+        let takerOrMaker: Str = undefined;
+        if (role === 1) {
+            takerOrMaker = 'maker';
+        } else if (role === 2) {
+            takerOrMaker = 'taker';
         }
         return this.safeTrade ({
             'id': id,
@@ -511,8 +545,8 @@ export default class whitebit extends whitebitRest {
             'symbol': market['symbol'],
             'order': orderId,
             'type': undefined,
-            'side': undefined,
-            'takerOrMaker': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': undefined,
@@ -535,7 +569,9 @@ export default class whitebit extends whitebitRest {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -708,7 +744,9 @@ export default class whitebit extends whitebitRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         let messageHash = 'wallet:';
@@ -774,7 +812,9 @@ export default class whitebit extends whitebitRest {
     }
 
     async watchMultipleSubscription (messageHash, method, symbol, isNested = false, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
         const client = this.safeValue (this.clients, url);

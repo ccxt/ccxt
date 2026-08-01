@@ -90,9 +90,11 @@ func (this *KucoinfuturesCore) Transfer(code any, amount any, fromAccount any, t
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes708 := (<-this.LoadMarkets())
-		PanicOnError(retRes708)
+			retRes7112 := (<-this.LoadMarkets())
+			PanicOnError(retRes7112)
+		}
 		var currency any = this.Currency(code)
 		var amountToPrecision any = this.CurrencyToPrecision(code, amount)
 		var request any = map[string]any{

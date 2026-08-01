@@ -74,7 +74,9 @@ class alpaca extends alpaca$1["default"] {
     async watchTicker(symbol, params = {}) {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate(url);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'ticker:' + market['symbol'];
         const request = {
@@ -153,7 +155,9 @@ class alpaca extends alpaca$1["default"] {
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate(url);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const request = {
@@ -208,7 +212,9 @@ class alpaca extends alpaca$1["default"] {
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate(url);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook' + ':' + symbol;
@@ -289,7 +295,9 @@ class alpaca extends alpaca$1["default"] {
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate(url);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'trade:' + symbol;
@@ -344,7 +352,9 @@ class alpaca extends alpaca$1["default"] {
         const url = this.urls['api']['ws']['trading'];
         await this.authenticate(url);
         let messageHash = 'myTrades';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol !== undefined) {
             symbol = this.symbol(symbol);
             messageHash += ':' + symbol;
@@ -374,7 +384,9 @@ class alpaca extends alpaca$1["default"] {
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const url = this.urls['api']['ws']['trading'];
         await this.authenticate(url);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'orders';
         if (symbol !== undefined) {
             const market = this.market(symbol);

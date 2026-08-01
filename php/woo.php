@@ -479,6 +479,151 @@ class woo extends Exchange {
                     '-1103' => '\\ccxt\\InvalidOrder', // array( "code" => -1103,  "message" => "The order price is not following the tick size rule for the symbol." )
                     '-1104' => '\\ccxt\\InvalidOrder', // array( "code" => -1104,  "message" => "The order quantity is not following the step size rule for the symbol." )
                     '-1105' => '\\ccxt\\InvalidOrder', // array( "code" => -1105,  "message" => "Price is X% too high or X% too low from the mid price." )
+                    '317136' => '\\ccxt\\InvalidOrder', // Edit tpsl quantity is not allowed for quantity bracket
+                    '317137' => '\\ccxt\\InvalidOrder', // Edit quantity should edit both legs
+                    '317138' => '\\ccxt\\InvalidOrder', // Edit quantity should be same for both legs
+                    '317139' => '\\ccxt\\InvalidOrder', // Trigger price of 1st leg should not be empty for STOP_BRACKET
+                    '317140' => '\\ccxt\\InvalidOrder', // The quantity of a quantity TP/SL order should not be empty.
+                    '317141' => '\\ccxt\\InvalidOrder', // The algo quantity TP/SL limit order should have field price
+                    '317142' => '\\ccxt\\InvalidOrder', // The algo trigger type of quantity TP/SL should not be CLOSE_POSITION
+                    '317143' => '\\ccxt\\InvalidOrder', // The side of TP/SL legs should be the same
+                    '317144' => '\\ccxt\\InvalidOrder', // IndexPrice is not supported for non spot symbol `${symbol}`
+                    '317145' => '\\ccxt\\InvalidOrder', // same but different ‘code’
+                    '317146' => '\\ccxt\\InvalidOrder', // same but different ‘code’
+                    '317147' => '\\ccxt\\InvalidOrder', // same but different ‘code’
+                    '317148' => '\\ccxt\\BadRequest', // symbol can’t be empty.
+                    '317149' => '\\ccxt\\OrderNotFound', // same with TRADE_NOT_FOUND with different ErrorCodes
+                    '317150' => '\\ccxt\\InvalidOrder', // trigger price must be greater than `${price}`
+                    '317151' => '\\ccxt\\InvalidOrder', // trigger price must be less than `${price}`
+                    '317152' => '\\ccxt\\OrderNotFound', // The order not found for the order id : `${orderId}`
+                    '317153' => '\\ccxt\\OrderNotFound', // child order not found for the order id : `${orderId}`
+                    '317154' => '\\ccxt\\OperationFailed', // RPC failed => error => `${msg}`
+                    '317155' => '\\ccxt\\BadSymbol', // unsupported symbol => `${symbol}`
+                    '317156' => '\\ccxt\\BadSymbol', // unsupported symbol => `${symbol}`
+                    '317157' => '\\ccxt\\InvalidOrder', // Trading with `${symbol1}`/`${symbol2}` is temporarily suspended. Please try again later.
+                    '317158' => '\\ccxt\\InvalidOrder', // Trading with `${token}`-PERP is temporarily suspended. Please try again later.
+                    '317159' => '\\ccxt\\BadSymbol', // This pair is currently not supported.
+                    '317160' => '\\ccxt\\InvalidOrder', // The order id and symbol are not matched
+                    '317161' => '\\ccxt\\InvalidOrder', // The order is completed
+                    '317162' => '\\ccxt\\BadRequest', // The params should not be null or 0
+                    '317163' => '\\ccxt\\InvalidOrder', // cannot edit TP/SL quantity under bracket order
+                    '317164' => '\\ccxt\\InvalidOrder', // Invalid client order id
+                    '317165' => '\\ccxt\\InvalidOrder', // invalid order id list
+                    '317166' => '\\ccxt\\InvalidOrder', // invalid client order id list
+                    '317167' => '\\ccxt\\InvalidOrder', // unsupported algo type => `${algoType}`
+                    '317168' => '\\ccxt\\OperationFailed', // Order failed due to internal service error. Please contact customer service.
+                    '317169' => '\\ccxt\\InvalidOrder', // Trading with `${left}`/`${right}` is temporarily suspended. Please try again later.
+                    '317170' => '\\ccxt\\InvalidOrder', // The order quantity must bigger than the executed quantity.
+                    '317171' => '\\ccxt\\BadRequest', // error path format
+                    '317172' => '\\ccxt\\BadRequest', // The userId should not be null or 0
+                    '317173' => '\\ccxt\\BadRequest', // The orderId should not be null or 0
+                    '317174' => '\\ccxt\\InvalidOrder', // The order is processing
+                    '317176' => '\\ccxt\\InvalidOrder', // The trigger after should from 0 to `${maxTriggerAfter}`
+                    '317177' => '\\ccxt\\InvalidOrder', // Order has terminated
+                    '317178' => '\\ccxt\\BadRequest', // The receive window is invalid.
+                    '317179' => '\\ccxt\\BadRequest', // Request has failed receive window => `${recv_window}` millisecond is exceeded from `${api_timestamp}`
+                    '317184' => '\\ccxt\\OrderNotFound', // The order cannot be found, or it is already completed.
+                    '317206' => '\\ccxt\\InvalidOrder', // Spot trading is disabled while futures credits are active. Please remove or fully utilize your futures credits to enable spot trading.
+                    '317207' => '\\ccxt\\InsufficientFunds', // Request failed. Please ensure you have sufficient USDT to cover the futures credits currently in use.
+                    '302001' => '\\ccxt\\ExchangeError', // data status is not expected
+                    '302002' => '\\ccxt\\ExchangeError', // The data doesn’t exist.
+                    '302003' => '\\ccxt\\BadRequest', // The param number is invalid.
+                    '302004' => '\\ccxt\\BadRequest', // invalid params
+                    '302005' => '\\ccxt\\ExchangeError', // An error has occurred due to other pending requests. Please try again later.
+                    '302101' => '\\ccxt\\BadSymbol', // symbol is not exists
+                    '302102' => '\\ccxt\\InsufficientFunds', // Your margin is insufficient! Please liquidate assets.
+                    '302103' => '\\ccxt\\InsufficientFunds', // Your margin will be insufficient after withdrawal.
+                    '302104' => '\\ccxt\\InsufficientFunds', // Your margin will be insufficient after this action.
+                    '302109' => '\\ccxt\\OperationFailed', // create order engine error
+                    '302110' => '\\ccxt\\ExchangeError', // application is lock now
+                    '302111' => '\\ccxt\\InvalidOrder', // Your account position is being liquidated. Trading has been suspended at the moment. Please try again later.
+                    '302112' => '\\ccxt\\InvalidOrder', // Remaining order quantity is smaller than transaction quantity
+                    '302113' => '\\ccxt\\InvalidOrder', // Order side is not same side
+                    '302114' => '\\ccxt\\InvalidOrder', // Order price too small
+                    '302115' => '\\ccxt\\InvalidOrder', // Order quantity too small
+                    '302117' => '\\ccxt\\DuplicateOrderId', // The client_order_id is repeated.
+                    '302118' => '\\ccxt\\InsufficientFunds', // no enough balance to close
+                    '302119' => '\\ccxt\\InsufficientFunds', // Insufficient funds. Please enable margin trading. Note that certain coins do not allow for leverage trading.
+                    '302120' => '\\ccxt\\InvalidOrder', // Please lower the leverage ratio below 1.0 and close your short positions.
+                    '302121' => '\\ccxt\\InvalidOrder', // Please repay your interest.
+                    '302122' => '\\ccxt\\InvalidOrder', // Remaining order amount is smaller than transaction quantity
+                    '302123' => '\\ccxt\\ExchangeError', // user group data not found
+                    '302125' => '\\ccxt\\InvalidOrder', // Quantity should be less than your position.
+                    '302126' => '\\ccxt\\InvalidOrder', // Attempt failed. Please close your futures positions, cancel open orders and try again.
+                    '302127' => '\\ccxt\\InvalidOrder', // Your order is terminated.
+                    '302128' => '\\ccxt\\InsufficientFunds', // Insufficient `${token}`. Note that `${baseToken}` do not allow for margin trading.
+                    '302129' => '\\ccxt\\OrderNotFound', // The order doesn’t exist.
+                    '302130' => '\\ccxt\\InvalidOrder', // The order didn’t update.
+                    '302131' => '\\ccxt\\InvalidOrder', // Please enable futures trading in Margin & Futures tab. You can create subaccounts to separate margin and futures positions.
+                    '302132' => '\\ccxt\\InvalidOrder', // Attempt failed. Please close your negative positions and try again.
+                    '302133' => '\\ccxt\\InvalidOrder', // Please repay your interest.
+                    '302134' => '\\ccxt\\BadRequest', // The details are empty.
+                    '302135' => '\\ccxt\\BadRequest', // The amount must be positive.
+                    '302136' => '\\ccxt\\BadRequest', // Your balance must be positive.
+                    '302137' => '\\ccxt\\InvalidOrder', // You don’t have enough position for MKT close. Please check your open orders.
+                    '302138' => '\\ccxt\\InvalidOrder', // Insufficient position for reduce only order.
+                    '302140' => '\\ccxt\\InvalidOrder', // The order price is too small.
+                    '302141' => '\\ccxt\\InvalidOrder', // The order quantity is too small.
+                    '302142' => '\\ccxt\\InvalidOrder', // The order quantity must bigger than the executed quantity.
+                    '302143' => '\\ccxt\\ExchangeError', // Application not found.
+                    '302144' => '\\ccxt\\InvalidOrder', // There isn’t a positive amount to repay the interest balance.
+                    '302145' => '\\ccxt\\InsufficientFunds', // Your margin will be insufficient after disabling this token.
+                    '302147' => '\\ccxt\\InvalidOrder', // Amount is required for buy market orders when margin disabled.
+                    '302148' => '\\ccxt\\InvalidOrder', // Amount is required for ASK buy order when margin disabled.
+                    '302149' => '\\ccxt\\InvalidOrder', // Amount is required for BID buy order when margin disabled.
+                    '302150' => '\\ccxt\\InvalidOrder', // Quantity is required for sell market orders when margin disabled.
+                    '302151' => '\\ccxt\\InvalidOrder', // Quantity is required for ASK sell order when margin disabled.
+                    '302152' => '\\ccxt\\InvalidOrder', // Quantity is required for BID sell order when margin disabled.
+                    '302154' => '\\ccxt\\InsufficientFunds', // Insufficient `${stableToken}`.
+                    '302155' => '\\ccxt\\InsufficientFunds', // Insufficient `${token}`. Please enable margin trading for leverage trading.
+                    '302156' => '\\ccxt\\InvalidOrder', // Short selling `${token}` is not available now.
+                    '302157' => '\\ccxt\\InsufficientFunds', // Insufficient `${token}`. Please enable margin trading in Margin & Futures tab for spot leverage trading.
+                    '302159' => '\\ccxt\\RequestTimeout', // Your request has timed out. Please try again later.
+                    '302160' => '\\ccxt\\InvalidOrder', // Reduce only orders are only supported under spot pairs quoted by your account currency `${AccountCurrency}`.
+                    '302162' => '\\ccxt\\InvalidOrder', // You are not able to place this order under Reduce Only trading mode.
+                    '302163' => '\\ccxt\\InvalidOrder', // Reduce only orders are not allowed.
+                    '302164' => '\\ccxt\\InvalidOrder', // The order value should be greater or equal to `${minNotional}`.
+                    '302165' => '\\ccxt\\ExchangeError', // The token has no price.
+                    '302166' => '\\ccxt\\InvalidOrder', // Token balance cannot be negative under Spot Only.
+                    '302167' => '\\ccxt\\InvalidOrder', // Token balance cannot be negative under Spot & Futures.
+                    '302168' => '\\ccxt\\InvalidOrder', // The token is not enabled for margin.
+                    '302169' => '\\ccxt\\InsufficientFunds', // Collateral is not sufficient to cover initial margin requirements under Spot & Margin.
+                    '302170' => '\\ccxt\\InsufficientFunds', // Collateral is not sufficient to cover initial margin requirements under Spot & Futures.
+                    '302171' => '\\ccxt\\InvalidOrder', // Buy or sell orders by amount are not supported under Reduce Only trading mode.
+                    '302172' => '\\ccxt\\InvalidOrder', // `${token}` max position size of `${maxPosition}` is exceeded.
+                    '302177' => '\\ccxt\\InvalidOrder', // Pending new orders cannot be edited.
+                    '302178' => '\\ccxt\\InvalidOrder', // Order is rejected have an existing market close order.
+                    '302185' => '\\ccxt\\InvalidOrder', // Your order request cannot be processed at this moment because the position mode is currently being switched.
+                    '302186' => '\\ccxt\\InvalidOrder', // The position side you’ve used is not compatible with your current position mode.
+                    '302188' => '\\ccxt\\InvalidOrder', // exceed max open notional
+                    '302189' => '\\ccxt\\InvalidOrder', // Changing isolated position leverage is not allowed when there is a pending order.
+                    '302190' => '\\ccxt\\InvalidOrder', // Unable to adjust isolated margin while there are pending orders. Please cancel them to proceed.
+                    '302191' => '\\ccxt\\InvalidOrder', // Only adjustments to futures isolated margin are allowed.
+                    '302192' => '\\ccxt\\InvalidOrder', // The amount exceeds the withdrawable margin limit.
+                    '302193' => '\\ccxt\\InsufficientFunds', // The amount exceeds the available USDT balance.
+                    '302194' => '\\ccxt\\InvalidOrder', // Maximum number of isolated pending orders for `${symbol}` reached.
+                    '302195' => '\\ccxt\\InvalidOrder', // The position side you’ve used is invalid
+                    '302196' => '\\ccxt\\InvalidOrder', // Please use up all of your active futures credits before adding more.
+                    '302197' => '\\ccxt\\InvalidOrder', // Futures credits cannot be reduced while there are open positions.
+                    '302198' => '\\ccxt\\InvalidOrder', // Futures credits cannot be reduced while there are still pending orders.
+                    '302199' => '\\ccxt\\InvalidOrder', // Please switch to futures trading mode to adjust futures credits.
+                    '302301' => '\\ccxt\\InsufficientFunds', // The balance isn’t enough.
+                    '302303' => '\\ccxt\\InvalidOrder', // Too many pending orders on reduce only order
+                    '302305' => '\\ccxt\\InsufficientFunds', // Failed to update cross margin leverages due to insufficient margin. Please top up or close your cross positions to proceed.
+                    '302306' => '\\ccxt\\BadRequest', // Invalid leverage, please provide positive integer leverage
+                    '302307' => '\\ccxt\\AccountSuspended', // The account has been suspended
+                    '302308' => '\\ccxt\\InvalidOrder', // Attempt failed. Please close your futures positions, cancel open orders and try again.
+                    '302309' => '\\ccxt\\InvalidOrder', // Spot trading is disabled while futures credits are active. Please remove or fully utilize your futures credits to enable spot trading
+                    '302310' => '\\ccxt\\InsufficientFunds', // Request failed. Please ensure you have sufficient USDT to cover the futures credits currently in use.
+                    '302311' => '\\ccxt\\ExchangeError', // This request is currently being processed.
+                    '302312' => '\\ccxt\\ExchangeError', // This request is currently being processed.
+                    '302313' => '\\ccxt\\ExchangeError', // This request is currently being processed.
+                    '302314' => '\\ccxt\\InvalidOrder', // Quantity should be less than your position.
+                    '302999' => '\\ccxt\\ExchangeError', // An unknown error has occurred.
+                    '311001' => '\\ccxt\\ExchangeError', // The data status is invalid.
+                    '311002' => '\\ccxt\\ExchangeError', // The data does not exist.
+                    '311004' => '\\ccxt\\ExchangeError', // The parameters are invalid.
+                    '311999' => '\\ccxt\\OperationFailed', // There is a system error.
                 ),
                 'broad' => array(
                     'Can not place' => '\\ccxt\\ExchangeError', // array( "code" => -1011,  "message" => "Can not place/cancel orders, it may because internal network error. Please try again in a few seconds." )
@@ -705,7 +850,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -767,7 +914,7 @@ class woo extends Exchange {
         //         "isMaker" => 0
         //     }
         //
-        $isFromFetchOrder = (is_array($trade) && array_key_exists('id', $trade));
+        $isFromFetchOrder = (is_array($trade) && array_key_exists('id' ?? '', $trade));
         $timestampString = $this->safe_string_2($trade, 'executed_timestamp', 'executedTimestamp');
         $timestamp = null;
         if ($timestampString !== null) {
@@ -852,7 +999,9 @@ class woo extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -882,7 +1031,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->v3PrivateGetAccountInfo($params);
         //
         //     {
@@ -1106,14 +1257,16 @@ class woo extends Exchange {
         /**
          * create a $market buy order by providing the $symbol and $cost
          *
-         * @see https://docs.woox.io/#send-order
+         * @see https://developer.woox.io/api-reference/endpoint/trading/post_order
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -1125,14 +1278,16 @@ class woo extends Exchange {
         /**
          * create a $market sell order by providing the $symbol and $cost
          *
-         * @see https://docs.woox.io/#send-order
+         * @see https://developer.woox.io/api-reference/endpoint/trading/post_order
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot orders only');
@@ -1144,7 +1299,7 @@ class woo extends Exchange {
         /**
          * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingAmount
          *
-         * @see https://docs.woox.io/#send-algo-order
+         * @see https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
          *
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -1171,7 +1326,7 @@ class woo extends Exchange {
         /**
          * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
          *
-         * @see https://docs.woox.io/#send-algo-order
+         * @see https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
          *
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -1224,7 +1379,9 @@ class woo extends Exchange {
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         $params = $this->omit($params, array( 'reduceOnly', 'reduce_only' ));
         $orderType = strtoupper($type);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $orderSide = strtoupper($side);
         $request = array(
@@ -1422,7 +1579,9 @@ class woo extends Exchange {
          * @param {string} [$params->trailingTriggerPrice] the $price to trigger a trailing order, default uses the $price argument
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             // 'quantity' => $this->amount_to_precision($symbol, $amount),
@@ -1510,7 +1669,9 @@ class woo extends Exchange {
         if (!$isTrigger && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1568,7 +1729,9 @@ class woo extends Exchange {
          * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $request = array();
@@ -1605,7 +1768,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} the api result
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'triggerAfter' => ($timeout > 0) ? min($timeout, 900000) : 0,
         );
@@ -1635,7 +1800,9 @@ class woo extends Exchange {
          * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1748,7 +1915,9 @@ class woo extends Exchange {
          * @param {boolean} [$params->paginate] set to true if you want to fetch $orders with pagination
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
         if ($paginate) {
@@ -1887,7 +2056,9 @@ class woo extends Exchange {
          * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $extendedParams = $this->extend($params, array( 'status' => 'INCOMPLETE' ));
         return $this->fetch_orders($symbol, $since, $limit, $extendedParams);
     }
@@ -1910,7 +2081,9 @@ class woo extends Exchange {
          * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $extendedParams = $this->extend($params, array( 'status' => 'COMPLETED' ));
         return $this->fetch_orders($symbol, $since, $limit, $extendedParams);
     }
@@ -2105,7 +2278,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -2149,12 +2324,14 @@ class woo extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] max=1000, max=100 when $since is defined and is less than (now - (999 * (is_array(ms) && array_key_exists($timeframe, ms))))
+         * @param {int} [$limit] max=1000, max=100 when $since is defined and is less than (now - (999 * (is_array(ms) && array_key_exists($timeframe ?? '', ms))))
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -2223,7 +2400,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2267,7 +2446,9 @@ class woo extends Exchange {
          * @param {boolean} [$params->paginate] set to true if you want to fetch $trades with pagination
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
         if ($paginate) {
@@ -2435,12 +2616,14 @@ class woo extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://docs.woox.io/#get-current-holding-get-balance-new
+         * @see https://developer.woox.io/api-reference/endpoint/assets/get_balances
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->v3PrivateGetAssetBalances($params);
         //
         //     {
@@ -2496,7 +2679,9 @@ class woo extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         // this method is TODO because of networks unification
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
@@ -2545,7 +2730,9 @@ class woo extends Exchange {
     }
 
     public function get_asset_history_rows(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): mixed {
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $currency = null;
         if ($code !== null) {
@@ -2830,7 +3017,7 @@ class woo extends Exchange {
         /**
          * $transfer $currency internally between wallets on the same account
          *
-         * @see https://docs.woox.io/#get-$transfer-history
+         * @see https://developer.woox.io/api-reference/endpoint/assets/transfer
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to $transfer
@@ -2839,7 +3026,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'token' => $currency['id'],
@@ -3014,7 +3203,7 @@ class woo extends Exchange {
         /**
          * make a withdrawal
          *
-         * @see https://docs.woox.io/#token-withdraw-v3
+         * @see https://developer.woox.io/api-reference/endpoint/assets/wallet_withdraw
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
@@ -3024,7 +3213,9 @@ class woo extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->check_address($address);
         $currency = $this->currency($code);
         $request = array(
@@ -3075,7 +3266,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -3258,7 +3451,9 @@ class woo extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
         if ($paginate) {
@@ -3390,7 +3585,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3432,7 +3629,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $response = $this->v3PublicGetFundingRate($params);
         //
@@ -3474,7 +3673,9 @@ class woo extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
@@ -3577,7 +3778,9 @@ class woo extends Exchange {
          * @param {string} [$params->positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
          * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $response = null;
         if ($market['spot']) {
@@ -3713,7 +3916,9 @@ class woo extends Exchange {
          * @param {string} [$params->positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
          * @return {array} response from the exchange
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'leverage' => $leverage,
         );
@@ -3765,7 +3970,9 @@ class woo extends Exchange {
     }
 
     public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): array {
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3786,7 +3993,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3839,7 +4048,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->v3PrivateGetFuturesPositions($params);
         //
         //     {
@@ -3995,7 +4206,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=conversion-structure conversion structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'sellToken' => strtoupper($fromCode),
             'buyToken' => strtoupper($toCode),
@@ -4039,7 +4252,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?$id=conversion-structure conversion structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'quoteId' => $id,
         );
@@ -4069,7 +4284,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?$id=conversion-structure conversion structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'quoteId' => $id,
         );
@@ -4115,7 +4332,9 @@ class woo extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest conversion to fetch
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=conversion-structure conversion structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         if ($since !== null) {
@@ -4214,7 +4433,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->v3PrivateGetConvertAssetInfo($params);
         //
         //     {
@@ -4271,13 +4492,15 @@ class woo extends Exchange {
         /**
          * fetches the auto deleveraging rank and risk percentage for a list of $symbols
          *
-         * @see https://docs.woox.io/#get-all-position-info-new
+         * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
          *
          * @param {string[]} [$symbols] a list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $response = $this->v3PrivateGetFuturesPositions($params);
         //

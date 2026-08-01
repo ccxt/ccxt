@@ -151,6 +151,11 @@ public partial class hashkey : Exchange
         return await this.callAsync ("privateGetApiV1FuturesGetBestOrder",parameters);
     }
 
+    public async Task<object> privateGetApiV1CoinInfo (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiV1CoinInfo",parameters);
+    }
+
     public async Task<object> privateGetApiV1AccountVipInfo (object parameters = null)
     {
         return await this.callAsync ("privateGetApiV1AccountVipInfo",parameters);
@@ -169,6 +174,11 @@ public partial class hashkey : Exchange
     public async Task<object> privateGetApiV1AccountType (object parameters = null)
     {
         return await this.callAsync ("privateGetApiV1AccountType",parameters);
+    }
+
+    public async Task<object> privateGetApiV1AccountChainType (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiV1AccountChainType",parameters);
     }
 
     public async Task<object> privateGetApiV1AccountCheckApiKey (object parameters = null)
@@ -259,6 +269,16 @@ public partial class hashkey : Exchange
     public async Task<object> privatePostApiV1FuturesOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostApiV1FuturesOrder",parameters);
+    }
+
+    public async Task<object> privatePostApiV1FuturesMarginType (object parameters = null)
+    {
+        return await this.callAsync ("privatePostApiV1FuturesMarginType",parameters);
+    }
+
+    public async Task<object> privatePostApiV1FuturesPositionMargin (object parameters = null)
+    {
+        return await this.callAsync ("privatePostApiV1FuturesPositionMargin",parameters);
     }
 
     public async Task<object> privatePostApiV1FuturesPositionTradingStop (object parameters = null)

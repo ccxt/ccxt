@@ -108,7 +108,7 @@ const hmac = (request: Input, secret: Input, hash: CHash, digest: Digest = 'hex'
 
 /*  .............................................   */
 
-function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null, fixedLength = false) {
+function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash | null = null, fixedLength = false) {
     if (prehash) {
         request = hash (request, prehash, 'hex')
     }
@@ -170,7 +170,7 @@ function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null
 }
 
 function eddsa (request: Hex, secret: Input, curve: CurveFnEDDSA) {
-    let privateKey = undefined;
+    let privateKey: Uint8Array | undefined = undefined;
     if (secret.length === 32) {
       // ed25519 secret is 32 bytes
       privateKey = utf8Bytes (secret)
@@ -179,7 +179,7 @@ function eddsa (request: Hex, secret: Input, curve: CurveFnEDDSA) {
       // we get the last 32 bytes
       privateKey = new Uint8Array (pemToDer (secret).slice (16))
     }
-    const signature = curve.sign (hexBytes (request), privateKey)
+    const signature = curve.sign (hexBytes (request), privateKey as Uint8Array)
     return base64.encode (signature)
 }
 

@@ -15,6 +15,10 @@ use ccxt\InvalidNonce;
 use ccxt\ChecksumError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class htx extends \ccxt\async\htx {
     public function describe(): mixed {
@@ -161,7 +165,9 @@ class htx extends \ccxt\async\htx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $options = $this->safe_dict($this->options, 'watchTicker', array());
@@ -187,7 +193,9 @@ class htx extends \ccxt\async\htx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $topic = 'ticker';
             $options = $this->safe_dict($this->options, 'watchTicker', array());
@@ -263,7 +271,9 @@ class htx extends \ccxt\async\htx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'market.' . $market['id'] . '.trade.detail';
@@ -289,7 +299,9 @@ class htx extends \ccxt\async\htx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $topic = 'trades';
             $options = $this->safe_dict($this->options, 'watchTrades', array());
@@ -357,7 +369,9 @@ class htx extends \ccxt\async\htx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -386,7 +400,9 @@ class htx extends \ccxt\async\htx {
              * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $subMessageHash = 'market.' . $market['id'] . '.kline.' . $interval;
@@ -447,7 +463,9 @@ class htx extends \ccxt\async\htx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $allowedLimits = array( 5, 20, 150, 400 );
@@ -494,7 +512,9 @@ class htx extends \ccxt\async\htx {
              * @param {int} [$params->limit] orderbook limit, default is null
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $topic = 'orderbook';
             $options = $this->safe_dict($this->options, 'watchOrderBook', array());
@@ -559,7 +579,7 @@ class htx extends \ccxt\async\htx {
                 // retry to synchronize if we have not reached $maxAttempts yet
                 if ($numAttempts < $maxAttempts) {
                     // safety guard
-                    if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                    if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                         $numAttempts = $this->sum($numAttempts, 1);
                         $delayTime = $this->sum(1000, $lastTimestamp - $snapshotTimestamp);
                         $subscription['numAttempts'] = $numAttempts;
@@ -793,7 +813,7 @@ class htx extends \ccxt\async\htx {
         $parts = explode('.', $ch);
         $marketId = $this->safe_string($parts, 1);
         $symbol = $this->safe_symbol($marketId);
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $size = $this->safe_string($parts, 3);
             $sizeParts = explode('_', $size);
             $limit = $this->safe_integer($sizeParts, 1);
@@ -833,7 +853,9 @@ class htx extends \ccxt\async\htx {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             $this->check_required_credentials();
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = null;
             $marketId = '*'; // wildcard
             $market = null;
@@ -957,7 +979,9 @@ class htx extends \ccxt\async\htx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = null;
             $subType = null;
             $market = null;
@@ -1200,6 +1224,7 @@ class htx extends \ccxt\async\htx {
                     'id' => $orderId,
                     'trades' => $trades,
                     'status' => $status,
+                    'lastTradeTimestamp' => $this->safe_integer($data, 'tradeTime'),
                     'symbol' => $market['symbol'],
                     'filled' => $this->parse_number($filled),
                     'remaining' => $this->parse_number($remaining),
@@ -1551,7 +1576,9 @@ class htx extends \ccxt\async\htx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $messageHash = '';
             if (!$this->is_empty($symbols)) {
@@ -1760,7 +1787,9 @@ class htx extends \ccxt\async\htx {
             list($subType, $params) = $this->handle_sub_type_and_params('watchBalance', null, $params, 'linear');
             $isUnifiedAccount = $this->safe_value_2($params, 'isUnifiedAccount', 'unified', false);
             $params = $this->omit($params, array( 'isUnifiedAccount', 'unified' ));
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = null;
             $channel = null;
             $marginMode = null;
@@ -2133,11 +2162,11 @@ class htx extends \ccxt\async\htx {
                 // return; commented out to clean up
             }
             // clean up
-            if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($id ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$id]);
             }
         }
-        if (is_array($message) && array_key_exists('unsubbed', $message)) {
+        if (is_array($message) && array_key_exists('unsubbed' ?? '', $message)) {
             $this->handle_un_subscription($client, $subscription);
         }
     }
@@ -2407,8 +2436,15 @@ class htx extends \ccxt\async\htx {
                     $messageHash = $this->safe_string($subscription, 'messageHash');
                     $client->reject($e, $messageHash);
                     $client->reject($e, $id);
-                    if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
+                    if (is_array($client->subscriptions) && array_key_exists($id ?? '', $client->subscriptions)) {
                         unset($client->subscriptions[$id]);
+                    }
+                    // the $subscription is keyed by the $messageHash, not by the $id -
+                    // without removing it a repeated watch call attaches to a future
+                    // that nothing will resolve instead of resubscribing, see
+                    // https://github.com/ccxt/ccxt/issues/10280
+                    if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
+                        unset($client->subscriptions[$messageHash]);
                     }
                 }
             }
@@ -2424,7 +2460,7 @@ class htx extends \ccxt\async\htx {
                 if ($e instanceof AuthenticationError) {
                     $client->reject($e, 'auth');
                     $method = 'auth';
-                    if (is_array($client->subscriptions) && array_key_exists($method, $client->subscriptions)) {
+                    if (is_array($client->subscriptions) && array_key_exists($method ?? '', $client->subscriptions)) {
                         unset($client->subscriptions[$method]);
                     }
                     return false;
@@ -2482,11 +2518,11 @@ class htx extends \ccxt\async\htx {
             //         }
             //     }
             //
-            if (is_array($message) && array_key_exists('id', $message)) {
+            if (is_array($message) && array_key_exists('id' ?? '', $message)) {
                 $this->handle_subscription_status($client, $message);
                 return;
             }
-            if (is_array($message) && array_key_exists('action', $message)) {
+            if (is_array($message) && array_key_exists('action' ?? '', $message)) {
                 $action = $this->safe_string($message, 'action');
                 if ($action === 'ping') {
                     $this->handle_ping($client, $message);
@@ -2497,7 +2533,7 @@ class htx extends \ccxt\async\htx {
                     return;
                 }
             }
-            if (is_array($message) && array_key_exists('ch', $message)) {
+            if (is_array($message) && array_key_exists('ch' ?? '', $message)) {
                 if ($message['ch'] === 'auth') {
                     $this->handle_authenticate($client, $message);
                     return;
@@ -2507,7 +2543,7 @@ class htx extends \ccxt\async\htx {
                     return;
                 }
             }
-            if (is_array($message) && array_key_exists('op', $message)) {
+            if (is_array($message) && array_key_exists('op' ?? '', $message)) {
                 $op = $this->safe_string($message, 'op');
                 if ($op === 'ping') {
                     $this->handle_ping($client, $message);
@@ -2526,7 +2562,7 @@ class htx extends \ccxt\async\htx {
                     return;
                 }
             }
-            if (is_array($message) && array_key_exists('ping', $message)) {
+            if (is_array($message) && array_key_exists('ping' ?? '', $message)) {
                 $this->handle_ping($client, $message);
             }
         }

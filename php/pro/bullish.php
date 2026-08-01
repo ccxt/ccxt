@@ -9,6 +9,9 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
 
 class bullish extends \ccxt\async\bullish {
     public function describe(): mixed {
@@ -135,7 +138,9 @@ class bullish extends \ccxt\async\bullish {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $messageHash = 'trades::' . $market['symbol'];
             $url = '/trading-api/v1/market-data/trades';
@@ -182,7 +187,7 @@ class bullish extends \ccxt\async\bullish {
         $market = $this->market($symbol);
         $rawTrades = $this->safe_list($data, 'trades', array());
         $trades = $this->parse_trades($rawTrades, $market);
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $tradesArrayCache = new ArrayCache($limit);
             $this->trades[$symbol] = $tradesArrayCache;
@@ -207,7 +212,9 @@ class bullish extends \ccxt\async\bullish {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $url = $this->urls['api']['ws']['public'] . '/trading-api/v1/market-data/tick/' . $market['id'];
@@ -266,10 +273,8 @@ class bullish extends \ccxt\async\bullish {
         $marketId = $this->safe_string($data, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        $parsed = null;
-        if (($updateType === 'snapshot')) {
-            $parsed = $this->parse_ticker($data, $market);
-        } elseif ($updateType === 'update') {
+        $parsed = $this->parse_ticker($data, $market);
+        if ($updateType === 'update') {
             $ticker = $this->safe_dict($this->tickers, $symbol, array());
             $rawTicker = $this->safe_dict($ticker, 'info', array());
             $merged = $this->extend($rawTicker, $data);
@@ -292,7 +297,9 @@ class bullish extends \ccxt\async\bullish {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $url = '/trading-api/v1/market-data/orderbook';
             $messageHash = 'orderbook::' . $market['symbol'];
@@ -333,7 +340,7 @@ class bullish extends \ccxt\async\bullish {
         $symbol = $this->safe_symbol($marketId);
         $messageHash = 'orderbook::' . $symbol;
         $timestamp = $this->safe_integer($data, 'timestamp');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -384,7 +391,9 @@ class bullish extends \ccxt\async\bullish {
              * @param {string} [$params->tradingAccountId] the trading account id to fetch entries for
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $subscribeHash = 'orders';
             $messageHash = $subscribeHash;
             if ($symbol !== null) {
@@ -472,7 +481,9 @@ class bullish extends \ccxt\async\bullish {
                 $parsedOrder = $this->parse_order($rawOrder);
                 $orders->append($parsedOrder);
                 $symbol = $this->safe_string($parsedOrder, 'symbol');
-                $symbols[$symbol] = true;
+                if ($symbol !== null) {
+                    $symbols[$symbol] = true;
+                }
             }
             $messageHash = 'orders';
             $client->resolve($orders, $messageHash);
@@ -499,7 +510,9 @@ class bullish extends \ccxt\async\bullish {
              * @param {string} [$params->tradingAccountId] the trading account id to fetch entries for
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $subscribeHash = 'myTrades';
             $messageHash = $subscribeHash;
             if ($symbol !== null) {
@@ -580,7 +593,9 @@ class bullish extends \ccxt\async\bullish {
                 $parsedTrade = $this->parse_trade($rawTrade);
                 $trades->append($parsedTrade);
                 $symbol = $this->safe_string($parsedTrade, 'symbol');
-                $symbols[$symbol] = true;
+                if ($symbol !== null) {
+                    $symbols[$symbol] = true;
+                }
             }
             $messageHash = 'myTrades';
             $client->resolve($trades, $messageHash);
@@ -604,7 +619,9 @@ class bullish extends \ccxt\async\bullish {
              * @param {string} [$params->tradingAccountId] the trading account id to fetch entries for
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'topic' => 'assetAccounts',
             );
@@ -662,7 +679,10 @@ class bullish extends \ccxt\async\bullish {
         //     }
         //
         $tradingAccountId = $this->safe_string($message, 'tradingAccountId');
-        if (!(is_array($this->balance) && array_key_exists($tradingAccountId, $this->balance))) {
+        if ($tradingAccountId === null) {
+            return;
+        }
+        if (!(is_array($this->balance) && array_key_exists($tradingAccountId ?? '', $this->balance))) {
             $this->balance[$tradingAccountId] = array();
         }
         $messageType = $this->safe_string($message, 'type');
@@ -699,10 +719,12 @@ class bullish extends \ccxt\async\bullish {
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $subscribeHash = 'positions';
             $messageHash = $subscribeHash;
-            if (!$this->is_empty($symbols)) {
+            if (($symbols !== null) && !$this->is_empty($symbols)) {
                 $symbols = $this->market_symbols($symbols);
                 $messageHash .= '::' . implode(',', $symbols);
             }

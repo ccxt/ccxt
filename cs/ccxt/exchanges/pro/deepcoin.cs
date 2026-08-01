@@ -230,7 +230,10 @@ public partial class deepcoin : ccxt.deepcoin
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add(add("ticker", "::"), getValue(market, "symbol"));
         return await this.watchPublic(market, messageHash, "7", parameters);
@@ -248,7 +251,10 @@ public partial class deepcoin : ccxt.deepcoin
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add(add("ticker", "::"), getValue(market, "symbol"));
         object subscription = new Dictionary<string, object>() {
@@ -378,7 +384,10 @@ public partial class deepcoin : ccxt.deepcoin
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add(add("trades", "::"), getValue(market, "symbol"));
         object trades = await this.watchPublic(market, messageHash, "2", parameters);
@@ -401,7 +410,10 @@ public partial class deepcoin : ccxt.deepcoin
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add(add("trades", "::"), getValue(market, "symbol"));
         object subscription = new Dictionary<string, object>() {
@@ -551,7 +563,10 @@ public partial class deepcoin : ccxt.deepcoin
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
@@ -580,7 +595,10 @@ public partial class deepcoin : ccxt.deepcoin
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
@@ -677,7 +695,10 @@ public partial class deepcoin : ccxt.deepcoin
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add(add("orderbook", "::"), getValue(market, "symbol"));
         object suffix = "_0.1";
@@ -697,7 +718,10 @@ public partial class deepcoin : ccxt.deepcoin
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add(add("orderbook", "::"), getValue(market, "symbol"));
         object suffix = "_0.1";
@@ -861,7 +885,10 @@ public partial class deepcoin : ccxt.deepcoin
     {
         parameters ??= new Dictionary<string, object>();
         object messageHash = "myTrades";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(!isEqual(symbol, null)))
         {
             symbol = this.symbol(symbol);
@@ -945,7 +972,10 @@ public partial class deepcoin : ccxt.deepcoin
     {
         parameters ??= new Dictionary<string, object>();
         object messageHash = "orders";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(!isEqual(symbol, null)))
         {
             symbol = this.symbol(symbol);
@@ -1093,7 +1123,10 @@ public partial class deepcoin : ccxt.deepcoin
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object listenKey = await this.authenticate();
         symbols = this.marketSymbols(symbols);
         object messageHash = "positions";

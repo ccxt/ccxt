@@ -835,7 +835,7 @@ public class DeltaCore extends DeltaApi
             {
                 Object market = Helpers.GetValue(markets, i);
                 Object type = this.safeString(market, "contract_type");
-                if (Helpers.isTrue(Helpers.isEqual(type, "options_combos")))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "options_combos"))) || Helpers.isTrue((Helpers.isEqual(type, "binary_call_options")))) || Helpers.isTrue((Helpers.isEqual(type, "binary_put_options")))))
                 {
                     continue;
                 }
@@ -1426,7 +1426,13 @@ public class DeltaCore extends DeltaApi
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
-                Object ticker = this.parseTicker(Helpers.GetValue(tickers, i));
+                Object rawTicker = Helpers.GetValue(tickers, i);
+                Object contractType = this.safeString(rawTicker, "contract_type");
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(contractType, "options_combos"))) || Helpers.isTrue((Helpers.isEqual(contractType, "binary_call_options")))) || Helpers.isTrue((Helpers.isEqual(contractType, "binary_put_options")))))
+                {
+                    continue;
+                }
+                Object ticker = this.parseTicker(rawTicker);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 Helpers.addElementToObject(result, symbol, ticker);
             }
@@ -3941,7 +3947,7 @@ public class DeltaCore extends DeltaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "margin_mode", marginMode );
             }};
-            return ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privatePutUsersMarginMode", new Object[] { this.extend(request, parameters) })).join();
+            return (this.privatePutUsersMarginMode(this.extend(request, parameters))).join();
         });
 
     }

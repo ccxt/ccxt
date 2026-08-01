@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
  
 import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import sys
 import os
 
@@ -62,5 +66,5 @@ async def main():
     await exchange.close()
 
 
-asyncio.run(main())
+run(main())
 

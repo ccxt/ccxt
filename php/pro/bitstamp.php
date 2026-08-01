@@ -10,6 +10,8 @@ use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class bitstamp extends \ccxt\async\bitstamp {
     public function describe(): mixed {
@@ -57,7 +59,9 @@ class bitstamp extends \ccxt\async\bitstamp {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'orderbook:' . $symbol;
@@ -173,7 +177,9 @@ class bitstamp extends \ccxt\async\bitstamp {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'trades:' . $symbol;
@@ -286,7 +292,9 @@ class bitstamp extends \ccxt\async\bitstamp {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $channel = 'private-my_orders';
@@ -330,7 +338,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $stored = $this->orders;
-        $subscription = $this->safe_value($client->subscriptions, $channel);
+        $subscription = ($channel === null) ? null : $this->safe_value($client->subscriptions, $channel);
         $symbol = $this->safe_string($subscription, 'symbol');
         $market = $this->market($symbol);
         $order['event'] = $this->safe_string($message, 'event');

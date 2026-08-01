@@ -22,7 +22,7 @@ public class TestWatchMyTrades extends BaseTest {
         while (Helpers.isLessThan(now, ends))
         {
             Object success = true;
-            Object response = null;
+            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             try
             {
                 response = (exchange.watchMyTrades(symbol)).join();
@@ -30,7 +30,7 @@ public class TestWatchMyTrades extends BaseTest {
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
                 {
-                    throw new RuntimeException(e);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
                 now = exchange.milliseconds();
                 // continue;

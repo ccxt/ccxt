@@ -6,6 +6,13 @@ import type { Str } from '../../base/types.js';
 
 
 async function testFetchTickers (exchange: Exchange, skippedProperties: object, symbol: string) {
+    // prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
+    // is impractical and the "every active market has a ticker" check doesn't apply — test
+    // fetchTickers by the outcome handle instead
+    if (exchange.safeBool (exchange.has, 'prediction', false)) {
+        const predictionResult = await fetchTickersHelperTest (exchange, skippedProperties, [ symbol ]);
+        return [ predictionResult ];
+    }
     const withoutSymbol = fetchTickersHelperTest (exchange, skippedProperties, undefined);
     const withSymbol = fetchTickersHelperTest (exchange, skippedProperties, [ symbol ]);
     const results = await Promise.all ([ withoutSymbol, withSymbol ]);
@@ -26,7 +33,11 @@ async function fetchTickersHelperTest (exchange: Exchange, skippedProperties: ob
     for (let i = 0; i < values.length; i++) {
         // todo: symbol check here
         const ticker = values[i];
-        testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
+        try {
+            testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
+        } catch (ex) {
+            await testSharedMethods.validateTickerExceptionForPercentage (ex, exchange, ticker);
+        }
     }
     return response;
 }

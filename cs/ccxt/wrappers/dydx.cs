@@ -27,7 +27,7 @@ public partial class dydx
         return (Int64)res;
     }
     /// <summary>
-    /// retrieves data on all markets for hyperliquid
+    /// retrieves data on all markets for dydx
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets"/>  <br/>
@@ -50,7 +50,7 @@ public partial class dydx
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer.woox.io/api-reference/endpoint/public_data/marketTrades"/>  <br/>
+    /// See <see href="https://docs.dydx.xyz/indexer-client/http#get-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

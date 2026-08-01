@@ -12,6 +12,9 @@ use ccxt\BadRequest;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class cex extends \ccxt\async\cex {
     public function describe(): mixed {
@@ -145,7 +148,9 @@ class cex extends \ccxt\async\cex {
                 throw new ArgumentsRequired($this->id . ' : this exchange only supports watching $trades for one $symbol per instance. You should either set .options["watchTrades"]["symbol"] to new $symbol, or create a new instance');
             }
             $this->options['watchTrades']['symbol'] = $symbol;
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $url = $this->urls['api']['ws'];
@@ -238,7 +243,7 @@ class cex extends \ccxt\async\cex {
     public function handle_trades_inner(Client $client, $message) {
         $data = $this->safe_list($message, 'data', array());
         $symbol = $this->safe_string($this->options['watchTrades'], 'symbol');
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->trades[$symbol] = new ArrayCache($limit);
         }
@@ -268,7 +273,9 @@ class cex extends \ccxt\async\cex {
              * @param {string} [$params->method] public or private
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $url = $this->urls['api']['ws'];
@@ -308,7 +315,9 @@ class cex extends \ccxt\async\cex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $url = $this->urls['api']['ws'];
             $messageHash = 'tickers';
@@ -344,7 +353,9 @@ class cex extends \ccxt\async\cex {
              * @param {array} [$params] extra parameters specific to the cex api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = $this->request_id();
@@ -460,7 +471,9 @@ class cex extends \ccxt\async\cex {
              * @param {array} [$params] extra parameters specific to the cex api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws'];
             $messageHash = $this->request_id();
@@ -488,7 +501,9 @@ class cex extends \ccxt\async\cex {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate($params));
             $url = $this->urls['api']['ws'];
             $market = $this->market($symbol);
@@ -529,7 +544,9 @@ class cex extends \ccxt\async\cex {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate($params));
             $url = $this->urls['api']['ws'];
             $market = $this->market($symbol);
@@ -972,7 +989,9 @@ class cex extends \ccxt\async\cex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
@@ -1109,7 +1128,9 @@ class cex extends \ccxt\async\cex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'ohlcv:' . $symbol;
@@ -1163,7 +1184,7 @@ class cex extends \ccxt\async\cex {
         for ($i = 0; $i < count($sorted); $i++) {
             $stored->append($this->parse_ohlcv($sorted[$i], $market));
         }
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
         $this->ohlcvs[$symbol]['unknown'] = $stored;
@@ -1259,7 +1280,9 @@ class cex extends \ccxt\async\cex {
              * @param {array} [$params] extra parameters specific to the cex api endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $market = null;
             if ($symbol !== null) {
@@ -1296,7 +1319,9 @@ class cex extends \ccxt\async\cex {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrdersWs requires a $symbol->');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
@@ -1333,7 +1358,9 @@ class cex extends \ccxt\async\cex {
             if ($price === null) {
                 throw new BadRequest($this->id . ' createOrderWs requires a $price argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
@@ -1376,7 +1403,9 @@ class cex extends \ccxt\async\cex {
             if ($price === null) {
                 throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $market = $this->market($symbol);
             $data = $this->extend(array(
@@ -1410,7 +1439,9 @@ class cex extends \ccxt\async\cex {
              * @param {array} [$params] extra parameters specific to the cex api endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $market = null;
             if ($symbol !== null) {
@@ -1446,7 +1477,9 @@ class cex extends \ccxt\async\cex {
             if ($symbol !== null) {
                 throw new BadRequest($this->id . ' cancelOrderWs does not allow filtering by symbol');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $messageHash = $this->request_id();
             $data = $this->extend(array(

@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testMarket(Exchange exchange, object skippedProperties, object method, object market)
+    public static void testMarket(BaseExchange exchange, object skippedProperties, object method, object market)
     {
         if (isTrue(isEqual(market, null)))
         {
@@ -113,8 +113,18 @@ public partial class testMainClass : BaseTest
             ((IList<object>)emptyAllowedFor).Add("base");
             ((IList<object>)emptyAllowedFor).Add("quote");
         }
+        if (isTrue(isEqual(exchange.safeString(market, "type"), "prediction")))
+        {
+            // prediction market rows carry the unified 'market' handle, the
+            // deprecated 'symbol' key is intentionally absent from their structures
+            format = exchange.omit(format, new List<object>() {"symbol"});
+        }
         testSharedMethods.assertStructure(exchange, skippedProperties, method, market, format, emptyAllowedFor);
-        testSharedMethods.assertSymbol(exchange, skippedProperties, method, market, "symbol");
+        // prediction market rows are keyed by `market`; `symbol` internally by setMarkets
+        if (isTrue(!isEqual(getValue(market, "type"), "prediction")))
+        {
+            testSharedMethods.assertSymbol(exchange, skippedProperties, method, market, "symbol");
+        }
         object logText = testSharedMethods.logTemplate(exchange, method, market);
         // check taker/maker
         // todo: check not all to be within 0-1.0
@@ -122,8 +132,8 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertLess(exchange, skippedProperties, method, market, "taker", "100");
         testSharedMethods.assertGreater(exchange, skippedProperties, method, market, "maker", "-100");
         testSharedMethods.assertLess(exchange, skippedProperties, method, market, "maker", "100");
-        // validate type
-        object validTypes = new List<object>() {"spot", "margin", "swap", "future", "option", "index", "other"};
+        // validate type ('prediction' for prediction-market exchanges)
+        object validTypes = new List<object>() {"spot", "margin", "swap", "future", "option", "index", "prediction", "other"};
         testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "type", validTypes);
         // validate subTypes
         object validSubTypes = new List<object>() {"linear", "inverse", "quanto", null};
@@ -162,7 +172,12 @@ public partial class testMainClass : BaseTest
             testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "margin", new List<object>() {false, null});
         }
         // check mutually exclusive fields
-        if (isTrue(spot))
+        object isPrediction = (isEqual(getValue(market, "type"), "prediction"));
+        if (isTrue(isPrediction))
+        {
+            // prediction markets trade outcome shares — neither spot nor a derivative contract
+            assert(isTrue(isTrue(isTrue(!isTrue(spot) && !isTrue(contract)) && !isTrue(future)) && !isTrue(swap)) && !isTrue(option), add("for prediction market, none of spot/contract/future/swap/option should be set", logText));
+        } else if (isTrue(spot))
         {
             assert(isTrue(isTrue(isTrue(isTrue(!isTrue(contract) && isTrue(isEqual(linear, null))) && isTrue(isEqual(inverse, null))) && !isTrue(option)) && !isTrue(swap)) && !isTrue(future), add("for spot market, none of contract/linear/inverse/option/swap/future should be set", logText));
         } else
@@ -287,8 +302,9 @@ public partial class testMainClass : BaseTest
                 }
             }
         }
-        // check currencies
-        if (!isTrue(isInactiveMarket))
+        // check currencies (skip for prediction markets: the "base" is a tradeable outcome,
+        // not a currency, so baseId is the market/outcome id and won't map to a currency code)
+        if (isTrue(!isTrue(isInactiveMarket) && !isTrue(isPrediction)))
         {
             testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "baseId"), getValue(market, "base"));
             testSharedMethods.assertValidCurrencyIdAndCode(exchange, skippedProperties, method, market, getValue(market, "quoteId"), getValue(market, "quote"));

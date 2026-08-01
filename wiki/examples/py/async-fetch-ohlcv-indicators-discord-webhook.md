@@ -1,5 +1,9 @@
 ```python
-from asyncio import run, gather, ensure_future
+from asyncio import gather, ensure_future
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import pandas_ta as ta
 import pandas as pd
 import ccxt.async_support as ccxt  # noqa: E402

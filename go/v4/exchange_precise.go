@@ -76,12 +76,13 @@ func (p *PreciseStruct) Div(other *PreciseStruct, precision2 ...any) *PreciseStr
 		numerator = p.integer
 	} else if distance < 0 {
 		exponent := new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(-distance)), nil)
-		numerator = new(big.Int).Div(p.integer, exponent)
+		// Quo truncates toward zero, matching JS BigInt division (big.Int.Div is Euclidean and rounds toward -inf for negatives)
+		numerator = new(big.Int).Quo(p.integer, exponent)
 	} else {
 		exponent := new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(distance)), nil)
 		numerator = new(big.Int).Mul(p.integer, exponent)
 	}
-	result := new(big.Int).Div(numerator, other.integer)
+	result := new(big.Int).Quo(numerator, other.integer)
 	return NewPrecise(result.String(), precision)
 }
 
