@@ -115,6 +115,7 @@ export default class opinion extends Exchange {
                 'exact': {
                     '11001': AuthenticationError, // "This API Key has no related Opinion Login Wallet yet"
                     '11002': AuthenticationError, // "Invalid API key"
+                    '10605': InvalidOrder, // "Depth not enough" - live-verified: a market order with no matching book depth
                     '10610': InvalidOrder, // "postOnly is not allowed for market orders"
                     '11004': AuthenticationError, // "Self-service key issuance is temporarily disabled"
                     '11005': AuthenticationError, // "Wallet is not a registered Opinion account"
@@ -142,11 +143,11 @@ export default class opinion extends Exchange {
     /**
      * @method
      * @name opinion#fetchMarkets
-     * @description fetches every kind of Opinion market (standalone binaries and categorical parents);
+     * @description fetches every kind of opinion market
      * categorical parents double as our unified "events" and are cached into this.events as a side effect
      * @see https://docs.opinion.trade/developer-guide/opinion-open-api/market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.limit] max number of markets to collect (defaults to options.maxMarketsPages, 1000); caps the pages fetched
+     * @param {int} [params.limit] max number of markets to collect (defaults to options.maxMarketsPages, 1000)
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
@@ -206,7 +207,7 @@ export default class opinion extends Exchange {
      * @ignore
      * @method
      * @name opinion#parseOpinionMarket
-     * @description converts a single raw opinion market (standalone binary, or one categorical child) into one ccxt market with yes/no outcomes
+     * @description converts a single raw opinion market into one ccxt market with yes/no outcomes
      * @param {object} raw the raw opinion market object
      * @param {string} [eventSlug] the slug of the parent event
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
@@ -284,16 +285,12 @@ export default class opinion extends Exchange {
                 'info': raw,
             });
         }
-        // effectively-final copy for the market object literal below (reassigned in the loop)
         const marketResolvedOutcome = resolvedOutcome;
         const expiryTimestamp = this.safeTimestamp (raw, 'cutoffAt');
         const created = this.safeTimestamp (raw, 'createdAt');
         return {
             'id': marketId,
             'market': marketSymbol,
-            // no real base asset (an outcome share, not a currency) - baseId is the market's own
-            // id, matching kalshi/polymarket. collateral is BSC USDT (0x55d398...) on every market
-            // observed live; quoteId uses the symbol like kalshi/polymarket do, not the raw address
             'base': 'USDT',
             'quote': 'USDT',
             'settle': undefined,
@@ -344,10 +341,10 @@ export default class opinion extends Exchange {
     /**
      * @method
      * @name opinion#fetchEvents
-     * @description fetches Opinion's categorical markets (our unified "events") - scope required via query/queries/tags/eventId/slug/labelId
+     * @description fetches Opinion's categorical markets - scope required via query/queries/tags/eventId/slug/labelId
      * @see https://docs.opinion.trade/developer-guide/opinion-open-api/market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {int} [params.labelId] filter by Opinion category label id, used verbatim - call GET /label directly to discover valid ids
+     * @param {int} [params.labelId] filter by opinion category label id
      * @returns {object[]} an array of event structures
      */
     async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
@@ -638,7 +635,7 @@ export default class opinion extends Exchange {
      * @see https://docs.opinion.trade/developer-guide/opinion-open-api/token
      * @param {string[]} outcomes unified outcomes or outcome token ids - required, opinion has no all-tickers endpoint
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
+     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
     async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
         if (outcomes === undefined) {
@@ -718,11 +715,10 @@ export default class opinion extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum number of candles to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int[][]} a list of [OHLCV structures](https://docs.ccxt.com/#/?id=ohlcv-structure)
+     * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (outcome: string, timeframe = '1d', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (!(timeframe in this.timeframes)) {
-            // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
             const supportedKeys = Object.keys (this.timeframes);
             throw new BadRequest (this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe + ', supported timeframes are ' + supportedKeys.join (', '));
         }
@@ -746,9 +742,6 @@ export default class opinion extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         const history = this.safeList (result, 'history', []);
-        // the venue pre-buckets each tick to the requested interval boundary, so every point
-        // already represents one whole candle - no client-side aggregation is needed, unlike
-        // venues that only expose raw, irregularly-spaced trade ticks
         const candles = [];
         const historyLength = history.length;
         for (let i = 0; i < historyLength; i++) {
@@ -759,7 +752,6 @@ export default class opinion extends Exchange {
                 candles.push ([ timestamp, price, price, price, price, undefined ]);
             }
         }
-        // the venue returns history newest-first; sort ascending to match the unified OHLCV convention
         const sorted = this.sortBy (candles, 0);
         return this.filterBySinceLimit (sorted, since, limit, 0) as OHLCV[];
     }
@@ -785,8 +777,8 @@ export default class opinion extends Exchange {
      * @ignore
      * @method
      * @name opinion#loadQuoteToken
-     * @description fetches and caches quote-token metadata (ctfExchangeAddress, decimals) needed to sign orders
-     * @param {string} quoteTokenAddress the on-chain quote-token contract address, read from a market's 'quoteToken' field
+     * @description fetches and caches quote-token metadata needed to sign orders
+     * @param {string} quoteTokenAddress the on-chain quote-token contract address, read from a 'quoteToken' field 
      * @returns {object} the matching quote-token entry
      */
     async loadQuoteToken (quoteTokenAddress: string): Promise<Dict> {
@@ -816,7 +808,7 @@ export default class opinion extends Exchange {
      * @ignore
      * @method
      * @name opinion#loadMultiSignAddress
-     * @description fetches and caches the per-wallet multi-signature (Gnosis Safe) address that owns order assets - orders are made from this address, signed by the EOA
+     * @description fetches and caches the per-wallet multi-signature address that owns order assets 
      * @returns {string} the multi-sig wallet address for this.walletAddress on chain 56, or this.walletAddress itself if none exists yet
      */
     async loadMultiSignAddress (): Promise<string> {
@@ -860,22 +852,16 @@ export default class opinion extends Exchange {
         return '0x' + this.remove0xPrefix (sig['r']) + this.remove0xPrefix (sig['s']) + this.intToBase16 (sig['v']);
     }
 
-    opinionOrderRawAmounts (isMarket: boolean, side: string, amount: number, price: number, decimals: number): Dict {
-        // build 10^decimals as a string - no .repeat(), no unprecedented codebase pattern
+    opinionOrderRawAmounts (isMarket: boolean, side: string, amount: Num, price: Num, decimals: number): Dict {
         let decimalsStr = '1';
         for (let i = 0; i < decimals; i++) {
             decimalsStr = decimalsStr + '0';
         }
         const amountStr = this.numberToString (amount);
-        if (isMarket) {
-            // market order: takerAmount is filled by the matching engine; side decides what `amount`
-            // means (BUY: quote to spend, SELL: shares to sell) - matches the venue's own semantics
+        if (isMarket && (side === 'BUY')) {
             const marketMakerAmountWei = this.decimalToPrecision (Precise.stringMul (amountStr, decimalsStr), TRUNCATE, 0, DECIMAL_PLACES);
             return { 'makerAmount': marketMakerAmountWei, 'takerAmount': '0' };
         }
-        // limit order: amount is always shares - matches the unified createOrder() amount semantics.
-        // the price fraction is fixed at 6 decimals (matching the venue's own price.toFixed(6)), so
-        // pad the fractional part explicitly rather than trust decimalToPrecision to zero-pad
         const priceStr = this.decimalToPrecision (this.numberToString (price), ROUND, 6, DECIMAL_PLACES);
         const priceParts = priceStr.split ('.');
         const priceFrac = this.safeString (priceParts, 1, '');
@@ -922,21 +908,27 @@ export default class opinion extends Exchange {
         if (!isMarket && (price === undefined)) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a price for limit orders');
         }
+        let marketOrderPrice = '0';
+        let effectivePrice = price;
+        if (isMarket && (sideStr === 'SELL')) {
+            const priceResponse = await this.opinionPublicGetTokenLatestPrice ({ 'token_id': tokenId });
+            const priceResult = this.safeDict (priceResponse, 'result', {});
+            marketOrderPrice = this.safeString (priceResult, 'price', '0');
+            effectivePrice = this.parseNumber (marketOrderPrice);
+        }
         const info = this.safeDict (outcomeObj, 'info', {});
         const topicId = this.safeInteger (info, 'marketId');
         const quoteTokenAddress = this.safeString (info, 'quoteToken');
         const quoteToken = await this.loadQuoteToken (quoteTokenAddress);
         const exchangeAddress = this.safeString (quoteToken, 'ctfExchangeAddress');
         const decimals = this.safeInteger (quoteToken, 'decimal', 18);
-        const amounts = this.opinionOrderRawAmounts (isMarket, sideStr, amount, price, decimals);
+        const amounts = this.opinionOrderRawAmounts (isMarket, sideStr, amount, effectivePrice, decimals);
         const makerAmount = this.safeString (amounts, 'makerAmount');
         const takerAmount = this.safeString (amounts, 'takerAmount');
         const sideInt = (sideStr === 'BUY') ? 0 : 1;
         const salt = this.numberToString (this.milliseconds ());
         const postOnly = this.safeBool (params, 'postOnly', false);
         const rest = this.omit (params, [ 'postOnly' ]);
-        // orders are owned by the per-wallet multi-sig (Gnosis Safe); the EOA behind
-        // this.privateKey only signs on its behalf (signatureType 2, POLY_GNOSIS_SAFE)
         const maker = await this.loadMultiSignAddress ();
         const signatureType = (maker === this.walletAddress) ? 0 : 2;
         const order: Dict = {
@@ -973,7 +965,7 @@ export default class opinion extends Exchange {
             'contractAddress': '',
             'currencyAddress': quoteTokenAddress,
             'topicId': topicId,
-            'price': isMarket ? '0' : this.numberToString (price),
+            'price': isMarket ? marketOrderPrice : this.numberToString (price),
             'tradingMethod': isMarket ? 1 : 2,
             'timestamp': this.seconds (),
             'safeRate': '0',
@@ -1142,7 +1134,7 @@ export default class opinion extends Exchange {
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
-        // 1 = pending (our 'open' status)
+        // 1 = pending - open status
         const request: Dict = { 'status': '1' };
         return await this.fetchOrders (outcome, since, limit, this.extend (request, params));
     }
@@ -1159,8 +1151,7 @@ export default class opinion extends Exchange {
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async fetchClosedOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
-        // 2 = filled, 3 = canceled, 4 = expired, 5 = failed - everything parseOrderStatus maps
-        // away from 'open', requested server-side in one comma-separated call
+        // 2 = filled, 3 = canceled, 4 = expired, 5 = failed
         const request: Dict = { 'status': '2,3,4,5' };
         return await this.fetchOrders (outcome, since, limit, this.extend (request, params));
     }
@@ -1190,8 +1181,6 @@ export default class opinion extends Exchange {
         const response = await this.opinionPrivateGetTradeUserWalletAddress (this.extend (request, params));
         const result = this.safeDict (response, 'result', {});
         const trades = this.safeList (result, 'list', []);
-        // the trade payload carries no outcome token id, only marketId + outcomeSideEnum, so
-        // resolve the exact leg's tokenId via a per-market lookup before parsing
         const tradesLength = trades.length;
         for (let i = 0; i < tradesLength; i++) {
             const trade = trades[i];
@@ -1210,7 +1199,7 @@ export default class opinion extends Exchange {
      * @ignore
      * @method
      * @name opinion#loadTradeMarket
-     * @description fetches and caches a single market by its numeric marketId, and indexes its outcomes, so a trade carrying only marketId + outcomeSideEnum can be resolved to its exact outcome token
+     * @description fetches and caches a single market by its numeric marketId, and indexes its outcomes
      * @param {int} marketId the numeric market id
      * @returns {object} the parsed market
      */
@@ -1394,7 +1383,7 @@ export default class opinion extends Exchange {
 
     signHash (hash: string, privateKey: string): Dict {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
+        // assign before padStart so the PHP str_pad regex matches
         const rRaw = signature['r'];
         const sRaw = signature['s'];
         const r = rRaw.padStart (64, '0');
@@ -1486,16 +1475,11 @@ export default class opinion extends Exchange {
             'apiKey': this.safeString (response, 'apiKey'),
             'walletAddress': this.safeString (response, 'walletAddress'),
         };
-        // cache in options rather than the typed apiKey field so the assignment is valid
-        // in the struct-based languages (C#/Go/Java)
         this.options['apiKey'] = creds['apiKey'];
         return creds;
     }
 
     handleErrors (code: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
-        // opinion always responds 200 OK and signals failure through a nonzero errno in the
-        // body - without this, a failed order/cancel/etc. would silently parse into an empty
-        // result instead of raising, since the base http-status handling never sees an error
         if (response === undefined) {
             return undefined;
         }
