@@ -124,7 +124,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->bookSubscriptionType] The subscription type. Allowed values => SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
              * @param {int} [$params->bookUpdateFrequency] Book update interval in ms. Allowed values => 100 for snapshot subscription 10 for delta subscription
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());

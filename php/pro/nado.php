@@ -202,7 +202,7 @@ class nado extends \ccxt\async\nado {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {OrderBook} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {OrderBook} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -242,7 +242,7 @@ class nado extends \ccxt\async\nado {
              * @param {string[]} $symbols unified $symbols of the $markets to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {OrderBook} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market $symbols
+             * @return {OrderBook} an ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structure~
              */
             Async\await($this->load_markets());
             $symbolsLength = count($symbols);

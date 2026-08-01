@@ -1318,7 +1318,7 @@ class hibachi extends Exchange {
          * @param {string} $symbol unified $symbol of the $market
          * @param {int} [$limit] currently unused
          * @param {array} [$params] extra parameters to be passed -- see documentation link above
-         * @return {array} A dictionary containg ~@link https://docs.ccxt.com/?id=order-book-structure orderbook information~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
