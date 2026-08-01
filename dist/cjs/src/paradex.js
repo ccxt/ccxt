@@ -1957,7 +1957,7 @@ class paradex extends paradex$1["default"] {
         for (let i = 0; i < results.length; i++) {
             const result = results[i];
             const marketId = this.safeString(result, 'market');
-            const market = this.safeMarket(marketId, undefined);
+            const market = this.safeMarket(marketId);
             const status = this.safeString(result, 'status');
             let orderStatus = undefined;
             if (status === 'QUEUED_FOR_CANCELLATION') {

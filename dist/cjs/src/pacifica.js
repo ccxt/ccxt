@@ -844,7 +844,7 @@ class pacifica extends pacifica$1["default"] {
         const cacheAddress = this.walletAddress;
         let settings = undefined;
         if (userAccount === cacheAddress) {
-            settings = this.handleOption('fetchLeverage', 'settings', undefined);
+            settings = this.handleOption('fetchLeverage', 'settings');
         }
         else {
             const request = {
@@ -852,7 +852,7 @@ class pacifica extends pacifica$1["default"] {
             };
             settings = await this.fetchAccountSettings(this.extend(request, params));
         }
-        const setting = this.safeDict(settings, symbol, undefined);
+        const setting = this.safeDict(settings, symbol);
         if (setting === undefined) {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
             // When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
@@ -927,7 +927,7 @@ class pacifica extends pacifica$1["default"] {
         return this.parseAccountSettings(this.safeList(response, 'data', []));
     }
     async loadAccountSettings(refresh = false, params = {}) {
-        let settings = this.handleOption('loadAccountSettings', 'settings', undefined);
+        let settings = this.handleOption('loadAccountSettings', 'settings');
         if ((settings === undefined) || (refresh === true)) {
             this.options['settings'] = this.createSafeDictionary();
             settings = await this.fetchAccountSettings(params);
@@ -965,7 +965,7 @@ class pacifica extends pacifica$1["default"] {
         const cacheAddress = this.walletAddress;
         let settings = undefined;
         if (userAccount === cacheAddress) {
-            settings = this.handleOption('fetchMarginMode', 'settings', undefined);
+            settings = this.handleOption('fetchMarginMode', 'settings');
         }
         else {
             const request = {
@@ -982,7 +982,7 @@ class pacifica extends pacifica$1["default"] {
         //       "updated_at": 1758086074002
         //    },
         // }
-        const setting = this.safeDict(settings, symbol, undefined);
+        const setting = this.safeDict(settings, symbol);
         if (setting === undefined) {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
             // When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
@@ -1737,7 +1737,7 @@ class pacifica extends pacifica$1["default"] {
         const ordersToReturn = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
-            const error = this.safeString(order, 'error', undefined);
+            const error = this.safeString(order, 'error');
             const success = this.safeBool(order, 'success', false);
             let status = undefined;
             if ((error !== undefined) || (!success)) {
@@ -1798,7 +1798,7 @@ class pacifica extends pacifica$1["default"] {
         const ordersToReturn = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
-            const error = this.safeString(order, 'error', undefined);
+            const error = this.safeString(order, 'error');
             const success = this.safeBool(order, 'success', false);
             let status = undefined;
             if ((error !== undefined) || (!success)) {
@@ -2464,7 +2464,7 @@ class pacifica extends pacifica$1["default"] {
         if (tifRaw !== undefined) {
             tif = tifRaw.toUpperCase();
         }
-        return this.safeString(tifMap, tif, undefined);
+        return this.safeString(tifMap, tif);
     }
     mapSide(sideRaw) {
         const sideMap = {
@@ -3226,7 +3226,7 @@ class pacifica extends pacifica$1["default"] {
     async createSubAccount(name, params = {}) {
         const finalHeaders = {};
         let agentAddress = undefined;
-        [agentAddress, params] = this.handleOption('createSubAccount', 'agentAddress', undefined);
+        [agentAddress, params] = this.handleOption('createSubAccount', 'agentAddress');
         let originAddress = undefined;
         [originAddress, params] = this.handleOriginAndSingleAddress('createSubAccount', params);
         if (originAddress === undefined) {
@@ -3392,7 +3392,7 @@ class pacifica extends pacifica$1["default"] {
         if (method === 'POST') {
             body = this.json(params);
         }
-        if (this.handleOption('sign', 'apiKey', undefined) !== undefined) {
+        if (this.handleOption('sign', 'apiKey') !== undefined) {
             headers['PF-API-KEY'] = this.options['apiKey'];
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -3402,7 +3402,7 @@ class pacifica extends pacifica$1["default"] {
         const costNumber = this.parseNumber(cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if (costNumber > 1) {
-            if (this.handleOption(method, 'apiKey', undefined) !== undefined) {
+            if (this.handleOption(method, 'apiKey') !== undefined) {
                 const costWithKey = this.handleOption(method, 'maxCostHugeWithApiKey', 3);
                 return costWithKey;
             }

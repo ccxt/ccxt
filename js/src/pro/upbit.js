@@ -325,7 +325,7 @@ export default class upbit extends upbitRest {
         //     stream_type: 'REALTIME'
         //   }
         const marketId = this.safeString(message, 'code');
-        const symbol = this.safeSymbol(marketId, undefined);
+        const symbol = this.safeSymbol(marketId);
         const messageHash = 'candle.1s:' + symbol;
         const ohlcv = this.parseOHLCV(message);
         client.resolve(ohlcv, messageHash);
