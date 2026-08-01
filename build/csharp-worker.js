@@ -27,11 +27,18 @@ export default async ({transpilerConfig, configKey, files}) => {
     rawComments = [];
 
     const result = [];
+    // Multi-file task: compile the whole chunk as ONE ts.Program (see java-worker.js).
+    // Scoped to this task on this thread — never post a live ts.Program across threads.
+    const batch = (files.length > 1 && typeof transpiler.createProgramBatch === 'function')
+        ? transpiler.createProgramBatch(files)
+        : null;
     for (const filePath of files) {
         if (verbose) {
             log.blue('[worker][csharp] Transpiling', filePath);
         }
-        const transpiled = transpiler.transpileCSharpByPath(filePath);
+        const transpiled = batch
+            ? batch.transpileCSharpByPath(filePath)
+            : transpiler.transpileCSharpByPath(filePath);
         result.push(transpiled);
     }
     return { result, comments: rawComments };

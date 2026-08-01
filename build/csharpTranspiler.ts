@@ -74,14 +74,14 @@ const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 const EXAMPLES_OUTPUT_FOLDER = './examples/cs/examples/';
 const csharpComments: any = {};
 
-// every extra worker rebuilds the whole typescript program, so oversubscribing a wide CI
-// runner costs more than it wins — cap at 4 unless CCXT_TRANSPILE_PROCESSES asks for a size
+// default min(2, AP): 2w + shared-Program chunks is within ~10–15% of 4w and uses fewer cores.
+// Override with CCXT_TRANSPILE_PROCESSES.
 function csharpWorkerThreads () {
     const requested = Number (process.env.CCXT_TRANSPILE_PROCESSES);
     if (requested > 0) {
         return requested;
     }
-    return Math.max (1, Math.min (4, os.availableParallelism ()));
+    return Math.max (1, Math.min (2, os.availableParallelism ()));
 }
 
 class NewTranspiler {
@@ -1189,11 +1189,15 @@ class NewTranspiler {
         const piscina = this.piscina;
         const configKey = JSON.stringify (parserConfig);
 
-        // one file per task, so every thread always works on a different file
+        // Files per worker task. Default 1 keeps today's exact behaviour: one file per
+        // task, so every thread always works on a different file. CCXT_TRANSPILE_CHUNK
+        // only exists so a coarser chunk — fewer task round-trips and ONE ts.Program
+        // shared across the chunk's files inside the worker — can be A/B benchmarked.
+        const chunkSize = Math.max(1, Math.floor(Number(process.env.CCXT_TRANSPILE_CHUNK)) || 26);
         const promises: any = [];
         const now = Date.now();
-        for (const file of allFiles) {
-            promises.push(piscina.run({transpilerConfig:parserConfig, configKey, files: [file]}));
+        for (let i = 0; i < allFiles.length; i += chunkSize) {
+            promises.push(piscina.run({transpilerConfig:parserConfig, configKey, files: allFiles.slice(i, i + chunkSize)}));
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
