@@ -5937,7 +5937,11 @@ class bitget extends Exchange {
                 $request['orderType'] = $type;
                 if ($triggerPrice !== null) {
                     $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                    $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                    // $market plan orders carry no execute $price, follow up to
+                    // https://github.com/ccxt/ccxt/issues/25427
+                    if ($price !== null) {
+                        $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                    }
                 } else {
                     $request['price'] = $this->price_to_precision($symbol, $price);
                 }
