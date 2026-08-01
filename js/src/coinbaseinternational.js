@@ -1697,7 +1697,7 @@ export default class coinbaseinternational extends Exchange {
         const currency = this.currency(code);
         const request = {
             'asset': currency['id'],
-            'ammount': amount,
+            'amount': amount,
             'from': fromAccount,
             'to': toAccount,
         };

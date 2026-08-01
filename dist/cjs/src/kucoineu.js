@@ -25,20 +25,8 @@ class kucoineu extends kucoin["default"] {
                     'https://www.kucoin.com/en-eu/docs-new',
                 ],
             },
-            'has': {
-                'spot': true,
-                'margin': true,
-                'swap': false,
-                'future': false,
-                'option': false,
-            },
             'options': {
                 'mica': true,
-                'fetchMarkets': {
-                    'types': [
-                        'spot',
-                    ],
-                },
             },
         });
     }

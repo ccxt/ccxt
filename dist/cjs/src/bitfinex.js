@@ -2309,7 +2309,7 @@ class bitfinex extends bitfinex$1["default"] {
             'id': orderId,
             'symbol': market['id'],
         };
-        // valid for trades upto 10 days old
+        // valid for trades up to 10 days old
         const response = await this.privatePostAuthROrderSymbolIdTrades(this.extend(request, params));
         const tradesList = [];
         for (let i = 0; i < response.length; i++) {

@@ -1621,7 +1621,7 @@ class bullish extends bullish$1["default"] {
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
             'status': 'CANCELLED',
-            'method': 'privateGetV2Orders', // current endpoint distinquishes between CLOSED and CANCELLED orders
+            'method': 'privateGetV2Orders', // current endpoint distinguishes between CLOSED and CANCELLED orders
         };
         return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
     }
@@ -1640,7 +1640,7 @@ class bullish extends bullish$1["default"] {
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
             'status': 'CLOSED',
-            'method': 'privateGetV2Orders', // current endpoint distinquishes between CLOSED and CANCELLED orders
+            'method': 'privateGetV2Orders', // current endpoint distinguishes between CLOSED and CANCELLED orders
         };
         return await this.fetchOrders(symbol, since, limit, this.extend(request, params));
     }

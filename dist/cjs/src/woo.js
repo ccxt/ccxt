@@ -637,7 +637,7 @@ class woo extends woo$1["default"] {
                     'symbol must not be blank': errors.BadRequest, // when sending 'cancelOrder' without symbol [-1005]
                     'The token is not supported': errors.BadRequest, // when getting incorrect token's deposit address [-1005]
                     'Your order and symbol are not valid or already canceled': errors.BadRequest, // actual response whensending 'cancelOrder' for already canceled id [-1006]
-                    'Insufficient WOO. Please enable margin trading for leverage trading': errors.BadRequest, // when selling insufficent token [-1012]
+                    'Insufficient WOO. Please enable margin trading for leverage trading': errors.BadRequest, // when selling insufficient token [-1012]
                 },
             },
             'precisionMode': number.TICK_SIZE,
@@ -1142,7 +1142,7 @@ class woo extends woo$1["default"] {
         //     "success": true
         // }
         //
-        // only make one request for currrencies...
+        // only make one request for currencies...
         const tokenNetworkResponsePromise = this.v1PublicGetTokenNetwork(params);
         //
         // {
@@ -1206,7 +1206,7 @@ class woo extends woo$1["default"] {
             const specialNetworkId = this.safeString(tokenEntry, 'token');
             resultingNetworks[networkCode] = {
                 'id': networkId,
-                'currencyNetworkId': specialNetworkId, // exchange uses special crrency-ids (coin + network junction)
+                'currencyNetworkId': specialNetworkId, // exchange uses special currency-ids (coin + network junction)
                 'network': networkCode,
                 'active': undefined,
                 'deposit': this.safeString(networkEntry, 'allow_deposit') === '1',

@@ -1696,7 +1696,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const currency = this.currency(code);
         const request = {
             'asset': currency['id'],
-            'ammount': amount,
+            'amount': amount,
             'from': fromAccount,
             'to': toAccount,
         };

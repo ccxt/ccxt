@@ -927,7 +927,7 @@ class lbank extends lbank$1["default"] {
     }
     async authenticate(params = {}) {
         // when we implement more private streams, we need to refactor the authentication
-        // to be concurent-safe and respect the same authentication token
+        // to be concurrent-safe and respect the same authentication token
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const now = this.milliseconds();

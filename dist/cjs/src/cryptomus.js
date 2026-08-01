@@ -411,7 +411,7 @@ class cryptomus extends cryptomus$1["default"] {
     }
     parseCurrency(rawCurrency) {
         // currency here is array of networks
-        let id = undefined; // all entried have same id, as they were grouped by
+        let id = undefined; // all entries have same id, as they were grouped by
         let code = undefined;
         const networks = {};
         for (let i = 0; i < rawCurrency.length; i++) {
