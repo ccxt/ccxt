@@ -1366,7 +1366,7 @@ class binance extends Exchange {
                     'method' => 'positionRisk', // or 'account' or 'option'
                 ),
                 'recvWindow' => 10 * 1000, // 10 sec
-                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'newOrderRespType' => array(
                     'market' => 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills

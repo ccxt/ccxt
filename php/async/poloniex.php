@@ -3417,11 +3417,11 @@ class poloniex extends Exchange {
     public function fetch_position_mode(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
-             * fetchs the position mode, $hedged or one way, $hedged for binance is set identically for all linear markets or all inverse markets
+             * fetches the position mode, $hedged or one way, $hedged is set identically for all linear markets or all inverse markets
              *
              * @see https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
              *
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
+             * @param {string} [$symbol] unified $symbol of the market to fetch the position mode for (not used by fetchPositionMode)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an object detailing whether the market is in $hedged or one-way mode
              */
@@ -3452,8 +3452,8 @@ class poloniex extends Exchange {
              *
              * @see https://api-docs.poloniex.com/v3/futures/api/positions/position-$mode-switch
              *
-             * @param {bool} $hedged set to true to use dualSidePosition
-             * @param {string} $symbol not used by binance setPositionMode ()
+             * @param {bool} $hedged set to true to use the $hedged position $mode
+             * @param {string} $symbol not used by setPositionMode ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} $response from the exchange
              */

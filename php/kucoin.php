@@ -892,7 +892,7 @@ class kucoin extends Exchange {
                 'version' => 'v1',
                 'symbolSeparator' => '-',
                 'fetchMyTradesMethod' => 'private_get_fills',
-                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'fetchCurrencies' => array(
                     'brokenCurrencies' => array( '00', 'OPEN_ERROR', 'HUF', 'BDT' ), // skip buggy entries => https://t.me/KuCoin_API/217798
@@ -11142,7 +11142,7 @@ class kucoin extends Exchange {
          * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-position-mode
          *
          * @param {bool} $hedged set to true to use two way position
-         * @param {string} [$symbol] not used by bybit setPositionMode ()
+         * @param {string} [$symbol] not used by setPositionMode ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a $response from the exchange
          */
