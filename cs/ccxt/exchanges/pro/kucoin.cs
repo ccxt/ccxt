@@ -2481,10 +2481,41 @@ public partial class kucoin : ccxt.kucoin
         object order = this.safeValue(orders, ((string)orderId));
         if (isTrue(!isEqual(order, null)))
         {
-            // todo add others to calculate average etc
             if (isTrue(isEqual(getValue(order, "status"), "closed")))
             {
                 ((IDictionary<string,object>)parsed)["status"] = "closed";
+            }
+            // carry the accumulated fill state forward, the raw feed only
+            // carries the match prices on the match messages, and safeOrder
+            // derives cost from the order price otherwise, which is wrong for
+            // orders filled at better prices, so the accumulated values win on
+            // the non match messages, see https://github.com/ccxt/ccxt/issues/19083
+            if (isTrue(!isEqual(getValue(order, "average"), null)))
+            {
+                ((IDictionary<string,object>)parsed)["average"] = getValue(order, "average");
+                ((IDictionary<string,object>)parsed)["cost"] = getValue(order, "cost");
+            }
+            if (isTrue(isEqual(getValue(parsed, "filled"), null)))
+            {
+                ((IDictionary<string,object>)parsed)["filled"] = getValue(order, "filled");
+            }
+        }
+        // accumulate the average fill price and cost from the match messages,
+        // which carry matchPrice and matchSize, the terminal filled message
+        // does not repeat them, see https://github.com/ccxt/ccxt/issues/19083
+        object rawType = this.safeString(data, "type");
+        object matchPrice = this.safeString(data, "matchPrice");
+        object matchSize = this.safeString(data, "matchSize");
+        if (isTrue(isTrue(isTrue((isEqual(rawType, "match"))) && isTrue((!isEqual(matchPrice, null)))) && isTrue((!isEqual(matchSize, null)))))
+        {
+            object matchCost = Precise.stringMul(matchPrice, matchSize);
+            object previousCost = ((bool) isTrue((isEqual(order, null)))) ? "0" : this.numberToString(this.safeNumber(order, "cost", 0));
+            object costString = Precise.stringAdd(previousCost, matchCost);
+            ((IDictionary<string,object>)parsed)["cost"] = this.parseNumber(costString);
+            object filledString = this.numberToString(getValue(parsed, "filled"));
+            if (isTrue(isTrue((!isEqual(filledString, null))) && isTrue((Precise.stringGt(filledString, "0")))))
+            {
+                ((IDictionary<string,object>)parsed)["average"] = this.parseNumber(Precise.stringDiv(costString, filledString));
             }
         }
         callDynamically(cachedOrders, "append", new object[] {parsed});
