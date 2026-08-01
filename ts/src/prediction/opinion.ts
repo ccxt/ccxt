@@ -424,6 +424,14 @@ export default class opinion extends Exchange {
         return event;
     }
 
+    /**
+     * @ignore
+     * @method
+     * @name opinion#parseEvent
+     * @description parses a raw opinion categorical market (with nested childMarkets) into the unified event shape
+     * @param {object} rawEvent the raw opinion categorical market object
+     * @returns {object} an event structure
+     */
     parseEvent (rawEvent: Dict): any {
         // {
         //     "chainId": "56",
@@ -784,7 +792,10 @@ export default class opinion extends Exchange {
      * @param {string} quoteTokenAddress the on-chain quote-token contract address, read from a 'quoteToken' field 
      * @returns {object} the matching quote-token entry
      */
-    async loadQuoteToken (quoteTokenAddress: string): Promise<Dict> {
+    async loadQuoteToken (quoteTokenAddress: Str): Promise<Dict> {
+        if (quoteTokenAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' loadQuoteToken() requires a quoteTokenAddress');
+        }
         const cacheKey = quoteTokenAddress.toLowerCase ();
         const cached = this.safeDict (this.options, 'quoteTokens', {});
         const existing = this.safeDict (cached, cacheKey);
@@ -804,7 +815,11 @@ export default class opinion extends Exchange {
             }
         }
         this.options['quoteTokens'] = quoteTokens;
-        return this.safeDict (quoteTokens, cacheKey, {});
+        const quoteToken = this.safeDict (quoteTokens, cacheKey);
+        if (quoteToken === undefined) {
+            throw new ExchangeError (this.id + ' loadQuoteToken() could not find quote token ' + quoteTokenAddress);
+        }
+        return quoteToken;
     }
 
     /**
@@ -908,6 +923,10 @@ export default class opinion extends Exchange {
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
     async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+        this.checkRequiredCredentials ();
+        if (this.privateKey === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a privateKey to sign orders');
+        }
         const outcomeObj = await this.loadOutcome (outcome);
         const tokenId = outcomeObj['outcomeId'] as string;
         const isMarket = (type === 'market');
