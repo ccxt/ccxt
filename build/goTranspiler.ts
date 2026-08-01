@@ -2394,24 +2394,15 @@ ${caseStatements.join('\n')}
         const configKey = JSON.stringify(parserConfig);
         const promises: any = [];
         const now = Date.now();
-        // Files per worker task. Default 1: one file per task, which load-balances best
-        // across workers (a slow exchange can't stall a whole chunk).
-        // CCXT_TRANSPILE_CHUNK only exists to A/B fewer, coarser task round-trips; it
-        // never changes what the worker compiles, only how many files one task prints.
-        const chunkSize = Math.max(1, Math.floor(Number(process.env.CCXT_TRANSPILE_CHUNK)) || 1);
-        for (let i = 0; i < allFiles.length; i += chunkSize) {
-            // `roots` is the FULL file list of this stage and is identical on every task,
-            // so each worker thread builds ONE ts.Program over all of them on its first
-            // task and prints every later file off that same checker (see
-            // build/worker-program-batch.js). Program roots are therefore decoupled from
-            // task granularity: chunkSize only splits the printing work.
-            promises.push(piscina.run({transpilerConfig:parserConfig, configKey, roots: allFiles, files: allFiles.slice(i, i + chunkSize)}));
+        // One file per task. `roots` is the FULL stage list on every task so each worker
+        // builds ONE sticky ts.Program (build/worker-program-batch.js) and prints off it.
+        for (const file of allFiles) {
+            promises.push(piscina.run({transpilerConfig:parserConfig, configKey, roots: allFiles, files: [file]}));
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
         log.green ('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms');
-        // Order-preserving flatten: chunks are consecutive slices queued in order; Promise.all
-        // resolves in input order; each worker returns results in the order of `files`.
+        // Order-preserving flatten: Promise.all is in input order; each task returns one file.
         const flatResult = [];
         for (const res of workerResult) {
             for (const f of (res.files ?? [res.file])) {

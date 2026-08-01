@@ -1325,32 +1325,19 @@ class NewTranspiler {
         const piscina = this.piscina;
         const configKey = JSON.stringify(parserConfig);
 
-        // Files per worker task. Default 1: one file per task, which load-balances best
-        // across workers (a slow file can't stall a whole chunk). CCXT_TRANSPILE_CHUNK
-        // only exists to A/B fewer, coarser task round-trips; it never changes what the
-        // worker compiles, only how many files one task prints.
-        const chunkSize = Math.max(1, Math.floor(Number(process.env.CCXT_TRANSPILE_CHUNK)) || 1);
+        // One file per task (load-balances; a slow file can't stall others). `roots` is
+        // the FULL stage list on every task so each worker builds ONE sticky ts.Program
+        // (see build/worker-program-batch.js) and prints each file off that checker.
         const promises: any = [];
         const now = Date.now();
-        for (let i = 0; i < allFiles.length; i += chunkSize) {
-            const chunk = allFiles.slice(i, i + chunkSize);
-            // `roots` is the FULL file list of this stage and is identical on every task,
-            // so each worker thread builds ONE ts.Program over all of them on its first
-            // task and prints every later file off that same checker. Program roots are
-            // therefore decoupled from task granularity: chunkSize only splits the
-            // printing work.
-            promises.push(piscina.run({ transpilerConfig: parserConfig, configKey, roots: allFiles, files: chunk }));
+        for (const file of allFiles) {
+            promises.push(piscina.run({ transpilerConfig: parserConfig, configKey, roots: allFiles, files: [file] }));
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
         log.green('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms (webworkerTranspile @ javaTranspiler.ts)');
-        // Order-preserving flatten, and it must stay that way: callers zip the returned
-        // array positionally against their input paths (transpiledFiles[idx] <-> the idx-th
-        // exchange file, flatResult[idx] <-> tests[idx]). The mapping holds for any chunk
-        // size because chunks are consecutive slices queued in order, Promise.all resolves
-        // in input order (not completion order), and each worker returns its results in the
-        // order it received `files`. So flat() yields exactly one result per file, in
-        // allFiles order — identical to the chunk=1 case.
+        // Order-preserving flatten: Promise.all resolves in input order; each task returns
+        // one result, so flat() matches allFiles order.
         const flatResult = workerResult.flat();
         return flatResult;
     }
