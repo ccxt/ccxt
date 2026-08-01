@@ -170,14 +170,14 @@ const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 const EXAMPLES_OUTPUT_FOLDER = './examples/java/examples/';
 const csharpComments: any = {};
 
-// default 1 worker thread (single warm Transpiler / Program). Override with
-// CCXT_TRANSPILE_PROCESSES when you want a wider pool.
+// every extra worker rebuilds the whole typescript program, so oversubscribing a wide CI
+// runner costs more than it wins — cap at 4 unless CCXT_TRANSPILE_PROCESSES asks for a size
 function javaWorkerThreads () {
     const requested = Number (process.env.CCXT_TRANSPILE_PROCESSES);
     if (requested > 0) {
         return requested;
     }
-    return 1;
+    return Math.max (1, Math.min (4, os.availableParallelism ()));
 }
 
 class NewTranspiler {
@@ -1304,7 +1304,7 @@ class NewTranspiler {
 
     async webworkerTranspile(allFiles: any[], parserConfig: any) {
 
-        // create worker — default 1 thread; CCXT_TRANSPILE_PROCESSES overrides.
+        // create worker — default min(4, AP); CCXT_TRANSPILE_PROCESSES overrides.
         // One long-lived pool per process (as in go/csharpTranspiler): a REST run calls
         // this three times (exchanges, then two test stages), so a fresh pool per call
         // would boot and cold-start four Transpilers each time instead of reusing warm ones.
