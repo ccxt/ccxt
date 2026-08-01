@@ -1,4 +1,4 @@
-// Preloaded (via `node --import`) before user JS/TS runs. ccxt-js doesn't read
+// Preloaded (via `node --import`) before user TypeScript runs. ccxt-js doesn't read
 // proxy env vars, so we set its built-in `httpsProxy` on the Exchange prototype —
 // every `new ccxt.<exchange>()` then tunnels through the egress allowlist proxy.
 // (Only httpsProxy: ccxt rejects setting httpProxy and httpsProxy together.)
