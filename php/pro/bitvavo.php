@@ -576,7 +576,7 @@ class bitvavo extends \ccxt\async\bitvavo {
     public function handle_order_book_subscription(Client $client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
-        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+        if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
         $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
@@ -588,7 +588,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             $marketId = $this->safe_string($marketIds, $i);
             $symbol = $this->safe_symbol($marketId, null, '-');
             $messageHash = $name . '@' . $marketId;
-            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
                 $subscription = $this->safe_value($client->subscriptions, $messageHash);
                 $method = $this->safe_value($subscription, 'method');
                 if ($method !== null) {
@@ -1478,7 +1478,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             $error = new AuthenticationError($this->json($message));
             $client->reject($error, $messageHash);
             // allows further authentication attempts
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }

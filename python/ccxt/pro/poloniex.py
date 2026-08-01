@@ -810,6 +810,12 @@ class poloniex(ccxt.async_support.poloniex):
                     previousOrder = self.safe_value_2(previousOrders, orderId, clientOrderId)
                     trade = self.parse_ws_trade(order)
                     self.handle_my_trades(client, trade)
+                    if previousOrder is None:
+                        # fill event for an order missing from the cache(e.g. placed before subscribing or after a reconnect) - parse fresh order instead of aggregating
+                        parsedOrder = self.parse_ws_order(order)
+                        orders.append(parsedOrder)
+                        marketIds.append(marketId)
+                        continue
                     if previousOrder['trades'] is None:
                         previousOrder['trades'] = []
                     previousOrder['trades'].append(trade)

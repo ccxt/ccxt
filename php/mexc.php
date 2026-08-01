@@ -1693,7 +1693,7 @@ class mexc extends Exchange {
         $amountString = null;
         $costString = null;
         // if swap
-        if (is_array($trade) && array_key_exists('v', $trade)) {
+        if (is_array($trade) && array_key_exists('v' ?? '', $trade)) {
             //
             // swap => fetchTrades
             //
@@ -1771,7 +1771,7 @@ class mexc extends Exchange {
             $priceString = $this->safe_string_2($trade, 'price', 'p');
             $orderId = $this->safe_string($trade, 'orderId');
             // if swap
-            if (is_array($trade) && array_key_exists('positionMode', $trade)) {
+            if (is_array($trade) && array_key_exists('positionMode' ?? '', $trade)) {
                 $timestamp = $this->safe_integer($trade, 'timestamp');
                 $amountString = $this->safe_string($trade, 'vol');
                 $side = $this->parse_order_side($this->safe_string($trade, 'side'));
@@ -2142,7 +2142,7 @@ class mexc extends Exchange {
         $prevClose = null;
         $isSwap = $this->safe_value($market, 'swap');
         // if swap
-        if ($isSwap || (is_array($ticker) && array_key_exists('timestamp', $ticker))) {
+        if ($isSwap || (is_array($ticker) && array_key_exists('timestamp' ?? '', $ticker))) {
             //
             //     {
             //         "symbol" => "ETH_USDT",
@@ -4845,7 +4845,7 @@ class mexc extends Exchange {
             // createDepositAddress and fetchDepositAddress use a different $network-id compared to withdraw
             $networkUnified = $this->network_id_to_code($networkCode, $code);
             $networks = $this->safe_dict($currency, 'networks', array());
-            if (is_array($networks) && array_key_exists($networkUnified, $networks)) {
+            if (is_array($networks) && array_key_exists($networkUnified ?? '', $networks)) {
                 $network = $this->safe_dict($networks, $networkUnified, array());
                 $networkInfo = $this->safe_value($network, 'info', array());
                 $networkId = $this->safe_string($networkInfo, 'network');
@@ -4899,7 +4899,7 @@ class mexc extends Exchange {
         $networkId = null;
         $networkUnified = $this->network_id_to_code($networkCode, $code);
         $networks = $this->safe_dict($currency, 'networks', array());
-        if (is_array($networks) && array_key_exists($networkUnified, $networks)) {
+        if (is_array($networks) && array_key_exists($networkUnified ?? '', $networks)) {
             $network = $this->safe_dict($networks, $networkUnified, array());
             $networkInfo = $this->safe_value($network, 'info', array());
             $networkId = $this->safe_string($networkInfo, 'network');

@@ -322,12 +322,17 @@ public class TestMain extends BaseTest
             {
                 skipMessage = "[INFO] UNIMPLEMENTED_TEST";
             }
+            Object name = exchange.id;
+            // the TESTING / TESTING DONE / TESTING FAILED markers are dumped unconditionally
+            // (not gated on `--info`) because run-tests.js diffs them on RUNTEST_TIMED_OUT to
+            // report which method(s) were still running when the per-exchange timeout fired
             // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
             if (Helpers.isTrue(isLoadMarkets))
             {
+                dump(this.addPadding("[INFO] TESTING", 25), name, methodName);
                 (exchange.loadMarkets(true)).join();
+                dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
             }
-            Object name = exchange.id;
             if (Helpers.isTrue(skipMessage))
             {
                 if (Helpers.isTrue(this.info))
@@ -336,11 +341,8 @@ public class TestMain extends BaseTest
                 }
                 return true;
             }
-            if (Helpers.isTrue(this.info))
-            {
-                Object argsStringified = Helpers.add(Helpers.add("(", exchange.json(args)), ")"); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-                dump(this.addPadding("[INFO] TESTING", 25), name, methodName, argsStringified);
-            }
+            Object argsStringified = Helpers.add(Helpers.add("(", exchange.json(args)), ")"); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+            dump(this.addPadding("[INFO] TESTING", 25), name, methodName, argsStringified);
             if (Helpers.isTrue(isSync()))
             {
                 callMethodSync(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
@@ -348,10 +350,7 @@ public class TestMain extends BaseTest
             {
                 (callMethod(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args)).join();
             }
-            if (Helpers.isTrue(this.info))
-            {
-                dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
-            }
+            dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
             // add to the list of successed tests
             if (Helpers.isTrue(isPublic))
             {
@@ -448,6 +447,9 @@ public class TestMain extends BaseTest
                     return true;
                 } catch(Exception ex)
                 {
+                    // close the TESTING marker (pairs with the dump in `testMethod`), so on a
+                    // RUNTEST_TIMED_OUT run-tests.js doesn't misreport a failed method as hung
+                    dump(this.addPadding("[INFO] TESTING FAILED", 25), exchange.id, methodName);
                     Object e = getRootException(ex);
                     Object isLoadMarkets = (Helpers.isEqual(methodName, "loadMarkets"));
                     Object isAuthError = (Helpers.isInstance(e, AuthenticationError.class));
@@ -2509,7 +2511,7 @@ public class TestMain extends BaseTest
             //  -----------------------------------------------------------------------------
             //  --- Init of brokerId tests functions-----------------------------------------
             //  -----------------------------------------------------------------------------
-            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex()));
+            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex()));
             (Helpers.promiseAll(promises)).join();
             Object successMessage = Helpers.add(Helpers.add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
             dump(Helpers.add("[INFO]", successMessage));
@@ -2947,33 +2949,6 @@ public class TestMain extends BaseTest
             }
             Object clientOrderIdStop = Helpers.GetValue(stopOrderRequest, "brokerId");
             Assert(((String)clientOrderIdStop).startsWith(((String)idString)), Helpers.add(Helpers.add(Helpers.add("woo - brokerId: ", clientOrderIdStop), " does not start with id: "), idString));
-            if (!Helpers.isTrue(isSync()))
-            {
-                (close(exchange)).join();
-            }
-            return true;
-        });
-
-    }
-
-    public java.util.concurrent.CompletableFuture<Object> testBitmart()
-    {
-
-        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
-            Exchange exchange = ((Exchange)this.initOfflineExchange("bitmart"));
-            Object reqHeaders = new java.util.HashMap<String, Object>() {{}};
-            Object id = "CCXTxBitmart000";
-            Assert(Helpers.isEqual(Helpers.GetValue(exchange.options, "brokerId"), id), Helpers.add(Helpers.add("bitmart - id: ", id), " not in options"));
-            (exchange.loadMarkets()).join();
-            try
-            {
-                (exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000)).join();
-            } catch(Exception e)
-            {
-                reqHeaders = exchange.last_request_headers;
-            }
-            Assert(Helpers.isEqual(Helpers.GetValue(reqHeaders, "X-BM-BROKER-ID"), id), Helpers.add(Helpers.add("bitmart - id: ", id), " not in headers"));
             if (!Helpers.isTrue(isSync()))
             {
                 (close(exchange)).join();

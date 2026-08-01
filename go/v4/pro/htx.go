@@ -2709,6 +2709,13 @@ func (this *HtxCore) HandleErrorMessage(client any, message any) any {
 								if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), id)) {
 									ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), id)
 								}
+								// the subscription is keyed by the messageHash, not by the id -
+								// without removing it a repeated watch call attaches to a future
+								// that nothing will resolve instead of resubscribing, see
+								// https://github.com/ccxt/ccxt/issues/10280
+								if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
+									ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+								}
 								return nil
 							}(this)
 						}
@@ -3156,9 +3163,9 @@ func (this *HtxCore) SubscribePublic(url any, symbol any, messageHash any, optio
 			ccxt.AddElementToObject(subscription, "method", method)
 		}
 
-		retRes280615 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-		ccxt.PanicOnError(retRes280615)
-		ch <- retRes280615
+		retRes281315 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
+		ccxt.PanicOnError(retRes281315)
+		ch <- retRes281315
 		return nil
 
 	}()
@@ -3193,9 +3200,9 @@ func (this *HtxCore) UnsubscribePublic(market any, subMessageHash any, topic any
 			params = this.Omit(params, "symbolsAndTimeframes")
 		}
 
-		retRes283115 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-		ccxt.PanicOnError(retRes283115)
-		ch <- retRes283115
+		retRes283815 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
+		ccxt.PanicOnError(retRes283815)
+		ch <- retRes283815
 		return nil
 
 	}()
@@ -3240,12 +3247,12 @@ func (this *HtxCore) SubscribePrivate(channel any, messageHash any, typeVar any,
 			"hostname": hostname,
 		}
 
-		retRes28648 := (<-this.Authenticate(authParams))
-		ccxt.PanicOnError(retRes28648)
+		retRes28718 := (<-this.Authenticate(authParams))
+		ccxt.PanicOnError(retRes28718)
 
-		retRes286515 := (<-this.Watch(url, messageHash, this.Extend(request, params), channel, extendedSubsription))
-		ccxt.PanicOnError(retRes286515)
-		ch <- retRes286515
+		retRes287215 := (<-this.Watch(url, messageHash, this.Extend(request, params), channel, extendedSubsription))
+		ccxt.PanicOnError(retRes287215)
+		ch <- retRes287215
 		return nil
 
 	}()
@@ -3327,9 +3334,9 @@ func (this *HtxCore) Authenticate(optionalArgs ...any) <-chan any {
 			this.Watch(url, messageHash, request, messageHash, subscription)
 		}
 
-		retRes293715 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes293715)
-		ch <- retRes293715
+		retRes294415 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes294415)
+		ch <- retRes294415
 		return nil
 
 	}()

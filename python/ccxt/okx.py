@@ -1883,7 +1883,7 @@ class okx(Exchange, ImplicitAPI):
                 },
                 'amount': {
                     'min': self.safe_number(market, 'minSz'),
-                    'max': None,
+                    'max': self.safe_number(market, 'maxLmtSz'),
                 },
                 'price': {
                     'min': None,

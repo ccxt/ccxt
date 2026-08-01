@@ -1261,7 +1261,7 @@ class aster extends Exchange {
         //
         $id = $this->safe_string_2($trade, 'id', 'a');
         $marketId = $this->safe_string($trade, 'symbol');
-        $marketType = (is_array($trade) && array_key_exists('positionSide', $trade)) ? 'swap' : 'spot';
+        $marketType = (is_array($trade) && array_key_exists('positionSide' ?? '', $trade)) ? 'swap' : 'spot';
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $currencyId = $this->safe_string_2($trade, 'commissionAsset', 'marginAsset');
         $currencyCode = $this->safe_currency_code($currencyId);
@@ -1332,7 +1332,7 @@ class aster extends Exchange {
                 $request['limit'] = min($limit, 1000);
             }
             $sinceDefined = $since !== null;
-            $untilDefined = (is_array($params) && array_key_exists('until', $params));
+            $untilDefined = (is_array($params) && array_key_exists('until' ?? '', $params));
             if ($sinceDefined) {
                 $request['startTime'] = $since;
             }
@@ -1340,7 +1340,7 @@ class aster extends Exchange {
                 $request = $this->handle_until_option('endTime', $request, $params);
             }
             // use historical endpoint for targeted requests
-            if (is_array($request) && array_key_exists('startTime', $request)) {
+            if (is_array($request) && array_key_exists('startTime' ?? '', $request)) {
                 if ($market['swap']) {
                     $response = Async\await($this->fapiPublicGetV3AggTrades($this->extend($request, $params)));
                 } else {
@@ -1554,12 +1554,12 @@ class aster extends Exchange {
         $baseVolume = $this->safe_string($ticker, 'volume');
         $high = $this->safe_string($ticker, 'highPrice');
         $low = $this->safe_string($ticker, 'lowPrice');
-        $isTickerResponse = (is_array($ticker) && array_key_exists('priceChange', $ticker));
+        $isTickerResponse = (is_array($ticker) && array_key_exists('priceChange' ?? '', $ticker));
         $marketType = null;
         if ($isTickerResponse) {
-            $marketType = (is_array($ticker) && array_key_exists('baseAsset', $ticker)) ? 'spot' : 'swap';
+            $marketType = (is_array($ticker) && array_key_exists('baseAsset' ?? '', $ticker)) ? 'spot' : 'swap';
         } else {
-            $marketType = (is_array($ticker) && array_key_exists('lastUpdateId', $ticker)) ? 'swap' : 'spot';
+            $marketType = (is_array($ticker) && array_key_exists('lastUpdateId' ?? '', $ticker)) ? 'swap' : 'spot';
         }
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market, null, $marketType);
@@ -3660,7 +3660,7 @@ class aster extends Exchange {
         $contractSize = $this->safe_value($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
         // to notionalValue
-        $linear = (is_array($position) && array_key_exists('notional', $position));
+        $linear = (is_array($position) && array_key_exists('notional' ?? '', $position));
         if ($marginMode === 'cross') {
             // calculate $collateral
             $precision = $this->safe_dict($market, 'precision', array());
@@ -3883,7 +3883,7 @@ class aster extends Exchange {
             $isPositionOpen = ($maintenanceMargin !== '0') && ($maintenanceMargin !== '0.00000000');
             if (!$filterClosed || $isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
-                if (is_array($balances) && array_key_exists($code, $balances)) {
+                if (is_array($balances) && array_key_exists($code ?? '', $balances)) {
                     $parsed = $this->parse_account_position($this->extend($position, array(
                         'crossMargin' => $balances[$code]['crossMargin'],
                         'crossWalletBalance' => $balances[$code]['crossWalletBalance'],
@@ -3912,7 +3912,7 @@ class aster extends Exchange {
             }
         }
         // to notionalValue
-        $usdm = (is_array($position) && array_key_exists('notional', $position));
+        $usdm = (is_array($position) && array_key_exists('notional' ?? '', $position));
         $maintenanceMarginString = $this->safe_string($position, 'maintMargin');
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
         $entryPriceString = $this->safe_string($position, 'entryPrice');

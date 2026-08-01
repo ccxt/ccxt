@@ -647,7 +647,7 @@ class gemini extends Exchange {
         return Async\async(function () use ($params) {
             // these markets can't be scrapped and fetchMarketsFrom api does an extra call
             // to load market ids which we don't need here
-            if (is_array($this->urls) && array_key_exists('test', $this->urls)) {
+            if (is_array($this->urls) && array_key_exists('test' ?? '', $this->urls)) {
                 return array(); // sandbox does not have usdt markets
             }
             $fetchUsdtMarkets = $this->safe_value($this->options, 'fetchUsdtMarkets', array());
@@ -804,7 +804,7 @@ class gemini extends Exchange {
             $marketIdWithoutPerp = str_replace('PERP', '', $marketIdUpper);
             $conflictingMarkets = $this->safe_dict($this->options, 'conflictingMarkets', array());
             $lowerCaseId = strtolower($marketIdWithoutPerp);
-            if (is_array($conflictingMarkets) && array_key_exists($lowerCaseId, $conflictingMarkets)) {
+            if (is_array($conflictingMarkets) && array_key_exists($lowerCaseId ?? '', $conflictingMarkets)) {
                 $conflictingMarket = $conflictingMarkets[$lowerCaseId];
                 $baseId = $conflictingMarket['base'];
                 $quoteId = $conflictingMarket['quote'];

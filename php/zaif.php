@@ -334,7 +334,7 @@ class zaif extends Exchange {
             $account['free'] = $balance;
             $account['total'] = $balance;
             if ($deposit !== null) {
-                if (is_array($deposit) && array_key_exists($currencyId, $deposit)) {
+                if (is_array($deposit) && array_key_exists($currencyId ?? '', $deposit)) {
                     $account['total'] = $this->safe_string($deposit, $currencyId);
                 }
             }

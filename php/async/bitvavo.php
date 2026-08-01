@@ -2629,7 +2629,7 @@ class bitvavo extends Exchange {
             );
         }
         $type = null;
-        if ((is_array($transaction) && array_key_exists('success', $transaction)) || (is_array($transaction) && array_key_exists('address', $transaction))) {
+        if ((is_array($transaction) && array_key_exists('success' ?? '', $transaction)) || (is_array($transaction) && array_key_exists('address' ?? '', $transaction))) {
             $type = 'withdrawal';
         } else {
             $type = 'deposit';
@@ -2798,7 +2798,7 @@ class bitvavo extends Exchange {
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array()) {
-        if ((is_array($config) && array_key_exists('noMarket', $config)) && !(is_array($params) && array_key_exists('market', $params))) {
+        if ((is_array($config) && array_key_exists('noMarket' ?? '', $config)) && !(is_array($params) && array_key_exists('market' ?? '', $params))) {
             return $config['noMarket'];
         }
         return $this->safe_value($config, 'cost', 1);

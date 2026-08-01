@@ -501,7 +501,7 @@ public partial class blofin : Exchange
         object contract = isTrue(swap) || isTrue(future);
         object baseId = this.safeString(market, "baseCurrency");
         object quoteId = this.safeString(market, "quoteCurrency");
-        object settleId = this.safeString(market, "quoteCurrency");
+        object settleId = this.safeString(market, "settleCurrency", quoteId);
         object settle = this.safeCurrencyCode(settleId);
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
@@ -521,6 +521,9 @@ public partial class blofin : Exchange
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         object isActive = (isEqual(this.safeString(market, "state"), "live"));
         object isMargin = isTrue(spot) && isTrue((Precise.stringGt(maxLeverage, "1")));
+        object contractType = this.safeString(market, "contractType");
+        object maxLimitAmount = this.safeNumber(market, "maxLimitSize");
+        object maxSpotCost = this.safeNumber(market, "maxMarketSize"); // for spot, market-buy size is denominated in the quote currency, i.e. cost
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -540,8 +543,8 @@ public partial class blofin : Exchange
             { "taker", taker },
             { "maker", maker },
             { "contract", contract },
-            { "linear", ((bool) isTrue(contract)) ? (isEqual(quoteId, settleId)) : null },
-            { "inverse", ((bool) isTrue(contract)) ? (isEqual(baseId, settleId)) : null },
+            { "linear", ((bool) isTrue(contract)) ? (isEqual(contractType, "linear")) : null },
+            { "inverse", ((bool) isTrue(contract)) ? (isEqual(contractType, "inverse")) : null },
             { "contractSize", ((bool) isTrue(contract)) ? this.safeNumber(market, "contractValue") : null },
             { "expiry", expiry },
             { "expiryDatetime", expiry },
@@ -559,7 +562,7 @@ public partial class blofin : Exchange
                 } },
                 { "amount", new Dictionary<string, object>() {
                     { "min", this.safeNumber(market, "minSize") },
-                    { "max", null },
+                    { "max", maxLimitAmount },
                 } },
                 { "price", new Dictionary<string, object>() {
                     { "min", null },
@@ -567,7 +570,7 @@ public partial class blofin : Exchange
                 } },
                 { "cost", new Dictionary<string, object>() {
                     { "min", null },
-                    { "max", null },
+                    { "max", ((bool) isTrue(contract)) ? null : maxSpotCost },
                 } },
             } },
             { "info", market },

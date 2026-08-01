@@ -160,7 +160,7 @@ class paymium extends Exchange {
             $currency = $this->currency($code);
             $currencyId = $currency['id'];
             $free = 'balance_' . $currencyId;
-            if (is_array($response) && array_key_exists($free, $response)) {
+            if (is_array($response) && array_key_exists($free ?? '', $response)) {
                 $account = $this->account();
                 $used = 'locked_' . $currencyId;
                 $account['free'] = $this->safe_string($response, $free);

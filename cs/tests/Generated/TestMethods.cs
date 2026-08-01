@@ -300,12 +300,17 @@ public partial class testMainClass
         {
             skipMessage = "[INFO] UNIMPLEMENTED_TEST";
         }
+        object name = exchange.id;
+        // the TESTING / TESTING DONE / TESTING FAILED markers are dumped unconditionally
+        // (not gated on `--info`) because run-tests.js diffs them on RUNTEST_TIMED_OUT to
+        // report which method(s) were still running when the per-exchange timeout fired
         // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
         if (isTrue(isLoadMarkets))
         {
+            dump(this.addPadding("[INFO] TESTING", 25), name, methodName);
             await exchange.loadMarkets(true);
+            dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
         }
-        object name = exchange.id;
         if (isTrue(skipMessage))
         {
             if (isTrue(this.info))
@@ -314,11 +319,8 @@ public partial class testMainClass
             }
             return true;
         }
-        if (isTrue(this.info))
-        {
-            object argsStringified = add(add("(", exchange.json(args)), ")"); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-            dump(this.addPadding("[INFO] TESTING", 25), name, methodName, argsStringified);
-        }
+        object argsStringified = add(add("(", exchange.json(args)), ")"); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+        dump(this.addPadding("[INFO] TESTING", 25), name, methodName, argsStringified);
         if (isTrue(isSync()))
         {
             callMethodSync(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
@@ -326,10 +328,7 @@ public partial class testMainClass
         {
             await callMethod(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
         }
-        if (isTrue(this.info))
-        {
-            dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
-        }
+        dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
         // add to the list of successed tests
         if (isTrue(isPublic))
         {
@@ -421,6 +420,9 @@ public partial class testMainClass
                 return true;
             } catch(Exception ex)
             {
+                // close the TESTING marker (pairs with the dump in `testMethod`), so on a
+                // RUNTEST_TIMED_OUT run-tests.js doesn't misreport a failed method as hung
+                dump(this.addPadding("[INFO] TESTING FAILED", 25), exchange.id, methodName);
                 object e = getRootException(ex);
                 object isLoadMarkets = (isEqual(methodName, "loadMarkets"));
                 object isAuthError = (e is AuthenticationError);

@@ -1901,7 +1901,7 @@ func (this *OkxCore) ParseMarket(market any) any {
 			},
 			"amount": map[string]any{
 				"min": this.SafeNumber(market, "minSz"),
-				"max": nil,
+				"max": this.SafeNumber(market, "maxLmtSz"),
 			},
 			"price": map[string]any{
 				"min": nil,

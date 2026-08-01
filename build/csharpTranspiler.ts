@@ -312,7 +312,13 @@ class NewTranspiler {
                 && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken || parent.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken)
                 && parent?.left === node;
             if (isLeftSideOfAssignment && csharp.ELEMENT_ACCESS_WRAPPER_OPEN && csharp.ELEMENT_ACCESS_WRAPPER_CLOSE) {
-                const type = (global as any).checker.getTypeAtLocation (argumentExpression);
+                // ast-transpiler >= 0.0.95 no longer publishes the checker on `global` - prefer the
+                // instance accessor and skip this workaround gracefully when no checker is available
+                const checker = (typeof (csharp as any).getChecker === 'function') ? (csharp as any).getChecker () : (global as any).checker;
+                if (!checker) {
+                    return undefined;
+                }
+                const type = checker.getTypeAtLocation (argumentExpression);
                 const isUnion = ((type.flags & ts.TypeFlags.Union) !== 0) && Array.isArray (type.types);
                 if (isUnion && type.types.some ((t: any) => csharp.isStringType (t.flags))) {
                     const expressionAsString = csharp.printNode (expression, 0);

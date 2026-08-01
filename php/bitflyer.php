@@ -559,7 +559,7 @@ class bitflyer extends Exchange {
         $order = null;
         if ($side !== null) {
             $idInner = $side . '_child_order_acceptance_id';
-            if (is_array($trade) && array_key_exists($idInner, $trade)) {
+            if (is_array($trade) && array_key_exists($idInner ?? '', $trade)) {
                 $order = $trade[$idInner];
             }
         }
@@ -864,7 +864,7 @@ class bitflyer extends Exchange {
         }
         $orders = $this->fetch_orders($symbol);
         $ordersById = $this->index_by($orders, 'id');
-        if (is_array($ordersById) && array_key_exists($id, $ordersById)) {
+        if (is_array($ordersById) && array_key_exists($id ?? '', $ordersById)) {
             return $ordersById[$id];
         }
         throw new OrderNotFound($this->id . ' No order found with $id ' . $id);
@@ -1136,7 +1136,7 @@ class bitflyer extends Exchange {
         $type = null;
         $status = null;
         $fee = null;
-        if (is_array($transaction) && array_key_exists('fee', $transaction)) {
+        if (is_array($transaction) && array_key_exists('fee' ?? '', $transaction)) {
             $type = 'withdrawal';
             $status = $this->parse_withdrawal_status($rawStatus);
             $feeCost = $this->safe_string($transaction, 'fee');

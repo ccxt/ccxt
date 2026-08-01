@@ -416,7 +416,7 @@ class bitrue extends \ccxt\async\bitrue {
                 'buys' => $this->parse_contract_bids_asks($rawBuys, $symbol),
             );
         }
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -666,10 +666,10 @@ class bitrue extends \ccxt\async\bitrue {
             return;
         }
         $parsed = $this->parse_ws_ohlcv($tick, $market);
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }
@@ -839,7 +839,7 @@ class bitrue extends \ccxt\async\bitrue {
     }
 
     public function handle_message(Client $client, $message) {
-        if (is_array($message) && array_key_exists('channel', $message)) {
+        if (is_array($message) && array_key_exists('channel' ?? '', $message)) {
             $channel = $this->safe_string($message, 'channel');
             if (mb_strpos($channel, '_depth_step') > -1) {
                 $this->handle_order_book($client, $message);
@@ -850,7 +850,7 @@ class bitrue extends \ccxt\async\bitrue {
             } elseif (mb_strpos($channel, '_ticker') > -1) {
                 $this->handle_ticker($client, $message);
             }
-        } elseif (is_array($message) && array_key_exists('ping', $message)) {
+        } elseif (is_array($message) && array_key_exists('ping' ?? '', $message)) {
             $this->handle_ping($client, $message);
         } else {
             $event = $this->safe_string($message, 'e');

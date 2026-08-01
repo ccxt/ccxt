@@ -1770,8 +1770,8 @@ class kucoin extends Exchange {
             $takerFeeRate = $this->safe_string($ticker, 'takerFeeRate');
             $makerCoefficient = $this->safe_string($ticker, 'makerCoefficient');
             $takerCoefficient = $this->safe_string($ticker, 'takerCoefficient');
-            $hasCrossMargin = (is_array($crossById) && array_key_exists($id, $crossById));
-            $hasIsolatedMargin = (is_array($isolatedById) && array_key_exists($id, $isolatedById));
+            $hasCrossMargin = (is_array($crossById) && array_key_exists($id ?? '', $crossById));
+            $hasIsolatedMargin = (is_array($isolatedById) && array_key_exists($id ?? '', $isolatedById));
             $isMarginable = $this->safe_bool($market, 'isMarginEnabled', false) || $hasCrossMargin || $hasIsolatedMargin;
             $result[] = array(
                 'id' => $id,
@@ -2187,7 +2187,7 @@ class kucoin extends Exchange {
          *
          * @return {any} ignore
          */
-        if (!(is_array($this->options) && array_key_exists('hf', $this->options)) || ($this->options['hf'] === null) || $force) {
+        if (!(is_array($this->options) && array_key_exists('hf' ?? '', $this->options)) || ($this->options['hf'] === null) || $force) {
             $result = $this->privateGetHfAccountsOpened();
             $this->options['hf'] = $this->safe_bool($result, 'data');
         }
@@ -2534,7 +2534,7 @@ class kucoin extends Exchange {
         //        "chain" => "ERC20"
         //    }
         //
-        if (is_array($fee) && array_key_exists('chains', $fee)) {
+        if (is_array($fee) && array_key_exists('chains' ?? '', $fee)) {
             // if data obtained through `currencies` endpoint
             $resultNew = array(
                 'info' => $fee,
@@ -6185,7 +6185,7 @@ class kucoin extends Exchange {
         $tradeType = $this->safe_string($order, 'tradeType');
         $utaTradeTypes = array( 'SPOT', 'CROSS', 'ISOLATED', 'FUTURES' ); // $tradeType specific for uta endpoint
         $isUtaOrder = $this->in_array($tradeType, $utaTradeTypes);
-        if (is_array($order) && array_key_exists('sizeUnit', $order)) { // property specific for uta endpoint
+        if (is_array($order) && array_key_exists('sizeUnit' ?? '', $order)) { // property specific for uta endpoint
             $isUtaOrder = true;
         }
         if ($isUtaOrder) {
@@ -7108,7 +7108,7 @@ class kucoin extends Exchange {
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
-        if (is_array($trade) && array_key_exists('liquidityRole', $trade)) { // property specific to myTrades from uta endpoint
+        if (is_array($trade) && array_key_exists('liquidityRole' ?? '', $trade)) { // property specific to myTrades from uta endpoint
             return $this->parse_my_uta_trade($trade, $market);
         }
         $marketId = $this->safe_string($trade, 'symbol');
@@ -7219,7 +7219,7 @@ class kucoin extends Exchange {
         } else {
             $timestamp = $this->safe_integer($trade, 'createdAt');
             // if it's a historical v1 $trade, the exchange returns $timestamp in seconds
-            if ((is_array($trade) && array_key_exists('dealValue', $trade)) && ($timestamp !== null)) {
+            if ((is_array($trade) && array_key_exists('dealValue' ?? '', $trade)) && ($timestamp !== null)) {
                 $timestamp = $timestamp * 1000;
             }
         }
@@ -7349,7 +7349,7 @@ class kucoin extends Exchange {
         } else {
             $timestamp = $this->safe_integer($trade, 'createdAt');
             // if it's a historical v1 $trade, the exchange returns $timestamp in seconds
-            if ((is_array($trade) && array_key_exists('dealValue', $trade)) && ($timestamp !== null)) {
+            if ((is_array($trade) && array_key_exists('dealValue' ?? '', $trade)) && ($timestamp !== null)) {
                 $timestamp = $timestamp * 1000;
             }
         }
@@ -7682,10 +7682,10 @@ class kucoin extends Exchange {
         }
         $timestamp = $this->safe_integer_2($transaction, 'createdAt', 'createAt');
         $updated = $this->safe_integer($transaction, 'updatedAt');
-        $isV1 = !(is_array($transaction) && array_key_exists('createdAt', $transaction));
+        $isV1 = !(is_array($transaction) && array_key_exists('createdAt' ?? '', $transaction));
         // if it's a v1 structure
         if ($isV1) {
-            $type = (is_array($transaction) && array_key_exists('address', $transaction)) ? 'withdrawal' : 'deposit';
+            $type = (is_array($transaction) && array_key_exists('address' ?? '', $transaction)) ? 'withdrawal' : 'deposit';
             if ($timestamp !== null) {
                 $timestamp = $timestamp * 1000;
             }
@@ -8567,15 +8567,15 @@ class kucoin extends Exchange {
         $transferType = 'INTERNAL';
         list($transferType, $params) = $this->handle_param_string_2($params, 'transferType', 'type', $transferType);
         if ($transferType === 'PARENT_TO_SUB') {
-            if (!(is_array($params) && array_key_exists('toUserId', $params))) {
+            if (!(is_array($params) && array_key_exists('toUserId' ?? '', $params))) {
                 throw new ExchangeError($this->id . ' $transfer() requires a toUserId param for PARENT_TO_SUB transfers');
             }
         } elseif ($transferType === 'SUB_TO_PARENT') {
-            if (!(is_array($params) && array_key_exists('fromUserId', $params))) {
+            if (!(is_array($params) && array_key_exists('fromUserId' ?? '', $params))) {
                 throw new ExchangeError($this->id . ' $transfer() requires a fromUserId param for SUB_TO_PARENT transfers');
             }
         }
-        if (!(is_array($params) && array_key_exists('clientOid', $params))) {
+        if (!(is_array($params) && array_key_exists('clientOid' ?? '', $params))) {
             $request['clientOid'] = $this->uuid();
         }
         $fromId = $this->convert_type_to_account($fromAccount);
@@ -9122,11 +9122,11 @@ class kucoin extends Exchange {
         $methodVersions = $this->safe_dict($apiVersions, $method, array());
         $defaultVersion = $this->safe_string($methodVersions, $path, $this->options['version']);
         $version = $this->safe_string($params, 'version', $defaultVersion);
-        if ($version === 'v3' && (is_array($config) && array_key_exists('v3', $config))) {
+        if ($version === 'v3' && (is_array($config) && array_key_exists('v3' ?? '', $config))) {
             return $config['v3'];
-        } elseif ($version === 'v2' && (is_array($config) && array_key_exists('v2', $config))) {
+        } elseif ($version === 'v2' && (is_array($config) && array_key_exists('v2' ?? '', $config))) {
             return $config['v2'];
-        } elseif ($version === 'v1' && (is_array($config) && array_key_exists('v1', $config))) {
+        } elseif ($version === 'v1' && (is_array($config) && array_key_exists('v1' ?? '', $config))) {
             return $config['v1'];
         }
         return $this->safe_value($config, 'cost', 1);
@@ -9496,7 +9496,7 @@ class kucoin extends Exchange {
             $item = $response[$i];
             $code = $this->safe_currency_code($this->safe_string($item, 'currency'));
             if ($codes === null || $this->in_array($code, $codes)) {
-                if (!(is_array($borrowRateHistories) && array_key_exists($code, $borrowRateHistories))) {
+                if (!(is_array($borrowRateHistories) && array_key_exists($code ?? '', $borrowRateHistories))) {
                     $borrowRateHistories[$code] = array();
                 }
                 $borrowRateStructure = $this->parse_borrow_rate($item);
@@ -11383,7 +11383,7 @@ class kucoin extends Exchange {
             $tier = $this->safe_dict($tiers, $i);
             $symbol = $this->safe_string($tier, 'symbol');
             if ($symbol !== null) {
-                if (!(is_array($result) && array_key_exists($symbol, $result))) {
+                if (!(is_array($result) && array_key_exists($symbol ?? '', $result))) {
                     $result[$symbol] = array();
                 }
                 $result[$symbol][] = $tier;
