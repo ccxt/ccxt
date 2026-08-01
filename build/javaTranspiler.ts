@@ -170,14 +170,14 @@ const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 const EXAMPLES_OUTPUT_FOLDER = './examples/java/examples/';
 const csharpComments: any = {};
 
-// every extra worker rebuilds the whole typescript program, so oversubscribing a wide CI
-// runner costs more than it wins — cap at 4 unless CCXT_TRANSPILE_PROCESSES asks for a size
+// default min(2, AP): 2w + shared-Program chunks is within ~10% of 4w and uses fewer cores.
+// Override with CCXT_TRANSPILE_PROCESSES.
 function javaWorkerThreads () {
     const requested = Number (process.env.CCXT_TRANSPILE_PROCESSES);
     if (requested > 0) {
         return requested;
     }
-    return Math.max (1, Math.min (4, os.availableParallelism ()));
+    return Math.max (1, Math.min (2, os.availableParallelism ()));
 }
 
 class NewTranspiler {
@@ -1304,7 +1304,7 @@ class NewTranspiler {
 
     async webworkerTranspile(allFiles: any[], parserConfig: any) {
 
-        // create worker — default min(4, AP); CCXT_TRANSPILE_PROCESSES overrides.
+        // create worker — default min(2, AP); CCXT_TRANSPILE_PROCESSES overrides.
         // One long-lived pool per process (as in go/csharpTranspiler): a REST run calls
         // this three times (exchanges, then two test stages), so a fresh pool per call
         // would boot and cold-start four Transpilers each time instead of reusing warm ones.
@@ -1321,7 +1321,7 @@ class NewTranspiler {
         // task, which load-balances best across workers (a slow exchange can't stall a
         // whole chunk). CCXT_TRANSPILE_CHUNK only exists so a coarser chunk — fewer task
         // round-trips, at the cost of that balancing — can be A/B benchmarked.
-        const chunkSize = Math.max(1, Math.floor(Number(process.env.CCXT_TRANSPILE_CHUNK)) || 1);
+        const chunkSize = Math.max(1, Math.floor(Number(process.env.CCXT_TRANSPILE_CHUNK)) || 26);
         const configKey = JSON.stringify(parserConfig);
         const promises: any = [];
         const now = Date.now();

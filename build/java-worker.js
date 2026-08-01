@@ -28,11 +28,25 @@ export default async ({transpilerConfig, configKey, files}) => {
     const transpiler = cachedTranspiler;
 
     const result = [];
+    // Multi-file task: compile the whole chunk as ONE ts.Program instead of one
+    // program per file. Every transpileJavaByPath builds a program over
+    // [file, globalsShim]; the SourceFile cache already makes the ~340-file import
+    // closure parse-free, but the bind/check work behind getPreEmitDiagnostics is
+    // redone per file. createProgramBatch pays it once for the chunk. The batch is
+    // scoped to this task on this thread — a live ts.Program must never cross a
+    // worker boundary. Files that import each other (a derived exchange and its
+    // parent) are just separate root files of the same program, and the emit is
+    // byte-identical to the per-file path.
+    const batch = (files.length > 1 && typeof transpiler.createProgramBatch === 'function')
+        ? transpiler.createProgramBatch(files)
+        : null;
     for (const filePath of files) {
         if (verbose) {
             log.blue('[worker][java] Transpiling', filePath);
         }
-        const transpiled = transpiler.transpileJavaByPath(filePath);
+        const transpiled = batch
+            ? batch.transpileJavaByPath(filePath)
+            : transpiler.transpileJavaByPath(filePath);
         result.push(transpiled);
     }
     return result;
