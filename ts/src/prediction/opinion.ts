@@ -956,7 +956,10 @@ export default class opinion extends Exchange {
         const postOnly = this.safeBool (params, 'postOnly', false);
         const rest = this.omit (params, [ 'postOnly' ]);
         const maker = await this.loadMultiSignAddress ();
-        const signatureType = (maker === this.walletAddress) ? 0 : 2;
+        // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
+        // against a differently-cased walletAddress with strict equality would pick the wrong
+        // signatureType (0 EOA vs 2 Gnosis Safe) and break order signing/validation
+        const signatureType = (maker.toLowerCase () === this.walletAddress.toLowerCase ()) ? 0 : 2;
         const order: Dict = {
             'salt': salt,
             'maker': maker,
