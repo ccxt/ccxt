@@ -3,7 +3,8 @@
     "asyncOnly": true,
     "skipKeys": [
         "timestamp",
-        "datetime"
+        "datetime",
+        "remaining"
     ],
     "walletAddress": "0xabababababababababababababababababababab",
     "outputType": "json",
