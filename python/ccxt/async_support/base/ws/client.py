@@ -143,6 +143,11 @@ class Client(object):
             task = self.asyncio_loop.create_task(self.receive())
 
             def after_interrupt(resolved: asyncioFuture):
+                if resolved.cancelled():
+                    # the receive task was cancelled, e.g. during shutdown or a
+                    # reconnect, calling exception() on a cancelled task would
+                    # raise CancelledError inside this callback, so just stop
+                    return
                 exception = resolved.exception()
                 if exception is None:
                     self.handle_message(resolved.result())
