@@ -400,7 +400,7 @@ class bitopro extends \ccxt\async\bitopro {
     }
 
     public function authenticate($url) {
-        if (($this->clients !== null) && (is_array($this->clients) && array_key_exists($url, $this->clients))) {
+        if (($this->clients !== null) && (is_array($this->clients) && array_key_exists($url ?? '', $this->clients))) {
             return;
         }
         $this->check_required_credentials();

@@ -2133,7 +2133,7 @@ class cryptocom extends Exchange {
         $network = $this->safe_string_upper($params, 'network');
         $params = $this->omit($params, array( 'network' ));
         $depositAddresses = $this->fetch_deposit_addresses_by_network($code, $params);
-        if (is_array($depositAddresses) && array_key_exists($network, $depositAddresses)) {
+        if (is_array($depositAddresses) && array_key_exists($network ?? '', $depositAddresses)) {
             return $depositAddresses[$network];
         }
         $keys = is_array($depositAddresses) ? array_keys($depositAddresses) : array();
@@ -2597,7 +2597,7 @@ class cryptocom extends Exchange {
         $type = null;
         $rawStatus = $this->safe_string($transaction, 'status');
         $status = null;
-        if (is_array($transaction) && array_key_exists('client_wid', $transaction)) {
+        if (is_array($transaction) && array_key_exists('client_wid' ?? '', $transaction)) {
             $type = 'withdrawal';
             $status = $this->parse_withdrawal_status($rawStatus);
         } else {

@@ -1279,13 +1279,13 @@ class apex extends Exchange {
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         if ($market === null && $marketId !== null) {
-            if (is_array($this->markets) && array_key_exists($marketId, $this->markets)) {
+            if (is_array($this->markets) && array_key_exists($marketId ?? '', $this->markets)) {
                 $market = $this->markets[$marketId];
-            } elseif (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            } elseif (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             } else {
                 $newMarketId = $this->add_hyphen_before_usdt($marketId);
-                if (is_array($this->markets_by_id) && array_key_exists($newMarketId, $this->markets_by_id)) {
+                if (is_array($this->markets_by_id) && array_key_exists($newMarketId ?? '', $this->markets_by_id)) {
                     $markets = $this->markets_by_id[$newMarketId];
                     $numMarkets = count($markets);
                     if ($numMarkets > 0) {

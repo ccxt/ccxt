@@ -92,13 +92,15 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
         keys = list(format.keys())
         for i in range(0, len(keys)):
             key = keys[i]
+            if key in skipped_properties:
+                continue
             assert key in entry, '"' + string_value(key) + '" key is missing from structure' + log_text
             empty_allowed_for_this_key = (empty_allowed_for is None) or exchange.in_array(key, empty_allowed_for)
             value = entry[key]
             # check when:
             # - it's not inside "allowed empty values" list
             # - it's not undefined
-            if (empty_allowed_for_this_key and (value is None)) or (key in skipped_properties):
+            if empty_allowed_for_this_key and (value is None):
                 continue
             # if it was in needed keys, then it should have value.
             assert value is not None, '"' + string_value(key) + '" key is expected to have a value' + log_text

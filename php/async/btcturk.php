@@ -831,9 +831,9 @@ class btcturk extends Exchange {
             if ($type !== 'market') {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            if (is_array($params) && array_key_exists('clientOrderId', $params)) {
+            if (is_array($params) && array_key_exists('clientOrderId' ?? '', $params)) {
                 $request['newClientOrderId'] = $params['clientOrderId'];
-            } elseif (!(is_array($params) && array_key_exists('newClientOrderId', $params))) {
+            } elseif (!(is_array($params) && array_key_exists('newClientOrderId' ?? '', $params))) {
                 $request['newClientOrderId'] = $this->uuid();
             }
             $response = Async\await($this->privatePostOrder($this->extend($request, $params)));

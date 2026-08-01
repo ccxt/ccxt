@@ -607,6 +607,9 @@ class bingx extends Exchange {
             ),
             'options' => array(
                 'defaultType' => 'spot',
+                'fetchOHLCV' => array(
+                    'timeZone' => 0, // candle boundary offset in hours, 0 anchors daily candles to UTC midnight, set 8 for the bingx-native UTC+8 anchoring
+                ),
                 'accountsByType' => array(
                     'funding' => 'fund',
                     'spot' => 'spot',
@@ -1185,6 +1188,13 @@ class bingx extends Exchange {
             $request['endTime'] = $until;
         }
         if ($market['spot']) {
+            // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
+            // the $timeZone $request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
+            $timeZone = null;
+            list($timeZone, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'timeZone', 0);
+            if ($timeZone !== null) {
+                $request['timeZone'] = $timeZone;
+            }
             $response = $this->spotV1PublicGetMarketKline($this->extend($request, $params));
         } else {
             if ($market['inverse']) {
@@ -1505,7 +1515,7 @@ class bingx extends Exchange {
             $takeOrMaker = $isMaker ? 'maker' : 'taker';
         }
         $amount = $this->safe_string_n($trade, array( 'qty', 'amount', 'q' ));
-        if (($market !== null) && $market['swap'] && (is_array($trade) && array_key_exists('volume', $trade))) {
+        if (($market !== null) && $market['swap'] && (is_array($trade) && array_key_exists('volume' ?? '', $trade))) {
             // private $trade returns num of contracts instead of base currency (as the order-related methods do)
             $contractSize = $this->safe_string($market['info'], 'tradeMinQuantity');
             $volume = $this->safe_string($trade, 'volume');

@@ -1929,7 +1929,7 @@ public class OkxCore extends OkxApi
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
                     put( "min", OkxCore.this.safeNumber(market, "minSz") );
-                    put( "max", null );
+                    put( "max", OkxCore.this.safeNumber(market, "maxLmtSz") );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
                     put( "min", null );

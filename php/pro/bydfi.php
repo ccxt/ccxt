@@ -442,10 +442,10 @@ class bydfi extends \ccxt\async\bydfi {
         $interval = $this->safe_string($message, 'i');
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $timeframe = $this->find_timeframe($interval, $timeframes);
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
@@ -575,7 +575,7 @@ class bydfi extends \ccxt\async\bydfi {
         $marketId = $this->safe_string($message, 's');
         $symbol = $this->safe_symbol($marketId);
         $timestamp = $this->safe_integer($message, 'E');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -948,7 +948,7 @@ class bydfi extends \ccxt\async\bydfi {
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         if ($fetchBalanceSnapshot) {
             $messageHash = 'fetchBalanceSnapshot';
-            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+            if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
                 $this->spawn(array($this, 'load_balance_snapshot'), $client, $messageHash);
             }
@@ -1011,7 +1011,7 @@ class bydfi extends \ccxt\async\bydfi {
         //     }
         //
         $messageHash = 'balance';
-        if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $data = $this->safe_dict($message, 'a', array());
             $balances = $this->safe_list($data, 'B', array());
             $timestamp = $this->safe_integer($message, 'T');

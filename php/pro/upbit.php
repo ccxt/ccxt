@@ -56,7 +56,7 @@ class upbit extends \ccxt\async\upbit {
             ));
             $client = $this->client($url);
             $subscriptionsKey = 'upbitPublicSubscriptions';
-            if (!(is_array($client->subscriptions) && array_key_exists($subscriptionsKey, $client->subscriptions))) {
+            if (!(is_array($client->subscriptions) && array_key_exists($subscriptionsKey ?? '', $client->subscriptions))) {
                 $client->subscriptions[$subscriptionsKey] = array();
             }
             $subscriptions = $client->subscriptions[$subscriptionsKey];
@@ -66,7 +66,7 @@ class upbit extends \ccxt\async\upbit {
                 $symbol = $symbols[$i];
                 $messageHash = $channel . ':' . $symbol;
                 $messageHashes[] = $messageHash;
-                if (!(is_array($subscriptions) && array_key_exists($messageHash, $subscriptions))) {
+                if (!(is_array($subscriptions) && array_key_exists($messageHash ?? '', $subscriptions))) {
                     $subscriptions[$messageHash] = array(
                         'type' => $channel,
                         'codes' => array( $marketId ),
@@ -398,7 +398,7 @@ class upbit extends \ccxt\async\upbit {
             $client = $this->client($url);
             // Track private $channel $subscriptions to support multiple concurrent watches
             $subscriptionsKey = 'upbitPrivateSubscriptions';
-            if (!(is_array($client->subscriptions) && array_key_exists($subscriptionsKey, $client->subscriptions))) {
+            if (!(is_array($client->subscriptions) && array_key_exists($subscriptionsKey ?? '', $client->subscriptions))) {
                 $client->subscriptions[$subscriptionsKey] = array();
             }
             $channelKey = $channel;
@@ -406,7 +406,7 @@ class upbit extends \ccxt\async\upbit {
                 $channelKey = $channel . ':' . $symbol;
             }
             $subscriptions = $client->subscriptions[$subscriptionsKey];
-            $isNewChannel = !(is_array($subscriptions) && array_key_exists($channelKey, $subscriptions));
+            $isNewChannel = !(is_array($subscriptions) && array_key_exists($channelKey ?? '', $subscriptions));
             if ($isNewChannel) {
                 $subscriptions[$channelKey] = $request;
             }

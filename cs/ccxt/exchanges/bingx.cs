@@ -604,6 +604,9 @@ public partial class bingx : Exchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "spot" },
+                { "fetchOHLCV", new Dictionary<string, object>() {
+                    { "timeZone", 0 },
+                } },
                 { "accountsByType", new Dictionary<string, object>() {
                     { "funding", "fund" },
                     { "spot", "spot" },
@@ -1216,6 +1219,16 @@ public partial class bingx : Exchange
         object response = null;
         if (isTrue(getValue(market, "spot")))
         {
+            // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
+            // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
+            object timeZone = null;
+            var timeZoneparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "timeZone", 0);
+            timeZone = ((IList<object>)timeZoneparametersVariable)[0];
+            parameters = ((IList<object>)timeZoneparametersVariable)[1];
+            if (isTrue(!isEqual(timeZone, null)))
+            {
+                ((IDictionary<string,object>)request)["timeZone"] = timeZone;
+            }
             response = await this.spotV1PublicGetMarketKline(this.extend(request, parameters));
         } else
         {

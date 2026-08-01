@@ -3178,7 +3178,7 @@ class deepcoin extends Exchange {
             throw new ExchangeError($feedback);
         } else {
             $list = $this->safe_list($data, 'list', array());
-            if ((is_array($data) && array_key_exists('list', $data)) && ($list === null)) {
+            if ((is_array($data) && array_key_exists('list' ?? '', $data)) && ($list === null)) {
                 throw new NullResponse($feedback);
             }
         }

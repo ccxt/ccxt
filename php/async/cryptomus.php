@@ -1209,12 +1209,12 @@ class cryptomus extends Exchange {
         if ($response === null) {
             return null;
         }
-        if (is_array($response) && array_key_exists('code', $response)) {
+        if (is_array($response) && array_key_exists('code' ?? '', $response)) {
             $code = $this->safe_string($response, 'code');
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
             throw new ExchangeError($feedback);
-        } elseif (is_array($response) && array_key_exists('message', $response)) {
+        } elseif (is_array($response) && array_key_exists('message' ?? '', $response)) {
             //
             //      array("message":"Minimum amount 15 USDT","state":1)
             //

@@ -135,6 +135,7 @@ public partial class krakenfutures : Exchange
                     { "invalidAccount", typeof(BadRequest) },
                     { "invalidAmount", typeof(BadRequest) },
                     { "insufficientFunds", typeof(InsufficientFunds) },
+                    { "INSUFFICIENT_MARGIN", typeof(InsufficientFunds) },
                     { "Bad Request", typeof(BadRequest) },
                     { "Unavailable", typeof(ExchangeNotAvailable) },
                     { "invalidUnit", typeof(BadRequest) },
@@ -2887,7 +2888,9 @@ public partial class krakenfutures : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object result = new List<object>() {};
-        object positions = this.safeValue(response, "openPositions");
+        // a degraded response can omit openPositions entirely - default to an
+        // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
+        object positions = this.safeList(response, "openPositions", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = this.parsePosition(getValue(positions, i));

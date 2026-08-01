@@ -207,7 +207,7 @@ class nado extends \ccxt\async\nado {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $messageHash = 'orderbook:' . $market['symbol'];
-            if (!(is_array($this->orderbooks) && array_key_exists($market['symbol'], $this->orderbooks))) {
+            if (!(is_array($this->orderbooks) && array_key_exists($market['symbol'] ?? '', $this->orderbooks))) {
                 $snapshot = Async\await($this->fetch_order_book($symbol, $limit));
                 $this->orderbooks[$market['symbol']] = $this->order_book($snapshot, $limit);
             }
@@ -258,7 +258,7 @@ class nado extends \ccxt\async\nado {
                 $messageHash = 'orderbook:' . $market['symbol'];
                 $markets[] = $market;
                 $messageHashes[] = $messageHash;
-                if (!(is_array($this->orderbooks) && array_key_exists($market['symbol'], $this->orderbooks))) {
+                if (!(is_array($this->orderbooks) && array_key_exists($market['symbol'] ?? '', $this->orderbooks))) {
                     $snapshot = Async\await($this->fetch_order_book($symbol, $limit));
                     $this->orderbooks[$market['symbol']] = $this->order_book($snapshot, $limit);
                 }
@@ -853,7 +853,7 @@ class nado extends \ccxt\async\nado {
             $requestIdString = $this->safe_string($params, 'id');
             $request = Async\await($this->create_order_request($symbol, $type, $side, $amount, $price, $params));
             $placeOrder = $this->safe_dict($request, 'place_order', array());
-            if (is_array($placeOrder) && array_key_exists('trigger', $placeOrder)) {
+            if (is_array($placeOrder) && array_key_exists('trigger' ?? '', $placeOrder)) {
                 throw new NotSupported($this->id . ' createOrderWs() does not support trigger orders, use createOrder() instead');
             }
             $response = Async\await($this->watch_execute_request($requestIdString, $request));
@@ -1429,7 +1429,7 @@ class nado extends \ccxt\async\nado {
         $symbol = $market['symbol'];
         $granularity = $this->safe_integer($message, 'granularity');
         $timeframe = $this->find_timeframe($granularity);
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
         $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
@@ -1724,7 +1724,7 @@ class nado extends \ccxt\async\nado {
         $marketId = $this->safe_string($message, 'product_id');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -1816,24 +1816,24 @@ class nado extends \ccxt\async\nado {
     public function handle_unsubscription_cache(string $messageHash) {
         if (mb_strpos($messageHash, 'trade:') === 0) {
             $symbol = str_replace('trade:', '', $messageHash);
-            if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+            if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
                 unset($this->trades[$symbol]);
             }
         } elseif (mb_strpos($messageHash, 'orderbook:') === 0) {
             $symbol = str_replace('orderbook:', '', $messageHash);
-            if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+            if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
                 unset($this->orderbooks[$symbol]);
             }
         } elseif (mb_strpos($messageHash, 'ohlcv:') === 0) {
             $parts = explode(':', $messageHash);
             $timeframe = $this->safe_string($parts, 1);
             $symbol = $this->safe_string($parts, 2);
-            if ((is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) && (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+            if ((is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs)) && (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
                 unset($this->ohlcvs[$symbol][$timeframe]);
             }
         } elseif (mb_strpos($messageHash, 'ticker:') === 0) {
             $symbol = str_replace('ticker:', '', $messageHash);
-            if (is_array($this->tickers) && array_key_exists($symbol, $this->tickers)) {
+            if (is_array($this->tickers) && array_key_exists($symbol ?? '', $this->tickers)) {
                 unset($this->tickers[$symbol]);
             }
         } elseif ($messageHash === 'ticker') {
@@ -1843,7 +1843,7 @@ class nado extends \ccxt\async\nado {
             }
         } elseif (mb_strpos($messageHash, 'bidask:') === 0) {
             $symbol = str_replace('bidask:', '', $messageHash);
-            if (is_array($this->bidsasks) && array_key_exists($symbol, $this->bidsasks)) {
+            if (is_array($this->bidsasks) && array_key_exists($symbol ?? '', $this->bidsasks)) {
                 unset($this->bidsasks[$symbol]);
             }
         } elseif ($messageHash === 'bidask') {
@@ -1923,7 +1923,7 @@ class nado extends \ccxt\async\nado {
             return;
         }
         $id = $this->safe_string($message, 'id');
-        $hasResult = (is_array($message) && array_key_exists('result', $message));
+        $hasResult = (is_array($message) && array_key_exists('result' ?? '', $message));
         $result = $this->safe_value($message, 'result');
         $method = $this->safe_string($result, 'method');
         if ($method === 'pong') {

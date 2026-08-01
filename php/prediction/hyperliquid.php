@@ -326,7 +326,7 @@ class hyperliquid extends Exchange {
                     'RECURRING_FALLBACK' => true,
                     'RECURRING_NAMED_OUTCOME' => true,
                 );
-                if (is_array($genericOutcomeNames) && array_key_exists($outcomeSlug, $genericOutcomeNames)) {
+                if (is_array($genericOutcomeNames) && array_key_exists($outcomeSlug ?? '', $genericOutcomeNames)) {
                     if (mb_strpos($outcomeSlug, 'FALLBACK') !== false) {
                         $outcomeSlug = 'OTHER';
                     } else {
@@ -673,7 +673,7 @@ class hyperliquid extends Exchange {
             $outcomeHandles = is_array($outcomesMap) ? array_keys($outcomesMap) : array();
             for ($i = 0; $i < count($outcomeHandles); $i++) {
                 $outcomeHandle = $outcomeHandles[$i];
-                if ($outcomes !== null && !(is_array($requestedOutcomeSymbols) && array_key_exists($outcomeHandle, $requestedOutcomeSymbols))) {
+                if ($outcomes !== null && !(is_array($requestedOutcomeSymbols) && array_key_exists($outcomeHandle ?? '', $requestedOutcomeSymbols))) {
                     continue;
                 }
                 $outcomeObj = $this->safe_dict($outcomesMap, $outcomeHandle, array());
@@ -1008,7 +1008,7 @@ class hyperliquid extends Exchange {
                 $outcomeObj = $this->safe_outcome($tradeCoin);
                 if ($outcomes !== null) {
                     $outcomeHandle = $this->safe_string($outcomeObj, 'outcome');
-                    if ($outcomeHandle === null || !(is_array($requestedOutcomeSymbols) && array_key_exists($outcomeHandle, $requestedOutcomeSymbols))) {
+                    if ($outcomeHandle === null || !(is_array($requestedOutcomeSymbols) && array_key_exists($outcomeHandle ?? '', $requestedOutcomeSymbols))) {
                         continue;
                     }
                 }
@@ -1155,14 +1155,14 @@ class hyperliquid extends Exchange {
         }
         for ($i = 0; $i < count($candidates); $i++) {
             $key = $candidates[$i];
-            if (is_array($this->outcomes) && array_key_exists($key, $this->outcomes)) {
+            if (is_array($this->outcomes) && array_key_exists($key ?? '', $this->outcomes)) {
                 return $this->safe_dict($this->outcomes, $key, array());
             }
-            if (is_array($this->outcomes_by_id) && array_key_exists($key, $this->outcomes_by_id)) {
+            if (is_array($this->outcomes_by_id) && array_key_exists($key ?? '', $this->outcomes_by_id)) {
                 return $this->safe_dict($this->outcomes_by_id, $key, array());
             }
         }
-        if ((is_array($this->markets) && array_key_exists($outcomeInput, $this->markets)) || (is_array($this->markets_by_id) && array_key_exists($outcomeInput, $this->markets_by_id))) {
+        if ((is_array($this->markets) && array_key_exists($outcomeInput ?? '', $this->markets)) || (is_array($this->markets_by_id) && array_key_exists($outcomeInput ?? '', $this->markets_by_id))) {
             $market = $this->safe_market($outcomeInput);
             $sideHintOrDefault = ($sideHint !== null) ? $sideHint : 'YES';
             $found = $this->find_outcome_in_market($market, $sideHintOrDefault);
@@ -1492,7 +1492,7 @@ class hyperliquid extends Exchange {
                 }
                 $oid = $this->safe_string($entry, 'oid');
                 if ($oid !== null) {
-                    if (!(is_array($deduped) && array_key_exists($oid, $deduped))) {
+                    if (!(is_array($deduped) && array_key_exists($oid ?? '', $deduped))) {
                         $deduped[$oid] = $raw;
                     } else {
                         $existingTs = $this->safe_integer($deduped[$oid], 'statusTimestamp');
@@ -1871,7 +1871,7 @@ class hyperliquid extends Exchange {
                         continue;
                     }
                 }
-                if (!(is_array($groupMap) && array_key_exists($parentSymbol, $groupMap))) {
+                if (!(is_array($groupMap) && array_key_exists($parentSymbol ?? '', $groupMap))) {
                     $groupMap[$parentSymbol] = array();
                 }
                 // push through a local and write the slice back — the go transpiler's
@@ -2211,10 +2211,10 @@ class hyperliquid extends Exchange {
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array()) {
-        if ((is_array($config) && array_key_exists('byType', $config)) && (is_array($params) && array_key_exists('type', $params))) {
+        if ((is_array($config) && array_key_exists('byType' ?? '', $config)) && (is_array($params) && array_key_exists('type' ?? '', $params))) {
             $type = $params['type'];
             $byType = $config['byType'];
-            if (is_array($byType) && array_key_exists($type, $byType)) {
+            if (is_array($byType) && array_key_exists($type ?? '', $byType)) {
                 return $byType[$type];
             }
         }

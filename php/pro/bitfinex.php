@@ -703,7 +703,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $prec = $this->safe_string($subscription, 'prec', 'P0');
         $isRaw = ($prec === 'R0');
         // if it is an initial snapshot
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $limit = $this->safe_integer($subscription, 'len');
             if ($isRaw) {
                 // raw order books
@@ -1014,7 +1014,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             'trades' => 'trades',
         );
         $unifiedChannel = $this->safe_string($mappings, $this->safe_string($message, 'channel'));
-        if (is_array($message) && array_key_exists('key', $message)) {
+        if (is_array($message) && array_key_exists('key' ?? '', $message)) {
             // handle ohlcv differently because the $message is different
             $key = $this->safe_string($message, 'key');
             $subKeyId = 'unsubscribe:' . $key;
@@ -1067,7 +1067,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             $error = new AuthenticationError($this->json($message));
             $client->reject($error, $messageHash);
             // allows further authentication attempts
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }

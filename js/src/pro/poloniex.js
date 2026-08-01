@@ -848,6 +848,13 @@ export default class poloniex extends poloniexRest {
                     const previousOrder = this.safeValue2(previousOrders, orderId, clientOrderId);
                     const trade = this.parseWsTrade(order);
                     this.handleMyTrades(client, trade);
+                    if (previousOrder === undefined) {
+                        // fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
+                        const parsedOrder = this.parseWsOrder(order);
+                        orders.append(parsedOrder);
+                        marketIds.push(marketId);
+                        continue;
+                    }
                     if (previousOrder['trades'] === undefined) {
                         previousOrder['trades'] = [];
                     }

@@ -1147,11 +1147,18 @@ func (this *PoloniexCore) HandleOrder(client any, message any) any {
 				var previousOrder any = this.SafeValue2(previousOrders, orderId, clientOrderId)
 				var trade any = this.ParseWsTrade(order)
 				this.HandleMyTrades(client, trade)
+				if ccxt.IsTrue(ccxt.IsEqual(previousOrder, nil)) {
+					// fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
+					var parsedOrder any = this.ParseWsOrder(order)
+					orders.(ccxt.Appender).Append(parsedOrder)
+					ccxt.AppendToArray(&marketIds, marketId)
+					continue
+				}
 				if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil)) {
 					ccxt.AddElementToObject(previousOrder, "trades", []any{})
 				}
-				retRes87020 := ccxt.GetValue(previousOrder, "trades")
-				ccxt.AppendToArray(&retRes87020, trade)
+				retRes87720 := ccxt.GetValue(previousOrder, "trades")
+				ccxt.AppendToArray(&retRes87720, trade)
 				ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", ccxt.GetValue(trade, "timestamp"))
 				var totalCost any = "0"
 				var totalAmount any = "0"

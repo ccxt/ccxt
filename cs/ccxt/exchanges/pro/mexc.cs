@@ -2135,7 +2135,31 @@ public partial class mexc : ccxt.mexc
         {
             return listenKey;
         }
-        object response = await this.spotPrivatePostUserDataStream(parameters);
+        // guard against concurrent listenKey requests with a future on the base
+        // spot ws client - the first caller fetches the listenKey, concurrent
+        // callers wait on the future and resume when the listenKey is ready,
+        // otherwise the user-data subscriptions would be split across two connections
+        var client = this.client(getValue(getValue(getValue(this.urls, "api"), "ws"), "spot"));
+        object messageHash = "authenticate:listenKey";
+        object isFetching = this.safeBool(this.options, "listenKeyFetching", false);
+        if (isTrue(isFetching))
+        {
+            await client.future(messageHash);
+            return this.safeString(this.options, "listenKey");
+        }
+        ((IDictionary<string,object>)this.options)["listenKeyFetching"] = true;
+        client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
+        object response = null;
+        try
+        {
+            response = await this.spotPrivatePostUserDataStream(parameters);
+        } catch(Exception e)
+        {
+            ((IDictionary<string,object>)this.options)["listenKeyFetching"] = false;
+            ((WebSocketClient)client).reject(e, messageHash);
+            throw e;
+        }
+        ((IDictionary<string,object>)this.options)["listenKeyFetching"] = false;
         //
         //    {
         //        "listenKey": "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
@@ -2143,6 +2167,7 @@ public partial class mexc : ccxt.mexc
         //
         listenKey = this.safeString(response, "listenKey");
         ((IDictionary<string,object>)this.options)["listenKey"] = listenKey;
+        callDynamically(client as WebSocketClient, "resolve", new object[] {listenKey, messageHash});
         object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
         this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { listenKey, parameters});
         return listenKey;

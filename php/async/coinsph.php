@@ -685,11 +685,11 @@ class coinsph extends Exchange {
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array()) {
-        if ((is_array($config) && array_key_exists('noSymbol', $config)) && !(is_array($params) && array_key_exists('symbol', $params))) {
+        if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
             return $config['noSymbol'];
-        } elseif ((is_array($config) && array_key_exists('noSymbolAndNoSymbols', $config)) && !(is_array($params) && array_key_exists('symbol', $params)) && !(is_array($params) && array_key_exists('symbols', $params))) {
+        } elseif ((is_array($config) && array_key_exists('noSymbolAndNoSymbols' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params)) && !(is_array($params) && array_key_exists('symbols' ?? '', $params))) {
             return $config['noSymbolAndNoSymbols'];
-        } elseif ((is_array($config) && array_key_exists('byNumberOfSymbols', $config)) && (is_array($params) && array_key_exists('symbols', $params))) {
+        } elseif ((is_array($config) && array_key_exists('byNumberOfSymbols' ?? '', $config)) && (is_array($params) && array_key_exists('symbols' ?? '', $params))) {
             $symbols = $params['symbols'];
             $symbolsAmount = count($symbols);
             $byNumberOfSymbols = $config['byNumberOfSymbols'];
@@ -699,7 +699,7 @@ class coinsph extends Exchange {
                     return $entry[1];
                 }
             }
-        } elseif ((is_array($config) && array_key_exists('byLimit', $config)) && (is_array($params) && array_key_exists('limit', $params))) {
+        } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {
             $limit = $params['limit'];
             $byLimit = $config['byLimit'];
             for ($i = 0; $i < count($byLimit); $i++) {

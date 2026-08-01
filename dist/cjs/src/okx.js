@@ -1885,7 +1885,7 @@ class okx extends okx$1["default"] {
                 },
                 'amount': {
                     'min': this.safeNumber(market, 'minSz'),
-                    'max': undefined,
+                    'max': this.safeNumber(market, 'maxLmtSz'),
                 },
                 'price': {
                     'min': undefined,

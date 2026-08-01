@@ -231,7 +231,7 @@ class paradex extends \ccxt\async\paradex {
         $market = $this->safe_market($marketId);
         $timestamp = $this->safe_integer($data, 'last_updated_at');
         $symbol = $market['symbol'];
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbookData = array(
