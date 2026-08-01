@@ -46,7 +46,7 @@ export const languages: Language[] = [
     label: "TypeScript",
     monaco: "typescript",
     ext: "mts",
-    hint: "Node.js native type-stripping",
+    hint: "Node.js native TypeScript",
     available: enabled("ts", true),
   },
   {

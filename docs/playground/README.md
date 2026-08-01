@@ -9,7 +9,8 @@ code for you.
   tree (guava/jackson/web3j/netty) can't be resolved in the sandbox without a
   build tool, so it shows a one-line install + sample instead. The AI assistant
   writes code for all six.
-  - TypeScript runs via Node's native type-stripping (no tsc) — types are erased, not checked.
+  - TypeScript runs natively on Node (`--experimental-transform-types`, no tsc) — so
+    `enum`/`namespace`/parameter properties work, but types are erased, not checked.
   - Go (~2–3s/run) and C# (~3–4s/run) compile each run, but only the user's file
     recompiles against a pre-warmed ccxt build, so they stay fast.
 - **Editor:** Monaco (the VS Code editor) with syntax highlighting per language,
@@ -151,7 +152,7 @@ installs the nightly-restart cron automatically.
 
 `npm run setup-runtimes` provisions isolated, pinned CCXT installs:
 
-- **TypeScript** uses the playground's own `node_modules/ccxt` (via Node type-stripping — nothing extra).
+- **TypeScript** uses the playground's own `node_modules/ccxt` (run natively by Node — nothing extra).
 - **Python** → `runtime/python/.venv` (`pip install ccxt`)
 - **PHP** → `runtime/php/vendor` (`composer require ccxt/ccxt`)
 - **Go** → `runtime/go` module (`go get github.com/ccxt/ccxt/go/v4`) with its build
