@@ -3636,6 +3636,21 @@ class xt extends Exchange {
         $filledQuantity = $this->safe_number($order, 'executedQty');
         $filled = ($marketType === 'spot') ? $filledQuantity : Precise::string_mul($this->number_to_string($filledQuantity), $this->number_to_string($market['contractSize']));
         $lastUpdatedTimestamp = $this->safe_integer($order, 'updatedTime');
+        $side = $this->safe_string_lower_2($order, 'side', 'orderSide');
+        if ($side === null) {
+            // the stop loss and take profit entries carry only the position
+            // $side, they close the position, so a long position closes with a
+            // sell and a short position closes with a buy
+            // see https://github.com/ccxt/ccxt/issues/25288
+            $positionSide = $this->safe_string($order, 'positionSide');
+            if ($positionSide !== null) {
+                if ($positionSide === 'LONG') {
+                    $side = 'sell';
+                } else {
+                    $side = 'buy';
+                }
+            }
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string_n($order, array( 'orderId', 'result', 'cancelId', 'entrustId', 'profitId' )),
@@ -3648,7 +3663,7 @@ class xt extends Exchange {
             'type' => $this->safe_string_lower_2($order, 'type', 'orderType'),
             'timeInForce' => $this->safe_string($order, 'timeInForce'),
             'postOnly' => null,
-            'side' => $this->safe_string_lower_2($order, 'side', 'orderSide'),
+            'side' => $side,
             'price' => $this->safe_number($order, 'price'),
             'triggerPrice' => $this->safe_number($order, 'stopPrice'),
             'stopLoss' => $this->safe_number($order, 'triggerStopPrice'),
