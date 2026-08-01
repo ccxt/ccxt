@@ -1130,7 +1130,7 @@ export default class toobit extends toobitRest {
         return this.safePosition ({
             'info': position,
             'id': undefined,
-            'symbol': this.safeSymbol (marketId, undefined),
+            'symbol': this.safeSymbol (marketId),
             'notional': this.omitZero (this.safeString (position, 'pv')),
             'marginMode': this.safeStringLower (position, 'mt'),
             'liquidationPrice': this.safeString (position, 'f'),
