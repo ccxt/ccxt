@@ -50,7 +50,7 @@
     "build-go-cli": "go build -C go/cli",
     "transpileGOWs": "tsx build/goTranspiler.ts --ws",
     "transpileGORest": "tsx build/goTranspiler.ts",
-    "transpileGO": "npm run transpileGORest && npm run transpileGOWs",
+    "transpileGO": "tsx build/goTranspiler.ts --rest-and-ws",
     "transpile-prediction-py": "tsx build/transpile.ts --python --prediction --force",
     "transpile-prediction-php": "tsx build/transpile.ts --php --prediction --force",
     "transpile-prediction-cs": "tsx build/csharpTranspiler.ts --prediction",
