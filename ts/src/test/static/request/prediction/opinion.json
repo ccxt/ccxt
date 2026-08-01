@@ -96,6 +96,22 @@
                 ]
             }
         ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders sends status=1 (pending)",
+                "method": "fetchOpenOrders",
+                "url": "https://openapi.opinion.trade/openapi/order?status=1",
+                "input": []
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders sends the comma-separated non-open statuses",
+                "method": "fetchClosedOrders",
+                "url": "https://openapi.opinion.trade/openapi/order?status=2%2C3%2C4%2C5",
+                "input": []
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "fetchMyTrades without an outcome filter",
