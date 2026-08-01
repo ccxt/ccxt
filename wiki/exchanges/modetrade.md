@@ -496,13 +496,13 @@ cancel all open orders in a market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbol | <code>string</code> | No | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>boolean</code> | No | whether the order is a stop/algo order |
 
 
 ```javascript
-modetrade.cancelAllOrders (symbol, params?)
+modetrade.cancelAllOrders (symbol?, params?)
 ```
 
 

@@ -868,7 +868,7 @@ func (this *BitfinexCore) HandleOrderBook(client any, message any, subscription 
 	//         358169, // channel id
 	//         [
 	//            1807.1, // price
-	//            0, // cound
+	//            0, // count
 	//            1 // size
 	//         ]
 	//     ]
@@ -1339,7 +1339,7 @@ func (this *BitfinexCore) HandleOrders(client any, message any, subscription any
 	//           null,
 	//           30, // price
 	//           0, // price average
-	//           0, // price_trailling
+	//           0, // price_trailing
 	//           0, // price_aux_limit
 	//           null,
 	//           null,
@@ -1421,7 +1421,7 @@ func (this *BitfinexCore) ParseWsOrder(order any, optionalArgs ...any) any {
 	//       null,
 	//       42.799, // price
 	//       42.821, // price average
-	//       0, // price trailling
+	//       0, // price trailing
 	//       0, // price_aux_limit
 	//       null,
 	//       null,

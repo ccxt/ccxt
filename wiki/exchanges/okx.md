@@ -1854,7 +1854,7 @@ closes open positions for a market
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | No | 'buy' or 'sell', leave as undefined in net mode |
-| params | <code>object</code> | No | extra parameters specific to the okx api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderId | <code>string</code> | No | a unique identifier for the order |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', default is 'cross; |
 | params.code | <code>string</code> | No | *required in the case of closing cross MARGIN position for Single-currency margin* margin currency EXCHANGE SPECIFIC PARAMETERS |
@@ -2043,7 +2043,7 @@ fetches the history of margin added or reduced from contract isolated positions
 | type | <code>string</code> | No | "add" or "reduce" |
 | since | <code>int</code> | No | the earliest time in ms to fetch margin adjustment history for |
 | limit | <code>int</code> | No | the maximum number of entries to retrieve |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.auto | <code>boolean</code> | No | true if fetching auto margin increases |
 
 
@@ -2067,7 +2067,7 @@ fetches historical positions
 | symbols | <code>string</code> | No | unified market symbols |
 | since | <code>int</code> | No | timestamp in ms of the earliest position to fetch |
 | limit | <code>int</code> | No | the maximum amount of records to fetch, default=100, max=100 |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.marginMode | <code>string</code> | No | "cross" or "isolated" EXCHANGE SPECIFIC PARAMETERS |
 | params.instType | <code>string</code> | No | margin, swap, futures or option |
 | params.type | <code>string</code> | No | the type of latest close position 1: close position partially, 2：close all, 3：liquidation, 4：partial liquidation; 5：adl, is it is the latest type if there are several types for the same position |

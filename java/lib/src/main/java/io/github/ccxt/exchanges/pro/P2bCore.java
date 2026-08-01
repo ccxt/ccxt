@@ -515,6 +515,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
         //    }
         //
         Object parameters = this.safeList(message, "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object isFullUpdate = this.safeBool(parameters, 0, false);
         Object data = this.safeDict(parameters, 1);
         Object asks = this.safeList(data, "asks");
         Object bids = this.safeList(data, "bids");
@@ -529,6 +530,14 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
             orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        }
+        if (Helpers.isTrue(isFullUpdate))
+        {
+            // the first parameter signals whether the message carries all
+            // records or only the changed ones, a full set replaces the book,
+            // otherwise stale levels that left the depth window would linger
+            // and cross the book, see https://github.com/ccxt/ccxt/issues/24944
+            Helpers.callDynamically(orderbook, "reset", new Object[]{new java.util.HashMap<String, Object>() {{}}});
         }
         if (Helpers.isTrue(!Helpers.isEqual(bids, null)))
         {

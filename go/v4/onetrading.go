@@ -1576,7 +1576,7 @@ func (this *OnetradingCore) CreateOrder(symbol any, typeVar any, side any, amoun
  * @see https://docs.onetrading.com/rest/trading/cancel-order-order-id
  * @see https://docs.onetrading.com/rest/trading/cancel-order-client-id
  * @param {string} id order id
- * @param {string} symbol not used by bitmex cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1630,7 +1630,7 @@ func (this *OnetradingCore) CancelOrder(id any, optionalArgs ...any) <-chan any 
  * @name onetrading#cancelAllOrders
  * @description cancel all open orders
  * @see https://docs.onetrading.com/rest/trading/cancel-all-orders
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */

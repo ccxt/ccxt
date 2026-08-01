@@ -16,6 +16,7 @@ import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import os from 'os';
 import { isMainEntry } from "./transpile.js";
+import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 
@@ -169,6 +170,22 @@ const EXCHANGE_GENERATED_FOLDER = './java/tests/src/main/java/tests/exchange/';
 const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 const EXAMPLES_OUTPUT_FOLDER = './examples/java/examples/';
 const csharpComments: any = {};
+
+// every ts/src/prediction/*.ts venue — read by getPredictionImplementedNames() to decide
+// which Exchange-tier methods get injected into PredictionExchange.java, so they are real
+// inputs of the prediction base stage. Computed once per process.
+let cachedPredictionSourceFiles: string[] | undefined = undefined;
+function predictionSourceFiles () {
+    if (cachedPredictionSourceFiles === undefined) {
+        const dir = './ts/src/prediction/';
+        try {
+            cachedPredictionSourceFiles = fs.readdirSync (dir).filter ((f: string) => f.endsWith ('.ts')).map ((f: string) => dir + f);
+        } catch (e) {
+            cachedPredictionSourceFiles = [] as string[];
+        }
+    }
+    return cachedPredictionSourceFiles;
+}
 
 // default min(2, AP): 2w + shared-Program chunks is within ~10% of 4w and uses fewer cores.
 // Override with CCXT_TRANSPILE_PROCESSES.
@@ -853,10 +870,25 @@ class NewTranspiler {
     }
 
 
-    transpileErrorHierarchy() {
+    transpileErrorHierarchy(force = true) {
 
         const errorHierarchyFilename = './js/src/base/errorHierarchy.js'
         const errorHierarchyPath = __dirname + '/.' + errorHierarchyFilename
+
+        // this stage writes one Errors/<Name>.java per node of the hierarchy, so the output
+        // list has to be derived from errorHierarchy itself — same pre-order walk the
+        // intellisense() generator below does (BaseError first, then every descendant)
+        const errorNames = [ 'BaseError' ];
+        const walkErrorHierarchy = (map: any) => {
+            for (const key in map) {
+                errorNames.push (key);
+                walkErrorHierarchy (map[key]);
+            }
+        };
+        walkErrorHierarchy ((errorHierarchy as any)['BaseError']);
+        if (skipUpToDateStage ('java', 'error hierarchy', force, [ errorHierarchyFilename ], errorNames.map ((name) => ERRORS_FOLDER + this.capitalize (name) + '.java'))) {
+            return;
+        }
 
         let js = fs.readFileSync(errorHierarchyPath, 'utf8')
 
@@ -1064,7 +1096,20 @@ class NewTranspiler {
         fs.writeFileSync(filename, newContents);
     }
 
-    transpileBaseMethods(baseExchangeFile: string) {
+    transpileBaseMethods(baseExchangeFile: string, force = true) {
+        // both generated base files come out of this one pass; `exchanges.json` is listed
+        // as an input too — the wrapper generators keyed off the exchange list live in this
+        // stage, so adding an exchange must invalidate it even when Exchange.ts did not change
+        if (skipUpToDateStage ('java', 'base methods', force, [
+            baseExchangeFile,
+            './ts/src/base/types.ts',
+            './exchanges.json',
+        ], [
+            BASE_METHODS_FILE,
+            EXCHANGE_METHODS_FILE,
+        ])) {
+            return;
+        }
         const javaExchangeBase = BASE_METHODS_FILE;
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
 
@@ -1102,10 +1147,20 @@ class NewTranspiler {
         }
     }
 
-    transpilePredictionBaseMethods(predictionBaseFile = './ts/src/base/PredictionExchange.ts') {
+    transpilePredictionBaseMethods(predictionBaseFile = './ts/src/base/PredictionExchange.ts', force = true) {
         // PredictionExchange is the base for prediction-market exchanges; it lives in
         // io.github.ccxt (like Exchange) and is transpiled the same way as the base.
         const javaPredictionBase = './java/lib/src/main/java/io/github/ccxt/PredictionExchange.java';
+        // hidden inputs: the injected Exchange-tier body comes from ts/src/base/Exchange.ts
+        // (via getExchangeTierBody), the typed surface from types.ts, and the kept-method
+        // filter from getPredictionImplementedNames() which reads every ts/src/prediction/*.ts
+        if (skipUpToDateStage ('java', 'prediction base methods', force, [
+            predictionBaseFile,
+            './ts/src/base/Exchange.ts',
+            './ts/src/base/types.ts',
+        ].concat (predictionSourceFiles ()), [ javaPredictionBase ])) {
+            return;
+        }
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
         const baseFile: any = this.transpiler.transpileJavaByPath(predictionBaseFile);
         let baseClass = baseFile.content as any;
@@ -1229,6 +1284,7 @@ class NewTranspiler {
         const tsFolder = './ts/src/pro/';
 
         let inputExchanges: string[] =  process.argv.slice (2).filter (x => !x.startsWith ('--'));
+        const scopedRun = inputExchanges.length > 0;
         if (!inputExchanges || inputExchanges.length === 0) {
             // REST transpile writes `<Exchange>Core.java`; only Binance.java and
             // Bybit.java exist as plain names (tracked in git). Match against
@@ -1247,6 +1303,9 @@ class NewTranspiler {
             log.blue('[java-ws] Filtering to exchanges with REST parents:', inputExchanges);
         }
         const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges: inputExchanges }
+        if (scopedRun) {
+            force = true; // a scoped run (CI `transpileJavaSingle -- --ws <exchange>`) always writes, same as the REST path
+        }
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, true)
     }
 
@@ -1254,7 +1313,7 @@ class NewTranspiler {
         // Prediction-market exchanges (ts/src/prediction/) transpile to Core classes
         // under io.github.ccxt.exchanges.prediction. REST + WS are merged into one
         // class (no separate prediction/pro package).
-        this.transpilePredictionBaseMethods('./ts/src/base/PredictionExchange.ts');
+        this.transpilePredictionBaseMethods('./ts/src/base/PredictionExchange.ts', force);
         const tsFolder = './ts/src/prediction/';
         const outputFolder = EXCHANGES_PREDICTION_FOLDER;
 
@@ -1289,16 +1348,16 @@ class NewTranspiler {
             return;
         }
 
-        this.transpileBaseMethods(exchangeBase)
+        this.transpileBaseMethods(exchangeBase, force)
 
         if (baseOnly) {
             return;
         }
 
 
-        this.transpileTests()
+        this.transpileTests(force)
 
-        this.transpileErrorHierarchy()
+        this.transpileErrorHierarchy(force)
 
         // Fix Api classes that extend other exchanges (not Exchange) to use Core suffix
         this.fixApiExtendsForCore()
@@ -1363,6 +1422,26 @@ class NewTranspiler {
             exchangeFiles = options.exchanges.map((x: string) => x + pattern)
         } else {
             exchangeFiles = fs.readdirSync(jsFolder).filter(file => file.match(regex) && (!ids || ids.includes(basename(file, '.ts'))))
+        }
+
+        // incremental gate (same rule as the Python/PHP pass in build/transpile.ts):
+        // drop the exchanges whose generated <Name>Core.java is newer than their ts
+        // source. This has to happen BEFORE the pool is fed, because `allFilesPath`
+        // doubles as the sticky ts.Program root list (see build/worker-program-batch.js)
+        // — leaving a clean exchange in it would transpile and rewrite it anyway.
+        // `--force` (and any single-exchange run) keeps everything.
+        exchangeFiles = filterDirtyExchangeFiles('java', exchangeFiles, force, (file: string) => {
+            const fileNameNoExt = basename(file, pattern);
+            const outputs: string[] = [];
+            if (options.csharpFolder) {
+                // REST and WS both emit the Core-suffixed class, see transpileDerivedExchangeFile
+                outputs.push(options.csharpFolder + this.capitalize(fileNameNoExt) + 'Core.java');
+            }
+            return { 'tsPath': jsFolder + file, 'outputs': outputs };
+        })
+
+        if (!exchangeFiles.length) {
+            return {}
         }
 
         // transpile using webworker
@@ -2867,10 +2946,14 @@ class NewTranspiler {
 
     // ---------------------------------------------------------------------------------------------
 
-    transpileCryptoTestsToJava(outDir: string) {
+    transpileCryptoTestsToJava(outDir: string, force = true) {
 
         const jsFile = './ts/src/test/base/test.cryptography.ts';
         const csharpFile = `${outDir}/TestCryptography.java`;
+
+        if (skipUpToDateStage ('java', 'crypto test', force, testStageInputs (), [ csharpFile ])) {
+            return;
+        }
 
         log.magenta('[java] Transpiling from', (jsFile as any).yellow)
 
@@ -2953,15 +3036,15 @@ class NewTranspiler {
         await Promise.all(transpiledFiles.map((file, idx) => writeFile(outDir + file[0] + '.java', file[1])))
     }
 
-    transpileBaseTestsToJava() {
+    transpileBaseTestsToJava(force = true) {
         const outDir = BASE_TESTS_FOLDER;
-        this.transpileBaseTests(outDir);
-        this.transpileCryptoTestsToJava(outDir);
+        this.transpileBaseTests(outDir, force);
+        this.transpileCryptoTestsToJava(outDir, force);
         // this.transpileWsCacheTestsToCSharp(outDir);
         // this.transpileWsOrderbookTestsToCSharp(outDir);
     }
 
-    transpileBaseTests(outDir: string) {
+    transpileBaseTests(outDir: string, force = true) {
 
         const baseFolders = {
             ts: './ts/src/test/base/',
@@ -2969,12 +3052,16 @@ class NewTranspiler {
 
         let baseFunctionTests = fs.readdirSync(baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
 
-        for (const testName of baseFunctionTests) {
+        // the AUTO_TRANSPILE_ENABLED filter is hoisted out of the write loop below so the
+        // whole-stage gate can name the exact set of files this stage writes
+        const eligible = baseFunctionTests.filter ((testName) => fs.readFileSync (baseFolders.ts + testName + '.ts').toString ().includes ('// AUTO_TRANSPILE_ENABLED'));
+
+        if (skipUpToDateStage ('java', 'base tests', force, testStageInputs (), eligible.map ((testName) => `${outDir}/Test${this.capitalize (testName.replace ('test.', '').replace ('tests.', ''))}.java`))) {
+            return;
+        }
+
+        for (const testName of eligible) {
             const tsFile = baseFolders.ts + testName + '.ts';
-            const tsContent = fs.readFileSync(tsFile).toString();
-            if (!tsContent.includes('// AUTO_TRANSPILE_ENABLED')) {
-                continue;
-            }
 
             const correctedTestName = 'Test' + this.capitalize(testName.replace('test.', '').replace('tests.', ''))
             const javaFile = `${outDir}/${correctedTestName}.java`;
@@ -3101,12 +3188,7 @@ class NewTranspiler {
         overwriteFileAndFolder(files.javaFile, file);
     }
 
-    transpileExchangeTests() {
-        this.transpileMainTest({
-            'tsFile': './ts/src/test/tests.ts',
-            'javaFile': BASE_TESTS_FILE,
-        });
-
+    transpileExchangeTests(force = true) {
         const baseFolders = {
             ts: './ts/src/test/Exchange/',
             tsBase: './ts/src/test/Exchange/base/',
@@ -3141,10 +3223,22 @@ class NewTranspiler {
             });
         });
 
+        // whole-stage gate — TestMain.java is included because transpileMainTest below writes
+        // it from ./ts/src/test/tests.ts, which is part of testStageInputs(). The tests[] list
+        // is built above the gate only so the output paths are available here.
+        if (skipUpToDateStage ('java', 'exchange tests', force, testStageInputs (), [ BASE_TESTS_FILE ].concat (tests.map ((t: any) => t.javaFile)))) {
+            return;
+        }
+
+        this.transpileMainTest({
+            'tsFile': './ts/src/test/tests.ts',
+            'javaFile': BASE_TESTS_FILE,
+        });
+
         this.transpileAndSaveJavaExchangeTests(tests);
     }
 
-    transpileWsExchangeTests() {
+    transpileWsExchangeTests(force = true) {
 
         const baseFolders = {
             ts: './ts/src/pro/test/Exchange/',
@@ -3168,6 +3262,10 @@ class NewTranspiler {
                 javaFile: baseFolders.java + correctedName + '.java',
             });
         });
+
+        if (skipUpToDateStage ('java', 'ws exchange tests', force, testStageInputs (), tests.map ((t: any) => t.javaFile))) {
+            return;
+        }
 
         this.transpileAndSaveJavaExchangeTests(tests, true);
     }
@@ -3359,14 +3457,14 @@ class NewTranspiler {
         });
     }
 
-    transpileTests() {
+    transpileTests(force = true) {
         if (!shouldTranspileTests) {
             log.bright.yellow('Skipping tests transpilation');
             return;
         }
-        this.transpileBaseTestsToJava();
-        this.transpileExchangeTests();
-        this.transpileWsExchangeTests();
+        this.transpileBaseTestsToJava(force);
+        this.transpileExchangeTests(force);
+        this.transpileWsExchangeTests(force);
     }
 }
 

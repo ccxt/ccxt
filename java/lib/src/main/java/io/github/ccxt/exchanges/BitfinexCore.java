@@ -2135,7 +2135,7 @@ public class BitfinexCore extends BitfinexApi
      * @name bitfinex#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2625,7 +2625,7 @@ public class BitfinexCore extends BitfinexApi
                 put( "id", orderId );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            // valid for trades upto 10 days old
+            // valid for trades up to 10 days old
             Object response = (this.privatePostAuthROrderSymbolIdTrades(this.extend(request, parameters))).join();
             Object tradesList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)

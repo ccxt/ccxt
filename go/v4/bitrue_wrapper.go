@@ -80,7 +80,7 @@ func (this *Bitrue) FetchCurrencies(params ...any) (Currencies, error) {
  * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
  * @see https://www.bitrue.com/api-docs#current-open-contract
  * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Bitrue) FetchMarkets(params ...any) ([]MarketInterface, error) {
@@ -581,7 +581,7 @@ func (this *Bitrue) CancelOrder(id string, options ...CancelOrderOptions) (Order
  * @description cancel all open orders in a market
  * @see https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
  * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
- * @param {string} symbol unified market symbol of the market to cancel orders in
+ * @param {string} [symbol] unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
  * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}

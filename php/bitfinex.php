@@ -1950,7 +1950,7 @@ class bitfinex extends Exchange {
          *
          * @see https://docs.bitfinex.com/reference/rest-auth-cancel-$orders-multiple
          *
-         * @param {string} $symbol unified market $symbol, only $orders in the market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified market $symbol, only $orders in the market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -2320,7 +2320,7 @@ class bitfinex extends Exchange {
             'id' => $orderId,
             'symbol' => $market['id'],
         );
-        // valid for trades upto 10 days old
+        // valid for trades up to 10 days old
         $response = $this->privatePostAuthROrderSymbolIdTrades($this->extend($request, $params));
         $tradesList = array();
         for ($i = 0; $i < count($response); $i++) {

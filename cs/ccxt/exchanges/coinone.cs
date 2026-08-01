@@ -1021,7 +1021,7 @@ public partial class coinone : Exchange
             object feeCurrencyCode = ((bool) isTrue((isEqual(side, "sell")))) ? quote : bs;
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
-                { "rate", this.safeString(order, "feeRate") },
+                { "rate", this.safeString2(order, "feeRate", "fee_rate") },
                 { "currency", feeCurrencyCode },
             };
         }
@@ -1040,9 +1040,9 @@ public partial class coinone : Exchange
             { "price", this.safeString(order, "price") },
             { "triggerPrice", null },
             { "cost", null },
-            { "average", this.safeString(order, "averageExecutedPrice") },
+            { "average", this.safeString2(order, "averageExecutedPrice", "average_executed_price") },
             { "amount", amountString },
-            { "filled", this.safeString(order, "executedQty") },
+            { "filled", this.safeString2(order, "executedQty", "executed_qty") },
             { "remaining", remainingString },
             { "status", status },
             { "fee", fee },

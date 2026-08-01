@@ -859,7 +859,7 @@ class hashkey extends Exchange {
         $swapMarkets = $this->safe_list($response, 'contracts', array());
         $markets = $this->array_concat($spotMarkets, $swapMarkets);
         if ($this->is_empty($markets)) {
-            $markets = array( $response ); // if user provides $params->symbol the exchange returns a single object insted of list of objects
+            $markets = array( $response ); // if user provides $params->symbol the exchange returns a single object instead of list of objects
         }
         return $this->parse_markets($markets);
     }

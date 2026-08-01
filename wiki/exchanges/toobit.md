@@ -299,7 +299,7 @@ toobit.fetchBidsAsks (symbols?, params?)
 fetch the funding rate for multiple markets
 
 **Kind**: instance method of [<code>toobit</code>](#toobit)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rates structures](https://docs.ccxt.com/?id=funding-rates-structure), indexe by market symbols
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rates structures](https://docs.ccxt.com/?id=funding-rates-structure), indexed by market symbols
 
 **See**: https://api-docs.toobit.com/api/usdt-m-market-data.html#funding-rate  
 

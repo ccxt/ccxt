@@ -413,6 +413,12 @@ public partial class poloniex
     /// See <see href="https://api-docs.poloniex.com/v3/futures/api/trade/cancel-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
@@ -829,11 +835,17 @@ public partial class poloniex
         return new Leverage(res);
     }
     /// <summary>
-    /// fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+    /// fetches the position mode, hedged or one way, hedged is set identically for all linear markets or all inverse markets
     /// </summary>
     /// <remarks>
     /// See <see href="https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified symbol of the market to fetch the position mode for (not used by fetchPositionMode)
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>

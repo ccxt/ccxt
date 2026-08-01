@@ -332,12 +332,12 @@ Cancel all open orders or all open orders for a specific market.
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market to cancel orders in |
+| symbol | <code>string</code> | No | unified market symbol of the market to cancel orders in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-foxbit.cancelAllOrders (symbol, params?)
+foxbit.cancelAllOrders (symbol?, params?)
 ```
 
 

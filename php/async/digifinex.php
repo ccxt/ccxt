@@ -1978,7 +1978,7 @@ class digifinex extends Exchange {
              * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#cancelorder
              *
              * @param {string} $id order $id
-             * @param {string} $symbol not used by digifinex cancelOrder ()
+             * @param {string} $symbol not used by cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
@@ -2085,7 +2085,7 @@ class digifinex extends Exchange {
              * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
              *
              * @param {string[]} $ids order $ids
-             * @param {string} $symbol not used by digifinex cancelOrders ()
+             * @param {string} $symbol not used by cancelOrders ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */

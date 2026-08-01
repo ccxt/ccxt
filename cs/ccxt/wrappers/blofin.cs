@@ -1076,7 +1076,7 @@ public partial class blofin
     /// <item>
     /// <term>symbol</term>
     /// <description>
-    /// string : not used by blofin setPositionMode ()
+    /// string : not used by setPositionMode ()
     /// </description>
     /// </item>
     /// <item>

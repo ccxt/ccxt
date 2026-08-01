@@ -852,7 +852,7 @@ public class HashkeyCore extends HashkeyApi
             Object markets = this.arrayConcat(spotMarkets, swapMarkets);
             if (Helpers.isTrue(this.isEmpty(markets)))
             {
-                markets = new java.util.ArrayList<Object>(java.util.Arrays.asList(response)); // if user provides params.symbol the exchange returns a single object insted of list of objects
+                markets = new java.util.ArrayList<Object>(java.util.Arrays.asList(response)); // if user provides params.symbol the exchange returns a single object instead of list of objects
             }
             return this.parseMarkets(markets);
         });

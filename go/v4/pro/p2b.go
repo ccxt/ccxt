@@ -549,6 +549,7 @@ func (this *P2bCore) HandleOrderBook(client any, message any) {
 	//    }
 	//
 	var params any = this.SafeList(message, "params", []any{})
+	var isFullUpdate any = this.SafeBool(params, 0, false)
 	var data any = this.SafeDict(params, 1)
 	var asks any = this.SafeList(data, "asks")
 	var bids any = this.SafeList(data, "bids")
@@ -562,6 +563,13 @@ func (this *P2bCore) HandleOrderBook(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(orderbook, nil)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 		orderbook = ccxt.GetValue(this.Orderbooks, symbol)
+	}
+	if ccxt.IsTrue(isFullUpdate) {
+		// the first parameter signals whether the message carries all
+		// records or only the changed ones, a full set replaces the book,
+		// otherwise stale levels that left the depth window would linger
+		// and cross the book, see https://github.com/ccxt/ccxt/issues/24944
+		orderbook.(ccxt.OrderBookInterface).Reset(map[string]any{})
 	}
 	if ccxt.IsTrue(!ccxt.IsEqual(bids, nil)) {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(bids)); i++ {

@@ -1723,7 +1723,7 @@ class coinbaseinternational extends Exchange {
         $currency = $this->currency($code);
         $request = array(
             'asset' => $currency['id'],
-            'ammount' => $amount,
+            'amount' => $amount,
             'from' => $fromAccount,
             'to' => $toAccount,
         );
@@ -1935,7 +1935,7 @@ class coinbaseinternational extends Exchange {
          * @see https://docs.cloud.coinbase.com/intx/reference/cancelorder
          *
          * @param {string} $id order $id
-         * @param {string} $symbol not used by coinbaseinternational cancelOrder()
+         * @param {string} $symbol not used by cancelOrder()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -1982,7 +1982,7 @@ class coinbaseinternational extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel all open $orders
-         * @param {string} $symbol unified $market $symbol, only $orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified $market $symbol, only $orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */

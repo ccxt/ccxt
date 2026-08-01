@@ -1955,7 +1955,7 @@ export default class bitfinex extends Exchange {
      * @name bitfinex#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2329,7 +2329,7 @@ export default class bitfinex extends Exchange {
             'id': orderId,
             'symbol': market['id'],
         };
-        // valid for trades upto 10 days old
+        // valid for trades up to 10 days old
         const response = await this.privatePostAuthROrderSymbolIdTrades (this.extend (request, params));
         const tradesList: any[] = [];
         for (let i = 0; i < response.length; i++) {

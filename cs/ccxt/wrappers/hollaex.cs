@@ -35,7 +35,7 @@ public partial class hollaex
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : not used by hollaex fetchOrderBooks ()
+    /// int : not used by fetchOrderBooks ()
     /// </description>
     /// </item>
     /// <item>

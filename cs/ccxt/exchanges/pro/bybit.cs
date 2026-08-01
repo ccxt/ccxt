@@ -124,7 +124,7 @@ public partial class bybit : ccxt.bybit
                     { "awaitPositionsSnapshot", true },
                 } },
                 { "watchMyTrades", new Dictionary<string, object>() {
-                    { "filterExecTypes", new List<object>() {"Trade", "AdlTrade", "BustTrade", "Settle"} },
+                    { "execType", new List<object>() {"Trade", "AdlTrade", "BustTrade", "Settle"} },
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "timeframes", new Dictionary<string, object>() {
@@ -1613,7 +1613,25 @@ public partial class bybit : ccxt.bybit
         }
         object trades = this.myTrades;
         object symbols = new Dictionary<string, object>() {};
-        object filterExecTypes = this.handleOption("watchMyTrades", "filterExecTypes", new List<object>() {});
+        // the option was renamed from filterExecTypes to execType to mirror
+        // the exchange's own field name, the old key is still read as a
+        // fallback for backward compatibility
+        // see https://github.com/ccxt/ccxt/issues/17244
+        // and https://github.com/ccxt/ccxt/issues/28181
+        object execTypeOption = this.handleOption("watchMyTrades", "execType");
+        if (isTrue(isEqual(execTypeOption, null)))
+        {
+            execTypeOption = this.handleOption("watchMyTrades", "filterExecTypes");
+        }
+        object execTypes = null;
+        if (isTrue((execTypeOption is string)))
+        {
+            // a single execution type is accepted as a plain string as well
+            execTypes = new List<object>() {execTypeOption};
+        } else
+        {
+            execTypes = execTypeOption;
+        }
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object rawTrade = getValue(data, i);
@@ -1629,7 +1647,7 @@ public partial class bybit : ccxt.bybit
                 {
                     execType = "Trade";
                 }
-                if (!isTrue(this.inArray(execType, filterExecTypes)))
+                if (isTrue(isTrue((!isEqual(execTypes, null))) && !isTrue(this.inArray(execType, execTypes))))
                 {
                     continue;
                 }
@@ -2554,9 +2572,24 @@ public partial class bybit : ccxt.bybit
         object account = this.account();
         object currencyId = this.safeString2(balance, "a", "coin");
         object code = this.safeCurrencyCode(currencyId);
-        ((IDictionary<string,object>)account)["free"] = this.safeStringN(balance, new List<object>() {"availableToWithdraw", "f", "free", "availableToWithdraw"});
-        ((IDictionary<string,object>)account)["used"] = this.safeString2(balance, "l", "locked");
-        ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "walletBalance");
+        ((IDictionary<string,object>)account)["free"] = this.safeStringN(balance, new List<object>() {"availableToWithdraw", "f", "free"});
+        object used = this.safeString2(balance, "l", "locked");
+        if (isTrue(!isEqual(used, null)))
+        {
+            ((IDictionary<string,object>)account)["used"] = used;
+        } else
+        {
+            // the unified account wallet stream has no locked field, the margin
+            // lives in the per coin initial margin fields, so the used amount
+            // is derived from those, see https://github.com/ccxt/ccxt/issues/24365
+            object totalPositionIm = this.safeString(balance, "totalPositionIM", "0");
+            object totalOrderIm = this.safeString(balance, "totalOrderIM", "0");
+            ((IDictionary<string,object>)account)["used"] = Precise.stringAdd(totalPositionIm, totalOrderIm);
+        }
+        // on the unified rows the free amount and the margin are both measured
+        // against the equity, which includes the unrealized pnl, so the equity
+        // is the consistent total, the spot rows fall back to the wallet balance
+        ((IDictionary<string,object>)account)["total"] = this.safeString2(balance, "equity", "walletBalance");
         if (isTrue(!isEqual(accountType, null)))
         {
             if (isTrue(isEqual(this.safeValue(this.balance, accountType), null)))

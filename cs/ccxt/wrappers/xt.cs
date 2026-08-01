@@ -785,7 +785,7 @@ public partial class xt
     /// <item>
     /// <term>tag</term>
     /// <description>
-    /// string :      * @param {object} params extra parameters specific to the xt api endpoint
+    /// string :      * @param {object} params extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>

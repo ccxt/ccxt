@@ -203,7 +203,7 @@ func (this *Zaif) CreateOrder(symbol string, typeVar string, side string, amount
  * @see https://zaif-api-document.readthedocs.io/ja/latest/TradingAPI.html#id37
  * @description cancels an open order
  * @param {string} id order id
- * @param {string} symbol not used by zaif cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */

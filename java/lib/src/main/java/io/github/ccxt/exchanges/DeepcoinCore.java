@@ -751,7 +751,7 @@ public class DeepcoinCore extends DeepcoinApi
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
                 {
                     // the exchange do not have a since param for this endpoint
-                    // we canlculate until (after) for correct pagination
+                    // we calculate until (after) for correct pagination
                     Object duration = this.parseTimeframe(timeframe);
                     Object numberOfCandles = ((Helpers.isTrue((Helpers.isEqual(limit, null))))) ? maxLimit : limit;
                     Object endTime = Helpers.add(since, Helpers.multiply((Helpers.multiply(duration, numberOfCandles)), 1000));

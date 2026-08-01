@@ -478,7 +478,7 @@ class weex extends weex$1["default"] {
             },
             'options': {
                 'partner': 'b-WEEX111125',
-                'timeDifference': 0, // the difference between system clock and Binance clock
+                'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'accountsByType': {
                     'spot': 'spot',
@@ -694,7 +694,7 @@ class weex extends weex$1["default"] {
      */
     async fetchStatus(params = {}) {
         const response = await this.publicGetApiV3Ping(params);
-        // reutns an empty response if the exchange is alive, otherwise will trigger an error
+        // returns an empty response if the exchange is alive, otherwise will trigger an error
         return {
             'status': 'ok',
             'updated': undefined,

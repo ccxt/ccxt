@@ -1675,7 +1675,7 @@ class weex extends \ccxt\async\weex {
         //         )
         //     }
         //
-        // coontract
+        // contract
         //     {
         //         "e" => "account",
         //         "E" => 1776189629849,

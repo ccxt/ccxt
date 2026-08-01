@@ -1298,7 +1298,7 @@ class dydx extends Exchange {
             if ($this->walletAddress === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg => dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz');
             }
-            if (str_starts_with(!$this->walletAddress, 'dydx')) {
+            if (!str_starts_with($this->walletAddress, 'dydx')) {
                 throw new ArgumentsRequired($this->id . ' fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.');
             }
             $request = array(
@@ -1937,7 +1937,7 @@ class dydx extends Exchange {
             $fromSubaccountId = $this->safe_integer($params, 'fromSubaccountId');
             $toSubaccountId = $this->safe_integer($params, 'toSubaccountId');
             if ($fromAccount !== 'main') {
-                // throw error if from subaccount id is undefind
+                // throw error if from subaccount id is null
                 if ($fromAccount === null) {
                     throw new NotSupported($this->id . ' transfer only support main > subaccount and subaccount <> subaccount.');
                 }

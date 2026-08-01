@@ -135,7 +135,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                     put( "awaitPositionsSnapshot", true );
                 }} );
                 put( "watchMyTrades", new java.util.HashMap<String, Object>() {{
-                    put( "filterExecTypes", new java.util.ArrayList<Object>(java.util.Arrays.asList("Trade", "AdlTrade", "BustTrade", "Settle")) );
+                    put( "execType", new java.util.ArrayList<Object>(java.util.Arrays.asList("Trade", "AdlTrade", "BustTrade", "Settle")) );
                 }} );
                 put( "spot", new java.util.HashMap<String, Object>() {{
                     put( "timeframes", new java.util.HashMap<String, Object>() {{
@@ -1768,7 +1768,25 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         }
         Object trades = this.myTrades;
         Object symbols = new java.util.HashMap<String, Object>() {{}};
-        Object filterExecTypes = this.handleOption("watchMyTrades", "filterExecTypes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        // the option was renamed from filterExecTypes to execType to mirror
+        // the exchange's own field name, the old key is still read as a
+        // fallback for backward compatibility
+        // see https://github.com/ccxt/ccxt/issues/17244
+        // and https://github.com/ccxt/ccxt/issues/28181
+        Object execTypeOption = this.handleOption("watchMyTrades", "execType");
+        if (Helpers.isTrue(Helpers.isEqual(execTypeOption, null)))
+        {
+            execTypeOption = this.handleOption("watchMyTrades", "filterExecTypes");
+        }
+        Object execTypes = null;
+        if (Helpers.isTrue((execTypeOption instanceof String)))
+        {
+            // a single execution type is accepted as a plain string as well
+            execTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList(execTypeOption));
+        } else
+        {
+            execTypes = execTypeOption;
+        }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object rawTrade = Helpers.GetValue(data, i);
@@ -1784,7 +1802,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 {
                     execType = "Trade";
                 }
-                if (!Helpers.isTrue(this.inArray(execType, filterExecTypes)))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(execTypes, null))) && !Helpers.isTrue(this.inArray(execType, execTypes))))
                 {
                     continue;
                 }
@@ -2759,9 +2777,24 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         Object account = this.account();
         Object currencyId = this.safeString2(balance, "a", "coin");
         Object code = this.safeCurrencyCode(currencyId);
-        Helpers.addElementToObject(account, "free", this.safeStringN(balance, new java.util.ArrayList<Object>(java.util.Arrays.asList("availableToWithdraw", "f", "free", "availableToWithdraw"))));
-        Helpers.addElementToObject(account, "used", this.safeString2(balance, "l", "locked"));
-        Helpers.addElementToObject(account, "total", this.safeString(balance, "walletBalance"));
+        Helpers.addElementToObject(account, "free", this.safeStringN(balance, new java.util.ArrayList<Object>(java.util.Arrays.asList("availableToWithdraw", "f", "free"))));
+        Object used = this.safeString2(balance, "l", "locked");
+        if (Helpers.isTrue(!Helpers.isEqual(used, null)))
+        {
+            Helpers.addElementToObject(account, "used", used);
+        } else
+        {
+            // the unified account wallet stream has no locked field, the margin
+            // lives in the per coin initial margin fields, so the used amount
+            // is derived from those, see https://github.com/ccxt/ccxt/issues/24365
+            Object totalPositionIm = this.safeString(balance, "totalPositionIM", "0");
+            Object totalOrderIm = this.safeString(balance, "totalOrderIM", "0");
+            Helpers.addElementToObject(account, "used", Precise.stringAdd(totalPositionIm, totalOrderIm));
+        }
+        // on the unified rows the free amount and the margin are both measured
+        // against the equity, which includes the unrealized pnl, so the equity
+        // is the consistent total, the spot rows fall back to the wallet balance
+        Helpers.addElementToObject(account, "total", this.safeString2(balance, "equity", "walletBalance"));
         if (Helpers.isTrue(!Helpers.isEqual(accountType, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.balance, accountType), null)))

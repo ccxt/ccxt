@@ -381,6 +381,12 @@ public partial class foxbit
     /// See <see href="https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol of the market to cancel orders in
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint

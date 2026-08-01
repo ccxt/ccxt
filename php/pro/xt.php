@@ -292,7 +292,7 @@ class xt extends \ccxt\async\xt {
              * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
@@ -318,7 +318,7 @@ class xt extends \ccxt\async\xt {
              * @see https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
@@ -345,7 +345,7 @@ class xt extends \ccxt\async\xt {
              * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
              *
              * @param {string} [$symbols] unified $market $symbols
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
@@ -377,7 +377,7 @@ class xt extends \ccxt\async\xt {
              * @see https://doc.xt.com/#futures_market_websocket_v2allAggTicker
              *
              * @param {string} [$symbols] unified market $symbols
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} [$params->method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
@@ -411,7 +411,7 @@ class xt extends \ccxt\async\xt {
              * @param {string} $timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
              * @param {int} [$since] not used by xt watchOHLCV
              * @param {int} [$limit] not used by xt watchOHLCV
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             if ($this->markets === null) {
@@ -437,7 +437,7 @@ class xt extends \ccxt\async\xt {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             if ($this->markets === null) {
@@ -462,7 +462,7 @@ class xt extends \ccxt\async\xt {
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             if ($this->markets === null) {
@@ -487,7 +487,7 @@ class xt extends \ccxt\async\xt {
              * @see https://doc.xt.com/#futures_market_websocket_v2dealRecord
              *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
             if ($this->markets === null) {
@@ -512,7 +512,7 @@ class xt extends \ccxt\async\xt {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] not used by xt watchOrderBook
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {int} [$params->levels] 5, 10, 20, or 50
              * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
              */
@@ -542,7 +542,7 @@ class xt extends \ccxt\async\xt {
              * @see https://doc.xt.com/#futures_market_websocket_v2increDepth
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {int} [$params->levels] 5, 10, 20, or 50
              * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
              */
@@ -572,7 +572,7 @@ class xt extends \ccxt\async\xt {
              * @param {string} [$symbol] unified $market $symbol
              * @param {int} [$since] not used by xt watchOrders
              * @param {int} [$limit] the maximum number of $orders to return
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
             if ($this->markets === null) {
@@ -602,7 +602,7 @@ class xt extends \ccxt\async\xt {
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of  orde structures to retrieve
-             * @param {array} $params extra parameters specific to the kucoin api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             if ($this->markets === null) {
@@ -629,7 +629,7 @@ class xt extends \ccxt\async\xt {
              * @see https://doc.xt.com/#websocket_privatebalanceChange
              * @see https://doc.xt.com/#futures_user_websocket_v2balance
              *
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=balance-structure balance structures~
              */
             if ($this->markets === null) {

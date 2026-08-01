@@ -1921,7 +1921,7 @@ class paradex extends Exchange {
          * @see https://docs.paradex.trade/api/prod/orders/cancel-batch
          *
          * @param {string[]} $ids order $ids
-         * @param {string} [$symbol] unified $market $symbol, not used by paradex cancelOrders()
+         * @param {string} [$symbol] unified $market $symbol, not used by cancelOrders()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string[]} [$params->clientOrderIds] client order $ids
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~

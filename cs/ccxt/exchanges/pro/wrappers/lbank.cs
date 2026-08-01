@@ -83,7 +83,7 @@ public partial class lbank
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the cex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>

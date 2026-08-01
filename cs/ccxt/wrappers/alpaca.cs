@@ -34,7 +34,7 @@ public partial class alpaca
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the exchange api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -147,7 +147,7 @@ public partial class alpaca
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the alpha api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -349,6 +349,12 @@ public partial class alpaca
     /// <remarks>
     /// See <see href="https://docs.alpaca.markets/reference/deleteallorders"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>

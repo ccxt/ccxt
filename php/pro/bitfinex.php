@@ -691,7 +691,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //         358169, // $channel id
         //         array(
         //            1807.1, // $price
-        //            0, // cound
+        //            0, // count
         //            1 // $size
         //         )
         //     )
@@ -1124,7 +1124,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //           null,
         //           30, // price
         //           0, // price average
-        //           0, // price_trailling
+        //           0, // price_trailing
         //           0, // price_aux_limit
         //           null,
         //           null,
@@ -1208,7 +1208,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //       null,
         //       42.799, // $price
         //       42.821, // $price $average
-        //       0, // $price trailling
+        //       0, // $price trailing
         //       0, // price_aux_limit
         //       null,
         //       null,

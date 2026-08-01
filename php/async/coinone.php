@@ -1064,7 +1064,7 @@ class coinone extends Exchange {
             $feeCurrencyCode = ($side === 'sell') ? $quote : $base;
             $fee = array(
                 'cost' => $feeCostString,
-                'rate' => $this->safe_string($order, 'feeRate'),
+                'rate' => $this->safe_string_2($order, 'feeRate', 'fee_rate'),
                 'currency' => $feeCurrencyCode,
             );
         }
@@ -1083,9 +1083,9 @@ class coinone extends Exchange {
             'price' => $this->safe_string($order, 'price'),
             'triggerPrice' => null,
             'cost' => null,
-            'average' => $this->safe_string($order, 'averageExecutedPrice'),
+            'average' => $this->safe_string_2($order, 'averageExecutedPrice', 'average_executed_price'),
             'amount' => $amountString,
-            'filled' => $this->safe_string($order, 'executedQty'),
+            'filled' => $this->safe_string_2($order, 'executedQty', 'executed_qty'),
             'remaining' => $remainingString,
             'status' => $status,
             'fee' => $fee,

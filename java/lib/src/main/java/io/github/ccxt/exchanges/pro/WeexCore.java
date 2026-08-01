@@ -1990,7 +1990,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         //         ]
         //     }
         //
-        // coontract
+        // contract
         //     {
         //         "e": "account",
         //         "E": 1776189629849,

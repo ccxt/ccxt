@@ -1125,7 +1125,7 @@ class bybit extends Exchange {
                     'usePrivateInstrumentsInfo' => false,
                     'types' => array( 'spot', 'linear', 'inverse', 'option' ),
                     'options' => array( 'BTC', 'ETH', 'SOL', 'XRP', 'MNT', 'DOGE' ),
-                    'loadAllOptions' => false, // load all possible option markets, adds signficant load time
+                    'loadAllOptions' => false, // load all possible option markets, adds significant load time
                     'loadExpiredOptions' => false, // loads expired options, to load all possible expired options set loadAllOptions to true
                 ),
                 'enableUnifiedMargin' => null,
@@ -2605,7 +2605,7 @@ class bybit extends Exchange {
             $parsedSymbols = array();
             $marketTypeInfo = $this->handle_market_type_and_params('fetchTickers', null, $params);
             $defaultType = $marketTypeInfo[0]; // don't omit here
-            // we can't use marketSymbols here due to the conflicing ids between markets
+            // we can't use marketSymbols here due to the conflicting ids between markets
             $currentType = null;
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
@@ -5068,7 +5068,7 @@ class bybit extends Exchange {
          *
          * @see https://bybit-exchange.github.io/docs/v5/order/cancel-all
          *
-         * @param {string} $symbol unified $market $symbol, only $orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified $market $symbol, only $orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] true if trigger order
          * @param {boolean} [$params->stop] alias for trigger
@@ -9187,7 +9187,7 @@ class bybit extends Exchange {
          * @param {string[]} $symbols a list of unified $market $symbols
          * @param {int} [$since] timestamp in ms of the earliest position to fetch, $params["until"] - $since <= 7 days
          * @param {int} [$limit] the maximum amount of records to fetch, default=50, max=100
-         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest position to fetch, $params["until"] - $since <= 7 days
          * @param {string} [$params->subType] 'linear' or 'inverse'
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~

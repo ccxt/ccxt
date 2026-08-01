@@ -11,6 +11,7 @@ use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
+use ccxt\Precise;
 use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
@@ -136,7 +137,7 @@ class bybit extends \ccxt\async\bybit {
                 ),
                 'watchMyTrades' => array(
                     // filter execType => https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
-                    'filterExecTypes' => array(
+                    'execType' => array(
                         'Trade', 'AdlTrade', 'BustTrade', 'Settle',
                     ),
                 ),
@@ -1527,7 +1528,22 @@ class bybit extends \ccxt\async\bybit {
         }
         $trades = $this->myTrades;
         $symbols = array();
-        $filterExecTypes = $this->handle_option('watchMyTrades', 'filterExecTypes', array());
+        // the option was renamed from filterExecTypes to $execType to mirror
+        // the exchange's own field name, the old key is still read
+        // fallback for backward compatibility
+        // see https://github.com/ccxt/ccxt/issues/17244
+        // and https://github.com/ccxt/ccxt/issues/28181
+        $execTypeOption = $this->handle_option('watchMyTrades', 'execType');
+        if ($execTypeOption === null) {
+            $execTypeOption = $this->handle_option('watchMyTrades', 'filterExecTypes');
+        }
+        $execTypes = null;
+        if (gettype($execTypeOption) === 'string') {
+            // a single execution type is accepted plain string
+            $execTypes = array( $execTypeOption );
+        } else {
+            $execTypes = $execTypeOption;
+        }
         for ($i = 0; $i < count($data); $i++) {
             $rawTrade = $data[$i];
             $parsed = null;
@@ -1539,7 +1555,7 @@ class bybit extends \ccxt\async\bybit {
                 if ($executionFast) {
                     $execType = 'Trade';
                 }
-                if (!$this->in_array($execType, $filterExecTypes)) {
+                if (($execTypes !== null) && !$this->in_array($execType, $execTypes)) {
                     continue;
                 }
                 $parsed = $this->parse_trade($rawTrade);
@@ -2388,9 +2404,22 @@ class bybit extends \ccxt\async\bybit {
         $account = $this->account();
         $currencyId = $this->safe_string_2($balance, 'a', 'coin');
         $code = $this->safe_currency_code($currencyId);
-        $account['free'] = $this->safe_string_n($balance, array( 'availableToWithdraw', 'f', 'free', 'availableToWithdraw' ));
-        $account['used'] = $this->safe_string_2($balance, 'l', 'locked');
-        $account['total'] = $this->safe_string($balance, 'walletBalance');
+        $account['free'] = $this->safe_string_n($balance, array( 'availableToWithdraw', 'f', 'free' ));
+        $used = $this->safe_string_2($balance, 'l', 'locked');
+        if ($used !== null) {
+            $account['used'] = $used;
+        } else {
+            // the unified $account wallet stream has no locked field, the margin
+            // lives in the per coin initial margin fields, so the $used amount
+            // is derived from those, see https://github.com/ccxt/ccxt/issues/24365
+            $totalPositionIm = $this->safe_string($balance, 'totalPositionIM', '0');
+            $totalOrderIm = $this->safe_string($balance, 'totalOrderIM', '0');
+            $account['used'] = Precise::string_add($totalPositionIm, $totalOrderIm);
+        }
+        // on the unified rows the free amount and the margin are both measured
+        // against the equity, which includes the unrealized pnl, so the equity
+        // is the consistent total, the spot rows fall back to the wallet $balance
+        $account['total'] = $this->safe_string_2($balance, 'equity', 'walletBalance');
         if ($accountType !== null) {
             if ($this->safe_value($this->balance, $accountType) === null) {
                 $this->balance[$accountType] = array();
