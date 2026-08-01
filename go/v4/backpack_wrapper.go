@@ -126,7 +126,7 @@ func (this *Backpack) FetchTicker(symbol string, options ...FetchTickerOptions) 
  * @see https://docs.backpack.exchange/#tag/Markets/operation/get_depth
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
  */
 func (this *Backpack) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
@@ -162,7 +162,7 @@ func (this *Backpack) FetchOrderBook(symbol string, options ...FetchOrderBookOpt
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in seconds of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch (default 100)
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Backpack) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {
@@ -828,10 +828,10 @@ func (this *Backpack) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Orde
  * @name backpack#fetchOrders
  * @description fetches information on multiple orders made by the user
  * @see https://docs.backpack.exchange/#tag/History/operation/get_order_history
- * @param {string} symbol unified market symbol of the market orders were made in
+ * @param {string} [symbol] unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of  orde structures to retrieve (default 100, max 1000)
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {int} [limit] the maximum number of order structures to retrieve (default 100, max 1000)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
  */
 func (this *Backpack) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {

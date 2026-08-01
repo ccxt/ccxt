@@ -29,10 +29,10 @@ func NewCoinmateFromCore(core *CoinmateCore) *Coinmate {
 /**
  * @method
  * @name coinmate#fetchTime
- * @description fetches the current integer timestamp in milliseconds from the bingx server
+ * @description fetches the current integer timestamp in milliseconds from the exchange server
  * @see https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {int} the current integer timestamp in milliseconds from the bingx server
+ * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *Coinmate) FetchTime(params ...any) (int64, error) {
 	res := <-this.Core.FetchTime(params...)
