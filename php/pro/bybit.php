@@ -137,7 +137,7 @@ class bybit extends \ccxt\async\bybit {
                 ),
                 'watchMyTrades' => array(
                     // filter execType => https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
-                    'filterExecTypes' => array(
+                    'execType' => array(
                         'Trade', 'AdlTrade', 'BustTrade', 'Settle',
                     ),
                 ),
@@ -1528,7 +1528,22 @@ class bybit extends \ccxt\async\bybit {
         }
         $trades = $this->myTrades;
         $symbols = array();
-        $filterExecTypes = $this->handle_option('watchMyTrades', 'filterExecTypes', array());
+        // the option was renamed from filterExecTypes to $execType to mirror
+        // the exchange's own field name, the old key is still read
+        // fallback for backward compatibility
+        // see https://github.com/ccxt/ccxt/issues/17244
+        // and https://github.com/ccxt/ccxt/issues/28181
+        $execTypeOption = $this->handle_option('watchMyTrades', 'execType');
+        if ($execTypeOption === null) {
+            $execTypeOption = $this->handle_option('watchMyTrades', 'filterExecTypes');
+        }
+        $execTypes = null;
+        if (gettype($execTypeOption) === 'string') {
+            // a single execution type is accepted plain string
+            $execTypes = array( $execTypeOption );
+        } else {
+            $execTypes = $execTypeOption;
+        }
         for ($i = 0; $i < count($data); $i++) {
             $rawTrade = $data[$i];
             $parsed = null;
@@ -1540,7 +1555,7 @@ class bybit extends \ccxt\async\bybit {
                 if ($executionFast) {
                     $execType = 'Trade';
                 }
-                if (!$this->in_array($execType, $filterExecTypes)) {
+                if (($execTypes !== null) && !$this->in_array($execType, $execTypes)) {
                     continue;
                 }
                 $parsed = $this->parse_trade($rawTrade);
