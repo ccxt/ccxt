@@ -4092,6 +4092,26 @@ public class XtCore extends XtApi
         Object filledQuantity = this.safeNumber(order, "executedQty");
         Object filled = ((Helpers.isTrue((Helpers.isEqual(marketType, "spot"))))) ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString(Helpers.GetValue(market, "contractSize")));
         Object lastUpdatedTimestamp = this.safeInteger(order, "updatedTime");
+        Object side = this.safeStringLower2(order, "side", "orderSide");
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            // the stop loss and take profit entries carry only the position
+            // side, they close the position, so a long position closes with a
+            // sell and a short position closes with a buy
+            // see https://github.com/ccxt/ccxt/issues/25288
+            Object positionSide = this.safeString(order, "positionSide");
+            if (Helpers.isTrue(!Helpers.isEqual(positionSide, null)))
+            {
+                if (Helpers.isTrue(Helpers.isEqual(positionSide, "LONG")))
+                {
+                    side = "sell";
+                } else
+                {
+                    side = "buy";
+                }
+            }
+        }
+        final Object finalSide = side;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
             put( "id", XtCore.this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderId", "result", "cancelId", "entrustId", "profitId"))) );
@@ -4104,7 +4124,7 @@ public class XtCore extends XtApi
             put( "type", XtCore.this.safeStringLower2(order, "type", "orderType") );
             put( "timeInForce", XtCore.this.safeString(order, "timeInForce") );
             put( "postOnly", null );
-            put( "side", XtCore.this.safeStringLower2(order, "side", "orderSide") );
+            put( "side", finalSide );
             put( "price", XtCore.this.safeNumber(order, "price") );
             put( "triggerPrice", XtCore.this.safeNumber(order, "stopPrice") );
             put( "stopLoss", XtCore.this.safeNumber(order, "triggerStopPrice") );
