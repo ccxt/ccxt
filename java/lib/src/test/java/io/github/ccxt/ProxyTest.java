@@ -18,7 +18,9 @@ import java.util.concurrent.CompletableFuture;
 class ProxyTest {
 
     private Exchange createExchange(Map<String, Object> config) {
-        return Exchange.dynamicallyCreateInstance("binance", config);
+        // dynamicallyCreateInstance returns the shared BaseExchange supertype now; binance is a
+        // regular (non-prediction) venue so the downcast to Exchange is always valid here.
+        return (Exchange) Exchange.dynamicallyCreateInstance("binance", config);
     }
 
     @Test

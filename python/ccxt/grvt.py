@@ -896,9 +896,12 @@ class grvt(Exchange, ImplicitAPI):
         #        }
         #
         marketId = self.safe_string(ticker, 'instrument')
+        timestamp = self.safe_integer_product(ticker, 'event_time', 0.000001)
         return self.safe_ticker({
             'info': ticker,
             'symbol': self.safe_symbol(marketId, market),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'open': self.safe_string(ticker, 'open_price'),
             'high': self.safe_string(ticker, 'high_price'),
             'low': self.safe_string(ticker, 'low_price'),
@@ -2104,7 +2107,7 @@ class grvt(Exchange, ImplicitAPI):
                 limitDec = self.safe_string(limitParts, 1, '')
                 limitDecLength = len(limitDec) + 0  # php tr
                 limitDecLengthStr = str(limitDecLength)
-                powerNum = limitDecLengthStr == 0 if '0' else self.convert_to_big_int_custom(limitDecLengthStr)
+                powerNum = 0 if (limitDecLengthStr == '0') else self.convert_to_big_int_custom(limitDecLengthStr)
                 priceInteger = (self.convert_to_big_int_custom(price.replace('.', '')) * self.convert_to_big_int_custom(priceMultiplier) / (math.pow(bigInt10, powerNum)))
                 legOrder['limitPrice'] = self.parse_to_int(priceInteger)
             else:

@@ -939,12 +939,12 @@ public partial class lighter : Exchange
             {
                 triggerOrderSide = "buy";
             }
-            object stopLossOrderTriggerPrice = this.safeNumberN(stopLoss, new List<object>() {"triggerPrice", "stopPrice"});
+            object stopLossOrderTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
             object stopLossOrderType = this.safeString(stopLoss, "type", "limit");
-            object stopLossOrderLimitPrice = this.safeNumberN(stopLoss, new List<object>() {"price", "stopLossPrice"}, stopLossOrderTriggerPrice);
-            object takeProfitOrderTriggerPrice = this.safeNumberN(takeProfit, new List<object>() {"triggerPrice", "stopPrice"});
+            object stopLossOrderLimitPrice = this.safeNumber2(stopLoss, "price", "stopLossPrice", stopLossOrderTriggerPrice);
+            object takeProfitOrderTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
             object takeProfitOrderType = this.safeString(takeProfit, "type", "limit");
-            object takeProfitOrderLimitPrice = this.safeNumberN(takeProfit, new List<object>() {"price", "takeProfitPrice"}, takeProfitOrderTriggerPrice);
+            object takeProfitOrderLimitPrice = this.safeNumber2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice);
             // amount should be 0 for child orders
             if (isTrue(!isEqual(stopLoss, null)))
             {
@@ -3674,7 +3674,7 @@ public partial class lighter : Exchange
      * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
-     * @param {object} [params] parameters specific to the bingx api endpoint
+     * @param {object} [params] parameters specific to the exchange API endpoint
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}

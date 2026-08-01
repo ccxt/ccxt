@@ -30,7 +30,7 @@ public class TestWatchTicker extends BaseTest {
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
                 {
-                    throw new RuntimeException(e);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
                 now = exchange.milliseconds();
                 // continue;
@@ -38,7 +38,7 @@ public class TestWatchTicker extends BaseTest {
             }
             if (Helpers.isTrue(Helpers.isEqual(success, true)))
             {
-                Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(response)));
+                Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), symbol), " must return a dictionary. "), exchange.json(response)));
                 now = exchange.milliseconds();
                 TestTicker.testTicker(exchange, skippedProperties, method, response, symbol);
             }

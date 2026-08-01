@@ -11,6 +11,10 @@ func (this *BitsoCore) PublicGetAvailableBooks(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAvailableBooks", args...)
 }
 
+func (this *BitsoCore) PublicGetCatalogues(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetCatalogues", args...)
+}
+
 func (this *BitsoCore) PublicGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker", args...)
 }

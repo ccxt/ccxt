@@ -261,6 +261,18 @@
                 "output": "{\"symbol\":\"ETHUSDTM\",\"margin\":\"1\",\"bizNo\":\"0091c851-35bd-4fbd-8abd-40a7dad05645\"}"
             }
         ],
+        "reduceMargin": [
+            {
+                "description": "reduce margin from a linear swap position",
+                "method": "reduceMargin",
+                "url": "https://api-futures.kucoin.com/api/v1/margin/withdrawMargin",
+                "input": [
+                  "ETH/USDT:USDT",
+                  1
+                ],
+                "output": "{\"symbol\":\"ETHUSDTM\",\"withdrawAmount\":\"1\"}"
+            }
+        ],
         "cancelOrders": [
             {
                 "description": "cancel unified spot orders by order ids with uta",

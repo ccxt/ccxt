@@ -1127,16 +1127,20 @@ class bybit extends bybit$1["default"] {
             },
             'precisionMode': number.TICK_SIZE,
             'options': {
-                'usePrivateInstrumentsInfo': false,
                 'enableDemoTrading': false,
                 'fetchMarkets': {
+                    'usePrivateInstrumentsInfo': false,
                     'types': ['spot', 'linear', 'inverse', 'option'],
                     'options': ['BTC', 'ETH', 'SOL', 'XRP', 'MNT', 'DOGE'],
+                    'loadAllOptions': false, // load all possible option markets, adds significant load time
+                    'loadExpiredOptions': false, // loads expired options, to load all possible expired options set loadAllOptions to true
                 },
                 'enableUnifiedMargin': undefined,
                 'enableUnifiedAccount': undefined,
                 'unifiedMarginStatus': undefined,
-                'createMarketBuyOrderRequiresPrice': false, // only true for classic accounts
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': false, // only true for classic accounts
+                },
                 'createUnifiedMarginAccount': false,
                 'defaultType': 'swap', // 'swap', 'future', 'option', 'spot'
                 'defaultSubType': 'linear', // 'linear', 'inverse'
@@ -1145,8 +1149,6 @@ class bybit extends bybit$1["default"] {
                 'recvWindow': 5 * 1000, // 5 sec default
                 'timeDifference': 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
-                'loadAllOptions': false, // load all possible option markets, adds signficant load time
-                'loadExpiredOptions': false, // loads expired options, to load all possible expired options set loadAllOptions to true
                 'brokerId': 'CCXT',
                 'accountsByType': {
                     'spot': 'SPOT',
@@ -1590,8 +1592,9 @@ class bybit extends bybit$1["default"] {
             'settleId': settle,
             'active': false,
             'type': 'option',
-            'linear': undefined,
-            'inverse': undefined,
+            'subType': (base === settle) ? 'inverse' : 'linear',
+            'linear': (base !== settle),
+            'inverse': (base === settle),
             'spot': false,
             'swap': false,
             'future': false,
@@ -1935,7 +1938,7 @@ class bybit extends bybit$1["default"] {
         const request = {
             'category': 'spot',
         };
-        const usePrivateInstrumentsInfo = this.safeBool(this.options, 'usePrivateInstrumentsInfo', false);
+        const usePrivateInstrumentsInfo = this.handleOption('fetchMarkets', 'usePrivateInstrumentsInfo', false);
         let response;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo(this.extend(request, params));
@@ -2053,7 +2056,7 @@ class bybit extends bybit$1["default"] {
         params = this.extend(params, {});
         params['limit'] = 1000; // minimize number of requests
         let preLaunchMarkets = [];
-        const usePrivateInstrumentsInfo = this.safeBool(this.options, 'usePrivateInstrumentsInfo', false);
+        const usePrivateInstrumentsInfo = this.handleOption('fetchMarkets', 'usePrivateInstrumentsInfo', false);
         let response = undefined;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo(params);
@@ -2252,7 +2255,7 @@ class bybit extends bybit$1["default"] {
         const request = {
             'category': 'option',
         };
-        const usePrivateInstrumentsInfo = this.safeBool(this.options, 'usePrivateInstrumentsInfo', false);
+        const usePrivateInstrumentsInfo = this.handleOption('fetchMarkets', 'usePrivateInstrumentsInfo', false);
         let response;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo(this.extend(request, params));
@@ -2262,7 +2265,8 @@ class bybit extends bybit$1["default"] {
         }
         const data = this.safeDict(response, 'result', {});
         let markets = this.safeList(data, 'list', []);
-        if (this.options['loadAllOptions']) {
+        const loadAllOptions = this.handleOption('fetchMarkets', 'loadAllOptions');
+        if (loadAllOptions) {
             request['limit'] = 1000;
             let paginationCursor = this.safeString(data, 'nextPageCursor');
             if (paginationCursor !== undefined) {
@@ -2340,7 +2344,8 @@ class bybit extends bybit$1["default"] {
             const optionLetter = this.safeString(splitId, 3);
             const isActive = (status === 'Trading');
             const isInverse = base === settle;
-            if (isActive || (this.options['loadAllOptions']) || (this.options['loadExpiredOptions'])) {
+            const loadExpiredOptions = this.handleOption('fetchMarkets', 'loadExpiredOptions');
+            if (isActive || loadAllOptions || loadExpiredOptions) {
                 result.push(this.safeMarketStructure({
                     'id': id,
                     'symbol': base + '/' + quote + ':' + settle + '-' + this.yymmdd(expiry) + '-' + strike + '-' + optionLetter,
@@ -2607,7 +2612,7 @@ class bybit extends bybit$1["default"] {
             parsedSymbols = [];
             const marketTypeInfo = this.handleMarketTypeAndParams('fetchTickers', undefined, params);
             const defaultType = marketTypeInfo[0]; // don't omit here
-            // we can't use marketSymbols here due to the conflicing ids between markets
+            // we can't use marketSymbols here due to the conflicting ids between markets
             let currentType = undefined;
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
@@ -2770,7 +2775,15 @@ class bybit extends bybit$1["default"] {
             limit = 200; // default is 200 when requested with `since`
         }
         if (since !== undefined) {
-            request['start'] = since;
+            // bybit returns the candle that contains `start`, whose timestamp is
+            // before a mid-interval `since` and gets dropped by the client-side
+            // since-filter, emptying a limit=1 request entirely, see issue
+            // https://github.com/ccxt/ccxt/issues/26736 - align the requested
+            // start up to the interval boundary so that the exchange returns
+            // candles from the first bucket at or after `since`
+            const duration = this.parseTimeframe(timeframe) * 1000;
+            const rounded = this.parseToInt(since / duration) * duration;
+            request['start'] = (rounded === since) ? since : this.sum(rounded, duration);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // max 1000, default 1000
@@ -5197,7 +5210,7 @@ class bybit extends bybit$1["default"] {
         const result = await this.fetchOrders(symbol, undefined, undefined, this.extend(request, params));
         const length = result.length;
         if (length === 0) {
-            const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+            const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
             const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new errors.OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
         }
@@ -5368,7 +5381,7 @@ class bybit extends bybit$1["default"] {
             throw new errors.NotSupported(this.id + ' fetchOrders() is not supported for spot markets');
         }
         request['category'] = type;
-        const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         params = this.omit(params, ['trigger', 'stop']);
         if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
@@ -5464,7 +5477,7 @@ class bybit extends bybit$1["default"] {
         const result = await this.fetchClosedOrders(symbol, undefined, undefined, this.extend(request, params));
         const length = result.length;
         if (length === 0) {
-            const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+            const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
             const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new errors.OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
         }
@@ -5500,7 +5513,7 @@ class bybit extends bybit$1["default"] {
         const result = await this.fetchOpenOrders(symbol, undefined, undefined, this.extend(request, params));
         const length = result.length;
         if (length === 0) {
-            const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+            const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
             const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new errors.OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
         }
@@ -5545,7 +5558,7 @@ class bybit extends bybit$1["default"] {
         let type = undefined;
         [type, params] = this.getBybitType('fetchCanceledAndClosedOrders', market, params);
         request['category'] = type;
-        const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         params = this.omit(params, ['trigger', 'stop']);
         if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
@@ -6965,10 +6978,10 @@ class bybit extends bybit$1["default"] {
         const unrealisedPnl = this.omitZero(this.safeString(position, 'unrealisedPnl'));
         let initialMarginString = this.safeString2(position, 'positionIM', 'cumEntryValue');
         let maintenanceMarginString = this.safeString(position, 'positionMM');
-        const timestamp = this.safeIntegerN(position, ['createdTime', 'createdAt']);
+        const timestamp = this.safeInteger2(position, 'createdTime', 'createdAt');
         let lastUpdateTimestamp = this.parse8601(this.safeString(position, 'updated_at'));
         if (lastUpdateTimestamp === undefined) {
-            lastUpdateTimestamp = this.safeIntegerN(position, ['updatedTime', 'updatedAt', 'updatedTime']);
+            lastUpdateTimestamp = this.safeInteger2(position, 'updatedTime', 'updatedAt');
         }
         let collateralString = this.safeString(position, 'positionBalance');
         const entryPrice = this.omitZero(this.safeStringN(position, ['entryPrice', 'avgPrice', 'avgEntryPrice']));
@@ -7688,7 +7701,7 @@ class bybit extends bybit$1["default"] {
         //
         const timestamp = this.safeInteger(response, 'time');
         const transfer = this.safeDict(response, 'result', {});
-        const statusRaw = this.safeStringN(response, ['retCode', 'retMsg']);
+        const statusRaw = this.safeString2(response, 'retCode', 'retMsg');
         const status = this.parseTransferStatus(statusRaw);
         return this.extend(this.parseTransfer(transfer, currency), {
             'timestamp': timestamp,
@@ -9168,7 +9181,7 @@ class bybit extends bybit$1["default"] {
      * @param {string[]} symbols a list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
      * @param {int} [limit] the maximum amount of records to fetch, default=50, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days
      * @param {string} [params.subType] 'linear' or 'inverse'
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}

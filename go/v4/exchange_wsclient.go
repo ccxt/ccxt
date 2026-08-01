@@ -25,6 +25,17 @@ import (
 // messageHash used in the JS/C# layers).  Each Subscribe call returns a
 // receive-only channel that the caller reads updates from.
 
+// newWSDialer returns a websocket.Dialer with an explicit dual-stack
+// NetDialContext (network "tcp", Happy Eyeballs). Never use tcp4.
+func newWSDialer(proxyFunc func(*http.Request) (*url.URL, error)) websocket.Dialer {
+	return websocket.Dialer{
+		Proxy:             proxyFunc,
+		HandshakeTimeout:  10 * time.Second,
+		EnableCompression: false,
+		NetDialContext:    newDualStackDialer().DialContext,
+	}
+}
+
 type WSClient struct {
 	*Client
 
@@ -77,12 +88,9 @@ func (this *WSClient) CreateConnection() error {
 	} else {
 		proxy = http.ProxyFromEnvironment
 	}
-	// Create WebSocket dialer
-	dialer := websocket.Dialer{
-		Proxy:             proxy,
-		HandshakeTimeout:  10 * time.Second,
-		EnableCompression: false,
-	}
+	// Create WebSocket dialer (dual-stack: NetDialContext dials network "tcp"
+	// via Happy Eyeballs, so IPv4 and IPv6 are both attempted)
+	dialer := newWSDialer(proxy)
 
 	// Set up headers for protocols
 	headers := http.Header{}

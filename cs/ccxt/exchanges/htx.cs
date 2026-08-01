@@ -3162,7 +3162,7 @@ public partial class htx : Exchange
         object request = new Dictionary<string, object>() {
             { "period", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        object priceType = this.safeStringN(parameters, new List<object>() {"priceType", "price"});
+        object priceType = this.safeString2(parameters, "priceType", "price");
         parameters = this.omit(parameters, new List<object>() {"priceType", "price"});
         object until = null;
         var untilparametersVariable = this.handleParamInteger(parameters, "until");
@@ -5228,7 +5228,7 @@ public partial class htx : Exchange
             type = this.safeString(order, "type");
             if (isTrue(isTrue(isTrue(isTrue((isEqual(type, null))) || isTrue((isEqual(type, "tp")))) || isTrue((isEqual(type, "sl")))) || isTrue((isEqual(type, "tpsl")))))
             {
-                type = this.safeStringN(order, new List<object>() {"tp_type", "sl_type"});
+                type = this.safeString2(order, "tp_type", "sl_type");
             }
             if (isTrue(isEqual(type, "0")))
             {
@@ -7694,7 +7694,7 @@ public partial class htx : Exchange
         {
             if (isTrue(!isEqual(limit, null)))
             {
-                ((IDictionary<string,object>)request)["limit"] = limit;
+                ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100); // max 100
             }
             if (isTrue(!isEqual(since, null)))
             {
@@ -8125,7 +8125,7 @@ public partial class htx : Exchange
                     request = this.extend(request, query);
                 }
                 object sortedRequest = this.keysort(request);
-                object auth = this.urlencode(sortedRequest, true); // true is a go only requirment
+                object auth = this.urlencode(sortedRequest, true); // true is a go only requirement
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 object content = new List<object>() {method, this.hostname, url, auth};
                 object payload = String.Join("\n", ((IList<object>)content).ToArray()); // eslint-disable-line quotes
@@ -10173,7 +10173,7 @@ public partial class htx : Exchange
      * @see https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      // Coin-M futures
      * @param {string} symbol unified CCXT market symbol
      * @param {string} side 'buy' or 'sell', the side of the closing order, opposite side as position side
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
      * @param {object} [params.marginMode] 'cross' or 'isolated', required for linear markets
      *

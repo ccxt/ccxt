@@ -327,7 +327,7 @@ class gate(ccxt.async_support.gate):
         rawOrder = await self.request_private(url, self.extend(request, requestParams), channel)
         return self.parse_order(rawOrder, market)
 
-    async def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -339,9 +339,9 @@ class gate(ccxt.async_support.gate):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        return await self.fetch_orders_by_status_ws('open', symbol, since, limit, params)
+        return self.fetch_orders_by_status_ws('open', symbol, since, limit, params)
 
-    async def fetch_closed_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders_ws(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -353,7 +353,7 @@ class gate(ccxt.async_support.gate):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        return await self.fetch_orders_by_status_ws('finished', symbol, since, limit, params)
+        return self.fetch_orders_by_status_ws('finished', symbol, since, limit, params)
 
     async def fetch_orders_by_status_ws(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -690,7 +690,7 @@ class gate(ccxt.async_support.gate):
         result = await self.watch_tickers([symbol], params)
         return self.safe_value(result, symbol)
 
-    async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
 
         https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel
@@ -702,7 +702,7 @@ class gate(ccxt.async_support.gate):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.subscribe_watch_tickers_and_bids_asks(symbols, 'watchTickers', self.extend({'method': 'tickers'}, params))
+        return self.subscribe_watch_tickers_and_bids_asks(symbols, 'watchTickers', self.extend({'method': 'tickers'}, params))
 
     def handle_ticker(self, client: Client, message):
         #
@@ -725,7 +725,7 @@ class gate(ccxt.async_support.gate):
         #
         self.handle_ticker_and_bid_ask('ticker', client, message)
 
-    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+    def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
 
         https://www.gate.io/docs/developers/apiv4/ws/en/#best-bid-or-ask-price
@@ -737,7 +737,7 @@ class gate(ccxt.async_support.gate):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.subscribe_watch_tickers_and_bids_asks(symbols, 'watchBidsAsks', self.extend({'method': 'book_ticker'}, params))
+        return self.subscribe_watch_tickers_and_bids_asks(symbols, 'watchBidsAsks', self.extend({'method': 'book_ticker'}, params))
 
     def handle_bid_ask(self, client: Client, message):
         #
@@ -811,7 +811,7 @@ class gate(ccxt.async_support.gate):
             messageHash = objectName + ':' + symbol
             client.resolve(parsedItem, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
 
         https://www.gate.com/docs/developers/apiv4/ws/en/#public-trades-channel
@@ -826,7 +826,7 @@ class gate(ccxt.async_support.gate):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+        return self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -885,14 +885,14 @@ class gate(ccxt.async_support.gate):
         url = self.get_url_by_market(market)
         return await self.un_subscribe_public_multiple(url, 'trades', symbols, messageHashes, subMessageHashes, marketIds, channel, params)
 
-    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+    def un_watch_trades(self, symbol: str, params={}) -> Any:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return await self.un_watch_trades_for_symbols([symbol], params)
+        return self.un_watch_trades_for_symbols([symbol], params)
 
     def handle_trades(self, client: Client, message):
         #
@@ -1499,7 +1499,7 @@ class gate(ccxt.async_support.gate):
             client.resolve(self.orders, messageHash)
         client.resolve(self.orders, 'orders')
 
-    async def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
+    def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
         """
         watch the public liquidations of a trading pair
 

@@ -18,6 +18,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class coinex extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -741,16 +743,9 @@ class coinex extends Exchange {
 
     public function parse_currency($coin): array {
         $asset = $this->safe_dict($coin, 'asset', array());
-        $chains = $this->safe_list($coin, 'chains', array());
         $currencyId = $this->safe_string($asset, 'ccy');
-        if ($currencyId === null) {
-            return null; // coinex returns empty structures for some reason
-        }
+        $chains = $this->safe_list($coin, 'chains', array());
         $code = $this->safe_currency_code($currencyId);
-        $canDeposit = $this->safe_bool($asset, 'deposit_enabled');
-        $canWithdraw = $this->safe_bool($asset, 'withdraw_enabled');
-        $firstChain = $this->safe_dict($chains, 0, array());
-        $firstPrecisionString = $this->parse_precision($this->safe_string($firstChain, 'withdrawal_precision'));
         $networks = array();
         for ($j = 0; $j < count($chains); $j++) {
             $chain = $chains[$j];
@@ -759,32 +754,26 @@ class coinex extends Exchange {
             if ($networkId === null) {
                 continue;
             }
-            $precisionString = $this->parse_precision($this->safe_string($chain, 'withdrawal_precision'));
-            $feeString = $this->safe_string($chain, 'withdrawal_fee');
-            $minNetworkDepositString = $this->safe_string($chain, 'min_deposit_amount');
-            $minNetworkWithdrawString = $this->safe_string($chain, 'min_withdraw_amount');
-            $canDepositChain = $this->safe_bool($chain, 'deposit_enabled');
-            $canWithdrawChain = $this->safe_bool($chain, 'withdraw_enabled');
             $network = array(
                 'id' => $networkId,
                 'network' => $networkCode,
                 'name' => null,
-                'active' => $canDepositChain && $canWithdrawChain,
-                'deposit' => $canDepositChain,
-                'withdraw' => $canWithdrawChain,
-                'fee' => $this->parse_number($feeString),
-                'precision' => $this->parse_number($precisionString),
+                'active' => null,
+                'deposit' => $this->safe_bool($chain, 'deposit_enabled'),
+                'withdraw' => $this->safe_bool($chain, 'withdraw_enabled'),
+                'fee' => $this->safe_number($chain, 'withdrawal_fee'),
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'withdrawal_precision'))),
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
                         'max' => null,
                     ),
                     'deposit' => array(
-                        'min' => $this->parse_number($minNetworkDepositString),
+                        'min' => $this->safe_number($chain, 'min_deposit_amount'),
                         'max' => null,
                     ),
                     'withdraw' => array(
-                        'min' => $this->parse_number($minNetworkWithdrawString),
+                        'min' => $this->safe_number($chain, 'min_withdraw_amount'),
                         'max' => null,
                     ),
                 ),
@@ -796,11 +785,11 @@ class coinex extends Exchange {
             'id' => $currencyId,
             'code' => $code,
             'name' => null,
-            'active' => $canDeposit && $canWithdraw,
-            'deposit' => $canDeposit,
-            'withdraw' => $canWithdraw,
+            'active' => null,
+            'deposit' => $this->safe_bool($asset, 'deposit_enabled'),
+            'withdraw' => $this->safe_bool($asset, 'withdraw_enabled'),
             'fee' => null,
-            'precision' => $this->parse_number($firstPrecisionString),
+            'precision' => null,
             'limits' => array(
                 'amount' => array(
                     'min' => null,
@@ -1068,9 +1057,13 @@ class coinex extends Exchange {
         //         "volume_sell" => "6.1249"
         //     }
         //
-        $marketType = (is_array($ticker) && array_key_exists('mark_price', $ticker)) ? 'swap' : 'spot';
+        $marketType = (is_array($ticker) && array_key_exists('mark_price' ?? '', $ticker)) ? 'swap' : 'spot';
         $marketId = $this->safe_string($ticker, 'market');
-        $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
+        $market = $this->safe_market($marketId, $market, null, $marketType);
+        $symbol = $market['symbol'];
+        // on inverse contracts 'value' is denominated in the settle currency, not
+        // the quote, so it is the quote volume only for spot and linear markets
+        $quoteVolume = $market['inverse'] ? null : $this->safe_string($ticker, 'value');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => null,
@@ -1090,7 +1083,7 @@ class coinex extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volume'),
-            'quoteVolume' => null,
+            'quoteVolume' => $quoteVolume,
             'markPrice' => $this->safe_string($ticker, 'mark_price'),
             'indexPrice' => $this->safe_string($ticker, 'index_price'),
             'info' => $ticker,
@@ -5253,7 +5246,7 @@ class coinex extends Exchange {
         $currencyId = $this->safe_string($transaction, 'ccy');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = $this->safe_integer($transaction, 'created_at');
-        $type = (is_array($transaction) && array_key_exists('withdraw_id', $transaction)) ? 'withdrawal' : 'deposit';
+        $type = (is_array($transaction) && array_key_exists('withdraw_id' ?? '', $transaction)) ? 'withdrawal' : 'deposit';
         $networkId = $this->safe_string($transaction, 'chain');
         $feeCost = $this->safe_string($transaction, 'tx_fee');
         $transferMethod = $this->safe_string_lower_2($transaction, 'withdraw_method', 'deposit_method');
@@ -6130,7 +6123,7 @@ class coinex extends Exchange {
              * @param {string} $symbol unified contract $symbol
              * @param {int} [$since] the earliest time in ms to fetch $positions for
              * @param {int} [$limit] the maximum amount of $records to fetch, default is 10
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch $positions for
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
              */
@@ -6268,7 +6261,7 @@ class coinex extends Exchange {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
-         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange API endpoint
          * @return {Array} the $marginMode in lowercase
          */
         $defaultType = $this->safe_string($this->options, 'defaultType');
@@ -6419,7 +6412,7 @@ class coinex extends Exchange {
              * @param {string} [$type] not used by coinex fetchMarginAdjustmentHistory
              * @param {int} [$since] timestamp in ms of the earliest change to fetch
              * @param {int} [$limit] the maximum amount of changes to fetch, default is 10
-             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest change to fetch
              * @param {int} [$params->positionId] the id of the position that you want to retrieve margin adjustment history for
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=margin-loan-structure margin structures~

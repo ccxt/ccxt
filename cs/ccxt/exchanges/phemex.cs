@@ -2869,11 +2869,11 @@ public partial class phemex : Exchange
                     }
                 }
                 cost = ((bool) isTrue((isEqual(cost, null)))) ? amount : cost;
-                object costString = this.numberToString(cost);
+                object costString = this.costToPrecision(symbol, cost);
                 ((IDictionary<string,object>)request)["quoteQtyEv"] = this.toEv(costString, market);
             } else
             {
-                object amountString = this.numberToString(amount);
+                object amountString = this.amountToPrecision(symbol, amount);
                 ((IDictionary<string,object>)request)["baseQtyEv"] = this.toEv(amountString, market);
             }
         } else if (isTrue(getValue(market, "swap")))
@@ -4248,7 +4248,7 @@ public partial class phemex : Exchange
      * @param {string} symbol unified contract symbol
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum amount of records to fetch
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch positions for
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -4849,7 +4849,7 @@ public partial class phemex : Exchange
      * @description set hedged to true or false for a market
      * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#switch-position-mode-synchronously
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by binance setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
@@ -5488,7 +5488,7 @@ public partial class phemex : Exchange
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
-     * @param {object} [params] extra parameters specific to the phemex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] unified network code
      * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
      */

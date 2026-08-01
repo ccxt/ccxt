@@ -862,7 +862,7 @@ class hashkey extends hashkey$1["default"] {
         const swapMarkets = this.safeList(response, 'contracts', []);
         let markets = this.arrayConcat(spotMarkets, swapMarkets);
         if (this.isEmpty(markets)) {
-            markets = [response]; // if user provides params.symbol the exchange returns a single object insted of list of objects
+            markets = [response]; // if user provides params.symbol the exchange returns a single object instead of list of objects
         }
         return this.parseMarkets(markets);
     }
@@ -1494,7 +1494,7 @@ class hashkey extends hashkey$1["default"] {
             side = isBuyer ? 'buy' : 'sell';
         }
         let takerOrMaker = undefined;
-        const isMaker = this.safeBoolN(trade, ['isMaker', 'isMarker']);
+        const isMaker = this.safeBool2(trade, 'isMaker', 'isMarker');
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }

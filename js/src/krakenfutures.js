@@ -97,7 +97,7 @@ export default class krakenfutures extends Exchange {
                 'api': {
                     'charts': 'https://futures.kraken.com/api/charts/',
                     'history': 'https://futures.kraken.com/api/history/',
-                    'feeschedules': 'https://futures.kraken.com/api/feeschedules/',
+                    'feeschedules': 'https://futures.kraken.com/api/feeschedules/', // deprecated
                     'public': 'https://futures.kraken.com/derivatives/api/',
                     'private': 'https://futures.kraken.com/derivatives/api/',
                 },
@@ -111,7 +111,7 @@ export default class krakenfutures extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'feeschedules',
+                        'feeschedules', // deprecated
                         'instruments',
                         'orderbook',
                         'tickers',
@@ -121,7 +121,7 @@ export default class krakenfutures extends Exchange {
                 },
                 'private': {
                     'get': [
-                        'feeschedules/volumes',
+                        'feeschedules/volumes', // deprecated
                         'openpositions',
                         'notifications',
                         'accounts',
@@ -210,6 +210,7 @@ export default class krakenfutures extends Exchange {
                     'invalidAccount': BadRequest, // the fromAccount or the toAccount are invalid
                     'invalidAmount': BadRequest,
                     'insufficientFunds': InsufficientFunds,
+                    'INSUFFICIENT_MARGIN': InsufficientFunds, // 500 with {"errors":[{"code":92,"message":"INSUFFICIENT_MARGIN"}]}, see https://github.com/ccxt/ccxt/issues/19896
                     'Bad Request': BadRequest, // The URL contains invalid characters. (Please encode the json URL parameter)
                     'Unavailable': ExchangeNotAvailable, // https://github.com/ccxt/ccxt/issues/24338
                     'invalidUnit': BadRequest,
@@ -1575,7 +1576,8 @@ export default class krakenfutures extends Exchange {
     /**
      * @method
      * @name krakenfutures#fetchClosedOrders
-     * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+     * @see https://docs.kraken.com/api-reference/account-history/get-order-events
+     * @see https://docs.kraken.com/api-reference/account-history/get-trigger-events
      * @description Gets all closed orders, including trigger orders, for an account from the exchange api
      * @param {string} symbol Unified market symbol
      * @param {int} [since] Timestamp (ms) of earliest order.
@@ -2084,7 +2086,7 @@ export default class krakenfutures extends Exchange {
             return this.safeOrder({
                 'info': order,
                 'id': this.safeString(orderDictFromFetchOrder, 'orderId'),
-                'clientOrderId': this.safeStringN(orderDictFromFetchOrder, ['cliOrdId']),
+                'clientOrderId': this.safeString(orderDictFromFetchOrder, 'cliOrdId'),
                 'timestamp': this.parse8601(datetime),
                 'datetime': datetime,
                 'lastTradeTimestamp': undefined,
@@ -2727,7 +2729,9 @@ export default class krakenfutures extends Exchange {
     }
     parsePositions(response, symbols = undefined, params = {}) {
         const result = [];
-        const positions = this.safeValue(response, 'openPositions');
+        // a degraded response can omit openPositions entirely - default to an
+        // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
+        const positions = this.safeList(response, 'openPositions', []);
         for (let i = 0; i < positions.length; i++) {
             const position = this.parsePosition(positions[i]);
             result.push(position);

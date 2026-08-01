@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
 
 class luno extends \ccxt\async\luno {
     public function describe(): mixed {
@@ -147,6 +148,9 @@ class luno extends \ccxt\async\luno {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             *
+             * @see https://www.luno.com/en/developers/api#tag/Streaming-API
+             *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {arrayConstructor} [$params] extra parameters specific to the exchange API endpoint
@@ -209,7 +213,7 @@ class luno extends \ccxt\async\luno {
         $symbol = $subscription['symbol'];
         $messageHash = 'orderbook:' . $symbol;
         $timestamp = $this->safe_integer($message, 'timestamp');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->indexed_order_book(array());
         }
         $asks = $this->safe_value($message, 'asks');

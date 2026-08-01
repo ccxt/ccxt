@@ -11,6 +11,10 @@ use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class modetrade extends \ccxt\async\modetrade {
     public function describe(): mixed {
@@ -151,7 +155,7 @@ class modetrade extends \ccxt\async\modetrade {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $topic = $this->safe_string($message, 'topic');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -529,7 +533,7 @@ class modetrade extends \ccxt\async\modetrade {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $trade = $this->parse_ws_trade($this->extend($data, array( 'timestamp' => $timestamp )), $market);
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
@@ -633,7 +637,7 @@ class modetrade extends \ccxt\async\modetrade {
             $error = new AuthenticationError($this->json($message));
             $client->reject($error, $messageHash);
             // allows further authentication attempts
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions['authenticated']);
             }
         }
@@ -1081,7 +1085,7 @@ class modetrade extends \ccxt\async\modetrade {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
         if ($fetchPositionsSnapshot) {
             $messageHash = 'fetchPositionsSnapshot';
-            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+            if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
                 $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash);
             }
@@ -1103,7 +1107,7 @@ class modetrade extends \ccxt\async\modetrade {
                 }
             }
             // don't remove the $future from the .futures $cache
-            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
                 $future = $client->futures[$messageHash];
                 $future->resolve($cache);
                 $client->resolve($cache, 'positions');
@@ -1300,7 +1304,7 @@ class modetrade extends \ccxt\async\modetrade {
             $key = $keys[$i];
             $value = $balances[$key];
             $code = $this->safe_currency_code($key);
-            $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
+            $account = (is_array($this->balance) && array_key_exists($code ?? '', $this->balance)) ? $this->balance[$code] : $this->account();
             $total = $this->safe_string($value, 'holding');
             $used = $this->safe_string($value, 'frozen');
             $account['total'] = $total;
@@ -1316,7 +1320,7 @@ class modetrade extends \ccxt\async\modetrade {
         //
         // array("id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed.")
         //
-        if (!(is_array($message) && array_key_exists('success', $message))) {
+        if (!(is_array($message) && array_key_exists('success' ?? '', $message))) {
             return false;
         }
         $success = $this->safe_bool($message, 'success');
@@ -1334,7 +1338,7 @@ class modetrade extends \ccxt\async\modetrade {
             if ($error instanceof AuthenticationError) {
                 $messageHash = 'authenticated';
                 $client->reject($error, $messageHash);
-                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                     unset($client->subscriptions[$messageHash]);
                 }
             } else {

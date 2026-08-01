@@ -727,6 +727,7 @@ class lbank extends lbank$1["default"] {
         // swap: fetchTickers
         //
         //     {
+        //         "lastTime": 1784884932,
         //         "prePositionFeeRate": "0.000053",
         //         "volume": "2435.459",
         //         "symbol": "BTCUSDT",
@@ -738,7 +739,10 @@ class lbank extends lbank$1["default"] {
         //         "lastPrice": "29387.0"
         //     }
         //
-        const timestamp = this.safeInteger(ticker, 'timestamp');
+        let timestamp = this.safeInteger(ticker, 'timestamp');
+        if (timestamp === undefined) {
+            timestamp = this.safeTimestamp(ticker, 'lastTime');
+        }
         const marketId = this.safeString(ticker, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
         const tickerData = this.safeValue(ticker, 'ticker', {});
@@ -2645,7 +2649,7 @@ class lbank extends lbank$1["default"] {
      * @name lbank#fetchTransactionFees
      * @deprecated
      * @description please use fetchDepositWithdrawFees instead
-     * @param {string[]|undefined} codes not used by lbank fetchTransactionFees ()
+     * @param {string[]|undefined} codes not used by fetchTransactionFees ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */

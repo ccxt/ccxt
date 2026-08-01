@@ -155,7 +155,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("ticker:", symbol);
@@ -196,7 +199,6 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
             return (this.unWatchChannel(symbol, "ticker", "ticker", "watchTicker", parameters)).join();
         });
 
@@ -221,7 +223,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false);
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
@@ -486,7 +491,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false);
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
@@ -592,7 +600,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object timeframes = this.safeValue(this.options, "timeframes");
@@ -655,7 +666,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object timeframes = this.safeDict(this.options, "timeframes");
             Object interval = this.safeString(timeframes, timeframe);
             Object channel = null;
@@ -880,7 +894,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object channel = "books";
             Object limit = this.safeInteger(parameters, "limit");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(limit, 1))) || Helpers.isTrue((Helpers.isEqual(limit, 5)))) || Helpers.isTrue((Helpers.isEqual(limit, 15)))) || Helpers.isTrue((Helpers.isEqual(limit, 50)))))
@@ -899,7 +916,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("unsubscribe:", messageHashTopic), ":"), Helpers.GetValue(market, "symbol"));
             Object instType = null;
@@ -953,7 +973,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object symbols = symbols3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object channel = "books";
             Object incrementalFeed = true;
@@ -1224,7 +1247,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object uta = null;
             var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTradesForSymbols", "uta", false);
@@ -1533,7 +1559,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object messageHash = "";
             Object subscriptionHash = "positions";
@@ -1831,7 +1860,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object marketId = null;
             Object isTrigger = null;
@@ -2048,6 +2080,20 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         Object isLinearSwap = (Helpers.isEqual(category, "usdt-futures"));
         Object isInverseSwap = (Helpers.isEqual(category, "coin-futures"));
         Object isUSDCFutures = (Helpers.isEqual(category, "usdc-futures"));
+        if (Helpers.isTrue(Helpers.isEqual(instType, "uta")))
+        {
+            // UTA order/fill pushes carry the real product in 'category' (spot / *-futures);
+            // the instType->marketType mapping above defaults UTA to 'contract', which
+            // mis-resolves a UTA SPOT order to the swap market and yields a messageHash the
+            // watcher never matches. Derive marketType from category for UTA.
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(category, "spot"))) || Helpers.isTrue((Helpers.isEqual(category, "margin")))))
+            {
+                marketType = "spot";
+            } else
+            {
+                marketType = "contract";
+            }
+        }
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -2111,8 +2157,8 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         //         price: '0.81075', // limit price, field not present for market orders
         //         clientOid: 'a2330139-1d04-4d78-98be-07de3cfd1055',
         //         notional: '5.675250', // this is not cost! but notional
-        //         newSize: '7.0000', // this is not cost! quanity (for limit order or market sell) or cost (for market buy order)
-        //         size: '5.6752', // this is not cost, neither quanity, but notional! this field for "spot" can be ignored at all
+        //         newSize: '7.0000', // this is not cost! quantity (for limit order or market sell) or cost (for market buy order)
+        //         size: '5.6752', // this is not cost, neither quantity, but notional! this field for "spot" can be ignored at all
         //         // Note: for limit order (even filled) we don't have cost value in response, only in market order
         //         orderType: 'limit', // limit, market
         //         force: 'gtc',
@@ -2419,7 +2465,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object messageHash = "myTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -2596,10 +2645,27 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object length = Helpers.getArrayLength(data);
         Object messageHash = "myTrades";
+        Object arg = this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
+        Object instType = this.safeStringLower(arg, "instType");
         for (var i = 0; Helpers.isLessThan(i, length); i++)
         {
             Object trade = Helpers.GetValue(data, i);
-            Object parsed = this.parseWsTrade(trade);
+            Object market = null;
+            if (Helpers.isTrue(Helpers.isEqual(instType, "uta")))
+            {
+                // UTA fills carry the product in 'category'; resolve the matching
+                // market so parseWsTrade yields the correct symbol (a UTA SPOT fill
+                // otherwise resolves to the swap market and the messageHash never matches).
+                Object category = this.safeStringLower(trade, "category");
+                Object marketType = "contract";
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(category, "spot"))) || Helpers.isTrue((Helpers.isEqual(category, "margin")))))
+                {
+                    marketType = "spot";
+                }
+                Object marketId = this.safeString2(trade, "instId", "symbol");
+                market = this.safeMarket(marketId, null, null, marketType);
+            }
+            Object parsed = this.parseWsTrade(trade, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(parsed, "symbol");
             Object symbolSpecificMessageHash = Helpers.add("myTrades:", symbol);
@@ -3396,7 +3462,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object channel = this.safeString2(arg, "channel", "topic", "");
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "books"), 0)))
             {
-                // for now only unWatchOrderBook is supporteod
+                // for now only unWatchOrderBook is supported
                 this.handleOrderBookUnSubscription(client, message);
             } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "trade"), 0))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "publicTrade"), 0)))))
             {

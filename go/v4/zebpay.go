@@ -334,7 +334,7 @@ func (this *ZebpayCore) FetchTime(optionalArgs ...any) <-chan any {
  * @description retrieves data on all markets for zebpay
  * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
  * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
 func (this *ZebpayCore) FetchMarkets(optionalArgs ...any) <-chan any {
@@ -1711,7 +1711,7 @@ func (this *ZebpayCore) ParseOrder(order any, optionalArgs ...any) any {
  * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-close-position
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} side not used by kucoinfutures closePositions
- * @param {object} [params] extra parameters specific to the okx api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.positionId] client order id of the order
  * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */

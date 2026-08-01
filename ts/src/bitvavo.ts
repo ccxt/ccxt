@@ -6,7 +6,7 @@ import Exchange from './abstract/bitvavo.js';
 import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, InvalidAddress, BadRequest, RateLimitExceeded, PermissionDenied, ExchangeNotAvailable, AccountSuspended, OnMaintenance } from './base/errors.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Currencies, Currency, Dict, NullableDict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, DepositAddress } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, Dict, NullableDict, Int, LedgerEntry, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, DepositAddress, List } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -359,7 +359,7 @@ export default class bitvavo extends Exchange {
                     '230': ExchangeError, // The order is rejected by the matching engine.
                     '231': ExchangeError, // The order is rejected by the matching engine. TimeInForce must be GTC when markets are paused.
                     '232': BadRequest, // You must change at least one of amount, amountRemaining, price, timeInForce, selfTradePrevention or postOnly.
-                    '233': InvalidOrder, // {"errorCode":233,"error":"Order must be active (status new or partiallyFilled) to allow updating/cancelling."}
+                    '233': OrderNotFound, // {"errorCode":233,"error":"Order must be active (status new or partiallyFilled) to allow updating/cancelling."}, canceling an already filled or canceled order, see https://github.com/ccxt/ccxt/issues/24154
                     '234': InvalidOrder, // Market orders cannot be updated.
                     '235': ExchangeError, // You can only have 100 open orders on each book.
                     '236': BadRequest, // You can only update amount or amountRemaining, not both.
@@ -406,13 +406,15 @@ export default class bitvavo extends Exchange {
             'options': {
                 'mica': true,
                 'currencyToPrecisionRoundingMode': TRUNCATE,
-                'BITVAVO-ACCESS-WINDOW': 10000, // default 10 sec
+                'recvWindow': 10000, // default 10 sec
                 'networks': {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
                 },
                 'operatorId': undefined, // this will be required soon for order-related endpoints
-                'fiatCurrencies': [ 'EUR' ], // only fiat atm
+                'fetchCurrencies': {
+                    'fiatCurrencies': [ 'EUR' ], // only fiat atm
+                },
             },
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {
@@ -617,7 +619,7 @@ export default class bitvavo extends Exchange {
         //         },
         //     ]
         //
-        const fiatCurrencies = this.safeList (this.options, 'fiatCurrencies', []);
+        const fiatCurrencies = this.handleOption ('fetchCurrencies', 'fiatCurrencies', []) as List;
         const id = this.safeString (rawCurrency, 'symbol');
         const code = this.safeCurrencyCode (id);
         const isFiat = this.inArray (code, fiatCurrencies);
@@ -1219,7 +1221,7 @@ export default class bitvavo extends Exchange {
      * @name bitvavo#fetchAccounts
      * @see https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
      * @description fetch all the accounts associated with a profile
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
@@ -1264,7 +1266,7 @@ export default class bitvavo extends Exchange {
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from, either 'master' or the subaccount id
      * @param {string} toAccount account to transfer to, either 'master' or the subaccount id
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccountId] the unique identifier for the subaccount
      * @param {string} [params.clientRequestId] client defined unique id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -1325,7 +1327,7 @@ export default class bitvavo extends Exchange {
      * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of transfers structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccountId] the unique identifier for the subaccount
      * @param {int} [params.until] the latest time in ms to fetch transfers for
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -1382,7 +1384,7 @@ export default class bitvavo extends Exchange {
      * @description fetches a transfer
      * @param {string} id transfer id
      * @param {string} [code] unified currency code of the currency transferred
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfer (id: string, code: Str = undefined, params = {}): Promise<TransferEntry> {
@@ -1577,7 +1579,7 @@ export default class bitvavo extends Exchange {
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
      * @param {float} [params.stopPrice] Alias for triggerPrice
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -1689,7 +1691,7 @@ export default class bitvavo extends Exchange {
      * @param {string} side 'buy' or 'sell'
      * @param {float} [amount] how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
@@ -1754,7 +1756,7 @@ export default class bitvavo extends Exchange {
      * @name bitvavo#cancelAllOrders
      * @see https://docs.bitvavo.com/docs/rest-api/cancel-orders/
      * @description cancel all open orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2233,7 +2235,7 @@ export default class bitvavo extends Exchange {
      * @param {string} [code] unified currency code
      * @param {int} [since] timestamp in ms of the earliest ledger entry
      * @param {int} [limit] max number of ledger entries to return
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {int} [params.page] the page number for the transaction history
      * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
@@ -2413,7 +2415,7 @@ export default class bitvavo extends Exchange {
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -2472,7 +2474,7 @@ export default class bitvavo extends Exchange {
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -2697,7 +2699,7 @@ export default class bitvavo extends Exchange {
             const timestamp = this.milliseconds ().toString ();
             const auth = timestamp + method + url + payload;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            const accessWindow = this.safeString (this.options, 'BITVAVO-ACCESS-WINDOW', '10000');
+            const accessWindow = this.safeString2 (this.options, 'recvWindow', 'BITVAVO-ACCESS-WINDOW', '10000');
             headers = {
                 'BITVAVO-ACCESS-KEY': this.apiKey,
                 'BITVAVO-ACCESS-SIGNATURE': signature,

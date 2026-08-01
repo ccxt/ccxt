@@ -624,7 +624,7 @@ export default class grvt extends Exchange {
      * @name grvt#fetchMarkets
      * @description retrieves data on all markets
      * @see https://api-docs.grvt.io/market_data_api/#get-instrument-prod
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
@@ -913,9 +913,12 @@ export default class grvt extends Exchange {
         //        }
         //
         const marketId = this.safeString (ticker, 'instrument');
+        const timestamp = this.safeIntegerProduct (ticker, 'event_time', 0.000001);
         return this.safeTicker ({
             'info': ticker,
             'symbol': this.safeSymbol (marketId, market),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'open': this.safeString (ticker, 'open_price'),
             'high': this.safeString (ticker, 'high_price'),
             'low': this.safeString (ticker, 'low_price'),
@@ -2205,7 +2208,7 @@ export default class grvt extends Exchange {
                 const limitDec = this.safeString (limitParts, 1, '');
                 const limitDecLength = limitDec.length + 0; // php tr
                 const limitDecLengthStr = limitDecLength.toString ();
-                const powerNum = limitDecLengthStr === '0' ? 0 : this.convertToBigIntCustom (limitDecLengthStr);
+                const powerNum = (limitDecLengthStr === '0') ? 0 : this.convertToBigIntCustom (limitDecLengthStr);
                 const priceInteger = (this.convertToBigIntCustom (price.replace ('.', '')) * this.convertToBigIntCustom (priceMultiplier) / (Math.pow (bigInt10, powerNum)));
                 legOrder['limitPrice'] = this.parseToInt (priceInteger);
             } else {
@@ -3082,7 +3085,7 @@ export default class grvt extends Exchange {
      * @name grvt#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://api-docs.grvt.io/trading_api/#cancel-all-orders
-     * @param {string} symbol cancel alls open orders
+     * @param {string} [symbol] cancel alls open orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */

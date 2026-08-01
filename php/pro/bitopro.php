@@ -9,6 +9,8 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class bitopro extends \ccxt\async\bitopro {
     public function describe(): mixed {
@@ -398,7 +400,7 @@ class bitopro extends \ccxt\async\bitopro {
     }
 
     public function authenticate($url) {
-        if (($this->clients !== null) && (is_array($this->clients) && array_key_exists($url, $this->clients))) {
+        if (($this->clients !== null) && (is_array($this->clients) && array_key_exists($url ?? '', $this->clients))) {
             return;
         }
         $this->check_required_credentials();

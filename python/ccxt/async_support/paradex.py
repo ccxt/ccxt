@@ -155,7 +155,9 @@ class paradex(Exchange, ImplicitAPI):
                         'bbo/{market}/interactive': 1,
                         'funding/data': 1,
                         'markets': 1,
+                        'markets/history': 1,
                         'markets/klines': 1,
+                        'markets/settlement-price': 1,
                         'markets/summary': 1,
                         'orderbook/{market}': 1,
                         'orderbook/{market}/impact-price': 1,
@@ -1684,7 +1686,7 @@ class paradex(Exchange, ImplicitAPI):
         """
         edit an open limit order or TPSL order
 
-        https://docs.paradex.trade/api-reference/prod/orders/modify
+        https://docs.paradex.trade/api/prod/orders/modify
 
         :param str id: order id
         :param str symbol: unified symbol of the market to edit an order in

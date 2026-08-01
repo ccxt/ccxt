@@ -16,6 +16,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class upbit extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -1372,7 +1374,7 @@ class upbit extends Exchange {
              *
              * cancels an open order
              * @param {string} $id order $id
-             * @param {string} $symbol not used by upbit cancelOrder ()
+             * @param {string} $symbol not used by cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */

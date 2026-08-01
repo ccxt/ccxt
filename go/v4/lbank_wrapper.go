@@ -79,14 +79,14 @@ func (this *Lbank) FetchSpotMarkets(params ...any) ([]map[string]any, error) {
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMapArray(res), nil
 }
 func (this *Lbank) FetchSwapMarkets(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchSwapMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**
@@ -943,7 +943,7 @@ func (this *Lbank) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Trans
  * @name lbank#fetchTransactionFees
  * @deprecated
  * @description please use fetchDepositWithdrawFees instead
- * @param {string[]|undefined} codes not used by lbank fetchTransactionFees ()
+ * @param {string[]|undefined} codes not used by fetchTransactionFees ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */

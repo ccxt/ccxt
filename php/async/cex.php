@@ -15,6 +15,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class cex extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -903,7 +905,7 @@ class cex extends Exchange {
         }
         for ($i = 0; $i < count($this->symbols); $i++) {
             $symbol = $this->symbols[$i];
-            if (!(is_array($result) && array_key_exists($symbol, $result))) {
+            if (!(is_array($result) && array_key_exists($symbol ?? '', $result))) {
                 $market = $this->market($symbol);
                 $result[$symbol] = $this->parse_trading_fee($response, $market);
             }

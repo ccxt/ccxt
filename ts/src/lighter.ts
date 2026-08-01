@@ -847,12 +847,12 @@ export default class lighter extends Exchange {
             } else {
                 triggerOrderSide = 'buy';
             }
-            const stopLossOrderTriggerPrice = this.safeNumberN (stopLoss, [ 'triggerPrice', 'stopPrice' ]);
+            const stopLossOrderTriggerPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'stopPrice');
             const stopLossOrderType = this.safeString (stopLoss, 'type', 'limit');
-            const stopLossOrderLimitPrice = this.safeNumberN (stopLoss, [ 'price', 'stopLossPrice' ], stopLossOrderTriggerPrice);
-            const takeProfitOrderTriggerPrice = this.safeNumberN (takeProfit, [ 'triggerPrice', 'stopPrice' ]);
+            const stopLossOrderLimitPrice = this.safeNumber2 (stopLoss, 'price', 'stopLossPrice', stopLossOrderTriggerPrice);
+            const takeProfitOrderTriggerPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'stopPrice');
             const takeProfitOrderType = this.safeString (takeProfit, 'type', 'limit');
-            const takeProfitOrderLimitPrice = this.safeNumberN (takeProfit, [ 'price', 'takeProfitPrice' ], takeProfitOrderTriggerPrice);
+            const takeProfitOrderLimitPrice = this.safeNumber2 (takeProfit, 'price', 'takeProfitPrice', takeProfitOrderTriggerPrice);
             // amount should be 0 for child orders
             if (stopLoss !== undefined) {
                 const orderObj = this.createOrderRequest (symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.extend (params, {
@@ -3285,7 +3285,7 @@ export default class lighter extends Exchange {
      * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
-     * @param {object} [params] parameters specific to the bingx api endpoint
+     * @param {object} [params] parameters specific to the exchange API endpoint
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}

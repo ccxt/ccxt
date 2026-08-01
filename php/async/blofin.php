@@ -14,6 +14,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class blofin extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -428,7 +430,6 @@ class blofin extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
-                'brokerId' => 'ec6dd3a7dd982d0b',
                 'accountsByType' => array(
                     'swap' => 'futures',
                     'funding' => 'funding',
@@ -468,28 +469,13 @@ class blofin extends Exchange {
                         '1D' => '1D',
                     ),
                 ),
-                'fetchOHLCV' => array(
-                    // 'type' => 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
-                    'timezone' => 'UTC', // UTC, HK
-                ),
-                'fetchPositions' => array(
-                    'method' => 'privateGetAccountPositions', // privateGetAccountPositions or privateGetAccountPositionsHistory
-                ),
-                'createOrder' => 'privatePostTradeOrder', // or 'privatePostTradeOrderTpsl'
-                'createMarketBuyOrderRequiresPrice' => false,
-                'fetchMarkets' => array( 'swap' ),
                 'defaultType' => 'swap',
-                'fetchLedger' => array(
-                    'method' => 'privateGetAssetBills',
-                ),
+                'brokerId' => 'ec6dd3a7dd982d0b',
                 'fetchOpenOrders' => array(
                     'method' => 'privateGetTradeOrdersPending',
                 ),
                 'cancelOrders' => array(
                     'method' => 'privatePostTradeCancelBatchOrders',
-                ),
-                'fetchCanceledOrders' => array(
-                    'method' => 'privateGetTradeOrdersHistory', // privateGetTradeOrdersTpslHistory
                 ),
                 'fetchClosedOrders' => array(
                     'method' => 'privateGetTradeOrdersHistory', // privateGetTradeOrdersTpslHistory
@@ -536,7 +522,7 @@ class blofin extends Exchange {
         $contract = $swap || $future;
         $baseId = $this->safe_string($market, 'baseCurrency');
         $quoteId = $this->safe_string($market, 'quoteCurrency');
-        $settleId = $this->safe_string($market, 'quoteCurrency');
+        $settleId = $this->safe_string($market, 'settleCurrency', $quoteId);
         $settle = $this->safe_currency_code($settleId);
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
@@ -555,6 +541,9 @@ class blofin extends Exchange {
         $maxLeverage = Precise::string_max($maxLeverage, '1');
         $isActive = ($this->safe_string($market, 'state') === 'live');
         $isMargin = $spot && (Precise::string_gt($maxLeverage, '1'));
+        $contractType = $this->safe_string($market, 'contractType');
+        $maxLimitAmount = $this->safe_number($market, 'maxLimitSize');
+        $maxSpotCost = $this->safe_number($market, 'maxMarketSize'); // for $spot, $market-buy size is denominated in the $quote currency, i.e. cost
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
@@ -574,8 +563,8 @@ class blofin extends Exchange {
             'taker' => $taker,
             'maker' => $maker,
             'contract' => $contract,
-            'linear' => $contract ? ($quoteId === $settleId) : null,
-            'inverse' => $contract ? ($baseId === $settleId) : null,
+            'linear' => $contract ? ($contractType === 'linear') : null,
+            'inverse' => $contract ? ($contractType === 'inverse') : null,
             'contractSize' => $contract ? $this->safe_number($market, 'contractValue') : null,
             'expiry' => $expiry,
             'expiryDatetime' => $expiry,
@@ -593,7 +582,7 @@ class blofin extends Exchange {
                 ),
                 'amount' => array(
                     'min' => $this->safe_number($market, 'minSize'),
-                    'max' => null,
+                    'max' => $maxLimitAmount,
                 ),
                 'price' => array(
                     'min' => null,
@@ -601,7 +590,7 @@ class blofin extends Exchange {
                 ),
                 'cost' => array(
                     'min' => null,
-                    'max' => null,
+                    'max' => $contract ? null : $maxSpotCost,
                 ),
             ),
             'info' => $market,
@@ -1634,7 +1623,7 @@ class blofin extends Exchange {
             $request = array(
                 'instId' => $market['id'],
             );
-            $isTrigger = $this->safe_bool_n($params, array( 'trigger' ), false);
+            $isTrigger = $this->safe_bool($params, 'trigger', false);
             $isTpsl = $this->safe_bool_2($params, 'tpsl', 'TPSL', false);
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
             if ($clientOrderId !== null) {
@@ -2134,9 +2123,7 @@ class blofin extends Exchange {
             }
             $market = $this->market($symbol);
             $request = array();
-            $options = $this->safe_dict($this->options, 'cancelOrders', array());
-            $defaultMethod = $this->safe_string($options, 'method', 'privatePostTradeCancelBatchOrders');
-            $method = $this->safe_string($params, 'method', $defaultMethod);
+            $method = $this->handle_option('cancelOrders', 'method', 'privatePostTradeCancelBatchOrders');
             $clientOrderIds = $this->parse_ids($this->safe_value($params, 'clientOrderId'));
             $tpslIds = $this->parse_ids($this->safe_value($params, 'tpslId'));
             $trigger = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl' ));
@@ -2294,7 +2281,7 @@ class blofin extends Exchange {
              * @param {string[]} [$symbols] unified contract $symbols
              * @param {int} [$since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for $params["until"] - $since is 3 months
              * @param {int} [$limit] the maximum amount of records to fetch, default=20, max=100
-             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest position to fetch, max range for $params["until"] - $since is 3 months
              * @param {string} [$params->productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
              * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
@@ -2660,7 +2647,7 @@ class blofin extends Exchange {
              *
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} [$side] 'buy' or 'sell', leave in net mode
-             * @param {array} [$params] extra parameters specific to the blofin api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->clientOrderId] a unique identifier for the order
              * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross;
              * @param {string} [$params->code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -2728,7 +2715,7 @@ class blofin extends Exchange {
             }
             $isTrigger = $this->safe_bool_n($params, array( 'stop', 'trigger', 'tpsl', 'TPSL' ), false);
             $method = null;
-            list($method, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
+            list($method, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
             $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ));
             if (($isTrigger) || ($method === 'privateGetTradeOrdersTpslHistory')) {
                 $response = Async\await($this->privateGetTradeOrdersTpslHistory($this->extend($request, $query)));
@@ -2854,7 +2841,7 @@ class blofin extends Exchange {
              * @see https://docs.blofin.com/index.html#set-position-mode
              *
              * @param {bool} $hedged set to true to use $hedged mode, false for one-way mode
-             * @param {string} [$symbol] not used by blofin setPositionMode ()
+             * @param {string} [$symbol] not used by setPositionMode ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} response from the exchange
              */

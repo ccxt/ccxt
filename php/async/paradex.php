@@ -14,6 +14,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class paradex extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -150,7 +152,9 @@ class paradex extends Exchange {
                         'bbo/{market}/interactive' => 1,
                         'funding/data' => 1,
                         'markets' => 1,
+                        'markets/history' => 1,
                         'markets/klines' => 1,
+                        'markets/settlement-price' => 1,
                         'markets/summary' => 1,
                         'orderbook/{market}' => 1,
                         'orderbook/{market}/impact-price' => 1,
@@ -1527,7 +1531,7 @@ class paradex extends Exchange {
         $lastUpdateTimestamp = $this->safe_integer($order, 'last_updated_at');
         $flags = $this->safe_list($order, 'flags', array());
         $reduceOnly = null;
-        if (is_array($flags) && array_key_exists('REDUCE_ONLY', $flags)) {
+        if (is_array($flags) && array_key_exists('REDUCE_ONLY' ?? '', $flags)) {
             $reduceOnly = true;
         }
         return $this->safe_order(array(
@@ -1793,7 +1797,7 @@ class paradex extends Exchange {
             /**
              * edit an open limit order or TPSL order
              *
-             * @see https://docs.paradex.trade/api-reference/prod/orders/modify
+             * @see https://docs.paradex.trade/api/prod/orders/modify
              *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market to edit an order in
@@ -1968,7 +1972,7 @@ class paradex extends Exchange {
              * @see https://docs.paradex.trade/api/prod/orders/cancel-batch
              *
              * @param {string[]} $ids order $ids
-             * @param {string} [$symbol] unified $market $symbol, not used by paradex cancelOrders()
+             * @param {string} [$symbol] unified $market $symbol, not used by cancelOrders()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string[]} [$params->clientOrderIds] client order $ids
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~

@@ -1,90 +1,298 @@
 {
     "BTC": {
+        "info": {
+            "code": "btc",
+            "full_name": "Bitcoin",
+            "color": "F7931A",
+            "precision": 8,
+            "display_ticker": "BTC",
+            "type": "crypto"
+        },
         "id": "btc",
+        "numericId": null,
         "code": "BTC",
         "precision": 1e-8,
+        "type": "crypto",
+        "name": "Bitcoin",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
-        "networks": {},
+        "networks": null,
         "limits": {
-            "deposit": {},
-            "withdraw": {}
-        }
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        },
+        "margin": null
     },
     "USDT": {
+        "info": {
+            "code": "usdt",
+            "full_name": "USDT (Digital Dollars)",
+            "color": "50AF95",
+            "precision": 2,
+            "display_ticker": "USDT",
+            "type": "crypto"
+        },
         "id": "usdt",
+        "numericId": null,
         "code": "USDT",
-        "precision": 1e-8,
+        "precision": 0.01,
+        "type": "crypto",
+        "name": "USDT (Digital Dollars)",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
-        "networks": {},
+        "networks": null,
         "limits": {
-            "deposit": {},
-            "withdraw": {}
-        }
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        },
+        "margin": null
     },
     "EUR": {
+        "info": {
+            "code": "eur",
+            "full_name": "EUR stablecoins",
+            "color": "FFB31F",
+            "precision": 2,
+            "display_ticker": "EUR",
+            "type": "crypto"
+        },
         "id": "eur",
+        "numericId": null,
         "code": "EUR",
-        "precision": 1e-8,
+        "precision": 0.01,
+        "type": "crypto",
+        "name": "EUR stablecoins",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
-        "networks": {},
+        "networks": null,
         "limits": {
-            "deposit": {},
-            "withdraw": {}
-        }
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        },
+        "margin": null
     },
     "USD": {
+        "info": {
+            "code": "usd",
+            "full_name": "Digital Dollars (USDC)",
+            "color": "185FEE",
+            "precision": 2,
+            "display_ticker": "USD",
+            "type": "fiat"
+        },
         "id": "usd",
+        "numericId": null,
         "code": "USD",
-        "precision": 1e-8,
+        "precision": 0.01,
+        "type": "fiat",
+        "name": "Digital Dollars (USDC)",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
-        "networks": {},
+        "networks": null,
         "limits": {
-            "deposit": {},
-            "withdraw": {}
-        }
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        },
+        "margin": null
     },
     "LTC": {
+        "info": {
+            "code": "ltc",
+            "full_name": "Litecoin",
+            "color": "A6A9AA",
+            "precision": 8,
+            "display_ticker": "LTC",
+            "type": "crypto"
+        },
         "id": "ltc",
+        "numericId": null,
         "code": "LTC",
         "precision": 1e-8,
+        "type": "crypto",
+        "name": "Litecoin",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
-        "networks": {},
+        "networks": null,
         "limits": {
-            "deposit": {},
-            "withdraw": {}
-        }
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        },
+        "margin": null
     },
     "ETH": {
+        "info": {
+            "code": "eth",
+            "full_name": "Ether",
+            "color": "8F98CC",
+            "precision": 8,
+            "display_ticker": "ETH",
+            "type": "crypto"
+        },
         "id": "eth",
+        "numericId": null,
         "code": "ETH",
         "precision": 1e-8,
+        "type": "crypto",
+        "name": "Ether",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
-        "networks": {},
+        "networks": null,
         "limits": {
-            "deposit": {},
-            "withdraw": {}
-        }
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        },
+        "margin": null
     },
     "ADA": {
+        "info": {
+            "code": "ada",
+            "full_name": "Cardano",
+            "color": "0033AD",
+            "precision": 6,
+            "display_ticker": "ADA",
+            "type": "crypto"
+        },
         "id": "ada",
+        "numericId": null,
         "code": "ADA",
-        "precision": 1e-8,
+        "precision": 0.000001,
+        "type": "crypto",
+        "name": "Cardano",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
-        "networks": {},
+        "networks": null,
         "limits": {
-            "deposit": {},
-            "withdraw": {}
-        }
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        },
+        "margin": null
     },
     "XRP": {
+        "info": {
+            "code": "xrp",
+            "full_name": "XRP",
+            "color": "4A5662",
+            "precision": 6,
+            "display_ticker": "XRP",
+            "type": "crypto"
+        },
         "id": "xrp",
+        "numericId": null,
         "code": "XRP",
         "precision": 0.000001,
+        "type": "crypto",
+        "name": "XRP",
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
-        "networks": {},
+        "networks": null,
         "limits": {
-            "deposit": {},
-            "withdraw": {}
-        }
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        },
+        "margin": null
     }
 }

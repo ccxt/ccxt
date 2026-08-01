@@ -1192,6 +1192,7 @@ export default class htx extends htxRest {
                     'id': orderId,
                     'trades': trades,
                     'status': status,
+                    'lastTradeTimestamp': this.safeInteger (data, 'tradeTime'),
                     'symbol': market['symbol'],
                     'filled': this.parseNumber (filled),
                     'remaining': this.parseNumber (remaining),
@@ -2399,6 +2400,13 @@ export default class htx extends htxRest {
                     client.reject (e, id);
                     if (id in client.subscriptions) {
                         delete client.subscriptions[id];
+                    }
+                    // the subscription is keyed by the messageHash, not by the id -
+                    // without removing it a repeated watch call attaches to a future
+                    // that nothing will resolve instead of resubscribing, see
+                    // https://github.com/ccxt/ccxt/issues/10280
+                    if (messageHash in client.subscriptions) {
+                        delete client.subscriptions[messageHash];
                     }
                 }
             }

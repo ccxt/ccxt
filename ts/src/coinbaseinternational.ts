@@ -1731,7 +1731,7 @@ export default class coinbaseinternational extends Exchange {
         const currency = this.currency (code);
         const request: Dict = {
             'asset': currency['id'],
-            'ammount': amount,
+            'amount': amount,
             'from': fromAccount,
             'to': toAccount,
         };
@@ -1942,7 +1942,7 @@ export default class coinbaseinternational extends Exchange {
      * @description cancels an open order
      * @see https://docs.cloud.coinbase.com/intx/reference/cancelorder
      * @param {string} id order id
-     * @param {string} symbol not used by coinbaseinternational cancelOrder()
+     * @param {string} symbol not used by cancelOrder()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1991,7 +1991,7 @@ export default class coinbaseinternational extends Exchange {
      * @method
      * @name coinbaseinternational#cancelAllOrders
      * @description cancel all open orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2243,7 +2243,7 @@ export default class coinbaseinternational extends Exchange {
         if (since !== undefined) {
             request['time_from'] = this.iso8601 (since);
         }
-        const until = this.safeStringN (params, [ 'until' ]);
+        const until = this.safeString (params, 'until');
         if (until !== undefined) {
             params = this.omit (params, [ 'until' ]);
             request['ref_datetime'] = this.iso8601 (until);

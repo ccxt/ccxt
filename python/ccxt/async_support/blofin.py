@@ -435,7 +435,6 @@ class blofin(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'brokerId': 'ec6dd3a7dd982d0b',
                 'accountsByType': {
                     'swap': 'futures',
                     'funding': 'funding',
@@ -475,28 +474,13 @@ class blofin(Exchange, ImplicitAPI):
                         '1D': '1D',
                     },
                 },
-                'fetchOHLCV': {
-                    # 'type': 'Candles',  # Candles or HistoryCandles, IndexCandles, MarkPriceCandles
-                    'timezone': 'UTC',  # UTC, HK
-                },
-                'fetchPositions': {
-                    'method': 'privateGetAccountPositions',  # privateGetAccountPositions or privateGetAccountPositionsHistory
-                },
-                'createOrder': 'privatePostTradeOrder',  # or 'privatePostTradeOrderTpsl'
-                'createMarketBuyOrderRequiresPrice': False,
-                'fetchMarkets': ['swap'],
                 'defaultType': 'swap',
-                'fetchLedger': {
-                    'method': 'privateGetAssetBills',
-                },
+                'brokerId': 'ec6dd3a7dd982d0b',
                 'fetchOpenOrders': {
                     'method': 'privateGetTradeOrdersPending',
                 },
                 'cancelOrders': {
                     'method': 'privatePostTradeCancelBatchOrders',
-                },
-                'fetchCanceledOrders': {
-                    'method': 'privateGetTradeOrdersHistory',  # privateGetTradeOrdersTpslHistory
                 },
                 'fetchClosedOrders': {
                     'method': 'privateGetTradeOrdersHistory',  # privateGetTradeOrdersTpslHistory
@@ -539,7 +523,7 @@ class blofin(Exchange, ImplicitAPI):
         contract = swap or future
         baseId = self.safe_string(market, 'baseCurrency')
         quoteId = self.safe_string(market, 'quoteCurrency')
-        settleId = self.safe_string(market, 'quoteCurrency')
+        settleId = self.safe_string(market, 'settleCurrency', quoteId)
         settle = self.safe_currency_code(settleId)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
@@ -557,6 +541,9 @@ class blofin(Exchange, ImplicitAPI):
         maxLeverage = Precise.string_max(maxLeverage, '1')
         isActive = (self.safe_string(market, 'state') == 'live')
         isMargin = spot and (Precise.string_gt(maxLeverage, '1'))
+        contractType = self.safe_string(market, 'contractType')
+        maxLimitAmount = self.safe_number(market, 'maxLimitSize')
+        maxSpotCost = self.safe_number(market, 'maxMarketSize')  # for spot, market-buy size is denominated in the quote currency, i.e. cost
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
@@ -576,8 +563,8 @@ class blofin(Exchange, ImplicitAPI):
             'taker': taker,
             'maker': maker,
             'contract': contract,
-            'linear': (quoteId == settleId) if contract else None,
-            'inverse': (baseId == settleId) if contract else None,
+            'linear': (contractType == 'linear') if contract else None,
+            'inverse': (contractType == 'inverse') if contract else None,
             'contractSize': self.safe_number(market, 'contractValue') if contract else None,
             'expiry': expiry,
             'expiryDatetime': expiry,
@@ -595,7 +582,7 @@ class blofin(Exchange, ImplicitAPI):
                 },
                 'amount': {
                     'min': self.safe_number(market, 'minSize'),
-                    'max': None,
+                    'max': maxLimitAmount,
                 },
                 'price': {
                     'min': None,
@@ -603,7 +590,7 @@ class blofin(Exchange, ImplicitAPI):
                 },
                 'cost': {
                     'min': None,
-                    'max': None,
+                    'max': None if contract else maxSpotCost,
                 },
             },
             'info': market,
@@ -1536,7 +1523,7 @@ class blofin(Exchange, ImplicitAPI):
         request = {
             'instId': market['id'],
         }
-        isTrigger = self.safe_bool_n(params, ['trigger'], False)
+        isTrigger = self.safe_bool(params, 'trigger', False)
         isTpsl = self.safe_bool_2(params, 'tpsl', 'TPSL', False)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
@@ -1978,9 +1965,7 @@ class blofin(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         request = []
-        options = self.safe_dict(self.options, 'cancelOrders', {})
-        defaultMethod = self.safe_string(options, 'method', 'privatePostTradeCancelBatchOrders')
-        method = self.safe_string(params, 'method', defaultMethod)
+        method = self.handle_option('cancelOrders', 'method', 'privatePostTradeCancelBatchOrders')
         clientOrderIds = self.parse_ids(self.safe_value(params, 'clientOrderId'))
         tpslIds = self.parse_ids(self.safe_value(params, 'tpslId'))
         trigger = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl'])
@@ -2500,7 +2485,7 @@ class blofin(Exchange, ImplicitAPI):
             request['begin'] = since
         isTrigger = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl', 'TPSL'], False)
         method = None
-        method, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory')
+        method, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory')
         query = self.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
         response: dict
         if (isTrigger) or (method == 'privateGetTradeOrdersTpslHistory'):

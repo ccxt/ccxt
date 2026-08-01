@@ -14,6 +14,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class bit2c extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -207,7 +209,9 @@ class bit2c extends Exchange {
                 ),
             ),
             'options' => array(
-                'fetchTradesMethod' => 'public_get_exchanges_pair_trades',
+                'fetchTrades' => array(
+                    'method' => 'public_get_exchanges_pair_trades',
+                ),
             ),
             'features' => array(
                 'spot' => array(
@@ -296,7 +300,7 @@ class bit2c extends Exchange {
             $account = $this->account();
             $currency = $this->currency($code);
             $uppercase = strtoupper($currency['id']);
-            if (is_array($response) && array_key_exists($uppercase, $response)) {
+            if (is_array($response) && array_key_exists($uppercase ?? '', $response)) {
                 $account['free'] = $this->safe_string($response, 'AVAILABLE_' . $uppercase);
                 $account['total'] = $this->safe_string($response, $uppercase);
             }
@@ -459,7 +463,8 @@ class bit2c extends Exchange {
                 Async\await($this->load_markets());
             }
             $market = $this->market($symbol);
-            $method = $this->options['fetchTradesMethod']; // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+            $optionValue = $this->safe_string($this->options, 'fetchTradesMethod'); // kept here for backward compatibility #29154
+            $method = $this->handle_option('fetchTrades', 'method', $optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
             $request = array(
                 'pair' => $market['id'],
             );
@@ -703,7 +708,7 @@ class bit2c extends Exchange {
         //
         $orderUnified = null;
         $isNewOrder = false;
-        if (is_array($order) && array_key_exists('NewOrder', $order)) {
+        if (is_array($order) && array_key_exists('NewOrder' ?? '', $order)) {
             $orderUnified = $order['NewOrder'];
             $isNewOrder = true;
         } else {

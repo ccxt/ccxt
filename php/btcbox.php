@@ -148,7 +148,6 @@ class btcbox extends Exchange {
                     'webApiEnable' => true, // fetches from WEB
                     'webApiRetries' => 3,
                 ),
-                'amountPrecision' => '0.0001', // exchange has only few pairs and all of them
             ),
             'features' => array(
                 'spot' => array(
@@ -374,7 +373,7 @@ class btcbox extends Exchange {
             $currency = $this->currency($code);
             $currencyId = $currency['id'];
             $free = $currencyId . '_balance';
-            if (is_array($response) && array_key_exists($free, $response)) {
+            if (is_array($response) && array_key_exists($free ?? '', $response)) {
                 $account = $this->account();
                 $used = $currencyId . '_lock';
                 $account['free'] = $this->safe_string($response, $free);

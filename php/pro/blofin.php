@@ -11,6 +11,10 @@ use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class blofin extends \ccxt\async\blofin {
     public function describe(): mixed {
@@ -235,7 +239,7 @@ class blofin extends \ccxt\async\blofin {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $messageHash = $channelName . ':' . $symbol;
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -351,7 +355,7 @@ class blofin extends \ccxt\async\blofin {
             $channel = 'tickers';
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('watchBidsAsks', $firstMarket, $params);
-            $url = $this->implode_hostname(($this->urls['api'])['ws'][$marketType]['public']);
+            $url = ($this->urls['api'])['ws'][$marketType]['public'];
             $messageHashes = array();
             $args = array();
             for ($i = 0; $i < count($symbolsList); $i++) {
@@ -510,7 +514,7 @@ class blofin extends \ccxt\async\blofin {
                 'channel' => 'account',
             );
             $request = $this->get_subscription_request(array( $sub ));
-            $url = $this->implode_hostname(($this->urls['api'])['ws'][$marketType]['private']);
+            $url = ($this->urls['api'])['ws'][$marketType]['private'];
             return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
         })();
     }
@@ -525,7 +529,7 @@ class blofin extends \ccxt\async\blofin {
         //     }
         //
         $marketType = 'swap'; // for now
-        if (!(is_array($this->balance) && array_key_exists($marketType, $this->balance))) {
+        if (!(is_array($this->balance) && array_key_exists($marketType ?? '', $this->balance))) {
             $this->balance[$marketType] = array();
         }
         $this->balance[$marketType] = $this->parse_ws_balance($message);
@@ -700,7 +704,7 @@ class blofin extends \ccxt\async\blofin {
                 'instId' => $market['id'],
             );
             $request = $this->get_subscription_request(array( $requestParams ));
-            $url = $this->implode_hostname(($this->urls['api'])['ws'][$marketType]['public']);
+            $url = ($this->urls['api'])['ws'][$marketType]['public'];
             return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
         })();
     }
@@ -788,7 +792,7 @@ class blofin extends \ccxt\async\blofin {
             }
             $request = $this->get_subscription_request($rawSubscriptions);
             $privateOrPublic = $isPublic ? 'public' : 'private';
-            $url = $this->implode_hostname(($this->urls['api'])['ws'][$marketType][$privateOrPublic]);
+            $url = ($this->urls['api'])['ws'][$marketType][$privateOrPublic];
             return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
         })();
     }
@@ -876,7 +880,7 @@ class blofin extends \ccxt\async\blofin {
                 ),
             );
             $marketType = 'swap'; // for now
-            $url = $this->implode_hostname(($this->urls['api'])['ws'][$marketType]['private']);
+            $url = ($this->urls['api'])['ws'][$marketType]['private'];
             Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
         })();
     }

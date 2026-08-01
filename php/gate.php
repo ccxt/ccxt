@@ -1290,7 +1290,7 @@ class gate extends Exchange {
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1));
-        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
             // handle expired option contracts
             return $this->create_expired_option_market($marketId);
         }
@@ -1370,13 +1370,14 @@ class gate extends Exchange {
         //
         //     array(
         //         {
-        //             "id" => "ETH_USDT",
-        //             "base" => "ETH",
-        //             "quote" => "USDT",
-        //             "leverage" => 3,
-        //             "min_base_amount" => "0.01",
-        //             "min_quote_amount" => "100",
-        //             "max_quote_amount" => "1000000"
+        //             "id":"HOODON_USDT",
+        //             "base":"HOODON",
+        //             "quote":"USDT",
+        //             "leverage":10,
+        //             "min_base_amount":"0.01",
+        //             "min_quote_amount":"1",
+        //             "max_quote_amount":"5000",
+        //             "status":1
         //         }
         //     )
         //
@@ -1393,10 +1394,12 @@ class gate extends Exchange {
             $makerPercent = $this->safe_string($market, 'maker_fee_rate', $takerPercent);
             $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'amount_precision')));
             $tradeStatus = $this->safe_string($market, 'trade_status');
+            $marginStatus = $this->safe_integer($market, 'status', 1); // 0 disabled, 1 enabled
             $leverage = $this->safe_number($market, 'leverage');
             $margin = $leverage !== null;
             $buyStart = $this->safe_integer_product($spotMarket, 'buy_start', 1000); // buy_start is the trading start time, while sell_start is offline orders start time
             $createdTs = ($buyStart !== 0) ? $buyStart : null;
+            $active = ($tradeStatus === 'tradable') || ($margin && ($marginStatus === 1));
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -1412,11 +1415,11 @@ class gate extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'active' => ($tradeStatus === 'tradable'),
+                'active' => $active,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
-                // Fee is in %, so divide by 100
+                // fee is in %, so divide by 100
                 'taker' => $this->parse_number(Precise::string_div($takerPercent, '100')),
                 'maker' => $this->parse_number(Precise::string_div($makerPercent, '100')),
                 'contractSize' => null,
@@ -1497,46 +1500,60 @@ class gate extends Exchange {
         //
         //  Perpetual swap
         //
-        //    {
-        //        "name" => "BTC_USDT",
-        //        "type" => "direct",
-        //        "quanto_multiplier" => "0.0001",
-        //        "ref_discount_rate" => "0",
-        //        "order_price_deviate" => "0.5",
-        //        "maintenance_rate" => "0.005",
-        //        "mark_type" => "index",
-        //        "last_price" => "38026",
-        //        "mark_price" => "37985.6",
-        //        "index_price" => "37954.92",
-        //        "funding_rate_indicative" => "0.000219",
-        //        "mark_price_round" => "0.01",
-        //        "funding_offset" => 0,
-        //        "in_delisting" => false,
-        //        "risk_limit_base" => "1000000",
-        //        "interest_rate" => "0.0003",
-        //        "order_price_round" => "0.1",
-        //        "order_size_min" => 1,
-        //        "ref_rebate_rate" => "0.2",
-        //        "funding_interval" => 28800,
-        //        "risk_limit_step" => "1000000",
-        //        "leverage_min" => "1",
-        //        "leverage_max" => "100",
-        //        "risk_limit_max" => "8000000",
-        //        "maker_fee_rate" => "-0.00025", // not actual value for regular users
-        //        "taker_fee_rate" => "0.00075", // not actual value for regular users
-        //        "funding_rate" => "0.002053",
-        //        "order_size_max" => 1000000,
-        //        "funding_next_apply" => 1610035200,
-        //        "short_users" => 977,
-        //        "config_change_time" => 1609899548,
-        //        "create_time" => 1609800048,
-        //        "trade_size" => 28530850594,
-        //        "position_size" => 5223816,
-        //        "long_users" => 455,
-        //        "funding_impact_value" => "60000",
-        //        "orders_limit" => 50,
-        //        "trade_id" => 10851092,
-        //        "orderbook_id" => 2129638396
+        //     {
+        //         "funding_rate_indicative":"-0.003216",
+        //         "mark_price_round":"0.0001",
+        //         "funding_offset":0,
+        //         "in_delisting":false,
+        //         "risk_limit_base":"5000",
+        //         "interest_rate":"0.0003",
+        //         "index_price":"0.2077",
+        //         "order_price_round":"0.0001",
+        //         "order_size_min":1,
+        //         "enable_decimal":false,
+        //         "ref_rebate_rate":"0.2",
+        //         "name":"0G_USDT",
+        //         "ref_discount_rate":"0",
+        //         "order_price_deviate":"0.15",
+        //         "maintenance_rate":"0.01",
+        //         "mark_type":"index",
+        //         "funding_interval":28800,
+        //         "type":"direct",
+        //         "risk_limit_step":"2495000",
+        //         "enable_bonus":true,
+        //         "enable_credit":true,
+        //         "leverage_min":"1",
+        //         "funding_rate":"-0.003216",
+        //         "last_price":"0.2048",
+        //         "mark_price":"0.2048",
+        //         "order_size_max":450000,
+        //         "funding_next_apply":1784131200,
+        //         "short_users":157,
+        //         "config_change_time":1782119113,
+        //         "create_time":1758124392,
+        //         "trade_size":767606392,
+        //         "position_size":783779,
+        //         "long_users":191,
+        //         "quanto_multiplier":"1",
+        //         "funding_impact_value":"7000",
+        //         "leverage_max":"50",
+        //         "cross_leverage_default":"10",
+        //         "risk_limit_max":"2500000",
+        //         "maker_fee_rate":"-0.0001", // not actual value for regular users
+        //         "taker_fee_rate":"0.00075", // not actual value for regular users
+        //         "orders_limit":100,
+        //         "trade_id":10376084,
+        //         "orderbook_id":1203922859,
+        //         "funding_cap_ratio":"1",
+        //         "voucher_leverage":"0",
+        //         "is_pre_market":false,
+        //         "status":"trading", // or "suspend"
+        //         "launch_time":1758124392,
+        //         "enable_circuit_breaker":false,
+        //         "funding_rate_limit":"0.02",
+        //         "market_order_slip_ratio":"0.04",
+        //         "market_order_size_max":"300000",
+        //         "contract_type":""
         //    }
         //
         //  Delivery Futures
@@ -1612,6 +1629,7 @@ class gate extends Exchange {
         if ($contractSize === '0') {
             $contractSize = '1'; // 1 USD in WEB => https://i.imgur.com/MBBUI04.png
         }
+        $status = $this->safe_string($market, 'status', 'trading'); // or "suspend"
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -1627,7 +1645,7 @@ class gate extends Exchange {
             'swap' => $marketType === 'swap',
             'future' => $marketType === 'future',
             'option' => $marketType === 'option',
-            'active' => true,
+            'active' => $status === 'trading',
             'contract' => true,
             'linear' => $isLinear,
             'inverse' => !$isLinear,
@@ -2952,7 +2970,7 @@ class gate extends Exchange {
         //     }
         //
         $marketId = $this->safe_string_n($ticker, array( 'currency_pair', 'contract', 'name' ));
-        $marketType = (is_array($ticker) && array_key_exists('mark_price', $ticker)) ? 'contract' : 'spot';
+        $marketType = (is_array($ticker) && array_key_exists('mark_price' ?? '', $ticker)) ? 'contract' : 'spot';
         $symbol = $this->safe_symbol($marketId, $market, '_', $marketType);
         $last = $this->safe_string_2($ticker, 'last', 'last_price');
         $ask = $this->safe_string_n($ticker, array( 'lowest_ask', 'a', 'ask1_price' ));
@@ -3045,7 +3063,7 @@ class gate extends Exchange {
         $account['used'] = $this->safe_string_2($entry, 'freeze', 'locked');
         $account['free'] = $this->safe_string($entry, 'available');
         $account['total'] = $this->safe_string($entry, 'total');
-        if (is_array($entry) && array_key_exists('borrowed', $entry)) {
+        if (is_array($entry) && array_key_exists('borrowed' ?? '', $entry)) {
             $account['debt'] = $this->safe_string($entry, 'borrowed');
         }
         return $account;
@@ -3309,7 +3327,7 @@ class gate extends Exchange {
         );
         $isolated = $marginMode === 'margin' && $type === 'spot';
         $data = $response;
-        if (is_array($data) && array_key_exists('balances', $data)) { // True for cross_margin and unified
+        if (is_array($data) && array_key_exists('balances' ?? '', $data)) { // True for cross_margin and unified
             $flatBalances = array();
             $balances = $this->safe_value($data, 'balances', array());
             // inject currency and create an artificial balance object
@@ -3362,7 +3380,7 @@ class gate extends Exchange {
          * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
          * @param {int} [$params->until] timestamp in ms of the latest candle $to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units, quote currency))
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units ?? '', quote currency))
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -3962,7 +3980,7 @@ class gate extends Exchange {
             $timestamp = $this->safe_timestamp_2($trade, 'time', 'create_time');
         }
         $marketId = $this->safe_string_2($trade, 'currency_pair', 'contract');
-        $marketType = (is_array($trade) && array_key_exists('contract', $trade)) ? 'contract' : 'spot';
+        $marketType = (is_array($trade) && array_key_exists('contract' ?? '', $trade)) ? 'contract' : 'spot';
         $market = $this->safe_market($marketId, $market, '_', $marketType);
         $amountString = $this->safe_string_2($trade, 'amount', 'size');
         $priceString = $this->safe_string($trade, 'price');
@@ -4581,7 +4599,7 @@ class gate extends Exchange {
                     // 'time_in_force' => 'gtc', // gtc, ioc, poc PendingOrCancelled == $postOnly order
                     // 'iceberg' => 0, // $amount to display for the iceberg order, null or 0 for normal orders, set to -1 to hide the order completely
                     // 'auto_borrow' => false, // used in margin or cross margin trading to allow automatic loan of insufficient $amount if balance is not enough
-                    // 'auto_repay' => false, // automatic repayment for automatic borrow loan generated by cross margin order, diabled by default
+                    // 'auto_repay' => false, // automatic repayment for automatic borrow loan generated by cross margin order, disabled by default
                 );
                 if ($isMarketOrder && ($side === 'buy')) {
                     $quoteAmount = null;
@@ -4706,7 +4724,7 @@ class gate extends Exchange {
                         'price' => $this->price_to_precision($symbol, $price),
                         'amount' => $this->amount_to_precision($symbol, $amount),
                         'account' => $marginMode,
-                        'time_in_force' => $timeInForce, // gtc, ioc (ioc is for taker only, so shouldnt't be in conditional order)
+                        'time_in_force' => $timeInForce, // gtc, ioc (ioc is for taker only, so shouldn't be in conditional order)
                     ),
                     'market' => $market['id'],
                 );
@@ -5150,7 +5168,7 @@ class gate extends Exchange {
             }
         }
         $marketType = 'contract';
-        if ((is_array($order) && array_key_exists('currency_pair', $order)) || (is_array($order) && array_key_exists('market', $order))) {
+        if ((is_array($order) && array_key_exists('currency_pair' ?? '', $order)) || (is_array($order) && array_key_exists('market' ?? '', $order))) {
             $marketType = 'spot';
         }
         $exchangeSymbol = $this->safe_string_2($order, 'currency_pair', 'market', $contract);
@@ -5206,9 +5224,9 @@ class gate extends Exchange {
         $reduceOnly = $this->safe_bool($order, 'is_reduce_only', $reduceOnlyInitial);
         $clientOrderId = $this->safe_string($order, 'text');
         if ($clientOrderId === null) {
-            if (is_array($order) && array_key_exists('initial', $order)) {
+            if (is_array($order) && array_key_exists('initial' ?? '', $order)) {
                 $clientOrderId = $this->safe_string($order['initial'], 'text');
-            } elseif (is_array($order) && array_key_exists('trigger', $order)) {
+            } elseif (is_array($order) && array_key_exists('trigger' ?? '', $order)) {
                 $clientOrderId = $this->safe_string($order['trigger'], 'text');
             }
         }
@@ -5972,13 +5990,13 @@ class gate extends Exchange {
             'currency' => $currency['id'], // todo => currencies have network-junctions
             'amount' => $truncated,
         );
-        if (!(is_array($this->options['accountsByType']) && array_key_exists($fromId, $this->options['accountsByType']))) {
+        if (!(is_array($this->options['accountsByType']) && array_key_exists($fromId ?? '', $this->options['accountsByType']))) {
             $request['from'] = 'margin';
             $request['currency_pair'] = $fromId;
         } else {
             $request['from'] = $fromId;
         }
-        if (!(is_array($this->options['accountsByType']) && array_key_exists($toId, $this->options['accountsByType']))) {
+        if (!(is_array($this->options['accountsByType']) && array_key_exists($toId ?? '', $this->options['accountsByType']))) {
             $request['to'] = 'margin';
             $request['currency_pair'] = $toId;
         } else {
@@ -8122,7 +8140,7 @@ class gate extends Exchange {
          *
          * @param {string} $symbol Unified CCXT market $symbol
          * @param {string} $side 'buy' or 'sell'
-         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} ~@link https://docs.ccxt.com/?id=position-structure A list of position structures~
          */
         $request = array(
@@ -8507,7 +8525,7 @@ class gate extends Exchange {
          * @param {string[]} $symbols unified conract $symbols, must all have the same settle currency and the same $market type
          * @param {int} [$since] the earliest time in ms to fetch positions for
          * @param {int} [$limit] the maximum amount of records to fetch, default=1000
-         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch positions for
          *
          * EXCHANGE SPECIFIC PARAMETERS

@@ -11,6 +11,9 @@ use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class bydfi extends \ccxt\async\bydfi {
     public function describe(): mixed {
@@ -173,18 +176,16 @@ class bydfi extends \ccxt\async\bydfi {
     }
 
     public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             *
-             * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-$symbol
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            return Async\await($this->un_watch_tickers(array( $symbol ), $params));
-        })();
+        /**
+         * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         *
+         * @see https://developers.bydfi.com/en/futures/websocket-market#ticker-by-$symbol
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return $this->un_watch_tickers(array( $symbol ), $params);
     }
 
     public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
@@ -332,19 +333,17 @@ class bydfi extends \ccxt\async\bydfi {
     }
 
     public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-             *
-             * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
-        })();
+        /**
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         *
+         * @see https://developers.bydfi.com/en/futures/websocket-market#candlestick-data
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        return $this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params);
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -364,9 +363,7 @@ class bydfi extends \ccxt\async\bydfi {
             if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
                 throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and $timeframes, like  ['ETH/USDC', '1m']");
             }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
+            Async\await($this->load_markets());
             $channels = array();
             $messageHashes = array();
             for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
@@ -403,9 +400,7 @@ class bydfi extends \ccxt\async\bydfi {
             if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
                 throw new ArgumentsRequired($this->id . " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
             }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
+            Async\await($this->load_markets());
             $channels = array();
             $messageHashes = array();
             for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
@@ -447,10 +442,10 @@ class bydfi extends \ccxt\async\bydfi {
         $interval = $this->safe_string($message, 'i');
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $timeframe = $this->find_timeframe($interval, $timeframes);
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
@@ -463,34 +458,30 @@ class bydfi extends \ccxt\async\bydfi {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return (default and maxi is 100)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
-        })();
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return (default and maxi is 100)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
     }
 
     public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
-             *
-             * @param {string} $symbol unified array of symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $params));
-        })();
+        /**
+         * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information
+         *
+         * @param {string} $symbol unified array of symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        return $this->un_watch_order_book_for_symbols(array( $symbol ), $params);
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
@@ -584,7 +575,7 @@ class bydfi extends \ccxt\async\bydfi {
         $marketId = $this->safe_string($message, 's');
         $symbol = $this->safe_symbol($marketId);
         $timestamp = $this->safe_integer($message, 'E');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -957,7 +948,7 @@ class bydfi extends \ccxt\async\bydfi {
         $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
         if ($fetchBalanceSnapshot) {
             $messageHash = 'fetchBalanceSnapshot';
-            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+            if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
                 $this->spawn(array($this, 'load_balance_snapshot'), $client, $messageHash);
             }
@@ -1020,7 +1011,7 @@ class bydfi extends \ccxt\async\bydfi {
         //     }
         //
         $messageHash = 'balance';
-        if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
             $data = $this->safe_dict($message, 'a', array());
             $balances = $this->safe_list($data, 'B', array());
             $timestamp = $this->safe_integer($message, 'T');

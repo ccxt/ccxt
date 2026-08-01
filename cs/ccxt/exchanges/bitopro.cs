@@ -212,7 +212,9 @@ public partial class bitopro : Exchange
                     { "BEP20", "BSC" },
                     { "BSC", "BSC" },
                 } },
-                { "fiatCurrencies", new List<object>() {"TWD"} },
+                { "fetchCurrencies", new Dictionary<string, object>() {
+                    { "fiatCurrencies", new List<object>() {"TWD"} },
+                } },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -346,7 +348,7 @@ public partial class bitopro : Exchange
 
     public override object parseCurrency(object rawCurrency)
     {
-        object fiatCurrencies = this.safeList(this.options, "fiatCurrencies", new List<object>() {});
+        object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new List<object>() {});
         object currencyId = this.safeString(rawCurrency, "currency");
         object code = this.safeCurrencyCode(currencyId);
         object deposit = this.safeBool(rawCurrency, "deposit");

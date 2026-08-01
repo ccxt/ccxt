@@ -11,6 +11,8 @@ use ccxt\ExchangeError;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class bitbank extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -1028,7 +1030,7 @@ class bitbank extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-            if (!(is_array($params) && array_key_exists('uuid', $params))) {
+            if (!(is_array($params) && array_key_exists('uuid' ?? '', $params))) {
                 throw new ExchangeError($this->id . ' uuid is required for withdrawal');
             }
             if ($this->markets === null) {

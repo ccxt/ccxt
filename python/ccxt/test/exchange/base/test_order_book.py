@@ -16,6 +16,11 @@ from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_order_book(exchange, skipped_properties, method, orderbook, symbol):
+    # prediction-market structures are keyed by an outcome handle, not a `symbol`
+    if exchange.safe_bool(exchange.has, 'prediction', False):
+        skipped_properties = exchange.extend({
+            'symbol': True,
+        }, skipped_properties)
     format = {
         'symbol': 'ETH/BTC',
         'asks': [[exchange.parse_number('1.24'), exchange.parse_number('0.453')], [exchange.parse_number('1.25'), exchange.parse_number('0.157')]],
@@ -25,8 +30,6 @@ def test_order_book(exchange, skipped_properties, method, orderbook, symbol):
         'nonce': 134234234,
     }
     empty_allowed_for = ['nonce']
-    # turn into copy: https://discord.com/channels/690203284119617602/921046068555313202/1220626834887282728
-    orderbook = exchange.deep_extend({}, orderbook)
     test_shared_methods.assert_structure(exchange, skipped_properties, method, orderbook, format, empty_allowed_for)
     test_shared_methods.assert_timestamp_and_datetime(exchange, skipped_properties, method, orderbook)
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, orderbook, 'symbol', symbol)

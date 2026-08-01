@@ -507,7 +507,7 @@ cancels an open order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by exmo cancelOrder () |
+| symbol | <code>string</code> | Yes | not used by cancelOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>boolean</code> | No | true to cancel a trigger order |
 | params.marginMode | <code>string</code> | No | set to 'cross' or 'isolated' to cancel a margin order |

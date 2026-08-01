@@ -920,7 +920,7 @@ func (this *CoinbaseCore) CreateDepositAddress(code any, optionalArgs ...any) <-
  * @ignore
  * @description fetch sells
  * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
- * @param {string} symbol not used by coinbase fetchMySells ()
+ * @param {string} symbol not used by fetchMySells ()
  * @param {int} [since] timestamp in ms of the earliest sell, default is undefined
  * @param {int} [limit] max number of sells to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -964,7 +964,7 @@ func (this *CoinbaseCore) FetchMySells(optionalArgs ...any) <-chan any {
  * @ignore
  * @description fetch buys
  * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
- * @param {string} symbol not used by coinbase fetchMyBuys ()
+ * @param {string} symbol not used by fetchMyBuys ()
  * @param {int} [since] timestamp in ms of the earliest buy, default is undefined
  * @param {int} [limit] max number of buys to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3956,7 +3956,7 @@ func (this *CoinbaseCore) ParseTimeInForce(timeInForce any) any {
  * @description cancels an open order
  * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
  * @param {string} id order id
- * @param {string} symbol not used by coinbase cancelOrder()
+ * @param {string} symbol not used by cancelOrder()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -3991,7 +3991,7 @@ func (this *CoinbaseCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @description cancel multiple orders
  * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
  * @param {string[]} ids order ids
- * @param {string} symbol not used by coinbase cancelOrders()
+ * @param {string} symbol not used by cancelOrders()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -4253,7 +4253,7 @@ func (this *CoinbaseCore) FetchOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start_date", this.Iso8601(since))
 		}
-		var until any = this.SafeIntegerN(params, []any{"until"})
+		var until any = this.SafeInteger(params, "until")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, []any{"until"})
 			AddElementToObject(request, "end_date", this.Iso8601(until))
@@ -4352,7 +4352,7 @@ func (this *CoinbaseCore) FetchOrdersByStatus(status any, optionalArgs ...any) <
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start_date", this.Iso8601(since))
 		}
-		var until any = this.SafeIntegerN(params, []any{"until"})
+		var until any = this.SafeInteger(params, "until")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, []any{"until"})
 			AddElementToObject(request, "end_date", this.Iso8601(until))
@@ -4506,7 +4506,7 @@ func (this *CoinbaseCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes382519 := (<-this.FetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, params, "cursor", "cursor", nil, 100))
+			retRes382519 := (<-this.FetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, params, "cursor", "cursor", nil, 1000))
 			PanicOnError(retRes382519)
 			ch <- retRes382519
 			return nil
@@ -4607,7 +4607,7 @@ func (this *CoinbaseCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any
 			"product_id":  GetValue(market, "id"),
 			"granularity": this.SafeString(this.Timeframes, timeframe, timeframe),
 		}
-		var until any = this.SafeIntegerN(params, []any{"until", "end"})
+		var until any = this.SafeInteger2(params, "until", "end")
 		params = this.Omit(params, []any{"until"})
 		var duration any = this.ParseTimeframe(timeframe)
 		var requestedDuration any = Multiply(limit, duration)
@@ -4822,7 +4822,7 @@ func (this *CoinbaseCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start_sequence_timestamp", this.Iso8601(since))
 		}
-		var until any = this.SafeIntegerN(params, []any{"until"})
+		var until any = this.SafeInteger(params, "until")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, []any{"until"})
 			AddElementToObject(request, "end_sequence_timestamp", this.Iso8601(until))
@@ -5781,7 +5781,7 @@ func (this *CoinbaseCore) ParseConversion(conversion any, optionalArgs ...any) a
  * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/close-position
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} [side] not used by coinbase
- * @param {object} [params] extra parameters specific to the coinbase api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string}  params.clientOrderId *mandatory* the client order id of the position to close
  * @param {float} [params.size] the size of the position to close, optional
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}

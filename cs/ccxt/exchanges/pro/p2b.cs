@@ -460,6 +460,7 @@ public partial class p2b : ccxt.p2b
         //    }
         //
         object parameters = this.safeList(message, "params", new List<object>() {});
+        object isFullUpdate = this.safeBool(parameters, 0, false);
         object data = this.safeDict(parameters, 1);
         object asks = this.safeList(data, "asks");
         object bids = this.safeList(data, "bids");
@@ -474,6 +475,14 @@ public partial class p2b : ccxt.p2b
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             orderbook = getValue(this.orderbooks, symbol);
+        }
+        if (isTrue(isFullUpdate))
+        {
+            // the first parameter signals whether the message carries all
+            // records or only the changed ones, a full set replaces the book,
+            // otherwise stale levels that left the depth window would linger
+            // and cross the book, see https://github.com/ccxt/ccxt/issues/24944
+            (orderbook as IOrderBook).reset(new Dictionary<string, object>() {});
         }
         if (isTrue(!isEqual(bids, null)))
         {

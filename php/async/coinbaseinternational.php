@@ -15,6 +15,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class coinbaseinternational extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -1771,7 +1773,7 @@ class coinbaseinternational extends Exchange {
             $currency = $this->currency($code);
             $request = array(
                 'asset' => $currency['id'],
-                'ammount' => $amount,
+                'amount' => $amount,
                 'from' => $fromAccount,
                 'to' => $toAccount,
             );
@@ -1987,7 +1989,7 @@ class coinbaseinternational extends Exchange {
              * @see https://docs.cloud.coinbase.com/intx/reference/cancelorder
              *
              * @param {string} $id order $id
-             * @param {string} $symbol not used by coinbaseinternational cancelOrder()
+             * @param {string} $symbol not used by cancelOrder()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
@@ -2295,7 +2297,7 @@ class coinbaseinternational extends Exchange {
             if ($since !== null) {
                 $request['time_from'] = $this->iso8601($since);
             }
-            $until = $this->safe_string_n($params, array( 'until' ));
+            $until = $this->safe_string($params, 'until');
             if ($until !== null) {
                 $params = $this->omit($params, array( 'until' ));
                 $request['ref_datetime'] = $this->iso8601($until);

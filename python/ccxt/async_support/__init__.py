@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.64'
+__version__ = '4.5.70'
 
 # -----------------------------------------------------------------------------
 
@@ -82,7 +82,6 @@ from ccxt.async_support.bitfinex import bitfinex                                
 from ccxt.async_support.bitflyer import bitflyer                                # noqa: F401
 from ccxt.async_support.bitget import bitget                                    # noqa: F401
 from ccxt.async_support.bithumb import bithumb                                  # noqa: F401
-from ccxt.async_support.bitmart import bitmart                                  # noqa: F401
 from ccxt.async_support.bitmex import bitmex                                    # noqa: F401
 from ccxt.async_support.bitopro import bitopro                                  # noqa: F401
 from ccxt.async_support.bitrue import bitrue                                    # noqa: F401
@@ -148,6 +147,7 @@ from ccxt.async_support.mexc import mexc                                        
 from ccxt.async_support.modetrade import modetrade                              # noqa: F401
 from ccxt.async_support.mudrex import mudrex                                    # noqa: F401
 from ccxt.async_support.myokx import myokx                                      # noqa: F401
+from ccxt.async_support.nado import nado                                        # noqa: F401
 from ccxt.async_support.ndax import ndax                                        # noqa: F401
 from ccxt.async_support.okx import okx                                          # noqa: F401
 from ccxt.async_support.okxus import okxus                                      # noqa: F401
@@ -188,7 +188,6 @@ exchanges = [
     'bitflyer',
     'bitget',
     'bithumb',
-    'bitmart',
     'bitmex',
     'bitopro',
     'bitrue',
@@ -254,6 +253,7 @@ exchanges = [
     'modetrade',
     'mudrex',
     'myokx',
+    'nado',
     'ndax',
     'okx',
     'okxus',

@@ -9,6 +9,8 @@ use Exception; // a common import
 use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class hollaex extends \ccxt\async\hollaex {
     public function describe(): mixed {
@@ -108,7 +110,7 @@ class hollaex extends \ccxt\async\hollaex {
         $timestampMs = $this->parse8601($timestamp);
         $snapshot = $this->parse_order_book($data, $symbol, $timestampMs);
         $orderbook = null;
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $orderbook = $this->order_book($snapshot);
             $this->orderbooks[$symbol] = $orderbook;
         } else {
@@ -440,7 +442,7 @@ class hollaex extends \ccxt\async\hollaex {
             $parts = explode('_', $key);
             $currencyId = $this->safe_string($parts, 0);
             $code = $this->safe_currency_code($currencyId);
-            $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
+            $account = (is_array($this->balance) && array_key_exists($code ?? '', $this->balance)) ? $this->balance[$code] : $this->account();
             $second = $this->safe_string($parts, 1);
             $freeOrTotal = ($second === 'available') ? 'free' : 'total';
             $account[$freeOrTotal] = $this->safe_string($data, $key);

@@ -13,6 +13,10 @@ use ccxt\NetworkError;
 use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class apex extends \ccxt\async\apex {
     public function describe(): mixed {
@@ -60,20 +64,18 @@ class apex extends \ccxt\async\apex {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple trades made in a market
-             *
-             * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
-             *
-             * @param {string} $symbol unified market $symbol of the market trades were made in
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        })();
+        /**
+         * watches information on multiple trades made in a market
+         *
+         * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+         *
+         * @param {string} $symbol unified market $symbol of the market trades were made in
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -177,12 +179,12 @@ class apex extends \ccxt\async\apex {
         //     }
         //
         $id = $this->safe_string_n($trade, array( 'i', 'id', 'v' ));
-        $marketId = $this->safe_string_n($trade, array( 's', 'symbol' ));
+        $marketId = $this->safe_string_2($trade, 's', 'symbol');
         $market = $this->safe_market($marketId, $market, null);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_n($trade, array( 't', 'T', 'createdAt' ));
-        $side = $this->safe_string_lower_n($trade, array( 'S', 'side' ));
-        $price = $this->safe_string_n($trade, array( 'p', 'price' ));
+        $side = $this->safe_string_lower_2($trade, 'S', 'side');
+        $price = $this->safe_string_2($trade, 'p', 'price');
         $amount = $this->safe_string_n($trade, array( 'q', 'v', 'size' ));
         return $this->safe_trade(array(
             'id' => $id,
@@ -202,19 +204,17 @@ class apex extends \ccxt\async\apex {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return.
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
-        })();
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return.
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
@@ -267,7 +267,7 @@ class apex extends \ccxt\async\apex {
             $newTopics = array();
             $newTopicsCount = 0;
             for ($i = 0; $i < count($topics); $i++) {
-                if (!(is_array($client->subscriptions) && array_key_exists($messageHashes[$i], $client->subscriptions))) {
+                if (!(is_array($client->subscriptions) && array_key_exists($messageHashes[$i] ?? '', $client->subscriptions))) {
                     $newTopics[] = $topics[$i];
                     $newTopicsCount = $newTopicsCount + 1;
                 }
@@ -349,7 +349,7 @@ class apex extends \ccxt\async\apex {
         $market = $this->safe_market($marketId, null, null);
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_product($message, 'ts', 0.001);
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -581,10 +581,10 @@ class apex extends \ccxt\async\apex {
         $marketType = $isSpot ? 'spot' : 'contract';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }
@@ -825,7 +825,7 @@ class apex extends \ccxt\async\apex {
             return;
         }
         $messageHash = 'fetchPositionsSnapshot';
-        if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+        if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
             $client->future($messageHash);
             $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash);
         }
@@ -848,7 +848,7 @@ class apex extends \ccxt\async\apex {
                 }
             }
             // don't remove the $future from the .futures $cache
-            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
                 $future = $client->futures[$messageHash];
                 $future->resolve($cache);
                 $client->resolve($cache, 'positions');
@@ -1030,7 +1030,7 @@ class apex extends \ccxt\async\apex {
             if ($error instanceof AuthenticationError) {
                 $messageHash = 'authenticated';
                 $client->reject($error, $messageHash);
-                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                     unset($client->subscriptions[$messageHash]);
                 }
             } else {
@@ -1158,7 +1158,7 @@ class apex extends \ccxt\async\apex {
         } else {
             $error = new AuthenticationError($this->id . ' ' . $this->json($message));
             $client->reject($error, $messageHash);
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }

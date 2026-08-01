@@ -2183,7 +2183,6 @@ class cryptocom(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(ticker, 't')
         marketId = self.safe_string(ticker, 'i')
         market = self.safe_market(marketId, market, '_')
-        quote = self.safe_string(market, 'quote')
         last = self.safe_string(ticker, 'a')
         return self.safe_ticker({
             'symbol': market['symbol'],
@@ -2204,7 +2203,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'percentage': self.safe_string(ticker, 'c'),
             'average': None,
             'baseVolume': self.safe_string(ticker, 'v'),
-            'quoteVolume': self.safe_string(ticker, 'vv') if (quote == 'USD') else None,
+            'quoteVolume': self.safe_string(ticker, 'vv') if (market['quote'] == 'USD') else None,
             'info': ticker,
         }, market)
 

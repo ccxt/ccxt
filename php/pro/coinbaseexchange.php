@@ -14,6 +14,8 @@ use ccxt\BadSymbol;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class coinbaseexchange extends \ccxt\async\coinbaseexchange {
     public function describe(): mixed {
@@ -78,7 +80,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                 $productIds[] = $market['id'];
             }
             $url = $this->urls['api']['ws'];
-            if (is_array($params) && array_key_exists('signature', $params)) {
+            if (is_array($params) && array_key_exists('signature' ?? '', $params)) {
                 // need to distinguish between public trades and user trades
                 $url = $url . '?';
             }
@@ -110,7 +112,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                 $messageHashes[] = $messageHashStart . ':' . $market['symbol'];
             }
             $url = $this->urls['api']['ws'];
-            if (is_array($params) && array_key_exists('signature', $params)) {
+            if (is_array($params) && array_key_exists('signature' ?? '', $params)) {
                 // need to distinguish between public trades and user trades
                 $url = $url . '?';
             }
@@ -521,7 +523,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $parsed = parent::parse_trade($trade);
         $feeRate = null;
         $isMaker = false;
-        if (is_array($trade) && array_key_exists('maker_fee_rate', $trade)) {
+        if (is_array($trade) && array_key_exists('maker_fee_rate' ?? '', $trade)) {
             $isMaker = true;
             $parsed['takerOrMaker'] = 'maker';
             $feeRate = $this->safe_string($trade, 'maker_fee_rate');

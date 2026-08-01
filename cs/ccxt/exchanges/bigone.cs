@@ -142,7 +142,9 @@ public partial class bigone : Exchange
                 } },
             } },
             { "options", new Dictionary<string, object>() {
-                { "createMarketBuyOrderRequiresPrice", true },
+                { "createOrder", new Dictionary<string, object>() {
+                    { "createMarketBuyOrderRequiresPrice", true },
+                } },
                 { "accountsByType", new Dictionary<string, object>() {
                     { "spot", "SPOT" },
                     { "fund", "FUND" },
@@ -1617,7 +1619,7 @@ public partial class bigone : Exchange
         {
             if (isTrue(isBuy))
             {
-                object createMarketBuyOrderRequiresPrice = true;
+                object createMarketBuyOrderRequiresPrice = null;
                 var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[0];
                 parameters = ((IList<object>)createMarketBuyOrderRequiresPriceparametersVariable)[1];

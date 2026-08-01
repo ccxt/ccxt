@@ -996,12 +996,12 @@ func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 		} else {
 			triggerOrderSide = "buy"
 		}
-		var stopLossOrderTriggerPrice any = this.SafeNumberN(stopLoss, []any{"triggerPrice", "stopPrice"})
+		var stopLossOrderTriggerPrice any = this.SafeNumber2(stopLoss, "triggerPrice", "stopPrice")
 		var stopLossOrderType any = this.SafeString(stopLoss, "type", "limit")
-		var stopLossOrderLimitPrice any = this.SafeNumberN(stopLoss, []any{"price", "stopLossPrice"}, stopLossOrderTriggerPrice)
-		var takeProfitOrderTriggerPrice any = this.SafeNumberN(takeProfit, []any{"triggerPrice", "stopPrice"})
+		var stopLossOrderLimitPrice any = this.SafeNumber2(stopLoss, "price", "stopLossPrice", stopLossOrderTriggerPrice)
+		var takeProfitOrderTriggerPrice any = this.SafeNumber2(takeProfit, "triggerPrice", "stopPrice")
 		var takeProfitOrderType any = this.SafeString(takeProfit, "type", "limit")
-		var takeProfitOrderLimitPrice any = this.SafeNumberN(takeProfit, []any{"price", "takeProfitPrice"}, takeProfitOrderTriggerPrice)
+		var takeProfitOrderLimitPrice any = this.SafeNumber2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice)
 		// amount should be 0 for child orders
 		if IsTrue(!IsEqual(stopLoss, nil)) {
 			var orderObj any = GetValue(this.CreateOrderRequest(symbol, stopLossOrderType, triggerOrderSide, 0, stopLossOrderLimitPrice, this.Extend(params, map[string]any{
@@ -4124,7 +4124,7 @@ func (this *LighterCore) ReduceMargin(symbol any, amount any, optionalArgs ...an
  * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
  * @param {string} symbol unified market symbol of the market to set margin in
  * @param {float} amount the amount to set the margin to
- * @param {object} [params] parameters specific to the bingx api endpoint
+ * @param {object} [params] parameters specific to the exchange API endpoint
  * @param {string} [params.accountIndex] account index
  * @param {string} [params.apiKeyIndex] api key index
  * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}

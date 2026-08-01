@@ -863,7 +863,7 @@ class coinbase extends coinbase$1["default"] {
      * @ignore
      * @description fetch sells
      * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
-     * @param {string} symbol not used by coinbase fetchMySells ()
+     * @param {string} symbol not used by fetchMySells ()
      * @param {int} [since] timestamp in ms of the earliest sell, default is undefined
      * @param {int} [limit] max number of sells to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -885,7 +885,7 @@ class coinbase extends coinbase$1["default"] {
      * @ignore
      * @description fetch buys
      * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
-     * @param {string} symbol not used by coinbase fetchMyBuys ()
+     * @param {string} symbol not used by fetchMyBuys ()
      * @param {int} [since] timestamp in ms of the earliest buy, default is undefined
      * @param {int} [limit] max number of buys to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3427,7 +3427,7 @@ class coinbase extends coinbase$1["default"] {
      * @description cancels an open order
      * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
      * @param {string} id order id
-     * @param {string} symbol not used by coinbase cancelOrder()
+     * @param {string} symbol not used by cancelOrder()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3444,7 +3444,7 @@ class coinbase extends coinbase$1["default"] {
      * @description cancel multiple orders
      * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by coinbase cancelOrders()
+     * @param {string} symbol not used by cancelOrders()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3629,7 +3629,7 @@ class coinbase extends coinbase$1["default"] {
         if (since !== undefined) {
             request['start_date'] = this.iso8601(since);
         }
-        const until = this.safeIntegerN(params, ['until']);
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             params = this.omit(params, ['until']);
             request['end_date'] = this.iso8601(until);
@@ -3707,7 +3707,7 @@ class coinbase extends coinbase$1["default"] {
         if (since !== undefined) {
             request['start_date'] = this.iso8601(since);
         }
-        const until = this.safeIntegerN(params, ['until']);
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             params = this.omit(params, ['until']);
             request['end_date'] = this.iso8601(until);
@@ -3808,7 +3808,7 @@ class coinbase extends coinbase$1["default"] {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallCursor('fetchClosedOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 100);
+            return await this.fetchPaginatedCallCursor('fetchClosedOrders', symbol, since, limit, params, 'cursor', 'cursor', undefined, 1000);
         }
         return await this.fetchOrdersByStatus('FILLED', symbol, since, limit, params);
     }
@@ -3858,7 +3858,7 @@ class coinbase extends coinbase$1["default"] {
             'product_id': market['id'],
             'granularity': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        const until = this.safeIntegerN(params, ['until', 'end']);
+        const until = this.safeInteger2(params, 'until', 'end');
         params = this.omit(params, ['until']);
         const duration = this.parseTimeframe(timeframe);
         const requestedDuration = limit * duration;
@@ -4025,7 +4025,7 @@ class coinbase extends coinbase$1["default"] {
         if (since !== undefined) {
             request['start_sequence_timestamp'] = this.iso8601(since);
         }
-        const until = this.safeIntegerN(params, ['until']);
+        const until = this.safeInteger(params, 'until');
         if (until !== undefined) {
             params = this.omit(params, ['until']);
             request['end_sequence_timestamp'] = this.iso8601(until);
@@ -4452,7 +4452,7 @@ class coinbase extends coinbase$1["default"] {
             'amount': this.numberToString(amount),
             'currency': code.toUpperCase(), // need to use code in case depositing USD etc.
             'payment_method': id,
-            'commit': true, // otheriwse the deposit does not go through
+            'commit': true, // otherwise the deposit does not go through
         };
         const response = await this.v2PrivatePostAccountsAccountIdDeposits(this.extend(request, params));
         //
@@ -4767,7 +4767,7 @@ class coinbase extends coinbase$1["default"] {
      * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/close-position
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by coinbase
-     * @param {object} [params] extra parameters specific to the coinbase api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string}  params.clientOrderId *mandatory* the client order id of the position to close
      * @param {float} [params.size] the size of the position to close, optional
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}

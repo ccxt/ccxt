@@ -864,7 +864,7 @@ class coinbase extends Exchange {
          *
          * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
          *
-         * @param {string} $symbol not used by coinbase fetchMySells ()
+         * @param {string} $symbol not used by fetchMySells ()
          * @param {int} [$since] timestamp in ms of the earliest sell, default is null
          * @param {int} [$limit] max number of $sells to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -887,7 +887,7 @@ class coinbase extends Exchange {
          *
          * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
          *
-         * @param {string} $symbol not used by coinbase fetchMyBuys ()
+         * @param {string} $symbol not used by fetchMyBuys ()
          * @param {int} [$since] timestamp in ms of the earliest buy, default is null
          * @param {int} [$limit] max number of $buys to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1371,7 +1371,7 @@ class coinbase extends Exchange {
         for ($i = 0; $i < count($baseIds); $i++) {
             $baseId = $baseIds[$i];
             $base = $this->safe_currency_code($baseId);
-            $type = (is_array($dataById) && array_key_exists($baseId, $dataById)) ? 'fiat' : 'crypto';
+            $type = (is_array($dataById) && array_key_exists($baseId ?? '', $dataById)) ? 'fiat' : 'crypto';
             // https://github.com/ccxt/ccxt/issues/6066
             if ($type === 'crypto') {
                 for ($j = 0; $j < count($data); $j++) {
@@ -2021,7 +2021,7 @@ class coinbase extends Exchange {
         for ($i = 0; $i < count($ratesIds); $i++) {
             $currencyId = $ratesIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            if (!(is_array($result) && array_key_exists($code, $result))) {
+            if (!(is_array($result) && array_key_exists($code ?? '', $result))) {
                 $result[$code] = $this->safe_currency_structure(array(
                     'info' => array(),
                     'id' => $currencyId,
@@ -2353,7 +2353,7 @@ class coinbase extends Exchange {
         $ask = $this->safe_number($ticker, 'ask');
         $bidVolume = null;
         $askVolume = null;
-        if ((is_array($ticker) && array_key_exists('bids', $ticker))) {
+        if ((is_array($ticker) && array_key_exists('bids' ?? '', $ticker))) {
             $bids = $this->safe_list($ticker, 'bids', array());
             $asks = $this->safe_list($ticker, 'asks', array());
             $firstBid = $this->safe_dict($bids, 0, array());
@@ -3430,7 +3430,7 @@ class coinbase extends Exchange {
          * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-$orders
          *
          * @param {string} $id order $id
-         * @param {string} $symbol not used by coinbase cancelOrder()
+         * @param {string} $symbol not used by cancelOrder()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -3448,7 +3448,7 @@ class coinbase extends Exchange {
          * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-$orders
          *
          * @param {string[]} $ids order $ids
-         * @param {string} $symbol not used by coinbase cancelOrders()
+         * @param {string} $symbol not used by cancelOrders()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -3634,7 +3634,7 @@ class coinbase extends Exchange {
         if ($since !== null) {
             $request['start_date'] = $this->iso8601($since);
         }
-        $until = $this->safe_integer_n($params, array( 'until' ));
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
             $params = $this->omit($params, array( 'until' ));
             $request['end_date'] = $this->iso8601($until);
@@ -3713,7 +3713,7 @@ class coinbase extends Exchange {
         if ($since !== null) {
             $request['start_date'] = $this->iso8601($since);
         }
-        $until = $this->safe_integer_n($params, array( 'until' ));
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
             $params = $this->omit($params, array( 'until' ));
             $request['end_date'] = $this->iso8601($until);
@@ -3816,7 +3816,7 @@ class coinbase extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_cursor('fetchClosedOrders', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 100);
+            return $this->fetch_paginated_call_cursor('fetchClosedOrders', $symbol, $since, $limit, $params, 'cursor', 'cursor', null, 1000);
         }
         return $this->fetch_orders_by_status('FILLED', $symbol, $since, $limit, $params);
     }
@@ -3868,7 +3868,7 @@ class coinbase extends Exchange {
             'product_id' => $market['id'],
             'granularity' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        $until = $this->safe_integer_n($params, array( 'until', 'end' ));
+        $until = $this->safe_integer_2($params, 'until', 'end');
         $params = $this->omit($params, array( 'until' ));
         $duration = $this->parse_timeframe($timeframe);
         $requestedDuration = $limit * $duration;
@@ -4033,7 +4033,7 @@ class coinbase extends Exchange {
         if ($since !== null) {
             $request['start_sequence_timestamp'] = $this->iso8601($since);
         }
-        $until = $this->safe_integer_n($params, array( 'until' ));
+        $until = $this->safe_integer($params, 'until');
         if ($until !== null) {
             $params = $this->omit($params, array( 'until' ));
             $request['end_sequence_timestamp'] = $this->iso8601($until);
@@ -4463,7 +4463,7 @@ class coinbase extends Exchange {
             'amount' => $this->number_to_string($amount),
             'currency' => strtoupper($code), // need to use $code in case depositing USD etc.
             'payment_method' => $id,
-            'commit' => true, // otheriwse the deposit does not go through
+            'commit' => true, // otherwise the deposit does not go through
         );
         $response = $this->v2PrivatePostAccountsAccountIdDeposits($this->extend($request, $params));
         //
@@ -4789,7 +4789,7 @@ class coinbase extends Exchange {
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} [$side] not used by coinbase
-         * @param {array} [$params] extra parameters specific to the coinbase api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string}  $params->clientOrderId *mandatory* the client $order id of the position to close
          * @param {float} [$params->size] the size of the position to close, optional
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
@@ -5377,7 +5377,7 @@ class coinbase extends Exchange {
             }
         }
         $advancedTrade = $this->options['advanced'];
-        if (!(is_array($response) && array_key_exists('data', $response)) && (!$advancedTrade)) {
+        if (!(is_array($response) && array_key_exists('data' ?? '', $response)) && (!$advancedTrade)) {
             throw new ExchangeError($this->id . ' failed due to a malformed $response ' . $this->json($response));
         }
         return null;

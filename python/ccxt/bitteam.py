@@ -253,9 +253,11 @@ class bitteam(Exchange, ImplicitAPI):
                     'ufobject': 'ufobject',
                     'tonchain': 'tonchain',
                 },
-                'currenciesValuedInUsd': {
-                    'USDT': True,
-                    'BUSD': True,
+                'fetchMarkets': {
+                    'currenciesValuedInUsd': {
+                        'USDT': True,
+                        'BUSD': True,
+                    },
                 },
             },
             'features': {
@@ -472,7 +474,7 @@ class bitteam(Exchange, ImplicitAPI):
         timeStart = self.safe_string(market, 'timeStart')
         created = self.parse8601(timeStart)
         minCost = None
-        currenciesValuedInUsd = self.safe_value(self.options, 'currenciesValuedInUsd', {})
+        currenciesValuedInUsd = self.handle_option('fetchMarkets', 'currenciesValuedInUsd', {})
         quoteInUsd = self.safe_bool(currenciesValuedInUsd, quote, False)
         if quoteInUsd:
             settings = self.safe_value(market, 'settings', {})

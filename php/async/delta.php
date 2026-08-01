@@ -15,6 +15,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class delta extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -418,7 +420,7 @@ class delta extends Exchange {
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((str_ends_with($marketId, '-C')) || (str_ends_with($marketId, '-P')) || (str_starts_with($marketId, 'C-')) || (str_starts_with($marketId, 'P-')));
-        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
             // handle expired option contracts
             return $this->create_expired_option_market($marketId);
         }
@@ -859,7 +861,9 @@ class delta extends Exchange {
             for ($i = 0; $i < count($markets); $i++) {
                 $market = $markets[$i];
                 $type = $this->safe_string($market, 'contract_type');
-                if ($type === 'options_combos') {
+                if (($type === 'options_combos') || ($type === 'binary_call_options') || ($type === 'binary_put_options')) {
+                    // binary options can not be represented in the unified $market
+                    // structure, their symbols would collide with vanilla options
                     continue;
                 }
                 // $settlingAsset = $this->safe_value($market, 'settling_asset', array());
@@ -1417,7 +1421,13 @@ class delta extends Exchange {
             $tickers = $this->safe_list($response, 'result', array());
             $result = array();
             for ($i = 0; $i < count($tickers); $i++) {
-                $ticker = $this->parse_ticker($tickers[$i]);
+                $rawTicker = $tickers[$i];
+                $contractType = $this->safe_string($rawTicker, 'contract_type');
+                if (($contractType === 'options_combos') || ($contractType === 'binary_call_options') || ($contractType === 'binary_put_options')) {
+                    // these instruments are excluded from the unified markets, see fetchMarkets
+                    continue;
+                }
+                $ticker = $this->parse_ticker($rawTicker);
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }

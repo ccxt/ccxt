@@ -66,8 +66,8 @@ export default class apex extends apexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        return this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     /**
@@ -169,12 +169,12 @@ export default class apex extends apexRest {
         //     }
         //
         const id = this.safeStringN (trade, [ 'i', 'id', 'v' ]);
-        const marketId = this.safeStringN (trade, [ 's', 'symbol' ]);
+        const marketId = this.safeString2 (trade, 's', 'symbol');
         market = this.safeMarket (marketId, market, undefined);
         const symbol = market['symbol'];
         const timestamp = this.safeIntegerN (trade, [ 't', 'T', 'createdAt' ]);
-        const side = this.safeStringLowerN (trade, [ 'S', 'side' ]);
-        const price = this.safeStringN (trade, [ 'p', 'price' ]);
+        const side = this.safeStringLower2 (trade, 'S', 'side');
+        const price = this.safeString2 (trade, 'p', 'price');
         const amount = this.safeStringN (trade, [ 'q', 'v', 'size' ]);
         return this.safeTrade ({
             'id': id,
@@ -203,8 +203,8 @@ export default class apex extends apexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
+    watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        return this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
     /**

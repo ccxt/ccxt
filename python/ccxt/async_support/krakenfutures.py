@@ -110,7 +110,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'api': {
                     'charts': 'https://futures.kraken.com/api/charts/',
                     'history': 'https://futures.kraken.com/api/history/',
-                    'feeschedules': 'https://futures.kraken.com/api/feeschedules/',
+                    'feeschedules': 'https://futures.kraken.com/api/feeschedules/',  # deprecated
                     'public': 'https://futures.kraken.com/derivatives/api/',
                     'private': 'https://futures.kraken.com/derivatives/api/',
                 },
@@ -124,7 +124,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'api': {
                 'public': {
                     'get': [
-                        'feeschedules',
+                        'feeschedules',  # deprecated
                         'instruments',
                         'orderbook',
                         'tickers',
@@ -134,7 +134,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 },
                 'private': {
                     'get': [
-                        'feeschedules/volumes',
+                        'feeschedules/volumes',  # deprecated
                         'openpositions',
                         'notifications',
                         'accounts',
@@ -223,6 +223,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                     'invalidAccount': BadRequest,                  # the fromAccount or the toAccount are invalid
                     'invalidAmount': BadRequest,
                     'insufficientFunds': InsufficientFunds,
+                    'INSUFFICIENT_MARGIN': InsufficientFunds,      # 500 with {"errors":[{"code":92,"message":"INSUFFICIENT_MARGIN"}]}, see https://github.com/ccxt/ccxt/issues/19896
                     'Bad Request': BadRequest,                     # The URL contains invalid characters.(Please encode the json URL parameter)
                     'Unavailable': ExchangeNotAvailable,              # https://github.com/ccxt/ccxt/issues/24338
                     'invalidUnit': BadRequest,
@@ -1515,7 +1516,8 @@ class krakenfutures(Exchange, ImplicitAPI):
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
 
-        https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+        https://docs.kraken.com/api-reference/account-history/get-order-events
+        https://docs.kraken.com/api-reference/account-history/get-trigger-events
 
         Gets all closed orders, including trigger orders, for an account from the exchange api
         :param str symbol: Unified market symbol
@@ -2001,7 +2003,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             return self.safe_order({
                 'info': order,
                 'id': self.safe_string(orderDictFromFetchOrder, 'orderId'),
-                'clientOrderId': self.safe_string_n(orderDictFromFetchOrder, ['cliOrdId']),
+                'clientOrderId': self.safe_string(orderDictFromFetchOrder, 'cliOrdId'),
                 'timestamp': self.parse8601(datetime),
                 'datetime': datetime,
                 'lastTradeTimestamp': None,
@@ -2589,7 +2591,9 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     def parse_positions(self, response, symbols: Strings = None, params={}):
         result = []
-        positions = self.safe_value(response, 'openPositions')
+        # a degraded response can omit openPositions entirely - default to an
+        # empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
+        positions = self.safe_list(response, 'openPositions', [])
         for i in range(0, len(positions)):
             position = self.parse_position(positions[i])
             result.append(position)

@@ -267,7 +267,7 @@ cancels an open order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by bitmex cancelOrder () |
+| symbol | <code>string</code> | Yes | not used by cancelOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -527,7 +527,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
-**See**: https://developers.bitpanda.com/exchange/#market-ticker-channel  
+**See**: https://docs.onetrading.com/websocket/orderbook/introduction  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

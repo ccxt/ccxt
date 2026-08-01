@@ -110,7 +110,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         message = self.extend(request, params)
         return await self.watch_multiple(url, messageHashes, message, messageHashes)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -120,7 +120,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.watch_public('ticker24h', symbol, params)
+        return self.watch_public('ticker24h', symbol, params)
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -999,7 +999,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         await self.authenticate()
         return await self.watch_request('privateGetAccount', params)
 
-    async def fetch_markets_ws(self, params={}):
+    def fetch_markets_ws(self, params={}) -> Any:
         """
 
         https://docs.bitvavo.com/#tag/General/paths/~1markets/get
@@ -1008,7 +1008,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param dict [params]: extra parameters specific to the exchange api endpoint
         :returns dict[]: an array of objects representing market data
         """
-        return await self.watch_request('getMarkets', params)
+        return self.watch_request('getMarkets', params)
 
     async def fetch_currencies_ws(self, params={}) -> Currencies:
         """

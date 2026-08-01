@@ -71,6 +71,11 @@ public partial class onetrading : Exchange
         return await this.callAsync ("privateGetAccountOrdersOrderId",parameters);
     }
 
+    public async Task<object> privateGetAccountOrdersClientClientId (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountOrdersClientClientId",parameters);
+    }
+
     public async Task<object> privateGetAccountOrdersOrderIdTrades (object parameters = null)
     {
         return await this.callAsync ("privateGetAccountOrdersOrderIdTrades",parameters);
@@ -81,9 +86,9 @@ public partial class onetrading : Exchange
         return await this.callAsync ("privateGetAccountTrades",parameters);
     }
 
-    public async Task<object> privateGetAccountTradesTradeId (object parameters = null)
+    public async Task<object> privateGetAccountTradeTradeId (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountTradesTradeId",parameters);
+        return await this.callAsync ("privateGetAccountTradeTradeId",parameters);
     }
 
     public async Task<object> privatePostAccountOrders (object parameters = null)

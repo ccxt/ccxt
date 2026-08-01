@@ -112,8 +112,9 @@ public class NdaxCore extends NdaxApi
                 put( "fetchPositionsRisk", false );
                 put( "fetchPremiumIndexOHLCV", false );
                 put( "fetchSettlementHistory", false );
+                put( "fetchStatus", true );
                 put( "fetchTicker", true );
-                put( "fetchTickers", false );
+                put( "fetchTickers", true );
                 put( "fetchTime", false );
                 put( "fetchTrades", true );
                 put( "fetchTradingFee", false );
@@ -169,6 +170,7 @@ public class NdaxCore extends NdaxApi
                         put( "Activate2FA", 1 );
                         put( "Authenticate2FA", 1 );
                         put( "AuthenticateUser", 1 );
+                        put( "EnableXP2FA", 1 );
                         put( "GetL2Snapshot", 1 );
                         put( "GetLevel1", 1 );
                         put( "GetValidate2FARequiredEndpoints", 1 );
@@ -178,9 +180,15 @@ public class NdaxCore extends NdaxApi
                         put( "GetProducts", 1 );
                         put( "GetInstrument", 1 );
                         put( "GetInstruments", 1 );
+                        put( "GetEarliestTickTime", 1 );
                         put( "Ping", 1 );
+                        put( "assets", 1 );
+                        put( "orderbook", 1 );
+                        put( "ticker", 1 );
+                        put( "summary", 1 );
                         put( "trades", 1 );
                         put( "GetLastTrades", 1 );
+                        put( "ConfirmWithdraw", 1 );
                         put( "SubscribeLevel1", 1 );
                         put( "SubscribeLevel2", 1 );
                         put( "SubscribeTicker", 1 );
@@ -236,10 +244,14 @@ public class NdaxCore extends NdaxApi
                         put( "GetWithdrawTemplate", 1 );
                         put( "GetWithdrawTemplateTypes", 1 );
                         put( "GetWithdrawTicket", 1 );
+                        put( "GetWithdrawTicketAttachment", 1 );
                         put( "GetWithdrawTickets", 1 );
+                        put( "GetDepositTicketAttachment", 1 );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "AddUserAffiliateTag", 1 );
+                        put( "AddDepositTicketAttachment", 1 );
+                        put( "AddWithdrawTicketAttachment", 1 );
                         put( "CancelUserReport", 1 );
                         put( "RegisterNewDevice", 1 );
                         put( "SubscribeAccountEvents", 1 );
@@ -392,6 +404,39 @@ public class NdaxCore extends NdaxApi
 
     /**
      * @method
+     * @name ndax#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://apidoc.ndax.io/#ping
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchStatus(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object response = (this.publicGetPing(parameters)).join();
+            //
+            //     {
+            //         "msg":"PONG"
+            //     }
+            //
+            Object message = this.safeString(response, "msg");
+            final Object finalMessage = message;
+            return new java.util.HashMap<String, Object>() {{
+                put( "status", ((Helpers.isTrue((Helpers.isEqual(finalMessage, "PONG"))))) ? "ok" : "error" );
+                put( "updated", null );
+                put( "eta", null );
+                put( "url", null );
+                put( "info", response );
+            }};
+        });
+
+    }
+
+    /**
+     * @method
      * @name ndax#signIn
      * @description sign in, must be called prior to using other authenticated methods
      * @see https://apidoc.ndax.io/#authenticate2fa
@@ -460,7 +505,7 @@ public class NdaxCore extends NdaxApi
      * @method
      * @name ndax#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://apidoc.ndax.io/#getproduct
+     * @see https://apidoc.ndax.io/#getproducts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -716,8 +761,7 @@ public class NdaxCore extends NdaxApi
             Object bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             Object levelSide = this.safeInteger(level, 9);
             Object side = ((Helpers.isTrue(levelSide))) ? asksKey : bidsKey;
-            Object resultSide = Helpers.GetValue(result, side);
-            ((java.util.List<Object>)resultSide).add(bidask);
+            ((java.util.List<Object>)Helpers.GetValue(result, side)).add(bidask);
         }
         Helpers.addElementToObject(result, "bids", this.sortBy(Helpers.GetValue(result, "bids"), 0, true));
         Helpers.addElementToObject(result, "asks", this.sortBy(Helpers.GetValue(result, "asks"), 0));
@@ -745,7 +789,10 @@ public class NdaxCore extends NdaxApi
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             limit = ((Helpers.isTrue((Helpers.isEqual(limit, null))))) ? 100 : limit; // default 100
             final Object finalLimit = limit;
@@ -816,26 +863,44 @@ public class NdaxCore extends NdaxApi
         //         "Rolling24HrPxChangePercent":0,
         //     }
         //
+        // fetchTickers
+        //
+        //     {
+        //         "trading_pairs":"BTC_CAD",
+        //         "last_price":75925.37,
+        //         "lowest_ask":75926.63,
+        //         "highest_bid":66.435340000000000000000000000,
+        //         "base_volume":75774.93,
+        //         "quote_volume":5112197.7830825000000000000000,
+        //         "price_change_percent_24h":-5.3894893561980828521107542600,
+        //         "highest_price_24h":79813.51,
+        //         "lowest_price_24h":73700.01
+        //     }
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(ticker, "TimeStamp");
         Object marketId = this.safeString(ticker, "InstrumentId");
-        market = this.safeMarket(marketId, market);
+        if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
+        {
+            marketId = this.safeString(ticker, "trading_pairs");
+        }
+        market = this.safeMarket(marketId, market, "_");
         Object symbol = this.safeSymbol(marketId, market);
-        Object last = this.safeString(ticker, "LastTradedPx");
-        Object percentage = this.safeString(ticker, "Rolling24HrPxChangePercent");
+        Object last = this.safeString2(ticker, "LastTradedPx", "last_price");
+        Object percentage = this.safeString2(ticker, "Rolling24HrPxChangePercent", "price_change_percent_24h");
         Object change = this.safeString(ticker, "Rolling24HrPxChange");
         Object open = this.safeString(ticker, "SessionOpen");
-        Object baseVolume = this.safeString(ticker, "Rolling24HrVolume");
-        Object quoteVolume = this.safeString(ticker, "Rolling24HrNotional");
+        Object baseVolume = this.safeString2(ticker, "Rolling24HrVolume", "base_volume");
+        Object quoteVolume = this.safeString2(ticker, "Rolling24HrNotional", "quote_volume");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", NdaxCore.this.iso8601(timestamp) );
-            put( "high", NdaxCore.this.safeString(ticker, "SessionHigh") );
-            put( "low", NdaxCore.this.safeString(ticker, "SessionLow") );
-            put( "bid", NdaxCore.this.safeString(ticker, "BestBid") );
+            put( "high", NdaxCore.this.safeString2(ticker, "SessionHigh", "highest_price_24h") );
+            put( "low", NdaxCore.this.safeString2(ticker, "SessionLow", "lowest_price_24h") );
+            put( "bid", NdaxCore.this.safeString2(ticker, "BestBid", "highest_bid") );
             put( "bidVolume", null );
-            put( "ask", NdaxCore.this.safeString(ticker, "BestOffer") );
+            put( "ask", NdaxCore.this.safeString2(ticker, "BestOffer", "lowest_ask") );
             put( "askVolume", null );
             put( "vwap", null );
             put( "open", open );
@@ -849,6 +914,49 @@ public class NdaxCore extends NdaxApi
             put( "quoteVolume", quoteVolume );
             put( "info", ticker );
         }}, market);
+    }
+
+    /**
+     * @method
+     * @name ndax#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://apidoc.ndax.io/#cmc-summary
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            symbols = this.marketSymbols(symbols);
+            Object response = (this.publicGetSummary(parameters)).join();
+            //
+            //     [
+            //         {
+            //             "trading_pairs":"BTC_CAD",
+            //             "last_price":75925.37,
+            //             "lowest_ask":75926.63,
+            //             "highest_bid":66.435340000000000000000000000,
+            //             "base_volume":75774.93,
+            //             "quote_volume":5112197.7830825000000000000000,
+            //             "price_change_percent_24h":-5.3894893561980828521107542600,
+            //             "highest_price_24h":79813.51,
+            //             "lowest_price_24h":73700.01
+            //         }
+            //     ]
+            //
+            Object tickers = this.parseTickers(response);
+            return this.filterByArrayTickers(tickers, "symbol", symbols);
+        });
+
     }
 
     /**
@@ -867,7 +975,10 @@ public class NdaxCore extends NdaxApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "omsId", omsId );
@@ -950,7 +1061,10 @@ public class NdaxCore extends NdaxApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "omsId", omsId );
@@ -1193,7 +1307,10 @@ public class NdaxCore extends NdaxApi
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "omsId", omsId );
@@ -1299,7 +1416,10 @@ public class NdaxCore extends NdaxApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.loadAccounts()).join();
             Object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId");
             Object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
@@ -1458,7 +1578,10 @@ public class NdaxCore extends NdaxApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.loadAccounts()).join();
             Object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
@@ -1639,7 +1762,10 @@ public class NdaxCore extends NdaxApi
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.loadAccounts()).join();
             Object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
@@ -1697,6 +1823,20 @@ public class NdaxCore extends NdaxApi
 
     }
 
+    /**
+     * @method
+     * @name ndax#editOrder
+     * @description cancels an open order and places a new order
+     * @see https://apidoc.ndax.io/#cancelreplaceorder
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side2, Object... optionalArgs)
     {
         final Object side3 = side2;
@@ -1706,7 +1846,10 @@ public class NdaxCore extends NdaxApi
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.loadAccounts()).join();
             Object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
@@ -1770,7 +1913,10 @@ public class NdaxCore extends NdaxApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.loadAccounts()).join();
             Object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
@@ -1859,7 +2005,10 @@ public class NdaxCore extends NdaxApi
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.loadAccounts()).join();
             Object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
@@ -1908,7 +2057,10 @@ public class NdaxCore extends NdaxApi
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.loadAccounts()).join();
             // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
             // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
@@ -1962,7 +2114,10 @@ public class NdaxCore extends NdaxApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.loadAccounts()).join();
             Object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
@@ -2053,7 +2208,10 @@ public class NdaxCore extends NdaxApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.loadAccounts()).join();
             Object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
@@ -2150,7 +2308,10 @@ public class NdaxCore extends NdaxApi
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.loadAccounts()).join();
             Object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
@@ -2241,7 +2402,10 @@ public class NdaxCore extends NdaxApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.loadAccounts()).join();
             // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', this.parseToInt (this.accounts[0]['id']));
             // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
@@ -2328,7 +2492,10 @@ public class NdaxCore extends NdaxApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.loadAccounts()).join();
             Object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
@@ -2441,7 +2608,10 @@ public class NdaxCore extends NdaxApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.loadAccounts()).join();
             Object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
@@ -2514,7 +2684,10 @@ public class NdaxCore extends NdaxApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.loadAccounts()).join();
             Object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);
@@ -2761,7 +2934,10 @@ public class NdaxCore extends NdaxApi
             }
             this.checkAddress(address);
             Object omsId = this.safeInteger(this.options, "omsId", 1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.loadAccounts()).join();
             Object defaultAccountId = this.safeInteger2(this.options, "accountId", "AccountId", this.parseToInt(Helpers.GetValue(Helpers.GetValue(this.accounts, 0), "id")));
             Object accountId = this.safeInteger2(parameters, "accountId", "AccountId", defaultAccountId);

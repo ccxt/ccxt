@@ -18,6 +18,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class bullish extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -239,7 +241,7 @@ class bullish extends Exchange {
             'precisionMode' => TICK_SIZE,
             // exchange-specific options
             'options' => array(
-                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'networks' => array(
                     'BTC' => 'BTC',
@@ -1661,7 +1663,7 @@ class bullish extends Exchange {
              */
             $request = array(
                 'status' => 'CANCELLED',
-                'method' => 'privateGetV2Orders', // current endpoint distinquishes between CLOSED and CANCELLED orders
+                'method' => 'privateGetV2Orders', // current endpoint distinguishes between CLOSED and CANCELLED orders
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         })();
@@ -1683,7 +1685,7 @@ class bullish extends Exchange {
              */
             $request = array(
                 'status' => 'CLOSED',
-                'method' => 'privateGetV2Orders', // current endpoint distinquishes between CLOSED and CANCELLED orders
+                'method' => 'privateGetV2Orders', // current endpoint distinguishes between CLOSED and CANCELLED orders
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         })();

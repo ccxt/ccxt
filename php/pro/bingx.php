@@ -12,6 +12,10 @@ use ccxt\NetworkError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class bingx extends \ccxt\async\bingx {
     public function describe(): mixed {
@@ -1187,13 +1191,13 @@ class bingx extends \ccxt\async\bingx {
     }
 
     public function set_balance_cache(Client $client, $type, $subType, $subscriptionHash, $params) {
-        if (is_array($client->subscriptions) && array_key_exists($subscriptionHash, $client->subscriptions)) {
+        if (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions)) {
             return;
         }
         $fetchBalanceSnapshot = $this->handle_option_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if ($fetchBalanceSnapshot) {
             $messageHash = $type . ':fetchBalanceSnapshot';
-            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+            if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
                 $this->spawn(array($this, 'load_balance_snapshot'), $client, $messageHash, $type, $subType);
             }
@@ -1207,7 +1211,7 @@ class bingx extends \ccxt\async\bingx {
             $response = Async\await($this->fetch_balance(array( 'type' => $type, 'subType' => $subType )));
             $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
             // don't remove the $future from the .futures cache
-            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
                 $future = $client->futures[$messageHash];
                 $future->resolve();
                 $client->resolve($this->balance[$type], $type . ':balance');
@@ -1283,7 +1287,7 @@ class bingx extends \ccxt\async\bingx {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
         if ($fetchPositionsSnapshot) {
             $messageHash = $type . ':fetchPositionsSnapshot';
-            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+            if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
                 $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash, $type);
             }
@@ -1305,7 +1309,7 @@ class bingx extends \ccxt\async\bingx {
                 }
             }
             // don't remove the $future from the .futures $cache
-            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
                 $future = $client->futures[$messageHash];
                 $future->resolve($cache);
                 $client->resolve($cache, 'swap:positions');
@@ -1609,7 +1613,7 @@ class bingx extends \ccxt\async\bingx {
         //        }
         //    }
         //
-        $isSpot = (is_array($message) && array_key_exists('dataType', $message));
+        $isSpot = (is_array($message) && array_key_exists('dataType' ?? '', $message));
         $data = $this->safe_value_2($message, 'data', 'o', array());
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -1683,7 +1687,7 @@ class bingx extends \ccxt\async\bingx {
         //        }
         //    }
         //
-        $isSpot = (is_array($message) && array_key_exists('dataType', $message));
+        $isSpot = (is_array($message) && array_key_exists('dataType' ?? '', $message));
         $result = $this->safe_dict_2($message, 'data', 'o', array());
         $cachedTrades = $this->myTrades;
         if ($cachedTrades === null) {
@@ -1744,8 +1748,8 @@ class bingx extends \ccxt\async\bingx {
         $a = $this->safe_dict($message, 'a', array());
         $data = $this->safe_list($a, 'B', array());
         $timestamp = $this->safe_integer_2($message, 'T', 'E');
-        $type = (is_array($a) && array_key_exists('P', $a)) ? 'swap' : 'spot';
-        if (!(is_array($this->balance) && array_key_exists($type, $this->balance))) {
+        $type = (is_array($a) && array_key_exists('P' ?? '', $a)) ? 'swap' : 'spot';
+        if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }
         $this->balance[$type]['info'] = $data;
@@ -1770,7 +1774,7 @@ class bingx extends \ccxt\async\bingx {
             return;
         }
         // public subscriptions
-        if (($message === 'Ping') || (is_array($message) && array_key_exists('ping', $message))) {
+        if (($message === 'Ping') || (is_array($message) && array_key_exists('ping' ?? '', $message))) {
             $this->spawn(array($this, 'pong'), $client, $message);
             return;
         }

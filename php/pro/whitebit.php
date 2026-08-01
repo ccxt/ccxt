@@ -11,6 +11,9 @@ use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class whitebit extends \ccxt\async\whitebit {
     public function describe(): mixed {
@@ -129,11 +132,11 @@ class whitebit extends \ccxt\async\whitebit {
             $messageHash = 'candles' . ':' . $symbol;
             $parsed = $this->parse_ohlcv($data, $market);
             // $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol);
-            if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+            if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
                 $this->ohlcvs[$symbol] = array();
             }
             // $stored = $this->ohlcvs[$symbol]['unknown']; // we don't know the timeframe but we need to respect the type
-            if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists('unknown', $this->ohlcvs[$symbol]))) {
+            if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists('unknown' ?? '', $this->ohlcvs[$symbol]))) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp($limit);
                 $this->ohlcvs[$symbol]['unknown'] = $stored;
@@ -226,7 +229,7 @@ class whitebit extends \ccxt\async\whitebit {
         $symbol = $market['symbol'];
         $data = $this->safe_value($params, 1);
         $timestamp = $this->safe_timestamp($data, 'timestamp');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $ob = $this->order_book();
             $this->orderbooks[$symbol] = $ob;
         }
@@ -483,7 +486,10 @@ class whitebit extends \ccxt\async\whitebit {
         //         "56.78",
         //         "0.16717",
         //         "0.0094919126",
-        //         ''
+        //         '',
+        //         "2",
+        //         "2",
+        //         "LTC"
         //       ),
         //       "id" => null
         //   }
@@ -511,7 +517,10 @@ class whitebit extends \ccxt\async\whitebit {
         //         "56.78", // $price
         //         "0.16717", // $amount
         //         "0.0094919126", // $fee
-        //         '' // client order $id
+        //         '', // client order $id
+        //         "2", // $side, 1 = sell, 2 = buy
+        //         "2", // $role, 1 = maker, 2 = taker
+        //         "LTC" // $fee asset
         //    )
         //
         $orderId = $this->safe_string($trade, 3);
@@ -524,10 +533,26 @@ class whitebit extends \ccxt\async\whitebit {
         $fee = null;
         $feeCost = $this->safe_string($trade, 6);
         if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 10);
+            $feeCurrencyCode = ($feeCurrencyId !== null) ? $this->safe_currency_code($feeCurrencyId) : $market['quote'];
             $fee = array(
                 'cost' => $feeCost,
-                'currency' => $market['quote'],
+                'currency' => $feeCurrencyCode,
             );
+        }
+        $rawSide = $this->safe_integer($trade, 8);
+        $side = null;
+        if ($rawSide === 1) {
+            $side = 'sell';
+        } elseif ($rawSide === 2) {
+            $side = 'buy';
+        }
+        $role = $this->safe_integer($trade, 9);
+        $takerOrMaker = null;
+        if ($role === 1) {
+            $takerOrMaker = 'maker';
+        } elseif ($role === 2) {
+            $takerOrMaker = 'taker';
         }
         return $this->safe_trade(array(
             'id' => $id,
@@ -537,8 +562,8 @@ class whitebit extends \ccxt\async\whitebit {
             'symbol' => $market['symbol'],
             'order' => $orderId,
             'type' => null,
-            'side' => null,
-            'takerOrMaker' => null,
+            'side' => $side,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => null,
@@ -860,7 +885,7 @@ class whitebit extends \ccxt\async\whitebit {
                         'method' => $method,
                         'params' => $marketIdsNew,
                     );
-                    if (is_array($client->subscriptions) && array_key_exists($method, $client->subscriptions)) {
+                    if (is_array($client->subscriptions) && array_key_exists($method ?? '', $client->subscriptions)) {
                         unset($client->subscriptions[$method]);
                     }
                     return Async\await($this->watch($url, $messageHash, $resubRequest, $method, $subscription));
@@ -952,7 +977,7 @@ class whitebit extends \ccxt\async\whitebit {
         } catch (Exception $e) {
             if ($e instanceof AuthenticationError) {
                 $client->reject($e, 'authenticated');
-                if (is_array($client->subscriptions) && array_key_exists('authenticated', $client->subscriptions)) {
+                if (is_array($client->subscriptions) && array_key_exists('authenticated' ?? '', $client->subscriptions)) {
                     unset($client->subscriptions['authenticated']);
                 }
                 return false;

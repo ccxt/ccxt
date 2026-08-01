@@ -1648,7 +1648,7 @@ closes open positions for a market
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
-| params | <code>object</code> | No | extra parameters specific to the okx api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -1767,7 +1767,7 @@ fetches historical positions
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified conract symbols, must all have the same settle currency and the same market type |
 | since | <code>int</code> | No | the earliest time in ms to fetch positions for |
 | limit | <code>int</code> | No | the maximum amount of records to fetch, default=1000 |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | the latest time in ms to fetch positions for EXCHANGE SPECIFIC PARAMETERS |
 | params.offset | <code>int</code> | No | list offset, starting from 0 |
 | params.side | <code>string</code> | No | long or short |

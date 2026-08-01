@@ -194,7 +194,7 @@ export default class poloniex extends poloniexRest {
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] GTC (default), IOC, FOK
      * @param {string} [params.clientOrderId] Maximum 64-character length.*
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
@@ -265,7 +265,7 @@ export default class poloniex extends poloniexRest {
      * @description cancel multiple orders
      * @param {string} id order id
      * @param {string} [symbol] unified market symbol
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
@@ -286,7 +286,7 @@ export default class poloniex extends poloniexRest {
      * @description cancel multiple orders
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol, default is undefined
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
@@ -306,7 +306,7 @@ export default class poloniex extends poloniexRest {
      * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders
      * @description cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async cancelAllOrdersWs(symbol = undefined, params = {}) {
@@ -414,8 +414,8 @@ export default class poloniex extends poloniexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return await this.watchTradesForSymbols([symbol], since, limit, params);
+    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -848,6 +848,13 @@ export default class poloniex extends poloniexRest {
                     const previousOrder = this.safeValue2(previousOrders, orderId, clientOrderId);
                     const trade = this.parseWsTrade(order);
                     this.handleMyTrades(client, trade);
+                    if (previousOrder === undefined) {
+                        // fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
+                        const parsedOrder = this.parseWsOrder(order);
+                        orders.append(parsedOrder);
+                        marketIds.push(marketId);
+                        continue;
+                    }
                     if (previousOrder['trades'] === undefined) {
                         previousOrder['trades'] = [];
                     }

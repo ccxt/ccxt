@@ -157,11 +157,11 @@ class toobit(ccxt.async_support.toobit):
     def handle_incoming_pong(self, client: Client, pongTimestamp: Int):
         client.lastPong = pongTimestamp
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made in a market
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams
 
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
@@ -169,13 +169,13 @@ class toobit(ccxt.async_support.toobit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+        return self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a list of symbols
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams
 
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -256,7 +256,8 @@ class toobit(ccxt.async_support.toobit):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams
+        https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -273,7 +274,8 @@ class toobit(ccxt.async_support.toobit):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams
+        https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams
 
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -378,7 +380,8 @@ class toobit(ccxt.async_support.toobit):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
+        https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
 
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -394,7 +397,8 @@ class toobit(ccxt.async_support.toobit):
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
+        https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
 
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
@@ -477,24 +481,30 @@ class toobit(ccxt.async_support.toobit):
     def parse_ws_ticker(self, ticker, market=None):
         return self.parse_ticker(ticker, market)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream
+        https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams
+        https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return await self.watch_order_book_for_symbols([symbol], limit, params)
+        return self.watch_order_book_for_symbols([symbol], limit, params)
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream
+        https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams
+        https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams
 
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return.
@@ -622,7 +632,8 @@ class toobit(ccxt.async_support.toobit):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-account-update
+        https://api-docs.toobit.com/api/spot-websocket-account.html#payload-account-update
+        https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-balance
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
@@ -725,7 +736,8 @@ class toobit(ccxt.async_support.toobit):
         """
         watches information on multiple orders made by the user
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-order-update
+        https://api-docs.toobit.com/api/spot-websocket-account.html#payload-order-update
+        https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-order
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -837,7 +849,8 @@ class toobit(ccxt.async_support.toobit):
         """
         watches information on multiple trades made by the user
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-ticket-push
+        https://api-docs.toobit.com/api/spot-websocket-account.html#payload-ticket-push
+        https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-trade-update
 
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
@@ -910,7 +923,7 @@ class toobit(ccxt.async_support.toobit):
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
 
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#event-position-update
+        https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-position-update
 
         watch all open positions
         :param str[] [symbols]: list of unified market symbols

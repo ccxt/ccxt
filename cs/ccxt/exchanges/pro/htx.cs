@@ -1300,6 +1300,7 @@ public partial class htx : ccxt.htx
                     { "id", orderId },
                     { "trades", trades },
                     { "status", status },
+                    { "lastTradeTimestamp", this.safeInteger(data, "tradeTime") },
                     { "symbol", getValue(market, "symbol") },
                     { "filled", this.parseNumber(filled) },
                     { "remaining", this.parseNumber(remaining) },
@@ -2629,6 +2630,14 @@ public partial class htx : ccxt.htx
                     if (isTrue(inOp(((WebSocketClient)client).subscriptions, id)))
                     {
                         ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
+                    }
+                    // the subscription is keyed by the messageHash, not by the id -
+                    // without removing it a repeated watch call attaches to a future
+                    // that nothing will resolve instead of resubscribing, see
+                    // https://github.com/ccxt/ccxt/issues/10280
+                    if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
+                    {
+                        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
                     }
                 }
             }

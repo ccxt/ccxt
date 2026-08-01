@@ -2511,7 +2511,6 @@ public partial class cryptocom : Exchange
         object timestamp = this.safeInteger(ticker, "t");
         object marketId = this.safeString(ticker, "i");
         market = this.safeMarket(marketId, market, "_");
-        object quote = this.safeString(market, "quote");
         object last = this.safeString(ticker, "a");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
@@ -2532,7 +2531,7 @@ public partial class cryptocom : Exchange
             { "percentage", this.safeString(ticker, "c") },
             { "average", null },
             { "baseVolume", this.safeString(ticker, "v") },
-            { "quoteVolume", ((bool) isTrue((isEqual(quote, "USD")))) ? this.safeString(ticker, "vv") : null },
+            { "quoteVolume", ((bool) isTrue((isEqual(getValue(market, "quote"), "USD")))) ? this.safeString(ticker, "vv") : null },
             { "info", ticker },
         }, market);
     }
@@ -3729,7 +3728,7 @@ public partial class cryptocom : Exchange
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by cryptocom.closePositions
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.type] LIMIT or MARKET

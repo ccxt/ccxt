@@ -131,7 +131,6 @@ public partial class btcbox : Exchange
                     { "webApiEnable", true },
                     { "webApiRetries", 3 },
                 } },
-                { "amountPrecision", "0.0001" },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {

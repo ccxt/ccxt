@@ -143,7 +143,6 @@ public class BtcboxCore extends BtcboxApi
                     put( "webApiEnable", true );
                     put( "webApiRetries", 3 );
                 }} );
-                put( "amountPrecision", "0.0001" );
             }} );
             put( "features", new java.util.HashMap<String, Object>() {{
                 put( "spot", new java.util.HashMap<String, Object>() {{
@@ -415,7 +414,10 @@ public class BtcboxCore extends BtcboxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = (this.privatePostBalance(parameters)).join();
             return this.parseBalance(response);
         });
@@ -439,7 +441,10 @@ public class BtcboxCore extends BtcboxApi
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object numSymbols = ((Helpers.isTrue((Helpers.isEqual(this.symbols, null))))) ? 0 : Helpers.getArrayLength(this.symbols);
@@ -497,7 +502,10 @@ public class BtcboxCore extends BtcboxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object numSymbols = ((Helpers.isTrue((Helpers.isEqual(this.symbols, null))))) ? 0 : Helpers.getArrayLength(this.symbols);
@@ -526,7 +534,10 @@ public class BtcboxCore extends BtcboxApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = (this.publicGetTickers(parameters)).join();
             return this.parseTickers(response, symbols);
         });
@@ -591,7 +602,10 @@ public class BtcboxCore extends BtcboxApi
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object numSymbols = ((Helpers.isTrue((Helpers.isEqual(this.symbols, null))))) ? 0 : Helpers.getArrayLength(this.symbols);
@@ -636,7 +650,10 @@ public class BtcboxCore extends BtcboxApi
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "amount", amount );
@@ -673,7 +690,10 @@ public class BtcboxCore extends BtcboxApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             // a special case for btcbox – default symbol is BTC/JPY
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
@@ -792,7 +812,10 @@ public class BtcboxCore extends BtcboxApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             // a special case for btcbox – default symbol is BTC/JPY
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
@@ -830,7 +853,10 @@ public class BtcboxCore extends BtcboxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             // a special case for btcbox – default symbol is BTC/JPY
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {

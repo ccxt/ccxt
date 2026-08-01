@@ -912,6 +912,18 @@ export default class okx extends Exchange {
                     '51734': AuthenticationError, // User KYC Country is not supported
                     '51735': ExchangeError, // Sub-account is not supported
                     '51736': InsufficientFunds, // Insufficient {ccy} balance
+                    '51763': AccountNotEnabled, // Your account does not meet the VIP tier requirement for this product
+                    '51764': InsufficientFunds, // Insufficient balance
+                    '51765': BadRequest, // Exceed your remaining daily quota of {x} USDT
+                    '51766': ExchangeError, // Platform daily subscription limit reached
+                    '51767': OnMaintenance, // System maintenance, please retry
+                    '51768': BadRequest, // Exceed your remaining fast redemption quota of {x} OKUSD
+                    '51769': ExchangeError, // Platform fast redemption limit reached
+                    '51770': BadRequest, // Exceed your remaining standard redemption quota of {x} OKUSD
+                    '51771': ExchangeError, // Platform standard redemption limit reached
+                    '51772': InsufficientFunds, // Instant redemption pool insufficient
+                    '51773': PermissionDenied, // Feature not available in your region
+                    '51774': OnMaintenance, // OKUSD API is under maintenance
                     // Data class
                     '52000': ExchangeError, // No updates
                     // SPOT/MARGIN error codes 54000-54999
@@ -923,6 +935,7 @@ export default class okx extends Exchange {
                     '54072': ExchangeError, // This contract is currently view-only and not tradable.
                     '54073': BadRequest, // Couldn’t place order, as {param0} is at risk of depegging. Switch settlement currencies and try again.
                     '54074': ExchangeError, // Your settings failed as you have positions, bot or open orders for USD contracts.
+                    '54094': InvalidOrder, // Order rejected. The cool-off period is active for the current instId.
                     // Trading bot Error Code from 55100 to 55999
                     '55100': InvalidOrder, // Take profit % should be within the range of {parameter1}-{parameter2}
                     '55101': InvalidOrder, // Stop loss % should be within the range of {parameter1}-{parameter2}
@@ -997,6 +1010,7 @@ export default class okx extends Exchange {
                     '59107': ExchangeError, // You have pending orders under the service, please modify the leverage after canceling all pending orders
                     '59108': InsufficientFunds, // Low leverage and insufficient margin, please adjust the leverage
                     '59109': ExchangeError, // Account equity less than the required margin amount after adjustment. Please adjust the leverage
+                    '59113': AuthenticationError, // KYC level 2 or above is required for placing orders
                     '59128': InvalidOrder, // As a lead trader, you can't lead trades in {instrument} with leverage higher than {num}
                     '59200': InsufficientFunds, // Insufficient account balance
                     '59201': InsufficientFunds, // Negative account balance
@@ -1069,6 +1083,8 @@ export default class okx extends Exchange {
                     '64001': BadRequest, // This channel has been migrated to the business URL. Please subscribe using the new URL. More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
                     '64002': BadRequest, // This channel is not supported by business URL. Please use "/private" URL(for private channels), or "/public" URL(for public channels). More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
                     '64003': AccountNotEnabled, // Your trading fee tier doesnt meet the requirement to access this channel
+                    '64004': BadRequest, // Subscribe to both {channelName} and books-l2-tbt for {instId} is not allowed. Unsubscribe books-l2-tbt first.
+                    '64008': NetworkError, // The connection will soon be closed for a service upgrade. Please reconnect.
                     '70010': BadRequest, // Timestamp parameters need to be in Unix timestamp format in milliseconds.
                     '70013': BadRequest, // endTs needs to be bigger than or equal to beginTs.
                     '70016': BadRequest, // Please specify your instrument settings for at least one instType.
@@ -1270,9 +1286,11 @@ export default class okx extends Exchange {
                 },
                 'fetchCanceledOrders': {
                     'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersAlgoHistory
+                    'paginationDirection': 'forward',
                 },
                 'fetchClosedOrders': {
                     'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersAlgoHistory
+                    'paginationDirection': 'forward',
                 },
                 'withdraw': {
                     // a funding password credential is required by the exchange for the
@@ -1871,7 +1889,7 @@ export default class okx extends Exchange {
                 },
                 'amount': {
                     'min': this.safeNumber (market, 'minSz'),
-                    'max': undefined,
+                    'max': this.safeNumber (market, 'maxLmtSz'),
                 },
                 'price': {
                     'min': undefined,
@@ -2096,6 +2114,7 @@ export default class okx extends Exchange {
      * @name okx#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2154,18 +2173,11 @@ export default class okx extends Exchange {
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
-        //      {
-        //          "instType":"SWAP",
-        //          "instId":"BTC-USDT-SWAP",
-        //          "markPx":"200",
-        //          "ts":"1597026383085"
-        //      }
-        //
         //     {
-        //         "instType": "SPOT",
-        //         "instId": "ETH-BTC",
+        //         "instType": "SPOT", // SPOT, SWAP, etc
+        //         "instId": "ETH-BTC", // BTC-USDT, BTC-USDT-SWAP, etc..
         //         "last": "0.07319",
-        //         "lastSz": "0.044378",
+        //         "lastSz": "0.044378", // base size for spot, or contracts amount for derivatives
         //         "askPx": "0.07322",
         //         "askSz": "4.2",
         //         "bidPx": "0.0732",
@@ -2173,12 +2185,13 @@ export default class okx extends Exchange {
         //         "open24h": "0.07801",
         //         "high24h": "0.07975",
         //         "low24h": "0.06019",
-        //         "volCcy24h": "11788.887619",
+        //         "volCcy24h": "11788.887619", // note, for derivatives this is base-amount
         //         "vol24h": "167493.829229",
         //         "ts": "1621440583784",
         //         "sodUtc0": "0.07872",
         //         "sodUtc8": "0.07345"
         //     }
+        //
         //     {
         //          instId: 'LTC-USDT',
         //          idxPx: '65.74',
@@ -2509,6 +2522,7 @@ export default class okx extends Exchange {
      * @name okx#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades
+     * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades-history
      * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-option-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -3170,7 +3184,7 @@ export default class okx extends Exchange {
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
         const isReduceOnly = this.safeValue (params, 'reduceOnly', false) || (closeFraction !== undefined);
         const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        let marginMode = this.safeString2 (params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so as to be extended into the request
+        let marginMode = this.safeString2 (params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not omitted so as to be extended into the request
         let margin: Bool = false;
         if ((marginMode !== undefined) && (marginMode !== 'cash')) {
             margin = true;
@@ -6523,6 +6537,16 @@ export default class okx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name okx#fetchTransfer
+     * @description fetch a transfer
+     * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-funds-transfer-state
+     * @param {string} id transfer id
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
     async fetchTransfer (id: string, code: Str = undefined, params = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -6785,8 +6809,11 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        if (!market['swap']) {
-            throw new ExchangeError (this.id + ' fetchFundingRate() is only valid for swap markets');
+        const marketInfo = this.safeDict (market, 'info', {});
+        const ruleType = this.safeString (marketInfo, 'ruleType');
+        const isExtendedPerpetual = (ruleType === 'xperp'); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+        if (!market['swap'] && !isExtendedPerpetual) {
+            throw new ExchangeError (this.id + ' fetchFundingRate() is only valid for swap markets or XPERP futures');
         }
         const request: Dict = {
             'instId': market['id'],
@@ -6826,7 +6853,18 @@ export default class okx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, 'swap', true);
+        symbols = this.marketSymbols (symbols, undefined, true);
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market (symbols[i]);
+                const marketInfo = this.safeDict (market, 'info', {});
+                const ruleType = this.safeString (marketInfo, 'ruleType');
+                const isExtendedPerpetual = (ruleType === 'xperp'); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+                if (!market['swap'] && !isExtendedPerpetual) {
+                    throw new BadRequest (this.id + ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' + symbols[i] + ' is not');
+                }
+            }
+        }
         const request: Dict = { 'instId': 'ANY' };
         const response = await this.publicGetPublicFundingRate (this.extend (request, params));
         //
@@ -8582,7 +8620,7 @@ export default class okx extends Exchange {
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
      * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -9190,7 +9228,7 @@ export default class okx extends Exchange {
      * @param {string} [type] "add" or "reduce"
      * @param {int} [since] the earliest time in ms to fetch margin adjustment history for
      * @param {int} [limit] the maximum number of entries to retrieve
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.auto] true if fetching auto margin increases
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
@@ -9292,7 +9330,7 @@ export default class okx extends Exchange {
      * @param {string} [symbols] unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch
      * @param {int} [limit] the maximum amount of records to fetch, default=100, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] "cross" or "isolated"
      *
      * EXCHANGE SPECIFIC PARAMETERS

@@ -409,7 +409,7 @@ public partial class cryptomus : Exchange
     public override object parseCurrency(object rawCurrency)
     {
         // currency here is array of networks
-        object id = null; // all entried have same id, as they were grouped by
+        object id = null; // all entries have same id, as they were grouped by
         object code = null;
         object networks = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawCurrency)); postFixIncrement(ref i))

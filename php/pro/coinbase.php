@@ -10,6 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class coinbase extends \ccxt\async\coinbase {
     public function describe(): mixed {
@@ -834,7 +835,7 @@ class coinbase extends \ccxt\async\coinbase {
                 $parsed = $this->parse_ws_order($responseOrder);
                 $cachedOrders = $this->orders;
                 $marketId = $this->safe_string($responseOrder, 'product_id');
-                if (!(is_array($marketIds) && array_key_exists($marketId, $marketIds))) {
+                if (!(is_array($marketIds) && array_key_exists($marketId ?? '', $marketIds))) {
                     $marketIds[] = $marketId;
                 }
                 $cachedOrders->append($parsed);
@@ -959,7 +960,7 @@ class coinbase extends \ccxt\async\coinbase {
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             }
             // unknown bug, can't reproduce, but sometimes $orderbook is null
-            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) && $this->orderbooks[$symbol] === null) {
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) && $this->orderbooks[$symbol] === null) {
                 continue;
             }
             $orderbook = $this->orderbooks[$symbol];
@@ -1001,7 +1002,7 @@ class coinbase extends \ccxt\async\coinbase {
         //
         $events = $this->safe_list($message, 'events', array());
         $firstEvent = $this->safe_value($events, 0, array());
-        $isUnsub = (is_array($firstEvent) && array_key_exists('subscriptions', $firstEvent));
+        $isUnsub = (is_array($firstEvent) && array_key_exists('subscriptions' ?? '', $firstEvent));
         $subKeys = is_array($firstEvent['subscriptions']) ? array_keys($firstEvent['subscriptions']) : array();
         $subKeysLength = count($subKeys);
         if ($isUnsub && $subKeysLength === 0) {

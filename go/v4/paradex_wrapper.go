@@ -380,7 +380,7 @@ func (this *Paradex) CreateOrder(symbol string, typeVar string, side string, amo
  * @method
  * @name paradex#editOrder
  * @description edit an open limit order or TPSL order
- * @see https://docs.paradex.trade/api-reference/prod/orders/modify
+ * @see https://docs.paradex.trade/api/prod/orders/modify
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to edit an order in
  * @param {string} type 'limit' or a TPSL order type
@@ -491,7 +491,7 @@ func (this *Paradex) CancelOrder(id string, options ...CancelOrderOptions) (Orde
  * @description cancel multiple orders
  * @see https://docs.paradex.trade/api/prod/orders/cancel-batch
  * @param {string[]} ids order ids
- * @param {string} [symbol] unified market symbol, not used by paradex cancelOrders()
+ * @param {string} [symbol] unified market symbol, not used by cancelOrders()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.clientOrderIds] client order ids
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}

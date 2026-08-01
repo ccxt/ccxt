@@ -317,7 +317,7 @@ func (this *WhitebitCore) Describe() any {
 				"Total is less than":                           InvalidOrder,
 				"fee must be no less than":                     InvalidOrder,
 				"Enable your key in API settings":              PermissionDenied,
-				"You don\\'t have such amount for transfer":    InsufficientFunds,
+				"You don't have such amount for transfer":      InsufficientFunds,
 			},
 		},
 	})
@@ -3734,7 +3734,7 @@ func (this *WhitebitCore) ParseTransactionStatus(status any) any {
  * @description fetch information on a deposit
  * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
  * @param {string} id deposit id
- * @param {string} code not used by whitebit fetchDeposit ()
+ * @param {string} code not used by fetchDeposit ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
@@ -4656,7 +4656,7 @@ func (this *WhitebitCore) ParseConversion(conversion any, optionalArgs ...any) a
  * @param {string} symbol unified contract symbol
  * @param {int} [since] the earliest time in ms to fetch positions for
  * @param {int} [limit] the maximum amount of records to fetch
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.positionId] the id of the requested position
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */

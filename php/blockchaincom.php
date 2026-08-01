@@ -68,7 +68,7 @@ class blockchaincom extends Exchange {
                 'fetchTransfers' => false,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
-                'fetchWithdrawalWhitelist' => true, // fetches exchange specific benficiary-ids needed for withdrawals
+                'fetchWithdrawalWhitelist' => true, // fetches exchange specific beneficiary-ids needed for withdrawals
                 'transfer' => false,
                 'withdraw' => true,
             ),
@@ -993,10 +993,10 @@ class blockchaincom extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $state = $this->safe_string($transaction, 'state');
-        if (is_array($transaction) && array_key_exists('depositId', $transaction)) {
+        if (is_array($transaction) && array_key_exists('depositId' ?? '', $transaction)) {
             $type = 'deposit';
             $id = $this->safe_string($transaction, 'depositId');
-        } elseif (is_array($transaction) && array_key_exists('withdrawalId', $transaction)) {
+        } elseif (is_array($transaction) && array_key_exists('withdrawalId' ?? '', $transaction)) {
             $type = 'withdrawal';
             $id = $this->safe_string($transaction, 'withdrawalId');
         }
@@ -1157,7 +1157,7 @@ class blockchaincom extends Exchange {
          * @see https://api.blockchain.com/v3/#getdepositbyid
          *
          * @param {string} $id $deposit $id
-         * @param {string} $code not used by blockchaincom fetchDeposit ()
+         * @param {string} $code not used by fetchDeposit ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?$id=transaction-structure transaction structure~
          */

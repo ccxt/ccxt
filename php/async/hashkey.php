@@ -16,6 +16,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class hashkey extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -872,7 +874,7 @@ class hashkey extends Exchange {
             $swapMarkets = $this->safe_list($response, 'contracts', array());
             $markets = $this->array_concat($spotMarkets, $swapMarkets);
             if ($this->is_empty($markets)) {
-                $markets = array( $response ); // if user provides $params->symbol the exchange returns a single object insted of list of objects
+                $markets = array( $response ); // if user provides $params->symbol the exchange returns a single object instead of list of objects
             }
             return $this->parse_markets($markets);
         })();
@@ -1516,7 +1518,7 @@ class hashkey extends Exchange {
             $side = $isBuyer ? 'buy' : 'sell';
         }
         $takerOrMaker = null;
-        $isMaker = $this->safe_bool_n($trade, array( 'isMaker', 'isMarker' ));
+        $isMaker = $this->safe_bool_2($trade, 'isMaker', 'isMarker');
         if ($isMaker !== null) {
             $takerOrMaker = $isMaker ? 'maker' : 'taker';
         }

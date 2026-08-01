@@ -647,7 +647,7 @@ class whitebit extends Exchange {
         // $name = $this->safe_string(currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
         $id = $this->safe_string($rawCurrency, '_coin_id');
         $code = $this->safe_currency_code($id);
-        $hasProvider = (is_array($rawCurrency) && array_key_exists('providers', $rawCurrency));
+        $hasProvider = (is_array($rawCurrency) && array_key_exists('providers' ?? '', $rawCurrency));
         $networks = array();
         $rawNetworks = $this->safe_dict($rawCurrency, 'networks', array());
         $depositsNetworks = $this->safe_list($rawNetworks, 'deposits', array());
@@ -3161,7 +3161,7 @@ class whitebit extends Exchange {
          * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
          *
          * @param {string} $id deposit $id
-         * @param {string} $code not used by whitebit fetchDeposit ()
+         * @param {string} $code not used by fetchDeposit ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?$id=transaction-structure transaction structure~
          */
@@ -3878,7 +3878,7 @@ class whitebit extends Exchange {
          * @param {string} $symbol unified contract $symbol
          * @param {int} [$since] the earliest time in ms to fetch $positions for
          * @param {int} [$limit] the maximum amount of records to fetch
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->positionId] the id of the requested position
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */

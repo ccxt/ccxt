@@ -478,7 +478,7 @@ export default class weex extends Exchange {
             },
             'options': {
                 'partner': 'b-WEEX111125',
-                'timeDifference': 0, // the difference between system clock and Binance clock
+                'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'accountsByType': {
                     'spot': 'spot',
@@ -696,7 +696,7 @@ export default class weex extends Exchange {
      */
     async fetchStatus (params = {}) {
         const response = await this.publicGetApiV3Ping (params);
-        // reutns an empty response if the exchange is alive, otherwise will trigger an error
+        // returns an empty response if the exchange is alive, otherwise will trigger an error
         return {
             'status': 'ok',
             'updated': undefined,
@@ -1250,6 +1250,7 @@ export default class weex extends Exchange {
         }
         market = this.safeMarket (marketId, market, undefined, marketType);
         const timestamp = this.safeInteger2 (ticker, 'closeTime', 'time');
+        const percentage = Precise.stringMul (this.safeString (ticker, 'priceChangePercent'), '100');
         return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -1266,7 +1267,7 @@ export default class weex extends Exchange {
             'last': this.safeString (ticker, 'lastPrice'),
             'previousClose': undefined,
             'change': this.safeString (ticker, 'priceChange'),
-            'percentage': this.safeString (ticker, 'priceChangePercent'),
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volume'),
             'quoteVolume': this.safeString (ticker, 'quoteVolume'),

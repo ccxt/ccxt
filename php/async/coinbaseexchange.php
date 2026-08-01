@@ -15,6 +15,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class coinbaseexchange extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -1747,9 +1749,9 @@ class coinbaseexchange extends Exchange {
                 'amount' => $amount,
             );
             $method = 'privatePostWithdrawals';
-            if (is_array($params) && array_key_exists('payment_method_id', $params)) {
+            if (is_array($params) && array_key_exists('payment_method_id' ?? '', $params)) {
                 $method .= 'PaymentMethod';
-            } elseif (is_array($params) && array_key_exists('coinbase_account_id', $params)) {
+            } elseif (is_array($params) && array_key_exists('coinbase_account_id' ?? '', $params)) {
                 $method .= 'CoinbaseAccount';
             } else {
                 $method .= 'Crypto';
@@ -2249,7 +2251,7 @@ class coinbaseexchange extends Exchange {
         return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config) {
             $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
             if (gettype($response) !== 'string') {
-                if (is_array($response) && array_key_exists('message', $response)) {
+                if (is_array($response) && array_key_exists('message' ?? '', $response)) {
                     throw new ExchangeError($this->id . ' ' . $this->json($response));
                 }
             }

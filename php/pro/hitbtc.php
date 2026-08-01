@@ -11,6 +11,9 @@ use ccxt\AuthenticationError;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class hitbtc extends \ccxt\async\hitbtc {
     public function describe(): mixed {
@@ -292,7 +295,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $symbol = $market['symbol'];
             $item = $data[$marketId];
             $messageHash = 'orderbooks::' . $symbol;
-            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
                 $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
                 $limit = $this->safe_integer($subscription, 'limit');
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
@@ -1405,14 +1408,14 @@ class hitbtc extends \ccxt\async\hitbtc {
             if ($clientOrderId !== null) {
                 $this->handle_order_request($client, $message);
             }
-            if (($result === true) && !(is_array($message) && array_key_exists('id', $message))) {
+            if (($result === true) && !(is_array($message) && array_key_exists('id' ?? '', $message))) {
                 $this->handle_authenticate($client, $message);
             }
             if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
                 // to do improve this, not very reliable right now
                 $first = $this->safe_value($result, 0, array());
                 $arrayLength = count($result);
-                if (($arrayLength === 0) || (is_array($first) && array_key_exists('client_order_id', $first))) {
+                if (($arrayLength === 0) || (is_array($first) && array_key_exists('client_order_id' ?? '', $first))) {
                     $this->handle_order_request($client, $message);
                 }
             }
@@ -1434,7 +1437,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         } else {
             $error = new AuthenticationError($this->id . ' ' . $this->json($message));
             $client->reject($error, $messageHash);
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }
@@ -1467,7 +1470,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                 if ($e instanceof AuthenticationError) {
                     $messageHash = 'authenticated';
                     $client->reject($e, $messageHash);
-                    if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                    if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                         unset($client->subscriptions[$messageHash]);
                     }
                 } else {

@@ -864,9 +864,14 @@ export default class backpack extends Exchange {
         const low = this.safeString(ticker, 'low');
         const baseVolume = this.safeString(ticker, 'volume');
         const quoteVolume = this.safeString(ticker, 'quoteVolume');
-        const percentage = this.safeString(ticker, 'priceChangePercent');
+        let percentage = undefined;
+        const percentageNumber = this.safeFloat(ticker, 'priceChangePercent');
+        // in some cases priceChangePercent is a non-numeric string like "N/A"
+        if (percentageNumber !== undefined) {
+            percentage = Precise.stringMul(this.safeString(ticker, 'priceChangePercent'), '100');
+        }
         const change = this.safeString(ticker, 'priceChange');
-        return this.safeTicker({
+        const parsedTicker = this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
@@ -890,6 +895,7 @@ export default class backpack extends Exchange {
             'indexPrice': undefined,
             'info': ticker,
         }, market);
+        return parsedTicker;
     }
     /**
      * @method
@@ -898,7 +904,7 @@ export default class backpack extends Exchange {
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_depth
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -939,7 +945,7 @@ export default class backpack extends Exchange {
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in seconds of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (default 100)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1854,7 +1860,7 @@ export default class backpack extends Exchange {
      * @description fetch an open order by it's id
      * @see https://docs.backpack.exchange/#tag/Order/operation/get_order
      * @param {string} id order id
-     * @param {string} symbol not used by hollaex fetchOpenOrder ()
+     * @param {string} symbol not used by fetchOpenOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1926,10 +1932,10 @@ export default class backpack extends Exchange {
      * @name backpack#fetchOrders
      * @description fetches information on multiple orders made by the user
      * @see https://docs.backpack.exchange/#tag/History/operation/get_order_history
-     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of  orde structures to retrieve (default 100, max 1000)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {int} [limit] the maximum number of order structures to retrieve (default 100, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {

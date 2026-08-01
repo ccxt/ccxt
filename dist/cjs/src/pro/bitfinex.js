@@ -290,8 +290,8 @@ class bitfinex extends bitfinex$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async unWatchTrades(symbol, params = {}) {
-        return await this.unSubscribe('trades', 'trades', symbol, params);
+    unWatchTrades(symbol, params = {}) {
+        return this.unSubscribe('trades', 'trades', symbol, params);
     }
     /**
      * @method
@@ -326,8 +326,8 @@ class bitfinex extends bitfinex$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker(symbol, params = {}) {
-        return await this.subscribe('ticker', symbol, params);
+    watchTicker(symbol, params = {}) {
+        return this.subscribe('ticker', symbol, params);
     }
     /**
      * @method
@@ -337,8 +337,8 @@ class bitfinex extends bitfinex$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchTicker(symbol, params = {}) {
-        return await this.unSubscribe('ticker', 'ticker', symbol, params);
+    unWatchTicker(symbol, params = {}) {
+        return this.unSubscribe('ticker', 'ticker', symbol, params);
     }
     handleMyTrade(client, message, subscription = {}) {
         //
@@ -670,7 +670,7 @@ class bitfinex extends bitfinex$1["default"] {
         //         358169, // channel id
         //         [
         //            1807.1, // price
-        //            0, // cound
+        //            0, // count
         //            1 // size
         //         ]
         //     ]
@@ -1097,7 +1097,7 @@ class bitfinex extends bitfinex$1["default"] {
         //           null,
         //           30, // price
         //           0, // price average
-        //           0, // price_trailling
+        //           0, // price_trailing
         //           0, // price_aux_limit
         //           null,
         //           null,
@@ -1180,7 +1180,7 @@ class bitfinex extends bitfinex$1["default"] {
         //       null,
         //       42.799, // price
         //       42.821, // price average
-        //       0, // price trailling
+        //       0, // price trailing
         //       0, // price_aux_limit
         //       null,
         //       null,

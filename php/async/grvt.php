@@ -18,6 +18,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class grvt extends Exchange {
     public function describe(): mixed {
         $rlOthers = 40;
@@ -636,7 +638,7 @@ class grvt extends Exchange {
              *
              * @see https://api-docs.grvt.io/market_data_api/#get-instrument-prod
              *
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
             $marketsPromise = $this->publicMarketPostFullV1AllInstruments($params);
@@ -929,9 +931,12 @@ class grvt extends Exchange {
         //        }
         //
         $marketId = $this->safe_string($ticker, 'instrument');
+        $timestamp = $this->safe_integer_product($ticker, 'event_time', 0.000001);
         return $this->safe_ticker(array(
             'info' => $ticker,
             'symbol' => $this->safe_symbol($marketId, $market),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'open' => $this->safe_string($ticker, 'open_price'),
             'high' => $this->safe_string($ticker, 'high_price'),
             'low' => $this->safe_string($ticker, 'low_price'),
@@ -1657,7 +1662,7 @@ class grvt extends Exchange {
         $addressTo = $this->safe_string($transaction, 'to_account_id');
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        if (is_array($transaction) && array_key_exists('transfer_metadata', $transaction)) {
+        if (is_array($transaction) && array_key_exists('transfer_metadata' ?? '', $transaction)) {
             $metaData = $this->omit_zero($this->safe_string($transaction, 'transfer_metadata'));
             if ($metaData !== null) {
                 $parsedMeta = $this->parse_json($metaData);
@@ -2247,7 +2252,7 @@ class grvt extends Exchange {
                 $limitDec = $this->safe_string($limitParts, 1, '');
                 $limitDecLength = strlen($limitDec) + 0; // php tr
                 $limitDecLengthStr = (string) $limitDecLength;
-                $powerNum = $limitDecLengthStr === '0' ? 0 : $this->convert_to_big_int_custom($limitDecLengthStr);
+                $powerNum = ($limitDecLengthStr === '0') ? 0 : $this->convert_to_big_int_custom($limitDecLengthStr);
                 $priceInteger = ($this->convert_to_big_int_custom(str_replace('.', '', $price)) * $this->convert_to_big_int_custom($priceMultiplier) / (pow($bigInt10, $powerNum)));
                 $legOrder['limitPrice'] = $this->parse_to_int($priceInteger);
             } else {
@@ -3039,7 +3044,7 @@ class grvt extends Exchange {
         //        "ack" => true
         //    }
         //
-        if (is_array($order) && array_key_exists('ack', $order)) {
+        if (is_array($order) && array_key_exists('ack' ?? '', $order)) {
             return $this->safe_order(array(
                 'info' => $order,
                 'id' => null,

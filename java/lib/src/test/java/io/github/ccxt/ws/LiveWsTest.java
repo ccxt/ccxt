@@ -3,6 +3,7 @@ package io.github.ccxt.ws;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.Helpers;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -29,7 +30,7 @@ class LiveWsTest {
             || "true".equals(System.getProperty("CCXT_LIVE_WS_TESTS"));
     }
 
-    static Exchange exchange;
+    static BaseExchange exchange;
 
     @BeforeAll
     static void setup() {

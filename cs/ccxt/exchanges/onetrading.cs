@@ -18,7 +18,7 @@ public partial class onetrading : Exchange
                 { "CORS", null },
                 { "spot", true },
                 { "margin", false },
-                { "swap", false },
+                { "swap", true },
                 { "future", false },
                 { "option", false },
                 { "addMargin", false },
@@ -155,7 +155,7 @@ public partial class onetrading : Exchange
                     { "get", new List<object>() {"currencies", "candlesticks/{instrument_code}", "fees", "instruments", "order-book/{instrument_code}", "market-ticker", "market-ticker/{instrument_code}", "time"} },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"account/balances", "account/fees", "account/orders", "account/orders/{order_id}", "account/orders/{order_id}/trades", "account/trades", "account/trades/{trade_id}"} },
+                    { "get", new List<object>() {"account/balances", "account/fees", "account/orders", "account/orders/{order_id}", "account/orders/client/{client_id}", "account/orders/{order_id}/trades", "account/trades", "account/trade/{trade_id}"} },
                     { "post", new List<object>() {"account/orders"} },
                     { "delete", new List<object>() {"account/orders", "account/orders/{order_id}", "account/orders/client/{client_id}"} },
                 } },
@@ -1450,7 +1450,7 @@ public partial class onetrading : Exchange
      * @see https://docs.onetrading.com/rest/trading/cancel-order-order-id
      * @see https://docs.onetrading.com/rest/trading/cancel-order-client-id
      * @param {string} id order id
-     * @param {string} symbol not used by bitmex cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */

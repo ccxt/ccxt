@@ -240,7 +240,9 @@ export default class bitopro extends Exchange {
                     'BEP20': 'BSC',
                     'BSC': 'BSC',
                 },
-                'fiatCurrencies': ['TWD'], // the only fiat currency for exchange
+                'fetchCurrencies': {
+                    'fiatCurrencies': ['TWD'], // the only fiat currency for exchange
+                },
             },
             'features': {
                 'spot': {
@@ -370,7 +372,7 @@ export default class bitopro extends Exchange {
         return this.parseCurrencies(currencies);
     }
     parseCurrency(rawCurrency) {
-        const fiatCurrencies = this.safeList(this.options, 'fiatCurrencies', []);
+        const fiatCurrencies = this.handleOption('fetchCurrencies', 'fiatCurrencies', []);
         const currencyId = this.safeString(rawCurrency, 'currency');
         const code = this.safeCurrencyCode(currencyId);
         const deposit = this.safeBool(rawCurrency, 'deposit');

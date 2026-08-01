@@ -422,7 +422,6 @@ public class BlofinCore extends BlofinApi
             }} );
             put( "precisionMode", TICK_SIZE );
             put( "options", new java.util.HashMap<String, Object>() {{
-                put( "brokerId", "ec6dd3a7dd982d0b" );
                 put( "accountsByType", new java.util.HashMap<String, Object>() {{
                     put( "swap", "futures" );
                     put( "funding", "funding" );
@@ -462,27 +461,13 @@ public class BlofinCore extends BlofinApi
                         put( "1D", "1D" );
                     }} );
                 }} );
-                put( "fetchOHLCV", new java.util.HashMap<String, Object>() {{
-                    put( "timezone", "UTC" );
-                }} );
-                put( "fetchPositions", new java.util.HashMap<String, Object>() {{
-                    put( "method", "privateGetAccountPositions" );
-                }} );
-                put( "createOrder", "privatePostTradeOrder" );
-                put( "createMarketBuyOrderRequiresPrice", false );
-                put( "fetchMarkets", new java.util.ArrayList<Object>(java.util.Arrays.asList("swap")) );
                 put( "defaultType", "swap" );
-                put( "fetchLedger", new java.util.HashMap<String, Object>() {{
-                    put( "method", "privateGetAssetBills" );
-                }} );
+                put( "brokerId", "ec6dd3a7dd982d0b" );
                 put( "fetchOpenOrders", new java.util.HashMap<String, Object>() {{
                     put( "method", "privateGetTradeOrdersPending" );
                 }} );
                 put( "cancelOrders", new java.util.HashMap<String, Object>() {{
                     put( "method", "privatePostTradeCancelBatchOrders" );
-                }} );
-                put( "fetchCanceledOrders", new java.util.HashMap<String, Object>() {{
-                    put( "method", "privateGetTradeOrdersHistory" );
                 }} );
                 put( "fetchClosedOrders", new java.util.HashMap<String, Object>() {{
                     put( "method", "privateGetTradeOrdersHistory" );
@@ -533,7 +518,7 @@ public class BlofinCore extends BlofinApi
         Object contract = Helpers.isTrue(swap) || Helpers.isTrue(future);
         Object baseId = this.safeString(market, "baseCurrency");
         Object quoteId = this.safeString(market, "quoteCurrency");
-        Object settleId = this.safeString(market, "quoteCurrency");
+        Object settleId = this.safeString(market, "settleCurrency", quoteId);
         Object settle = this.safeCurrencyCode(settleId);
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
@@ -553,21 +538,23 @@ public class BlofinCore extends BlofinApi
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         Object isActive = (Helpers.isEqual(this.safeString(market, "state"), "live"));
         Object isMargin = Helpers.isTrue(spot) && Helpers.isTrue((Precise.stringGt(maxLeverage, "1")));
+        Object contractType = this.safeString(market, "contractType");
+        Object maxLimitAmount = this.safeNumber(market, "maxLimitSize");
+        Object maxSpotCost = this.safeNumber(market, "maxMarketSize"); // for spot, market-buy size is denominated in the quote currency, i.e. cost
         final Object finalSymbol = symbol;
         final Object finalBase = base;
-        final Object finalBaseId = baseId;
-        final Object finalQuoteId = quoteId;
         final Object finalType = type;
         final Object finalSpot = spot;
         final Object finalSwap = swap;
+        final Object finalContractType = contractType;
         final Object finalMaxLeverage = maxLeverage;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
             put( "quote", quote );
-            put( "baseId", finalBaseId );
-            put( "quoteId", finalQuoteId );
+            put( "baseId", baseId );
+            put( "quoteId", quoteId );
             put( "settle", settle );
             put( "settleId", settleId );
             put( "type", finalType );
@@ -580,8 +567,8 @@ public class BlofinCore extends BlofinApi
             put( "taker", taker );
             put( "maker", maker );
             put( "contract", contract );
-            put( "linear", ((Helpers.isTrue(contract))) ? (Helpers.isEqual(finalQuoteId, settleId)) : null );
-            put( "inverse", ((Helpers.isTrue(contract))) ? (Helpers.isEqual(finalBaseId, settleId)) : null );
+            put( "linear", ((Helpers.isTrue(contract))) ? (Helpers.isEqual(finalContractType, "linear")) : null );
+            put( "inverse", ((Helpers.isTrue(contract))) ? (Helpers.isEqual(finalContractType, "inverse")) : null );
             put( "contractSize", ((Helpers.isTrue(contract))) ? BlofinCore.this.safeNumber(market, "contractValue") : null );
             put( "expiry", expiry );
             put( "expiryDatetime", expiry );
@@ -599,7 +586,7 @@ public class BlofinCore extends BlofinApi
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
                     put( "min", BlofinCore.this.safeNumber(market, "minSize") );
-                    put( "max", null );
+                    put( "max", maxLimitAmount );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -607,7 +594,7 @@ public class BlofinCore extends BlofinApi
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
-                    put( "max", null );
+                    put( "max", ((Helpers.isTrue(contract))) ? null : maxSpotCost );
                 }} );
             }} );
             put( "info", market );
@@ -631,7 +618,10 @@ public class BlofinCore extends BlofinApi
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
@@ -745,7 +735,10 @@ public class BlofinCore extends BlofinApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
@@ -774,7 +767,10 @@ public class BlofinCore extends BlofinApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -803,7 +799,10 @@ public class BlofinCore extends BlofinApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object response = (this.publicGetMarketTickers(parameters)).join();
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -955,7 +954,10 @@ public class BlofinCore extends BlofinApi
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -1029,7 +1031,10 @@ public class BlofinCore extends BlofinApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
@@ -1088,7 +1093,10 @@ public class BlofinCore extends BlofinApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -1187,7 +1195,10 @@ public class BlofinCore extends BlofinApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
             {
@@ -1357,7 +1368,10 @@ public class BlofinCore extends BlofinApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object accountType = null;
             var accountTypeparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "accountType", "type");
             accountType = ((java.util.List<Object>) accountTypeparametersVariable).get(0);
@@ -1654,7 +1668,10 @@ public class BlofinCore extends BlofinApi
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object isStopLossPriceDefined = !Helpers.isEqual(this.safeString(parameters, "stopLossPrice"), null);
             Object isTakeProfitPriceDefined = !Helpers.isEqual(this.safeString(parameters, "takeProfitPrice"), null);
@@ -1795,12 +1812,15 @@ public class BlofinCore extends BlofinApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
-            Object isTrigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger")), false);
+            Object isTrigger = this.safeBool(parameters, "trigger", false);
             Object isTpsl = this.safeBool2(parameters, "tpsl", "TPSL", false);
             Object clientOrderId = this.safeString(parameters, "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
@@ -1854,7 +1874,10 @@ public class BlofinCore extends BlofinApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
@@ -1900,7 +1923,10 @@ public class BlofinCore extends BlofinApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -1969,7 +1995,10 @@ public class BlofinCore extends BlofinApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -2054,7 +2083,10 @@ public class BlofinCore extends BlofinApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -2110,7 +2142,10 @@ public class BlofinCore extends BlofinApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -2167,7 +2202,10 @@ public class BlofinCore extends BlofinApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -2401,12 +2439,13 @@ public class BlofinCore extends BlofinApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object options = this.safeDict(this.options, "cancelOrders", new java.util.HashMap<String, Object>() {{}});
-            Object defaultMethod = this.safeString(options, "method", "privatePostTradeCancelBatchOrders");
-            Object method = this.safeString(parameters, "method", defaultMethod);
+            Object method = ((String)this.handleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders"));
             Object clientOrderIds = this.parseIds(this.safeValue(parameters, "clientOrderId"));
             Object tpslIds = this.parseIds(this.safeValue(parameters, "tpslId"));
             Object trigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger", "tpsl")));
@@ -2493,7 +2532,10 @@ public class BlofinCore extends BlofinApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
             Object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -2544,7 +2586,10 @@ public class BlofinCore extends BlofinApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
@@ -2578,7 +2623,10 @@ public class BlofinCore extends BlofinApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object response = (this.privateGetAccountPositions(parameters)).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -2596,7 +2644,7 @@ public class BlofinCore extends BlofinApi
      * @param {string[]} [symbols] unified contract symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
      * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
      * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
@@ -2611,7 +2659,10 @@ public class BlofinCore extends BlofinApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
@@ -2842,7 +2893,10 @@ public class BlofinCore extends BlofinApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchLeverages() requires a symbols argument")) ;
@@ -2916,7 +2970,10 @@ public class BlofinCore extends BlofinApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object marginMode = null;
             var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLeverage", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
@@ -2996,7 +3053,10 @@ public class BlofinCore extends BlofinApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " setLeverage() leverage should be between 1 and 125")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object marginMode = null;
             var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
@@ -3026,7 +3086,7 @@ public class BlofinCore extends BlofinApi
      * @see https://blofin.com/docs#close-positions
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
-     * @param {object} [params] extra parameters specific to the blofin api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
      * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -3043,7 +3103,10 @@ public class BlofinCore extends BlofinApi
 
             Object side = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object clientOrderId = this.safeString(parameters, "clientOrderId");
             Object marginMode = null;
@@ -3088,7 +3151,10 @@ public class BlofinCore extends BlofinApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -3114,7 +3180,7 @@ public class BlofinCore extends BlofinApi
             }
             Object isTrigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger", "tpsl", "TPSL")), false);
             Object method = null;
-            var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersHistory");
+            var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
@@ -3147,7 +3213,10 @@ public class BlofinCore extends BlofinApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object response = (this.privateGetAccountMarginMode(parameters)).join();
             //
@@ -3193,7 +3262,10 @@ public class BlofinCore extends BlofinApi
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredArgument("setMarginMode", marginMode, "marginMode", new java.util.ArrayList<Object>(java.util.Arrays.asList("cross", "isolated")));
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -3261,7 +3333,7 @@ public class BlofinCore extends BlofinApi
      * @description set hedged to true or false for a market
      * @see https://docs.blofin.com/index.html#set-position-mode
      * @param {bool} hedged set to true to use hedged mode, false for one-way mode
-     * @param {string} [symbol] not used by blofin setPositionMode ()
+     * @param {string} [symbol] not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
@@ -3305,7 +3377,10 @@ public class BlofinCore extends BlofinApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object response = (this.privateGetAccountPositions(parameters)).join();
             //

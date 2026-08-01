@@ -115,7 +115,7 @@ public partial class cex
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the cex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -135,7 +135,7 @@ public partial class cex
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the cex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -284,7 +284,7 @@ public partial class cex
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the cex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -316,7 +316,7 @@ public partial class cex
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the cex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -338,7 +338,7 @@ public partial class cex
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the kraken api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -365,7 +365,7 @@ public partial class cex
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the cex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -387,7 +387,7 @@ public partial class cex
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the cex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -407,7 +407,7 @@ public partial class cex
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the cex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>

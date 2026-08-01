@@ -231,7 +231,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] GTC (default), IOC, FOK
      * @param {string} [params.clientOrderId] Maximum 64-character length.*
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
@@ -250,7 +250,10 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object market = this.market(symbol);
             Object uppercaseType = ((String)type).toUpperCase();
@@ -316,7 +319,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
      * @description cancel multiple orders
      * @param {string} id order id
      * @param {string} [symbol] unified market symbol
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
@@ -347,7 +350,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
      * @description cancel multiple orders
      * @param {string[]} ids order ids
      * @param {string} symbol unified market symbol, default is undefined
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
@@ -358,7 +361,10 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderIds", ids );
@@ -374,7 +380,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
      * @see https://api-docs.poloniex.com/spot/websocket/trade-request#cancel-all-orders
      * @description cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-     * @param {object} [params] extra parameters specific to the poloniex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> cancelAllOrdersWs(Object... optionalArgs)
@@ -384,7 +390,10 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             return (this.tradeRequest("cancelAllOrders", parameters)).join();
         });
@@ -437,7 +446,10 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object timeframes = this.safeValue(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
             Object channel = this.safeString(timeframes, timeframe, timeframe);
             if (Helpers.isTrue(Helpers.isEqual(channel, null)))
@@ -469,7 +481,10 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbol = this.symbol(symbol);
             Object tickers = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
             return this.safeValue(tickers, symbol);
@@ -493,7 +508,10 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object name = "ticker";
             symbols = this.marketSymbols(symbols);
             Object newTickers = (this.subscribe(name, name, false, symbols, parameters)).join();
@@ -549,7 +567,10 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false, true, true);
             Object name = "trades";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
@@ -598,7 +619,10 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object watchOrderBookOptions = this.safeValue(this.options, "watchOrderBook");
             Object name = this.safeString(watchOrderBookOptions, "name", "book_lv2");
             var nameparametersVariable = this.handleOptionAndParams(parameters, "method", "name", name);
@@ -630,7 +654,10 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object name = "orders";
             (this.authenticate()).join();
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -668,7 +695,10 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object name = "orders";
             Object messageHash = "myTrades";
             (this.authenticate()).join();
@@ -701,7 +731,10 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object name = "balances";
             (this.authenticate()).join();
             return (this.subscribe(name, name, true, null, parameters)).join();
@@ -1026,6 +1059,14 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
                     Object previousOrder = this.safeValue2(previousOrders, orderId, clientOrderId);
                     Object trade = this.parseWsTrade(order);
                     this.handleMyTrades(client, trade);
+                    if (Helpers.isTrue(Helpers.isEqual(previousOrder, null)))
+                    {
+                        // fill event for an order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
+                        Object parsedOrder = this.parseWsOrder(order);
+                        Helpers.callDynamically(orders, "append", new Object[]{parsedOrder});
+                        ((java.util.List<Object>)marketIds).add(marketId);
+                        continue;
+                    }
                     if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(previousOrder, "trades"), null)))
                     {
                         Helpers.addElementToObject(previousOrder, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));

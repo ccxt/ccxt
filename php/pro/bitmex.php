@@ -10,6 +10,10 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class bitmex extends \ccxt\async\bitmex {
     public function describe(): mixed {
@@ -359,7 +363,7 @@ class bitmex extends \ccxt\async\bitmex {
             $update = $data[$i];
             $marketId = $this->safe_string($update, 'symbol');
             $symbol = $this->safe_symbol($marketId);
-            if (!(is_array($this->tickers) && array_key_exists($symbol, $this->tickers))) {
+            if (!(is_array($this->tickers) && array_key_exists($symbol ?? '', $this->tickers))) {
                 $this->tickers[$symbol] = $this->parse_ticker(array());
             }
             $updatedTicker = $this->parse_ticker($update);
@@ -696,20 +700,18 @@ class bitmex extends \ccxt\async\bitmex {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see https://www.bitmex.com/app/wsAPI#Subscriptions
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        })();
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see https://www.bitmex.com/app/wsAPI#Subscriptions
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
     }
 
     public function authenticate($params = array()) {
@@ -749,7 +751,7 @@ class bitmex extends \ccxt\async\bitmex {
         } else {
             $error = new AuthenticationError($this->json($message));
             $client->reject($error, $messageHash);
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }
@@ -1334,19 +1336,17 @@ class bitmex extends \ccxt\async\bitmex {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://www.bitmex.com/app/wsAPI#OrderBookL2
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
-        })();
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://www.bitmex.com/app/wsAPI#OrderBookL2
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
     }
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1683,7 +1683,7 @@ class bitmex extends \ccxt\async\bitmex {
                 if ($marketId === null) {
                     return; // protecting from weird update
                 }
-                if (!(is_array($numUpdatesByMarketId) && array_key_exists($marketId, $numUpdatesByMarketId))) {
+                if (!(is_array($numUpdatesByMarketId) && array_key_exists($marketId ?? '', $numUpdatesByMarketId))) {
                     $numUpdatesByMarketId[$marketId] = 0;
                 }
                 $numUpdatesByMarketId[$marketId] = $this->sum($numUpdatesByMarketId[$marketId], 1);

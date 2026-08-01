@@ -15,6 +15,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class bitstamp extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -860,11 +862,11 @@ class bitstamp extends Exchange {
         $minimumOrder = $this->safe_string($market, 'minimum_order_value');
         $parts = explode(' ', $minimumOrder);
         $cost = $parts[0];
-        if (!(is_array($existing) && array_key_exists($base, $existing))) {
+        if (!(is_array($existing) && array_key_exists($base ?? '', $existing))) {
             $baseDecimals = $this->safe_integer($market, 'base_decimals');
             $this->options['_temp_currencies_result'][$base] = $this->construct_currency_object($baseId, $base, $baseDescription, $baseDecimals, null, $market);
         }
-        if (!(is_array($existing) && array_key_exists($quote, $existing))) {
+        if (!(is_array($existing) && array_key_exists($quote ?? '', $existing))) {
             $counterDecimals = $this->safe_integer($market, 'counter_decimals');
             $this->options['_temp_currencies_result'][$quote] = $this->construct_currency_object($quoteId, $quote, $quoteDescription, $counterDecimals, $this->parse_number($cost), $market);
         }
@@ -1092,11 +1094,11 @@ class bitstamp extends Exchange {
         }
         if ($numCurrencyIds === 2) {
             $marketId = $currencyIds[0] . $currencyIds[1];
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id)) {
                 return $this->safe_market($marketId);
             }
             $marketId = $currencyIds[1] . $currencyIds[0];
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id)) {
                 return $this->safe_market($marketId);
             }
         }
@@ -1200,7 +1202,7 @@ class bitstamp extends Exchange {
             }
         }
         // if it is a private $trade
-        if (is_array($trade) && array_key_exists('id', $trade)) {
+        if (is_array($trade) && array_key_exists('id' ?? '', $trade)) {
             if ($amountString !== null) {
                 $isAmountNeg = Precise::string_lt($amountString, '0');
                 if ($isAmountNeg) {
@@ -2140,7 +2142,7 @@ class bitstamp extends Exchange {
         $feeCost = $this->safe_string($transaction, 'fee');
         $feeCurrency = null;
         $amount = null;
-        if (is_array($transaction) && array_key_exists('amount', $transaction)) {
+        if (is_array($transaction) && array_key_exists('amount' ?? '', $transaction)) {
             $amount = $this->safe_string($transaction, 'amount');
         } elseif ($currency !== null) {
             $amount = $this->safe_string($transaction, $currency['id'], $amount);
@@ -2154,11 +2156,11 @@ class bitstamp extends Exchange {
             $amount = Precise::string_abs($amount);
         }
         $status = 'ok';
-        if (is_array($transaction) && array_key_exists('status', $transaction)) {
+        if (is_array($transaction) && array_key_exists('status' ?? '', $transaction)) {
             $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         }
         $type = null;
-        if (is_array($transaction) && array_key_exists('type', $transaction)) {
+        if (is_array($transaction) && array_key_exists('type' ?? '', $transaction)) {
             // from fetchDepositsWithdrawals
             $rawType = $this->safe_string($transaction, 'type');
             if ($rawType === '0') {
@@ -2395,10 +2397,10 @@ class bitstamp extends Exchange {
         } else {
             $parsedTransaction = $this->parse_transaction($item, $currency);
             $direction = null;
-            if (is_array($item) && array_key_exists('amount', $item)) {
+            if (is_array($item) && array_key_exists('amount' ?? '', $item)) {
                 $amount = $this->safe_string($item, 'amount');
                 $direction = Precise::string_gt($amount, '0') ? 'in' : 'out';
-            } elseif ((is_array($parsedTransaction) && array_key_exists('currency', $parsedTransaction)) && $parsedTransaction['currency'] !== null) {
+            } elseif ((is_array($parsedTransaction) && array_key_exists('currency' ?? '', $parsedTransaction)) && $parsedTransaction['currency'] !== null) {
                 $currencyCode = $this->safe_string($parsedTransaction, 'currency');
                 $currency = $this->currency($currencyCode);
                 $amount = $this->safe_string($item, $currency['id']);

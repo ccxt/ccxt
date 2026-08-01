@@ -16,6 +16,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class deribit extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -581,7 +583,7 @@ class deribit extends Exchange {
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((str_ends_with($marketId, '-C')) || (str_ends_with($marketId, '-P')));
-        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
             // handle expired option contracts
             return $this->create_expired_option_market($marketId);
         }
@@ -1049,7 +1051,7 @@ class deribit extends Exchange {
             'info' => $balance,
         );
         $summaries = array();
-        if (is_array($balance) && array_key_exists('summaries', $balance)) {
+        if (is_array($balance) && array_key_exists('summaries' ?? '', $balance)) {
             $summaries = $this->safe_list($balance, 'summaries');
         } else {
             $summaries = array( $balance );
@@ -1660,7 +1662,7 @@ class deribit extends Exchange {
                 $request['end_timestamp'] = $until;
             }
             $response = null;
-            if (($since === null) && !(is_array($request) && array_key_exists('end_timestamp', $request))) {
+            if (($since === null) && !(is_array($request) && array_key_exists('end_timestamp' ?? '', $request))) {
                 $response = Async\await($this->publicGetGetLastTradesByInstrument($this->extend($request, $params)));
             } else {
                 $response = Async\await($this->publicGetGetLastTradesByInstrumentAndTime($this->extend($request, $params)));
@@ -2307,7 +2309,7 @@ class deribit extends Exchange {
              * @see https://docs.deribit.com/#private-cancel
              *
              * @param {string} $id order $id
-             * @param {string} $symbol not used by deribit cancelOrder ()
+             * @param {string} $symbol not used by cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
@@ -3371,7 +3373,7 @@ class deribit extends Exchange {
             } else {
                 $request['end_timestamp'] = $time;
             }
-            if (is_array($params) && array_key_exists('isDeribitPaginationCall', $params)) {
+            if (is_array($params) && array_key_exists('isDeribitPaginationCall' ?? '', $params)) {
                 $params = $this->omit($params, 'isDeribitPaginationCall');
                 $maxUntil = $this->sum($since, $limit * $duration);
                 $request['end_timestamp'] = min($request['end_timestamp'], $maxUntil);

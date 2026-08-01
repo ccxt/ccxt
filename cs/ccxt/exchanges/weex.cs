@@ -626,7 +626,7 @@ public partial class weex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetApiV3Ping(parameters);
-        // reutns an empty response if the exchange is alive, otherwise will trigger an error
+        // returns an empty response if the exchange is alive, otherwise will trigger an error
         return new Dictionary<string, object>() {
             { "status", "ok" },
             { "updated", null },
@@ -1217,6 +1217,7 @@ public partial class weex : Exchange
         }
         market = this.safeMarket(marketId, market, null, marketType);
         object timestamp = this.safeInteger2(ticker, "closeTime", "time");
+        object percentage = Precise.stringMul(this.safeString(ticker, "priceChangePercent"), "100");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "timestamp", timestamp },
@@ -1233,7 +1234,7 @@ public partial class weex : Exchange
             { "last", this.safeString(ticker, "lastPrice") },
             { "previousClose", null },
             { "change", this.safeString(ticker, "priceChange") },
-            { "percentage", this.safeString(ticker, "priceChangePercent") },
+            { "percentage", percentage },
             { "average", null },
             { "baseVolume", this.safeString(ticker, "volume") },
             { "quoteVolume", this.safeString(ticker, "quoteVolume") },

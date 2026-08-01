@@ -1129,6 +1129,7 @@ class htx(ccxt.async_support.htx):
                     'id': orderId,
                     'trades': trades,
                     'status': status,
+                    'lastTradeTimestamp': self.safe_integer(data, 'tradeTime'),
                     'symbol': market['symbol'],
                     'filled': self.parse_number(filled),
                     'remaining': self.parse_number(remaining),
@@ -2252,6 +2253,12 @@ class htx(ccxt.async_support.htx):
                     client.reject(e, id)
                     if id in client.subscriptions:
                         del client.subscriptions[id]
+                    # the subscription is keyed by the messageHash, not by the id -
+                    # without removing it a repeated watch call attaches to a future
+                    # that nothing will resolve instead of resubscribing, see
+                    # https://github.com/ccxt/ccxt/issues/10280
+                    if messageHash in client.subscriptions:
+                        del client.subscriptions[messageHash]
             return False
         code = self.safe_string_2(message, 'code', 'err-code')
         if code is not None and ((code != '200') and (code != '0')):

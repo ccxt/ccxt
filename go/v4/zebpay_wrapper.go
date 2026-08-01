@@ -66,7 +66,7 @@ func (this *Zebpay) FetchTime(params ...any) (int64, error) {
  * @description retrieves data on all markets for zebpay
  * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
  * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Zebpay) FetchMarkets(params ...any) ([]MarketInterface, error) {

@@ -17,6 +17,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class hitbtc extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -3080,7 +3082,7 @@ class hitbtc extends Exchange {
              * @see https://api.hitbtc.com/#get-futures-margin-accounts
              * @see https://api.hitbtc.com/#get-all-margin-accounts
              *
-             * @param {string[]|null} $symbols not used by hitbtc fetchPositions ()
+             * @param {string[]|null} $symbols not used by fetchPositions ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
              * @param {bool} [$params->margin] true for fetching spot-margin positions
@@ -3882,7 +3884,7 @@ class hitbtc extends Exchange {
              *
              * @param {string} $symbol unified ccxt $market $symbol
              * @param {string} $side 'buy' or 'sell'
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->symbol] *required* unified $market $symbol
              * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross'
              * @return {array} An ~@link https://docs.ccxt.com/?id=order-structure order structure~

@@ -178,7 +178,7 @@ public partial class bydfi
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the bitteam api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -970,7 +970,7 @@ public partial class bydfi
     /// <item>
     /// <term>symbol</term>
     /// <description>
-    /// string : not used by bydfi setPositionMode ()
+    /// string : not used by setPositionMode ()
     /// </description>
     /// </item>
     /// <item>

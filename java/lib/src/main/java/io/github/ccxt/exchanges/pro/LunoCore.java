@@ -65,7 +65,10 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object subscriptionHash = Helpers.add("/stream/", Helpers.GetValue(market, "id"));
@@ -168,6 +171,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
      * @method
      * @name luno#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://www.luno.com/en/developers/api#tag/Streaming-API
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
@@ -182,7 +186,10 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object subscriptionHash = Helpers.add("/stream/", Helpers.GetValue(market, "id"));

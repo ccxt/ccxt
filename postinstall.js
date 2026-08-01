@@ -45,25 +45,58 @@ let ascii = [
 ]
 
 async function getData () {
-    const [collectiveData_result, githubData_result] = await Promise.all ([fetch ('https://opencollective.com/ccxt.json'), fetch ('https://api.github.com/repos/ccxt/ccxt')])
-    const collectiveData = await collectiveData_result.json()
+    const oneWeekAgo = new Date (Date.now () - 7 * 24 * 60 * 60 * 1000).toISOString ()
+    const [githubData_result, releaseData_result, contributors_result, commits_result] = await Promise.all ([
+        fetch ('https://api.github.com/repos/ccxt/ccxt'),
+        fetch ('https://api.github.com/repos/ccxt/ccxt/releases/latest'),
+        fetch ('https://api.github.com/repos/ccxt/ccxt/contributors?per_page=1&anon=1'),
+        fetch ('https://api.github.com/repos/ccxt/ccxt/commits?since=' + oneWeekAgo + '&per_page=1'),
+    ])
     const githubData = await githubData_result.json()
+    const releaseData = await releaseData_result.json()
+    const contributors = parseTotalCountFromLinkHeader (contributors_result.headers.get ('link'))
+    const commitsThisWeek = parseTotalCountFromLinkHeader (commits_result.headers.get ('link'))
 
     return {
-        contributors: collectiveData['contributorsCount'].toLocaleString (),
-        backers: collectiveData['backersCount'].toLocaleString (),
-        balance: Math.floor (collectiveData['balance'] / 100).toLocaleString (),
-        budget: Math.floor (collectiveData['yearlyIncome'] / 100).toLocaleString (),
         stars: githubData['stargazers_count'].toLocaleString (),
         forks: githubData['forks_count'].toLocaleString (),
-        size: (githubData['size'] / 1000000).toFixed (2)
+        latestRelease: releaseData['tag_name'],
+        latestReleaseDate: releaseData['published_at'],
+        contributors: contributors,
+        commitsThisWeek: commitsThisWeek,
     }
+}
+
+function parseTotalCountFromLinkHeader (linkHeader) {
+    if (!linkHeader) {
+        return 1
+    }
+    const match = linkHeader.match (/page=(\d+)>;\s*rel="last"/)
+    return match ? parseInt (match[1], 10) : 1
 }
 
 function pad (string) {
     const padding = 80 - string.length
     const half = Math.floor (padding / 2)
     return ' '.repeat (half + (padding % 2)) + string + ' '.repeat (half)
+}
+
+function formatDate (dateString) {
+    const date = new Date (dateString)
+    const now = new Date ()
+    const diffMs = now - date
+    const diffDays = Math.floor (diffMs / (24 * 60 * 60 * 1000))
+    if (diffDays === 0) {
+        return 'today'
+    } else if (diffDays === 1) {
+        return 'yesterday'
+    } else if (diffDays < 7) {
+        return diffDays + ' days ago'
+    } else if (diffDays < 30) {
+        return Math.floor (diffDays / 7) + ' week' + (diffDays < 14 ? '' : 's') + ' ago'
+    } else {
+        return date.toLocaleDateString ()
+    }
 }
 
 async function main () {
@@ -75,11 +108,10 @@ async function main () {
         colorFunctions['blue'] (ascii.join ('\n'))
         colorFunctions['red'] (pad (`Stars: ${data.stars}`))
         colorFunctions['red'] (pad (`Forks: ${data.forks}`))
-        colorFunctions['red'] (pad (`Size: ${data.size}MB`))
+        colorFunctions['red'] (pad (`Contributors: ${data.contributors}`))
+        colorFunctions['red'] (pad (`Commits this week: ${data.commitsThisWeek}`))
+        colorFunctions['red'] (pad (`Latest: ${data.latestRelease} (${formatDate (data.latestReleaseDate)})`))
         colorFunctions['yellow'] ('\n' + pad ('Thanks for installing ccxt 🙏'))
-        colorFunctions['gray'] (pad ('Please consider donating to our open collective'))
-        colorFunctions['gray'] (pad ('to help us maintain this package.'))
-        colorFunctions['yellow'] (pad ('👉 Donate: https://opencollective.com/ccxt/donate 🎉'))
         colorFunctions['gray'] (pad ('AI coding? Run: npx skills add ccxt/ccxt'))
 
     } catch (e) {

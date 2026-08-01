@@ -12,6 +12,8 @@ use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class coinex extends \ccxt\async\coinex {
     public function describe(): mixed {
@@ -609,7 +611,7 @@ class coinex extends \ccxt\async\coinex {
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'created_at');
-        $isSpot = (is_array($trade) && array_key_exists('margin_market', $trade));
+        $isSpot = (is_array($trade) && array_key_exists('margin_market' ?? '', $trade));
         $defaultType = $isSpot ? 'spot' : 'swap';
         $marketId = $this->safe_string($trade, 'market');
         $market = $this->safe_market($marketId, $market, null, $defaultType);
@@ -1110,7 +1112,7 @@ class coinex extends \ccxt\async\coinex {
         //     }
         //
         $data = $this->safe_dict($message, 'data', array());
-        $order = $this->safe_dict_2($data, 'order', 'stop', array());
+        $order = $this->extend(array( 'status' => $this->safe_string($data, 'event') ), $this->safe_dict_2($data, 'order', 'stop', array()));
         $parsedOrder = $this->parse_ws_order($order);
         $symbol = $parsedOrder['symbol'];
         $market = $this->market($symbol);
@@ -1219,7 +1221,7 @@ class coinex extends \ccxt\async\coinex {
         $timestamp = $this->safe_integer($order, 'created_at');
         $marketId = $this->safe_string($order, 'market');
         $status = $this->safe_string($order, 'status');
-        $isSpot = (is_array($order) && array_key_exists('margin_market', $order));
+        $isSpot = (is_array($order) && array_key_exists('margin_market' ?? '', $order));
         $defaultType = $isSpot ? 'spot' : 'swap';
         $market = $this->safe_market($marketId, $market, null, $defaultType);
         $fee = null;
@@ -1262,6 +1264,10 @@ class coinex extends \ccxt\async\coinex {
             'active_success' => 'open',
             'active_fail' => 'canceled',
             'cancel' => 'canceled',
+            'put' => 'open',
+            'update' => 'open',
+            'modify' => 'open',
+            'finish' => 'closed',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1434,7 +1440,7 @@ class coinex extends \ccxt\async\coinex {
         } else {
             $error = new AuthenticationError($this->json($message));
             $client->reject($error, $messageHash);
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }

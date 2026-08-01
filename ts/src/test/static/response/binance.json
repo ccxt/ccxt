@@ -5468,6 +5468,97 @@
                         "takeProfitPrice": null
                     }
                 ]
+            },
+            {
+                "description": "account endpoint delisted market with zero leverage and zero notional does not crash (issue #29244)",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "SNT/USDT:USDT"
+                    ],
+                    {
+                        "method": "account"
+                    }
+                ],
+                "httpResponse": {
+                    "assets": [
+                        {
+                            "asset": "USDT",
+                            "crossWalletBalance": "4950.15882401",
+                            "crossUnPnl": "0.00000000"
+                        }
+                    ],
+                    "positions": [
+                        {
+                            "symbol": "SNTUSDT",
+                            "initialMargin": "0",
+                            "maintMargin": "0",
+                            "unrealizedProfit": "0.00000000",
+                            "positionInitialMargin": "0",
+                            "openOrderInitialMargin": "0",
+                            "leverage": "0",
+                            "isolated": false,
+                            "entryPrice": "0.0",
+                            "breakEvenPrice": "0.0",
+                            "maxNotional": "2000000",
+                            "positionSide": "BOTH",
+                            "positionAmt": "0",
+                            "notional": "0",
+                            "isolatedWallet": "0",
+                            "updateTime": "0",
+                            "bidNotional": "0",
+                            "askNotional": "0"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "SNTUSDT",
+                            "initialMargin": "0",
+                            "maintMargin": "0",
+                            "unrealizedProfit": "0.00000000",
+                            "positionInitialMargin": "0",
+                            "openOrderInitialMargin": "0",
+                            "leverage": "0",
+                            "isolated": false,
+                            "entryPrice": "0.0",
+                            "breakEvenPrice": "0.0",
+                            "maxNotional": "2000000",
+                            "positionSide": "BOTH",
+                            "positionAmt": "0",
+                            "notional": "0",
+                            "isolatedWallet": "0",
+                            "updateTime": "0",
+                            "bidNotional": "0",
+                            "askNotional": "0",
+                            "crossMargin": "4950.15882401",
+                            "crossWalletBalance": "4950.15882401"
+                        },
+                        "id": null,
+                        "symbol": "SNT/USDT:USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "initialMargin": 0,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": 0,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": null,
+                        "notional": 0,
+                        "leverage": null,
+                        "unrealizedPnl": 0,
+                        "contracts": 0,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "collateral": 4950.15882401,
+                        "marginMode": "cross",
+                        "side": null,
+                        "hedged": false,
+                        "percentage": null
+                    }
+                ]
             }
         ],
         "fetchMyTrades": [

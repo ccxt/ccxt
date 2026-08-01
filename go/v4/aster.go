@@ -424,13 +424,145 @@ func (this *AsterCore) Describe() any {
 				"taker":      this.ParseNumber("0.00035"),
 			},
 		},
+		"features": map[string]any{
+			"spot": map[string]any{
+				"sandbox": false,
+				"createOrder": map[string]any{
+					"marginMode":                 false,
+					"triggerPrice":               true,
+					"triggerPriceType":           nil,
+					"triggerDirection":           nil,
+					"stopLossPrice":              true,
+					"takeProfitPrice":            true,
+					"attachedStopLossTakeProfit": nil,
+					"timeInForce": map[string]any{
+						"IOC": true,
+						"FOK": true,
+						"PO":  true,
+						"GTD": false,
+					},
+					"hedged":                 false,
+					"trailing":               false,
+					"leverage":               false,
+					"marketBuyByCost":        true,
+					"marketBuyRequiresPrice": false,
+					"selfTradePrevention":    false,
+					"iceberg":                false,
+				},
+				"createOrders": nil,
+				"fetchMyTrades": map[string]any{
+					"marginMode":     false,
+					"limit":          1000,
+					"daysBack":       nil,
+					"untilDays":      nil,
+					"symbolRequired": true,
+				},
+				"fetchOrder": map[string]any{
+					"marginMode":     false,
+					"trigger":        false,
+					"trailing":       false,
+					"symbolRequired": true,
+				},
+				"fetchOpenOrders": map[string]any{
+					"marginMode":     false,
+					"limit":          nil,
+					"trigger":        false,
+					"trailing":       false,
+					"symbolRequired": false,
+				},
+				"fetchOrders": map[string]any{
+					"marginMode":     false,
+					"limit":          1000,
+					"daysBack":       nil,
+					"untilDays":      nil,
+					"trigger":        false,
+					"trailing":       false,
+					"symbolRequired": true,
+				},
+				"fetchClosedOrders": nil,
+				"fetchOHLCV": map[string]any{
+					"limit": 1500,
+				},
+			},
+			"forDerivs": map[string]any{
+				"sandbox": false,
+				"createOrder": map[string]any{
+					"marginMode":   false,
+					"triggerPrice": true,
+					"triggerPriceType": map[string]any{
+						"last":  true,
+						"mark":  true,
+						"index": false,
+					},
+					"triggerDirection":           false,
+					"stopLossPrice":              true,
+					"takeProfitPrice":            true,
+					"attachedStopLossTakeProfit": nil,
+					"timeInForce": map[string]any{
+						"IOC": true,
+						"FOK": true,
+						"PO":  true,
+						"GTD": false,
+					},
+					"hedged":                 true,
+					"trailing":               true,
+					"leverage":               false,
+					"marketBuyByCost":        false,
+					"marketBuyRequiresPrice": false,
+					"selfTradePrevention":    false,
+					"iceberg":                false,
+				},
+				"createOrders": nil,
+				"fetchMyTrades": map[string]any{
+					"marginMode":     false,
+					"limit":          1000,
+					"daysBack":       nil,
+					"untilDays":      nil,
+					"symbolRequired": true,
+				},
+				"fetchOrder": map[string]any{
+					"marginMode":     false,
+					"trigger":        false,
+					"trailing":       false,
+					"symbolRequired": true,
+				},
+				"fetchOpenOrders": map[string]any{
+					"marginMode":     false,
+					"limit":          nil,
+					"trigger":        false,
+					"trailing":       false,
+					"symbolRequired": false,
+				},
+				"fetchOrders": map[string]any{
+					"marginMode":     false,
+					"limit":          1000,
+					"daysBack":       nil,
+					"untilDays":      nil,
+					"trigger":        false,
+					"trailing":       false,
+					"symbolRequired": true,
+				},
+				"fetchClosedOrders": nil,
+				"fetchOHLCV": map[string]any{
+					"limit": 1500,
+				},
+			},
+			"swap": map[string]any{
+				"linear": map[string]any{
+					"extends": "forDerivs",
+				},
+				"inverse": nil,
+			},
+		},
 		"options": map[string]any{
-			"defaultType":        "spot",
-			"recvWindow":         Multiply(10, 1000),
-			"defaultTimeInForce": "GTC",
-			"zeroAddress":        "0x0000000000000000000000000000000000000000",
-			"v3ChainId":          1666,
-			"quoteOrderQty":      true,
+			"defaultType": "spot",
+			"recvWindow":  Multiply(10, 1000),
+			"zeroAddress": "0x0000000000000000000000000000000000000000",
+			"v3ChainId":   1666,
+			"createOrder": map[string]any{
+				"timeInForce":   "GTC",
+				"quoteOrderQty": true,
+			},
 			"accountsByType": map[string]any{
 				"spot":   "SPOT",
 				"swap":   "FUTURE",
@@ -1048,8 +1180,8 @@ func (this *AsterCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes101312 := (<-this.LoadMarkets())
-			PanicOnError(retRes101312)
+			retRes114512 := (<-this.LoadMarkets())
+			PanicOnError(retRes114512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
@@ -1222,8 +1354,8 @@ func (this *AsterCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes117912 := (<-this.LoadMarkets())
-			PanicOnError(retRes117912)
+			retRes131112 := (<-this.LoadMarkets())
+			PanicOnError(retRes131112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1298,8 +1430,8 @@ func (this *AsterCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes12578 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes12578)
+		retRes13898 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes13898)
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1382,8 +1514,8 @@ func (this *AsterCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes131812 := (<-this.LoadMarkets())
-			PanicOnError(retRes131812)
+			retRes145012 := (<-this.LoadMarkets())
+			PanicOnError(retRes145012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1538,8 +1670,8 @@ func (this *AsterCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes145612 := (<-this.LoadMarkets())
-			PanicOnError(retRes145612)
+			retRes158812 := (<-this.LoadMarkets())
+			PanicOnError(retRes158812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1614,8 +1746,8 @@ func (this *AsterCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes151312 := (<-this.LoadMarkets())
-			PanicOnError(retRes151312)
+			retRes164512 := (<-this.LoadMarkets())
+			PanicOnError(retRes164512)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var market any = this.GetMarketFromSymbols(symbols)
@@ -1691,8 +1823,8 @@ func (this *AsterCore) FetchLastPrices(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes156912 := (<-this.LoadMarkets())
-			PanicOnError(retRes156912)
+			retRes170112 := (<-this.LoadMarkets())
+			PanicOnError(retRes170112)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var market any = this.GetMarketFromSymbols(symbols)
@@ -1782,8 +1914,8 @@ func (this *AsterCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes163812 := (<-this.LoadMarkets())
-			PanicOnError(retRes163812)
+			retRes177012 := (<-this.LoadMarkets())
+			PanicOnError(retRes177012)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var market any = this.GetMarketFromSymbols(symbols)
@@ -1901,8 +2033,8 @@ func (this *AsterCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan 
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes173712 := (<-this.LoadMarkets())
-			PanicOnError(retRes173712)
+			retRes186912 := (<-this.LoadMarkets())
+			PanicOnError(retRes186912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1951,8 +2083,8 @@ func (this *AsterCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes177012 := (<-this.LoadMarkets())
-			PanicOnError(retRes177012)
+			retRes190212 := (<-this.LoadMarkets())
+			PanicOnError(retRes190212)
 		}
 		symbols = this.MarketSymbols(symbols)
 
@@ -2000,8 +2132,8 @@ func (this *AsterCore) FetchFundingIntervals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes180212 := (<-this.LoadMarkets())
-			PanicOnError(retRes180212)
+			retRes193412 := (<-this.LoadMarkets())
+			PanicOnError(retRes193412)
 		}
 		if IsTrue(!IsEqual(symbols, nil)) {
 			symbols = this.MarketSymbols(symbols)
@@ -2056,8 +2188,8 @@ func (this *AsterCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes183712 := (<-this.LoadMarkets())
-			PanicOnError(retRes183712)
+			retRes196912 := (<-this.LoadMarkets())
+			PanicOnError(retRes196912)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2132,8 +2264,8 @@ func (this *AsterCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes18958 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes18958)
+		retRes20278 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes20278)
 		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
@@ -2204,8 +2336,8 @@ func (this *AsterCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan
 			panic(BadRequest(Add(this.Id, " marginMode must be either isolated or cross")))
 		}
 
-		retRes19688 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes19688)
+		retRes21008 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes21008)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol":     GetValue(market, "id"),
@@ -2268,7 +2400,7 @@ func (this *AsterCore) FetchPositionMode(optionalArgs ...any) <-chan any {
  * @description set hedged to true or false for a market
  * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-position-modetrade
  * @param {bool} hedged set to true to use dualSidePosition
- * @param {string} symbol not used by bingx setPositionMode ()
+ * @param {string} symbol not used by setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
@@ -2286,15 +2418,15 @@ func (this *AsterCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan a
 			"dualSidePosition": strValue,
 		}
 
-		retRes202415 := (<-this.FapiPrivatePostV3PositionSideDual(this.Extend(request, params)))
-		PanicOnError(retRes202415)
+		retRes215615 := (<-this.FapiPrivatePostV3PositionSideDual(this.Extend(request, params)))
+		PanicOnError(retRes215615)
 		//
 		//     {
 		//         "code": 200,
 		//         "msg": "success"
 		//     }
 		//
-		ch <- retRes202415
+		ch <- retRes215615
 		return nil
 
 	}()
@@ -2334,8 +2466,8 @@ func (this *AsterCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes20528 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes20528)
+		retRes21848 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes21848)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2507,8 +2639,8 @@ func (this *AsterCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
 
-		retRes22078 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes22078)
+		retRes23398 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes23398)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2591,8 +2723,8 @@ func (this *AsterCore) FetchOpenOrder(id any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrder() requires a symbol argument")))
 		}
 
-		retRes22728 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes22728)
+		retRes24048 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes24048)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2681,8 +2813,8 @@ func (this *AsterCore) FetchOrders(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
 		}
 
-		retRes23398 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes23398)
+		retRes24718 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes24718)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2772,8 +2904,8 @@ func (this *AsterCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes24058 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes24058)
+		retRes25378 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes25378)
 		var request any = map[string]any{}
 		var market any = nil
 		var marketType any = nil
@@ -2877,8 +3009,8 @@ func (this *AsterCore) CreateOrder(symbol any, typeVar any, side any, amount any
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes24878 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes24878)
+		retRes26198 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes26198)
 		var market any = this.Market(symbol)
 		var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 		var response any = nil
@@ -2946,8 +3078,8 @@ func (this *AsterCore) CreateOrders(orders any, optionalArgs ...any) <-chan any 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes25398 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes25398)
+		retRes26718 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes26718)
 		var ordersRequests any = []any{}
 		var orderSymbols any = []any{}
 		if IsTrue(IsGreaterThan(GetArrayLength(orders), 5)) {
@@ -3104,7 +3236,7 @@ func (this *AsterCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	AddElementToObject(request, "type", uppercaseType)
 	if IsTrue(IsEqual(uppercaseType, "MARKET")) {
 		if IsTrue(GetValue(market, "spot")) {
-			var quoteOrderQty any = this.SafeBool(this.Options, "quoteOrderQty", true)
+			var quoteOrderQty any = this.HandleOption("createOrder", "quoteOrderQty", true)
 			if IsTrue(quoteOrderQty) {
 				var quoteOrderQtyNew any = this.SafeString2(params, "quoteOrderQty", "cost")
 				var precision any = GetValue(GetValue(market, "precision"), "price")
@@ -3173,7 +3305,11 @@ func (this *AsterCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 		}
 	}
 	if IsTrue(IsTrue(IsTrue(timeInForceIsRequired) && IsTrue((IsEqual(this.SafeString(params, "timeInForce"), nil)))) && IsTrue((IsEqual(this.SafeString(request, "timeInForce"), nil)))) {
-		AddElementToObject(request, "timeInForce", this.SafeString(this.Options, "defaultTimeInForce")) // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+		var tif any = nil
+		tifparamsVariable := this.HandleOptionAndParams(params, "createOrder", "timeInForce")
+		tif = GetValue(tifparamsVariable, 0)
+		params = GetValue(tifparamsVariable, 1)
+		AddElementToObject(request, "timeInForce", tif)
 	}
 	var requestParams any = this.Omit(params, []any{"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"})
 	if IsTrue(IsTrue(this.SafeBool(this.Options, "builderFee")) && IsTrue(GetValue(market, "swap"))) {
@@ -3206,8 +3342,8 @@ func (this *AsterCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
 		}
 
-		retRes27798 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes27798)
+		retRes29138 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes29138)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -3264,13 +3400,13 @@ func (this *AsterCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
 
-		retRes28208 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes28208)
+		retRes29548 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes29548)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
-		var clientOrderId any = this.SafeStringN(params, []any{"origClientOrderId", "clientOrderId"})
+		var clientOrderId any = this.SafeString2(params, "origClientOrderId", "clientOrderId")
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
 			AddElementToObject(request, "origClientOrderId", clientOrderId)
 		} else {
@@ -3323,8 +3459,8 @@ func (this *AsterCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
 		}
 
-		retRes28608 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes28608)
+		retRes29948 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes29948)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -3379,8 +3515,8 @@ func (this *AsterCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any
 			panic(BadRequest(Add(this.Id, " leverage should be between 1 and 125")))
 		}
 
-		retRes29328 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes29328)
+		retRes30668 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes30668)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol":   GetValue(market, "id"),
@@ -3423,8 +3559,8 @@ func (this *AsterCore) FetchLeverages(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes29598 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes29598)
+		retRes30938 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes30938)
 
 		response := (<-this.FapiPrivateGetV3PositionRisk(params))
 		PanicOnError(response)
@@ -3520,8 +3656,8 @@ func (this *AsterCore) FetchMarginModes(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes30388 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes30388)
+		retRes31728 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes31728)
 
 		response := (<-this.FapiPrivateGetV3PositionRisk(params))
 		PanicOnError(response)
@@ -3595,7 +3731,7 @@ func (this *AsterCore) ParseMarginMode(marginMode any, optionalArgs ...any) any 
  * @param {string} [type] "add" or "reduce"
  * @param {int} [since] timestamp in ms of the earliest change to fetch
  * @param {int} [limit] the maximum amount of changes to fetch
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest change to fetch
  * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
@@ -3618,8 +3754,8 @@ func (this *AsterCore) FetchMarginAdjustmentHistory(optionalArgs ...any) <-chan 
 			panic(ArgumentsRequired(Add(this.Id, " fetchMarginAdjustmentHistory () requires a symbol argument")))
 		}
 
-		retRes31128 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes31128)
+		retRes32468 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes32468)
 		var market any = this.Market(symbol)
 		var until any = this.SafeInteger(params, "until")
 		params = this.Omit(params, "until")
@@ -3647,7 +3783,7 @@ func (this *AsterCore) FetchMarginAdjustmentHistory(optionalArgs ...any) <-chan 
 		//             "amount": "23.36332311",
 		//             "asset": "USDT",
 		//             "symbol": "BTCUSDT",
-		//             "time": 1578047897183,
+		//             "time": 1578047897182,
 		//             "type": 1,
 		//             "positionSide": "BOTH"
 		//         }
@@ -3709,8 +3845,8 @@ func (this *AsterCore) ModifyMarginHelper(symbol any, amount any, addOrReduce an
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes31888 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes31888)
+		retRes33228 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes33228)
 		var market any = this.Market(symbol)
 		amount = this.AmountToPrecision(symbol, amount)
 		var request any = map[string]any{
@@ -3758,9 +3894,9 @@ func (this *AsterCore) ReduceMargin(symbol any, amount any, optionalArgs ...any)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes322015 := (<-this.ModifyMarginHelper(symbol, amount, 2, params))
-		PanicOnError(retRes322015)
-		ch <- retRes322015
+		retRes335415 := (<-this.ModifyMarginHelper(symbol, amount, 2, params))
+		PanicOnError(retRes335415)
+		ch <- retRes335415
 		return nil
 
 	}()
@@ -3785,9 +3921,9 @@ func (this *AsterCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes323415 := (<-this.ModifyMarginHelper(symbol, amount, 1, params))
-		PanicOnError(retRes323415)
-		ch <- retRes323415
+		retRes336815 := (<-this.ModifyMarginHelper(symbol, amount, 1, params))
+		PanicOnError(retRes336815)
+		ch <- retRes336815
 		return nil
 
 	}()
@@ -3850,8 +3986,8 @@ func (this *AsterCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes32798 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes32798)
+		retRes34138 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes34138)
 		var market any = nil
 		var request any = map[string]any{
 			"incomeType": "FUNDING_FEE",
@@ -3964,8 +4100,8 @@ func (this *AsterCore) FetchLedger(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes33708 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes33708)
+		retRes35048 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes35048)
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -4202,11 +4338,11 @@ func (this *AsterCore) FetchPositionsRisk(optionalArgs ...any) <-chan any {
 			}
 		}
 
-		retRes35908 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes35908)
+		retRes37248 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes37248)
 
-		retRes35918 := (<-this.LoadLeverageBrackets(false, params))
-		PanicOnError(retRes35918)
+		retRes37258 := (<-this.LoadLeverageBrackets(false, params))
+		PanicOnError(retRes37258)
 		var request any = map[string]any{}
 
 		response := (<-this.FapiPrivateGetV3PositionRisk(this.Extend(request, params)))
@@ -4280,15 +4416,15 @@ func (this *AsterCore) FetchPositions(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(defaultMethod, "positionRisk")) {
 
-			retRes364719 := (<-this.FetchPositionsRisk(symbols, params))
-			PanicOnError(retRes364719)
-			ch <- retRes364719
+			retRes378119 := (<-this.FetchPositionsRisk(symbols, params))
+			PanicOnError(retRes378119)
+			ch <- retRes378119
 			return nil
 		} else if IsTrue(IsEqual(defaultMethod, "account")) {
 
-			retRes364919 := (<-this.FetchAccountPositions(symbols, params))
-			PanicOnError(retRes364919)
-			ch <- retRes364919
+			retRes378319 := (<-this.FetchAccountPositions(symbols, params))
+			PanicOnError(retRes378319)
+			ch <- retRes378319
 			return nil
 		} else {
 			panic(NotSupported(Add(Add(Add(this.Id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\" and \"positionRisk\"")))
@@ -4528,11 +4664,11 @@ func (this *AsterCore) FetchAccountPositions(optionalArgs ...any) <-chan any {
 			}
 		}
 
-		retRes38728 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes38728)
+		retRes40068 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes40068)
 
-		retRes38738 := (<-this.LoadLeverageBrackets(false, params))
-		PanicOnError(retRes38738)
+		retRes40078 := (<-this.LoadLeverageBrackets(false, params))
+		PanicOnError(retRes40078)
 
 		response := (<-this.FapiPrivateGetV4Account(params))
 		PanicOnError(response)
@@ -4559,8 +4695,8 @@ func (this *AsterCore) LoadLeverageBrackets(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes38838 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes38838)
+		retRes40178 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes40178)
 		// by default cache the leverage bracket
 		// it contains useful stuff like the maintenance margin and initial margin for positions
 		var leverageBrackets any = this.SafeDict(this.Options, "leverageBrackets")
@@ -4698,8 +4834,8 @@ func (this *AsterCore) Withdraw(code any, amount any, address any, optionalArgs 
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes39918 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes39918)
+		retRes41258 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes41258)
 		var currency any = this.Currency(code)
 		var nonce any = Multiply(this.Milliseconds(), 1000)
 		var request any = map[string]any{
@@ -4792,8 +4928,8 @@ func (this *AsterCore) Transfer(code any, amount any, fromAccount any, toAccount
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes40698 := (<-this.LoadMarketsAndSignIn())
-		PanicOnError(retRes40698)
+		retRes42038 := (<-this.LoadMarketsAndSignIn())
+		PanicOnError(retRes42038)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"asset":  GetValue(currency, "id"),
@@ -4890,7 +5026,14 @@ func (this *AsterCore) Sign(path any, optionalArgs ...any) any {
 		// Sign using EIP-712 typed data per the AsterSignTransaction spec
 		var zeroAddress any = this.SafeString(this.Options, "zeroAddress", "0x0000000000000000000000000000000000000000")
 		var v3ChainId any = this.SafeInteger(this.Options, "v3ChainId", 1666)
-		var walletAddress any = this.EthGetAddressFromPrivateKey(this.PrivateKey)
+		var walletAddress any = this.SafeString(this.Options, "cachedWalletAddress")
+		var privateKeyHash any = this.Hash(this.Encode(this.PrivateKey), keccak, "hex")
+		var cachedPrivateKeyHash any = this.SafeString(this.Options, "privateKeyHashForCachedWalletAddress")
+		if IsTrue(IsTrue((IsEqual(walletAddress, nil))) || IsTrue((!IsEqual(cachedPrivateKeyHash, privateKeyHash)))) {
+			walletAddress = this.EthGetAddressFromPrivateKey(this.PrivateKey)
+			AddElementToObject(this.Options, "cachedWalletAddress", walletAddress)
+			AddElementToObject(this.Options, "privateKeyHashForCachedWalletAddress", privateKeyHash)
+		}
 		var signerAddress any = this.SafeString(this.Options, "signerAddress", walletAddress) // default to user's wallet
 		if IsTrue(IsEqual(signerAddress, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " requires signerAddress in options when use v3 api")))
@@ -4907,7 +5050,7 @@ func (this *AsterCore) Sign(path any, optionalArgs ...any) any {
 				"type": "string",
 			}},
 		}
-		// Build v3 params: original endpoint params + nonce (macroseconds) + user + signer
+		// Build v3 params: original endpoint params + nonce (microseconds) + user + signer
 		// Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
 		var finalParams any = this.Extend(map[string]any{
 			"nonce":  ToString(nonce),
@@ -4997,8 +5140,8 @@ func (this *AsterCore) LoadMarketsAndSignIn() <-chan any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		retRes42388 := (<-promiseAll([]any{this.LoadMarkets(), this.SignIn()}))
-		PanicOnError(retRes42388)
+		retRes43798 := (<-promiseAll([]any{this.LoadMarkets(), this.SignIn()}))
+		PanicOnError(retRes43798)
 		return nil
 	}()
 	return ch
@@ -5031,8 +5174,8 @@ func (this *AsterCore) SignIn(optionalArgs ...any) <-chan any {
 			panic(NotSupported(Add(this.Id, " after the latest update (v4.5.52), CCXT now expects the l1 private key to be provided in the credentials.")))
 		}
 
-		retRes42598 := (<-this.InitializeClient(params))
-		PanicOnError(retRes42598)
+		retRes44008 := (<-this.InitializeClient(params))
+		PanicOnError(retRes44008)
 
 		ch <- true
 		return nil

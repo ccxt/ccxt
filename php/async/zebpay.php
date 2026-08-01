@@ -15,6 +15,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class zebpay extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -310,7 +312,7 @@ class zebpay extends Exchange {
              * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
              * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
              *
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
             $promisesUnresolved = array();
@@ -1408,7 +1410,7 @@ class zebpay extends Exchange {
              *
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} $side not used by kucoinfutures closePositions
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->positionId] client order id of the order
              * @return {array[]} ~@link https://docs.ccxt.com/?id=position-structure A list of position structures~
              */

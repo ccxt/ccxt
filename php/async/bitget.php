@@ -19,6 +19,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class bitget extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -1482,65 +1484,68 @@ class bitget extends Exchange {
             ),
             'options' => array(
                 'uta' => null,
-                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
-                'timeframes' => array(
-                    'spot' => array(
-                        '1m' => '1min',
-                        '5m' => '5min',
-                        '3m' => '3min',
-                        '15m' => '15min',
-                        '30m' => '30min',
-                        '1h' => '1h',
-                        '4h' => '4h',
-                        '6h' => '6Hutc',
-                        '12h' => '12Hutc',
-                        '1d' => '1Dutc',
-                        '3d' => '3Dutc',
-                        '1w' => '1Wutc',
-                        '1M' => '1Mutc',
-                    ),
-                    'swap' => array(
-                        '1m' => '1m',
-                        '3m' => '3m',
-                        '5m' => '5m',
-                        '15m' => '15m',
-                        '30m' => '30m',
-                        '1h' => '1H',
-                        '2h' => '2H',
-                        '4h' => '4H',
-                        '6h' => '6Hutc',
-                        '12h' => '12Hutc',
-                        '1d' => '1Dutc',
-                        '3d' => '3Dutc',
-                        '1w' => '1Wutc',
-                        '1M' => '1Mutc',
-                    ),
-                    'uta' => array(
-                        '1m' => '1m',
-                        '3m' => '3m',
-                        '5m' => '5m',
-                        '15m' => '15m',
-                        '30m' => '30m',
-                        '1h' => '1H',
-                        '2h' => '2H',
-                        '4h' => '4H',
-                        '6h' => '6H',
-                        '12h' => '12H',
-                        '1d' => '1D',
-                    ),
-                ),
                 'fetchMarkets' => array(
                     'types' => array( 'spot', 'swap' ), // there is future markets but they use the same endpoints
                 ),
                 'defaultType' => 'spot', // 'spot', 'swap', 'future'
                 'defaultSubType' => 'linear', // 'linear', 'inverse'
-                'createMarketBuyOrderRequiresPrice' => true,
+                'createOrder' => array(
+                    'createMarketBuyOrderRequiresPrice' => true,
+                    'timeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                ),
                 'broker' => 'p4sve',
                 'withdraw' => array(
                     'fillResponseFromRequest' => true,
                 ),
                 'fetchOHLCV' => array(
+                    'timeframes' => array(
+                        'spot' => array(
+                            '1m' => '1min',
+                            '5m' => '5min',
+                            '3m' => '3min',
+                            '15m' => '15min',
+                            '30m' => '30min',
+                            '1h' => '1h',
+                            '4h' => '4h',
+                            '6h' => '6Hutc',
+                            '12h' => '12Hutc',
+                            '1d' => '1Dutc',
+                            '3d' => '3Dutc',
+                            '1w' => '1Wutc',
+                            '1M' => '1Mutc',
+                        ),
+                        'swap' => array(
+                            '1m' => '1m',
+                            '3m' => '3m',
+                            '5m' => '5m',
+                            '15m' => '15m',
+                            '30m' => '30m',
+                            '1h' => '1H',
+                            '2h' => '2H',
+                            '4h' => '4H',
+                            '6h' => '6Hutc',
+                            '12h' => '12Hutc',
+                            '1d' => '1Dutc',
+                            '3d' => '3Dutc',
+                            '1w' => '1Wutc',
+                            '1M' => '1Mutc',
+                        ),
+                        'uta' => array(
+                            '1m' => '1m',
+                            '3m' => '3m',
+                            '5m' => '5m',
+                            '15m' => '15m',
+                            '30m' => '30m',
+                            '1h' => '1H',
+                            '2h' => '2H',
+                            '4h' => '4H',
+                            '6h' => '6H',
+                            '12h' => '12H',
+                            '1d' => '1D',
+                        ),
+                    ),
                     // ### Timeframe settings ###
                     // after testing, the below values are real ones, because the values provided by API DOCS are wrong
                     // so, start timestamp should be within these thresholds to be able to call "recent" candles endpoint
@@ -1714,9 +1719,10 @@ class bitget extends Exchange {
                 'fetchPositions' => array(
                     'method' => 'privateMixGetV2MixPositionAllPosition', // or privateMixGetV2MixPositionHistoryPosition
                 ),
-                'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                // fiat currencies on deposit page
-                'fiatCurrencies' => array( 'EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR' ),
+                'fetchCurrencies' => array(
+                    // fiat currencies on deposit page
+                    'fiatCurrencies' => array( 'EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR' ),
+                ),
             ),
             'rollingWindowSize' => 1000.0,
             'features' => array(
@@ -2552,7 +2558,7 @@ class bitget extends Exchange {
     }
 
     public function parse_currency(array $rawCurrency): array {
-        $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
+        $fiatCurrencies = $this->handle_option('fetchCurrencies', 'fiatCurrencies', array());
         $entry = $rawCurrency;
         $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints ($deposit, $withdraw, etc..)
         $code = $this->safe_currency_code($id);
@@ -4343,14 +4349,15 @@ class bitget extends Exchange {
             );
             $marketType = null;
             $timeframes = null;
+            $timeframesOption = $this->handle_option('fetchOHLCV', 'timeframes');
             $uta = null;
             list($uta, $params) = Async\await($this->handle_uta_and_params($params, 'fetchOHLCV', false));
             if ($uta) {
-                $timeframes = $this->options['timeframes']['uta'];
+                $timeframes = $timeframesOption['uta'];
                 $request['interval'] = $this->safe_string($timeframes, $timeframe, $timeframe);
             } else {
                 $marketType = $market['spot'] ? 'spot' : 'swap';
-                $timeframes = $this->options['timeframes'][$marketType];
+                $timeframes = $timeframesOption[$marketType];
                 $request['granularity'] = $this->safe_string($timeframes, $timeframe, $timeframe);
             }
             $msInDay = 86400000;
@@ -5355,8 +5362,11 @@ class bitget extends Exchange {
             $exchangeSpecificTifParam = $this->safe_string($params, 'timeInForce');
             $postOnly = null;
             list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $exchangeSpecificTifParam === 'post_only', $params);
-            $defaultTimeInForce = $this->safe_string_upper($this->options, 'defaultTimeInForce');
-            $timeInForce = $this->safe_string_upper($params, 'timeInForce', $defaultTimeInForce);
+            $timeInForce = null;
+            list($timeInForce, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce');
+            if ($timeInForce !== null) {
+                $timeInForce = strtoupper($timeInForce);
+            }
             if ($postOnly) {
                 $request['timeInForce'] = 'post_only';
             } elseif ($timeInForce === 'GTC') {
@@ -5440,8 +5450,11 @@ class bitget extends Exchange {
         $exchangeSpecificTifParam = $this->safe_string_2($params, 'force', 'timeInForce');
         $postOnly = null;
         list($postOnly, $params) = $this->handle_post_only($isMarketOrder, $exchangeSpecificTifParam === 'post_only', $params);
-        $defaultTimeInForce = $this->safe_string_upper($this->options, 'defaultTimeInForce');
-        $timeInForce = $this->safe_string_upper($params, 'timeInForce', $defaultTimeInForce);
+        $timeInForce = null;
+        list($timeInForce, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce');
+        if ($timeInForce !== null) {
+            $timeInForce = strtoupper($timeInForce);
+        }
         if ($postOnly) {
             $request['force'] = 'post_only';
         } elseif ($timeInForce === 'GTC') {
@@ -5499,7 +5512,7 @@ class bitget extends Exchange {
             } elseif ($isStopLossOrTakeProfitTrigger) {
                 if ($price !== null) {
                     $request['executePrice'] = $this->price_to_precision($symbol, $price);
-                    if (is_array($request) && array_key_exists('price', $request)) {
+                    if (is_array($request) && array_key_exists('price' ?? '', $request)) {
                         unset($request['price']);
                     }
                 }
@@ -5518,11 +5531,27 @@ class bitget extends Exchange {
             } else {
                 if ($hasStopLoss) {
                     $slTriggerPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'stopPrice');
+                    if ($slTriggerPrice === null) {
+                        throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice or a stopPrice inside the $stopLoss parameter');
+                    }
                     $request['presetStopLossPrice'] = $this->price_to_precision($symbol, $slTriggerPrice);
+                    $slLimitPrice = $this->safe_value($stopLoss, 'price');
+                    if ($slLimitPrice !== null) {
+                        // without the execute $price the exchange fills the attached stop loss
+                        // at the $market $price, see https://github.com/ccxt/ccxt/issues/23459
+                        $request['presetStopLossExecutePrice'] = $this->price_to_precision($symbol, $slLimitPrice);
+                    }
                 }
                 if ($hasTakeProfit) {
                     $tpTriggerPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'stopPrice');
+                    if ($tpTriggerPrice === null) {
+                        throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice or a stopPrice inside the $takeProfit parameter');
+                    }
                     $request['presetStopSurplusPrice'] = $this->price_to_precision($symbol, $tpTriggerPrice);
+                    $tpLimitPrice = $this->safe_value($takeProfit, 'price');
+                    if ($tpLimitPrice !== null) {
+                        $request['presetStopSurplusExecutePrice'] = $this->price_to_precision($symbol, $tpLimitPrice);
+                    }
                 }
             }
             if (!$isStopLossOrTakeProfitTrigger) {
@@ -5564,7 +5593,7 @@ class bitget extends Exchange {
                     $quantity = $this->cost_to_precision($symbol, $cost);
                 } elseif ($createMarketBuyOrderRequiresPrice) {
                     if ($price === null) {
-                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice option or param to false and pass the $cost to spend in the $amount argument');
+                        throw new InvalidOrder($this->id . ' createOrder() requires the $price argument for $market buy orders to calculate the total $cost to spend ($amount * $price), alternatively set the $createMarketBuyOrderRequiresPrice in options["createOrder"] or $params to false and pass the $cost to spend in the $amount argument');
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
@@ -5908,7 +5937,11 @@ class bitget extends Exchange {
                 $request['orderType'] = $type;
                 if ($triggerPrice !== null) {
                     $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                    $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                    // $market plan orders carry no execute $price, follow up to
+                    // https://github.com/ccxt/ccxt/issues/25427
+                    if ($price !== null) {
+                        $request['executePrice'] = $this->price_to_precision($symbol, $price);
+                    }
                 } else {
                     $request['price'] = $this->price_to_precision($symbol, $price);
                 }
@@ -6658,7 +6691,7 @@ class bitget extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
                 $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
-                $marketType = (is_array($market) && array_key_exists('type', $market)) ? $market['type'] : $defaultType;
+                $marketType = (is_array($market) && array_key_exists('type' ?? '', $market)) ? $market['type'] : $defaultType;
                 $type = $this->safe_string($params, 'type', $marketType);
             } else {
                 $defaultType = $this->safe_string_2($this->options, 'fetchOpenOrders', 'defaultType', 'spot');
@@ -7181,7 +7214,7 @@ class bitget extends Exchange {
                     if ($symbol === null) {
                         throw new ArgumentsRequired($this->id . ' fetchCanceledAndClosedOrders() requires a $symbol argument');
                     }
-                    $endTime = $this->safe_integer_n($params, array( 'endTime', 'until' ));
+                    $endTime = $this->safe_integer_2($params, 'endTime', 'until');
                     $params = $this->omit($params, array( 'until' ));
                     if ($since === null) {
                         $since = $now - 7776000000;
@@ -9393,7 +9426,7 @@ class bitget extends Exchange {
              * @see https://www.bitget.com/api-doc/uta/account/Change-Position-Mode
              *
              * @param {bool} $hedged set to true to use dualSidePosition
-             * @param {string} $symbol not used by bitget setPositionMode ()
+             * @param {string} $symbol not used by setPositionMode ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->productType] required if not $uta and $symbol is null => 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
@@ -10826,7 +10859,7 @@ class bitget extends Exchange {
              * @param {string[]} [$symbols] unified contract $symbols
              * @param {int} [$since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for $params["until"] - $since is 3 months
              * @param {int} [$limit] the maximum amount of records to fetch, default=20, max=100
-             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest position to fetch, max range for $params["until"] - $since is 3 months
              * @param {string} [$params->productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false

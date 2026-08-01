@@ -415,7 +415,7 @@ export default class cryptomus extends Exchange {
 
     parseCurrency (rawCurrency: Dict): Currency {
         // currency here is array of networks
-        let id: Str = undefined; // all entried have same id, as they were grouped by
+        let id: Str = undefined; // all entries have same id, as they were grouped by
         let code: Str = undefined;
         const networks: Dict = {};
         for (let i = 0; i < rawCurrency.length; i++) {

@@ -845,7 +845,7 @@ public partial class coinbase : Exchange
      * @ignore
      * @description fetch sells
      * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
-     * @param {string} symbol not used by coinbase fetchMySells ()
+     * @param {string} symbol not used by fetchMySells ()
      * @param {int} [since] timestamp in ms of the earliest sell, default is undefined
      * @param {int} [limit] max number of sells to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -871,7 +871,7 @@ public partial class coinbase : Exchange
      * @ignore
      * @description fetch buys
      * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
-     * @param {string} symbol not used by coinbase fetchMyBuys ()
+     * @param {string} symbol not used by fetchMyBuys ()
      * @param {int} [since] timestamp in ms of the earliest buy, default is undefined
      * @param {int} [limit] max number of buys to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3631,7 +3631,7 @@ public partial class coinbase : Exchange
      * @description cancels an open order
      * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
      * @param {string} id order id
-     * @param {string} symbol not used by coinbase cancelOrder()
+     * @param {string} symbol not used by cancelOrder()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3652,7 +3652,7 @@ public partial class coinbase : Exchange
      * @description cancel multiple orders
      * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by coinbase cancelOrders()
+     * @param {string} symbol not used by cancelOrders()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3867,7 +3867,7 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["start_date"] = this.iso8601(since);
         }
-        object until = this.safeIntegerN(parameters, new List<object>() {"until"});
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -3955,7 +3955,7 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["start_date"] = this.iso8601(since);
         }
-        object until = this.safeIntegerN(parameters, new List<object>() {"until"});
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -4072,7 +4072,7 @@ public partial class coinbase : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, parameters, "cursor", "cursor", null, 100);
+            return await this.fetchPaginatedCallCursor("fetchClosedOrders", symbol, since, limit, parameters, "cursor", "cursor", null, 1000);
         }
         return await this.fetchOrdersByStatus("FILLED", symbol, since, limit, parameters);
     }
@@ -4133,7 +4133,7 @@ public partial class coinbase : Exchange
             { "product_id", getValue(market, "id") },
             { "granularity", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        object until = this.safeIntegerN(parameters, new List<object>() {"until", "end"});
+        object until = this.safeInteger2(parameters, "until", "end");
         parameters = this.omit(parameters, new List<object>() {"until"});
         object duration = this.parseTimeframe(timeframe);
         object requestedDuration = multiply(limit, duration);
@@ -4323,7 +4323,7 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["start_sequence_timestamp"] = this.iso8601(since);
         }
-        object until = this.safeIntegerN(parameters, new List<object>() {"until"});
+        object until = this.safeInteger(parameters, "until");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -5144,7 +5144,7 @@ public partial class coinbase : Exchange
      * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/close-position
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by coinbase
-     * @param {object} [params] extra parameters specific to the coinbase api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string}  params.clientOrderId *mandatory* the client order id of the position to close
      * @param {float} [params.size] the size of the position to close, optional
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}

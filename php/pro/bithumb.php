@@ -9,6 +9,8 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
 
 class bithumb extends \ccxt\async\bithumb {
     public function describe(): mixed {
@@ -249,7 +251,7 @@ class bithumb extends \ccxt\async\bithumb {
         $symbol = $this->safe_symbol($marketId, null, '_');
         $timestampStr = $this->safe_string($content, 'datetime');
         $timestamp = $this->parse_to_int(mb_substr($timestampStr, 0, 13 - 0));
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $ob = $this->order_book();
             $ob['symbol'] = $symbol;
             $this->orderbooks[$symbol] = $ob;
@@ -342,7 +344,7 @@ class bithumb extends \ccxt\async\bithumb {
             $rawTrade = $rawTrades[$i];
             $marketId = $this->safe_string($rawTrade, 'symbol');
             $symbol = $this->safe_symbol($marketId, null, '_');
-            if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+            if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
                 $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
                 $stored = new ArrayCache($limit);
                 $this->trades[$symbol] = $stored;
@@ -396,7 +398,7 @@ class bithumb extends \ccxt\async\bithumb {
         //        "resmsg" : "Invalid Filter Syntax"
         //    }
         //
-        if (!(is_array($message) && array_key_exists('status', $message))) {
+        if (!(is_array($message) && array_key_exists('status' ?? '', $message))) {
             return true;
         }
         $errorCode = $this->safe_string($message, 'status');

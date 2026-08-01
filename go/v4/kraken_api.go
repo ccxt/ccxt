@@ -43,10 +43,6 @@ func (this *KrakenCore) PublicGetDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetDepth", args...)
 }
 
-func (this *KrakenCore) PublicGetLevel3(args ...any) <-chan any {
-	return this.callEndpointAsync("publicGetLevel3", args...)
-}
-
 func (this *KrakenCore) PublicGetGroupedBook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGroupedBook", args...)
 }
@@ -65,6 +61,10 @@ func (this *KrakenCore) PublicGetPreTrade(args ...any) <-chan any {
 
 func (this *KrakenCore) PublicGetPostTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPostTrade", args...)
+}
+
+func (this *KrakenCore) PrivatePostLevel3(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLevel3", args...)
 }
 
 func (this *KrakenCore) PrivatePostBalance(args ...any) <-chan any {

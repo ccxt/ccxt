@@ -372,6 +372,7 @@ class gemini(ccxt.async_support.gemini):
         return orderbook.limit()
 
     def handle_order_book(self, client: Client, message):
+        isInitial = ('auction_events' in message) and ('trades' in message) and ('changes' in message)
         changes = self.safe_value(message, 'changes', [])
         marketId = self.safe_string_lower(message, 'symbol')
         market = self.safe_market(marketId)
@@ -379,6 +380,11 @@ class gemini(ccxt.async_support.gemini):
         messageHash = 'orderbook:' + symbol
         # orderbook = self.safe_value(self.orderbooks, symbol)
         if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book()
+        elif isInitial:
+            # handle https://github.com/ccxt/ccxt/issues/29210
+            if symbol in self.orderbooks:
+                del self.orderbooks[symbol]
             self.orderbooks[symbol] = self.order_book()
         orderbook = self.orderbooks[symbol]
         for i in range(0, len(changes)):
@@ -407,7 +413,7 @@ class gemini(ccxt.async_support.gemini):
         orderbook = await self.helper_for_watch_multiple_construct('orderbook', symbols, params)
         return orderbook.limit()
 
-    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+    def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches best bid & ask for symbols
 
@@ -417,7 +423,7 @@ class gemini(ccxt.async_support.gemini):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.helper_for_watch_multiple_construct('bidsasks', symbols, params)
+        return self.helper_for_watch_multiple_construct('bidsasks', symbols, params)
 
     def handle_bids_asks_for_multidata(self, client: Client, rawBidAskChanges, timestamp: Int, nonce: Int):
         #

@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitso.js';
-import type { Balances, Currency, Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, int, LedgerEntry, DepositAddress } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, Currencies, int, LedgerEntry, DepositAddress } from './base/types.js';
 /**
  * @class bitso
  * @augments Exchange
@@ -28,6 +28,16 @@ export default class bitso extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
+    /**
+     * @method
+     * @name bitso#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.bitso.com/bitso-payouts-funding/docs
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): Currency;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -127,7 +137,7 @@ export default class bitso extends Exchange {
      * @description cancels an open order
      * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
      * @param {string} id order id
-     * @param {string} symbol not used by bitso cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */

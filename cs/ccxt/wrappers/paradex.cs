@@ -370,7 +370,7 @@ public partial class paradex
     /// edit an open limit order or TPSL order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.paradex.trade/api-reference/prod/orders/modify"/>  <br/>
+    /// See <see href="https://docs.paradex.trade/api/prod/orders/modify"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -456,7 +456,7 @@ public partial class paradex
     /// <item>
     /// <term>symbol</term>
     /// <description>
-    /// string : unified market symbol, not used by paradex cancelOrders()
+    /// string : unified market symbol, not used by cancelOrders()
     /// </description>
     /// </item>
     /// <item>

@@ -1067,16 +1067,20 @@ public class BybitCore extends BybitApi
             }} );
             put( "precisionMode", TICK_SIZE );
             put( "options", new java.util.HashMap<String, Object>() {{
-                put( "usePrivateInstrumentsInfo", false );
                 put( "enableDemoTrading", false );
                 put( "fetchMarkets", new java.util.HashMap<String, Object>() {{
+                    put( "usePrivateInstrumentsInfo", false );
                     put( "types", new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "linear", "inverse", "option")) );
                     put( "options", new java.util.ArrayList<Object>(java.util.Arrays.asList("BTC", "ETH", "SOL", "XRP", "MNT", "DOGE")) );
+                    put( "loadAllOptions", false );
+                    put( "loadExpiredOptions", false );
                 }} );
                 put( "enableUnifiedMargin", null );
                 put( "enableUnifiedAccount", null );
                 put( "unifiedMarginStatus", null );
-                put( "createMarketBuyOrderRequiresPrice", false );
+                put( "createOrder", new java.util.HashMap<String, Object>() {{
+                    put( "createMarketBuyOrderRequiresPrice", false );
+                }} );
                 put( "createUnifiedMarginAccount", false );
                 put( "defaultType", "swap" );
                 put( "defaultSubType", "linear" );
@@ -1085,8 +1089,6 @@ public class BybitCore extends BybitApi
                 put( "recvWindow", Helpers.multiply(5, 1000) );
                 put( "timeDifference", 0 );
                 put( "adjustForTimeDifference", false );
-                put( "loadAllOptions", false );
-                put( "loadExpiredOptions", false );
                 put( "brokerId", "CCXT" );
                 put( "accountsByType", new java.util.HashMap<String, Object>() {{
                     put( "spot", "SPOT" );
@@ -1563,8 +1565,9 @@ public class BybitCore extends BybitApi
             put( "settleId", finalSettle );
             put( "active", false );
             put( "type", "option" );
-            put( "linear", null );
-            put( "inverse", null );
+            put( "subType", ((Helpers.isTrue((Helpers.isEqual(finalBase, finalSettle))))) ? "inverse" : "linear" );
+            put( "linear", (!Helpers.isEqual(finalBase, finalSettle)) );
+            put( "inverse", (Helpers.isEqual(finalBase, finalSettle)) );
             put( "spot", false );
             put( "swap", false );
             put( "future", false );
@@ -1992,7 +1995,7 @@ public class BybitCore extends BybitApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "category", "spot" );
             }};
-            Object usePrivateInstrumentsInfo = this.safeBool(this.options, "usePrivateInstrumentsInfo", false);
+            Object usePrivateInstrumentsInfo = this.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false);
             Object response = null;
             if (Helpers.isTrue(usePrivateInstrumentsInfo))
             {
@@ -2121,7 +2124,7 @@ public class BybitCore extends BybitApi
             parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "limit", 1000); // minimize number of requests
             Object preLaunchMarkets = ((Object)new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object usePrivateInstrumentsInfo = this.safeBool(this.options, "usePrivateInstrumentsInfo", false);
+            Object usePrivateInstrumentsInfo = this.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false);
             Object response = null;
             if (Helpers.isTrue(usePrivateInstrumentsInfo))
             {
@@ -2345,7 +2348,7 @@ public class BybitCore extends BybitApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "category", "option" );
             }};
-            Object usePrivateInstrumentsInfo = this.safeBool(this.options, "usePrivateInstrumentsInfo", false);
+            Object usePrivateInstrumentsInfo = this.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false);
             Object response = null;
             if (Helpers.isTrue(usePrivateInstrumentsInfo))
             {
@@ -2356,7 +2359,8 @@ public class BybitCore extends BybitApi
             }
             Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object markets = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            if (Helpers.isTrue(Helpers.GetValue(this.options, "loadAllOptions")))
+            Object loadAllOptions = this.handleOption("fetchMarkets", "loadAllOptions");
+            if (Helpers.isTrue(loadAllOptions))
             {
                 Helpers.addElementToObject(request, "limit", 1000);
                 Object paginationCursor = this.safeString(data, "nextPageCursor");
@@ -2440,7 +2444,8 @@ public class BybitCore extends BybitApi
                 Object optionLetter = this.safeString(splitId, 3);
                 Object isActive = (Helpers.isEqual(status, "Trading"));
                 Object isInverse = Helpers.isEqual(base, settle);
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isActive) || Helpers.isTrue((Helpers.GetValue(this.options, "loadAllOptions")))) || Helpers.isTrue((Helpers.GetValue(this.options, "loadExpiredOptions")))))
+                Object loadExpiredOptions = this.handleOption("fetchMarkets", "loadExpiredOptions");
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isActive) || Helpers.isTrue(loadAllOptions)) || Helpers.isTrue(loadExpiredOptions)))
                 {
     final Object finalBase = base;
                     final Object finalIsActive = isActive;
@@ -2645,7 +2650,10 @@ public class BybitCore extends BybitApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTicker() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -2720,7 +2728,10 @@ public class BybitCore extends BybitApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object code = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("code", "currency", "baseCoin")));
             Object market = null;
             Object parsedSymbols = null;
@@ -2729,7 +2740,7 @@ public class BybitCore extends BybitApi
                 parsedSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 Object marketTypeInfo = this.handleMarketTypeAndParams("fetchTickers", null, parameters);
                 Object defaultType = Helpers.GetValue(marketTypeInfo, 0); // don't omit here
-                // we can't use marketSymbols here due to the conflicing ids between markets
+                // we can't use marketSymbols here due to the conflicting ids between markets
                 Object currentType = null;
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
@@ -2899,7 +2910,10 @@ public class BybitCore extends BybitApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -2918,7 +2932,15 @@ public class BybitCore extends BybitApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Helpers.addElementToObject(request, "start", since);
+                // bybit returns the candle that contains `start`, whose timestamp is
+                // before a mid-interval `since` and gets dropped by the client-side
+                // since-filter, emptying a limit=1 request entirely, see issue
+                // https://github.com/ccxt/ccxt/issues/26736 - align the requested
+                // start up to the interval boundary so that the exchange returns
+                // candles from the first bucket at or after `since`
+                Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+                Object rounded = Helpers.multiply(this.parseToInt(Helpers.divide(since, duration)), duration);
+                Helpers.addElementToObject(request, "start", ((Helpers.isTrue((Helpers.isEqual(rounded, since))))) ? since : this.sum(rounded, duration));
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -3093,7 +3115,10 @@ public class BybitCore extends BybitApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
@@ -3196,7 +3221,10 @@ public class BybitCore extends BybitApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -3579,7 +3607,10 @@ public class BybitCore extends BybitApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTrades() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3646,7 +3677,10 @@ public class BybitCore extends BybitApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrderBook() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3903,7 +3937,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             var enableUnifiedMarginenableUnifiedAccountVariable = (this.isUnifiedEnabled()).join();
             var enableUnifiedMargin = ((java.util.List<Object>) enableUnifiedMarginenableUnifiedAccountVariable).get(0);
@@ -4378,7 +4415,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
@@ -4408,7 +4448,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object types = (this.isUnifiedEnabled()).join();
             Object enableUnifiedAccount = Helpers.GetValue(types, 1);
             if (!Helpers.isTrue(enableUnifiedAccount))
@@ -4470,7 +4513,10 @@ public class BybitCore extends BybitApi
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object parts = (this.isUnifiedEnabled()).join();
             Object enableUnifiedAccount = Helpers.GetValue(parts, 1);
@@ -4876,7 +4922,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object accounts = (this.isUnifiedEnabled()).join();
             Object isUta = Helpers.GetValue(accounts, 1);
             Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -5076,7 +5125,10 @@ public class BybitCore extends BybitApi
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a symbol argument")) ;
@@ -5121,7 +5173,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object orderSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
@@ -5261,7 +5316,10 @@ public class BybitCore extends BybitApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object requestExtended = this.cancelOrderRequest(id, symbol, parameters);
             Object response = (this.privatePostV5OrderCancel(requestExtended)).join();
@@ -5305,7 +5363,10 @@ public class BybitCore extends BybitApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object types = (this.isUnifiedEnabled()).join();
             Object enableUnifiedAccount = Helpers.GetValue(types, 1);
@@ -5404,7 +5465,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             final Object finalTimeout = timeout;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "timeWindow", BybitCore.this.parseToInt(Helpers.divide(finalTimeout, 1000)) );
@@ -5447,7 +5511,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object types = (this.isUnifiedEnabled()).join();
             Object enableUnifiedAccount = Helpers.GetValue(types, 1);
             if (!Helpers.isTrue(enableUnifiedAccount))
@@ -5557,7 +5624,10 @@ public class BybitCore extends BybitApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             var enableUnifiedMarginenableUnifiedAccountVariable = (this.isUnifiedEnabled()).join();
             var enableUnifiedMargin = ((java.util.List<Object>) enableUnifiedMarginenableUnifiedAccountVariable).get(0);
             var enableUnifiedAccount = ((java.util.List<Object>) enableUnifiedMarginenableUnifiedAccountVariable).get(1);
@@ -5656,7 +5726,10 @@ public class BybitCore extends BybitApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
@@ -5669,7 +5742,7 @@ public class BybitCore extends BybitApi
             Object length = Helpers.getArrayLength(result);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
-                Object isTrigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")), false);
+                Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
                 Object extra = ((Helpers.isTrue(isTrigger))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
                 throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add("Order ", String.valueOf(id)), " was not found."), extra)) ;
             }
@@ -5700,7 +5773,10 @@ public class BybitCore extends BybitApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             var enableUnifiedMarginenableUnifiedAccountVariable = (this.isUnifiedEnabled()).join();
             var enableUnifiedMargin = ((java.util.List<Object>) enableUnifiedMarginenableUnifiedAccountVariable).get(0);
             var enableUnifiedAccount = ((java.util.List<Object>) enableUnifiedMarginenableUnifiedAccountVariable).get(1);
@@ -5864,7 +5940,10 @@ public class BybitCore extends BybitApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -5889,7 +5968,7 @@ public class BybitCore extends BybitApi
                 throw new NotSupported((String)Helpers.add(this.id, " fetchOrders() is not supported for spot markets")) ;
             }
             Helpers.addElementToObject(request, "category", type);
-            Object isTrigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")), false);
+            Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
             if (Helpers.isTrue(isTrigger))
             {
@@ -5989,7 +6068,10 @@ public class BybitCore extends BybitApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
@@ -5997,7 +6079,7 @@ public class BybitCore extends BybitApi
             Object length = Helpers.getArrayLength(result);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
-                Object isTrigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")), false);
+                Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
                 Object extra = ((Helpers.isTrue(isTrigger))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
                 throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add("Order ", String.valueOf(id)), " was not found."), extra)) ;
             }
@@ -6034,7 +6116,10 @@ public class BybitCore extends BybitApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
@@ -6042,7 +6127,7 @@ public class BybitCore extends BybitApi
             Object length = Helpers.getArrayLength(result);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
-                Object isTrigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")), false);
+                Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
                 Object extra = ((Helpers.isTrue(isTrigger))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
                 throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add("Order ", String.valueOf(id)), " was not found."), extra)) ;
             }
@@ -6082,7 +6167,10 @@ public class BybitCore extends BybitApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -6103,7 +6191,7 @@ public class BybitCore extends BybitApi
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Helpers.addElementToObject(request, "category", type);
-            Object isTrigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")), false);
+            Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
             if (Helpers.isTrue(isTrigger))
             {
@@ -6222,7 +6310,10 @@ public class BybitCore extends BybitApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderStatus", "Filled" );
             }};
@@ -6258,7 +6349,10 @@ public class BybitCore extends BybitApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderStatus", "Cancelled" );
             }};
@@ -6295,7 +6389,10 @@ public class BybitCore extends BybitApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -6466,7 +6563,10 @@ public class BybitCore extends BybitApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -6586,7 +6686,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
@@ -6646,7 +6749,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             var networkCodeparamsOmitedVariable = this.handleNetworkCodeAndParams(parameters);
             var networkCode = ((java.util.List<Object>) networkCodeparamsOmitedVariable).get(0);
@@ -6682,7 +6788,10 @@ public class BybitCore extends BybitApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -6765,7 +6874,10 @@ public class BybitCore extends BybitApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -6967,7 +7079,10 @@ public class BybitCore extends BybitApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -7277,7 +7392,10 @@ public class BybitCore extends BybitApi
             {
                 accountType = ((Helpers.isTrue(isUta))) ? "UTA" : "SPOT";
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             this.checkAddress(address);
             Object currency = this.currency(code);
             final Object finalAccountType = accountType;
@@ -7337,7 +7455,10 @@ public class BybitCore extends BybitApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPosition() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -7422,7 +7543,10 @@ public class BybitCore extends BybitApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -7718,11 +7842,11 @@ public class BybitCore extends BybitApi
         Object unrealisedPnl = this.omitZero(this.safeString(position, "unrealisedPnl"));
         Object initialMarginString = this.safeString2(position, "positionIM", "cumEntryValue");
         Object maintenanceMarginString = this.safeString(position, "positionMM");
-        Object timestamp = this.safeIntegerN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("createdTime", "createdAt")));
+        Object timestamp = this.safeInteger2(position, "createdTime", "createdAt");
         Object lastUpdateTimestamp = this.parse8601(this.safeString(position, "updated_at"));
         if (Helpers.isTrue(Helpers.isEqual(lastUpdateTimestamp, null)))
         {
-            lastUpdateTimestamp = this.safeIntegerN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("updatedTime", "updatedAt", "updatedTime")));
+            lastUpdateTimestamp = this.safeInteger2(position, "updatedTime", "updatedAt");
         }
         Object collateralString = this.safeString(position, "positionBalance");
         Object entryPrice = this.omitZero(this.safeStringN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("entryPrice", "avgPrice", "avgEntryPrice"))));
@@ -7828,7 +7952,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object position = (this.fetchPosition(symbol, parameters)).join();
             return this.parseLeverage(position, market);
@@ -7869,7 +7996,10 @@ public class BybitCore extends BybitApi
             Object marginMode = marginMode3;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             var enableUnifiedMarginenableUnifiedAccountVariable = (this.isUnifiedEnabled()).join();
             var enableUnifiedMargin = ((java.util.List<Object>) enableUnifiedMarginenableUnifiedAccountVariable).get(0);
             var enableUnifiedAccount = ((java.util.List<Object>) enableUnifiedMarginenableUnifiedAccountVariable).get(1);
@@ -8007,7 +8137,10 @@ public class BybitCore extends BybitApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
             // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
@@ -8054,7 +8187,10 @@ public class BybitCore extends BybitApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -8115,7 +8251,10 @@ public class BybitCore extends BybitApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object subType = ((Helpers.isTrue(Helpers.GetValue(market, "linear")))) ? "linear" : "inverse";
             Object category = this.safeString(parameters, "category", subType);
@@ -8195,7 +8334,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
             {
@@ -8275,7 +8417,10 @@ public class BybitCore extends BybitApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterestHistory cannot use the 1m timeframe")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = this.safeBool(parameters, "paginate");
             if (Helpers.isTrue(paginate))
             {
@@ -8339,7 +8484,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
@@ -8424,7 +8572,10 @@ public class BybitCore extends BybitApi
             Object since = Helpers.getArg(optionalArgs, 2, null);
             Object limit = Helpers.getArg(optionalArgs, 3, null);
             Object parameters = Helpers.getArg(optionalArgs, 4, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object response = (this.privateGetV5SpotCrossMarginTradeAccount(this.extend(request, parameters))).join();
             //
@@ -8480,7 +8631,10 @@ public class BybitCore extends BybitApi
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
@@ -8568,7 +8722,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object transferId = this.safeString(parameters, "transferId", this.uuid());
             Object accountTypes = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
             Object fromId = this.safeString(accountTypes, fromAccount, fromAccount);
@@ -8596,7 +8753,7 @@ public class BybitCore extends BybitApi
             //
             Object timestamp = this.safeInteger(response, "time");
             Object transfer = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object statusRaw = this.safeStringN(response, new java.util.ArrayList<Object>(java.util.Arrays.asList("retCode", "retMsg")));
+            Object statusRaw = this.safeString2(response, "retCode", "retMsg");
             Object status = this.parseTransferStatus(statusRaw);
             return this.extend(this.parseTransfer(transfer, currency), new java.util.HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
@@ -8632,7 +8789,10 @@ public class BybitCore extends BybitApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -8704,7 +8864,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
@@ -8745,7 +8908,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
@@ -8859,7 +9025,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -8917,7 +9086,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             market = this.market(symbol);
@@ -8969,7 +9141,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -9020,7 +9195,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object type = null;
             var typeparametersVariable = this.handleOptionAndParams(parameters, "fetchTradingFees", "type", "future");
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
@@ -9143,7 +9321,10 @@ public class BybitCore extends BybitApi
             Object codes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = (this.privateGetV5AssetCoinQueryInfo(parameters)).join();
             //
             //     {
@@ -9204,7 +9385,10 @@ public class BybitCore extends BybitApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -9276,7 +9460,10 @@ public class BybitCore extends BybitApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -9418,7 +9605,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "category", "option" );
@@ -9484,7 +9674,10 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -9560,7 +9753,10 @@ public class BybitCore extends BybitApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object baseCoin = this.safeString(parameters, "baseCoin", "BTC");
             Object request = new java.util.HashMap<String, Object>() {{
@@ -9705,7 +9901,10 @@ public class BybitCore extends BybitApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyLiquidations", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -9844,7 +10043,10 @@ public class BybitCore extends BybitApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -9900,7 +10102,10 @@ public class BybitCore extends BybitApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object symbol = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
@@ -10024,7 +10229,10 @@ final Object finalMarket = market;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -10146,7 +10354,10 @@ final Object finalMarket = market;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "category", "option" );
@@ -10216,7 +10427,10 @@ final Object finalMarket = market;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "category", "option" );
@@ -10335,7 +10549,7 @@ final Object finalMarket = market;
      * @param {string[]} symbols a list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
      * @param {int} [limit] the maximum amount of records to fetch, default=50, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days
      * @param {string} [params.subType] 'linear' or 'inverse'
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
@@ -10349,7 +10563,10 @@ final Object finalMarket = market;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object subType = null;
             Object symbolsLength = 0;
@@ -10443,7 +10660,10 @@ final Object finalMarket = market;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object accountType = null;
             var enableUnifiedMarginenableUnifiedAccountVariable = (this.isUnifiedEnabled()).join();
             var enableUnifiedMargin = ((java.util.List<Object>) enableUnifiedMarginenableUnifiedAccountVariable).get(0);
@@ -10555,7 +10775,10 @@ final Object finalMarket = market;
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object accountType = null;
             var enableUnifiedMarginenableUnifiedAccountVariable = (this.isUnifiedEnabled()).join();
             var enableUnifiedMargin = ((java.util.List<Object>) enableUnifiedMarginenableUnifiedAccountVariable).get(0);
@@ -10623,7 +10846,10 @@ final Object finalMarket = market;
 
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "quoteTxId", id );
             }};
@@ -10664,7 +10890,10 @@ final Object finalMarket = market;
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object accountType = null;
             var enableUnifiedMarginenableUnifiedAccountVariable = (this.isUnifiedEnabled()).join();
             var enableUnifiedMargin = ((java.util.List<Object>) enableUnifiedMarginenableUnifiedAccountVariable).get(0);
@@ -10745,7 +10974,10 @@ final Object finalMarket = market;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -10872,7 +11104,10 @@ final Object finalMarket = market;
             Object since = Helpers.getArg(optionalArgs, 2, null);
             Object limit = Helpers.getArg(optionalArgs, 3, null);
             Object parameters = Helpers.getArg(optionalArgs, 4, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object type = null;
             var typeparametersVariable = this.getBybitType("fetchLongShortRatioHistory", market, parameters);
@@ -10968,7 +11203,10 @@ final Object finalMarket = market;
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPositionsADLRank() requires a symbols argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object market = this.getMarketFromSymbols(symbols);
             Object request = new java.util.HashMap<String, Object>() {{}};
@@ -11112,7 +11350,10 @@ final Object finalMarket = market;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object response = (this.privateGetV5AccountInfo(parameters)).join();
             //

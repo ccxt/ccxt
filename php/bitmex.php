@@ -281,8 +281,10 @@ class bitmex extends Exchange {
             'options' => array(
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
-                'api-expires' => 5, // in seconds
-                'fetchOHLCVOpenTimestamp' => true,
+                'recvWindow' => 5000,
+                'fetchOHLCV' => array(
+                    'useOpenTimestamp' => true,
+                ),
                 'oldPrecision' => false,
                 'networks' => array(
                     'BTC' => 'btc',
@@ -1086,8 +1088,7 @@ class bitmex extends Exchange {
             // https://github.com/ccxt/ccxt/issues/4927
             // the exchange sometimes returns null $price in the orderbook
             if ($price !== null) {
-                $resultSide = $result[$side];
-                $resultSide[] = array( $price, $amount );
+                $result[$side][] = array( $price, $amount );
             }
         }
         $result['bids'] = $this->sort_by($result['bids'], 0, true);
@@ -1162,7 +1163,7 @@ class bitmex extends Exchange {
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode(array("filter" => array("open" => True))) will return "filter=array('open':+True)"
         // Bitmex doesn't like that. Hence resorting to this hack.
-        if (is_array($request) && array_key_exists('filter', $request)) {
+        if (is_array($request) && array_key_exists('filter' ?? '', $request)) {
             $request['filter'] = $this->json($request['filter']);
         }
         $response = $this->privateGetOrder($request);
@@ -1248,7 +1249,7 @@ class bitmex extends Exchange {
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode(array("filter" => array("open" => True))) will return "filter=array('open':+True)"
         // Bitmex doesn't like that. Hence resorting to this hack.
-        if (is_array($request) && array_key_exists('filter', $request)) {
+        if (is_array($request) && array_key_exists('filter' ?? '', $request)) {
             $request['filter'] = $this->json($request['filter']);
         }
         $response = $this->privateGetExecutionTradeHistory($request);
@@ -1763,11 +1764,12 @@ class bitmex extends Exchange {
             $request['endTime'] = $this->iso8601($until);
         }
         $duration = $this->parse_timeframe($timeframe) * 1000;
-        $fetchOHLCVOpenTimestamp = $this->safe_bool($this->options, 'fetchOHLCVOpenTimestamp', true);
+        $useOpenTimestamp = null;
+        list($useOpenTimestamp, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'useOpenTimestamp', true);
         // if $since is not set, they will return candles starting from 2017-01-01
         if ($since !== null) {
             $timestamp = $since;
-            if ($fetchOHLCVOpenTimestamp) {
+            if ($useOpenTimestamp) {
                 $timestamp = $this->sum($timestamp, $duration);
             }
             $startTime = $this->iso8601($timestamp);
@@ -1784,7 +1786,7 @@ class bitmex extends Exchange {
         //     )
         //
         $result = $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
-        if ($fetchOHLCVOpenTimestamp) {
+        if ($useOpenTimestamp) {
             // bitmex returns the candle's close $timestamp - https://github.com/ccxt/ccxt/issues/4446
             // we can emulate the open $timestamp by shifting all the timestamps one place
             // so the previous close becomes the current open, and we drop the first candle
@@ -2278,7 +2280,7 @@ class bitmex extends Exchange {
          * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
          *
          * @param {string} $id $order $id
-         * @param {string} $symbol not used by bitmex cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
@@ -2312,7 +2314,7 @@ class bitmex extends Exchange {
          * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
          *
          * @param {string[]} $ids order $ids
-         * @param {string} $symbol not used by bitmex cancelOrders ()
+         * @param {string} $symbol not used by cancelOrders ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -2844,7 +2846,7 @@ class bitmex extends Exchange {
         }
         $request = array();
         $market = null;
-        if (is_array($this->currencies) && array_key_exists($symbol, $this->currencies)) {
+        if (is_array($this->currencies) && array_key_exists($symbol ?? '', $this->currencies)) {
             $code = $this->currency($symbol);
             $request['symbol'] = $code['id'];
         } elseif ($symbol !== null) {
@@ -3642,7 +3644,7 @@ class bitmex extends Exchange {
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $side the buy or sell $side of the closing order, if the position is long set the $side to sell, reduceOnly is implied
-         * @param {array} [$params] extra parameters specific to the bingx api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->markets === null) {
@@ -3725,7 +3727,8 @@ class bitmex extends Exchange {
         if ($api === 'private' || ($api === 'public' && $isAuthenticated)) {
             $this->check_required_credentials();
             $auth = $method . $query;
-            $expires = $this->safe_integer($this->options, 'api-expires');
+            $apiExpires = $this->safe_integer($this->options, 'api-expires'); // backwards compatibility
+            $expires = $this->safe_integer_product($this->options, 'recvWindow', 0.001, $apiExpires);
             $headers = array(
                 'Content-Type' => 'application/json',
                 'api-key' => $this->apiKey,

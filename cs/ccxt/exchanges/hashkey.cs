@@ -827,7 +827,7 @@ public partial class hashkey : Exchange
         object markets = this.arrayConcat(spotMarkets, swapMarkets);
         if (isTrue(this.isEmpty(markets)))
         {
-            markets = new List<object>() {response}; // if user provides params.symbol the exchange returns a single object insted of list of objects
+            markets = new List<object>() {response}; // if user provides params.symbol the exchange returns a single object instead of list of objects
         }
         return this.parseMarkets(markets);
     }
@@ -1460,7 +1460,7 @@ public partial class hashkey : Exchange
             side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
         }
         object takerOrMaker = null;
-        object isMaker = this.safeBoolN(trade, new List<object>() {"isMaker", "isMarker"});
+        object isMaker = this.safeBool2(trade, "isMaker", "isMarker");
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
@@ -4537,7 +4537,7 @@ public partial class hashkey : Exchange
         } else
         {
             query = this.urlencode(parameters);
-            if (isTrue(!isEqual(((string)query).Length, 0)))
+            if (isTrue(!isEqual(getArrayLength(query), 0)))
             {
                 url = add(url, add("?", query));
             }

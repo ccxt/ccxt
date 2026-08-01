@@ -1901,7 +1901,7 @@ export default class dydx extends Exchange {
         const fromSubaccountId = this.safeInteger (params, 'fromSubaccountId');
         const toSubaccountId = this.safeInteger (params, 'toSubaccountId');
         if (fromAccount !== 'main') {
-            // throw error if from subaccount id is undefind
+            // throw error if from subaccount id is undefined
             if (fromAccount === undefined) {
                 throw new NotSupported (this.id + ' transfer only support main > subaccount and subaccount <> subaccount.');
             }
@@ -2477,7 +2477,7 @@ export default class dydx extends Exchange {
 
     sign (path, section = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const pathWithParams = this.implodeParams (path, params);
-        let url = this.implodeHostname (this.urls['api'][section]);
+        let url = this.urls['api'][section];
         params = this.omit (params, this.extractParams (path));
         params = this.keysort (params);
         url += '/' + pathWithParams;

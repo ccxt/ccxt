@@ -10,6 +10,7 @@ use ccxt\NotSupported;
 use ccxt\ChecksumError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
 
 class independentreserve extends \ccxt\async\independentreserve {
     public function describe(): mixed {
@@ -198,7 +199,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         $receivedSnapshot = $this->safe_bool($subscription, 'receivedSnapshot', false);
         $timestamp = $this->safe_integer($message, 'Time');
         // $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book(array());
         }
         $orderbook = $this->orderbooks[$symbol];

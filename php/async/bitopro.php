@@ -14,6 +14,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class bitopro extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -239,7 +241,9 @@ class bitopro extends Exchange {
                     'BEP20' => 'BSC',
                     'BSC' => 'BSC',
                 ),
-                'fiatCurrencies' => array( 'TWD' ), // the only fiat currency for exchange
+                'fetchCurrencies' => array(
+                    'fiatCurrencies' => array( 'TWD' ), // the only fiat currency for exchange
+                ),
             ),
             'features' => array(
                 'spot' => array(
@@ -374,7 +378,7 @@ class bitopro extends Exchange {
     }
 
     public function parse_currency(array $rawCurrency): array {
-        $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
+        $fiatCurrencies = $this->handle_option('fetchCurrencies', 'fiatCurrencies', array());
         $currencyId = $this->safe_string($rawCurrency, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $deposit = $this->safe_bool($rawCurrency, 'deposit');
@@ -1847,7 +1851,7 @@ class bitopro extends Exchange {
                 'amount' => $this->number_to_string($amount),
                 'address' => $address,
             );
-            if (is_array($params) && array_key_exists('network', $params)) {
+            if (is_array($params) && array_key_exists('network' ?? '', $params)) {
                 $networks = $this->safe_dict($this->options, 'networks', array());
                 $requestedNetwork = $this->safe_string_upper($params, 'network');
                 $params = $this->omit($params, array( 'network' ));

@@ -9,6 +9,8 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class dydx extends \ccxt\async\dydx {
     public function describe(): mixed {

@@ -1429,7 +1429,7 @@ public partial class upbit : Exchange
      * @see https://global-docs.upbit.com/reference/cancel-order
      * @description cancels an open order
      * @param {string} id order id
-     * @param {string} symbol not used by upbit cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */

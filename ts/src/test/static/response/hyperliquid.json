@@ -2642,7 +2642,6 @@
                 }
             }
         ],
-        "fetchTickers": [],
         "fetchDeposits": [
             {
                 "description": "user deposits",

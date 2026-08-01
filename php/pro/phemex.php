@@ -10,6 +10,9 @@ use ccxt\AuthenticationError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class phemex extends \ccxt\async\phemex {
     public function describe(): mixed {
@@ -24,7 +27,7 @@ class phemex extends \ccxt\async\phemex {
                 'watchOrderBook' => true,
                 'watchOHLCV' => true,
                 'watchPositions' => null, // TODO
-                // mutli-endpoints are not supported => https://github.com/ccxt/ccxt/pull/21490
+                // multi-endpoints are not supported => https://github.com/ccxt/ccxt/pull/21490
                 'watchOrderBookForSymbols' => false,
                 'watchTradesForSymbols' => false,
                 'watchOHLCVForSymbols' => false,
@@ -283,13 +286,13 @@ class phemex extends \ccxt\async\phemex {
         //    }
         //
         $tickers = array();
-        if (is_array($message) && array_key_exists('market24h', $message)) {
+        if (is_array($message) && array_key_exists('market24h' ?? '', $message)) {
             $ticker = $this->safe_value($message, 'market24h');
             $tickers[] = $this->parse_swap_ticker($ticker);
-        } elseif (is_array($message) && array_key_exists('spot_market24h', $message)) {
+        } elseif (is_array($message) && array_key_exists('spot_market24h' ?? '', $message)) {
             $ticker = $this->safe_value($message, 'spot_market24h');
             $tickers[] = $this->parse_ticker($ticker);
-        } elseif (is_array($message) && array_key_exists('data', $message)) {
+        } elseif (is_array($message) && array_key_exists('data' ?? '', $message)) {
             $data = $this->safe_value($message, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
                 $tickers[] = $this->parse_perpetual_ticker($data[$i]);
@@ -797,7 +800,7 @@ class phemex extends \ccxt\async\phemex {
             $this->orderbooks[$symbol] = $orderbook;
             $client->resolve($orderbook, $messageHash);
         } else {
-            if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+            if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
                 $orderbook = $this->orderbooks[$symbol];
                 $changes = $this->safe_dict_2($message, 'book', 'orderbook_p', array());
                 $asks = $this->safe_list($changes, 'asks', array());
@@ -1179,7 +1182,7 @@ class phemex extends \ccxt\async\phemex {
         //
         $trades = array();
         $parsedOrders = array();
-        if ((is_array($message) && array_key_exists('closed', $message)) || (is_array($message) && array_key_exists('fills', $message)) || (is_array($message) && array_key_exists('open', $message))) {
+        if ((is_array($message) && array_key_exists('closed' ?? '', $message)) || (is_array($message) && array_key_exists('fills' ?? '', $message)) || (is_array($message) && array_key_exists('open' ?? '', $message))) {
             $closed = $this->safe_value($message, 'closed', array());
             $open = $this->safe_value($message, 'open', array());
             $orders = $this->array_concat($open, $closed);
@@ -1508,7 +1511,7 @@ class phemex extends \ccxt\async\phemex {
         //     )
         // }
         $id = $this->safe_string($message, 'id');
-        if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
+        if (is_array($client->subscriptions) && array_key_exists($id ?? '', $client->subscriptions)) {
             $method = $client->subscriptions[$id];
             unset($client->subscriptions[$id]);
             if ($method !== true) {
@@ -1517,26 +1520,26 @@ class phemex extends \ccxt\async\phemex {
             }
         }
         $methodName = $this->safe_string($message, 'method', '');
-        if ((is_array($message) && array_key_exists('market24h', $message)) || (is_array($message) && array_key_exists('spot_market24h', $message)) || (mb_strpos($methodName, 'perp_market24h_pack_p') !== false)) {
+        if ((is_array($message) && array_key_exists('market24h' ?? '', $message)) || (is_array($message) && array_key_exists('spot_market24h' ?? '', $message)) || (mb_strpos($methodName, 'perp_market24h_pack_p') !== false)) {
             $this->handle_ticker($client, $message);
             return;
-        } elseif ((is_array($message) && array_key_exists('trades', $message)) || (is_array($message) && array_key_exists('trades_p', $message))) {
+        } elseif ((is_array($message) && array_key_exists('trades' ?? '', $message)) || (is_array($message) && array_key_exists('trades_p' ?? '', $message))) {
             $this->handle_trades($client, $message);
             return;
-        } elseif ((is_array($message) && array_key_exists('kline', $message)) || (is_array($message) && array_key_exists('kline_p', $message))) {
+        } elseif ((is_array($message) && array_key_exists('kline' ?? '', $message)) || (is_array($message) && array_key_exists('kline_p' ?? '', $message))) {
             $this->handle_ohlcv($client, $message);
             return;
-        } elseif ((is_array($message) && array_key_exists('book', $message)) || (is_array($message) && array_key_exists('orderbook_p', $message))) {
+        } elseif ((is_array($message) && array_key_exists('book' ?? '', $message)) || (is_array($message) && array_key_exists('orderbook_p' ?? '', $message))) {
             $this->handle_order_book($client, $message);
             return;
         }
-        if ((is_array($message) && array_key_exists('orders', $message)) || (is_array($message) && array_key_exists('orders_p', $message))) {
+        if ((is_array($message) && array_key_exists('orders' ?? '', $message)) || (is_array($message) && array_key_exists('orders_p' ?? '', $message))) {
             $orders = $this->safe_value_2($message, 'orders', 'orders_p', array());
             $this->handle_orders($client, $orders);
         }
-        if ((is_array($message) && array_key_exists('accounts', $message)) || (is_array($message) && array_key_exists('accounts_p', $message)) || (is_array($message) && array_key_exists('wallets', $message))) {
-            $type = (is_array($message) && array_key_exists('accounts', $message)) ? 'swap' : 'spot';
-            if (is_array($message) && array_key_exists('accounts_p', $message)) {
+        if ((is_array($message) && array_key_exists('accounts' ?? '', $message)) || (is_array($message) && array_key_exists('accounts_p' ?? '', $message)) || (is_array($message) && array_key_exists('wallets' ?? '', $message))) {
+            $type = (is_array($message) && array_key_exists('accounts' ?? '', $message)) ? 'swap' : 'spot';
+            if (is_array($message) && array_key_exists('accounts_p' ?? '', $message)) {
                 $type = 'perpetual';
             }
             $accounts = $this->safe_value_n($message, array( 'accounts', 'accounts_p', 'wallets' ), array());
@@ -1562,7 +1565,7 @@ class phemex extends \ccxt\async\phemex {
         } else {
             $error = new AuthenticationError($this->id . ' ' . $this->json($message));
             $client->reject($error, $messageHash);
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }
@@ -1616,7 +1619,7 @@ class phemex extends \ccxt\async\phemex {
                 );
                 $subscriptionHash = (string) $requestId;
                 $message = $this->extend($request, $params);
-                if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
+                if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
                     $client->subscriptions[$subscriptionHash] = array($this, 'handle_authenticate');
                 }
                 $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));

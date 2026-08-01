@@ -81,10 +81,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		bithumbItf := NewBithumbCore()
 		bithumbItf.Init(exchangeArgs)
 		return bithumbItf, true
-	case "bitmart":
-		bitmartItf := NewBitmartCore()
-		bitmartItf.Init(exchangeArgs)
-		return bitmartItf, true
 	case "bitmex":
 		bitmexItf := NewBitmexCore()
 		bitmexItf.Init(exchangeArgs)
@@ -345,6 +341,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		myokxItf := NewMyokxCore()
 		myokxItf.Init(exchangeArgs)
 		return myokxItf, true
+	case "nado":
+		nadoItf := NewNadoCore()
+		nadoItf.Init(exchangeArgs)
+		return nadoItf, true
 	case "ndax":
 		ndaxItf := NewNdaxCore()
 		ndaxItf.Init(exchangeArgs)

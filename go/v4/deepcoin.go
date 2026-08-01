@@ -744,7 +744,7 @@ func (this *DeepcoinCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any
 			params = this.Omit(params, "calculateUntil")
 			if IsTrue(!IsEqual(since, nil)) {
 				// the exchange do not have a since param for this endpoint
-				// we canlculate until (after) for correct pagination
+				// we calculate until (after) for correct pagination
 				var duration any = this.ParseTimeframe(timeframe)
 				var numberOfCandles any = Ternary(IsTrue((IsEqual(limit, nil))), maxLimit, limit)
 				var endTime any = Add(since, Multiply((Multiply(duration, numberOfCandles)), 1000))

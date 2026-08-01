@@ -3189,7 +3189,7 @@ export default class htx extends Exchange {
             // 'from': parseInt ((since / 1000).toString ()), spot only
             // 'to': this.seconds (), spot only
         };
-        const priceType = this.safeStringN(params, ['priceType', 'price']);
+        const priceType = this.safeString2(params, 'priceType', 'price');
         params = this.omit(params, ['priceType', 'price']);
         let until = undefined;
         [until, params] = this.handleParamInteger(params, 'until');
@@ -5143,7 +5143,7 @@ export default class htx extends Exchange {
         if (isLinearOrder) {
             type = this.safeString(order, 'type');
             if ((type === undefined) || (type === 'tp') || (type === 'sl') || (type === 'tpsl')) {
-                type = this.safeStringN(order, ['tp_type', 'sl_type']);
+                type = this.safeString2(order, 'tp_type', 'sl_type');
             }
             if (type === '0') {
                 type = undefined;
@@ -7395,7 +7395,7 @@ export default class htx extends Exchange {
         };
         if (market['linear']) {
             if (limit !== undefined) {
-                request['limit'] = limit;
+                request['limit'] = Math.min(limit, 100); // max 100
             }
             if (since !== undefined) {
                 request['start_time'] = since;
@@ -7848,7 +7848,7 @@ export default class htx extends Exchange {
                     request = this.extend(request, query);
                 }
                 const sortedRequest = this.keysort(request);
-                let auth = this.urlencode(sortedRequest, true); // true is a go only requirment
+                let auth = this.urlencode(sortedRequest, true); // true is a go only requirement
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const content = [method, this.hostname, url, auth];
                 const payload = content.join("\n"); // eslint-disable-line quotes
@@ -9979,7 +9979,7 @@ export default class htx extends Exchange {
      * @see https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      // Coin-M futures
      * @param {string} symbol unified CCXT market symbol
      * @param {string} side 'buy' or 'sell', the side of the closing order, opposite side as position side
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
      * @param {object} [params.marginMode] 'cross' or 'isolated', required for linear markets
      *

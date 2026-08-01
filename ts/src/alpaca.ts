@@ -313,7 +313,9 @@ export default class alpaca extends Exchange {
                     'GNSS', // Genesis
                     'ERSX', // ErisX
                 ],
-                'defaultTimeInForce': 'gtc', // fok, gtc, ioc
+                'createOrder': {
+                    'timeInForce': 'gtc', // fok, gtc, ioc
+                },
                 'clientOrderId': 'ccxt_{id}',
             },
             'features': {
@@ -449,7 +451,7 @@ export default class alpaca extends Exchange {
      * @name alpaca#fetchMarkets
      * @description retrieves data on all markets for alpaca
      * @see https://docs.alpaca.markets/reference/get-v2-assets
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
@@ -727,7 +729,7 @@ export default class alpaca extends Exchange {
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the alpha api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -1071,7 +1073,7 @@ export default class alpaca extends Exchange {
             'side': side,
             'type': type, // market, limit, stop_limit
         };
-        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stop_price' ]);
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stop_price');
         if (triggerPrice !== undefined) {
             let newType: string;
             if (type.indexOf ('limit') >= 0) {
@@ -1092,8 +1094,9 @@ export default class alpaca extends Exchange {
         } else {
             request['qty'] = this.amountToPrecision (symbol, amount);
         }
-        const defaultTIF = this.safeString (this.options, 'defaultTimeInForce');
-        request['time_in_force'] = this.safeString (params, 'timeInForce', defaultTIF);
+        let defaultTIF = undefined;
+        [ defaultTIF, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce');
+        request['time_in_force'] = defaultTIF;
         params = this.omit (params, [ 'timeInForce', 'triggerPrice' ]);
         request['client_order_id'] = this.generateClientOrderId (params);
         params = this.omit (params, [ 'clientOrderId' ]);
@@ -1166,7 +1169,7 @@ export default class alpaca extends Exchange {
      * @name alpaca#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://docs.alpaca.markets/reference/deleteallorders
-     * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+     * @param {string} [symbol] alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1357,7 +1360,7 @@ export default class alpaca extends Exchange {
         if (amount !== undefined) {
             request['qty'] = this.amountToPrecision (symbol, amount);
         }
-        const triggerPrice = this.safeStringN (params, [ 'triggerPrice', 'stop_price' ]);
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stop_price');
         if (triggerPrice !== undefined) {
             request['stop_price'] = this.priceToPrecision (symbol, triggerPrice);
             params = this.omit (params, 'triggerPrice');
@@ -1366,7 +1369,7 @@ export default class alpaca extends Exchange {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
         let timeInForce: Str = undefined;
-        [ timeInForce, params ] = this.handleOptionAndParams2 (params, 'editOrder', 'timeInForce', 'defaultTimeInForce');
+        [ timeInForce, params ] = this.handleOptionAndParams (params, 'editOrder', 'timeInForce', 'gtc');
         if (timeInForce !== undefined) {
             request['time_in_force'] = timeInForce;
         }

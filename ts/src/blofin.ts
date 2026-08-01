@@ -428,7 +428,6 @@ export default class blofin extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'brokerId': 'ec6dd3a7dd982d0b',
                 'accountsByType': {
                     'swap': 'futures',
                     'funding': 'funding',
@@ -468,28 +467,13 @@ export default class blofin extends Exchange {
                         '1D': '1D',
                     },
                 },
-                'fetchOHLCV': {
-                    // 'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
-                    'timezone': 'UTC', // UTC, HK
-                },
-                'fetchPositions': {
-                    'method': 'privateGetAccountPositions', // privateGetAccountPositions or privateGetAccountPositionsHistory
-                },
-                'createOrder': 'privatePostTradeOrder', // or 'privatePostTradeOrderTpsl'
-                'createMarketBuyOrderRequiresPrice': false,
-                'fetchMarkets': [ 'swap' ],
                 'defaultType': 'swap',
-                'fetchLedger': {
-                    'method': 'privateGetAssetBills',
-                },
+                'brokerId': 'ec6dd3a7dd982d0b',
                 'fetchOpenOrders': {
                     'method': 'privateGetTradeOrdersPending',
                 },
                 'cancelOrders': {
                     'method': 'privatePostTradeCancelBatchOrders',
-                },
-                'fetchCanceledOrders': {
-                    'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersTpslHistory
                 },
                 'fetchClosedOrders': {
                     'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersTpslHistory
@@ -534,7 +518,7 @@ export default class blofin extends Exchange {
         const contract = swap || future;
         const baseId = this.safeString (market, 'baseCurrency');
         const quoteId = this.safeString (market, 'quoteCurrency');
-        const settleId = this.safeString (market, 'quoteCurrency');
+        const settleId = this.safeString (market, 'settleCurrency', quoteId);
         const settle = this.safeCurrencyCode (settleId);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
@@ -553,6 +537,9 @@ export default class blofin extends Exchange {
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         const isActive = (this.safeString (market, 'state') === 'live');
         const isMargin = spot && (Precise.stringGt (maxLeverage, '1'));
+        const contractType = this.safeString (market, 'contractType');
+        const maxLimitAmount = this.safeNumber (market, 'maxLimitSize');
+        const maxSpotCost = this.safeNumber (market, 'maxMarketSize'); // for spot, market-buy size is denominated in the quote currency, i.e. cost
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -572,8 +559,8 @@ export default class blofin extends Exchange {
             'taker': taker,
             'maker': maker,
             'contract': contract,
-            'linear': contract ? (quoteId === settleId) : undefined,
-            'inverse': contract ? (baseId === settleId) : undefined,
+            'linear': contract ? (contractType === 'linear') : undefined,
+            'inverse': contract ? (contractType === 'inverse') : undefined,
             'contractSize': contract ? this.safeNumber (market, 'contractValue') : undefined,
             'expiry': expiry,
             'expiryDatetime': expiry,
@@ -591,7 +578,7 @@ export default class blofin extends Exchange {
                 },
                 'amount': {
                     'min': this.safeNumber (market, 'minSize'),
-                    'max': undefined,
+                    'max': maxLimitAmount,
                 },
                 'price': {
                     'min': undefined,
@@ -599,7 +586,7 @@ export default class blofin extends Exchange {
                 },
                 'cost': {
                     'min': undefined,
-                    'max': undefined,
+                    'max': contract ? undefined : maxSpotCost,
                 },
             },
             'info': market,
@@ -1613,7 +1600,7 @@ export default class blofin extends Exchange {
         const request: Dict = {
             'instId': market['id'],
         };
-        const isTrigger = this.safeBoolN (params, [ 'trigger' ], false);
+        const isTrigger = this.safeBool (params, 'trigger', false);
         const isTpsl = this.safeBool2 (params, 'tpsl', 'TPSL', false);
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -2103,9 +2090,7 @@ export default class blofin extends Exchange {
         }
         const market = this.market (symbol);
         const request: List = [];
-        const options = this.safeDict (this.options, 'cancelOrders', {});
-        const defaultMethod = this.safeString (options, 'method', 'privatePostTradeCancelBatchOrders');
-        let method = this.safeString (params, 'method', defaultMethod);
+        let method = this.handleOption ('cancelOrders', 'method', 'privatePostTradeCancelBatchOrders') as string;
         const clientOrderIds = this.parseIds (this.safeValue (params, 'clientOrderId'));
         const tpslIds = this.parseIds (this.safeValue (params, 'tpslId'));
         const trigger = this.safeBoolN (params, [ 'stop', 'trigger', 'tpsl' ]);
@@ -2255,7 +2240,7 @@ export default class blofin extends Exchange {
      * @param {string[]} [symbols] unified contract symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
      * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
      * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
@@ -2613,7 +2598,7 @@ export default class blofin extends Exchange {
      * @see https://blofin.com/docs#close-positions
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
-     * @param {object} [params] extra parameters specific to the blofin api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
      * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -2680,7 +2665,7 @@ export default class blofin extends Exchange {
         }
         const isTrigger = this.safeBoolN (params, [ 'stop', 'trigger', 'tpsl', 'TPSL' ], false);
         let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
         const query = this.omit (params, [ 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ]);
         let response: Dict;
         if ((isTrigger) || (method === 'privateGetTradeOrdersTpslHistory')) {
@@ -2798,7 +2783,7 @@ export default class blofin extends Exchange {
      * @description set hedged to true or false for a market
      * @see https://docs.blofin.com/index.html#set-position-mode
      * @param {bool} hedged set to true to use hedged mode, false for one-way mode
-     * @param {string} [symbol] not used by blofin setPositionMode ()
+     * @param {string} [symbol] not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */

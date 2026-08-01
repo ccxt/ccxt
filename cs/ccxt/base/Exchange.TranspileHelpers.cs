@@ -6,7 +6,7 @@ using System.Reflection;
 using dict = Dictionary<string, object>;
 
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     // tmp most of these methods are going to be re-implemented in the future to be more generic and efficient
@@ -867,7 +867,7 @@ public partial class Exchange
 
     public void throwDynamicException(object exception, object message)
     {
-        var Exception = NewException((Type)exception, (string)message);
+        throw NewException((Type)exception, (string)message);
     }
 
     // This function is the salient bit here

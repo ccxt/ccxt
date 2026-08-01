@@ -76,7 +76,7 @@ class upbit(ccxt.async_support.upbit):
             finalMessage.append(subscriptions[key])
         return await self.watch_multiple(url, messageHashes, finalMessage, messageHashes)
 
-    async def watch_ticker(self, symbol: str, params={}) -> Ticker:
+    def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -86,7 +86,7 @@ class upbit(ccxt.async_support.upbit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.watch_public_multiple([symbol], 'ticker')
+        return self.watch_public_multiple([symbol], 'ticker')
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -105,7 +105,7 @@ class upbit(ccxt.async_support.upbit):
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -117,7 +117,7 @@ class upbit(ccxt.async_support.upbit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+        return self.watch_trades_for_symbols([symbol], since, limit, params)
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """

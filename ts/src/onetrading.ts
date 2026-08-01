@@ -27,7 +27,7 @@ export default class onetrading extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'addMargin': false,
@@ -180,9 +180,10 @@ export default class onetrading extends Exchange {
                         'account/fees',
                         'account/orders',
                         'account/orders/{order_id}',
+                        'account/orders/client/{client_id}',
                         'account/orders/{order_id}/trades',
                         'account/trades',
-                        'account/trades/{trade_id}',
+                        'account/trade/{trade_id}',
                     ],
                     'post': [
                         'account/orders',
@@ -1450,7 +1451,7 @@ export default class onetrading extends Exchange {
      * @see https://docs.onetrading.com/rest/trading/cancel-order-order-id
      * @see https://docs.onetrading.com/rest/trading/cancel-order-client-id
      * @param {string} id order id
-     * @param {string} symbol not used by bitmex cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1485,7 +1486,7 @@ export default class onetrading extends Exchange {
      * @name onetrading#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.onetrading.com/rest/trading/cancel-all-orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1617,7 +1618,7 @@ export default class onetrading extends Exchange {
             // 'instrument_code': market['id'],
             // 'with_cancelled_and_rejected': false, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
             // 'with_just_filled_inactive': false, // orders which have been filled and are no longer open, use of "with_cancelled_and_rejected" extends "with_just_filled_inactive" and in case both are specified the latter is ignored
-            // 'with_just_orders': false, // do not return any trades corresponsing to the orders, it may be significanly faster and should be used if user is not interesting in trade information
+            // 'with_just_orders': false, // do not return any trades corresponding to the orders, it may be significantly faster and should be used if user is not interesting in trade information
             // 'max_page_size': 100,
             // 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
         };

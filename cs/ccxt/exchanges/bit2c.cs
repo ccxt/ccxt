@@ -179,7 +179,9 @@ public partial class bit2c : Exchange
                 } },
             } },
             { "options", new Dictionary<string, object>() {
-                { "fetchTradesMethod", "public_get_exchanges_pair_trades" },
+                { "fetchTrades", new Dictionary<string, object>() {
+                    { "method", "public_get_exchanges_pair_trades" },
+                } },
             } },
             { "features", new Dictionary<string, object>() {
                 { "spot", new Dictionary<string, object>() {
@@ -438,7 +440,8 @@ public partial class bit2c : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object method = getValue(this.options, "fetchTradesMethod"); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        object optionValue = this.safeString(this.options, "fetchTradesMethod"); // kept here for backward compatibility #29154
+        object method = ((string)this.handleOption("fetchTrades", "method", optionValue)); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };

@@ -2367,7 +2367,7 @@ func (this *Bybit) FetchVolatilityHistory(code string, options ...FetchVolatilit
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**
@@ -2625,7 +2625,7 @@ func (this *Bybit) FetchOptionChain(code string, options ...FetchOptionChainOpti
  * @param {string[]} symbols a list of unified market symbols
  * @param {int} [since] timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
  * @param {int} [limit] the maximum amount of records to fetch, default=50, max=100
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days
  * @param {string} [params.subType] 'linear' or 'inverse'
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}

@@ -110,7 +110,7 @@ class kraken extends Exchange {
                     'zendesk' => 'https://kraken.zendesk.com/api/v2/help_center/en-us/articles', // use the public zendesk api to receive article bodies and bypass new anti-spam protections
                 ),
                 'www' => 'https://www.kraken.com',
-                'doc' => 'https://docs.kraken.com/rest/',
+                'doc' => 'https://docs.kraken.com/api-reference/',
                 'fees' => 'https://www.kraken.com/en-us/features/fee-schedule',
             ),
             'fees' => array(
@@ -165,7 +165,6 @@ class kraken extends Exchange {
                         'Ticker' => 1,
                         'OHLC' => 1.2, // 1.2 because 1 triggers too many requests immediately
                         'Depth' => 1.2,
-                        'Level3' => 1.2,
                         'GroupedBook' => 1.2,
                         'Trades' => 1.2,
                         'Spread' => 1,
@@ -175,6 +174,7 @@ class kraken extends Exchange {
                 ),
                 'private' => array(
                     'post' => array(
+                        'Level3' => 1.2,
                         // account
                         'Balance' => 3,
                         'BalanceEx' => 3,
@@ -259,7 +259,7 @@ class kraken extends Exchange {
             ),
             'options' => array(
                 'mica' => true,
-                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'marketsByAltname' => array(),
                 'delistedMarketsById' => array(),
@@ -553,8 +553,8 @@ class kraken extends Exchange {
                     'EAPI:Invalid nonce' => '\\ccxt\\InvalidNonce',
                     'EFunding:No funding method' => '\\ccxt\\BadRequest', // array("error":"EFunding:No funding method")
                     'EFunding:Unknown asset' => '\\ccxt\\BadSymbol', // array("error":["EFunding:Unknown asset"])
-                    'EService:Market in post_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(post_only mode"]) && array_key_exists("error":["EService:Market, post_only mode"]))
-                    'EService:Market in cancel_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(cancel_only mode"]) && array_key_exists("error":["EService:Market, cancel_only mode"]))
+                    'EService:Market in post_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(post_only mode"]) && array_key_exists("error":["EService:Market ?? '', post_only mode"]))
+                    'EService:Market in cancel_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(cancel_only mode"]) && array_key_exists("error":["EService:Market ?? '', cancel_only mode"]))
                     'EGeneral:Too many requests' => '\\ccxt\\DDoSProtection', // array("error":["EGeneral:Too many requests"])
                     'ETrade:User Locked' => '\\ccxt\\AccountSuspended', // array("error":["ETrade:User Locked"])
                 ),
@@ -579,7 +579,7 @@ class kraken extends Exchange {
         /**
          * retrieves data on all $markets for kraken
          *
-         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs
+         * @see https://docs.kraken.com/api-reference/market-data/get-tradable-asset-pairs
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
@@ -675,7 +675,7 @@ class kraken extends Exchange {
             $precisionAmount = $this->parse_number($this->parse_precision($this->safe_string($market, 'lot_decimals')));
             $spot = true;
             // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
-            if ($spot && (is_array($cachedCurrencies) && array_key_exists($base, $cachedCurrencies))) {
+            if ($spot && (is_array($cachedCurrencies) && array_key_exists($base ?? '', $cachedCurrencies))) {
                 $currency = $cachedCurrencies[$base];
                 $currencyPrecision = $this->safe_number($currency, 'precision');
                 // if $currency precision is greater (e.g. 0.01) than $market precision (e.g. 0.001)
@@ -748,7 +748,7 @@ class kraken extends Exchange {
         /**
          * the latest known information on the availability of the exchange API
          *
-         * @see https://docs.kraken.com/api/docs/rest-api/get-system-status/
+         * @see https://docs.kraken.com/api-reference/market-data/get-system-status
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
@@ -775,7 +775,7 @@ class kraken extends Exchange {
         /**
          * fetches all available $currencies on an exchange
          *
-         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getAssetInfo
+         * @see https://docs.kraken.com/api-reference/market-data/get-asset-info
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of $currencies
@@ -914,7 +914,7 @@ class kraken extends Exchange {
         /**
          * fetch the trading fees for a $market
          *
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeVolume
+         * @see https://docs.kraken.com/api-reference/account-data/get-trade-volume
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -988,7 +988,7 @@ class kraken extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
-         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOrderBook
+         * @see https://docs.kraken.com/api-reference/market-data/get-order-book
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
@@ -1091,7 +1091,7 @@ class kraken extends Exchange {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          *
-         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
+         * @see https://docs.kraken.com/api-reference/market-data/get-$ticker-information
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1131,7 +1131,7 @@ class kraken extends Exchange {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
-         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
+         * @see https://docs.kraken.com/api-reference/market-data/get-$ticker-information
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1176,7 +1176,7 @@ class kraken extends Exchange {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
-         * @see https://docs.kraken.com/api/docs/rest-api/get-ohlc-data
+         * @see https://docs.kraken.com/api-reference/market-data/get-ohlc-data
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
@@ -1298,7 +1298,7 @@ class kraken extends Exchange {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
+         * @see https://docs.kraken.com/api-reference/account-data/get-ledgers-info
          *
          * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest $ledger entry, default is null
@@ -1321,7 +1321,7 @@ class kraken extends Exchange {
         if ($since !== null) {
             $request['start'] = $this->parse_to_int($since / 1000);
         }
-        $until = $this->safe_string_n($params, array( 'until', 'till' ));
+        $until = $this->safe_string_2($params, 'until', 'till');
         if ($until !== null) {
             $params = $this->omit($params, array( 'until', 'till' ));
             $untilDivided = Precise::string_div($until, '1000');
@@ -1471,7 +1471,7 @@ class kraken extends Exchange {
             }
         } elseif (gettype($trade) === 'string') {
             $id = $trade;
-        } elseif (is_array($trade) && array_key_exists('ordertxid', $trade)) {
+        } elseif (is_array($trade) && array_key_exists('ordertxid' ?? '', $trade)) {
             $marketId = $this->safe_string($trade, 'pair');
             $foundMarket = $this->find_market_by_altname_or_id($marketId);
             if ($foundMarket !== null) {
@@ -1487,7 +1487,7 @@ class kraken extends Exchange {
             $type = $this->safe_string($trade, 'ordertype');
             $price = $this->safe_string($trade, 'price');
             $amount = $this->safe_string($trade, 'vol');
-            if (is_array($trade) && array_key_exists('fee', $trade)) {
+            if (is_array($trade) && array_key_exists('fee' ?? '', $trade)) {
                 $currency = null;
                 if ($market !== null) {
                     $currency = $market['quote'];
@@ -1541,7 +1541,7 @@ class kraken extends Exchange {
         /**
          * get the list of most recent $trades for a particular $symbol
          *
-         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getRecentTrades
+         * @see https://docs.kraken.com/api-reference/market-data/get-recent-$trades
          *
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -1615,7 +1615,7 @@ class kraken extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getExtendedBalance
+         * @see https://docs.kraken.com/api-reference/account-data/get-extended-balance
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
@@ -1646,7 +1646,7 @@ class kraken extends Exchange {
         /**
          * create a market order by providing the $symbol, $side and $cost
          *
-         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
+         * @see https://docs.kraken.com/api-reference/trading/add-order
          *
          * @param {string} $symbol unified $symbol of the market to create an order in (only USD markets are supported)
          * @param {string} $side 'buy' or 'sell'
@@ -1668,7 +1668,7 @@ class kraken extends Exchange {
         /**
          * create a market buy order by providing the $symbol, side and $cost
          *
-         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
+         * @see https://docs.kraken.com/api-reference/trading/add-order
          *
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
@@ -1685,7 +1685,7 @@ class kraken extends Exchange {
         /**
          * create a trade order
          *
-         * @see https://docs.kraken.com/api/docs/rest-api/add-order
+         * @see https://docs.kraken.com/api-reference/trading/add-order
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -1732,7 +1732,7 @@ class kraken extends Exchange {
         $result['usingCost'] = $isUsingCost;
         // it's impossible to know if the order was created using cost or base currency
         // because kraken only returns something like this => array( order => 'buy 10.00000000 LTCUSD @ market' )
-        // this usingCost flag is used to help the parsing but omited from the order
+        // this usingCost flag is used to help the parsing but omitted from the order
         return $this->parse_order($result);
     }
 
@@ -1740,7 +1740,7 @@ class kraken extends Exchange {
         /**
          * create a list of trade $orders
          *
-         * @see https://docs.kraken.com/api/docs/rest-api/add-order-batch/
+         * @see https://docs.kraken.com/api-reference/trading/add-order-batch
          *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1814,7 +1814,7 @@ class kraken extends Exchange {
 
     public function find_market_by_altname_or_id($id) {
         $marketsByAltname = $this->safe_value($this->options, 'marketsByAltname', array());
-        if (is_array($marketsByAltname) && array_key_exists($id, $marketsByAltname)) {
+        if (is_array($marketsByAltname) && array_key_exists($id ?? '', $marketsByAltname)) {
             return $marketsByAltname[$id];
         } else {
             return $this->safe_market($id);
@@ -2055,7 +2055,7 @@ class kraken extends Exchange {
         $average = $this->safe_number($order, 'price');
         if ($market !== null) {
             $symbol = $market['symbol'];
-            if (is_array($order) && array_key_exists('fee', $order)) {
+            if (is_array($order) && array_key_exists('fee' ?? '', $order)) {
                 $feeCost = $this->safe_string($order, 'fee');
                 $fee = array(
                     'cost' => $feeCost,
@@ -2260,7 +2260,7 @@ class kraken extends Exchange {
             $extendedPostFlags = ($flags !== null) ? $flags . ',post' : 'post';
             $request['oflags'] = $extendedPostFlags;
         }
-        if (($flags !== null) && !(is_array($request) && array_key_exists('oflags', $request))) {
+        if (($flags !== null) && !(is_array($request) && array_key_exists('oflags' ?? '', $request))) {
             $request['oflags'] = $flags;
         }
         $params = $this->omit($params, array( 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingLimitAmount', 'trailingLimitPercent', 'offset' ));
@@ -2271,7 +2271,7 @@ class kraken extends Exchange {
         /**
          * edit a trade order
          *
-         * @see https://docs.kraken.com/api/docs/rest-api/amend-order
+         * @see https://docs.kraken.com/api-reference/trading/amend-order
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -2347,7 +2347,7 @@ class kraken extends Exchange {
         /**
          * fetches information on an order made by the user
          *
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo
+         * @see https://docs.kraken.com/api-reference/account-data/query-orders-info
          *
          * @param {string} $id order $id
          * @param {string} $symbol not used by kraken fetchOrder
@@ -2407,7 +2407,7 @@ class kraken extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        if (!(is_array($result) && array_key_exists($id, $result))) {
+        if (!(is_array($result) && array_key_exists($id ?? '', $result))) {
             throw new OrderNotFound($this->id . ' fetchOrder() could not find order $id ' . $id);
         }
         return $this->parse_order($this->extend(array( 'id' => $id ), $result[$id]));
@@ -2417,7 +2417,7 @@ class kraken extends Exchange {
         /**
          * fetch all the $trades made from a single order
          *
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradesInfo
+         * @see https://docs.kraken.com/api-reference/account-data/query-$trades-info
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified market $symbol
@@ -2501,11 +2501,11 @@ class kraken extends Exchange {
         /**
          * fetch $orders by the list of $order $id
          *
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
+         * @see https://docs.kraken.com/api-reference/account-data/get-closed-$orders
          *
          * @param {string[]} [$ids] list of $order $id
          * @param {string} [$symbol] unified ccxt market $symbol
-         * @param {array} [$params] extra parameters specific to the kraken api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($this->markets === null) {
@@ -2531,7 +2531,7 @@ class kraken extends Exchange {
         /**
          * fetch all $trades made by the user
          *
-         * @see https://docs.kraken.com/api/docs/rest-api/get-trade-history
+         * @see https://docs.kraken.com/api-reference/account-data/get-$trades-history
          *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -2554,7 +2554,7 @@ class kraken extends Exchange {
         if ($since !== null) {
             $request['start'] = $this->parse_to_int($since / 1000);
         }
-        $until = $this->safe_string_n($params, array( 'until', 'till' ));
+        $until = $this->safe_string_2($params, 'until', 'till');
         if ($until !== null) {
             $params = $this->omit($params, array( 'until', 'till' ));
             $untilDivided = Precise::string_div($until, '1000');
@@ -2605,7 +2605,7 @@ class kraken extends Exchange {
         /**
          * cancels an open order
          *
-         * @see https://docs.kraken.com/api/docs/rest-api/cancel-order
+         * @see https://docs.kraken.com/api-reference/trading/cancel-order
          *
          * @param {string} $id order $id
          * @param {string} [$symbol] unified $symbol of the market the order was made in
@@ -2656,7 +2656,7 @@ class kraken extends Exchange {
         /**
          * cancel multiple orders
          *
-         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrderBatch
+         * @see https://docs.kraken.com/api-reference/trading/cancel-order-batch
          *
          * @param {string[]} $ids open orders transaction ID (txid) or user reference (userref)
          * @param {string} $symbol unified market $symbol
@@ -2686,7 +2686,7 @@ class kraken extends Exchange {
         /**
          * cancel all open orders
          *
-         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
+         * @see https://docs.kraken.com/api-reference/trading/cancel-all-orders
          *
          * @param {string} $symbol unified market $symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2715,7 +2715,7 @@ class kraken extends Exchange {
         /**
          * dead man's switch, cancel all orders after the given $timeout
          *
-         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter
+         * @see https://docs.kraken.com/api-reference/trading/cancel-all-orders-after-x
          *
          * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2747,7 +2747,7 @@ class kraken extends Exchange {
         /**
          * fetch all unfilled currently $open $orders
          *
-         * @see https://docs.kraken.com/api/docs/rest-api/get-$open-$orders
+         * @see https://docs.kraken.com/api-reference/account-data/get-$open-$orders
          *
          * @param {string} [$symbol] unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $open $orders for
@@ -2832,7 +2832,7 @@ class kraken extends Exchange {
         /**
          * fetches information on multiple $closed $orders made by the user
          *
-         * @see https://docs.kraken.com/api/docs/rest-api/get-$closed-$orders
+         * @see https://docs.kraken.com/api-reference/account-data/get-$closed-$orders
          *
          * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -3060,7 +3060,7 @@ class kraken extends Exchange {
         /**
          * fetch all deposits made to an account
          *
-         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
+         * @see https://docs.kraken.com/api-reference/funding/get-status-of-recent-deposits
          *
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
@@ -3083,7 +3083,7 @@ class kraken extends Exchange {
             $sinceString = $this->number_to_string($since);
             $request['start'] = Precise::string_div($sinceString, '1000');
         }
-        $until = $this->safe_string_n($params, array( 'until', 'till' ));
+        $until = $this->safe_string_2($params, 'until', 'till');
         if ($until !== null) {
             $params = $this->omit($params, array( 'until', 'till' ));
             $untilDivided = Precise::string_div($until, '1000');
@@ -3110,7 +3110,7 @@ class kraken extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
-         * @see https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getServerTime
+         * @see https://docs.kraken.com/api-reference/market-data/get-server-time
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -3134,7 +3134,7 @@ class kraken extends Exchange {
         /**
          * fetch all withdrawals made from an account
          *
-         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentWithdrawals
+         * @see https://docs.kraken.com/api-reference/funding/get-status-of-recent-withdrawals
          *
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
@@ -3163,7 +3163,7 @@ class kraken extends Exchange {
             $sinceString = $this->number_to_string($since);
             $request['start'] = Precise::string_div($sinceString, '1000');
         }
-        $until = $this->safe_string_n($params, array( 'until', 'till' ));
+        $until = $this->safe_string_2($params, 'until', 'till');
         if ($until !== null) {
             $params = $this->omit($params, array( 'until', 'till' ));
             $untilDivided = Precise::string_div($until, '1000');
@@ -3234,7 +3234,7 @@ class kraken extends Exchange {
         /**
          * create a currency deposit address
          *
-         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
+         * @see https://docs.kraken.com/api-reference/funding/get-deposit-addresses
          *
          * @param {string} $code unified currency $code of the currency for the deposit address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3250,10 +3250,10 @@ class kraken extends Exchange {
         /**
          * fetch deposit methods for a $currency associated with this account
          *
-         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositMethods
+         * @see https://docs.kraken.com/api-reference/funding/get-deposit-methods
          *
          * @param {string} $code unified $currency $code
-         * @param {array} [$params] extra parameters specific to the kraken api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} of deposit methods
          */
         if ($this->markets === null) {
@@ -3294,7 +3294,7 @@ class kraken extends Exchange {
         /**
          * fetch the deposit address for a $currency associated with this account
          *
-         * @see https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
+         * @see https://docs.kraken.com/api-reference/funding/get-deposit-addresses
          *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3380,7 +3380,7 @@ class kraken extends Exchange {
         /**
          * make a withdrawal
          *
-         * @see https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
+         * @see https://docs.kraken.com/api-reference/funding/withdraw-funds
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
@@ -3390,7 +3390,7 @@ class kraken extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        if (is_array($params) && array_key_exists('key', $params)) {
+        if (is_array($params) && array_key_exists('key' ?? '', $params)) {
             $this->load_markets();
             $currency = $this->currency($code);
             $request = array(
@@ -3421,9 +3421,9 @@ class kraken extends Exchange {
         /**
          * fetch all open positions
          *
-         * @see https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenPositions
+         * @see https://docs.kraken.com/api-reference/account-data/get-open-positions
          *
-         * @param {string[]} [$symbols] not used by kraken fetchPositions ()
+         * @param {string[]} [$symbols] not used by fetchPositions ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
@@ -3549,7 +3549,7 @@ class kraken extends Exchange {
         /**
          * transfer from spot wallet to futures wallet
          *
-         * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
+         * @see https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer
          *
          * @param {str} $code Unified currency $code
          * @param {float} $amount Size of the transfer
@@ -3562,7 +3562,7 @@ class kraken extends Exchange {
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          *
-         * @see https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
+         * @see https://docs.kraken.com/api-reference/transfers/initiate-wallet-$transfer
          *
          * transfers currencies between sub-accounts (only spot->swap direction is supported)
          * @param {string} $code Unified $currency $code
@@ -3691,7 +3691,7 @@ class kraken extends Exchange {
         if ($body[0] === '{') {
             if (gettype($response) !== 'string') {
                 $message = $this->id . ' ' . $body;
-                if (is_array($response) && array_key_exists('error', $response)) {
+                if (is_array($response) && array_key_exists('error' ?? '', $response)) {
                     $numErrors = count($response['error']);
                     if ($numErrors) {
                         for ($i = 0; $i < count($response['error']); $i++) {
@@ -3703,9 +3703,9 @@ class kraken extends Exchange {
                     }
                 }
                 // handleCreateOrdersErrors:
-                if (is_array($response) && array_key_exists('result', $response)) {
+                if (is_array($response) && array_key_exists('result' ?? '', $response)) {
                     $result = $this->safe_dict($response, 'result', array());
-                    if (is_array($result) && array_key_exists('orders', $result)) {
+                    if (is_array($result) && array_key_exists('orders' ?? '', $result)) {
                         $orders = $this->safe_list($result, 'orders', array());
                         for ($i = 0; $i < count($orders); $i++) {
                             $order = $orders[$i];

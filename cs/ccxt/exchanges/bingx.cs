@@ -604,6 +604,9 @@ public partial class bingx : Exchange
             } },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "spot" },
+                { "fetchOHLCV", new Dictionary<string, object>() {
+                    { "timeZone", 0 },
+                } },
                 { "accountsByType", new Dictionary<string, object>() {
                     { "funding", "fund" },
                     { "spot", "spot" },
@@ -1216,6 +1219,16 @@ public partial class bingx : Exchange
         object response = null;
         if (isTrue(getValue(market, "spot")))
         {
+            // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
+            // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
+            object timeZone = null;
+            var timeZoneparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "timeZone", 0);
+            timeZone = ((IList<object>)timeZoneparametersVariable)[0];
+            parameters = ((IList<object>)timeZoneparametersVariable)[1];
+            if (isTrue(!isEqual(timeZone, null)))
+            {
+                ((IDictionary<string,object>)request)["timeZone"] = timeZone;
+            }
             response = await this.spotV1PublicGetMarketKline(this.extend(request, parameters));
         } else
         {
@@ -1555,7 +1568,7 @@ public partial class bingx : Exchange
             amount = Precise.stringMul(volume, contractSize);
         }
         return this.safeTrade(new Dictionary<string, object>() {
-            { "id", this.safeStringN(trade, new List<object>() {"id", "t"}) },
+            { "id", this.safeString2(trade, "id", "t") },
             { "info", trade },
             { "timestamp", time },
             { "datetime", this.iso8601(time) },
@@ -2669,7 +2682,7 @@ public partial class bingx : Exchange
      * @param {string} symbol unified contract symbol
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum amount of records to fetch
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch positions for
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -3149,10 +3162,19 @@ public partial class bingx : Exchange
             object isTrailingAmountOrder = !isEqual(trailingAmount, null);
             object isTrailingPercentOrder = !isEqual(trailingPercent, null);
             object isTrailing = isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder);
-            object stopLoss = this.safeValue(parameters, "stopLoss");
-            object takeProfit = this.safeValue(parameters, "takeProfit");
-            object hasStopLoss = !isEqual(stopLoss, null);
-            object hasTakeProfit = !isEqual(takeProfit, null);
+            object stopLossDict = this.safeDict(parameters, "stopLoss");
+            object takeProfitDict = this.safeDict(parameters, "takeProfit");
+            object hasStopLoss = !isEqual(stopLossDict, null);
+            object hasTakeProfit = !isEqual(takeProfitDict, null);
+            // only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
+            if (isTrue(hasStopLoss))
+            {
+                parameters = this.omit(parameters, "stopLoss");
+            }
+            if (isTrue(hasTakeProfit))
+            {
+                parameters = this.omit(parameters, "takeProfit");
+            }
             if (isTrue(isTrue((isTrue(isTrue(isTrue((isEqual(type, "LIMIT"))) || isTrue((isEqual(type, "TRIGGER_LIMIT")))) || isTrue((isEqual(type, "STOP")))) || isTrue((isEqual(type, "TAKE_PROFIT"))))) && !isTrue(isTrailing)))
             {
                 ((IDictionary<string,object>)request)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, price));
@@ -3210,39 +3232,39 @@ public partial class bingx : Exchange
                 object stringifiedAmount = this.numberToString(amount);
                 if (isTrue(hasStopLoss))
                 {
-                    object slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice", stopLoss);
-                    object slWorkingType = this.safeString(stopLoss, "workingType", "MARK_PRICE");
-                    object slType = this.safeString(stopLoss, "type", "STOP_MARKET");
+                    object slTriggerPrice = this.safeString2(stopLossDict, "triggerPrice", "stopPrice");
+                    object slWorkingType = this.safeString(stopLossDict, "workingType", "MARK_PRICE");
+                    object slType = this.safeString(stopLossDict, "type", "STOP_MARKET");
                     object slRequest = new Dictionary<string, object>() {
                         { "stopPrice", this.parseToNumeric(this.priceToPrecision(symbol, slTriggerPrice)) },
                         { "workingType", slWorkingType },
                         { "type", slType },
                     };
-                    object slPrice = this.safeString(stopLoss, "price");
+                    object slPrice = this.safeString(stopLossDict, "price");
                     if (isTrue(!isEqual(slPrice, null)))
                     {
                         ((IDictionary<string,object>)slRequest)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, slPrice));
                     }
-                    object slQuantity = this.safeString(stopLoss, "quantity", stringifiedAmount);
+                    object slQuantity = this.safeString(stopLossDict, "quantity", stringifiedAmount);
                     ((IDictionary<string,object>)slRequest)["quantity"] = this.parseToNumeric(this.amountToPrecision(symbol, slQuantity));
                     ((IDictionary<string,object>)request)["stopLoss"] = this.json(slRequest);
                 }
                 if (isTrue(hasTakeProfit))
                 {
-                    object tkTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice", takeProfit);
-                    object tkWorkingType = this.safeString(takeProfit, "workingType", "MARK_PRICE");
-                    object tpType = this.safeString(takeProfit, "type", "TAKE_PROFIT_MARKET");
+                    object tkTriggerPrice = this.safeString2(takeProfitDict, "triggerPrice", "stopPrice");
+                    object tkWorkingType = this.safeString(takeProfitDict, "workingType", "MARK_PRICE");
+                    object tpType = this.safeString(takeProfitDict, "type", "TAKE_PROFIT_MARKET");
                     object tpRequest = new Dictionary<string, object>() {
                         { "stopPrice", this.parseToNumeric(this.priceToPrecision(symbol, tkTriggerPrice)) },
                         { "workingType", tkWorkingType },
                         { "type", tpType },
                     };
-                    object slPrice = this.safeString(takeProfit, "price");
+                    object slPrice = this.safeString(takeProfitDict, "price");
                     if (isTrue(!isEqual(slPrice, null)))
                     {
                         ((IDictionary<string,object>)tpRequest)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, slPrice));
                     }
-                    object tkQuantity = this.safeString(takeProfit, "quantity", stringifiedAmount);
+                    object tkQuantity = this.safeString(takeProfitDict, "quantity", stringifiedAmount);
                     ((IDictionary<string,object>)tpRequest)["quantity"] = this.parseToNumeric(this.amountToPrecision(symbol, tkQuantity));
                     ((IDictionary<string,object>)request)["takeProfit"] = this.json(tpRequest);
                 }
@@ -3275,7 +3297,7 @@ public partial class bingx : Exchange
                 ((IDictionary<string,object>)request)["quantity"] = amountReq; // precision not available for inverse contracts
             }
         }
-        parameters = this.omit(parameters, new List<object>() {"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"});
+        parameters = this.omit(parameters, new List<object>() {"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "clientOrderId"});
         return this.extend(request, parameters);
     }
 
@@ -3432,8 +3454,11 @@ public partial class bingx : Exchange
             result = data;
         }
         // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+        object stopLossDict = this.safeDict(result, "stopLoss");
         object stopLoss = this.safeString(result, "stopLoss");
-        if (isTrue(isTrue((!isEqual(stopLoss, null))) && isTrue((isEqual(getIndexOf(stopLoss, "{"), 0)))))
+        // for py fix, the SL is already parsed as object (instead of stringified, as it's provided)
+        // so we need trick to check if it's non-parsed string yet
+        if (isTrue(isTrue(isTrue((isEqual(stopLossDict, null))) && isTrue((!isEqual(stopLoss, null)))) && isTrue((isEqual(getIndexOf(stopLoss, "{"), 0)))))
         {
             ((IDictionary<string,object>)result)["stopLoss"] = this.parseJson(stopLoss);
         }
@@ -5146,8 +5171,19 @@ public partial class bingx : Exchange
         currency = this.safeCurrency(currencyId, currency);
         object code = getValue(currency, "code");
         object address = this.safeString(depositAddress, "addressWithPrefix");
-        object networkdId = this.safeString(depositAddress, "network");
-        object networkCode = this.networkIdToCode(networkdId, code);
+        object networkId = this.safeString(depositAddress, "network");
+        object networkCode = this.networkIdToCode(networkId, code);
+        // despite its name the addressWithPrefix field sometimes arrives without
+        // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
+        if (isTrue(!isEqual(address, null)))
+        {
+            object isPrefixed = isTrue(((string)address).StartsWith(((string)"0x"))) || isTrue(((string)address).StartsWith(((string)"0X")));
+            object evmNetworks = new List<object>() {"BEP20", "BSC", "ERC20", "ETH", "HECO", "MATIC", "POLYGON", "ARBITRUM", "ARB", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"};
+            if (isTrue(!isTrue(isPrefixed) && isTrue(this.inArray(networkCode, evmNetworks))))
+            {
+                address = add("0x", address);
+            }
+        }
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
@@ -5468,7 +5504,7 @@ public partial class bingx : Exchange
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
-     * @param {object} [params] parameters specific to the bingx api endpoint
+     * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> setMargin(object symbol, object amount, object parameters = null)
@@ -5877,6 +5913,7 @@ public partial class bingx : Exchange
     public virtual object parseParams(object parameters)
     {
         // const sortedParams = this.keysort (params);
+        object copied = this.clone(parameters);
         object rawKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
         object keys = this.sort(rawKeys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -5896,10 +5933,10 @@ public partial class bingx : Exchange
                     arrStr = add(arrStr, ((object)arrayElement).ToString());
                 }
                 arrStr = add(arrStr, "]");
-                ((IDictionary<string,object>)parameters)[(string)key] = arrStr;
+                ((IDictionary<string,object>)copied)[(string)key] = arrStr;
             }
         }
-        return parameters;
+        return copied;
     }
 
     /**
@@ -6069,7 +6106,7 @@ public partial class bingx : Exchange
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by bingx
-     * @param {object} [params] extra parameters specific to the bingx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.positionId] the id of the position you would like to close
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -6108,7 +6145,7 @@ public partial class bingx : Exchange
      * @description closes open positions for a market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
-     * @param {object} [params] extra parameters specific to the bingx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.recvWindow] request valid time window value
      * @returns {object[]} [a list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -6194,7 +6231,7 @@ public partial class bingx : Exchange
      * @description set hedged to true or false for a market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by bingx setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
@@ -6268,10 +6305,10 @@ public partial class bingx : Exchange
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
-            response = await this.swapV1PrivatePostTradeCancelReplace(this.extend(request, parameters));
+            response = await this.swapV1PrivatePostTradeCancelReplace(request);
         } else
         {
-            response = await this.spotV1PrivatePostTradeOrderCancelReplace(this.extend(request, parameters));
+            response = await this.spotV1PrivatePostTradeOrderCancelReplace(request);
         }
         object data = this.safeDict(response, "data");
         return this.parseOrder(data, market);

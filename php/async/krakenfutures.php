@@ -16,6 +16,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class krakenfutures extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -98,7 +100,7 @@ class krakenfutures extends Exchange {
                 'api' => array(
                     'charts' => 'https://futures.kraken.com/api/charts/',
                     'history' => 'https://futures.kraken.com/api/history/',
-                    'feeschedules' => 'https://futures.kraken.com/api/feeschedules/',
+                    'feeschedules' => 'https://futures.kraken.com/api/feeschedules/', // deprecated
                     'public' => 'https://futures.kraken.com/derivatives/api/',
                     'private' => 'https://futures.kraken.com/derivatives/api/',
                 ),
@@ -112,7 +114,7 @@ class krakenfutures extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'feeschedules',
+                        'feeschedules', // deprecated
                         'instruments',
                         'orderbook',
                         'tickers',
@@ -122,7 +124,7 @@ class krakenfutures extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
-                        'feeschedules/volumes',
+                        'feeschedules/volumes', // deprecated
                         'openpositions',
                         'notifications',
                         'accounts',
@@ -211,6 +213,7 @@ class krakenfutures extends Exchange {
                     'invalidAccount' => '\\ccxt\\BadRequest',                  // the fromAccount or the toAccount are invalid
                     'invalidAmount' => '\\ccxt\\BadRequest',
                     'insufficientFunds' => '\\ccxt\\InsufficientFunds',
+                    'INSUFFICIENT_MARGIN' => '\\ccxt\\InsufficientFunds',      // 500 with array("errors":[array("code":92,"message":"INSUFFICIENT_MARGIN")]), see https://github.com/ccxt/ccxt/issues/19896
                     'Bad Request' => '\\ccxt\\BadRequest',                     // The URL contains invalid characters. (Please encode the json URL parameter)
                     'Unavailable' => '\\ccxt\\ExchangeNotAvailable',              // https://github.com/ccxt/ccxt/issues/24338
                     'invalidUnit' => '\\ccxt\\BadRequest',
@@ -1055,7 +1058,7 @@ class krakenfutures extends Exchange {
                 $takerOrMaker = 'maker';
             }
         }
-        $isHistoricalExecution = (is_array($trade) && array_key_exists('takerOrder', $trade));
+        $isHistoricalExecution = (is_array($trade) && array_key_exists('takerOrder' ?? '', $trade));
         if ($isHistoricalExecution) {
             $timestamp = $this->safe_integer($trade, 'timestamp');
             $taker = $this->safe_dict($trade, 'takerOrder', array());
@@ -1275,7 +1278,7 @@ class krakenfutures extends Exchange {
                 $price = $this->safe_value($rawOrder, 'price');
                 $orderParams = $this->safe_value($rawOrder, 'params', array());
                 $extendedParams = $this->extend($orderParams, $params); // the $request does not accept extra $params since it's a list, so we're extending each order with the common $params
-                if (!(is_array($extendedParams) && array_key_exists('order_tag', $extendedParams))) {
+                if (!(is_array($extendedParams) && array_key_exists('order_tag' ?? '', $extendedParams))) {
                     // order tag is mandatory so we will generate one if not provided
                     $extendedParams['order_tag'] = $this->sum($i, (string) 1); // sequential counter
                 }
@@ -1364,7 +1367,7 @@ class krakenfutures extends Exchange {
             $status = $this->safe_string($this->safe_value($response, 'cancelStatus', array()), 'status');
             $this->verify_order_action_success($status, 'cancelOrder');
             $order = array();
-            if (is_array($response) && array_key_exists('cancelStatus', $response)) {
+            if (is_array($response) && array_key_exists('cancelStatus' ?? '', $response)) {
                 $order = $this->parse_order($response['cancelStatus']);
             }
             return $this->extend(array( 'info' => $response ), $order);
@@ -1613,7 +1616,8 @@ class krakenfutures extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
-             * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-$order-events
+             * @see https://docs.kraken.com/api-reference/account-history/get-$order-events
+             * @see https://docs.kraken.com/api-reference/account-history/get-trigger-events
              *
              * Gets all closed orders, including trigger orders, for an account from the exchange api
              * @param {string} $symbol Unified $market $symbol
@@ -1711,7 +1715,7 @@ class krakenfutures extends Exchange {
             for ($i = 0; $i < count($allOrders); $i++) {
                 $order = $allOrders[$i];
                 $event = $this->safe_dict($order, 'event', array());
-                $isCancelledTriggerOrder = (is_array($event) && array_key_exists('OrderTriggerCancelled', $event));
+                $isCancelledTriggerOrder = (is_array($event) && array_key_exists('OrderTriggerCancelled' ?? '', $event));
                 $orderPlaced = $this->safe_dict_2($event, 'OrderPlaced', 'OrderTriggerCancelled');
                 if ($orderPlaced !== null) {
                     $innerOrder = $this->safe_dict($orderPlaced, 'order', array());
@@ -1771,7 +1775,7 @@ class krakenfutures extends Exchange {
             'filled' => '\\ccxt\\OrderNotFound',
             'notFound' => '\\ccxt\\OrderNotFound',
         );
-        if ((is_array($errors) && array_key_exists($status, $errors)) && !$this->in_array($status, $omit)) {
+        if ((is_array($errors) && array_key_exists($status ?? '', $errors)) && !$this->in_array($status, $omit)) {
             throw new $errors[$status]($this->id . ' => ' . $method . ' failed due to ' . $status);
         }
     }
@@ -2125,7 +2129,7 @@ class krakenfutures extends Exchange {
             return $this->safe_order(array(
                 'info' => $order,
                 'id' => $this->safe_string($orderDictFromFetchOrder, 'orderId'),
-                'clientOrderId' => $this->safe_string_n($orderDictFromFetchOrder, array( 'cliOrdId' )),
+                'clientOrderId' => $this->safe_string($orderDictFromFetchOrder, 'cliOrdId'),
                 'timestamp' => $this->parse8601($datetime),
                 'datetime' => $datetime,
                 'lastTradeTimestamp' => null,
@@ -2153,7 +2157,7 @@ class krakenfutures extends Exchange {
         $orderEvents = $this->safe_value($order, 'orderEvents', array());
         $errorStatus = $this->safe_string($order, 'status');
         $orderEventsLength = count($orderEvents);
-        if ((is_array($order) && array_key_exists('orderEvents', $order)) && ($errorStatus !== null) && ($orderEventsLength === 0)) {
+        if ((is_array($order) && array_key_exists('orderEvents' ?? '', $order)) && ($errorStatus !== null) && ($orderEventsLength === 0)) {
             // creteOrders error response
             return $this->safe_order(array( 'info' => $order, 'status' => 'rejected' ));
         }
@@ -2777,7 +2781,9 @@ class krakenfutures extends Exchange {
 
     public function parse_positions($response, ?array $symbols = null, $params = array()) {
         $result = array();
-        $positions = $this->safe_value($response, 'openPositions');
+        // a degraded $response can omit openPositions entirely - default to an
+        // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
+        $positions = $this->safe_list($response, 'openPositions', array());
         for ($i = 0; $i < count($positions); $i++) {
             $position = $this->parse_position($positions[$i]);
             $result[] = $position;
@@ -3008,9 +3014,9 @@ class krakenfutures extends Exchange {
             'multiCollateral' => 'flex',
             'multiCollateralMargin' => 'flex',
         );
-        if (is_array($accountByType) && array_key_exists($account, $accountByType)) {
+        if (is_array($accountByType) && array_key_exists($account ?? '', $accountByType)) {
             return $accountByType[$account];
-        } elseif (is_array($this->markets) && array_key_exists($account, $this->markets)) {
+        } elseif (is_array($this->markets) && array_key_exists($account ?? '', $this->markets)) {
             $market = $this->market($account);
             $marketId = $market['id'];
             $splitId = explode('_', $marketId);
@@ -3237,7 +3243,7 @@ class krakenfutures extends Exchange {
             $postData = 'json=' . $this->json($params);
             $body = $postData;
         } elseif ($params) {
-            if (is_array($params) && array_key_exists('orderIds', $params)) {
+            if (is_array($params) && array_key_exists('orderIds' ?? '', $params)) {
                 $postData = $this->urlencode_with_array_repeat($params);
             } else {
                 $postData = $this->urlencode($params);

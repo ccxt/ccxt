@@ -345,7 +345,7 @@ public partial class bitvavo : Exchange
                     { "230", typeof(ExchangeError) },
                     { "231", typeof(ExchangeError) },
                     { "232", typeof(BadRequest) },
-                    { "233", typeof(InvalidOrder) },
+                    { "233", typeof(OrderNotFound) },
                     { "234", typeof(InvalidOrder) },
                     { "235", typeof(ExchangeError) },
                     { "236", typeof(BadRequest) },
@@ -391,13 +391,15 @@ public partial class bitvavo : Exchange
             { "options", new Dictionary<string, object>() {
                 { "mica", true },
                 { "currencyToPrecisionRoundingMode", TRUNCATE },
-                { "BITVAVO-ACCESS-WINDOW", 10000 },
+                { "recvWindow", 10000 },
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
                     { "TRC20", "TRX" },
                 } },
                 { "operatorId", null },
-                { "fiatCurrencies", new List<object>() {"EUR"} },
+                { "fetchCurrencies", new Dictionary<string, object>() {
+                    { "fiatCurrencies", new List<object>() {"EUR"} },
+                } },
             } },
             { "precisionMode", TICK_SIZE },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -611,7 +613,7 @@ public partial class bitvavo : Exchange
         //         },
         //     ]
         //
-        object fiatCurrencies = this.safeList(this.options, "fiatCurrencies", new List<object>() {});
+        object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new List<object>() {});
         object id = this.safeString(rawCurrency, "symbol");
         object code = this.safeCurrencyCode(id);
         object isFiat = this.inArray(code, fiatCurrencies);
@@ -1254,7 +1256,7 @@ public partial class bitvavo : Exchange
      * @name bitvavo#fetchAccounts
      * @see https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
      * @description fetch all the accounts associated with a profile
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
      */
     public async override Task<object> fetchAccounts(object parameters = null)
@@ -1303,7 +1305,7 @@ public partial class bitvavo : Exchange
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from, either 'master' or the subaccount id
      * @param {string} toAccount account to transfer to, either 'master' or the subaccount id
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccountId] the unique identifier for the subaccount
      * @param {string} [params.clientRequestId] client defined unique id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -1374,7 +1376,7 @@ public partial class bitvavo : Exchange
      * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of transfers structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccountId] the unique identifier for the subaccount
      * @param {int} [params.until] the latest time in ms to fetch transfers for
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -1440,7 +1442,7 @@ public partial class bitvavo : Exchange
      * @description fetches a transfer
      * @param {string} id transfer id
      * @param {string} [code] unified currency code of the currency transferred
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> fetchTransfer(object id, object code = null, object parameters = null)
@@ -1671,7 +1673,7 @@ public partial class bitvavo : Exchange
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
      * @param {float} [params.stopPrice] Alias for triggerPrice
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -1798,7 +1800,7 @@ public partial class bitvavo : Exchange
      * @param {string} side 'buy' or 'sell'
      * @param {float} [amount] how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
@@ -2398,7 +2400,7 @@ public partial class bitvavo : Exchange
      * @param {string} [code] unified currency code
      * @param {int} [since] timestamp in ms of the earliest ledger entry
      * @param {int} [limit] max number of ledger entries to return
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {int} [params.page] the page number for the transaction history
      * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
@@ -2596,7 +2598,7 @@ public partial class bitvavo : Exchange
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
@@ -2661,7 +2663,7 @@ public partial class bitvavo : Exchange
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
@@ -2911,7 +2913,7 @@ public partial class bitvavo : Exchange
             object timestamp = ((object)this.milliseconds()).ToString();
             object auth = add(add(add(timestamp, method), url), payload);
             object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
-            object accessWindow = this.safeString(this.options, "BITVAVO-ACCESS-WINDOW", "10000");
+            object accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
             headers = new Dictionary<string, object>() {
                 { "BITVAVO-ACCESS-KEY", this.apiKey },
                 { "BITVAVO-ACCESS-SIGNATURE", signature },

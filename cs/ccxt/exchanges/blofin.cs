@@ -410,7 +410,6 @@ public partial class blofin : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
-                { "brokerId", "ec6dd3a7dd982d0b" },
                 { "accountsByType", new Dictionary<string, object>() {
                     { "swap", "futures" },
                     { "funding", "funding" },
@@ -450,27 +449,13 @@ public partial class blofin : Exchange
                         { "1D", "1D" },
                     } },
                 } },
-                { "fetchOHLCV", new Dictionary<string, object>() {
-                    { "timezone", "UTC" },
-                } },
-                { "fetchPositions", new Dictionary<string, object>() {
-                    { "method", "privateGetAccountPositions" },
-                } },
-                { "createOrder", "privatePostTradeOrder" },
-                { "createMarketBuyOrderRequiresPrice", false },
-                { "fetchMarkets", new List<object>() {"swap"} },
                 { "defaultType", "swap" },
-                { "fetchLedger", new Dictionary<string, object>() {
-                    { "method", "privateGetAssetBills" },
-                } },
+                { "brokerId", "ec6dd3a7dd982d0b" },
                 { "fetchOpenOrders", new Dictionary<string, object>() {
                     { "method", "privateGetTradeOrdersPending" },
                 } },
                 { "cancelOrders", new Dictionary<string, object>() {
                     { "method", "privatePostTradeCancelBatchOrders" },
-                } },
-                { "fetchCanceledOrders", new Dictionary<string, object>() {
-                    { "method", "privateGetTradeOrdersHistory" },
                 } },
                 { "fetchClosedOrders", new Dictionary<string, object>() {
                     { "method", "privateGetTradeOrdersHistory" },
@@ -516,7 +501,7 @@ public partial class blofin : Exchange
         object contract = isTrue(swap) || isTrue(future);
         object baseId = this.safeString(market, "baseCurrency");
         object quoteId = this.safeString(market, "quoteCurrency");
-        object settleId = this.safeString(market, "quoteCurrency");
+        object settleId = this.safeString(market, "settleCurrency", quoteId);
         object settle = this.safeCurrencyCode(settleId);
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
@@ -536,6 +521,9 @@ public partial class blofin : Exchange
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         object isActive = (isEqual(this.safeString(market, "state"), "live"));
         object isMargin = isTrue(spot) && isTrue((Precise.stringGt(maxLeverage, "1")));
+        object contractType = this.safeString(market, "contractType");
+        object maxLimitAmount = this.safeNumber(market, "maxLimitSize");
+        object maxSpotCost = this.safeNumber(market, "maxMarketSize"); // for spot, market-buy size is denominated in the quote currency, i.e. cost
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -555,8 +543,8 @@ public partial class blofin : Exchange
             { "taker", taker },
             { "maker", maker },
             { "contract", contract },
-            { "linear", ((bool) isTrue(contract)) ? (isEqual(quoteId, settleId)) : null },
-            { "inverse", ((bool) isTrue(contract)) ? (isEqual(baseId, settleId)) : null },
+            { "linear", ((bool) isTrue(contract)) ? (isEqual(contractType, "linear")) : null },
+            { "inverse", ((bool) isTrue(contract)) ? (isEqual(contractType, "inverse")) : null },
             { "contractSize", ((bool) isTrue(contract)) ? this.safeNumber(market, "contractValue") : null },
             { "expiry", expiry },
             { "expiryDatetime", expiry },
@@ -574,7 +562,7 @@ public partial class blofin : Exchange
                 } },
                 { "amount", new Dictionary<string, object>() {
                     { "min", this.safeNumber(market, "minSize") },
-                    { "max", null },
+                    { "max", maxLimitAmount },
                 } },
                 { "price", new Dictionary<string, object>() {
                     { "min", null },
@@ -582,7 +570,7 @@ public partial class blofin : Exchange
                 } },
                 { "cost", new Dictionary<string, object>() {
                     { "min", null },
-                    { "max", null },
+                    { "max", ((bool) isTrue(contract)) ? null : maxSpotCost },
                 } },
             } },
             { "info", market },
@@ -1717,7 +1705,7 @@ public partial class blofin : Exchange
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
         };
-        object isTrigger = this.safeBoolN(parameters, new List<object>() {"trigger"}, false);
+        object isTrigger = this.safeBool(parameters, "trigger", false);
         object isTpsl = this.safeBool2(parameters, "tpsl", "TPSL", false);
         object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
@@ -2286,9 +2274,7 @@ public partial class blofin : Exchange
         }
         object market = this.market(symbol);
         object request = new List<object>() {};
-        object options = this.safeDict(this.options, "cancelOrders", new Dictionary<string, object>() {});
-        object defaultMethod = this.safeString(options, "method", "privatePostTradeCancelBatchOrders");
-        object method = this.safeString(parameters, "method", defaultMethod);
+        object method = ((string)this.handleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders"));
         object clientOrderIds = this.parseIds(this.safeValue(parameters, "clientOrderId"));
         object tpslIds = this.parseIds(this.safeValue(parameters, "tpslId"));
         object trigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl"});
@@ -2460,7 +2446,7 @@ public partial class blofin : Exchange
      * @param {string[]} [symbols] unified contract symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
      * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
      * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
@@ -2865,7 +2851,7 @@ public partial class blofin : Exchange
      * @see https://blofin.com/docs#close-positions
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
-     * @param {object} [params] extra parameters specific to the blofin api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
      * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -2946,7 +2932,7 @@ public partial class blofin : Exchange
         }
         object isTrigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl", "TPSL"}, false);
         object method = null;
-        var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersHistory");
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
         object query = this.omit(parameters, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
@@ -3078,7 +3064,7 @@ public partial class blofin : Exchange
      * @description set hedged to true or false for a market
      * @see https://docs.blofin.com/index.html#set-position-mode
      * @param {bool} hedged set to true to use hedged mode, false for one-way mode
-     * @param {string} [symbol] not used by blofin setPositionMode ()
+     * @param {string} [symbol] not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */

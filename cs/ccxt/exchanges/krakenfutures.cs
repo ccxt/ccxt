@@ -135,6 +135,7 @@ public partial class krakenfutures : Exchange
                     { "invalidAccount", typeof(BadRequest) },
                     { "invalidAmount", typeof(BadRequest) },
                     { "insufficientFunds", typeof(InsufficientFunds) },
+                    { "INSUFFICIENT_MARGIN", typeof(InsufficientFunds) },
                     { "Bad Request", typeof(BadRequest) },
                     { "Unavailable", typeof(ExchangeNotAvailable) },
                     { "invalidUnit", typeof(BadRequest) },
@@ -1630,7 +1631,8 @@ public partial class krakenfutures : Exchange
     /**
      * @method
      * @name krakenfutures#fetchClosedOrders
-     * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
+     * @see https://docs.kraken.com/api-reference/account-history/get-order-events
+     * @see https://docs.kraken.com/api-reference/account-history/get-trigger-events
      * @description Gets all closed orders, including trigger orders, for an account from the exchange api
      * @param {string} symbol Unified market symbol
      * @param {int} [since] Timestamp (ms) of earliest order.
@@ -2173,7 +2175,7 @@ public partial class krakenfutures : Exchange
             return this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", this.safeString(orderDictFromFetchOrder, "orderId") },
-                { "clientOrderId", this.safeStringN(orderDictFromFetchOrder, new List<object>() {"cliOrdId"}) },
+                { "clientOrderId", this.safeString(orderDictFromFetchOrder, "cliOrdId") },
                 { "timestamp", this.parse8601(datetime) },
                 { "datetime", datetime },
                 { "lastTradeTimestamp", null },
@@ -2886,7 +2888,9 @@ public partial class krakenfutures : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object result = new List<object>() {};
-        object positions = this.safeValue(response, "openPositions");
+        // a degraded response can omit openPositions entirely - default to an
+        // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
+        object positions = this.safeList(response, "openPositions", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = this.parsePosition(getValue(positions, i));

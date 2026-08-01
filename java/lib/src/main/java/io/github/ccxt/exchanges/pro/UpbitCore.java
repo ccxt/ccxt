@@ -52,7 +52,10 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             Object symbols = symbols3;
             Object channel = channel3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
                 symbols = this.symbols;
@@ -542,7 +545,10 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object channel = "myOrder";
             Object messageHash = "myOrder";
             Object orders = (this.watchPrivate(symbol, channel, messageHash)).join();
@@ -575,7 +581,10 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object channel = "myOrder";
             Object messageHash = "myTrades";
             Object trades = (this.watchPrivate(symbol, channel, messageHash)).join();
@@ -808,7 +817,10 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object channel = "myAsset";
             Object messageHash = "myAsset";
             return (this.watchPrivate(null, channel, messageHash)).join();

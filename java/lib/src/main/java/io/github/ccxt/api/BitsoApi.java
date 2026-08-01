@@ -24,6 +24,11 @@ public class BitsoApi extends Exchange
         return this.callAsync ("publicGetAvailableBooks", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  publicGetCatalogues (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetCatalogues", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  publicGetTicker (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTicker", optionalArgs);

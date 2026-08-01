@@ -17,6 +17,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class cryptocom extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -2185,7 +2187,7 @@ class cryptocom extends Exchange {
             $network = $this->safe_string_upper($params, 'network');
             $params = $this->omit($params, array( 'network' ));
             $depositAddresses = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
-            if (is_array($depositAddresses) && array_key_exists($network, $depositAddresses)) {
+            if (is_array($depositAddresses) && array_key_exists($network ?? '', $depositAddresses)) {
                 return $depositAddresses[$network];
             }
             $keys = is_array($depositAddresses) ? array_keys($depositAddresses) : array();
@@ -2359,7 +2361,6 @@ class cryptocom extends Exchange {
         $timestamp = $this->safe_integer($ticker, 't');
         $marketId = $this->safe_string($ticker, 'i');
         $market = $this->safe_market($marketId, $market, '_');
-        $quote = $this->safe_string($market, 'quote');
         $last = $this->safe_string($ticker, 'a');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
@@ -2380,7 +2381,7 @@ class cryptocom extends Exchange {
             'percentage' => $this->safe_string($ticker, 'c'),
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'v'),
-            'quoteVolume' => ($quote === 'USD') ? $this->safe_string($ticker, 'vv') : null,
+            'quoteVolume' => ($market['quote'] === 'USD') ? $this->safe_string($ticker, 'vv') : null,
             'info' => $ticker,
         ), $market);
     }
@@ -2655,7 +2656,7 @@ class cryptocom extends Exchange {
         $type = null;
         $rawStatus = $this->safe_string($transaction, 'status');
         $status = null;
-        if (is_array($transaction) && array_key_exists('client_wid', $transaction)) {
+        if (is_array($transaction) && array_key_exists('client_wid' ?? '', $transaction)) {
             $type = 'withdrawal';
             $status = $this->parse_withdrawal_status($rawStatus);
         } else {
@@ -3494,7 +3495,7 @@ class cryptocom extends Exchange {
              *
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} [$side] not used by cryptocom.closePositions
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {string} [$params->type] LIMIT or MARKET

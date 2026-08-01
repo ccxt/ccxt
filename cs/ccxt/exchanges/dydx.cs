@@ -2034,7 +2034,7 @@ public partial class dydx : Exchange
         object toSubaccountId = this.safeInteger(parameters, "toSubaccountId");
         if (isTrue(!isEqual(fromAccount, "main")))
         {
-            // throw error if from subaccount id is undefind
+            // throw error if from subaccount id is undefined
             if (isTrue(isEqual(fromAccount, null)))
             {
                 throw new NotSupported ((string)add(this.id, " transfer only support main > subaccount and subaccount <> subaccount.")) ;
@@ -2674,7 +2674,7 @@ public partial class dydx : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object pathWithParams = this.implodeParams(path, parameters);
-        object url = this.implodeHostname(getValue(getValue(this.urls, "api"), section));
+        object url = getValue(getValue(this.urls, "api"), section);
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);
         url = add(url, add("/", pathWithParams));

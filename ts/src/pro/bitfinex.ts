@@ -298,8 +298,8 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async unWatchTrades (symbol: string, params = {}) {
-        return await this.unSubscribe ('trades', 'trades', symbol, params);
+    unWatchTrades (symbol: string, params = {}): Promise<any> {
+        return this.unSubscribe ('trades', 'trades', symbol, params);
     }
 
     /**
@@ -336,8 +336,8 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        return await this.subscribe ('ticker', symbol, params);
+    watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        return this.subscribe ('ticker', symbol, params);
     }
 
     /**
@@ -348,8 +348,8 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchTicker (symbol: string, params = {}) {
-        return await this.unSubscribe ('ticker', 'ticker', symbol, params);
+    unWatchTicker (symbol: string, params = {}): Promise<any> {
+        return this.unSubscribe ('ticker', 'ticker', symbol, params);
     }
 
     handleMyTrade (client: Client, message, subscription = {}) {
@@ -686,7 +686,7 @@ export default class bitfinex extends bitfinexRest {
         //         358169, // channel id
         //         [
         //            1807.1, // price
-        //            0, // cound
+        //            0, // count
         //            1 // size
         //         ]
         //     ]
@@ -1117,7 +1117,7 @@ export default class bitfinex extends bitfinexRest {
         //           null,
         //           30, // price
         //           0, // price average
-        //           0, // price_trailling
+        //           0, // price_trailing
         //           0, // price_aux_limit
         //           null,
         //           null,
@@ -1201,7 +1201,7 @@ export default class bitfinex extends bitfinexRest {
         //       null,
         //       42.799, // price
         //       42.821, // price average
-        //       0, // price trailling
+        //       0, // price trailing
         //       0, // price_aux_limit
         //       null,
         //       null,

@@ -359,7 +359,7 @@ class bitvavo extends bitvavo$1["default"] {
                     '230': errors.ExchangeError, // The order is rejected by the matching engine.
                     '231': errors.ExchangeError, // The order is rejected by the matching engine. TimeInForce must be GTC when markets are paused.
                     '232': errors.BadRequest, // You must change at least one of amount, amountRemaining, price, timeInForce, selfTradePrevention or postOnly.
-                    '233': errors.InvalidOrder, // {"errorCode":233,"error":"Order must be active (status new or partiallyFilled) to allow updating/cancelling."}
+                    '233': errors.OrderNotFound, // {"errorCode":233,"error":"Order must be active (status new or partiallyFilled) to allow updating/cancelling."}, canceling an already filled or canceled order, see https://github.com/ccxt/ccxt/issues/24154
                     '234': errors.InvalidOrder, // Market orders cannot be updated.
                     '235': errors.ExchangeError, // You can only have 100 open orders on each book.
                     '236': errors.BadRequest, // You can only update amount or amountRemaining, not both.
@@ -406,13 +406,15 @@ class bitvavo extends bitvavo$1["default"] {
             'options': {
                 'mica': true,
                 'currencyToPrecisionRoundingMode': number.TRUNCATE,
-                'BITVAVO-ACCESS-WINDOW': 10000, // default 10 sec
+                'recvWindow': 10000, // default 10 sec
                 'networks': {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
                 },
                 'operatorId': undefined, // this will be required soon for order-related endpoints
-                'fiatCurrencies': ['EUR'], // only fiat atm
+                'fetchCurrencies': {
+                    'fiatCurrencies': ['EUR'], // only fiat atm
+                },
             },
             'precisionMode': number.TICK_SIZE,
             'commonCurrencies': {
@@ -612,7 +614,7 @@ class bitvavo extends bitvavo$1["default"] {
         //         },
         //     ]
         //
-        const fiatCurrencies = this.safeList(this.options, 'fiatCurrencies', []);
+        const fiatCurrencies = this.handleOption('fetchCurrencies', 'fiatCurrencies', []);
         const id = this.safeString(rawCurrency, 'symbol');
         const code = this.safeCurrencyCode(id);
         const isFiat = this.inArray(code, fiatCurrencies);
@@ -1199,7 +1201,7 @@ class bitvavo extends bitvavo$1["default"] {
      * @name bitvavo#fetchAccounts
      * @see https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
      * @description fetch all the accounts associated with a profile
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
      */
     async fetchAccounts(params = {}) {
@@ -1242,7 +1244,7 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from, either 'master' or the subaccount id
      * @param {string} toAccount account to transfer to, either 'master' or the subaccount id
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccountId] the unique identifier for the subaccount
      * @param {string} [params.clientRequestId] client defined unique id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -1305,7 +1307,7 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of transfers structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccountId] the unique identifier for the subaccount
      * @param {int} [params.until] the latest time in ms to fetch transfers for
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -1361,7 +1363,7 @@ class bitvavo extends bitvavo$1["default"] {
      * @description fetches a transfer
      * @param {string} id transfer id
      * @param {string} [code] unified currency code of the currency transferred
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfer(id, code = undefined, params = {}) {
@@ -1558,7 +1560,7 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
      * @param {float} [params.stopPrice] Alias for triggerPrice
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -1669,7 +1671,7 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {string} side 'buy' or 'sell'
      * @param {float} [amount] how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
@@ -2202,7 +2204,7 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {string} [code] unified currency code
      * @param {int} [since] timestamp in ms of the earliest ledger entry
      * @param {int} [limit] max number of ledger entries to return
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {int} [params.page] the page number for the transaction history
      * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
@@ -2376,7 +2378,7 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2433,7 +2435,7 @@ class bitvavo extends bitvavo$1["default"] {
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2654,7 +2656,7 @@ class bitvavo extends bitvavo$1["default"] {
             const timestamp = this.milliseconds().toString();
             const auth = timestamp + method + url + payload;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
-            const accessWindow = this.safeString(this.options, 'BITVAVO-ACCESS-WINDOW', '10000');
+            const accessWindow = this.safeString2(this.options, 'recvWindow', 'BITVAVO-ACCESS-WINDOW', '10000');
             headers = {
                 'BITVAVO-ACCESS-KEY': this.apiKey,
                 'BITVAVO-ACCESS-SIGNATURE': signature,

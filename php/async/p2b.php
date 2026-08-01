@@ -12,6 +12,8 @@ use ccxt\BadRequest;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class p2b extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -561,7 +563,7 @@ class p2b extends Exchange {
         //    }
         //
         $timestamp = $this->safe_integer_product($ticker, 'at', 1000);
-        if (is_array($ticker) && array_key_exists('ticker', $ticker)) {
+        if (is_array($ticker) && array_key_exists('ticker' ?? '', $ticker)) {
             $ticker = $this->safe_value($ticker, 'ticker');
         }
         $last = $this->safe_string($ticker, 'last');

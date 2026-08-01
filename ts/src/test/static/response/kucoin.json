@@ -559,6 +559,35 @@
                 }
             }
         ],
+        "reduceMargin": [
+            {
+                "description": "reduce margin from position",
+                "method": "reduceMargin",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": "0.1"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200000",
+                        "data": "0.1"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "reduce",
+                    "marginMode": "isolated",
+                    "amount": 1,
+                    "total": null,
+                    "code": "USDT",
+                    "status": "ok",
+                    "timestamp": null,
+                    "datetime": null
+                }
+            }
+        ],
         "fetchMarginMode": [
             {
                 "description": "fetch linear swap margin mode",

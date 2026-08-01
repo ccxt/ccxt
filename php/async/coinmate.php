@@ -13,6 +13,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class coinmate extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -334,12 +336,12 @@ class coinmate extends Exchange {
     public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * fetches the current integer timestamp in milliseconds from the bingx server
+             * fetches the current integer timestamp in milliseconds from the exchange server
              *
              * @see https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int} the current integer timestamp in milliseconds from the bingx server
+             * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
             $response = Async\await($this->publicGetSystemTime($params));
             //
@@ -1243,7 +1245,7 @@ class coinmate extends Exchange {
              * @see https://coinmate.docs.apiary.io/#reference/order/cancel-order/post
              *
              * @param {string} $id order $id
-             * @param {string} $symbol not used by coinmate cancelOrder ()
+             * @param {string} $symbol not used by cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */

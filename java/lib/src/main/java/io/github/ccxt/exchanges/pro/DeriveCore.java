@@ -104,7 +104,10 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 10;
@@ -182,7 +185,10 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object topic = Helpers.add(Helpers.add("ticker.", Helpers.GetValue(market, "id")), ".100");
             Object request = new java.util.HashMap<String, Object>() {{
@@ -296,7 +302,10 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object limit = this.safeInteger(parameters, "limit");
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
@@ -333,7 +342,10 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object topic = Helpers.add("trades.", Helpers.GetValue(market, "id"));
             Object messageHah = Helpers.add("unwatch", topic);
@@ -458,7 +470,10 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object topic = Helpers.add("trades.", Helpers.GetValue(market, "id"));
             Object request = new java.util.HashMap<String, Object>() {{
@@ -589,7 +604,10 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object subaccountId = null;
             var subaccountIdparametersVariable = this.handleDeriveSubaccountId("watchOrders", parameters);
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
@@ -731,7 +749,10 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object subaccountId = null;
             var subaccountIdparametersVariable = this.handleDeriveSubaccountId("watchMyTrades", parameters);
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);

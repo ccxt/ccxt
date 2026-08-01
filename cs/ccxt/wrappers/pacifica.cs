@@ -10,6 +10,7 @@ public partial class pacifica
     /// retrieves data on all markets for pacifica
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-market-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -19,7 +20,7 @@ public partial class pacifica
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
+    /// <returns> <term>object[]</term> an array of [market structures](https://docs.ccxt.com/#/?id=market-structure).</returns>
     public async Task<List<MarketInterface>> FetchMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkets(parameters);
@@ -75,6 +76,7 @@ public partial class pacifica
     /// fetch the set leverage for a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -126,6 +128,7 @@ public partial class pacifica
     /// fetches the margin mode of the trading pair
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -184,6 +187,7 @@ public partial class pacifica
     /// retrieves data on all swap markets for pacifica
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -664,7 +668,7 @@ public partial class pacifica
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public Dictionary<string, object> EditOrderRequest(string id, string symbol, string type, string side, double amount, double price, Market market, Dictionary<string, object> parameters = null)
+    public Dictionary<string, object> EditOrderRequest(string id, string symbol, string type, string side, double amount, double price, MarketInterface market, Dictionary<string, object> parameters = null)
     {
         var res = this.editOrderRequest(id, symbol, type, side, amount, price, market, parameters);
         return ((Dictionary<string, object>)res);
@@ -739,6 +743,7 @@ public partial class pacifica
     /// fetch all unfilled currently closed orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -778,6 +783,7 @@ public partial class pacifica
     /// fetch all canceled orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -817,6 +823,7 @@ public partial class pacifica
     /// fetch all closed and canceled orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.pacifica.fi/api-documentation/api/rest-api/orders/get-order-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1124,6 +1131,7 @@ public partial class pacifica
     /// Retrieves the open interest for a list of symbols
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1143,6 +1151,7 @@ public partial class pacifica
     /// retrieves the open interest of a contract trading pair
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.pacifica.fi/api-documentation/api/rest-api/markets/get-prices"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1220,6 +1229,7 @@ public partial class pacifica
     /// fetch the history of funding payments paid and received on this account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-funding-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -1303,6 +1313,7 @@ public partial class pacifica
     /// creates a sub-account under the main account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.pacifica.fi/api-documentation/api/rest-api/subaccounts/create-subaccount"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

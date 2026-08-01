@@ -16,6 +16,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class lbank extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -740,6 +742,7 @@ class lbank extends Exchange {
         // swap => fetchTickers
         //
         //     {
+        //         "lastTime" => 1784884932,
         //         "prePositionFeeRate" => "0.000053",
         //         "volume" => "2435.459",
         //         "symbol" => "BTCUSDT",
@@ -752,6 +755,9 @@ class lbank extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($ticker, 'timestamp');
+        if ($timestamp === null) {
+            $timestamp = $this->safe_timestamp($ticker, 'lastTime');
+        }
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $tickerData = $this->safe_value($ticker, 'ticker', array());
@@ -2721,7 +2727,7 @@ class lbank extends Exchange {
             /**
              * @deprecated
              * please use fetchDepositWithdrawFees instead
-             * @param {string[]|null} $codes not used by lbank fetchTransactionFees ()
+             * @param {string[]|null} $codes not used by fetchTransactionFees ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
              */

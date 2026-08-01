@@ -308,7 +308,7 @@ func (this *Onetrading) CreateOrder(symbol string, typeVar string, side string, 
  * @see https://docs.onetrading.com/rest/trading/cancel-order-order-id
  * @see https://docs.onetrading.com/rest/trading/cancel-order-client-id
  * @param {string} id order id
- * @param {string} symbol not used by bitmex cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */

@@ -255,7 +255,7 @@ func (this *LatokenCore) Describe() any {
 				"request expired or bad":                                  InvalidNonce,
 				"For input string":                                        BadRequest,
 				"Unable to resolve currency by tag":                       BadSymbol,
-				"Can\\'t find currency with tag":                          BadSymbol,
+				"Can't find currency with tag":                            BadSymbol,
 				"Unable to place order because pair is in inactive state": BadSymbol,
 				"API keys are not available for":                          AccountSuspended,
 			},
@@ -1697,7 +1697,7 @@ func (this *LatokenCore) CreateOrder(symbol any, typeVar any, side any, amount a
  * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
  * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  // stop
  * @param {string} id order id
- * @param {string} symbol not used by latoken cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] true if cancelling a trigger order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}

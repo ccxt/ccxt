@@ -339,8 +339,12 @@ export default class bitfinex extends Exchange {
             },
             'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
-                'precision': 'R0', // P0, P1, P2, P3, P4, R0
-                'defaultCurrencyPrecision': 8, // default currency precision
+                'fetchOrderBook': {
+                    'precision': 'R0', // P0, P1, P2, P3, P4, R0
+                },
+                'fetchCurrencies': {
+                    'defaultPrecision': 8, // default currency precision
+                },
                 // convert 'EXCHANGE MARKET' to lowercase 'market'
                 // convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 // everything else remains uppercase
@@ -889,7 +893,8 @@ export default class bitfinex extends Exchange {
         const fees = this.safeList (feeValues, 1, []);
         const fee = this.safeNumber (fees, 1);
         const undl = this.safeList (indexed['undl'], id, []);
-        const precision = this.safeString (this.options, 'defaultCurrencyPrecision', '8');
+        const defaultCurrencyPrecision = this.safeString (this.options, 'defaultCurrencyPrecision', '8'); // kept here for backward-compatibility
+        const precision = this.handleOption ('fetchCurrencies', 'defaultPrecision', defaultCurrencyPrecision) as string;
         const networks: Dict = {};
         const networkIds = this.safeList (indexedNetworks, id, []);
         for (let j = 0; j < networkIds.length; j++) {
@@ -1152,7 +1157,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const precision = this.safeValue (this.options, 'precision', 'R0');
+        const precision = this.handleOption ('fetchOrderBook', 'precision', 'R0') as string;
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1179,8 +1184,7 @@ export default class bitfinex extends Exchange {
             const signedAmount = this.safeString (order, 2);
             const amount = Precise.stringAbs (signedAmount);
             const side = Precise.stringGt (signedAmount, '0') ? 'bids' : 'asks';
-            const resultSide = result[side];
-            resultSide.push ([ price, this.parseNumber (amount) ]);
+            result[side].push ([ price, this.parseNumber (amount) ]);
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
@@ -1951,7 +1955,7 @@ export default class bitfinex extends Exchange {
      * @name bitfinex#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2325,7 +2329,7 @@ export default class bitfinex extends Exchange {
             'id': orderId,
             'symbol': market['id'],
         };
-        // valid for trades upto 10 days old
+        // valid for trades up to 10 days old
         const response = await this.privatePostAuthROrderSymbolIdTrades (this.extend (request, params));
         const tradesList: any[] = [];
         for (let i = 0; i < response.length; i++) {

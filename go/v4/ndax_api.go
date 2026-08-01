@@ -19,6 +19,10 @@ func (this *NdaxCore) PublicGetAuthenticateUser(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAuthenticateUser", args...)
 }
 
+func (this *NdaxCore) PublicGetEnableXP2FA(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetEnableXP2FA", args...)
+}
+
 func (this *NdaxCore) PublicGetGetL2Snapshot(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetL2Snapshot", args...)
 }
@@ -55,8 +59,28 @@ func (this *NdaxCore) PublicGetGetInstruments(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetInstruments", args...)
 }
 
+func (this *NdaxCore) PublicGetGetEarliestTickTime(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGetEarliestTickTime", args...)
+}
+
 func (this *NdaxCore) PublicGetPing(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetPing", args...)
+}
+
+func (this *NdaxCore) PublicGetAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAssets", args...)
+}
+
+func (this *NdaxCore) PublicGetOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrderbook", args...)
+}
+
+func (this *NdaxCore) PublicGetTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTicker", args...)
+}
+
+func (this *NdaxCore) PublicGetSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSummary", args...)
 }
 
 func (this *NdaxCore) PublicGetTrades(args ...any) <-chan any {
@@ -65,6 +89,10 @@ func (this *NdaxCore) PublicGetTrades(args ...any) <-chan any {
 
 func (this *NdaxCore) PublicGetGetLastTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetLastTrades", args...)
+}
+
+func (this *NdaxCore) PublicGetConfirmWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetConfirmWithdraw", args...)
 }
 
 func (this *NdaxCore) PublicGetSubscribeLevel1(args ...any) <-chan any {
@@ -271,12 +299,28 @@ func (this *NdaxCore) PrivateGetGetWithdrawTicket(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetWithdrawTicket", args...)
 }
 
+func (this *NdaxCore) PrivateGetGetWithdrawTicketAttachment(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetWithdrawTicketAttachment", args...)
+}
+
 func (this *NdaxCore) PrivateGetGetWithdrawTickets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetWithdrawTickets", args...)
 }
 
+func (this *NdaxCore) PrivateGetGetDepositTicketAttachment(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetDepositTicketAttachment", args...)
+}
+
 func (this *NdaxCore) PrivatePostAddUserAffiliateTag(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAddUserAffiliateTag", args...)
+}
+
+func (this *NdaxCore) PrivatePostAddDepositTicketAttachment(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAddDepositTicketAttachment", args...)
+}
+
+func (this *NdaxCore) PrivatePostAddWithdrawTicketAttachment(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAddWithdrawTicketAttachment", args...)
 }
 
 func (this *NdaxCore) PrivatePostCancelUserReport(args ...any) <-chan any {

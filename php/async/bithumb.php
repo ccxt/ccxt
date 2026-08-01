@@ -15,6 +15,10 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TRUNCATE;
+use const ccxt\DECIMAL_PLACES;
+use const ccxt\SIGNIFICANT_DIGITS;
+
 class bithumb extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -1145,7 +1149,7 @@ class bithumb extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
-            $side_in_params = (is_array($params) && array_key_exists('side', $params));
+            $side_in_params = (is_array($params) && array_key_exists('side' ?? '', $params));
             if (!$side_in_params) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$side` parameter (sell or buy)');
             }
@@ -1300,7 +1304,7 @@ class bithumb extends Exchange {
         if ($response === null) {
             return null; // fallback to default error handler
         }
-        if (is_array($response) && array_key_exists('status', $response)) {
+        if (is_array($response) && array_key_exists('status' ?? '', $response)) {
             //
             //     array("status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
             //

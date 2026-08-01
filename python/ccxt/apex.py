@@ -240,7 +240,6 @@ class apex(Exchange, ImplicitAPI):
             'commonCurrencies': {},
             'options': {
                 'defaultType': 'swap',
-                'defaultSlippage': 0.05,
                 'brokerId': '6956',
             },
             'features': {
@@ -847,12 +846,12 @@ class apex(Exchange, ImplicitAPI):
         #  } {"s":"BTCUSDT","i":"1","t":1741265880000,"c":"90235","h":"90235","l":"90156","o":"90156","v":"0.052","tr":"4690.4466"}
         #
         return [
-            self.safe_integer_n(ohlcv, ['start', 't']),
-            self.safe_number_n(ohlcv, ['open', 'o']),
-            self.safe_number_n(ohlcv, ['high', 'h']),
-            self.safe_number_n(ohlcv, ['low', 'l']),
-            self.safe_number_n(ohlcv, ['close', 'c']),
-            self.safe_number_n(ohlcv, ['volume', 'v']),
+            self.safe_integer_2(ohlcv, 'start', 't'),
+            self.safe_number_2(ohlcv, 'open', 'o'),
+            self.safe_number_2(ohlcv, 'high', 'h'),
+            self.safe_number_2(ohlcv, 'low', 'l'),
+            self.safe_number_2(ohlcv, 'close', 'c'),
+            self.safe_number_2(ohlcv, 'volume', 'v'),
         ]
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -968,15 +967,15 @@ class apex(Exchange, ImplicitAPI):
         #  }
         #  ]
         #
-        marketId = self.safe_string_n(trade, ['s', 'symbol'])
+        marketId = self.safe_string_2(trade, 's', 'symbol')
         market = self.safe_market(marketId, market)
-        id = self.safe_string_n(trade, ['i', 'id'])
+        id = self.safe_string_2(trade, 'i', 'id')
         timestamp = self.safe_integer_n(trade, ['t', 'T', 'createdAt'])
-        priceString = self.safe_string_n(trade, ['p', 'price'])
-        amountString = self.safe_string_n(trade, ['v', 'size'])
-        side = self.safe_string_lower_n(trade, ['S', 'side'])
-        type = self.safe_string_n(trade, ['type'])
-        fee = self.safe_string_n(trade, ['fee'])
+        priceString = self.safe_string_2(trade, 'p', 'price')
+        amountString = self.safe_string_2(trade, 'v', 'size')
+        side = self.safe_string_lower_2(trade, 'S', 'side')
+        type = self.safe_string(trade, 'type')
+        fee = self.safe_string(trade, 'fee')
         return self.safe_trade({
             'info': trade,
             'id': id,
@@ -1521,7 +1520,7 @@ class apex(Exchange, ImplicitAPI):
         toAccount = self.safe_string(transfer, 'toAccount')
         return {
             'info': transfer,
-            'id': self.safe_string_n(transfer, ['transferId', 'id']),
+            'id': self.safe_string_2(transfer, 'transferId', 'id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'currency': self.safe_currency_code(currencyId, currency),
@@ -1854,7 +1853,7 @@ class apex(Exchange, ImplicitAPI):
         quantity = self.safe_string(position, 'size')
         timestamp = self.safe_integer(position, 'updatedTime')
         leverage = 20
-        customInitialMarginRate = self.safe_string_n(position, ['customInitialMarginRate', 'customImr'], '0')
+        customInitialMarginRate = self.safe_string_2(position, 'customInitialMarginRate', 'customImr', '0')
         if self.precision_from_string(customInitialMarginRate) != 0:
             leverage = self.parse_to_int(Precise.string_div('1', customInitialMarginRate, 4))
         return self.safe_position({

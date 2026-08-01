@@ -734,16 +734,9 @@ class coinex extends coinex$1["default"] {
     }
     parseCurrency(coin) {
         const asset = this.safeDict(coin, 'asset', {});
-        const chains = this.safeList(coin, 'chains', []);
         const currencyId = this.safeString(asset, 'ccy');
-        if (currencyId === undefined) {
-            return undefined; // coinex returns empty structures for some reason
-        }
+        const chains = this.safeList(coin, 'chains', []);
         const code = this.safeCurrencyCode(currencyId);
-        const canDeposit = this.safeBool(asset, 'deposit_enabled');
-        const canWithdraw = this.safeBool(asset, 'withdraw_enabled');
-        const firstChain = this.safeDict(chains, 0, {});
-        const firstPrecisionString = this.parsePrecision(this.safeString(firstChain, 'withdrawal_precision'));
         const networks = {};
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
@@ -752,32 +745,26 @@ class coinex extends coinex$1["default"] {
             if (networkId === undefined) {
                 continue;
             }
-            const precisionString = this.parsePrecision(this.safeString(chain, 'withdrawal_precision'));
-            const feeString = this.safeString(chain, 'withdrawal_fee');
-            const minNetworkDepositString = this.safeString(chain, 'min_deposit_amount');
-            const minNetworkWithdrawString = this.safeString(chain, 'min_withdraw_amount');
-            const canDepositChain = this.safeBool(chain, 'deposit_enabled');
-            const canWithdrawChain = this.safeBool(chain, 'withdraw_enabled');
             const network = {
                 'id': networkId,
                 'network': networkCode,
                 'name': undefined,
-                'active': canDepositChain && canWithdrawChain,
-                'deposit': canDepositChain,
-                'withdraw': canWithdrawChain,
-                'fee': this.parseNumber(feeString),
-                'precision': this.parseNumber(precisionString),
+                'active': undefined,
+                'deposit': this.safeBool(chain, 'deposit_enabled'),
+                'withdraw': this.safeBool(chain, 'withdraw_enabled'),
+                'fee': this.safeNumber(chain, 'withdrawal_fee'),
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'withdrawal_precision'))),
                 'limits': {
                     'amount': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'deposit': {
-                        'min': this.parseNumber(minNetworkDepositString),
+                        'min': this.safeNumber(chain, 'min_deposit_amount'),
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.parseNumber(minNetworkWithdrawString),
+                        'min': this.safeNumber(chain, 'min_withdraw_amount'),
                         'max': undefined,
                     },
                 },
@@ -789,11 +776,11 @@ class coinex extends coinex$1["default"] {
             'id': currencyId,
             'code': code,
             'name': undefined,
-            'active': canDeposit && canWithdraw,
-            'deposit': canDeposit,
-            'withdraw': canWithdraw,
+            'active': undefined,
+            'deposit': this.safeBool(asset, 'deposit_enabled'),
+            'withdraw': this.safeBool(asset, 'withdraw_enabled'),
             'fee': undefined,
-            'precision': this.parseNumber(firstPrecisionString),
+            'precision': undefined,
             'limits': {
                 'amount': {
                     'min': undefined,
@@ -1053,7 +1040,11 @@ class coinex extends coinex$1["default"] {
         //
         const marketType = ('mark_price' in ticker) ? 'swap' : 'spot';
         const marketId = this.safeString(ticker, 'market');
-        const symbol = this.safeSymbol(marketId, market, undefined, marketType);
+        market = this.safeMarket(marketId, market, undefined, marketType);
+        const symbol = market['symbol'];
+        // on inverse contracts 'value' is denominated in the settle currency, not
+        // the quote, so it is the quote volume only for spot and linear markets
+        const quoteVolume = market['inverse'] ? undefined : this.safeString(ticker, 'value');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
@@ -1073,7 +1064,7 @@ class coinex extends coinex$1["default"] {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'volume'),
-            'quoteVolume': undefined,
+            'quoteVolume': quoteVolume,
             'markPrice': this.safeString(ticker, 'mark_price'),
             'indexPrice': this.safeString(ticker, 'index_price'),
             'info': ticker,
@@ -6012,7 +6003,7 @@ class coinex extends coinex$1["default"] {
      * @param {string} symbol unified contract symbol
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum amount of records to fetch, default is 10
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch positions for
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -6147,7 +6138,7 @@ class coinex extends coinex$1["default"] {
          * @ignore
          * @method
          * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
-         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {object} params extra parameters specific to the exchange API endpoint
          * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString(this.options, 'defaultType');
@@ -6298,7 +6289,7 @@ class coinex extends coinex$1["default"] {
      * @param {string} [type] not used by coinex fetchMarginAdjustmentHistory
      * @param {int} [since] timestamp in ms of the earliest change to fetch
      * @param {int} [limit] the maximum amount of changes to fetch, default is 10
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest change to fetch
      * @param {int} [params.positionId] the id of the position that you want to retrieve margin adjustment history for
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}

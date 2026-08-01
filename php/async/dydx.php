@@ -15,6 +15,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class dydx extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -1296,7 +1298,7 @@ class dydx extends Exchange {
             if ($this->walletAddress === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg => dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz');
             }
-            if (str_starts_with(!$this->walletAddress, 'dydx')) {
+            if (!str_starts_with($this->walletAddress, 'dydx')) {
                 throw new ArgumentsRequired($this->id . ' fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.');
             }
             $request = array(
@@ -1935,7 +1937,7 @@ class dydx extends Exchange {
             $fromSubaccountId = $this->safe_integer($params, 'fromSubaccountId');
             $toSubaccountId = $this->safe_integer($params, 'toSubaccountId');
             if ($fromAccount !== 'main') {
-                // throw error if from subaccount id is undefind
+                // throw error if from subaccount id is null
                 if ($fromAccount === null) {
                     throw new NotSupported($this->id . ' transfer only support main > subaccount and subaccount <> subaccount.');
                 }
@@ -2526,7 +2528,7 @@ class dydx extends Exchange {
 
     public function sign($path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $pathWithParams = $this->implode_params($path, $params);
-        $url = $this->implode_hostname($this->urls['api'][$section]);
+        $url = $this->urls['api'][$section];
         $params = $this->omit($params, $this->extract_params($path));
         $params = $this->keysort($params);
         $url .= '/' . $pathWithParams;

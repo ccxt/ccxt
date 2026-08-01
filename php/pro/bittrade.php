@@ -9,6 +9,8 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class bittrade extends \ccxt\async\bittrade {
     public function describe(): mixed {
@@ -483,7 +485,7 @@ class bittrade extends \ccxt\async\bittrade {
     public function handle_order_book_subscription(Client $client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
-        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+        if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
         $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
@@ -509,7 +511,7 @@ class bittrade extends \ccxt\async\bittrade {
                 return $method($client, $message, $subscription);
             }
             // clean up
-            if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($id ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$id]);
             }
         }
@@ -606,7 +608,7 @@ class bittrade extends \ccxt\async\bittrade {
                     $messageHash = $this->safe_string($subscription, 'messageHash');
                     $client->reject($e, $messageHash);
                     $client->reject($e, $id);
-                    if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
+                    if (is_array($client->subscriptions) && array_key_exists($id ?? '', $client->subscriptions)) {
                         unset($client->subscriptions[$id]);
                     }
                 }

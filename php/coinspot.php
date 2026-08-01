@@ -710,7 +710,7 @@ class coinspot extends Exchange {
          * @see https://www.coinspot.com.au/api#cancelsellorder
          *
          * @param {string} $id order $id
-         * @param {string} $symbol not used by coinspot cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */

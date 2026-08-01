@@ -453,13 +453,145 @@ class aster(Exchange, ImplicitAPI):
                     'taker': self.parse_number('0.00035'),
                 },
             },
+            'features': {
+                'spot': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': None,
+                        'triggerDirection': None,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': False,
+                        'trailing': False,
+                        'leverage': False,
+                        'marketBuyByCost': True,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 1500,
+                    },
+                },
+                'forDerivs': {
+                    'sandbox': False,
+                    'createOrder': {
+                        'marginMode': False,
+                        'triggerPrice': True,
+                        'triggerPriceType': {
+                            'last': True,
+                            'mark': True,
+                            'index': False,
+                        },
+                        'triggerDirection': False,
+                        'stopLossPrice': True,
+                        'takeProfitPrice': True,
+                        'attachedStopLossTakeProfit': None,
+                        'timeInForce': {
+                            'IOC': True,
+                            'FOK': True,
+                            'PO': True,
+                            'GTD': False,
+                        },
+                        'hedged': True,
+                        'trailing': True,
+                        'leverage': False,
+                        'marketBuyByCost': False,
+                        'marketBuyRequiresPrice': False,
+                        'selfTradePrevention': False,
+                        'iceberg': False,
+                    },
+                    'createOrders': None,
+                    'fetchMyTrades': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'symbolRequired': True,
+                    },
+                    'fetchOrder': {
+                        'marginMode': False,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': False,
+                        'limit': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 1000,
+                        'daysBack': None,
+                        'untilDays': None,
+                        'trigger': False,
+                        'trailing': False,
+                        'symbolRequired': True,
+                    },
+                    'fetchClosedOrders': None,
+                    'fetchOHLCV': {
+                        'limit': 1500,
+                    },
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'forDerivs',
+                    },
+                    'inverse': None,
+                },
+            },
             'options': {
                 'defaultType': 'spot',
                 'recvWindow': 10 * 1000,  # 10 sec
-                'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
                 'v3ChainId': 1666,  # Aster chain ID used for EIP-712 v3 signing
-                'quoteOrderQty': True,  # whether market orders support amounts in quote currency
+                'createOrder': {
+                    'timeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+                    'quoteOrderQty': True,  # whether market orders support amounts in quote currency
+                },
                 'accountsByType': {
                     'spot': 'SPOT',
                     'swap': 'FUTURE',
@@ -2584,7 +2716,7 @@ class aster(Exchange, ImplicitAPI):
         request['type'] = uppercaseType
         if uppercaseType == 'MARKET':
             if market['spot']:
-                quoteOrderQty = self.safe_bool(self.options, 'quoteOrderQty', True)
+                quoteOrderQty = self.handle_option('createOrder', 'quoteOrderQty', True)
                 if quoteOrderQty:
                     quoteOrderQtyNew = self.safe_string_2(params, 'quoteOrderQty', 'cost')
                     precision = market['precision']['price']
@@ -2639,7 +2771,9 @@ class aster(Exchange, ImplicitAPI):
             if stopPrice is not None:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         if timeInForceIsRequired and (self.safe_string(params, 'timeInForce') is None) and (self.safe_string(request, 'timeInForce') is None):
-            request['timeInForce'] = self.safe_string(self.options, 'defaultTimeInForce')  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+            tif = None
+            tif, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce')
+            request['timeInForce'] = tif
         requestParams = self.omit(params, ['newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice'])
         if self.safe_bool(self.options, 'builderFee') and market['swap']:
             request['builder'] = self.safe_string(self.options, 'builder')
@@ -2702,7 +2836,7 @@ class aster(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        clientOrderId = self.safe_string_n(params, ['origClientOrderId', 'clientOrderId'])
+        clientOrderId = self.safe_string_2(params, 'origClientOrderId', 'clientOrderId')
         if clientOrderId is not None:
             request['origClientOrderId'] = clientOrderId
         else:
@@ -2995,7 +3129,7 @@ class aster(Exchange, ImplicitAPI):
         #             "amount": "23.36332311",
         #             "asset": "USDT",
         #             "symbol": "BTCUSDT",
-        #             "time": 1578047897183,
+        #             "time": 1578047897182,
         #             "type": 1,
         #             "positionSide": "BOTH"
         #         }
@@ -3919,7 +4053,13 @@ class aster(Exchange, ImplicitAPI):
             # Sign using EIP-712 typed data per the AsterSignTransaction spec
             zeroAddress = self.safe_string(self.options, 'zeroAddress', '0x0000000000000000000000000000000000000000')
             v3ChainId = self.safe_integer(self.options, 'v3ChainId', 1666)
-            walletAddress = self.eth_get_address_from_private_key(self.privateKey)
+            walletAddress = self.safe_string(self.options, 'cachedWalletAddress')
+            privateKeyHash = self.hash(self.encode(self.privateKey), 'keccak', 'hex')
+            cachedPrivateKeyHash = self.safe_string(self.options, 'privateKeyHashForCachedWalletAddress')
+            if (walletAddress is None) or (cachedPrivateKeyHash != privateKeyHash):
+                walletAddress = self.eth_get_address_from_private_key(self.privateKey)
+                self.options['cachedWalletAddress'] = walletAddress
+                self.options['privateKeyHashForCachedWalletAddress'] = privateKeyHash
             signerAddress = self.safe_string(self.options, 'signerAddress', walletAddress)  # default to user's wallet
             if signerAddress is None:
                 raise ArgumentsRequired(self.id + ' requires signerAddress in options when use v3 api')

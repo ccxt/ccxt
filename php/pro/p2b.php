@@ -10,6 +10,8 @@ use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class p2b extends \ccxt\async\p2b {
     public function describe(): mixed {
@@ -190,20 +192,18 @@ class p2b extends \ccxt\async\p2b {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
-             *
-             * @param {string} $symbol unified $symbol of the market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        })();
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
     }
 
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -443,6 +443,7 @@ class p2b extends \ccxt\async\p2b {
         //    }
         //
         $params = $this->safe_list($message, 'params', array());
+        $isFullUpdate = $this->safe_bool($params, 0, false);
         $data = $this->safe_dict($params, 1);
         $asks = $this->safe_list($data, 'asks');
         $bids = $this->safe_list($data, 'bids');
@@ -456,6 +457,13 @@ class p2b extends \ccxt\async\p2b {
         if ($orderbook === null) {
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             $orderbook = $this->orderbooks[$symbol];
+        }
+        if ($isFullUpdate) {
+            // the first parameter signals whether the $message carries all
+            // records or only the changed ones, a full set replaces the book,
+            // otherwise stale levels that left the depth window would linger
+            // and cross the book, see https://github.com/ccxt/ccxt/issues/24944
+            $orderbook->reset(array());
         }
         if ($bids !== null) {
             for ($i = 0; $i < count($bids); $i++) {

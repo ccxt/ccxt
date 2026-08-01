@@ -712,6 +712,7 @@ public partial class lbank : Exchange
         // swap: fetchTickers
         //
         //     {
+        //         "lastTime": 1784884932,
         //         "prePositionFeeRate": "0.000053",
         //         "volume": "2435.459",
         //         "symbol": "BTCUSDT",
@@ -724,6 +725,10 @@ public partial class lbank : Exchange
         //     }
         //
         object timestamp = this.safeInteger(ticker, "timestamp");
+        if (isTrue(isEqual(timestamp, null)))
+        {
+            timestamp = this.safeTimestamp(ticker, "lastTime");
+        }
         object marketId = this.safeString(ticker, "symbol");
         object symbol = this.safeSymbol(marketId, market);
         object tickerData = this.safeValue(ticker, "ticker", new Dictionary<string, object>() {});
@@ -2803,7 +2808,7 @@ public partial class lbank : Exchange
      * @name lbank#fetchTransactionFees
      * @deprecated
      * @description please use fetchDepositWithdrawFees instead
-     * @param {string[]|undefined} codes not used by lbank fetchTransactionFees ()
+     * @param {string[]|undefined} codes not used by fetchTransactionFees ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */

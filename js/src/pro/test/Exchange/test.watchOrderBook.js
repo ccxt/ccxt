@@ -4,7 +4,6 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import assert from 'assert';
 import testOrderBook from '../../../test/Exchange/base/test.orderBook.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 async function testWatchOrderBook(exchange, skippedProperties, symbol) {
@@ -25,9 +24,7 @@ async function testWatchOrderBook(exchange, skippedProperties, symbol) {
             // continue;
             success = false;
         }
-        if ((success === true) && (response !== undefined)) {
-            // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-            assert(exchange.isDictionary(response), exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(response));
+        if (success === true) {
             now = exchange.milliseconds();
             testOrderBook(exchange, skippedProperties, method, response, symbol);
         }

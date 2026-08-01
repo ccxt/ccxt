@@ -521,6 +521,8 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Poloniex Fetch Trades With Pagination To Csv](./examples/py/poloniex-fetch-trades-with-pagination-to-csv.md)
 
+- [📂 Prediction](https://github.com/ccxt/ccxt/tree/master/./examples/py/prediction)
+
 - [Proxy Usage](./examples/py/proxy-usage.md)
 
 - [Rsi](./examples/py/rsi.md)

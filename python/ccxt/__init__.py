@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.64'
+__version__ = '4.5.70'
 
 # ----------------------------------------------------------------------------
 
@@ -102,7 +102,6 @@ from ccxt.bitfinex import bitfinex                                    # noqa: F4
 from ccxt.bitflyer import bitflyer                                    # noqa: F401
 from ccxt.bitget import bitget                                        # noqa: F401
 from ccxt.bithumb import bithumb                                      # noqa: F401
-from ccxt.bitmart import bitmart                                      # noqa: F401
 from ccxt.bitmex import bitmex                                        # noqa: F401
 from ccxt.bitopro import bitopro                                      # noqa: F401
 from ccxt.bitrue import bitrue                                        # noqa: F401
@@ -168,6 +167,7 @@ from ccxt.mexc import mexc                                            # noqa: F4
 from ccxt.modetrade import modetrade                                  # noqa: F401
 from ccxt.mudrex import mudrex                                        # noqa: F401
 from ccxt.myokx import myokx                                          # noqa: F401
+from ccxt.nado import nado                                            # noqa: F401
 from ccxt.ndax import ndax                                            # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
 from ccxt.okxus import okxus                                          # noqa: F401
@@ -208,7 +208,6 @@ exchanges = [
     'bitflyer',
     'bitget',
     'bithumb',
-    'bitmart',
     'bitmex',
     'bitopro',
     'bitrue',
@@ -274,6 +273,7 @@ exchanges = [
     'modetrade',
     'mudrex',
     'myokx',
+    'nado',
     'ndax',
     'okx',
     'okxus',

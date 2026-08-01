@@ -2,6 +2,7 @@ package tests.exchange;
 import tests.BaseTest;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.errors.*;
 
 
@@ -10,13 +11,13 @@ import io.github.ccxt.errors.*;
 
 
 public class TestFetchOrders extends BaseTest {
-    public java.util.concurrent.CompletableFuture<Object> testFetchOrders(Exchange exchange, Object skippedProperties, Object symbol)
+    public java.util.concurrent.CompletableFuture<Object> testFetchOrders(BaseExchange exchange, Object skippedProperties, Object symbol)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object method = "fetchOrders";
-        Object orders = (exchange.fetchOrders(symbol)).join();
+        Object orders = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrders", new Object[]{symbol})).join();
         Assert(Helpers.isArray(orders), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return an array, returned "), exchange.json(orders)));
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol);
         Object now = exchange.milliseconds();

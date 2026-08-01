@@ -413,7 +413,7 @@ func (this *TokocryptoCore) Describe() any {
 				"Order would immediately match and take.":                OrderImmediatelyFillable,
 				"Account has insufficient balance for requested action.": InsufficientFunds,
 				"Rest API trading is not enabled.":                       ExchangeNotAvailable,
-				"You don\\'t have permission.":                           PermissionDenied,
+				"You don't have permission.":                             PermissionDenied,
 				"Market is closed.":                                      ExchangeNotAvailable,
 				"Too many requests. Please try again later.":             DDoSProtection,
 				"This action disabled is on this account.":               AccountSuspended,
@@ -1510,7 +1510,7 @@ func (this *TokocryptoCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//         "0",                    // Ignore
 	//         1591256519999,          // Close time
 	//         "0",                    // Ignore
-	//         60,                     // Number of bisic data
+	//         60,                     // Number of basic data
 	//         "0",                    // Ignore
 	//         "0",                    // Ignore
 	//         "0"                     // Ignore
@@ -2973,7 +2973,7 @@ func (this *TokocryptoCore) HandleErrors(code any, reason any, url any, method a
 		panic(DDoSProtection(Add(Add(Add(Add(Add(Add(this.Id, " "), ToString(code)), " "), reason), " "), body)))
 	}
 	// error response in a form: { "code": -1013, "msg": "Invalid quantity." }
-	// following block cointains legacy checks against message patterns in "msg" property
+	// following block contains legacy checks against message patterns in "msg" property
 	// will switch "code" checks eventually, when we know all of them
 	if IsTrue(IsGreaterThanOrEqual(code, 400)) {
 		if IsTrue(IsGreaterThanOrEqual(GetIndexOf(body, "Price * QTY is zero or less"), 0)) {

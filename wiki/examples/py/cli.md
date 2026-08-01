@@ -15,6 +15,7 @@ from importlib.util import find_spec
 run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import ccxt.pro as ccxtpro
 import ccxt.async_support as ccxt  # noqa: E402
+import ccxt.prediction as ccxtprediction  # noqa: E402
 
 class Argv(object):
 
@@ -60,6 +61,7 @@ parser.add_argument('--signIn', action='store_true', help='sign in')
 parser.add_argument('--no-keys', action='store_true', help='don t load keys')
 parser.add_argument('--raw', action='store_true', help='raw output')
 parser.add_argument('--no-load-markets', action='store_true', help='no load markets')
+parser.add_argument('-p', '--prediction', action='store_true', help='use the prediction-markets namespace (ccxt.prediction)')
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('method', type=str, help='method or property', nargs='?')
 parser.add_argument('args', type=str, help='arguments', nargs='*')
@@ -121,7 +123,12 @@ async def main():
 
     # ------------------------------------------------------------------------------
 
-    if argv.exchange_id not in ccxt.exchanges:
+    # regular ids win for ids present in both namespaces (e.g. hyperliquid);
+    # -p/--prediction forces the prediction namespace, and prediction is the
+    # fallback for prediction-only ids
+    is_prediction = argv.exchange_id in ccxtprediction.exchanges and (argv.prediction or argv.exchange_id not in ccxt.exchanges)
+
+    if argv.exchange_id not in ccxt.exchanges and not is_prediction:
         print_usage()
         raise Exception('Exchange "' + argv.exchange_id + '" not found.')
 
@@ -129,7 +136,9 @@ async def main():
         config.update(keys[argv.exchange_id])
 
     exchange = None
-    if (argv.exchange_id in ccxtpro.exchanges):
+    if is_prediction:
+        exchange = getattr(ccxtprediction, argv.exchange_id)(config)
+    elif (argv.exchange_id in ccxtpro.exchanges):
         exchange = getattr(ccxtpro, argv.exchange_id)(config)
     else:
         exchange = getattr(ccxt, argv.exchange_id)(config)

@@ -761,7 +761,7 @@ Either adds or reduces margin in an isolated position in order to set the margin
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market to set margin in |
 | amount | <code>float</code> | Yes | the amount to set the margin to |
-| params | <code>object</code> | No | parameters specific to the bingx api endpoint |
+| params | <code>object</code> | No | parameters specific to the exchange API endpoint |
 | params.accountIndex | <code>string</code> | No | account index |
 | params.apiKeyIndex | <code>string</code> | No | api key index |
 

@@ -365,15 +365,15 @@ class hyperliquid extends Exchange {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
-        if (($symbol !== null) && !(is_array($this->markets) && array_key_exists($symbol, $this->markets))) {
+        if (($symbol !== null) && !(is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
             $symbolParts = explode('/', $symbol);
             $baseName = $this->safe_string($symbolParts, 0);
             $spotCurrencyMapping = $this->safe_dict($this->options, 'spotCurrencyMapping', array());
-            if (is_array($spotCurrencyMapping) && array_key_exists($baseName, $spotCurrencyMapping)) {
+            if (is_array($spotCurrencyMapping) && array_key_exists($baseName ?? '', $spotCurrencyMapping)) {
                 $unifiedBaseName = $this->safe_string($spotCurrencyMapping, $baseName);
                 $quote = $this->safe_string($symbolParts, 1);
                 $newSymbol = $this->safe_currency_code($unifiedBaseName) . '/' . $quote;
-                if (is_array($this->markets) && array_key_exists($newSymbol, $this->markets)) {
+                if (is_array($this->markets) && array_key_exists($newSymbol ?? '', $this->markets)) {
                     return $this->markets[$newSymbol];
                 }
             }
@@ -633,7 +633,7 @@ class hyperliquid extends Exchange {
                 $data['dex'] = $dexName;
                 $cachedCurrencies = $this->safe_dict($this->options, 'cachedCurrenciesById', array());
                 // injecting collateral token $name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
-                if (is_array($cachedCurrencies) && array_key_exists($collateralToken, $cachedCurrencies)) {
+                if (is_array($cachedCurrencies) && array_key_exists($collateralToken ?? '', $cachedCurrencies)) {
                     $name = $this->safe_string($data, 'name');
                     $collateralTokenCode = $this->safe_string($cachedCurrencies, $collateralToken);
                     $data['collateralTokenName'] = $collateralTokenCode;
@@ -2308,12 +2308,12 @@ class hyperliquid extends Exchange {
             $mainOrderObj = $this->create_order_request($symbol, $type, $side, $amount, $price, $orderParams);
             if ($hasStopLoss || $hasTakeProfit) {
                 // $grouping opposed $orders for sl/tp
-                $stopLossOrderTriggerPrice = $this->safe_string_n($stopLoss, array( 'triggerPrice', 'stopPrice' ));
+                $stopLossOrderTriggerPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice');
                 $stopLossOrderType = $this->safe_string($stopLoss, 'type', 'limit');
-                $stopLossOrderLimitPrice = $this->safe_string_n($stopLoss, array( 'price', 'stopLossPrice' ), $stopLossOrderTriggerPrice);
-                $takeProfitOrderTriggerPrice = $this->safe_string_n($takeProfit, array( 'triggerPrice', 'stopPrice' ));
+                $stopLossOrderLimitPrice = $this->safe_string_2($stopLoss, 'price', 'stopLossPrice', $stopLossOrderTriggerPrice);
+                $takeProfitOrderTriggerPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'stopPrice');
                 $takeProfitOrderType = $this->safe_string($takeProfit, 'type', 'limit');
-                $takeProfitOrderLimitPrice = $this->safe_string_n($takeProfit, array( 'price', 'takeProfitPrice' ), $takeProfitOrderTriggerPrice);
+                $takeProfitOrderLimitPrice = $this->safe_string_2($takeProfit, 'price', 'takeProfitPrice', $takeProfitOrderTriggerPrice);
                 $grouping = $this->safe_string($orderParams, 'grouping', 'normalTpsl');
                 if ($grouping === 'positionTpsl') {
                     $amount = '0';
@@ -3203,7 +3203,7 @@ class hyperliquid extends Exchange {
             }
             $oid = $this->safe_string($entry, 'oid');
             if ($oid !== null) {
-                if (!(is_array($deduplicatedByOid) && array_key_exists($oid, $deduplicatedByOid))) {
+                if (!(is_array($deduplicatedByOid) && array_key_exists($oid ?? '', $deduplicatedByOid))) {
                     $deduplicatedByOid[$oid] = $rawOrder;
                 } else {
                     $existingTimestamp = $this->safe_integer($deduplicatedByOid[$oid], 'statusTimestamp');
@@ -4886,7 +4886,7 @@ class hyperliquid extends Exchange {
                     break;
                 }
             }
-            if (is_array($data) && array_key_exists('status', $data)) {
+            if (is_array($data) && array_key_exists('status' ?? '', $data)) {
                 $errorStatus = $this->safe_dict($data, 'status', array());
                 $errorMsg = $this->safe_string($errorStatus, 'error');
                 if ($errorStatus !== null) {
@@ -4918,10 +4918,10 @@ class hyperliquid extends Exchange {
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array()) {
-        if ((is_array($config) && array_key_exists('byType', $config)) && (is_array($params) && array_key_exists('type', $params))) {
+        if ((is_array($config) && array_key_exists('byType' ?? '', $config)) && (is_array($params) && array_key_exists('type' ?? '', $params))) {
             $type = $params['type'];
             $byType = $config['byType'];
-            if (is_array($byType) && array_key_exists($type, $byType)) {
+            if (is_array($byType) && array_key_exists($type ?? '', $byType)) {
                 return $byType[$type];
             }
         }

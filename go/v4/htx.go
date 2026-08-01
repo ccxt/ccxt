@@ -3313,7 +3313,7 @@ func (this *HtxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		var request any = map[string]any{
 			"period": this.SafeString(this.Timeframes, timeframe, timeframe),
 		}
-		var priceType any = this.SafeStringN(params, []any{"priceType", "price"})
+		var priceType any = this.SafeString2(params, "priceType", "price")
 		params = this.Omit(params, []any{"priceType", "price"})
 		var until any = nil
 		untilparamsVariable := this.HandleParamInteger(params, "until")
@@ -5527,7 +5527,7 @@ func (this *HtxCore) ParseOrder(order any, optionalArgs ...any) any {
 	if IsTrue(isLinearOrder) {
 		typeVar = this.SafeString(order, "type")
 		if IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(typeVar, nil))) || IsTrue((IsEqual(typeVar, "tp")))) || IsTrue((IsEqual(typeVar, "sl")))) || IsTrue((IsEqual(typeVar, "tpsl")))) {
-			typeVar = this.SafeStringN(order, []any{"tp_type", "sl_type"})
+			typeVar = this.SafeString2(order, "tp_type", "sl_type")
 		}
 		if IsTrue(IsEqual(typeVar, "0")) {
 			typeVar = nil
@@ -8111,7 +8111,7 @@ func (this *HtxCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(GetValue(market, "linear")) {
 			if IsTrue(!IsEqual(limit, nil)) {
-				AddElementToObject(request, "limit", limit)
+				AddElementToObject(request, "limit", mathMin(limit, 100)) // max 100
 			}
 			if IsTrue(!IsEqual(since, nil)) {
 				AddElementToObject(request, "start_time", since)
@@ -8569,7 +8569,7 @@ func (this *HtxCore) Sign(path any, optionalArgs ...any) any {
 				request = this.Extend(request, query)
 			}
 			var sortedRequest any = this.Keysort(request)
-			var auth any = this.Urlencode(sortedRequest, true) // true is a go only requirment
+			var auth any = this.Urlencode(sortedRequest, true) // true is a go only requirement
 			// unfortunately, PHP demands double quotes for the escaped newline symbol
 			var content any = []any{method, this.Hostname, url, auth}
 			var payload any = Join(content, "\n") // eslint-disable-line quotes
@@ -10762,7 +10762,7 @@ func (this *HtxCore) ParseLiquidation(liquidation any, optionalArgs ...any) any 
  * @see https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      // Coin-M futures
  * @param {string} symbol unified CCXT market symbol
  * @param {string} side 'buy' or 'sell', the side of the closing order, opposite side as position side
- * @param {object} [params] extra parameters specific to the okx api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
  * @param {object} [params.marginMode] 'cross' or 'isolated', required for linear markets
  *

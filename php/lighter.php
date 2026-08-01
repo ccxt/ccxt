@@ -405,13 +405,13 @@ class lighter extends Exchange {
     }
 
     public function init_auth_object(string $strAccountIndex, string $strApiKeyIndex) {
-        if (!(is_array($this->options) && array_key_exists('auths', $this->options))) {
+        if (!(is_array($this->options) && array_key_exists('auths' ?? '', $this->options))) {
             $this->options['auths'] = array();
         }
-        if (!(is_array($this->options['auths']) && array_key_exists($strAccountIndex, $this->options['auths']))) {
+        if (!(is_array($this->options['auths']) && array_key_exists($strAccountIndex ?? '', $this->options['auths']))) {
             $this->options['auths'][$strAccountIndex] = array();
         }
-        if (!(is_array($this->options['auths'][$strAccountIndex]) && array_key_exists($strApiKeyIndex, $this->options['auths'][$strAccountIndex]))) {
+        if (!(is_array($this->options['auths'][$strAccountIndex]) && array_key_exists($strApiKeyIndex ?? '', $this->options['auths'][$strAccountIndex]))) {
             $this->options['auths'][$strAccountIndex][$strApiKeyIndex] = array(
                 'signer' => null,
                 'lighterPrivateKey' => null,
@@ -422,16 +422,16 @@ class lighter extends Exchange {
     }
 
     public function get_lighter_private_key(string $strAccountIndex, string $strApiKeyIndex) {
-        if (!(is_array($this->options) && array_key_exists('auths', $this->options))) {
+        if (!(is_array($this->options) && array_key_exists('auths' ?? '', $this->options))) {
             return null;
         }
-        if (!(is_array($this->options['auths']) && array_key_exists($strAccountIndex, $this->options['auths']))) {
+        if (!(is_array($this->options['auths']) && array_key_exists($strAccountIndex ?? '', $this->options['auths']))) {
             return null;
         }
-        if (!(is_array($this->options['auths'][$strAccountIndex]) && array_key_exists($strApiKeyIndex, $this->options['auths'][$strAccountIndex]))) {
+        if (!(is_array($this->options['auths'][$strAccountIndex]) && array_key_exists($strApiKeyIndex ?? '', $this->options['auths'][$strAccountIndex]))) {
             return null;
         }
-        if (!(is_array($this->options['auths'][$strAccountIndex][$strApiKeyIndex]) && array_key_exists('lighterPrivateKey', $this->options['auths'][$strAccountIndex][$strApiKeyIndex]))) {
+        if (!(is_array($this->options['auths'][$strAccountIndex][$strApiKeyIndex]) && array_key_exists('lighterPrivateKey' ?? '', $this->options['auths'][$strAccountIndex][$strApiKeyIndex]))) {
             return null;
         }
         return $this->options['auths'][$strAccountIndex][$strApiKeyIndex]['lighterPrivateKey'];
@@ -837,12 +837,12 @@ class lighter extends Exchange {
             } else {
                 $triggerOrderSide = 'buy';
             }
-            $stopLossOrderTriggerPrice = $this->safe_number_n($stopLoss, array( 'triggerPrice', 'stopPrice' ));
+            $stopLossOrderTriggerPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'stopPrice');
             $stopLossOrderType = $this->safe_string($stopLoss, 'type', 'limit');
-            $stopLossOrderLimitPrice = $this->safe_number_n($stopLoss, array( 'price', 'stopLossPrice' ), $stopLossOrderTriggerPrice);
-            $takeProfitOrderTriggerPrice = $this->safe_number_n($takeProfit, array( 'triggerPrice', 'stopPrice' ));
+            $stopLossOrderLimitPrice = $this->safe_number_2($stopLoss, 'price', 'stopLossPrice', $stopLossOrderTriggerPrice);
+            $takeProfitOrderTriggerPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'stopPrice');
             $takeProfitOrderType = $this->safe_string($takeProfit, 'type', 'limit');
-            $takeProfitOrderLimitPrice = $this->safe_number_n($takeProfit, array( 'price', 'takeProfitPrice' ), $takeProfitOrderTriggerPrice);
+            $takeProfitOrderLimitPrice = $this->safe_number_2($takeProfit, 'price', 'takeProfitPrice', $takeProfitOrderTriggerPrice);
             // $amount should be 0 for child $orders
             if ($stopLoss !== null) {
                 $orderObj = $this->create_order_request($symbol, $stopLossOrderType, $triggerOrderSide, 0, $stopLossOrderLimitPrice, $this->extend($params, array(
@@ -868,7 +868,7 @@ class lighter extends Exchange {
         if (($accountIndex === null) || ($apiKeyIndex === null)) {
             throw new ArgumentsRequired($this->id . ' fetchNonce() requires $accountIndex and $apiKeyIndex->');
         }
-        if (is_array($params) && array_key_exists('nonce', $params)) {
+        if (is_array($params) && array_key_exists('nonce' ?? '', $params)) {
             return $this->safe_integer($params, 'nonce');
         }
         $nonceInOptions = $this->safe_integer($this->options, 'nonce');
@@ -3251,7 +3251,7 @@ class lighter extends Exchange {
          * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
          * @param {string} $symbol unified $market $symbol of the $market to set margin in
          * @param {float} $amount the $amount to set the margin to
-         * @param {array} [$params] parameters specific to the bingx api endpoint
+         * @param {array} [$params] parameters specific to the exchange API endpoint
          * @param {string} [$params->accountIndex] account index
          * @param {string} [$params->apiKeyIndex] api key index
          * @return {array} A ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~

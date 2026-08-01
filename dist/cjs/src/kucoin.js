@@ -119,6 +119,7 @@ class kucoin extends kucoin$1["default"] {
                 'fetchTransactionFee': true,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': true,
                 'repayCrossMargin': true,
                 'repayIsolatedMargin': true,
                 'setLeverage': true,
@@ -622,7 +623,7 @@ class kucoin extends kucoin$1["default"] {
                     'order not exist': errors.OrderNotFound,
                     'order not exist.': errors.OrderNotFound, // duplicated error temporarily
                     'order_not_exist': errors.OrderNotFound, // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
-                    'order_not_exist_or_not_allow_to_cancel': errors.InvalidOrder, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
+                    'order_not_exist_or_not_allow_to_cancel': errors.OrderNotFound, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}, same condition as the spaced variant above, see https://github.com/ccxt/ccxt/issues/24154
                     'Order size below the minimum requirement.': errors.InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
                     'Order size increment invalid.': errors.InvalidOrder, // {"msg":"Order size increment invalid.","code":"600100"}
                     'The withdrawal amount is below the minimum requirement.': errors.ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
@@ -897,7 +898,7 @@ class kucoin extends kucoin$1["default"] {
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
-                'timeDifference': 0, // the difference between system clock and Binance clock
+                'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'fetchCurrencies': {
                     'brokenCurrencies': ['00', 'OPEN_ERROR', 'HUF', 'BDT'], // skip buggy entries: https://t.me/KuCoin_API/217798
@@ -2187,7 +2188,7 @@ class kucoin extends kucoin$1["default"] {
      * @name kucoin#loadMigrationStatus
      * @param {boolean} force load account state for non hf
      * @description loads the migration status for the account (hf or not)
-     * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
+     * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-type-spot
      * @returns {any} ignore
      */
     async loadMigrationStatus(force = false) {
@@ -2445,7 +2446,7 @@ class kucoin extends kucoin$1["default"] {
      * @method
      * @name kucoin#fetchTransactionFee
      * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
-     * @see https://docs.kucoin.com/#get-withdrawal-quotas
+     * @see https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-quotas
      * @param {string} code unified currency code
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -4511,7 +4512,7 @@ class kucoin extends kucoin$1["default"] {
                 }
             }
         }
-        // handling with coinditional orders
+        // handling with conditional orders
         const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(params);
         const stopLoss = this.safeDict(params, 'stopLoss');
         const takeProfit = this.safeDict(params, 'takeProfit');
@@ -6711,7 +6712,7 @@ class kucoin extends kucoin$1["default"] {
      * @method
      * @name kucoin#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://docs.kucoin.com/#list-fills
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
      * @see https://www.kucoin.com/docs-new/rest/ua/get-trade-history
@@ -7791,8 +7792,7 @@ class kucoin extends kucoin$1["default"] {
      * @name kucoin#fetchDeposits
      * @description fetch all deposits made to an account
      * @see https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-history
-     * @see https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-list
-     * @see https://www.kucoin.com/docs/rest/funding/deposit/get-v1-historical-deposits-list
+     * @see https://www.kucoin.com/docs-new/abandoned-endpoints/account-funding/get-deposit-history-old
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -7944,8 +7944,7 @@ class kucoin extends kucoin$1["default"] {
      * @name kucoin#fetchWithdrawals
      * @description fetch all withdrawals made from an account
      * @see https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-history
-     * @see https://www.kucoin.com/docs/rest/funding/withdrawals/get-withdrawals-list
-     * @see https://www.kucoin.com/docs/rest/funding/withdrawals/get-v1-historical-withdrawals-list
+     * @see https://www.kucoin.com/docs-new/abandoned-endpoints/account-funding/get-withdrawal-history-old
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -9799,7 +9798,7 @@ class kucoin extends kucoin$1["default"] {
      * @method
      * @name kucoin#fetchDepositWithdrawFees
      * @description fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get more in-depth info
-     * @see https://docs.kucoin.com/#get-currencies
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-currencies
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -11013,6 +11012,49 @@ class kucoin extends kucoin$1["default"] {
             'direction': 'in',
         });
     }
+    /**
+     * @method
+     * @name kucoin#reduceMargin
+     * @description remove margin from a position
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/remove-isolated-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    async reduceMargin(symbol, amount, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const amountString = this.amountToPrecision(symbol, amount);
+        const request = {
+            'symbol': market['id'],
+            'withdrawAmount': amountString,
+        };
+        const response = await this.futuresPrivatePostMarginWithdrawMargin(this.extend(request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": "0.1"
+        //     }
+        //
+        const currencyId = this.safeString(market, 'settle');
+        const responseCode = this.safeString(response, 'code');
+        return {
+            'info': response,
+            'symbol': market['symbol'],
+            'type': 'reduce',
+            'marginMode': 'isolated',
+            'amount': this.parseNumber(amountString),
+            'total': undefined,
+            'code': this.safeCurrencyCode(currencyId),
+            'status': (responseCode === '200000') ? 'ok' : undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+    }
     parseMarginModification(info, market = undefined) {
         //
         //    {
@@ -11163,7 +11205,7 @@ class kucoin extends kucoin$1["default"] {
      * @description set hedged to true or false for a market
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-position-mode
      * @param {bool} hedged set to true to use two way position
-     * @param {string} [symbol] not used by bybit setPositionMode ()
+     * @param {string} [symbol] not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a response from the exchange
      */
@@ -11212,7 +11254,7 @@ class kucoin extends kucoin$1["default"] {
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} side not used by kucoin closePositions
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id of the order
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */

@@ -66,28 +66,28 @@ func (this *Gate) FetchSpotMarkets(params ...any) ([]map[string]any, error) {
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMapArray(res), nil
 }
 func (this *Gate) FetchSwapMarkets(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchSwapMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMapArray(res), nil
 }
 func (this *Gate) FetchFutureMarkets(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchFutureMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMapArray(res), nil
 }
 func (this *Gate) FetchOptionMarkets(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchOptionMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]any), nil
+	return NewMapArray(res), nil
 }
 func (this *Gate) FetchOptionUnderlyings() ([]string, error) {
 	res := <-this.Core.FetchOptionUnderlyings()
@@ -2171,7 +2171,7 @@ func (this *Gate) FetchOptionChain(code string, options ...FetchOptionChainOptio
  * @param {string[]} symbols unified conract symbols, must all have the same settle currency and the same market type
  * @param {int} [since] the earliest time in ms to fetch positions for
  * @param {int} [limit] the maximum amount of records to fetch, default=1000
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch positions for
  *
  * EXCHANGE SPECIFIC PARAMETERS

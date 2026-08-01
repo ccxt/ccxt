@@ -17,6 +17,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class weex extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -481,7 +483,7 @@ class weex extends Exchange {
             ),
             'options' => array(
                 'partner' => 'b-WEEX111125',
-                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'accountsByType' => array(
                     'spot' => 'spot',
@@ -700,7 +702,7 @@ class weex extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
              */
             $response = Async\await($this->publicGetApiV3Ping($params));
-            // reutns an empty $response if the exchange is alive, otherwise will trigger an error
+            // returns an empty $response if the exchange is alive, otherwise will trigger an error
             return array(
                 'status' => 'ok',
                 'updated' => null,
@@ -1265,6 +1267,7 @@ class weex extends Exchange {
         }
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $timestamp = $this->safe_integer_2($ticker, 'closeTime', 'time');
+        $percentage = Precise::string_mul($this->safe_string($ticker, 'priceChangePercent'), '100');
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
@@ -1281,7 +1284,7 @@ class weex extends Exchange {
             'last' => $this->safe_string($ticker, 'lastPrice'),
             'previousClose' => null,
             'change' => $this->safe_string($ticker, 'priceChange'),
-            'percentage' => $this->safe_string($ticker, 'priceChangePercent'),
+            'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $this->safe_string($ticker, 'volume'),
             'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),

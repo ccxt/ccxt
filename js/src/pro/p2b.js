@@ -186,8 +186,8 @@ export default class p2b extends p2bRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return await this.watchTradesForSymbols([symbol], since, limit, params);
+    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -419,6 +419,7 @@ export default class p2b extends p2bRest {
         //    }
         //
         const params = this.safeList(message, 'params', []);
+        const isFullUpdate = this.safeBool(params, 0, false);
         const data = this.safeDict(params, 1);
         const asks = this.safeList(data, 'asks');
         const bids = this.safeList(data, 'bids');
@@ -432,6 +433,13 @@ export default class p2b extends p2bRest {
         if (orderbook === undefined) {
             this.orderbooks[symbol] = this.orderBook({}, limit);
             orderbook = this.orderbooks[symbol];
+        }
+        if (isFullUpdate) {
+            // the first parameter signals whether the message carries all
+            // records or only the changed ones, a full set replaces the book,
+            // otherwise stale levels that left the depth window would linger
+            // and cross the book, see https://github.com/ccxt/ccxt/issues/24944
+            orderbook.reset({});
         }
         if (bids !== undefined) {
             for (let i = 0; i < bids.length; i++) {

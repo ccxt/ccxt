@@ -18,6 +18,8 @@ use React\Async;
 use React\Promise;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class phemex extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -223,7 +225,7 @@ class phemex extends Exchange {
                         'api-data/g-futures/trades' => 5, // ?symbol=<symbol>
                         'api-data/futures/trading-fees' => 5, // ?symbol=<symbol>
                         'api-data/g-futures/trading-fees' => 5, // ?symbol=<symbol>
-                        'api-data/futures/v2/tradeAccountDetail' => 5, // ?currency=<currecny>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
+                        'api-data/futures/v2/tradeAccountDetail' => 5, // ?currency=<currency>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
                         'api-data/g-futures/closedPosition' => 5,
                         'g-orders/activeList' => 1, // ?symbol=<symbol>
                         'orders/activeList' => 1, // ?symbol=<symbol>
@@ -710,7 +712,7 @@ class phemex extends Exchange {
         if ($settleId !== $quoteId) {
             $inverse = true;
             // some unhandled cases
-            if (!(is_array($market) && array_key_exists('baseCurrency', $market)) && $base === $quote) {
+            if (!(is_array($market) && array_key_exists('baseCurrency' ?? '', $market)) && $base === $quote) {
                 $base = $settle;
             }
         }
@@ -2652,7 +2654,7 @@ class phemex extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         $isSwap = $this->safe_bool($market, 'swap', false);
-        $hasPnl = (is_array($order) && array_key_exists('closedPnl', $order)) || (is_array($order) && array_key_exists('closedPnlRv', $order)) || (is_array($order) && array_key_exists('totalPnlRv', $order));
+        $hasPnl = (is_array($order) && array_key_exists('closedPnl' ?? '', $order)) || (is_array($order) && array_key_exists('closedPnlRv' ?? '', $order)) || (is_array($order) && array_key_exists('totalPnlRv' ?? '', $order));
         if ($isSwap || $hasPnl) {
             return $this->parse_swap_order($order, $market);
         }
@@ -2770,10 +2772,10 @@ class phemex extends Exchange {
                         }
                     }
                     $cost = ($cost === null) ? $amount : $cost;
-                    $costString = $this->number_to_string($cost);
+                    $costString = $this->cost_to_precision($symbol, $cost);
                     $request['quoteQtyEv'] = $this->to_ev($costString, $market);
                 } else {
-                    $amountString = $this->number_to_string($amount);
+                    $amountString = $this->amount_to_precision($symbol, $amount);
                     $request['baseQtyEv'] = $this->to_ev($amountString, $market);
                 }
             } elseif ($market['swap']) {
@@ -4006,7 +4008,7 @@ class phemex extends Exchange {
              * @param {string} $symbol unified contract $symbol
              * @param {int} [$since] the earliest time in ms to fetch $positions for
              * @param {int} [$limit] the maximum amount of records to fetch
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch $positions for
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
              */
@@ -4570,7 +4572,7 @@ class phemex extends Exchange {
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#switch-position-mode-synchronously
              *
              * @param {bool} $hedged set to true to use dualSidePosition
-             * @param {string} $symbol not used by binance setPositionMode ()
+             * @param {string} $symbol not used by setPositionMode ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} response from the exchange
              */
@@ -5141,7 +5143,7 @@ class phemex extends Exchange {
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
-             * @param {array} [$params] extra parameters specific to the phemex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->network] unified network $code
              * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
              */

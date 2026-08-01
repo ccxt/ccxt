@@ -2321,7 +2321,6 @@ class cryptocom extends cryptocom$1["default"] {
         const timestamp = this.safeInteger(ticker, 't');
         const marketId = this.safeString(ticker, 'i');
         market = this.safeMarket(marketId, market, '_');
-        const quote = this.safeString(market, 'quote');
         const last = this.safeString(ticker, 'a');
         return this.safeTicker({
             'symbol': market['symbol'],
@@ -2342,7 +2341,7 @@ class cryptocom extends cryptocom$1["default"] {
             'percentage': this.safeString(ticker, 'c'),
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'v'),
-            'quoteVolume': (quote === 'USD') ? this.safeString(ticker, 'vv') : undefined,
+            'quoteVolume': (market['quote'] === 'USD') ? this.safeString(ticker, 'vv') : undefined,
             'info': ticker,
         }, market);
     }
@@ -3418,7 +3417,7 @@ class cryptocom extends cryptocom$1["default"] {
      * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by cryptocom.closePositions
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.type] LIMIT or MARKET

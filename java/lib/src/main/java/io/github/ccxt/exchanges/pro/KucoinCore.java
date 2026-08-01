@@ -36,7 +36,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 put( "watchOrderBook", true );
                 put( "watchOrders", true );
                 put( "watchPosition", true );
-                put( "watchPositions", false );
+                put( "watchPositions", true );
                 put( "watchMyTrades", true );
                 put( "watchTickers", true );
                 put( "watchTicker", true );
@@ -51,7 +51,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 put( "unWatchOHLCV", true );
                 put( "unWatchOrderBook", true );
                 put( "unWatchTrades", true );
-                put( "unWatchhTradesForSymbols", true );
+                put( "unWatchTradesForSymbols", true );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
                 put( "api", new java.util.HashMap<String, Object>() {{
@@ -438,7 +438,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("ticker:", symbol);
@@ -488,7 +491,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object isFuturesMethod = Helpers.GetValue(market, "contract");
@@ -557,7 +563,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, true, true);
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object marketType = null;
@@ -669,7 +678,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false, true);
             Object messageHash = "uta:ticker";
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -929,7 +941,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false, true, false);
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object isFuturesMethod = Helpers.GetValue(firstMarket, "contract");
@@ -957,7 +972,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false, true, false);
             Object length = Helpers.getArrayLength((java.util.List<String>)(symbols));
             if (Helpers.isTrue(Helpers.isGreaterThan(length, 100)))
@@ -1094,7 +1112,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object period = this.safeString(this.timeframes, timeframe, timeframe);
@@ -1154,7 +1175,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object symbol = symbol3;
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object uta = false;
@@ -1384,7 +1408,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false, true);
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object isFuturesMethod = Helpers.GetValue(firstMarket, "contract");
@@ -1433,7 +1460,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbols = symbols3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false, true);
             Object marketIds = this.marketIds(symbols);
             Object firstMarket = this.getMarketFromSymbols(symbols);
@@ -1729,10 +1759,13 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
     /**
      * @method
      * @name kucoin#unWatchOrderBook
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+     * @see https://www.kucoin.com/docs-new/3470069w0 // spot level 5
+     * @see https://www.kucoin.com/docs-new/3470070w0 // spot level 50
+     * @see https://www.kucoin.com/docs-new/3470068w0 // spot incremental
+     * @see https://www.kucoin.com/docs-new/3470083w0 // futures level 5
+     * @see https://www.kucoin.com/docs-new/3470097w0 // futures level 50
+     * @see https://www.kucoin.com/docs-new/3470082w0 // futures incremental
+     * @see https://www.kucoin.com/docs-new/3470221w0 // uta
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1816,7 +1849,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                     throw new ExchangeError((String)Helpers.add(this.id, " watchOrderBook 'limit' argument must be undefined, 5, 20, 50 or 100")) ;
                 }
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object marketIds = this.marketIds(symbols);
             Object firstMarket = this.getMarketFromSymbols(symbols);
@@ -1888,7 +1924,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object limit = this.safeInteger(parameters, "limit");
             parameters = this.omit(parameters, "limit");
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false, true);
             Object marketIds = this.marketIds(symbols);
             Object firstMarket = this.getMarketFromSymbols(symbols);
@@ -2312,7 +2351,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object uta = (this.isUTAEnabled()).join();
             var utaparametersVariable = this.handleOptionAndParams(parameters, "watchOrders", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
@@ -2749,7 +2791,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object messageHash = "myTrades";
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -3001,7 +3046,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object uta = (this.isUTAEnabled()).join();
             var utaparametersVariable = this.handleOptionAndParams(parameters, "watchBalance", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
@@ -3285,7 +3333,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchPosition() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object url = (this.negotiate(true)).join();
             Object market = this.market(symbol);
             Object topic = Helpers.add("/contract/position:", Helpers.GetValue(market, "id"));
@@ -3329,7 +3380,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object uta = (this.isUTAEnabled()).join();
             var utaparametersVariable = this.handleOptionAndParams(parameters, "watchPositions", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
@@ -3722,7 +3776,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbol = this.safeSymbol(symbol);
             Object channel = "funding-fee";
             Object messageHash = Helpers.add("fundingRate:", symbol);
@@ -3746,7 +3803,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbol = this.safeSymbol(symbol);
             Object channel = "funding-fee";
             Object subMessageHash = Helpers.add("fundingRate:", symbol);
@@ -3844,7 +3904,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbol = this.safeSymbol(symbol);
             Object channel = "mark-price";
             Object messageHash = Helpers.add("uta:ticker:", symbol);
@@ -3868,7 +3931,10 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbol = this.safeSymbol(symbol);
             Object channel = "mark-price";
             Object subMessageHash = Helpers.add("uta:ticker:", symbol);

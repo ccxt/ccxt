@@ -746,15 +746,9 @@ class coinex(Exchange, ImplicitAPI):
 
     def parse_currency(self, coin) -> Currency:
         asset = self.safe_dict(coin, 'asset', {})
-        chains = self.safe_list(coin, 'chains', [])
         currencyId = self.safe_string(asset, 'ccy')
-        if currencyId is None:
-            return None  # coinex returns empty structures for some reason
+        chains = self.safe_list(coin, 'chains', [])
         code = self.safe_currency_code(currencyId)
-        canDeposit = self.safe_bool(asset, 'deposit_enabled')
-        canWithdraw = self.safe_bool(asset, 'withdraw_enabled')
-        firstChain = self.safe_dict(chains, 0, {})
-        firstPrecisionString = self.parse_precision(self.safe_string(firstChain, 'withdrawal_precision'))
         networks = {}
         for j in range(0, len(chains)):
             chain = chains[j]
@@ -762,32 +756,26 @@ class coinex(Exchange, ImplicitAPI):
             networkCode = self.network_id_to_code(networkId, code)
             if networkId is None:
                 continue
-            precisionString = self.parse_precision(self.safe_string(chain, 'withdrawal_precision'))
-            feeString = self.safe_string(chain, 'withdrawal_fee')
-            minNetworkDepositString = self.safe_string(chain, 'min_deposit_amount')
-            minNetworkWithdrawString = self.safe_string(chain, 'min_withdraw_amount')
-            canDepositChain = self.safe_bool(chain, 'deposit_enabled')
-            canWithdrawChain = self.safe_bool(chain, 'withdraw_enabled')
             network = {
                 'id': networkId,
                 'network': networkCode,
                 'name': None,
-                'active': canDepositChain and canWithdrawChain,
-                'deposit': canDepositChain,
-                'withdraw': canWithdrawChain,
-                'fee': self.parse_number(feeString),
-                'precision': self.parse_number(precisionString),
+                'active': None,
+                'deposit': self.safe_bool(chain, 'deposit_enabled'),
+                'withdraw': self.safe_bool(chain, 'withdraw_enabled'),
+                'fee': self.safe_number(chain, 'withdrawal_fee'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawal_precision'))),
                 'limits': {
                     'amount': {
                         'min': None,
                         'max': None,
                     },
                     'deposit': {
-                        'min': self.parse_number(minNetworkDepositString),
+                        'min': self.safe_number(chain, 'min_deposit_amount'),
                         'max': None,
                     },
                     'withdraw': {
-                        'min': self.parse_number(minNetworkWithdrawString),
+                        'min': self.safe_number(chain, 'min_withdraw_amount'),
                         'max': None,
                     },
                 },
@@ -798,11 +786,11 @@ class coinex(Exchange, ImplicitAPI):
             'id': currencyId,
             'code': code,
             'name': None,
-            'active': canDeposit and canWithdraw,
-            'deposit': canDeposit,
-            'withdraw': canWithdraw,
+            'active': None,
+            'deposit': self.safe_bool(asset, 'deposit_enabled'),
+            'withdraw': self.safe_bool(asset, 'withdraw_enabled'),
             'fee': None,
-            'precision': self.parse_number(firstPrecisionString),
+            'precision': None,
             'limits': {
                 'amount': {
                     'min': None,
@@ -1060,7 +1048,11 @@ class coinex(Exchange, ImplicitAPI):
         #
         marketType = 'swap' if ('mark_price' in ticker) else 'spot'
         marketId = self.safe_string(ticker, 'market')
-        symbol = self.safe_symbol(marketId, market, None, marketType)
+        market = self.safe_market(marketId, market, None, marketType)
+        symbol = market['symbol']
+        # on inverse contracts 'value' is denominated in the settle currency, not
+        # the quote, so it is the quote volume only for spot and linear markets
+        quoteVolume = None if market['inverse'] else self.safe_string(ticker, 'value')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': None,
@@ -1080,7 +1072,7 @@ class coinex(Exchange, ImplicitAPI):
             'percentage': None,
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volume'),
-            'quoteVolume': None,
+            'quoteVolume': quoteVolume,
             'markPrice': self.safe_string(ticker, 'mark_price'),
             'indexPrice': self.safe_string(ticker, 'index_price'),
             'info': ticker,

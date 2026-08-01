@@ -12,6 +12,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class zaif extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -340,7 +342,7 @@ class zaif extends Exchange {
             $account['free'] = $balance;
             $account['total'] = $balance;
             if ($deposit !== null) {
-                if (is_array($deposit) && array_key_exists($currencyId, $deposit)) {
+                if (is_array($deposit) && array_key_exists($currencyId ?? '', $deposit)) {
                     $account['total'] = $this->safe_string($deposit, $currencyId);
                 }
             }
@@ -592,7 +594,7 @@ class zaif extends Exchange {
              *
              * cancels an open order
              * @param {string} $id order $id
-             * @param {string} $symbol not used by zaif cancelOrder ()
+             * @param {string} $symbol not used by cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
