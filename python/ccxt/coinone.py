@@ -1009,7 +1009,7 @@ class coinone(Exchange, ImplicitAPI):
             feeCurrencyCode = quote if (side == 'sell') else base
             fee = {
                 'cost': feeCostString,
-                'rate': self.safe_string(order, 'feeRate'),
+                'rate': self.safe_string_2(order, 'feeRate', 'fee_rate'),
                 'currency': feeCurrencyCode,
             }
         return self.safe_order({
@@ -1027,9 +1027,9 @@ class coinone(Exchange, ImplicitAPI):
             'price': self.safe_string(order, 'price'),
             'triggerPrice': None,
             'cost': None,
-            'average': self.safe_string(order, 'averageExecutedPrice'),
+            'average': self.safe_string_2(order, 'averageExecutedPrice', 'average_executed_price'),
             'amount': amountString,
-            'filled': self.safe_string(order, 'executedQty'),
+            'filled': self.safe_string_2(order, 'executedQty', 'executed_qty'),
             'remaining': remainingString,
             'status': status,
             'fee': fee,
