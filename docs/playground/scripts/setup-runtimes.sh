@@ -104,7 +104,15 @@ func main() { _ = ccxt.NewBinance(nil) }
 GO
   echo "$GOBIN" > "$GO_ROOT/.gobin"
   export GOCACHE="$GO_ROOT/.cache" GOMODCACHE="$GO_ROOT/.modcache" GOPATH="$GO_ROOT/.gopath" GOTOOLCHAIN=auto GOFLAGS=-mod=mod
-  ( cd "$GO_ROOT" && "$GOBIN" mod tidy && "$GOBIN" build ./runs/warmup ) && echo "    go ccxt build cache warmed ($GOBIN)"
+  if ( cd "$GO_ROOT" && "$GOBIN" mod tidy && "$GOBIN" build ./runs/warmup ); then
+    echo "    go ccxt build cache warmed ($GOBIN)"
+  else
+    # The runner treats a present go.mod as "provisioned" — leaving it behind
+    # after a failed warm gives users raw compile errors instead of the clean
+    # provision message, and go run without go.sum can't work at all.
+    echo "    warning: go warm build failed (Go tab will show the provision message)"
+    rm -f "$GO_ROOT/go.mod" "$GO_ROOT/go.sum"
+  fi
   rm -rf "$GO_ROOT/runs/warmup" "$GO_ROOT/warmup"
 else
   echo "    no Go >= 1.24 found — the Go tab will show a 'provision' message until one is installed"
