@@ -1981,6 +1981,9 @@
     },
     "okxus": {
         "skipCSharp": true,
+        "loadMarkets": {
+
+        },
         "skipMethods": {
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
