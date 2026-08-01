@@ -60,7 +60,12 @@ else
   echo "    composer not found — runner will fall back to monorepo ../../ccxt.php"
 fi
 
-CCXT_GO_VERSION="${CCXT_GO_VERSION:-v4.5.56}"
+# Pseudo-version of master @ 6654bd39a17c (#29357) — the first ccxt-go with
+# Proxy: http.ProxyFromEnvironment on its transport. Every tagged release up to
+# v4.5.70 dials direct, ignoring HTTP(S)_PROXY, so behind the playground's
+# egress proxy (internal network, squid allowlist) all exchange calls fail with
+# a DNS error. Move this back to a normal release pin once the next tag is cut.
+CCXT_GO_VERSION="${CCXT_GO_VERSION:-v4.5.71-0.20260730115723-6654bd39a17c}"
 CCXT_NUGET_VERSION="${CCXT_NUGET_VERSION:-}" # empty = latest
 
 echo "==> Go runtime (runtime/go) — warms the ccxt build cache (~45s cold)"
