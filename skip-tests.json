@@ -1137,6 +1137,7 @@
     },
     "derive": {
         "skipMethods": {
+            "features": "not implemented",
             "loadMarkets": {
                 "currency": "messed",
                 "currencyIdAndCode": "messed"

@@ -33,7 +33,7 @@ export default class derive extends Exchange {
                 'margin': false,
                 'swap': true,
                 'future': false,
-                'option': false,
+                'option': true,
                 'addMargin': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
