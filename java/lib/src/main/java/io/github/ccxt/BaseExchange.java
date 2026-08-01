@@ -277,16 +277,16 @@ public class BaseExchange {
 
         // credentials init
         this.requiredCredentials = (Map<String, Object>) SafeMethods.SafeValue(extendedProperties, "requiredCredentials");
-        this.apiKey        = SafeMethods.SafeStringTyped(extendedProperties, "apiKey", null);
-        this.secret        = SafeMethods.SafeStringTyped(extendedProperties, "secret", null   );
-        this.password      = SafeMethods.SafeStringTyped(extendedProperties, "password", null);
-        this.login         = SafeMethods.SafeStringTyped(extendedProperties, "login", null );
-        this.twofa         = SafeMethods.SafeStringTyped(extendedProperties, "twofa", null );
-        this.privateKey    = SafeMethods.SafeStringTyped(extendedProperties, "privateKey", null );
-        this.walletAddress = SafeMethods.SafeStringTyped(extendedProperties, "walletAddress", null );
-        this.token         = SafeMethods.SafeStringTyped(extendedProperties, "token", null );
-        this.uid           = SafeMethods.SafeStringTyped(extendedProperties, "uid", null);
-        this.accountId     = SafeMethods.SafeStringTyped(extendedProperties, "accountId", null );
+        this.apiKey        = SafeMethods.SafeStringTyped(extendedProperties, "apiKey");
+        this.secret        = SafeMethods.SafeStringTyped(extendedProperties, "secret");
+        this.password      = SafeMethods.SafeStringTyped(extendedProperties, "password");
+        this.login         = SafeMethods.SafeStringTyped(extendedProperties, "login");
+        this.twofa         = SafeMethods.SafeStringTyped(extendedProperties, "twofa");
+        this.privateKey    = SafeMethods.SafeStringTyped(extendedProperties, "privateKey");
+        this.walletAddress = SafeMethods.SafeStringTyped(extendedProperties, "walletAddress");
+        this.token         = SafeMethods.SafeStringTyped(extendedProperties, "token");
+        this.uid           = SafeMethods.SafeStringTyped(extendedProperties, "uid");
+        this.accountId     = SafeMethods.SafeStringTyped(extendedProperties, "accountId");
 
         var userAgentRes = this.safeValue(extendedProperties, "userAgents", this.userAgents);
         this.userAgents = (Map<String, Object>) userAgentRes;
@@ -1673,10 +1673,10 @@ public class BaseExchange {
                     Object ws = this.safeValue(this.options, "ws", new java.util.HashMap<String, Object>());
                     Object wsOptions = this.safeValue(ws, "options", new java.util.HashMap<String, Object>());
                     long keepAlive = 30000;
-                    Object keepAliveObj = this.safeValue(wsOptions, "keepAlive", null);
+                    Object keepAliveObj = this.safeValue(wsOptions, "keepAlive");
                     if (keepAliveObj instanceof Number n) keepAlive = n.longValue();
                     boolean decompressBin = true;
-                    Object decompressObj = this.safeValue(this.options, "decompressBinary", null);
+                    Object decompressObj = this.safeValue(this.options, "decompressBinary");
                     if (decompressObj instanceof Boolean b) decompressBin = b;
 
                     var result = this.checkWsProxySettings();
@@ -1697,7 +1697,7 @@ public class BaseExchange {
 
                     // Forward options.ws.options.headers to the upgrade request — required
                     // by exchanges that gate on User-Agent (weex) or send custom headers.
-                    Object headers = this.safeValue(wsOptions, "headers", null);
+                    Object headers = this.safeValue(wsOptions, "headers");
                     if (headers instanceof java.util.Map<?, ?> m) {
                         java.util.Map<String, String> hh = new java.util.HashMap<>();
                         for (java.util.Map.Entry<?, ?> e : m.entrySet()) {
