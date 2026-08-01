@@ -584,7 +584,7 @@ func (this *KucoinCore) Describe() any {
 				"order not exist":                                          OrderNotFound,
 				"order not exist.":                                         OrderNotFound,
 				"order_not_exist":                                          OrderNotFound,
-				"order_not_exist_or_not_allow_to_cancel":                   InvalidOrder,
+				"order_not_exist_or_not_allow_to_cancel":                   OrderNotFound,
 				"Order size below the minimum requirement.":                InvalidOrder,
 				"Order size increment invalid.":                            InvalidOrder,
 				"The withdrawal amount is below the minimum requirement.":  ExchangeError,
