@@ -312,13 +312,7 @@ class NewTranspiler {
                 && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken || parent.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken)
                 && parent?.left === node;
             if (isLeftSideOfAssignment && csharp.ELEMENT_ACCESS_WRAPPER_OPEN && csharp.ELEMENT_ACCESS_WRAPPER_CLOSE) {
-                // the TypeChecker is exposed by the transpiler instance - skip this
-                // workaround gracefully when it is not available
-                const checker = (typeof (csharp as any).getChecker === 'function') ? (csharp as any).getChecker () : undefined;
-                if (!checker) {
-                    return undefined;
-                }
-                const type = checker.getTypeAtLocation (argumentExpression);
+                const type = (csharp as any).getChecker ().getTypeAtLocation (argumentExpression);
                 const isUnion = ((type.flags & ts.TypeFlags.Union) !== 0) && Array.isArray (type.types);
                 if (isUnion && type.types.some ((t: any) => csharp.isStringType (t.flags))) {
                     const expressionAsString = csharp.printNode (expression, 0);
