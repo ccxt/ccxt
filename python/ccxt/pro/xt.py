@@ -445,7 +445,7 @@ class xt(ccxt.async_support.xt):
         :param int [limit]: not used by xt watchOrderBook
         :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.levels]: 5, 10, 20, or 50
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
