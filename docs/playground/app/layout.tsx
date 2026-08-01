@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "CCXT Playground",
   description:
-    "Run CCXT against live public exchange endpoints in JavaScript, Python and PHP — with an AI assistant.",
+    "Run CCXT against live public exchange endpoints in TypeScript, Python and PHP — with an AI assistant.",
 };
 
 // Runs before paint: pick saved theme, else system preference, else dark.
