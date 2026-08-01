@@ -985,10 +985,11 @@ export default class derive extends Exchange {
         let result = [];
         for (let i = 0; i < trades.length; i++) {
             const parsed = this.parseTrade (trades[i], market);
-            if (parsed['takerOrMaker'] !== 'maker') {
-                const trade = this.extend (parsed, params);
-                result.push (trade);
+            if (parsed === undefined){
+                continue;
             }
+            const trade = this.extend (parsed, params);
+            result.push (trade);
         }
         result = this.sortBy2 (result, 'timestamp', 'id');
         const symbol = this.safeString (market, 'symbol');
@@ -1026,6 +1027,7 @@ export default class derive extends Exchange {
         //     "extra_fee": "0",                                         // only fetchTrades
         // }
         //
+        const isFetchTrades = !('order_id' in trade);
         const marketId = this.safeString (trade, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (trade, 'timestamp');
@@ -1033,6 +1035,11 @@ export default class derive extends Exchange {
             'currency': 'USDC',
             'cost': this.safeString (trade, 'trade_fee'),
         };
+        const takerOrMaker = this.safeString (trade, 'liquidity_role');
+        if (isFetchTrades && (takerOrMaker === 'maker')) {
+            // skip maker trades
+            return undefined;
+        }
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'trade_id'),
