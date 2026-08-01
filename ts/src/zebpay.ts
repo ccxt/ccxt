@@ -1077,7 +1077,7 @@ export default class zebpay extends Exchange {
 
     orderRequest (symbol, type, amount, request, price = undefined, params = {}) {
         const upperCaseType = type.toUpperCase ();
-        const triggerPrice = this.safeString (params, 'stopLossPrice', undefined);
+        const triggerPrice = this.safeString (params, 'stopLossPrice');
         const quoteOrderQty = this.safeString2 (params, 'quoteOrderQty', 'cost', undefined);
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
         const clientOrderId = this.safeString (params, 'clientOrderId', this.uuid ());
@@ -1330,7 +1330,7 @@ export default class zebpay extends Exchange {
         const clientOrderId = this.safeString (order, 'clientOrderId');
         const timeInForce = this.safeString (order, 'timeInForce');
         const status = this.safeStringLower (order, 'status');
-        const orderId = this.safeString (order, 'orderId', undefined);
+        const orderId = this.safeString (order, 'orderId');
         const parsedOrder = this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,

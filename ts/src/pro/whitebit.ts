@@ -328,7 +328,7 @@ export default class whitebit extends whitebitRest {
         //
         const tickers = this.safeValue (message, 'params', []);
         const marketId = this.safeString (tickers, 0);
-        const market = this.safeMarket (marketId, undefined);
+        const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const rawTicker = this.safeValue (tickers, 1, {});
         const messageHash = 'ticker' + ':' + symbol;
