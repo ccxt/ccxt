@@ -37,8 +37,10 @@ function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
     }
+    // overwriteFile() already opens+truncates+writes the file; the extra
+    // fs.writeFileSync below wrote every generated file a second time
+    // (~50 MB of redundant I/O per full build)
     overwriteFile (path, content);
-    fs.writeFileSync (path, content);
 }
 
 // this is necessary because for some reason
@@ -94,6 +96,10 @@ class NewTranspiler {
     // true while transpiling the prediction-market exchanges (ts/src/prediction/),
     // which live in the ccxt.prediction / ccxt.prediction.pro namespaces
     isPrediction = false;
+    // set once PredictionExchange.cs has been emitted in this process. A full run reaches
+    // transpilePredictionBaseMethods twice (recursive prediction pass, then the main pass)
+    // with identical inputs, so the second call would only rewrite the same bytes.
+    private _predictionBaseWritten = false;
 
     constructor() {
 
@@ -1052,6 +1058,7 @@ class NewTranspiler {
             const wrapperPartial = '\n\npublic partial class PredictionExchange\n{\n' + typedWrappers + '\n}\n';
             const file = fileHeader + fields + baseMethods + "\n" + wrapperPartial;
             fs.writeFileSync (predictionBase, file);
+            this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
         }
     }
@@ -1197,7 +1204,11 @@ class NewTranspiler {
 
         this.transpileBaseMethods (exchangeBase, force)
 
-        this.transpilePredictionBaseMethods (undefined, force)
+        // the recursive prediction pass above already regenerated PredictionExchange.cs from
+        // the same inputs, so this second call would re-transpile and rewrite identical bytes
+        if (!this._predictionBaseWritten) {
+            this.transpilePredictionBaseMethods (undefined, force)
+        }
 
         if (baseOnly) {
             return;
