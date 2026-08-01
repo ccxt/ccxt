@@ -324,12 +324,12 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>undefined</code> | Yes | bitso does not support canceling orders for only a specific market |
+| symbol | <code>string</code> | No | bitso does not support canceling orders for only a specific market |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitso.cancelAllOrders (symbol, params?)
+bitso.cancelAllOrders (symbol?, params?)
 ```
 
 

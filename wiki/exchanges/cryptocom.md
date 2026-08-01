@@ -384,12 +384,12 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the orders to cancel |
+| symbol | <code>string</code> | No | unified market symbol of the orders to cancel |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-cryptocom.cancelAllOrders (symbol, params?)
+cryptocom.cancelAllOrders (symbol?, params?)
 ```
 
 

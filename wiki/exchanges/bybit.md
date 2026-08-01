@@ -759,7 +759,7 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>boolean</code> | No | true if trigger order |
 | params.stop | <code>boolean</code> | No | alias for trigger |
@@ -770,7 +770,7 @@ cancel all open orders
 
 
 ```javascript
-bybit.cancelAllOrders (symbol, params?)
+bybit.cancelAllOrders (symbol?, params?)
 ```
 
 

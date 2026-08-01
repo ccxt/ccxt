@@ -198,12 +198,12 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined |
+| symbol | <code>string</code> | No | unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-blockchaincom.cancelAllOrders (symbol, params?)
+blockchaincom.cancelAllOrders (symbol?, params?)
 ```
 
 

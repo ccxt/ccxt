@@ -143,7 +143,7 @@ cancel all open orders in a market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders |
+| symbol | <code>string</code> | No | alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
@@ -208,6 +208,7 @@ cancel all open orders in a market
 * [woo](/exchanges/woo.md#cancelallorders)
 * [woofipro](/exchanges/woofipro.md#cancelallorders)
 * [xt](/exchanges/xt.md#cancelallorders)
+* [zebpay](/exchanges/zebpay.md#cancelallorders)
 
 ---
 
@@ -530,7 +531,6 @@ cancel multiple orders
 * [weex](/exchanges/weex.md#cancelorders)
 * [woofipro](/exchanges/woofipro.md#cancelorders)
 * [xt](/exchanges/xt.md#cancelorders)
-* [zebpay](/exchanges/zebpay.md#cancelorders)
 
 ---
 

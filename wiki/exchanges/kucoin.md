@@ -1094,7 +1094,7 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | 'spot' or 'swap', used if symbol is not provided (default is 'spot') |
 | params.marginMode | <code>string</code> | No | *spot only* 'cross' or 'isolated' |
@@ -1102,7 +1102,7 @@ cancel all open orders
 
 
 ```javascript
-kucoin.cancelAllOrders (symbol, params?)
+kucoin.cancelAllOrders (symbol?, params?)
 ```
 
 

@@ -579,12 +579,12 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled) |
+| symbol | <code>string</code> | No | unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-kraken.cancelAllOrders (symbol, params?)
+kraken.cancelAllOrders (symbol?, params?)
 ```
 
 

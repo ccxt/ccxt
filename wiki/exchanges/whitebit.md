@@ -559,14 +559,14 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | market type, ['swap', 'spot'] |
 | params.isMargin | <code>boolean</code> | No | cancel all margin orders |
 
 
 ```javascript
-whitebit.cancelAllOrders (symbol, params?)
+whitebit.cancelAllOrders (symbol?, params?)
 ```
 
 

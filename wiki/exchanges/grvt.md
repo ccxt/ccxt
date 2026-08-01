@@ -612,12 +612,12 @@ cancel all open orders in a market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | cancel alls open orders |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-grvt.cancelAllOrders (symbol, params?)
+grvt.cancelAllOrders (symbol?, params?)
 ```
 
 

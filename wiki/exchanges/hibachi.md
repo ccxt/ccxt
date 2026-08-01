@@ -316,12 +316,12 @@ cancel all open orders in a market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbol | <code>string</code> | No | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-hibachi.cancelAllOrders (symbol, params?)
+hibachi.cancelAllOrders (symbol?, params?)
 ```
 
 
