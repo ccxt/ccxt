@@ -865,7 +865,9 @@ export default class coinone extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        if (type !== 'limit') {
+        const orderType = (type as string).toUpperCase (); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+        const orderSide = (side as string).toUpperCase (); // unified lowercase order sides, same override rule
+        if (orderType !== 'LIMIT') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
         if (this.markets === undefined) {
@@ -878,8 +880,8 @@ export default class coinone extends Exchange {
         const request: Dict = {
             'quote_currency': market['quoteId'],
             'target_currency': market['baseId'],
-            'type': 'LIMIT',
-            'side': (side === 'buy') ? 'BUY' : 'SELL',
+            'type': orderType,
+            'side': orderSide,
             'price': this.priceToPrecision (symbol, price),
             'qty': this.amountToPrecision (symbol, amount),
         };
@@ -1015,18 +1017,14 @@ export default class coinone extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.safeInteger2 (order, 'ordered_at', 'updated_at'); // v2.1 sends milliseconds
         }
-        let side = this.safeString2 (order, 'type', 'side');
-        if ((side === 'LIMIT') || (side === 'MARKET') || (side === 'STOP_LIMIT')) {
-            side = this.safeString (order, 'side'); // in v2.1 rows the type field carries the order type, the side lives in side
+        let side = this.safeStringLower2 (order, 'type', 'side');
+        if ((side === 'limit') || (side === 'market') || (side === 'stop_limit')) {
+            side = this.safeStringLower (order, 'side'); // in v2.1 rows the type field carries the order type, the side lives in side
         }
         if (side === 'ask') {
             side = 'sell';
         } else if (side === 'bid') {
             side = 'buy';
-        } else if (side === 'BUY') {
-            side = 'buy';
-        } else if (side === 'SELL') {
-            side = 'sell';
         }
         const remainingString = this.safeString2 (order, 'remainQty', 'remain_qty');
         const amountString = this.safeStringN (order, [ 'originalQty', 'qty', 'original_qty' ]);
