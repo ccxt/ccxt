@@ -54,9 +54,9 @@ OPENROUTER_API_KEY=sk-or-... docker compose up --build
 The image bundles every runtime (Node, Python, PHP, Go, .NET) with CCXT
 pre-installed and the Go/C# build caches **warmed at build time**, so first runs
 are fast. Pass `--build-arg PLAYGROUND_DISABLED=go` (and/or `csharp`) to keep a
-compiled language **install-only** — useful on a small host where compiling
-ccxt-go (~5 GB) would OOM. Pass `--build-arg NEXT_BASE_PATH=/playground` to serve
-under a sub-path. `docker-compose.yml` enforces the host protections:
+compiled language **install-only** — an escape hatch for a small host where
+compiling ccxt-go (~5 GB) would OOM. Pass `--build-arg NEXT_BASE_PATH=/playground`
+to serve under a sub-path. `docker-compose.yml` enforces the host protections:
 
 - **minimal bind mounts** → the only host paths mounted are the two append-only
   log dirs (`/var/log/ccxt-playground/{app,proxy}`); nothing else on the host
@@ -127,9 +127,11 @@ Fumadocs `/v2` and Docsify `/`. (Publishing a host port doesn't work on a Docker
 container's fixed internal IP, and the container still has no route *out* except
 via the egress proxy.)
 
-**Go is install-only in production** (`PLAYGROUND_DISABLED=go`) because compiling
-ccxt-go needs ~5 GB — unsafe on the shared 7.5 GB box. TypeScript/Python/PHP/C# run.
-Drop that build-arg on a larger dedicated box to enable Go.
+**All five runnable languages (TypeScript/Python/PHP/C#/Go) run in production.**
+The Go warm build (~5 GB peak) happens on the GitHub-hosted build runner, not on
+the docs box; the run container's 4 GB cap covers warm `go run`s. On a small box,
+add `PLAYGROUND_DISABLED=go` back to the workflow's build-args to make Go
+install-only again.
 
 One-time box setup (already done on the current box):
 
