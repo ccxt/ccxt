@@ -362,7 +362,7 @@ class bitvavo extends Exchange {
                     '230' => '\\ccxt\\ExchangeError', // The order is rejected by the matching engine.
                     '231' => '\\ccxt\\ExchangeError', // The order is rejected by the matching engine. TimeInForce must be GTC when markets are paused.
                     '232' => '\\ccxt\\BadRequest', // You must change at least one of amount, amountRemaining, price, timeInForce, selfTradePrevention or postOnly.
-                    '233' => '\\ccxt\\InvalidOrder', // array("errorCode":233,"error":"Order must be active (status new or partiallyFilled) to allow updating/cancelling.")
+                    '233' => '\\ccxt\\OrderNotFound', // array("errorCode":233,"error":"Order must be active (status new or partiallyFilled) to allow updating/cancelling."), canceling an already filled or canceled order, see https://github.com/ccxt/ccxt/issues/24154
                     '234' => '\\ccxt\\InvalidOrder', // Market orders cannot be updated.
                     '235' => '\\ccxt\\ExchangeError', // You can only have 100 open orders on each book.
                     '236' => '\\ccxt\\BadRequest', // You can only update amount or amountRemaining, not both.
