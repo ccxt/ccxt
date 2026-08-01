@@ -7536,7 +7536,7 @@ public Object describe()
                         retry = Helpers.add(retry, 1);
                         if (Helpers.isTrue(Helpers.isEqual(retry, maxRetries)))
                         {
-                            throw e;
+                            throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                         }
                     }
                     if (Helpers.isTrue(shouldBreak))
@@ -8635,11 +8635,11 @@ public Object describe()
                             }
                         } else
                         {
-                            throw e;
+                            throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                         }
                     } else
                     {
-                        throw e;
+                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
                 }
             }
@@ -11416,7 +11416,7 @@ public Object describe()
                     errors = Helpers.add(errors, 1);
                     if (Helpers.isTrue(Helpers.isGreaterThan(errors, maxRetries)))
                     {
-                        throw e;
+                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
                 }
             }
@@ -11462,12 +11462,12 @@ public Object describe()
                 {
                     if (Helpers.isTrue(Helpers.isInstance(e, RateLimitExceeded.class)))
                     {
-                        throw e;
+                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
                     errors = Helpers.add(errors, 1);
                     if (Helpers.isTrue(Helpers.isGreaterThan(errors, maxRetries)))
                     {
-                        throw e;
+                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
                 }
             }
@@ -11644,7 +11644,7 @@ public Object describe()
                     errors = Helpers.add(errors, 1);
                     if (Helpers.isTrue(Helpers.isGreaterThan(errors, maxRetries)))
                     {
-                        throw e;
+                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
                 }
                 i = Helpers.add(i, 1);
@@ -11705,7 +11705,7 @@ public Object describe()
                     errors = Helpers.add(errors, 1);
                     if (Helpers.isTrue(Helpers.isGreaterThan(errors, maxRetries)))
                     {
-                        throw e;
+                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
                 }
                 i = Helpers.add(i, 1);

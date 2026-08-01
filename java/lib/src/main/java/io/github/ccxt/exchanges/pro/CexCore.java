@@ -1751,7 +1751,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
                 return true;
             } else
             {
-                throw error;
+                throw (error instanceof RuntimeException ? (RuntimeException)error : new RuntimeException(error));
             }
         }
     }

@@ -3027,7 +3027,7 @@ final Object finalId = id;
                         throw new OrderNotFound((String)Helpers.add(Helpers.add(this.id, " cancelOrder() error "), this.last_http_response)) ;
                     }
                 }
-                throw e;
+                throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
             final Object finalResponse = response;
             return this.safeOrder(new java.util.HashMap<String, Object>() {{

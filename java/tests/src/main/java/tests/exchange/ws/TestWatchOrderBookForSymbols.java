@@ -33,7 +33,7 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
                 // interim workaround for InvalidNonce raised by the c# runtime
                 if (Helpers.isTrue(!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !Helpers.isTrue((Helpers.isInstance(e, InvalidNonce.class)))))
                 {
-                    throw new RuntimeException(e);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
                 currentTime = exchange.milliseconds();
                 succeeded = false;

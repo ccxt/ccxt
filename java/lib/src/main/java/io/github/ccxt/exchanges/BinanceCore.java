@@ -12825,7 +12825,7 @@ final Object finalMarket = market;
                     Object throwMarginModeAlreadySet = this.handleOption("setMarginMode", "throwMarginModeAlreadySet", false);
                     if (Helpers.isTrue(throwMarginModeAlreadySet))
                     {
-                        throw e;
+                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     } else
                     {
                         response = new java.util.HashMap<String, Object>() {{
@@ -12835,7 +12835,7 @@ final Object finalMarket = market;
                     }
                 } else
                 {
-                    throw e;
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
             }
             return response;

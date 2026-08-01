@@ -1462,7 +1462,7 @@ public class WhitebitCore extends WhitebitApi
                 {
                     if (!Helpers.isTrue((Helpers.isInstance(error, OrderNotFound.class))))
                     {
-                        throw error;
+                        throw (error instanceof RuntimeException ? (RuntimeException)error : new RuntimeException(error));
                     }
                 }
             }
@@ -1493,7 +1493,7 @@ public class WhitebitCore extends WhitebitApi
                 {
                     if (!Helpers.isTrue((Helpers.isInstance(error, OrderNotFound.class))))
                     {
-                        throw error;
+                        throw (error instanceof RuntimeException ? (RuntimeException)error : new RuntimeException(error));
                     }
                 }
             }

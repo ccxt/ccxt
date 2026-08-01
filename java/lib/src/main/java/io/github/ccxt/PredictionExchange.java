@@ -1069,7 +1069,7 @@ public Object describe()
                     // plain miss (the guidance-rich throw below); let real transport errors propagate
                     if (!Helpers.isTrue((Helpers.isInstance(e, BadSymbol.class))))
                     {
-                        throw e;
+                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
                 }
                 if (Helpers.isTrue(this.hasOutcome(outcomeSymbol)))
