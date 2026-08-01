@@ -453,7 +453,7 @@ fetch all open positions
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | not used by kraken fetchPositions () |
+| symbols | <code>Array&lt;string&gt;</code> | No | not used by fetchPositions () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.subaccount_id | <code>string</code> | No | *required* the subaccount id |
 

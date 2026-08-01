@@ -819,7 +819,7 @@ fetch all open positions
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by hitbtc fetchPositions () |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by fetchPositions () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set |
 | params.margin | <code>bool</code> | No | true for fetching spot-margin positions |
@@ -1060,7 +1060,7 @@ closes open positions for a market
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified ccxt market symbol |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
-| params | <code>object</code> | No | extra parameters specific to the okx api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.symbol | <code>string</code> | No | *required* unified market symbol |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', default is 'cross' |
 

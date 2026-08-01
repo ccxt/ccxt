@@ -95,7 +95,7 @@ retrieves data on all markets for zebpay
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -496,7 +496,7 @@ closes open positions for a market
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | Yes | not used by kucoinfutures closePositions |
-| params | <code>object</code> | No | extra parameters specific to the okx api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.positionId | <code>string</code> | No | client order id of the order |
 
 

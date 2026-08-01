@@ -306,7 +306,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | Yes | extra parameters specific to the luno api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript

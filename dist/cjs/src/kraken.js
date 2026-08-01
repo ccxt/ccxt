@@ -2507,7 +2507,7 @@ class kraken extends kraken$1["default"] {
      * @see https://docs.kraken.com/api-reference/account-data/get-closed-orders
      * @param {string[]} [ids] list of order id
      * @param {string} [symbol] unified ccxt market symbol
-     * @param {object} [params] extra parameters specific to the kraken api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrdersByIds(ids, symbol = undefined, params = {}) {
@@ -3240,7 +3240,7 @@ class kraken extends kraken$1["default"] {
      * @description fetch deposit methods for a currency associated with this account
      * @see https://docs.kraken.com/api-reference/funding/get-deposit-methods
      * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the kraken api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} of deposit methods
      */
     async fetchDepositMethods(code, params = {}) {
@@ -3406,7 +3406,7 @@ class kraken extends kraken$1["default"] {
      * @name kraken#fetchPositions
      * @description fetch all open positions
      * @see https://docs.kraken.com/api-reference/account-data/get-open-positions
-     * @param {string[]} [symbols] not used by kraken fetchPositions ()
+     * @param {string[]} [symbols] not used by fetchPositions ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */

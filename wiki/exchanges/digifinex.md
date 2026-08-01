@@ -389,7 +389,7 @@ cancels an open order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by digifinex cancelOrder () |
+| symbol | <code>string</code> | Yes | not used by cancelOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -411,7 +411,7 @@ cancel multiple orders
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | Yes | not used by digifinex cancelOrders () |
+| symbol | <code>string</code> | Yes | not used by cancelOrders () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 

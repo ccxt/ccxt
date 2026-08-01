@@ -8206,7 +8206,7 @@ class gate extends gate$1["default"] {
      * @see https://www.gate.com/docs/developers/apiv4/en/#create-an-options-order
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} side 'buy' or 'sell'
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async closePosition(symbol, side = undefined, params = {}) {
@@ -8590,7 +8590,7 @@ class gate extends gate$1["default"] {
      * @param {string[]} symbols unified conract symbols, must all have the same settle currency and the same market type
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum amount of records to fetch, default=1000
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch positions for
      *
      * EXCHANGE SPECIFIC PARAMETERS

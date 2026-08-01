@@ -1252,7 +1252,7 @@ fetch all dust trades made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | not used by binance fetchMyDustTrades () |
+| symbol | <code>string</code> | Yes | not used by fetchMyDustTrades () |
 | since | <code>int</code> | No | the earliest time in ms to fetch my dust trades for |
 | limit | <code>int</code> | No | the maximum number of dust trades to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
@@ -1412,7 +1412,7 @@ please use fetchDepositWithdrawFees instead
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by binance fetchTransactionFees () |
+| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by fetchTransactionFees () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -1433,7 +1433,7 @@ fetch deposit and withdraw fees
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by binance fetchDepositWithdrawFees () |
+| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by fetchDepositWithdrawFees () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -1812,7 +1812,7 @@ set hedged to true or false for a market
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | hedged | <code>bool</code> | Yes | set to true to use dualSidePosition |
-| symbol | <code>string</code> | Yes | not used by binance setPositionMode () |
+| symbol | <code>string</code> | Yes | not used by setPositionMode () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to set the position mode for a portfolio margin account |
 | params.subType | <code>string</code> | No | "linear" or "inverse" |
@@ -2543,7 +2543,7 @@ fetches the history of margin added or reduced from contract isolated positions
 | type | <code>string</code> | No | "add" or "reduce" |
 | since | <code>int</code> | No | timestamp in ms of the earliest change to fetch |
 | limit | <code>int</code> | No | the maximum amount of changes to fetch |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest change to fetch |
 
 

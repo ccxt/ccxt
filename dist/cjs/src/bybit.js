@@ -9181,7 +9181,7 @@ class bybit extends bybit$1["default"] {
      * @param {string[]} symbols a list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
      * @param {int} [limit] the maximum amount of records to fetch, default=50, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days
      * @param {string} [params.subType] 'linear' or 'inverse'
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}

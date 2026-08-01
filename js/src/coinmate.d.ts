@@ -195,7 +195,7 @@ export default class coinmate extends Exchange {
      * @description cancels an open order
      * @see https://coinmate.docs.apiary.io/#reference/order/cancel-order/post
      * @param {string} id order id
-     * @param {string} symbol not used by coinmate cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */

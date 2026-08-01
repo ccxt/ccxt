@@ -555,7 +555,7 @@ fetch an open order by it's id
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by hollaex fetchOpenOrder () |
+| symbol | <code>string</code> | Yes | not used by fetchOpenOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 

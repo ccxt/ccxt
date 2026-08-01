@@ -1934,7 +1934,7 @@ fetches historical positions
 | symbols | <code>Array&lt;string&gt;</code> | Yes | a list of unified market symbols |
 | since | <code>int</code> | No | timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days |
 | limit | <code>int</code> | No | the maximum amount of records to fetch, default=50, max=100 |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days |
 | params.subType | <code>string</code> | No | 'linear' or 'inverse' |
 

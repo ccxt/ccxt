@@ -2725,7 +2725,7 @@ closes open positions for a market
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | Yes | not used by kucoin closePositions |
-| params | <code>object</code> | No | extra parameters specific to the okx api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderId | <code>string</code> | No | client order id of the order |
 
 
