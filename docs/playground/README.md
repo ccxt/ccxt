@@ -4,16 +4,17 @@ An online IDE that runs [CCXT](https://github.com/ccxt/ccxt) against **live publ
 exchange endpoints** in multiple languages, with an AI assistant that writes the
 code for you.
 
-- **Languages:** JavaScript, TypeScript, Python, PHP, **Go** and **C#** all run
+- **Languages:** TypeScript, Python, PHP, **Go** and **C#** all run
   in the playground. **Java** appears as a tab marked **local** — its dependency
   tree (guava/jackson/web3j/netty) can't be resolved in the sandbox without a
   build tool, so it shows a one-line install + sample instead. The AI assistant
-  writes code for all seven.
-  - TypeScript runs via Node's native type-stripping (no tsc) — types are erased, not checked.
+  writes code for all six.
+  - TypeScript runs natively on Node (`--experimental-transform-types`, no tsc) — so
+    `enum`/`namespace`/parameter properties work, but types are erased, not checked.
   - Go (~2–3s/run) and C# (~3–4s/run) compile each run, but only the user's file
     recompiles against a pre-warmed ccxt build, so they stay fast.
 - **Editor:** Monaco (the VS Code editor) with syntax highlighting per language,
-  and **CCXT IntelliSense for JS/TS** — `exchange.` autocompletes every unified
+  and **CCXT IntelliSense for TypeScript** — `exchange.` autocompletes every unified
   method with signatures and JSDoc. This uses Monaco's built-in TypeScript
   service (no language server): `/api/ccxt-types` serves CCXT's base `.d.ts`
   files plus a synthetic module entry typing each exchange as `Exchange`, which
@@ -116,7 +117,7 @@ Live deploy is automated by [`.github/workflows/deploy-playground.yml`](../../.g
 (modeled on the Fumadocs workflow, same box + secrets). On push to `master` under
 `docs/playground/**` (or manual dispatch) it: builds the arm64 image on a native
 runner → pushes to `ghcr.io/ccxt/ccxt-playground` → SSHes to the docs box →
-runs a **canary** on a temp port → smoke-tests (homepage + a real `6*7→42` JS
+runs a **canary** on a temp port → smoke-tests (homepage + a real `6*7→42` TypeScript
 run) → promotes to the live container only if green (else leaves the old one up).
 
 It's served behind the existing nginx as `location /playground` → the app's
@@ -127,7 +128,7 @@ container's fixed internal IP, and the container still has no route *out* except
 via the egress proxy.)
 
 **Go is install-only in production** (`PLAYGROUND_DISABLED=go`) because compiling
-ccxt-go needs ~5 GB — unsafe on the shared 7.5 GB box. JS/TS/Python/PHP/C# run.
+ccxt-go needs ~5 GB — unsafe on the shared 7.5 GB box. TypeScript/Python/PHP/C# run.
 Drop that build-arg on a larger dedicated box to enable Go.
 
 One-time box setup (already done on the current box):
@@ -151,7 +152,7 @@ installs the nightly-restart cron automatically.
 
 `npm run setup-runtimes` provisions isolated, pinned CCXT installs:
 
-- **JavaScript / TypeScript** use the playground's own `node_modules/ccxt` (TS via Node type-stripping — nothing extra).
+- **TypeScript** uses the playground's own `node_modules/ccxt` (run natively by Node — nothing extra).
 - **Python** → `runtime/python/.venv` (`pip install ccxt`)
 - **PHP** → `runtime/php/vendor` (`composer require ccxt/ccxt`)
 - **Go** → `runtime/go` module (`go get github.com/ccxt/ccxt/go/v4`) with its build
@@ -211,7 +212,7 @@ components/             Toolbar, Editor (Monaco), OutputPanel, AssistantPanel
 lib/
   languages.ts          language metadata
   examples.ts           starter snippets per (example, language)
-  runners/              sandbox + js/python/php runners + dispatcher
+  runners/              sandbox + ts/python/php runners + dispatcher
   ai/openrouter.ts      free-model list + system prompt
 scripts/setup-runtimes.sh
 ```

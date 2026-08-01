@@ -208,7 +208,6 @@ jobs:
             for i in $(seq 1 30); do curl -fsS -o /dev/null "$SMOKE_BASE" 2>/dev/null && break; sleep 2; done
             html=$(curl -fsS --max-time 25 "$SMOKE_BASE") || { echo "smoke: homepage not 200"; return 1; }
             echo "$html" | grep -q "CCXT Playground" || { echo "smoke: homepage content missing"; return 1; }
-            smoke_lang '{"language":"js","code":"console.log(6*7)"}'               || return 1
             smoke_lang '{"language":"ts","code":"console.log(6*7)"}'               || return 1
             smoke_lang '{"language":"python","code":"print(6*7)"}'                 || return 1
             smoke_lang '{"language":"php","code":"<?php echo 6*7;"}'               || return 1

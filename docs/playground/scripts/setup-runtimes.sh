@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Provision the Python and PHP runtimes the executor uses.
 #
-# JavaScript needs nothing extra — it uses the playground's own node_modules/ccxt.
+# TypeScript needs nothing extra — it uses the playground's own node_modules/ccxt.
 # Python and PHP get isolated, pinned CCXT installs under runtime/.
 #
 # Both runners fall back to the monorepo's in-repo CCXT if these are missing

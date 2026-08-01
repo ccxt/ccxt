@@ -3,7 +3,7 @@
 // as a tab so users know CCXT supports it — with a one-line local install instead
 // of in-browser execution (its dependency tree can't be resolved in the sandbox).
 
-export type RunnableLanguageId = "js" | "ts" | "python" | "php" | "go" | "csharp";
+export type RunnableLanguageId = "ts" | "python" | "php" | "go" | "csharp";
 export type LanguageId = RunnableLanguageId | "java";
 
 export type Install = {
@@ -18,6 +18,11 @@ export type Language = {
   label: string;
   monaco: string;
   ext: string;
+  // Extension for the Monaco model URI when it must differ from `ext`. Monaco's
+  // TS worker picks the script kind off the file suffix and only knows
+  // ts/tsx/js/jsx — anything else falls back to JS when allowJs is on, which
+  // flags every type annotation as "can only be used in TypeScript files".
+  monacoExt?: string;
   hint: string;
   available: boolean;
   // Runnable languages not covered by the shared examples fall back to this.
@@ -42,19 +47,12 @@ const enabled = (id: string, base: boolean) => base && !DISABLED.has(id);
 
 export const languages: Language[] = [
   {
-    id: "js",
-    label: "JavaScript",
-    monaco: "javascript",
-    ext: "mjs",
-    hint: "Node.js (ESM, top-level await)",
-    available: enabled("js", true),
-  },
-  {
     id: "ts",
     label: "TypeScript",
     monaco: "typescript",
-    ext: "mts",
-    hint: "Node.js native type-stripping",
+    ext: "mts", // the runner writes .mts so Node treats the snippet as ESM
+    monacoExt: "ts",
+    hint: "Node.js native TypeScript",
     available: enabled("ts", true),
   },
   {

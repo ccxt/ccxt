@@ -11,7 +11,7 @@ import { platform } from 'process'
 import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
-import { Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
+import { Transpiler as OldTranspiler } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import os from 'os';
@@ -170,10 +170,21 @@ const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 const EXAMPLES_OUTPUT_FOLDER = './examples/java/examples/';
 const csharpComments: any = {};
 
+// default min(2, AP): 2w + shared-Program chunks is within ~10% of 4w and uses fewer cores.
+// Override with CCXT_TRANSPILE_PROCESSES.
+function javaWorkerThreads () {
+    const requested = Number (process.env.CCXT_TRANSPILE_PROCESSES);
+    if (requested > 0) {
+        return requested;
+    }
+    return Math.max (1, Math.min (2, os.availableParallelism ()));
+}
+
 class NewTranspiler {
 
     transpiler!: Transpiler;
     pythonStandardLibraries;
+    piscina: Piscina | undefined;
     oldTranspiler = new OldTranspiler();
     // lazily created in webworkerTranspile and kept alive for the lifetime of the
     // transpiler, so worker threads (and their warm Transpiler + ts.Program batch)
@@ -1236,7 +1247,7 @@ class NewTranspiler {
             log.blue('[java-ws] Filtering to exchanges with REST parents:', inputExchanges);
         }
         const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges: inputExchanges }
-        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true)
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, true)
     }
 
     async transpilePrediction(force = false) {
@@ -1253,19 +1264,17 @@ class NewTranspiler {
         }
         createFolderRecursively(outputFolder);
         const options = { csharpFolder: outputFolder, exchanges: inputExchanges }
-        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), false, true)
+        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, false, true)
     }
 
-    async transpileEverything(force = false, child = false, baseOnly = false, examplesOnly = false) {
+    async transpileEverything(force = false, baseOnly = false, examplesOnly = false) {
 
         const exchanges = process.argv.slice(2).filter(x => !x.startsWith('--'))
             , javaFolder = EXCHANGES_FOLDER
             , tsFolder = './ts/src/'
             , exchangeBase = './ts/src/base/Exchange.ts'
 
-        if (!child) {
-            createFolderRecursively(javaFolder)
-        }
+        createFolderRecursively(javaFolder)
         const transpilingSingleExchange = (exchanges.length === 1); // when transpiling single exchange, we can skip some steps because this is only used for testing/debugging
         if (transpilingSingleExchange) {
             force = true; // when transpiling single exchange, we always force
@@ -1273,13 +1282,10 @@ class NewTranspiler {
         const options = { csharpFolder: javaFolder, exchanges }
 
         if (!baseOnly && !examplesOnly) {
-            await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force, !!(child || exchanges.length))
+            await this.transpileDerivedExchangeFiles(tsFolder, options, '.ts', force)
         }
 
         if (transpilingSingleExchange) {
-            return;
-        }
-        if (child) {
             return;
         }
 
@@ -1303,10 +1309,13 @@ class NewTranspiler {
     async webworkerTranspile(allFiles: any[], parserConfig: any) {
 
         // one shared pool, created lazily and kept alive for the lifetime of the
-        // transpiler: the per-thread Transpiler and its ts.Program batch (see
+        // transpiler: the per-thread Transpiler and its sticky ts.Program batch (see
         // build/worker-program-batch.js) only pay off if the threads survive across
-        // calls. Piscina unrefs idle workers, so the pool never holds the process open.
-        const maxThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ())
+        // calls — a REST run calls this three times (exchanges, then two test stages),
+        // so a fresh pool per call would cold-start the Transpilers every time.
+        // Piscina unrefs idle workers, so the pool never holds the process open.
+        // Threads default to min(2, AP); CCXT_TRANSPILE_PROCESSES overrides.
+        const maxThreads = javaWorkerThreads ();
         if (!this.piscina) {
             this.piscina = new Piscina({
                 filename: resolve(__dirname, 'java-worker.js'),
@@ -1334,12 +1343,19 @@ class NewTranspiler {
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
-        log.green('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms');
+        log.green('[ast-transpiler] Transpiled', allFiles.length, 'files in', elapsed, 'ms (webworkerTranspile @ javaTranspiler.ts)');
+        // Order-preserving flatten, and it must stay that way: callers zip the returned
+        // array positionally against their input paths (transpiledFiles[idx] <-> the idx-th
+        // exchange file, flatResult[idx] <-> tests[idx]). The mapping holds for any chunk
+        // size because chunks are consecutive slices queued in order, Promise.all resolves
+        // in input order (not completion order), and each worker returns its results in the
+        // order it received `files`. So flat() yields exactly one result per file, in
+        // allFiles order — identical to the chunk=1 case.
         const flatResult = workerResult.flat();
         return flatResult;
     }
 
-    async transpileDerivedExchangeFiles(jsFolder: string, options: any, pattern = '.ts', force = false, child = false, ws = false, prediction = false) {
+    async transpileDerivedExchangeFiles(jsFolder: string, options: any, pattern = '.ts', force = false, ws = false, prediction = false) {
 
         // todo normalize jsFolder and other arguments
 
@@ -1352,23 +1368,30 @@ class NewTranspiler {
 
         const regex = new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
 
-        // let exchanges
+        // local file list — must NOT clobber the module-level `exchanges` (the parsed
+        // exchanges.json), which transpileWS reads `.ws` off of. Assigning to it worked
+        // only because each stage ran in its own process; --rest-and-ws reuses one.
+        let exchangeFiles: string[]
         if (options.exchanges && options.exchanges.length) {
-            exchanges = options.exchanges.map((x: string) => x + pattern)
+            exchangeFiles = options.exchanges.map((x: string) => x + pattern)
         } else {
-            exchanges = fs.readdirSync(jsFolder).filter(file => file.match(regex) && (!ids || ids.includes(basename(file, '.ts'))))
+            exchangeFiles = fs.readdirSync(jsFolder).filter(file => file.match(regex) && (!ids || ids.includes(basename(file, '.ts'))))
         }
 
         // transpile using webworker
-        const allFilesPath = exchanges.map((file: string) => jsFolder + file);
-        // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
-        log.blue('[java] Transpiling [', exchanges.join(', '), ']');
-        const transpiledFiles = allFilesPath.map((file: string) => this.transpiler.transpileJavaByPath(file));
+        const allFilesPath = exchangeFiles.map((file: string) => jsFolder + file);
+        log.blue('[java] Transpiling [', exchangeFiles.join(', '), ']');
+        // Pool the exchange fan-out across worker threads (one file per task, each
+        // worker reusing a cached Transpiler). A single exchange stays on the main
+        // thread — pooling one file just adds pool-boot latency for no parallelism.
+        const transpiledFiles = (allFilesPath.length > 1)
+            ? await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig())
+            : allFilesPath.map((file: string) => this.transpiler.transpileJavaByPath(file));
 
         if (!ws) {
             for (let i = 0; i < transpiledFiles.length; i++) {
                 const transpiled = transpiledFiles[i];
-                const exchangeName = exchanges[i].replace('.ts','');
+                const exchangeName = exchangeFiles[i].replace('.ts','');
                 const path = EXCHANGE_WRAPPER_FOLDER + this.capitalize(exchangeName) + '.java';
                 // this.createJavaWrappers(exchangeName, path, transpiled.methodsTypes)
                 // break;
@@ -1382,7 +1405,7 @@ class NewTranspiler {
                 // this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
             }
         }
-        exchanges.map((file: string, idx: number) => this.transpileDerivedExchangeFile(jsFolder, file, options, transpiledFiles[idx], force, ws, prediction))
+        exchangeFiles.map((file: string, idx: number) => this.transpileDerivedExchangeFile(jsFolder, file, options, transpiledFiles[idx], force, ws, prediction))
 
         const classes = {}
 
@@ -3371,27 +3394,28 @@ async function runMain() {
     const test = process.argv.includes('--test') || process.argv.includes('--tests')
     const examples = process.argv.includes('--examples');
     const force = process.argv.includes('--force')
-    const child = process.argv.includes('--child')
-    const multiprocess = process.argv.includes('--multiprocess') || process.argv.includes('--multi')
     const baseClassOnly = process.argv.includes('--baseClass')
+    // single-process REST+WS (default via npm run transpileJava / CI): keeps the one
+    // piscina pool (and its warm per-thread Transpilers) alive across both stages
+    // instead of paying a second process boot + cold pool. Omit the flag for REST-only.
+    const restAndWs = process.argv.includes('--rest-and-ws')
     shouldTranspileTests = process.argv.includes('--noTests') ? false : true
-    if (!child && !multiprocess) {
-        log.bright.green({ force })
-    }
+    log.bright.green({ force })
     const transpiler = new NewTranspiler();
     if (baseClassOnly) {
         transpiler.transpileBaseMethods('./ts/src/base/Exchange.ts');
         transpiler.transpilePredictionBaseMethods();
+    } else if (restAndWs) {
+        await transpiler.transpileEverything(force, baseOnly, examples)
+        await transpiler.transpileWS(force)
     } else if (prediction) {
         await transpiler.transpilePrediction(force)
     } else if (ws) {
         await transpiler.transpileWS(force)
     } else if (test) {
         transpiler.transpileTests()
-    } else if (multiprocess) {
-        await parallelizeTranspiling(exchangeIds)
     } else {
-        await transpiler.transpileEverything(force, child, baseOnly, examples)
+        await transpiler.transpileEverything(force, baseOnly, examples)
     }
 }
 
