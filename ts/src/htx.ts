@@ -7686,7 +7686,7 @@ export default class htx extends Exchange {
                     request = this.extend (request, query);
                 }
                 const sortedRequest = this.keysort (request);
-                let auth = this.urlencode (sortedRequest, true); // true is a go only requirment
+                let auth = this.urlencode (sortedRequest, true); // true is a go only requirement
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 const content = [ method, this.hostname, url, auth ];
                 const payload = content.join ("\n"); // eslint-disable-line quotes

@@ -615,7 +615,7 @@ export default class mexc extends Exchange {
                     // 'ZEN': 'ZEN',
                     // 'ZIL': 'Zilliqa(ZIL)',
                     // 'ZTG': 'ZTG',
-                    // todo: uncomment below after concensus
+                    // todo: uncomment below after consensus
                     // 'ALAYA': 'ATP',
                     // 'ANDUSCHAIN': 'DEB',
                     // 'ASSETMANTLE': 'MNTL',

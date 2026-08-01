@@ -1624,7 +1624,7 @@ export default class weex extends weexRest {
         //         ]
         //     }
         //
-        // coontract
+        // contract
         //     {
         //         "e": "account",
         //         "E": 1776189629849,

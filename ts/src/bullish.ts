@@ -1629,7 +1629,7 @@ export default class bullish extends Exchange {
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const request: Dict = {
             'status': 'CANCELLED',
-            'method': 'privateGetV2Orders', // current endpoint distinquishes between CLOSED and CANCELLED orders
+            'method': 'privateGetV2Orders', // current endpoint distinguishes between CLOSED and CANCELLED orders
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
@@ -1649,7 +1649,7 @@ export default class bullish extends Exchange {
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const request: Dict = {
             'status': 'CLOSED',
-            'method': 'privateGetV2Orders', // current endpoint distinquishes between CLOSED and CANCELLED orders
+            'method': 'privateGetV2Orders', // current endpoint distinguishes between CLOSED and CANCELLED orders
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
