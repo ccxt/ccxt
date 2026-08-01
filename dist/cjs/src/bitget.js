@@ -5958,7 +5958,11 @@ class bitget extends bitget$1["default"] {
             request['orderType'] = type;
             if (triggerPrice !== undefined) {
                 request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
-                request['executePrice'] = this.priceToPrecision(symbol, price);
+                // market plan orders carry no execute price, follow up to
+                // https://github.com/ccxt/ccxt/issues/25427
+                if (price !== undefined) {
+                    request['executePrice'] = this.priceToPrecision(symbol, price);
+                }
             }
             else {
                 request['price'] = this.priceToPrecision(symbol, price);
