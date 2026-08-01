@@ -175,6 +175,10 @@ class NewTranspiler {
     transpiler!: Transpiler;
     pythonStandardLibraries;
     oldTranspiler = new OldTranspiler();
+    // lazily created in webworkerTranspile and kept alive for the lifetime of the
+    // transpiler, so worker threads (and their warm Transpiler + ts.Program batch)
+    // are reused across every stage instead of paying a cold pool per call
+    piscina: Piscina | undefined;
     // Cached transpiled body of the TS `Exchange extends BaseExchange` tier (the 62
     // trading methods), reused by both the Exchange.java injection and the
     // PredictionExchange.java convenience-method injection.
@@ -1298,19 +1302,35 @@ class NewTranspiler {
 
     async webworkerTranspile(allFiles: any[], parserConfig: any) {
 
-        // create worker
+        // one shared pool, created lazily and kept alive for the lifetime of the
+        // transpiler: the per-thread Transpiler and its ts.Program batch (see
+        // build/worker-program-batch.js) only pay off if the threads survive across
+        // calls. Piscina unrefs idle workers, so the pool never holds the process open.
         const maxThreads = Math.min (Number(process.env.CCXT_TRANSPILE_PROCESSES) || os.availableParallelism ())
-        const piscina = new Piscina({
-            filename: resolve(__dirname, 'java-worker.js'),
-            maxThreads
-        });
+        if (!this.piscina) {
+            this.piscina = new Piscina({
+                filename: resolve(__dirname, 'java-worker.js'),
+                maxThreads
+            });
+        }
+        const piscina = this.piscina;
+        const configKey = JSON.stringify(parserConfig);
 
-        const chunkSize = 20;
+        // Files per worker task. Default 1: one file per task, which load-balances best
+        // across workers (a slow file can't stall a whole chunk). CCXT_TRANSPILE_CHUNK
+        // only exists to A/B fewer, coarser task round-trips; it never changes what the
+        // worker compiles, only how many files one task prints.
+        const chunkSize = Math.max(1, Math.floor(Number(process.env.CCXT_TRANSPILE_CHUNK)) || 1);
         const promises: any = [];
         const now = Date.now();
         for (let i = 0; i < allFiles.length; i += chunkSize) {
             const chunk = allFiles.slice(i, i + chunkSize);
-            promises.push(piscina.run({ transpilerConfig: parserConfig, files: chunk }));
+            // `roots` is the FULL file list of this stage and is identical on every task,
+            // so each worker thread builds ONE ts.Program over all of them on its first
+            // task and prints every later file off that same checker. Program roots are
+            // therefore decoupled from task granularity: chunkSize only splits the
+            // printing work.
+            promises.push(piscina.run({ transpilerConfig: parserConfig, configKey, roots: allFiles, files: chunk }));
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;

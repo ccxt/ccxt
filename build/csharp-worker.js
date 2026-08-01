@@ -1,5 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import { setupCsharpPrinter } from './csharpPrinterSetup.js';
+import { getProgramBatch } from './worker-program-batch.js';
 import log from 'ololog'
 
 // piscina reuses worker threads across tasks — cache the Transpiler per thread
@@ -10,7 +11,7 @@ let rawComments = [];
 
 const verbose = !!process.env.CCXT_TRANSPILE_VERBOSE;
 
-export default async ({transpilerConfig, configKey, files}) => {
+export default async ({transpilerConfig, configKey, file, files, roots}) => {
     const key = configKey || JSON.stringify(transpilerConfig);
     if (!cachedTranspiler || cachedConfigKey !== key) {
         cachedTranspiler = new Transpiler(transpilerConfig);
@@ -26,13 +27,17 @@ export default async ({transpilerConfig, configKey, files}) => {
     const transpiler = cachedTranspiler;
     rawComments = [];
 
+    // work set for THIS task — one file by default
+    const filePaths = files ?? [file];
+    // ts.Program roots — the whole stage, identical on every task, so the batch this
+    // thread builds on its first task is reused for all the rest (see
+    // worker-program-batch.js). Falls back to the task's own files when the driver
+    // did not send roots (older payload shape).
+    const programRoots = (roots && roots.length) ? roots : filePaths;
+    const batch = getProgramBatch (transpiler, programRoots, key);
+
     const result = [];
-    // Multi-file task: compile the whole chunk as ONE ts.Program (see java-worker.js).
-    // Scoped to this task on this thread — never post a live ts.Program across threads.
-    const batch = (files.length > 1 && typeof transpiler.createProgramBatch === 'function')
-        ? transpiler.createProgramBatch(files)
-        : null;
-    for (const filePath of files) {
+    for (const filePath of filePaths) {
         if (verbose) {
             log.blue('[worker][csharp] Transpiling', filePath);
         }
