@@ -985,7 +985,7 @@ export default class derive extends Exchange {
         let result = [];
         for (let i = 0; i < trades.length; i++) {
             const parsed = this.parseTrade (trades[i], market);
-            if (parsed === undefined){
+            if (parsed === undefined) {
                 continue;
             }
             const trade = this.extend (parsed, params);
