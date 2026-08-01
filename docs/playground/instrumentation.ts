@@ -7,7 +7,11 @@
 export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs') return;
   if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY) {
-    const { setGlobalDispatcher, EnvHttpProxyAgent } = await import('undici');
+    // webpackIgnore: `next dev` also builds instrumentation for the edge compiler, which
+    // has no `node:` scheme externals, so bundling undici's barrel (index.js -> lib/mock/*
+    // -> node:console) fails with UnhandledSchemeError and 500s every route. Leaving the
+    // specifier to Node's own loader keeps this a plain runtime import.
+    const { setGlobalDispatcher, EnvHttpProxyAgent } = await import(/* webpackIgnore: true */ 'undici');
     setGlobalDispatcher(new EnvHttpProxyAgent());
   }
   // Warm the free-model list once at boot (after the dispatcher above, so it
