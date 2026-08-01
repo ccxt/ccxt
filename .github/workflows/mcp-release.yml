@@ -72,9 +72,11 @@ jobs:
           VERSION="$(node -p "require('./package.json').version")"
           TAG="ccxt-mcp-v$VERSION"
           NOTES="Download **ccxt-mcp.mcpb** below and open it in Claude Desktop (Settings > Extensions) for a one-click install. Any other MCP host (Claude Code, Cursor, VS Code, Windsurf): \`claude mcp add ccxt -- npx -y ccxt-mcp\`. Docs: https://docs.ccxt.com/#/mcp"
-          # versioned archival release (kept out of the repo-wide "latest" pointer)
+          # versioned archival release (kept out of the repo-wide "latest" pointer) — immutable:
+          # a re-run must NOT overwrite an already-published version, it must fail loudly
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" ccxt-mcp.mcpb --clobber
+            echo "::error::release $TAG already exists — bump mcp/package.json before re-releasing (archived .mcpb artifacts are immutable)"
+            exit 1
           else
             gh release create "$TAG" ccxt-mcp.mcpb --title "ccxt-mcp v$VERSION" --notes "$NOTES" --latest=false
           fi

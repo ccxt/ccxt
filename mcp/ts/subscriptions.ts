@@ -43,6 +43,11 @@ const SYMBOL_LIST_RE = /^watch(.+ForSymbols|Tickers|BidsAsks|MarkPrices|FundingR
 // Map the convenience symbol/symbols fields to the positional args ccxt expects. Single-symbol
 // methods take a string first arg; list methods take an array first arg.
 function foldSymbolArgs (method: string, symbol: string | undefined, symbols: string[] | undefined): any[] {
+    // watchOHLCVForSymbols takes [[symbol, timeframe], …] pairs, not a flat symbol list — the
+    // symbol/symbols shortcut can't express that shape, so require explicit args for it
+    if (/^watchOHLCVForSymbols$/.test (method)) {
+        return [];
+    }
     const isList = SYMBOL_LIST_RE.test (method);
     if (symbols !== undefined && symbols.length > 0) {
         return isList ? [ symbols ] : [ symbols[0] ];

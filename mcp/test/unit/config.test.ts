@@ -169,3 +169,41 @@ test ('a config-file account wins over an env-var account of the same name', () 
         assert.equal (config.accounts['default'].exchange, 'kraken');
     });
 });
+
+test ('a global CCXT_MCP_TRADING=live does NOT arm live trading on extra env slots', () => {
+    withConfig ({}, {
+        'CCXT_MCP_EXCHANGE': 'binance', 'CCXT_MCP_APIKEY': 'FAKEKEY111111', 'CCXT_MCP_SECRET': 'FAKESECRET111111',
+        'CCXT_MCP_EXCHANGE_2': 'kraken', 'CCXT_MCP_APIKEY_2': 'FAKEKEY222222', 'CCXT_MCP_SECRET_2': 'FAKESECRET222222',
+        'CCXT_MCP_TRADING': 'live', 'CCXT_MCP_MAX_ORDER_VALUE': '1000000',
+    }, () => {
+        const config = loadConfig ();
+        // slot 1 (the account the globals were set for) is armed as intended
+        assert.equal (config.accounts['default'].trading, 'live');
+        assert.equal (config.accounts['default'].maxOrderValue, 1000000);
+        // the extra exchange must NOT inherit live trading or the per-order cap
+        assert.notEqual (config.accounts['kraken'].trading, 'live');
+        assert.equal (config.accounts['kraken'].maxOrderValue, undefined);
+    });
+});
+
+test ('an unsubstituted ${...} exchange slot is ignored, not a spurious unknown-exchange warning', () => {
+    withConfig ({}, {
+        'CCXT_MCP_EXCHANGE': 'binance', 'CCXT_MCP_APIKEY': 'FAKEKEY111111', 'CCXT_MCP_SECRET': 'FAKESECRET111111',
+        'CCXT_MCP_EXCHANGE_2': '${user_config.exchange_2}',
+    }, () => {
+        const config = loadConfig ();
+        assert.deepEqual (Object.keys (config.accounts), [ 'default' ]);
+        assert.ok (!config.problems.some ((p) => p.includes ('${') || p.includes ('binanec') || p.includes ('unknown')));
+    });
+});
+
+test ('an env slot shadowed by a config-file account is surfaced, not silently dropped', () => {
+    withConfig ({ 'accounts': { 'kraken': { 'exchange': 'kraken', 'apiKey': 'FAKEKEYCFG1234', 'secret': 'FAKESECRETCFG1234' } } }, {
+        'CCXT_MCP_EXCHANGE': 'binance', 'CCXT_MCP_APIKEY': 'FAKEKEY111111', 'CCXT_MCP_SECRET': 'FAKESECRET111111',
+        'CCXT_MCP_EXCHANGE_2': 'kraken', 'CCXT_MCP_APIKEY_2': 'FAKEKEYENV1234', 'CCXT_MCP_SECRET_2': 'FAKESECRETENV1234',
+    }, () => {
+        const config = loadConfig ();
+        assert.equal (config.accounts['kraken'].apiKey, 'FAKEKEYCFG1234', 'the config-file kraken wins');
+        assert.ok (config.problems.some ((p) => p.includes ('shadowed')), 'the dropped form account is reported, not silent');
+    });
+});

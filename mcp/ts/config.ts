@@ -186,7 +186,8 @@ const MAX_ENV_ACCOUNT_SLOTS = 10;
 
 function envAccountRaw (suffix: string): any | undefined {
     const exchange = process.env['CCXT_MCP_EXCHANGE' + suffix];
-    if (!exchange) {
+    // unset, empty, or an unsubstituted MCPB template ("${...}") all mean "slot not configured"
+    if (!exchange || exchange.includes ('${')) {
         return undefined;
     }
     const raw: any = { exchange };
@@ -196,8 +197,20 @@ function envAccountRaw (suffix: string): any | undefined {
             raw[field] = unescapePem (value);
         }
     }
-    // a per-slot flag wins, else the unsuffixed global (one toggle covering every slot)
-    const flag = (name: string): string | undefined => process.env['CCXT_MCP_' + name + suffix] ?? process.env['CCXT_MCP_' + name];
+    // Safe toggles (sandbox/demo/prediction, and the sandbox trading switch) may fall back to
+    // the unsuffixed global — that's the single toggle the .mcpb form drives across every slot.
+    // Empty string counts as unset, so an unfilled optional form field can't override the global.
+    const flag = (name: string): string | undefined => {
+        const per = process.env['CCXT_MCP_' + name + suffix];
+        return (per !== undefined && per !== '') ? per : process.env['CCXT_MCP_' + name];
+    };
+    // Live trading and its USD cap are real money and must be scoped PER SLOT: a global
+    // CCXT_MCP_TRADING=live / MAX_ORDER_VALUE must never arm an EXTRA exchange the user added
+    // only to read. For slot 1 the suffix is '' so perSlot IS the global (backwards compatible).
+    const perSlot = (name: string): string | undefined => {
+        const v = process.env['CCXT_MCP_' + name + suffix];
+        return (v !== undefined && v !== '') ? v : undefined;
+    };
     if (flag ('SANDBOX') === 'true') {
         raw['sandbox'] = true;
     }
@@ -210,11 +223,11 @@ function envAccountRaw (suffix: string): any | undefined {
     const trading = flag ('TRADING');
     if (trading === 'true' || trading === 'sandbox') {
         raw['trading'] = true;
-    } else if (trading === 'live') {
+    } else if (perSlot ('TRADING') === 'live') {
         raw['trading'] = 'live';
     }
-    const maxOrderValue = flag ('MAX_ORDER_VALUE');
-    if (maxOrderValue !== undefined && maxOrderValue !== '') {
+    const maxOrderValue = perSlot ('MAX_ORDER_VALUE');
+    if (maxOrderValue !== undefined) {
         raw['maxOrderValue'] = (maxOrderValue === 'null') ? null : Number (maxOrderValue);
     }
     return raw;
@@ -293,6 +306,11 @@ export function loadConfig (): ResolvedConfig {
     for (const envAccount of envAccounts (problems)) {
         if (accounts[envAccount.name] === undefined) {
             accounts[envAccount.name] = envAccount;
+        } else {
+            // config wins, but don't drop the env/.mcpb-form account SILENTLY — surface it, and
+            // still register its secrets with the redactor so its value can never leak anywhere
+            problems.push ('env/.mcpb-form account "' + envAccount.name + '" (' + envAccount.exchange + ') is shadowed by a config-file account of the same name — the config-file account is used; rename one to keep both');
+            registerAccountSecrets (envAccount);
         }
     }
 
