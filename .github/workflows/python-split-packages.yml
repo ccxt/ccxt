@@ -1,0 +1,95 @@
+name: Python per-exchange packages
+run-name: ${{ github.event.head_commit.message || github.event.pull_request.title || format('{0} · {1}', github.ref_name, github.sha) }}
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'python/**'
+      - 'pyproject.toml'
+      - '.github/workflows/python-split-packages.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'python/**'
+      - 'pyproject.toml'
+      - '.github/workflows/python-split-packages.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+jobs:
+  split:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # the monolithic package must import, so that --compare-upstream can
+          # diff every generated class against it
+          python -m pip install certifi requests cryptography typing_extensions aiohttp yarl
+          python -m pip install pytest build setuptools wheel
+
+      - name: Test the splitter and every generated package
+        env:
+          CCXT_SPLIT_FULL: '1'
+        run: python -m pytest python/split/tests -q
+
+      - name: Generate the distributions and build wheels
+        run: |
+          python python/split/split_packages.py \
+            --out python/split-dist --build --no-isolation \
+            --dist-dir python/split-dist/dist
+
+      - name: Verify every package imports in isolation and matches upstream
+        run: python python/split/verify_packages.py --out python/split-dist --compare-upstream
+
+      - name: Check the distributions are well formed
+        run: |
+          python -m pip install twine
+          twine check python/split-dist/dist/*
+
+      - name: Install packages from their wheels and use them
+        run: |
+          python -m venv /tmp/wheel-check
+          # ccxt-* resolve from the built wheels; the pinned third-party
+          # dependencies of ccxt-core still come from the index.
+          # binanceus inherits from a sibling package, paradex pulls the
+          # heaviest vendored bundle - between them they cover both dependency
+          # kinds the generator emits
+          /tmp/wheel-check/bin/pip install \
+            --find-links python/split-dist/dist ccxt-binanceus ccxt-paradex
+          /tmp/wheel-check/bin/python - <<'PY'
+          import sys
+          import ccxt_binanceus, ccxt_binanceus.pro, ccxt_core
+          exchange = ccxt_binanceus.binanceus()
+          assert exchange.id == 'binanceus'
+          assert issubclass(type(exchange), ccxt_core.Exchange)
+          loaded = sorted({m.split('.')[0] for m in sys.modules if m.startswith('ccxt')})
+          assert loaded == ['ccxt_binance', 'ccxt_binanceus', 'ccxt_core'], loaded
+          print('installed wheel works, loaded', loaded)
+
+          # the vendored trees are imported from inside base methods, so this is
+          # the only place a missing bundle would show up
+          import ccxt_paradex
+          ccxt_paradex.paradex().retrieve_stark_account('0x' + '1' * 64, '0x1', '0x2')
+          print('lazily imported vendored starknet code from an installed wheel')
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ccxt-per-exchange-distributions
+          path: python/split-dist/dist
+          retention-days: 7

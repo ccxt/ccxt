@@ -564,6 +564,7 @@ build/                  transpilers + build scripts (transpile.ts = regex)
 js/                     GENERATED — tsc output
 python/ccxt/            GENERATED + hand-written base/
 python/ccxt/async_support/  GENERATED + hand-written base/ + ws/
+python/split/           splits python/ccxt into per-exchange PyPI packages (see its README)
 php/                    GENERATED + hand-written Exchange.php top + errors
 php/async/, php/pro/    GENERATED + hand-written ReactPHP plumbing
 cs/ccxt/                GENERATED + hand-written base/ (except BaseMethods.cs)
