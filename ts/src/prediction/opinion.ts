@@ -209,6 +209,26 @@ export default class opinion extends Exchange {
     /**
      * @ignore
      * @method
+     * @name opinion#fetchOutcome
+     * @description resolves a single outcome; a bare numeric token id carries no search text for
+     * the base's fetchEvents-driven resolution (opinion has no per-id lookup endpoint, unlike
+     * kalshi/polymarket), so bulk-warm the outcome cache via loadOutcomes() first for id-form input
+     * @param {string} outcomeSymbol the outcome handle or token id
+     * @returns {object} the outcome cache
+     */
+    async fetchOutcome (outcomeSymbol: string): Promise<any> {
+        if (this.outcomeSearchQuery (outcomeSymbol) === undefined) {
+            await this.loadOutcomes ();
+            if (this.hasOutcome (outcomeSymbol)) {
+                return this.safeOutcome (outcomeSymbol);
+            }
+        }
+        return await super.fetchOutcome (outcomeSymbol);
+    }
+
+    /**
+     * @ignore
+     * @method
      * @name opinion#parseOpinionMarket
      * @description converts a single raw opinion market into one ccxt market with yes/no outcomes
      * @param {object} raw the raw opinion market object
@@ -572,7 +592,7 @@ export default class opinion extends Exchange {
         const tokenId = outcomeObj['outcomeId'] as string;
         const promises = [
             this.opinionPublicGetTokenLatestPrice (this.extend ({ 'token_id': tokenId }, params)),
-            this.opinionPublicGetTokenOrderbook ({ 'token_id': tokenId }),
+            this.opinionPublicGetTokenOrderbook (this.extend ({ 'token_id': tokenId }, params)),
         ];
         const [ priceResponse, bookResponse ] = await Promise.all (promises);
         const response: Dict = { 'price': priceResponse, 'book': bookResponse };
@@ -659,7 +679,7 @@ export default class opinion extends Exchange {
             const outcomeObj = this.outcome (outcomes[i]);
             const tokenId = outcomeObj['outcomeId'] as string;
             promises.push (this.opinionPublicGetTokenLatestPrice (this.extend ({ 'token_id': tokenId }, params)));
-            promises.push (this.opinionPublicGetTokenOrderbook ({ 'token_id': tokenId }));
+            promises.push (this.opinionPublicGetTokenOrderbook (this.extend ({ 'token_id': tokenId }, params)));
         }
         const responses = await Promise.all (promises);
         const result: PredictionTickers = {};
