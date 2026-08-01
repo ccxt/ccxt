@@ -15,7 +15,7 @@ import { writeFile } from 'fs/promises';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
-import { filterDirtyExchangeFiles } from "./transpile.js";
+import { filterDirtyExchangeFiles, skipUpToDateStage } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 
 ansi.nice
@@ -39,6 +39,37 @@ function overwriteFileAndFolder (path: string, content: string) {
     }
     overwriteFile (path, content);
     fs.writeFileSync (path, content);
+}
+
+// every .ts file directly inside `folder` (no recursion) — used to build the input
+// lists of the whole-stage incremental gates below
+function tsFilesIn (folder: string) {
+    try {
+        return fs.readdirSync (folder).filter ((f: string) => f.endsWith ('.ts')).map ((f: string) => folder + f);
+    } catch (e) {
+        return [] as string[];
+    }
+}
+
+// Shared input set for the test-transpile stages. The test sources cross-import each
+// other (a base test pulls Exchange/base/test.sharedMethods.js, every test pulls
+// ../../../ccxt.js), and each stage prints off a sticky ts.Program built from the whole
+// stage list — so any edit under the test trees, or to the types they resolve against,
+// invalidates all of them. Computed once per process.
+let cachedTestStageInputs: string[] | undefined = undefined;
+function testStageInputs () {
+    if (cachedTestStageInputs === undefined) {
+        cachedTestStageInputs = ([] as string[]).concat (
+            tsFilesIn ('./ts/src/test/'),
+            tsFilesIn ('./ts/src/test/base/'),
+            tsFilesIn ('./ts/src/test/Exchange/'),
+            tsFilesIn ('./ts/src/test/Exchange/base/'),
+            tsFilesIn ('./ts/src/pro/test/base/'),
+            tsFilesIn ('./ts/src/pro/test/Exchange/'),
+            [ './ts/src/ccxt.ts', './ts/src/base/Exchange.ts', './ts/src/base/types.ts' ],
+        ).filter ((p: string) => fs.existsSync (p));
+    }
+    return cachedTestStageInputs;
 }
 
 // this is necessary because for some reason
@@ -754,10 +785,14 @@ class NewTranspiler {
         overwriteFileAndFolder (path, file);
     }
 
-    transpileErrorHierarchy () {
+    transpileErrorHierarchy (force = true) {
 
         const errorHierarchyFilename = './js/src/base/errorHierarchy.js'
         const errorHierarchyPath = __dirname + '/.' + errorHierarchyFilename
+
+        if (skipUpToDateStage ('csharp', 'error hierarchy', force, [ errorHierarchyFilename ], [ ERRORS_FILE ])) {
+            return;
+        }
 
         let js = fs.readFileSync (errorHierarchyPath, 'utf8')
 
@@ -878,7 +913,23 @@ class NewTranspiler {
         return { 'body': newBody, 'method': method };
     }
 
-    transpileBaseMethods(baseExchangeFile: string) {
+    transpileBaseMethods(baseExchangeFile: string, force = true) {
+        // the four generated base files all come out of this one pass; `exchanges.json`
+        // is a real input too — createExchangesWrappers() emits one `public class <Id>`
+        // per listed exchange into Exchange.Wrappers.cs, so adding an exchange must
+        // invalidate this stage even when ts/src/base/Exchange.ts did not change
+        if (skipUpToDateStage ('csharp', 'base methods', force, [
+            baseExchangeFile,
+            './ts/src/base/types.ts',
+            './exchanges.json',
+        ], [
+            BASE_METHODS_FILE,
+            BASE_TRADING_METHODS_FILE,
+            GLOBAL_WRAPPER_FILE,
+            GLOBAL_TRADING_WRAPPER_FILE,
+        ])) {
+            return;
+        }
         const csharpExchangeBase = BASE_METHODS_FILE;
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
 
@@ -984,10 +1035,21 @@ class NewTranspiler {
         }
     }
 
-    transpilePredictionBaseMethods (predictionBaseFile = './ts/src/base/PredictionExchange.ts') {
+    transpilePredictionBaseMethods (predictionBaseFile = './ts/src/base/PredictionExchange.ts', force = true) {
         // PredictionExchange is the base class for prediction-market exchanges; it lives
         // in the ccxt namespace (like Exchange) and is transpiled the same way as the base
         const predictionBase = './cs/ccxt/base/PredictionExchange.cs';
+        // PredictionExchange extends BaseExchange and returns prediction-typed wrappers,
+        // so Exchange.ts and types.ts are inputs as well. Note a full run reaches this
+        // twice (once from the recursive prediction pass, once from the main pass) —
+        // the gate also makes the second call free.
+        if (skipUpToDateStage ('csharp', 'prediction base methods', force, [
+            predictionBaseFile,
+            './ts/src/base/Exchange.ts',
+            './ts/src/base/types.ts',
+        ], [ predictionBase ])) {
+            return;
+        }
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
         const baseFile: any = this.transpiler.transpileCSharpByPath(predictionBaseFile);
         let baseClass = baseFile.content as any;
@@ -1146,7 +1208,7 @@ class NewTranspiler {
         if (prediction) {
             // the venues override methods declared in the prediction base — regenerate it
             // in the same pass so a scoped prediction run can't leave the base stale
-            this.transpilePredictionBaseMethods ()
+            this.transpilePredictionBaseMethods (undefined, force)
             log.bright.green ('Transpiled prediction exchanges successfully.')
             return;
         }
@@ -1164,18 +1226,18 @@ class NewTranspiler {
         // full builds also transpile the prediction-market exchanges (ts/src/prediction/)
         await this.transpileEverything (force, false, false, true)
 
-        this.transpileBaseMethods (exchangeBase)
+        this.transpileBaseMethods (exchangeBase, force)
 
-        this.transpilePredictionBaseMethods ()
+        this.transpilePredictionBaseMethods (undefined, force)
 
         if (baseOnly) {
             return;
         }
 
 
-        await this.transpileTests()
+        await this.transpileTests(force)
 
-        this.transpileErrorHierarchy ()
+        this.transpileErrorHierarchy (force)
 
         log.bright.green ('Transpiled successfully.')
     }
@@ -1378,10 +1440,14 @@ class NewTranspiler {
     }
 
     // ---------------------------------------------------------------------------------------------
-    transpileWsOrderbookTestsToCSharp (outDir: string) {
+    transpileWsOrderbookTestsToCSharp (outDir: string, force = true) {
 
         const jsFile = './ts/src/pro/test/base/test.orderBook.ts';
         const csharpFile = `${outDir}/Ws/test.orderBook.cs`;
+
+        if (skipUpToDateStage ('csharp', 'ws orderbook test', force, testStageInputs (), [ csharpFile ])) {
+            return;
+        }
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -1418,10 +1484,14 @@ class NewTranspiler {
     }
 
     // ---------------------------------------------------------------------------------------------
-    transpileWsCacheTestsToCSharp (outDir: string) {
+    transpileWsCacheTestsToCSharp (outDir: string, force = true) {
 
         const jsFile = './ts/src/pro/test/base/test.cache.ts';
         const csharpFile = `${outDir}/Ws/test.cache.cs`;
+
+        if (skipUpToDateStage ('csharp', 'ws cache test', force, testStageInputs (), [ csharpFile ])) {
+            return;
+        }
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -1459,10 +1529,14 @@ class NewTranspiler {
 
     // ---------------------------------------------------------------------------------------------
 
-    transpileCryptoTestsToCSharp (outDir: string) {
+    transpileCryptoTestsToCSharp (outDir: string, force = true) {
 
         const jsFile = './ts/src/test/base/test.cryptography.ts';
         const csharpFile = `${outDir}/test.cryptography.cs`;
+
+        if (skipUpToDateStage ('csharp', 'crypto test', force, testStageInputs (), [ csharpFile ])) {
+            return;
+        }
 
         log.magenta ('[csharp] Transpiling from', (jsFile as any).yellow)
 
@@ -1542,15 +1616,15 @@ class NewTranspiler {
         await Promise.all (transpiledFiles.map ((file, idx) => writeFile (outDir + file[0] + '.cs', file[1])));
     }
 
-    async transpileBaseTestsToCSharp () {
+    async transpileBaseTestsToCSharp (force = true) {
         const outDir = BASE_TESTS_FOLDER;
-        await this.transpileBaseTests(outDir);
-        this.transpileCryptoTestsToCSharp(outDir);
-        this.transpileWsCacheTestsToCSharp(outDir);
-        this.transpileWsOrderbookTestsToCSharp(outDir);
+        await this.transpileBaseTests(outDir, force);
+        this.transpileCryptoTestsToCSharp(outDir, force);
+        this.transpileWsCacheTestsToCSharp(outDir, force);
+        this.transpileWsOrderbookTestsToCSharp(outDir, force);
     }
 
-    async transpileBaseTests (outDir: string) {
+    async transpileBaseTests (outDir: string, force = true) {
 
         const baseFolders = {
             ts: './ts/src/test/base/',
@@ -1564,6 +1638,13 @@ class NewTranspiler {
             const tsContent = fs.readFileSync (baseFolders.ts + testName + '.ts').toString ();
             return !tsContent.includes ('// NO_AUTO_TRANSPILE');
         });
+
+        // whole-stage gate: `paths` below doubles as the sticky ts.Program root list, so
+        // this stage is skipped all-or-nothing rather than per file
+        if (skipUpToDateStage ('csharp', 'base tests', force, testStageInputs (), eligible.map ((testName) => `${outDir}/${testName}.cs`))) {
+            return;
+        }
+
         const paths = eligible.map ((testName) => baseFolders.ts + testName + '.ts');
         const transpiled = await this.webworkerTranspile (paths, this.getTranspilerConfig ());
 
@@ -1665,12 +1746,7 @@ class NewTranspiler {
         overwriteFileAndFolder (files.csharpFile, file);
     }
 
-    transpileExchangeTests(){
-        this.transpileMainTest({
-            'tsFile': './ts/src/test/tests.ts',
-            'csharpFile': BASE_TESTS_FILE,
-        });
-
+    transpileExchangeTests(force = true){
         const baseFolders = {
             ts: './ts/src/test/Exchange/',
             tsBase: './ts/src/test/Exchange/base/',
@@ -1702,10 +1778,21 @@ class NewTranspiler {
             });
         });
 
+        // whole-stage gate — TestMethods.cs is included because transpileMainTest below
+        // writes it from ./ts/src/test/tests.ts, which is part of testStageInputs()
+        if (skipUpToDateStage ('csharp', 'exchange tests', force, testStageInputs (), [ BASE_TESTS_FILE ].concat (tests.map ((t: any) => t.csharpFile)))) {
+            return;
+        }
+
+        this.transpileMainTest({
+            'tsFile': './ts/src/test/tests.ts',
+            'csharpFile': BASE_TESTS_FILE,
+        });
+
         return this.transpileAndSaveCsharpExchangeTests (tests);
     }
 
-    transpileWsExchangeTests(){
+    transpileWsExchangeTests(force = true){
 
         const baseFolders = {
             ts: './ts/src/pro/test/Exchange/',
@@ -1723,6 +1810,10 @@ class NewTranspiler {
                 csharpFile: baseFolders.csharp + test + '.cs',
             });
         });
+
+        if (skipUpToDateStage ('csharp', 'ws exchange tests', force, testStageInputs (), tests.map ((t: any) => t.csharpFile))) {
+            return;
+        }
 
         return this.transpileAndSaveCsharpExchangeTests (tests, true);
     }
@@ -1801,16 +1892,16 @@ class NewTranspiler {
         });
     }
 
-    async transpileTests(){
+    async transpileTests(force = true){
         if (!shouldTranspileTests) {
             log.bright.yellow ('Skipping tests transpilation');
             return;
         }
         // the three groups are independent — run them concurrently
         await Promise.all ([
-            this.transpileBaseTestsToCSharp(),
-            this.transpileExchangeTests(),
-            this.transpileWsExchangeTests(),
+            this.transpileBaseTestsToCSharp(force),
+            this.transpileExchangeTests(force),
+            this.transpileWsExchangeTests(force),
         ]);
     }
 }

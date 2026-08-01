@@ -131,6 +131,61 @@ function filterDirtyExchangeFiles (lang: string, files: string[], force: boolean
     return dirty
 }
 
+// Whole-stage variant of the gate above, for the passes that are NOT per-exchange:
+// base methods, the error hierarchy, and the test groups. Those stages emit a fixed
+// set of files from a fixed set of sources, and they cannot be filtered file by file
+// — `webworkerTranspile` hands the whole stage list to piscina as the sticky
+// ts.Program `roots` (build/worker-program-batch.js), so printing a subset off a
+// different root set is not guaranteed to reproduce the full-run output. A stage is
+// therefore skipped all-or-nothing: clean only when every output exists and the
+// newest input is not newer than the oldest output.
+function isStageUpToDate (inputPaths: string[], outputPaths: string[]) {
+    if (!inputPaths.length || !outputPaths.length) {
+        return false // nothing to compare → we cannot prove it is up to date
+    }
+    let newestInput = 0
+    for (let i = 0; i < inputPaths.length; i++) {
+        if (!fs.existsSync (inputPaths[i])) {
+            return false
+        }
+        let mtime = fs.statSync (inputPaths[i]).mtime.getTime ()
+        mtime = mtime - mtime % 1000 // see isTranspileNeeded: 1s filesystem resolution
+        if (mtime > newestInput) {
+            newestInput = mtime
+        }
+    }
+    let oldestOutput = Infinity
+    for (let i = 0; i < outputPaths.length; i++) {
+        if (!fs.existsSync (outputPaths[i])) {
+            return false // a missing output always makes the stage dirty
+        }
+        let mtime = fs.statSync (outputPaths[i]).mtime.getTime ()
+        mtime = mtime - mtime % 1000
+        if (mtime < oldestOutput) {
+            oldestOutput = mtime
+        }
+    }
+    return newestInput <= oldestOutput
+}
+
+// Returns true when `stage` can be skipped entirely. `force` always returns false, and
+// any stat error is treated as dirty so a gate can never silently drop real work.
+function skipUpToDateStage (lang: string, stage: string, force: boolean, inputPaths: string[], outputPaths: string[]) {
+    if (force) {
+        return false
+    }
+    let upToDate = false
+    try {
+        upToDate = isStageUpToDate (inputPaths, outputPaths)
+    } catch (e) {
+        upToDate = false
+    }
+    if (upToDate) {
+        log.bright.cyan ('[' + lang + ']', 'Already transpiled:', stage, 'is up to date, skipping, pass --force to transpile everything')
+    }
+    return upToDate
+}
+
 class Transpiler {
 
     buildPython = true;
@@ -3579,5 +3634,7 @@ export {
     parallelizeTranspiling,
     isMainEntry,
     isTranspileNeeded,
-    filterDirtyExchangeFiles
+    filterDirtyExchangeFiles,
+    isStageUpToDate,
+    skipUpToDateStage
 }
