@@ -2677,7 +2677,7 @@ set hedged to true or false for a market
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | hedged | <code>bool</code> | Yes | set to true to use two way position |
-| symbol | <code>string</code> | No | not used by bybit setPositionMode () |
+| symbol | <code>string</code> | No | not used by setPositionMode () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 

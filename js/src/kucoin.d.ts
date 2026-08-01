@@ -1567,7 +1567,7 @@ export default class kucoin extends Exchange {
      * @description set hedged to true or false for a market
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-position-mode
      * @param {bool} hedged set to true to use two way position
-     * @param {string} [symbol] not used by bybit setPositionMode ()
+     * @param {string} [symbol] not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a response from the exchange
      */

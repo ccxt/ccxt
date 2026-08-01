@@ -1478,7 +1478,7 @@ export default class bitget extends Exchange {
             },
             'options': {
                 'uta': undefined,
-                'timeDifference': 0, // the difference between system clock and Binance clock
+                'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'fetchMarkets': {
                     'types': ['spot', 'swap'], // there is future markets but they use the same endpoints as swap

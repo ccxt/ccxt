@@ -8079,7 +8079,7 @@ watch the public liquidations of a trading pair
 | symbol | <code>string</code> | Yes | unified CCXT market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
-| params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#watchliquidations)
@@ -8103,7 +8103,7 @@ watch the public liquidations of a trading pair
 | symbols | <code>Array&lt;string&gt;</code> | Yes | list of unified market symbols |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
-| params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#watchliquidationsforsymbols)
@@ -8174,7 +8174,7 @@ watch the private liquidations of a trading pair
 | symbol | <code>string</code> | Yes | unified CCXT market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
-| params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#watchmyliquidations)
@@ -8196,7 +8196,7 @@ watch the private liquidations of a trading pair
 | symbols | <code>Array&lt;string&gt;</code> | Yes | list of unified market symbols |
 | since | <code>int</code> | No | the earliest time in ms to fetch liquidations for |
 | limit | <code>int</code> | No | the maximum number of liquidation structures to retrieve |
-| params | <code>object</code> | No | exchange specific parameters for the bitmex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#watchmyliquidationsforsymbols)

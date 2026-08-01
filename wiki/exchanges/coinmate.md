@@ -25,10 +25,10 @@
 <a name="fetchTime" id="fetchtime"></a>
 
 ### fetchTime{docsify-ignore}
-fetches the current integer timestamp in milliseconds from the bingx server
+fetches the current integer timestamp in milliseconds from the exchange server
 
 **Kind**: instance method of [<code>coinmate</code>](#coinmate)  
-**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the bingx server
+**Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
 **See**: https://coinmate.docs.apiary.io/#reference/system/get-server-time/get  
 
