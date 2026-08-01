@@ -52,6 +52,8 @@ const settingsSchema = z.object ({
     // call time; set true to hide disabled tiers from tools/list (a leaner, deliberately
     // read-only deployment) — execution is gated by the account either way
     'hideDisabledTools': z.boolean ().optional (),
+    // opt-in: auto-register accounts from <EXCHANGEID>_<CREDENTIAL> env vars (ccxt --loadKeys parity)
+    'loadEnvKeys': z.boolean ().optional (),
 }).passthrough ();
 
 export function defaultConfigPath (): string {
@@ -134,7 +136,9 @@ function parseConfigObject (raw: any, problems: string[]): { accounts: Record<st
             problems.push ('ignored unknown top-level key ' + JSON.stringify (key) + ' (not an exchange id; use the {"accounts": {...}} shape for named accounts)');
         }
     }
-    return { accounts, 'settings': {} };
+    // preserve a "settings" block even in the legacy shape, so a settings-only config
+    // (e.g. {"settings":{"loadEnvKeys":true}}) isn't silently dropped
+    return { accounts, 'settings': raw['settings'] ?? {} };
 }
 
 function validateAccount (name: string, raw: any, problems: string[]): AccountConfig | undefined {
@@ -272,6 +276,62 @@ function envAccounts (problems: string[]): AccountConfig[] {
     return out;
 }
 
+// Opt-in (settings.loadEnvKeys / CCXT_MCP_LOAD_ENV_KEYS), mirroring ccxt's --loadKeys: scan the
+// environment for <EXCHANGEID>_APIKEY / _WALLETADDRESS / _PRIVATEKEY (a known exchange id) and
+// register an account named after each — buildAuthenticated then fills the credential values from
+// those same <EXCHANGEID>_<CREDENTIAL> vars (its long-standing CLI-parity behaviour). The safe
+// global toggles (CCXT_MCP_SANDBOX/DEMO/PREDICTION and sandbox trading) apply; LIVE trading is
+// deliberately never auto-armed on an env-detected account. Off by default so ambient shell keys
+// (e.g. a ccxt test setup) are never silently activated.
+const PRIMARY_ENV_CRED_SUFFIXES = [ '_APIKEY', '_API_KEY', '_WALLETADDRESS', '_PRIVATEKEY' ];
+
+function envExchangeAccounts (taken: Set<string>, problems: string[]): AccountConfig[] {
+    const exchanges = new Set<string> ();
+    for (const key of Object.keys (process.env)) {
+        const value = process.env[key];
+        if (value === undefined || value === '') {
+            continue;
+        }
+        for (const suffix of PRIMARY_ENV_CRED_SUFFIXES) {
+            if (key.endsWith (suffix)) {
+                const prefix = key.slice (0, key.length - suffix.length).toLowerCase ();
+                if (isKnownExchange (prefix)) {
+                    exchanges.add (prefix);
+                }
+                break;
+            }
+        }
+    }
+    const out: AccountConfig[] = [];
+    for (const exchange of exchanges) {
+        if (taken.has (exchange)) {
+            continue;
+        }
+        const raw: any = { exchange };
+        const global = (name: string): string | undefined => process.env['CCXT_MCP_' + name];
+        if (global ('SANDBOX') === 'true') {
+            raw['sandbox'] = true;
+        }
+        if (global ('DEMO') === 'true') {
+            raw['demo'] = true;
+        }
+        if (global ('PREDICTION') === 'true') {
+            raw['prediction'] = true;
+        }
+        // sandbox trading only — a live account requires an explicit config-file entry, never an
+        // ambient env var, so a global CCXT_MCP_TRADING can't auto-arm live orders on these
+        const trading = global ('TRADING');
+        if (trading === 'true' || trading === 'sandbox') {
+            raw['trading'] = true;
+        }
+        const account = validateAccount (exchange, raw, problems);
+        if (account !== undefined) {
+            out.push (account);
+        }
+    }
+    return out;
+}
+
 export function unescapePem (value: string): string {
     if (value.indexOf ('---BEGIN') > -1) {
         return value.split ('\\n').join ('\n');
@@ -329,6 +389,15 @@ export function loadConfig (): ResolvedConfig {
         }
     }
 
+    // opt-in (settings.loadEnvKeys / CCXT_MCP_LOAD_ENV_KEYS): mirror ccxt's --loadKeys and
+    // auto-register accounts from <EXCHANGEID>_<CREDENTIAL> env vars for names not already claimed
+    const loadEnvKeys = (settingsRaw['loadEnvKeys'] === true) || (process.env['CCXT_MCP_LOAD_ENV_KEYS'] === 'true');
+    if (loadEnvKeys) {
+        for (const envAccount of envExchangeAccounts (new Set (Object.keys (accounts)), problems)) {
+            accounts[envAccount.name] = envAccount;
+        }
+    }
+
     for (const account of Object.values (accounts)) {
         registerAccountSecrets (account);
     }
@@ -348,6 +417,7 @@ export function loadConfig (): ResolvedConfig {
         // so a count cap isn't needed — set a positive value only if you want one.
         'maxSubscriptions': validSettings.maxSubscriptions ?? 0,
         'hideDisabledTools': validSettings.hideDisabledTools ?? false,
+        'loadEnvKeys': (validSettings.loadEnvKeys ?? false) || (process.env['CCXT_MCP_LOAD_ENV_KEYS'] === 'true'),
     };
 
     for (const problem of problems) {

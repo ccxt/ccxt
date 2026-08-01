@@ -38,6 +38,7 @@ export interface ServerSettings {
     exchangeOptions: Record<string, Record<string, any>>;
     maxSubscriptions: number;
     hideDisabledTools: boolean;
+    loadEnvKeys: boolean;
 }
 
 export interface ResolvedConfig {

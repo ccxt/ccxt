@@ -207,3 +207,54 @@ test ('an env slot shadowed by a config-file account is surfaced, not silently d
         assert.ok (config.problems.some ((p) => p.includes ('shadowed')), 'the dropped form account is reported, not silent');
     });
 });
+
+test ('loadEnvKeys off (default): ambient <EXCHANGEID>_<CRED> vars do NOT create accounts', () => {
+    withConfig ({}, {
+        'CCXT_MCP_LOAD_ENV_KEYS': undefined,
+        'BINANCE_APIKEY': 'FAKEKEY111111',
+        'BINANCE_SECRET': 'FAKESECRET111111',
+    }, () => {
+        const config = loadConfig ();
+        assert.equal (config.accounts['binance'], undefined);
+    });
+});
+
+test ('loadEnvKeys via settings: <EXCHANGEID>_<CRED> vars auto-register read-only accounts (ccxt --loadKeys parity)', () => {
+    withConfig ({ 'settings': { 'loadEnvKeys': true } }, {
+        'CCXT_MCP_TRADING': undefined, 'CCXT_MCP_SANDBOX': undefined,
+        'BINANCE_APIKEY': 'FAKEKEY111111', 'BINANCE_SECRET': 'FAKESECRET111111',
+        'KRAKEN_APIKEY': 'FAKEKEY222222', 'KRAKEN_SECRET': 'FAKESECRET222222',
+    }, () => {
+        const config = loadConfig ();
+        assert.equal (config.accounts['binance'].exchange, 'binance');
+        assert.equal (config.accounts['kraken'].exchange, 'kraken');
+        // read-only by default — no global CCXT_MCP_TRADING set
+        assert.equal (config.accounts['binance'].trading ?? false, false);
+    });
+});
+
+test ('loadEnvKeys via CCXT_MCP_LOAD_ENV_KEYS: works with no config file; global sandbox+trading toggles apply, live is never auto-armed', () => {
+    withConfig ({}, {
+        'CCXT_MCP_LOAD_ENV_KEYS': 'true',
+        'OKX_APIKEY': 'FAKEKEY333333', 'OKX_SECRET': 'FAKESECRET333333', 'OKX_PASSWORD': 'FAKEPASS',
+        'CCXT_MCP_SANDBOX': 'true', 'CCXT_MCP_TRADING': 'sandbox',
+    }, () => {
+        const config = loadConfig ();
+        assert.equal (config.accounts['okx'].exchange, 'okx');
+        assert.equal (config.accounts['okx'].sandbox, true);
+        assert.equal (config.accounts['okx'].trading, true);
+    });
+});
+
+test ('loadEnvKeys never auto-arms LIVE trading from a global flag (safety)', () => {
+    withConfig ({}, {
+        'CCXT_MCP_LOAD_ENV_KEYS': 'true',
+        'BINANCE_APIKEY': 'FAKEKEY444444', 'BINANCE_SECRET': 'FAKESECRET444444',
+        'CCXT_MCP_TRADING': 'live',
+    }, () => {
+        const config = loadConfig ();
+        // an env-detected account is live (no sandbox) + trading was NOT set to "live" for it,
+        // so trading stays off — live orders require an explicit config-file account
+        assert.equal (config.accounts['binance'].trading ?? false, false);
+    });
+});
