@@ -1,10 +1,15 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "CCXT Playground",
   description:
     "Run CCXT against live public exchange endpoints in TypeScript, Python and PHP — with an AI assistant.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 // Runs before paint: pick saved theme, else system preference, else dark.

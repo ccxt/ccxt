@@ -235,6 +235,9 @@ button {
   inset: 0;
   display: grid;
   grid-template-rows: auto 1fr;
+  /* minmax(0,…): the default `auto` minimum is min-content, which would let the
+     toolbar's intrinsic width force the whole page wider than the viewport. */
+  grid-template-columns: minmax(0, 1fr);
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
@@ -279,14 +282,15 @@ button {
 
 /* ---- Body layout ---- */
 .body {
+  position: relative;
   display: grid;
-  grid-template-columns: 1fr 0;
+  grid-template-columns: minmax(0, 1fr) 0;
   overflow: hidden;
   transition: grid-template-columns 0.18s ease;
   background: hsl(var(--card-muted));
 }
 .body.with-ai {
-  grid-template-columns: 1fr 400px;
+  grid-template-columns: minmax(0, 1fr) 400px;
 }
 .workspace {
   display: grid;
@@ -621,6 +625,96 @@ button {
 }
 .sample-hint {
   margin: 0;
+}
+
+/* ---- Responsive: tablet & phone ---- */
+/* Only shown below the breakpoint; keeps the desktop toolbar single-line. */
+.btn-label-short {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  /* Topbar becomes two rows: brand + actions, then language tabs + examples. */
+  .topbar {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 56px;
+    padding: 8px 12px;
+    gap: 8px 10px;
+  }
+  .topbar > .sep {
+    display: none;
+  }
+  .brand {
+    order: 1;
+    min-width: 0;
+  }
+  .brand .sub {
+    display: none;
+  }
+  .topbar > button {
+    order: 2;
+  }
+  .topbar > button:first-of-type {
+    margin-left: auto;
+  }
+  /* Zero-height full-width item: forces the following controls onto row 2. */
+  .toolbar-spacer {
+    order: 3;
+    flex: 1 0 100%;
+    height: 0;
+  }
+  .tabs {
+    order: 4;
+    /* basis 0 so the tabs give up space to the select and share one row */
+    flex: 1 1 0;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .tab {
+    flex: 0 0 auto;
+  }
+  .select {
+    order: 5;
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 46%;
+  }
+  .btn-label-full {
+    display: none;
+  }
+  .btn-label-short {
+    display: inline;
+  }
+
+  /* The 400px AI column alone exceeds a phone viewport — overlay it instead. */
+  .body.with-ai {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .with-ai .workspace {
+    padding-right: 12px;
+  }
+  .workspace,
+  .panel {
+    min-width: 0;
+  }
+  .ai {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    border-left: none;
+  }
+}
+
+/* Short viewports (landscape phones): give the editor more of the height. */
+@media (max-height: 700px) {
+  .workspace {
+    grid-template-rows: 1fr 160px;
+  }
 }
 
 .dots::after {

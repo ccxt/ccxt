@@ -38,6 +38,8 @@ export default function Page() {
     const initial = (document.documentElement.dataset.theme as Theme) || "dark";
     setTheme(initial);
     setMounted(true);
+    // Assistant is a full-screen overlay below the globals.css 900px breakpoint — start closed there.
+    if (!window.matchMedia("(min-width: 900px)").matches) setAiOpen(false);
   }, []);
 
   const toggleTheme = useCallback(() => {
