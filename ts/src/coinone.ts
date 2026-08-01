@@ -1047,7 +1047,7 @@ export default class coinone extends Exchange {
             const feeCurrencyCode = (side === 'sell') ? quote : base;
             fee = {
                 'cost': feeCostString,
-                'rate': this.safeString (order, 'feeRate'),
+                'rate': this.safeString2 (order, 'feeRate', 'fee_rate'),
                 'currency': feeCurrencyCode,
             };
         }
@@ -1066,9 +1066,9 @@ export default class coinone extends Exchange {
             'price': this.safeString (order, 'price'),
             'triggerPrice': undefined,
             'cost': undefined,
-            'average': this.safeString (order, 'averageExecutedPrice'),
+            'average': this.safeString2 (order, 'averageExecutedPrice', 'average_executed_price'),
             'amount': amountString,
-            'filled': this.safeString (order, 'executedQty'),
+            'filled': this.safeString2 (order, 'executedQty', 'executed_qty'),
             'remaining': remainingString,
             'status': status,
             'fee': fee,
