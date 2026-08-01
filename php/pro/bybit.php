@@ -2563,6 +2563,17 @@ class bybit extends \ccxt\async\bybit {
                 if (is_array($client->subscriptions) && array_key_exists($authenticatedHash ?? '', $client->subscriptions)) {
                     unset($client->subscriptions[$authenticatedHash]);
                 }
+                $op = $this->safe_string($message, 'op');
+                if (($op !== null) && ($op !== 'auth')) {
+                    // an operation response that carries no reqId, e.g. bybit
+                    // omits it on some permission rejections of trade ops,
+                    // would leave the awaiting future pending forever, and
+                    // since nothing on this $client can proceed without
+                    // authentication, reject everything pending, mirroring the
+                    // behavior of unattributable non auth errors, see
+                    // https://github.com/ccxt/ccxt/issues/29361
+                    $client->reject($error);
+                }
             } else {
                 $client->reject($error, $messageHash);
             }
