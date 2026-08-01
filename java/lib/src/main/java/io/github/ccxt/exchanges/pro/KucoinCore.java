@@ -2687,10 +2687,41 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         Object order = this.safeValue(orders, ((String)orderId));
         if (Helpers.isTrue(!Helpers.isEqual(order, null)))
         {
-            // todo add others to calculate average etc
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(order, "status"), "closed")))
             {
                 Helpers.addElementToObject(parsed, "status", "closed");
+            }
+            // carry the accumulated fill state forward, the raw feed only
+            // carries the match prices on the match messages, and safeOrder
+            // derives cost from the order price otherwise, which is wrong for
+            // orders filled at better prices, so the accumulated values win on
+            // the non match messages, see https://github.com/ccxt/ccxt/issues/19083
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(order, "average"), null)))
+            {
+                Helpers.addElementToObject(parsed, "average", Helpers.GetValue(order, "average"));
+                Helpers.addElementToObject(parsed, "cost", Helpers.GetValue(order, "cost"));
+            }
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(parsed, "filled"), null)))
+            {
+                Helpers.addElementToObject(parsed, "filled", Helpers.GetValue(order, "filled"));
+            }
+        }
+        // accumulate the average fill price and cost from the match messages,
+        // which carry matchPrice and matchSize, the terminal filled message
+        // does not repeat them, see https://github.com/ccxt/ccxt/issues/19083
+        Object rawType = this.safeString(data, "type");
+        Object matchPrice = this.safeString(data, "matchPrice");
+        Object matchSize = this.safeString(data, "matchSize");
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(rawType, "match"))) && Helpers.isTrue((!Helpers.isEqual(matchPrice, null)))) && Helpers.isTrue((!Helpers.isEqual(matchSize, null)))))
+        {
+            Object matchCost = Precise.stringMul(matchPrice, matchSize);
+            Object previousCost = ((Helpers.isTrue((Helpers.isEqual(order, null))))) ? "0" : this.numberToString(this.safeNumber(order, "cost", 0));
+            Object costString = Precise.stringAdd(previousCost, matchCost);
+            Helpers.addElementToObject(parsed, "cost", this.parseNumber(costString));
+            Object filledString = this.numberToString(Helpers.GetValue(parsed, "filled"));
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(filledString, null))) && Helpers.isTrue((Precise.stringGt(filledString, "0")))))
+            {
+                Helpers.addElementToObject(parsed, "average", this.parseNumber(Precise.stringDiv(costString, filledString)));
             }
         }
         Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
