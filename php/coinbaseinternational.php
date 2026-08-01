@@ -1935,7 +1935,7 @@ class coinbaseinternational extends Exchange {
          * @see https://docs.cloud.coinbase.com/intx/reference/cancelorder
          *
          * @param {string} $id order $id
-         * @param {string} $symbol not used by coinbaseinternational cancelOrder()
+         * @param {string} $symbol not used by cancelOrder()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */

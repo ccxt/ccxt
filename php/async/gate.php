@@ -8289,7 +8289,7 @@ class gate extends Exchange {
              *
              * @param {string} $symbol Unified CCXT market $symbol
              * @param {string} $side 'buy' or 'sell'
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} ~@link https://docs.ccxt.com/?id=position-structure A list of position structures~
              */
             $request = array(
@@ -8684,7 +8684,7 @@ class gate extends Exchange {
              * @param {string[]} $symbols unified conract $symbols, must all have the same settle currency and the same $market type
              * @param {int} [$since] the earliest time in ms to fetch positions for
              * @param {int} [$limit] the maximum amount of records to fetch, default=1000
-             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch positions for
              *
              * EXCHANGE SPECIFIC PARAMETERS

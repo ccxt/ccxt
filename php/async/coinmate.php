@@ -1245,7 +1245,7 @@ class coinmate extends Exchange {
              * @see https://coinmate.docs.apiary.io/#reference/order/cancel-order/post
              *
              * @param {string} $id order $id
-             * @param {string} $symbol not used by coinmate cancelOrder ()
+             * @param {string} $symbol not used by cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */

@@ -9941,7 +9941,7 @@ class htx extends Exchange {
              *
              * @param {string} $symbol unified CCXT $market $symbol
              * @param {string} $side 'buy' or 'sell', the $side of the closing order, opposite $side side
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->clientOrderId] client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
              * @param {array} [$params->marginMode] 'cross' or 'isolated', required for linear markets
              *

@@ -8440,7 +8440,7 @@ class binance extends Exchange {
          *
          * @see https://developers.binance.com/docs/wallet/asset/dust-log
          *
-         * @param {string} $symbol not used by binance fetchMyDustTrades ()
+         * @param {string} $symbol not used by fetchMyDustTrades ()
          * @param {int} [$since] the earliest time in ms to fetch my dust $trades for
          * @param {int} [$limit] the maximum number of dust $trades to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -9472,7 +9472,7 @@ class binance extends Exchange {
          *
          * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
          *
-         * @param {string[]|null} $codes not used by binance fetchTransactionFees ()
+         * @param {string[]|null} $codes not used by fetchTransactionFees ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~
          */
@@ -9589,7 +9589,7 @@ class binance extends Exchange {
          *
          * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
          *
-         * @param {string[]|null} $codes not used by binance fetchDepositWithdrawFees ()
+         * @param {string[]|null} $codes not used by fetchDepositWithdrawFees ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
@@ -11697,7 +11697,7 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
          *
          * @param {bool} $hedged set to true to use $dualSidePosition
-         * @param {string} $symbol not used by binance setPositionMode ()
+         * @param {string} $symbol not used by setPositionMode ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to set the position mode for a portfolio margin account
          * @param {string} [$params->subType] "linear" or "inverse"
@@ -14137,7 +14137,7 @@ class binance extends Exchange {
          * @param {string} [$type] "add" or "reduce"
          * @param {int} [$since] timestamp in ms of the earliest change to fetch
          * @param {int} [$limit] the maximum amount of changes to fetch
-         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest change to fetch
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=margin-loan-structure margin structures~
          */

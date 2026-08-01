@@ -1780,7 +1780,7 @@ class exmo extends Exchange {
              * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#705dfec5-2b35-4667-862b-faf54eca6209  // margin
              *
              * @param {string} $id order $id
-             * @param {string} $symbol not used by exmo cancelOrder ()
+             * @param {string} $symbol not used by cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->trigger] true to cancel a $trigger order
              * @param {string} [$params->marginMode] set to 'cross' or 'isolated' to cancel a margin order

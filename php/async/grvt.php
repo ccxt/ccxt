@@ -638,7 +638,7 @@ class grvt extends Exchange {
              *
              * @see https://api-docs.grvt.io/market_data_api/#get-instrument-prod
              *
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
             $marketsPromise = $this->publicMarketPostFullV1AllInstruments($params);

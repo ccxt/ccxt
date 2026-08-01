@@ -1157,7 +1157,7 @@ class blockchaincom extends Exchange {
          * @see https://api.blockchain.com/v3/#getdepositbyid
          *
          * @param {string} $id $deposit $id
-         * @param {string} $code not used by blockchaincom fetchDeposit ()
+         * @param {string} $code not used by fetchDeposit ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?$id=transaction-structure transaction structure~
          */

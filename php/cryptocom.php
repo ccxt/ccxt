@@ -3419,7 +3419,7 @@ class cryptocom extends Exchange {
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} [$side] not used by cryptocom.closePositions
-         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->type] LIMIT or MARKET

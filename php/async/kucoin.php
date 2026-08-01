@@ -11402,7 +11402,7 @@ class kucoin extends Exchange {
              *
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} $side not used by kucoin closePositions
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->clientOrderId] client order id of the order
              * @return {array[]} ~@link https://docs.ccxt.com/?id=position-structure A list of position structures~
              */

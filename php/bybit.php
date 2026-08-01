@@ -9187,7 +9187,7 @@ class bybit extends Exchange {
          * @param {string[]} $symbols a list of unified $market $symbols
          * @param {int} [$since] timestamp in ms of the earliest position to fetch, $params["until"] - $since <= 7 days
          * @param {int} [$limit] the maximum amount of records to fetch, default=50, max=100
-         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest position to fetch, $params["until"] - $since <= 7 days
          * @param {string} [$params->subType] 'linear' or 'inverse'
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~

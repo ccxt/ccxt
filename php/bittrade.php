@@ -1578,7 +1578,7 @@ class bittrade extends Exchange {
         /**
          * cancels an open order
          * @param {string} $id order $id
-         * @param {string} $symbol not used by bittrade cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -1599,7 +1599,7 @@ class bittrade extends Exchange {
         /**
          * cancel multiple orders
          * @param {string[]} $ids order $ids
-         * @param {string} $symbol not used by bittrade cancelOrders ()
+         * @param {string} $symbol not used by cancelOrders ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */

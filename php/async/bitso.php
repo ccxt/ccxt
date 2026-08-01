@@ -1218,7 +1218,7 @@ class bitso extends Exchange {
              * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
              *
              * @param {string} $id order $id
-             * @param {string} $symbol not used by bitso cancelOrder ()
+             * @param {string} $symbol not used by cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */

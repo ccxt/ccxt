@@ -2327,7 +2327,7 @@ class bitmex extends Exchange {
              * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
              *
              * @param {string} $id $order $id
-             * @param {string} $symbol not used by bitmex cancelOrder ()
+             * @param {string} $symbol not used by cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
@@ -2363,7 +2363,7 @@ class bitmex extends Exchange {
              * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
              *
              * @param {string[]} $ids order $ids
-             * @param {string} $symbol not used by bitmex cancelOrders ()
+             * @param {string} $symbol not used by cancelOrders ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
@@ -3725,7 +3725,7 @@ class bitmex extends Exchange {
              *
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} $side the buy or sell $side of the closing order, if the position is long set the $side to sell, reduceOnly is implied
-             * @param {array} [$params] extra parameters specific to the bingx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             if ($this->markets === null) {

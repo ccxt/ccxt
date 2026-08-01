@@ -2654,7 +2654,7 @@ class lbank extends Exchange {
         /**
          * @deprecated
          * please use fetchDepositWithdrawFees instead
-         * @param {string[]|null} $codes not used by lbank fetchTransactionFees ()
+         * @param {string[]|null} $codes not used by fetchTransactionFees ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */

@@ -1509,7 +1509,7 @@ class coinsph extends Exchange {
          * @see https://docs.coins.ph/rest-api/#query-order-user_data
          *
          * @param {int|string} $id order $id
-         * @param {string} $symbol not used by coinsph fetchOrder ()
+         * @param {string} $symbol not used by fetchOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -1593,7 +1593,7 @@ class coinsph extends Exchange {
          * @see https://docs.coins.ph/rest-api/#cancel-order-trade
          *
          * @param {string} $id order $id
-         * @param {string} $symbol not used by coinsph cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -1920,7 +1920,7 @@ class coinsph extends Exchange {
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
-         * @param {string} $address not used by coinsph withdraw ()
+         * @param {string} $address not used by withdraw ()
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~

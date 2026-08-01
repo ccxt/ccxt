@@ -392,7 +392,7 @@ class bitrue extends Exchange {
                 'fetchMyTradesMethod' => 'v2PrivateGetMyTrades', // spotV1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'currencyToPrecisionRoundingMode' => TRUNCATE,
-                'recvWindow' => 5 * 1000, // 5 sec, binance default
+                'recvWindow' => 5 * 1000, // 5 sec, the exchange default
                 'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'parseOrderToPrecision' => false, // force amounts and costs in parseOrder to precision
@@ -842,7 +842,7 @@ class bitrue extends Exchange {
              * @see https://www.bitrue.com/api-docs#current-open-contract
              * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
              *
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
             $promisesRaw = array();
@@ -1991,7 +1991,7 @@ class bitrue extends Exchange {
         $amount = $this->safe_string($order, 'origQty');
         // - Spot/Margin $market => cummulativeQuoteQty
         // - Futures $market => cumQuote.
-        //   Note this is not the actual $cost, since Binance futures uses leverage to calculate margins.
+        //   Note this is not the actual $cost, since the exchange uses leverage to calculate margins.
         $cost = $this->safe_string_2($order, 'cummulativeQuoteQty', 'cumQuote');
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'type');

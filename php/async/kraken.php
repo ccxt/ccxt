@@ -2560,7 +2560,7 @@ class kraken extends Exchange {
              *
              * @param {string[]} [$ids] list of $order $id
              * @param {string} [$symbol] unified ccxt market $symbol
-             * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
             if ($this->markets === null) {
@@ -3332,7 +3332,7 @@ class kraken extends Exchange {
              * @see https://docs.kraken.com/api-reference/funding/get-deposit-methods
              *
              * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} of deposit methods
              */
             if ($this->markets === null) {
@@ -3508,7 +3508,7 @@ class kraken extends Exchange {
              *
              * @see https://docs.kraken.com/api-reference/account-data/get-open-positions
              *
-             * @param {string[]} [$symbols] not used by kraken fetchPositions ()
+             * @param {string[]} [$symbols] not used by fetchPositions ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */

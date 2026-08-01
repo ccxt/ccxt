@@ -2128,7 +2128,7 @@ class aster extends Exchange {
          * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-position-modetrade
          *
          * @param {bool} $hedged set to true to use dualSidePosition
-         * @param {string} $symbol not used by bingx setPositionMode ()
+         * @param {string} $symbol not used by setPositionMode ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} response from the exchange
          */
@@ -3215,7 +3215,7 @@ class aster extends Exchange {
          * @param {string} [$type] "add" or "reduce"
          * @param {int} [$since] timestamp in ms of the earliest change to fetch
          * @param {int} [$limit] the maximum amount of changes to fetch
-         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest change to fetch
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=margin-loan-structure margin structures~
          */
