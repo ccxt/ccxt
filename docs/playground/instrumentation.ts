@@ -6,7 +6,13 @@
 // dispatcher so fetch routes through the proxy (and still bypasses NO_PROXY hosts).
 export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs') return;
-  if (!process.env.HTTP_PROXY && !process.env.HTTPS_PROXY) return;
-  const { setGlobalDispatcher, EnvHttpProxyAgent } = await import('undici');
-  setGlobalDispatcher(new EnvHttpProxyAgent());
+  if (process.env.HTTP_PROXY || process.env.HTTPS_PROXY) {
+    const { setGlobalDispatcher, EnvHttpProxyAgent } = await import('undici');
+    setGlobalDispatcher(new EnvHttpProxyAgent());
+  }
+  // Warm the free-model list once at boot (after the dispatcher above, so it
+  // goes through the proxy). Fire-and-forget: a failure must not break boot.
+  void import('@/lib/ai/openrouter')
+    .then((m) => m.getFreeModels())
+    .catch(() => {});
 }

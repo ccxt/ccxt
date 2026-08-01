@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { FREE_MODELS, DEFAULT_MODEL } from "@/lib/ai/openrouter";
+import { useEffect, useRef, useState } from "react";
+import { FALLBACK_FREE_MODELS, type FreeModel } from "@/lib/ai/openrouter";
 import type { LanguageId } from "@/lib/languages";
 import { apiUrl } from "@/lib/basePath";
 
@@ -25,9 +25,34 @@ export default function AssistantPanel({
 }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
-  const [model, setModel] = useState(DEFAULT_MODEL);
+  const [models, setModels] = useState<FreeModel[]>(FALLBACK_FREE_MODELS);
+  const [model, setModel] = useState(FALLBACK_FREE_MODELS[0].id);
+  const [modelsLoading, setModelsLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // The free tier rotates, so the live list comes from the server (warmed at
+  // startup). Until it lands — or if it fails — the fallback list is used.
+  useEffect(() => {
+    let cancelled = false;
+    fetch(apiUrl("/api/ai/models"))
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+      .then((data: { models?: FreeModel[]; defaultModel?: string }) => {
+        if (cancelled || !data.models?.length) return;
+        const next = data.models;
+        setModels(next);
+        setModel((current) =>
+          next.some((m) => m.id === current) ? current : data.defaultModel ?? next[0].id,
+        );
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setModelsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const scrollDown = () => {
     requestAnimationFrame(() => {
@@ -110,9 +135,10 @@ export default function AssistantPanel({
           className="select model-select"
           value={model}
           onChange={(e) => setModel(e.target.value)}
-          aria-label="Model"
+          disabled={modelsLoading}
+          aria-label={modelsLoading ? "Loading models…" : "Model"}
         >
-          {FREE_MODELS.map((m) => (
+          {models.map((m) => (
             <option key={m.id} value={m.id}>
               {m.label}
             </option>

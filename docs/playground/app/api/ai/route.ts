@@ -1,9 +1,9 @@
 import { isLanguageId, type LanguageId } from "@/lib/languages";
 import {
   OPENROUTER_URL,
-  DEFAULT_MODEL,
-  FREE_MODELS,
-  isFreeModel,
+  getFreeModels,
+  getDefaultModelId,
+  isFreeModelId,
   buildSystemPrompt,
 } from "@/lib/ai/openrouter";
 import { clientIp, logEvent, truncate } from "@/lib/log";
@@ -38,7 +38,10 @@ export async function POST(request: Request) {
   if (messages.length === 0) {
     return Response.json({ error: "no messages" }, { status: 400 });
   }
-  const model = body.model && isFreeModel(body.model) ? body.model : DEFAULT_MODEL;
+  // Cached after the startup warm, so this is a memory read per request.
+  const freeModels = await getFreeModels();
+  const model =
+    body.model && isFreeModelId(body.model, freeModels) ? body.model : getDefaultModelId(freeModels);
   const language: LanguageId = isLanguageId(body.language ?? "") ? (body.language as LanguageId) : "ts";
   const code = typeof body.code === "string" ? body.code : "";
 
@@ -60,7 +63,8 @@ export async function POST(request: Request) {
 
   // Try the chosen model, then fall back through the rest of the free list
   // until one isn't rate-limited (free models flap upstream constantly).
-  const candidates = [model, ...FREE_MODELS.map((m) => m.id).filter((id) => id !== model)];
+  // Capped so a broad upstream outage still returns 502 within maxDuration.
+  const candidates = [model, ...freeModels.map((m) => m.id).filter((id) => id !== model)].slice(0, 5);
   let lastStatus = 0;
   let lastDetail = "";
 

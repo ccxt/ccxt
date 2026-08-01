@@ -23,7 +23,9 @@ code for you.
 - **Execution:** a backend executor spawns the real interpreter for each language
   using a pinned CCXT install, so you get real responses from real exchanges.
 - **AI assistant:** streams free models via [OpenRouter](https://openrouter.ai);
-  generated code can be inserted straight into the editor.
+  generated code can be inserted straight into the editor. The model list is
+  fetched from OpenRouter at server startup (free slugs rotate constantly) and
+  cached for the process lifetime.
 
 ## Quick start
 
@@ -203,11 +205,12 @@ app/
   page.tsx              playground shell (state lives here)
   api/run/route.ts      POST {language, code} -> execution result
   api/ai/route.ts       POST {messages, model} -> streamed OpenRouter completion
+  api/ai/models/route.ts GET -> free models for the picker (cached at startup)
 components/             Toolbar, Editor (Monaco), OutputPanel, AssistantPanel
 lib/
   languages.ts          language metadata
   examples.ts           starter snippets per (example, language)
   runners/              sandbox + ts/python/php runners + dispatcher
-  ai/openrouter.ts      free-model list + system prompt
+  ai/openrouter.ts      free-model fetch/cache + system prompt
 scripts/setup-runtimes.sh
 ```
