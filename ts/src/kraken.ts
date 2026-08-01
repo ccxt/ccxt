@@ -61,7 +61,7 @@ export default class kraken extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDepositAddresses': false,
+                'fetchDepositAddresses': true,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
@@ -275,6 +275,31 @@ export default class kraken extends Exchange {
                 'networks': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
+                },
+                'depositMethodNetworks': {
+                    'Arbitrum One': 'ARBONE',
+                    'Avalanche C-Chain': 'AVAXC',
+                    'Hedera (EVM)': 'HBAREVM',
+                    'Sei (EVM)': 'SEIEVM',
+                    'XDC Network': 'XDC',
+                    'Canton Network': 'CANTON',
+                    'Stellar': 'XLM',
+                    'Ethereum': 'ERC20',
+                    'ERC20': 'ERC20',
+                    'TRC20': 'TRC20',
+                    'Optimism': 'OP',
+                    'Base': 'BASE',
+                    'Sonic': 'SONIC',
+                    'Ink': 'INK',
+                    'Tempo': 'TEMPO',
+                    '(SPL)': 'SOL',
+                    'Solana': 'SOL',
+                    'Sui': 'SUI',
+                    'Algorand': 'ALGO',
+                    'Hedera': 'HBAR',
+                    'Polygon': 'MATIC',
+                    'Bitcoin': 'BTC',
+                    'Lightning': 'LIGHTNING',
                 },
                 'depositMethods': {
                     '1INCH': '1inch' + ' ' + '(1INCH)',
@@ -3295,6 +3320,63 @@ export default class kraken extends Exchange {
         //     }
         //
         return this.safeValue (response, 'result');
+    }
+
+    /**
+     * @method
+     * @name kraken#fetchDepositAddresses
+     * @description fetch all existing deposit addresses for multiple currencies and deposit methods
+     * @see https://docs.kraken.com/api-reference/funding/get-deposit-methods
+     * @see https://docs.kraken.com/api-reference/funding/get-deposit-addresses
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        if (codes === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list of currency codes');
+        }
+        // DepositAddresses omits the chain, so derive its unified network from the deposit-method label.
+        const depositMethodNetworks = this.safeDict (this.options, 'depositMethodNetworks', {});
+        const networkIds = Object.keys (depositMethodNetworks);
+        const methodParams = this.omit (params, [ 'method', 'network', 'new' ]);
+        params = this.omit (params, [ 'method', 'network' ]);
+        const result: DepositAddress[] = [];
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = this.currency (code);
+            const methods = await this.fetchDepositMethods (currency['code'], methodParams);
+            for (let j = 0; j < methods.length; j++) {
+                const method = this.safeString (methods[j], 'method');
+                if (method === undefined) {
+                    continue;
+                }
+                let network = this.parseNetwork (method);
+                // Match the most specific known substring because Kraken embeds the chain in a display label.
+                for (let k = 0; k < networkIds.length; k++) {
+                    const networkId = networkIds[k];
+                    if (method.indexOf (networkId) !== -1) {
+                        network = this.safeString (depositMethodNetworks, networkId, network);
+                        break;
+                    }
+                }
+                const request: Dict = {
+                    'asset': currency['id'],
+                    'method': method,
+                };
+                const response = await this.privatePostDepositAddresses (this.extend (request, params));
+                const addresses = this.safeList (response, 'result', []);
+                for (let k = 0; k < addresses.length; k++) {
+                    const parsed = this.parseDepositAddress (addresses[k], currency);
+                    parsed['network'] = network;
+                    result.push (parsed);
+                }
+            }
+        }
+        return result;
     }
 
     /**

@@ -118,7 +118,7 @@ export default class gate extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDepositAddresses': false,
+                'fetchDepositAddresses': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
@@ -2329,6 +2329,47 @@ export default class gate extends Exchange {
 
     /**
      * @method
+     * @name gate#fetchDepositAddresses
+     * @description fetch deposit addresses for multiple currencies and all available networks
+     * @see https://www.gate.com/docs/developers/apiv4/en/#generate-currency-deposit-address
+     * @param {string[]|undefined} codes list of unified currency codes
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        if (codes === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddresses requires a list of currency codes');
+        }
+        let result: DepositAddress[] = [];
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = this.currency (code);
+            const request: Dict = {
+                'currency': currency['id'],
+            };
+            const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
+            const chains = this.safeList (response, 'multichain_addresses', []);
+            const successfulChains: List = [];
+            for (let j = 0; j < chains.length; j++) {
+                const obtainFailed = this.safeInteger (chains[j], 'obtain_failed');
+                if (!obtainFailed) {
+                    successfulChains.push (chains[j]);
+                }
+            }
+            // Keep every row because the by-network helper intentionally cannot represent duplicate networks.
+            const parsed = this.parseDepositAddresses (successfulChains, [ currency['code'] ], false, {
+                'currency': currency['code'],
+            });
+            result = this.arrayConcat (result, parsed);
+        }
+        return result;
+    }
+
+    /**
+     * @method
      * @name gate#fetchDepositAddressesByNetwork
      * @description fetch a dictionary of addresses for a currency, indexed by network
      * @see https://www.gate.com/docs/developers/apiv4/en/#generate-currency-deposit-address
@@ -2340,15 +2381,25 @@ export default class gate extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let currency = this.currency (code);
-        const request = {
+        const currency = this.currency (code);
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.privateWalletGetDepositAddress (this.extend (request, params));
-        const chains = this.safeValue (response, 'multichain_addresses', []);
+        const chains = this.safeList (response, 'multichain_addresses', []);
         const currencyId = this.safeString (response, 'currency');
-        currency = this.safeCurrency (currencyId, currency);
-        const parsed = this.parseDepositAddresses (chains, undefined, false);
+        const responseCurrency = this.safeCurrency (currencyId, currency);
+        const successfulChains: List = [];
+        for (let i = 0; i < chains.length; i++) {
+            const chain = chains[i];
+            const obtainFailed = this.safeInteger (chain, 'obtain_failed');
+            if (!obtainFailed) {
+                successfulChains.push (chain);
+            }
+        }
+        const parsed = this.parseDepositAddresses (successfulChains, [ responseCurrency['code'] ], false, {
+            'currency': responseCurrency['code'],
+        });
         return this.indexBy (parsed, 'network') as DepositAddress[];
     }
 
