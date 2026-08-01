@@ -1,6 +1,8 @@
 {
     "exchange": "opinion",
     "asyncOnly": true,
+    "apiKey": "test-api-key",
+    "privateKey": "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
     "skipKeys": [
         "salt",
         "signature",
