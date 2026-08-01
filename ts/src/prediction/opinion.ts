@@ -32,11 +32,13 @@ export default class opinion extends Exchange {
                 'cancelOrder': true,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchClosedOrders': true,
                 'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -1126,6 +1128,41 @@ export default class opinion extends Exchange {
         const result = this.safeDict (response, 'result', {});
         const orderData = this.safeDict (result, 'orderData', {});
         return this.parsePredictionOrder (orderData, outcomeObj);
+    }
+
+    /**
+     * @method
+     * @name opinion#fetchOpenOrders
+     * @description fetches the authenticated user's open orders
+     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/order
+     * @param {string} [outcome] filter by unified outcome or outcome token id
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        // 1 = pending (our 'open' status)
+        const request: Dict = { 'status': '1' };
+        return await this.fetchOrders (outcome, since, limit, this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name opinion#fetchClosedOrders
+     * @description fetches the authenticated user's closed orders
+     * @see https://docs.opinion.trade/developer-guide/opinion-open-api/order
+     * @param {string} [outcome] filter by unified outcome or outcome token id
+     * @param {int} [since] timestamp in ms of the earliest order to fetch
+     * @param {int} [limit] the maximum number of orders to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async fetchClosedOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        // 2 = filled, 3 = canceled, 4 = expired, 5 = failed - everything parseOrderStatus maps
+        // away from 'open', requested server-side in one comma-separated call
+        const request: Dict = { 'status': '2,3,4,5' };
+        return await this.fetchOrders (outcome, since, limit, this.extend (request, params));
     }
 
     /**
