@@ -15,6 +15,7 @@ import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import Piscina from 'piscina';
 import os from 'os';
 import { isMainEntry } from "./transpile.js";
+import { filterDirtyExchangeFiles } from "./transpile.js";
 
 type dict = { [key: string]: string };
 
@@ -521,6 +522,11 @@ class NewTranspiler {
     // true while transpiling the prediction-market exchanges (ts/src/prediction/),
     // which live in their own go packages (ccxtprediction / ccxtpredictionpro)
     isPrediction = false;
+    // set once any stage skipped an up-to-date exchange: the shared
+    // exchange_wrapper_structs.go is rebuilt from the module-level `goTypeOptions`
+    // accumulator, which only holds the structs of the exchanges transpiled in this
+    // process — rewriting it after a partial run would truncate it
+    skippedUnchangedExchanges = false;
     // parsed PredictionExchange method signatures; lets a prediction venue that doesn't
     // override a unified method still emit the prediction-typed wrapper (resolving to the
     // inherited base method) instead of the crypto-typed exchangeTyped fallback
@@ -2271,6 +2277,7 @@ ${caseStatements.join('\n')}
         const tsFolder = prediction ? './ts/src/prediction/pro' : './ts/src/pro';
 
         let inputExchanges =  process.argv.slice (2).filter (x => !x.startsWith ('--'));
+        const scopedRun = inputExchanges.length > 0;
         if (inputExchanges === undefined) {
             inputExchanges = exchanges.ws;
         }
@@ -2280,6 +2287,9 @@ ${caseStatements.join('\n')}
         const wsFolder = prediction ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_WS_FOLDER;
         const options = { goFolder: wsFolder, exchanges:inputExchanges };
         // const options = { goFolder: EXCHANGES_WS_FOLDER, exchanges:['bitget'] }
+        if (scopedRun) {
+            force = true; // a scoped run (CI `goTranspiler.ts <exchange> --ws`) always writes, same as the REST path
+        }
         // base methods are always needed to populate the wrapper metadata (WRAPPER_METHODS)
         this.transpileBaseMethods(TS_BASE_FILE, true);
         this.isPrediction = prediction;
@@ -2513,15 +2523,41 @@ ${caseStatements.join('\n')}
         }
 
         // exchanges = ['bitmart.ts']
+        let wrapperFolder = ws ? EXCHANGES_WS_FOLDER : EXCHANGE_WRAPPER_FOLDER;
+        if (this.isPrediction) {
+            wrapperFolder = ws ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_PREDICTION_FOLDER;
+        }
+
+        // incremental gate (same rule as the Python/PHP pass in build/transpile.ts):
+        // drop the exchanges whose generated .go + _wrapper.go are both newer than their
+        // ts source. This has to happen BEFORE the pool is fed, because `allFilesPath`
+        // doubles as the sticky ts.Program root list — leaving a clean exchange in it
+        // would transpile and rewrite it anyway. `--force` (and any single-exchange run)
+        // keeps everything.
+        const totalExchangeFiles = exchangeFiles.length;
+        exchangeFiles = filterDirtyExchangeFiles ('go', exchangeFiles, force, (file: string) => {
+            const extensionlessName = basename (file, pattern);
+            return {
+                'tsPath': `${jsFolder}/${file}`,
+                'outputs': [
+                    `${options.goFolder}/${extensionlessName}.go`,
+                    `${wrapperFolder}/${extensionlessName}_wrapper.go`,
+                ],
+            };
+        });
+        if (exchangeFiles.length < totalExchangeFiles) {
+            this.skippedUnchangedExchanges = true;
+        }
+
+        if (!exchangeFiles.length) {
+            return {};
+        }
+
         // transpile using webworker
         const allFilesPath = exchangeFiles.map ((file: string) => `${jsFolder}/${file}` );
         log.blue('[go] Transpiling [', exchangeFiles.join(', '), ']');
         const transpiledFiles = allFilesPath.length > 1 ? await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig()) : allFilesPath.map((file: string) => this.transpiler.transpileGoByPath(file));
 
-        let wrapperFolder = ws ? EXCHANGES_WS_FOLDER : EXCHANGE_WRAPPER_FOLDER;
-        if (this.isPrediction) {
-            wrapperFolder = ws ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_PREDICTION_FOLDER;
-        }
         for (let i = 0; i < transpiledFiles.length; i++) {
             const transpiled = transpiledFiles[i];
             const exchangeName = exchangeFiles[i].replace('.ts','');
@@ -2530,8 +2566,15 @@ ${caseStatements.join('\n')}
             this.createGoWrappers(exchangeName, path, transpiled.methodsTypes, ws);
         }
         exchangeFiles.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws));
-        // prediction packages always need their own option-structs file even with a single exchange
-        if (exchangeFiles.length > 1 || this.isPrediction) {
+        // prediction packages always need their own option-structs file even with a single exchange.
+        // `goTypeOptions` only holds the structs of the exchanges transpiled in THIS run, and
+        // safeOptionsStructFile() dumps it wholesale — so after an incremental run that skipped
+        // exchanges, rewriting the shared file would truncate it to the dirty subset. The existing
+        // file already covers the full set (it was written by the last full/--force run), so leave
+        // it alone; `--force` regenerates it from scratch.
+        if (this.skippedUnchangedExchanges) {
+            log.bright.cyan ('[go] Keeping exchange_wrapper_structs.go from the previous full run (incremental run, pass --force to regenerate)');
+        } else if (exchangeFiles.length > 1 || this.isPrediction) {
             this.safeOptionsStructFile(ws);
         }
         const classes = {};

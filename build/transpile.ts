@@ -68,6 +68,69 @@ if (platform === 'win32') {
         __dirname = __dirname.substring(1)
     }
 }
+
+// ----------------------------------------------------------------------------
+// incremental-transpile gate, shared by every language driver
+//
+// An exchange is "dirty" when its ts source is newer than ANY of the files it
+// generates (or one of them is missing). This is the same rule the Python/PHP
+// pass applies inline in Transpiler#transpileDerivedExchangeFile — see the
+// `force || (tsMtime > python3Mtime) || ...` check there — factored out so the
+// C#, Go and Java drivers behave identically instead of always rewriting every
+// exchange.
+//
+// mtimes are floored to whole seconds: several filesystems (and some CI cache
+// restores) only keep 1s resolution, so a sub-second delta is not a real change.
+// ----------------------------------------------------------------------------
+
+function isTranspileNeeded (tsPath: string, outputPaths: string[]) {
+    if (!outputPaths.length) {
+        return true // no known output → we cannot prove it is up to date
+    }
+    let tsMtime = fs.statSync (tsPath).mtime.getTime ()
+    tsMtime = tsMtime - tsMtime % 1000
+    for (let i = 0; i < outputPaths.length; i++) {
+        const outputPath = outputPaths[i]
+        if (!fs.existsSync (outputPath)) {
+            return true
+        }
+        let outputMtime = fs.statSync (outputPath).mtime.getTime ()
+        outputMtime = outputMtime - outputMtime % 1000
+        if (tsMtime > outputMtime) {
+            return true
+        }
+    }
+    return false
+}
+
+// Drops the exchange files whose generated output is already up to date.
+//
+// This MUST run before the worker pool is fed: the per-language drivers hand the
+// whole file list to piscina as the sticky ts.Program `roots` (see
+// build/worker-program-batch.js), so a skipped exchange that stayed in the list
+// would still be parsed, printed and written — i.e. no saving at all.
+//
+// `resolvePaths` returns the ts source and every file the driver writes for that
+// exchange (transpiled class + wrapper, when the language emits one).
+function filterDirtyExchangeFiles (lang: string, files: string[], force: boolean, resolvePaths: (file: string) => { tsPath: string, outputs: string[] }) {
+    if (force) {
+        return files
+    }
+    const dirty = files.filter ((file: string) => {
+        try {
+            const { tsPath, outputs } = resolvePaths (file)
+            return isTranspileNeeded (tsPath, outputs)
+        } catch (e) {
+            return true // never let a stat error silently drop an exchange
+        }
+    })
+    const skipped = files.length - dirty.length
+    if (skipped > 0) {
+        log.bright.cyan ('[' + lang + ']', 'Already transpiled:', skipped, 'unchanged exchange(s) skipped, pass --force to transpile everything')
+    }
+    return dirty
+}
+
 class Transpiler {
 
     buildPython = true;
@@ -3514,5 +3577,7 @@ if (isMainEntry(metaFileUrl)) {
 export {
     Transpiler,
     parallelizeTranspiling,
-    isMainEntry
+    isMainEntry,
+    isTranspileNeeded,
+    filterDirtyExchangeFiles
 }

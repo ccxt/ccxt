@@ -15,6 +15,7 @@ import { writeFile } from 'fs/promises';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
+import { filterDirtyExchangeFiles } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 
 ansi.nice
@@ -1094,6 +1095,7 @@ class NewTranspiler {
         const tsFolder = prediction ? './ts/src/prediction/pro/' : './ts/src/pro/';
 
         let inputExchanges =  process.argv.slice (2).filter (x => !x.startsWith ('--'));
+        const scopedRun = inputExchanges.length > 0;
         if (inputExchanges === undefined) {
             inputExchanges = exchanges.ws;
         }
@@ -1103,6 +1105,9 @@ class NewTranspiler {
         const csharpFolder = prediction ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_WS_FOLDER;
         const options = { csharpFolder, exchanges:inputExchanges }
         // const options = { csharpFolder: EXCHANGES_WS_FOLDER, exchanges:['bitget'] }
+        if (scopedRun) {
+            force = true; // a scoped run (CI `transpileCsSingle -- --ws <exchange>`) always writes, same as the REST path
+        }
         this.isPrediction = prediction
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, true )
         this.isPrediction = false
@@ -1247,6 +1252,33 @@ class NewTranspiler {
             exchangeFiles = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))))
         }
 
+        // the wrapper folder is needed up front: a skipped exchange must have BOTH its
+        // transpiled class and its wrapper already up to date
+        const wrapperFolder = ws
+            ? (this.isPrediction ? EXCHANGE_PREDICTION_WS_WRAPPER_FOLDER : EXCHANGE_WS_WRAPPER_FOLDER)
+            : (this.isPrediction ? EXCHANGE_PREDICTION_WRAPPER_FOLDER : EXCHANGE_WRAPPER_FOLDER);
+
+        // incremental gate (same rule as the Python/PHP pass in build/transpile.ts):
+        // drop the exchanges whose output is newer than their ts source. This has to
+        // happen BEFORE the pool is fed, because `allFilesPath` doubles as the sticky
+        // ts.Program root list — leaving a clean exchange in it would transpile and
+        // rewrite it anyway. `--force` (and any single-exchange run) keeps everything.
+        exchangeFiles = filterDirtyExchangeFiles ('csharp', exchangeFiles, force, (file: string) => {
+            const csName = file.replace ('.ts', '.cs');
+            const outputs: string[] = [];
+            if (options.csharpFolder) {
+                outputs.push (options.csharpFolder + csName);
+            }
+            if (wrapperFolder) {
+                outputs.push (wrapperFolder + csName);
+            }
+            return { 'tsPath': jsFolder + file, 'outputs': outputs };
+        })
+
+        if (!exchangeFiles.length) {
+            return {}
+        }
+
         // transpile using webworker
         const allFilesPath = exchangeFiles.map ((file: string) => jsFolder + file );
         log.blue('[csharp] Transpiling [', exchangeFiles.join(', '), ']');
@@ -1256,7 +1288,6 @@ class NewTranspiler {
             : allFilesPath.map((file: string) => this.transpiler.transpileCSharpByPath(file));
 
         if (!ws) {
-            const wrapperFolder = this.isPrediction ? EXCHANGE_PREDICTION_WRAPPER_FOLDER : EXCHANGE_WRAPPER_FOLDER;
             for (let i = 0; i < transpiledFiles.length; i++) {
                 const transpiled = transpiledFiles[i];
                 const exchangeName = exchangeFiles[i].replace('.ts','');
@@ -1265,7 +1296,6 @@ class NewTranspiler {
             }
         } else {
             //
-            const wrapperFolder = this.isPrediction ? EXCHANGE_PREDICTION_WS_WRAPPER_FOLDER : EXCHANGE_WS_WRAPPER_FOLDER;
             for (let i = 0; i < transpiledFiles.length; i++) {
                 const transpiled = transpiledFiles[i];
                 const exchangeName = exchangeFiles[i].replace('.ts','');
