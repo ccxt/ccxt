@@ -15,6 +15,7 @@ import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import Piscina from 'piscina';
 import os from 'os';
 import { isMainEntry } from "./transpile.js";
+import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 
 type dict = { [key: string]: string };
 
@@ -521,6 +522,11 @@ class NewTranspiler {
     // true while transpiling the prediction-market exchanges (ts/src/prediction/),
     // which live in their own go packages (ccxtprediction / ccxtpredictionpro)
     isPrediction = false;
+    // set once any stage skipped an up-to-date exchange: the shared
+    // exchange_wrapper_structs.go is rebuilt from the module-level `goTypeOptions`
+    // accumulator, which only holds the structs of the exchanges transpiled in this
+    // process — rewriting it after a partial run would truncate it
+    skippedUnchangedExchanges = false;
     // parsed PredictionExchange method signatures; lets a prediction venue that doesn't
     // override a unified method still emit the prediction-typed wrapper (resolving to the
     // inherited base method) instead of the crypto-typed exchangeTyped fallback
@@ -1549,6 +1555,18 @@ class NewTranspiler {
         return res;
     }
 
+    // Ensures WRAPPER_METHODS['Exchange'] is populated. The base-methods stage registers it as
+    // a side effect, but that stage can be skipped by the mtime gate — in which case any
+    // consumer (derived wrappers, typed interface) must transpile the base file on demand.
+    // Re-runs at most once per process, and never rewrites a generated file.
+    requireBaseMethodsMetadata () {
+        if (WRAPPER_METHODS['Exchange']) {
+            return;
+        }
+        log.bright.cyan ('[go] base methods were up to date but their wrapper metadata is needed, re-reading', TS_BASE_FILE.yellow);
+        this.transpileBaseMethods (TS_BASE_FILE, false, true);
+    }
+
     createGoWrappers(exchange: string, path: string, wrappers: any[], ws: boolean | 'prediction' = false) {
         const isPrediction = (ws === 'prediction');
         const isWs = (ws === true);
@@ -1576,6 +1594,7 @@ class NewTranspiler {
 
         let missingMethodsWrappers = '';
         if (exchange !== 'Exchange') {
+            this.requireBaseMethodsMetadata ();
             if (!WRAPPER_METHODS['Exchange']) {
                 throw new Error('Exchange wrapper methods are not defined, please transpile base methods first');
             }
@@ -1783,10 +1802,14 @@ class NewTranspiler {
         overwriteFileAndFolder (path, file);
     }
 
-    transpileErrorHierarchy () {
+    transpileErrorHierarchy (force = true) {
 
         const errorHierarchyFilename = './js/src/base/errorHierarchy.js';
         const errorHierarchyPath = `${__dirname}/.${errorHierarchyFilename}`;
+
+        if (skipUpToDateStage ('go', 'error hierarchy', force, [ errorHierarchyFilename ], [ ERRORS_FILE ])) {
+            return;
+        }
 
         let js = fs.readFileSync (errorHierarchyPath, 'utf8');
 
@@ -1858,7 +1881,28 @@ ${constStatements.join('\n')}
 
     }
 
-    transpileBaseMethods(baseExchangeFile: string, isWs = false) {
+    // The base-methods pass does double duty: it writes exchange_generated.go /
+    // exchange_wrappers.go AND it registers the module-level WRAPPER_METHODS metadata that
+    // createGoWrappers() and createTypedInterfaceFile() need (both throw without it). So the
+    // mtime gate can only skip it when nothing else in this process needs that metadata —
+    // any stage that does calls requireBaseMethodsMetadata() below, which transpiles it on
+    // demand, ignoring the gate.
+    transpileBaseMethods(baseExchangeFile: string, isWs = false, force = true) {
+        // `exchanges.json` is a real input: createExchangesWrappers() emits one class per
+        // listed exchange into the global wrapper file, so adding/removing an exchange must
+        // invalidate this stage even when ts/src/base/Exchange.ts did not change
+        if (skipUpToDateStage ('go', 'base methods', force, [
+            baseExchangeFile,
+            './ts/src/base/types.ts',
+            './exchanges.json',
+        ], isWs ? [ BASE_METHODS_FILE ] : [ BASE_METHODS_FILE, GLOBAL_WRAPPER_FILE ])) {
+            // safeOptionsStructFile() dumps goTypeOptions wholesale, and the base pass is what
+            // fills it with the base-Exchange option structs. Skipping it here would rewrite
+            // exchange_wrapper_structs.go without them, so reuse the same "keep the previous
+            // full run" guard the per-exchange gate uses.
+            this.skippedUnchangedExchanges = true;
+            return;
+        }
         log.bright.cyan ('Transpiling base methods →', baseExchangeFile.yellow, BASE_METHODS_FILE.yellow);
         const goExchangeBase = BASE_METHODS_FILE;
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
@@ -1994,13 +2038,22 @@ ${constStatements.join('\n')}
         }
     }
 
-    transpilePredictionBaseMethods (predictionBaseFile = './ts/src/base/PredictionExchange.ts', registerOnly = false) {
+    transpilePredictionBaseMethods (predictionBaseFile = './ts/src/base/PredictionExchange.ts', registerOnly = false, force = true) {
         // PredictionExchange is the base for prediction-market exchanges; it lives in
         // package ccxt and embeds Exchange. Its methods are transpiled the same way as
         // the base methods (with virtual dispatch through DerivedExchange).
         // named exchange_prediction.go so extractTypeAndFuncNames() (which scans go/v4/exchange*.go)
         // picks up PredictionExchange and the prediction package qualifies it as ccxt.PredictionExchange
         const goPredictionBase = './go/v4/exchange_prediction.go';
+        // `registerOnly` writes nothing — it only captures predictionBaseMethodsTypes for this
+        // process — so it can never be satisfied by an up-to-date file on disk.
+        if (!registerOnly && skipUpToDateStage ('go', 'prediction base methods', force, [
+            predictionBaseFile,
+            './ts/src/base/Exchange.ts',
+            './ts/src/base/types.ts',
+        ], [ goPredictionBase ])) {
+            return;
+        }
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
         const allVirtual = Object.keys(VIRTUAL_BASE_METHODS);
         this.transpiler.goTranspiler.wrapCallMethods = allVirtual;
@@ -2069,9 +2122,13 @@ ${constStatements.join('\n')}
     }
 
 
-    createDynamicInstanceFile(ws = false, prediction = false){
+    createDynamicInstanceFile(ws = false, prediction = false, force = true){
         const subFolder = ws ? '/pro' : (prediction ? '/prediction' : '');
         const dynamicInstanceFile = `./go/v4${subFolder}/exchange_dynamic.go`;
+        // this file is a pure function of the exchange id lists in exchanges.json
+        if (skipUpToDateStage ('go', `dynamic instance file (${subFolder || '/v4'})`, force, [ './exchanges.json' ], [ dynamicInstanceFile ])) {
+            return;
+        }
         const exchanges = ws ? exchangeIdsWs : (prediction ? predictionIds : ['Exchange'].concat(exchangeIds));
         const externalPackage = ws || prediction; // packages outside go/v4 import the base ccxt package
         const caseStatements = exchanges.map(exchange => {
@@ -2103,7 +2160,15 @@ ${caseStatements.join('\n')}
     }
 
 
-    createTypedInterfaceFile(){
+    createTypedInterfaceFile(force = true){
+        if (skipUpToDateStage ('go', 'typed interface file', force, [
+            './exchanges.json',
+            './ts/src/base/Exchange.ts',
+            './ts/src/base/types.ts',
+        ], [ TYPED_INTERFACE_FILE ])) {
+            return;
+        }
+        this.requireBaseMethodsMetadata ();
         if (!WRAPPER_METHODS['Exchange']) {
             throw new Error('Exchange wrapper methods are not defined, please transpile base methods first');
         }
@@ -2154,7 +2219,11 @@ type IExchange interface {
     }
 
     // ----- WS specific ----- //
-    createWsTypedInterfaceFile(){
+    createWsTypedInterfaceFile(force = true){
+        // a pure function of the ws exchange id list in exchanges.json
+        if (skipUpToDateStage ('go', 'ws typed interface file', force, [ './exchanges.json' ], [ TYPED_WS_INTERFACE_FILE ])) {
+            return;
+        }
 
         const interfaceWs = [
             'type IExchange interface {',
@@ -2271,6 +2340,7 @@ ${caseStatements.join('\n')}
         const tsFolder = prediction ? './ts/src/prediction/pro' : './ts/src/pro';
 
         let inputExchanges =  process.argv.slice (2).filter (x => !x.startsWith ('--'));
+        const scopedRun = inputExchanges.length > 0;
         if (inputExchanges === undefined) {
             inputExchanges = exchanges.ws;
         }
@@ -2280,8 +2350,12 @@ ${caseStatements.join('\n')}
         const wsFolder = prediction ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_WS_FOLDER;
         const options = { goFolder: wsFolder, exchanges:inputExchanges };
         // const options = { goFolder: EXCHANGES_WS_FOLDER, exchanges:['bitget'] }
+        if (scopedRun) {
+            force = true; // a scoped run (CI `goTranspiler.ts <exchange> --ws`) always writes, same as the REST path
+        }
         // base methods are always needed to populate the wrapper metadata (WRAPPER_METHODS)
-        this.transpileBaseMethods(TS_BASE_FILE, true);
+        // (when the gate skips it, requireBaseMethodsMetadata() re-reads it on demand)
+        this.transpileBaseMethods(TS_BASE_FILE, true, force);
         this.isPrediction = prediction;
         await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(inputExchanges), true );
         this.isPrediction = false;
@@ -2291,9 +2365,9 @@ ${caseStatements.join('\n')}
             log.bright.green ('Transpiled prediction ws exchanges successfully.');
             return;
         }
-        this.createDynamicInstanceFile(true);
-        this.transpileProTypes();
-        this.createWsTypedInterfaceFile();
+        this.createDynamicInstanceFile(true, false, force);
+        this.transpileProTypes(force);
+        this.createWsTypedInterfaceFile(force);
 
     }
 
@@ -2324,13 +2398,13 @@ ${caseStatements.join('\n')}
         }
         const options = { goFolder, exchanges };
 
-        this.transpileBaseMethods (TS_BASE_FILE); // now we always need the baseMethods info
+        this.transpileBaseMethods (TS_BASE_FILE, false, force); // now we always need the baseMethods info
         // the dynamic-instance / typed-interface files belong to package ccxt; the
         // prediction package reuses them and must not regenerate them
         if (!transpilingSingleExchange && !prediction) {
-            this.transpilePredictionBaseMethods ();
-            this.createDynamicInstanceFile();
-            this.createTypedInterfaceFile();
+            this.transpilePredictionBaseMethods (undefined, false, force);
+            this.createDynamicInstanceFile(false, false, force);
+            this.createTypedInterfaceFile(force);
         } else if (prediction) {
             // capture-only: populate predictionBaseMethodsTypes (no ccxt-package file write)
             // so inherited unified methods emit prediction-typed wrappers in this process
@@ -2346,7 +2420,7 @@ ${caseStatements.join('\n')}
         if (prediction) {
             // the prediction package needs its OWN DynamicallyCreateInstance (over
             // prediction ids); the base one in package ccxt only knows regular ids
-            this.createDynamicInstanceFile (false, true);
+            this.createDynamicInstanceFile (false, true, force);
             log.bright.green ('Transpiled prediction exchanges successfully.');
             return;
         }
@@ -2362,9 +2436,9 @@ ${caseStatements.join('\n')}
         // full builds also transpile the prediction-market exchanges (ts/src/prediction/)
         await this.transpileEverything (force, false, false, true);
 
-        this.transpileTests();
+        this.transpileTests(force);
 
-        this.transpileErrorHierarchy ();
+        this.transpileErrorHierarchy (force);
 
         log.bright.green ('Transpiled successfully.');
     }
@@ -2513,15 +2587,41 @@ ${caseStatements.join('\n')}
         }
 
         // exchanges = ['bitmart.ts']
+        let wrapperFolder = ws ? EXCHANGES_WS_FOLDER : EXCHANGE_WRAPPER_FOLDER;
+        if (this.isPrediction) {
+            wrapperFolder = ws ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_PREDICTION_FOLDER;
+        }
+
+        // incremental gate (same rule as the Python/PHP pass in build/transpile.ts):
+        // drop the exchanges whose generated .go + _wrapper.go are both newer than their
+        // ts source. This has to happen BEFORE the pool is fed, because `allFilesPath`
+        // doubles as the sticky ts.Program root list — leaving a clean exchange in it
+        // would transpile and rewrite it anyway. `--force` (and any single-exchange run)
+        // keeps everything.
+        const totalExchangeFiles = exchangeFiles.length;
+        exchangeFiles = filterDirtyExchangeFiles ('go', exchangeFiles, force, (file: string) => {
+            const extensionlessName = basename (file, pattern);
+            return {
+                'tsPath': `${jsFolder}/${file}`,
+                'outputs': [
+                    `${options.goFolder}/${extensionlessName}.go`,
+                    `${wrapperFolder}/${extensionlessName}_wrapper.go`,
+                ],
+            };
+        });
+        if (exchangeFiles.length < totalExchangeFiles) {
+            this.skippedUnchangedExchanges = true;
+        }
+
+        if (!exchangeFiles.length) {
+            return {};
+        }
+
         // transpile using webworker
         const allFilesPath = exchangeFiles.map ((file: string) => `${jsFolder}/${file}` );
         log.blue('[go] Transpiling [', exchangeFiles.join(', '), ']');
         const transpiledFiles = allFilesPath.length > 1 ? await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig()) : allFilesPath.map((file: string) => this.transpiler.transpileGoByPath(file));
 
-        let wrapperFolder = ws ? EXCHANGES_WS_FOLDER : EXCHANGE_WRAPPER_FOLDER;
-        if (this.isPrediction) {
-            wrapperFolder = ws ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_PREDICTION_FOLDER;
-        }
         for (let i = 0; i < transpiledFiles.length; i++) {
             const transpiled = transpiledFiles[i];
             const exchangeName = exchangeFiles[i].replace('.ts','');
@@ -2530,8 +2630,15 @@ ${caseStatements.join('\n')}
             this.createGoWrappers(exchangeName, path, transpiled.methodsTypes, ws);
         }
         exchangeFiles.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws));
-        // prediction packages always need their own option-structs file even with a single exchange
-        if (exchangeFiles.length > 1 || this.isPrediction) {
+        // prediction packages always need their own option-structs file even with a single exchange.
+        // `goTypeOptions` only holds the structs of the exchanges transpiled in THIS run, and
+        // safeOptionsStructFile() dumps it wholesale — so after an incremental run that skipped
+        // exchanges, rewriting the shared file would truncate it to the dirty subset. The existing
+        // file already covers the full set (it was written by the last full/--force run), so leave
+        // it alone; `--force` regenerates it from scratch.
+        if (this.skippedUnchangedExchanges) {
+            log.bright.cyan ('[go] Keeping exchange_wrapper_structs.go from the previous full run (incremental run, pass --force to regenerate)');
+        } else if (exchangeFiles.length > 1 || this.isPrediction) {
             this.safeOptionsStructFile(ws);
         }
         const classes = {};
@@ -2783,10 +2890,14 @@ func (this *${className}) Init(userConfig map[string]any) {
     }
 
     // ---------------------------------------------------------------------------------------------
-    transpileWsOrderbookTestsToGo (outDir: string) {
+    transpileWsOrderbookTestsToGo (outDir: string, force = true) {
 
         const jsFile = './ts/src/pro/test/base/test.orderBook.ts';
         const goFile = `${outDir}/cache/orderbook.go`;
+
+        if (skipUpToDateStage ('go', 'ws orderbook test', force, testStageInputs (), [ goFile ])) {
+            return;
+        }
 
         log.magenta ('Transpiling from', (jsFile as any).yellow);
 
@@ -2817,10 +2928,14 @@ func (this *${className}) Init(userConfig map[string]any) {
     }
 
     // ---------------------------------------------------------------------------------------------
-    transpileWsCacheTestsToGo (outDir: string) {
+    transpileWsCacheTestsToGo (outDir: string, force = true) {
 
         const jsFile = './ts/src/pro/test/base/test.cache.ts';
         const goFile = `${outDir}/cache/cache.go`;
+
+        if (skipUpToDateStage ('go', 'ws cache test', force, testStageInputs (), [ goFile ])) {
+            return;
+        }
 
         log.magenta ('Transpiling from', (jsFile as any).yellow);
 
@@ -2852,10 +2967,14 @@ func (this *${className}) Init(userConfig map[string]any) {
 
     // ---------------------------------------------------------------------------------------------
 
-    transpileCryptoTestsToGo (outDir: string) {
+    transpileCryptoTestsToGo (outDir: string, force = true) {
 
         const jsFile = './ts/src/test/base/test.cryptography.ts';
         const goFile = `${outDir}/test.cryptography.go`;
+
+        if (skipUpToDateStage ('go', 'crypto test', force, testStageInputs (), [ goFile ])) {
+            return;
+        }
 
         log.magenta ('[go] Transpiling from', (jsFile as any).yellow);
 
@@ -2925,28 +3044,34 @@ func (this *${className}) Init(userConfig map[string]any) {
     //     await Promise.all (transpiledFiles.map ((file, idx) => writeFile (`${outDir}/${file[0]}.go`, file[1])));
     // }
 
-    transpileBaseTestsToGo () {
+    transpileBaseTestsToGo (force = true) {
         const outDir = BASE_TESTS_FOLDER;
-        this.transpileBaseTests(outDir);
-        this.transpileCryptoTestsToGo(outDir);
-        this.transpileWsOrderbookTestsToGo(outDir);
-        this.transpileWsCacheTestsToGo(outDir);
+        this.transpileBaseTests(outDir, force);
+        this.transpileCryptoTestsToGo(outDir, force);
+        this.transpileWsOrderbookTestsToGo(outDir, force);
+        this.transpileWsCacheTestsToGo(outDir, force);
     }
 
-    transpileBaseTests (outDir: string) {
+    transpileBaseTests (outDir: string, force = true) {
 
         const baseFolders = {
             ts: './ts/src/test/base',
         };
 
-        let baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
+        const baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
+        // `// NO_AUTO_TRANSPILE` sources are emitted by their own stage (test.cryptography)
+        const eligible = baseFunctionTests.filter ((testName: string) => !fs.readFileSync (`${baseFolders.ts}/${testName}.ts`).toString ().includes ('// NO_AUTO_TRANSPILE'));
+        // the accumulator feeds createFunctionsMapFile(), which rewrites the whole FunctionsMap —
+        // it must see every test name even when the transpile below is skipped, otherwise the map
+        // silently loses entries and the Go harness stops running those tests
+        eligible.forEach ((testName: string) => goTests.push (capitalize (testName)));
 
-        for (const testName of baseFunctionTests) {
+        if (skipUpToDateStage ('go', 'base tests', force, testStageInputs (), eligible.map ((testName: string) => `${outDir}/${testName}.go`))) {
+            return;
+        }
+
+        for (const testName of eligible) {
             const tsFile = `${baseFolders.ts}/${testName}.ts`;
-            const tsContent = fs.readFileSync(tsFile).toString();
-            if (tsContent.includes ('// NO_AUTO_TRANSPILE')) {
-                continue;
-            }
 
             // const goFileName = capitalize(testName.replace ('test.', ''));
             const goFile = `${outDir}/${testName}.go`;
@@ -2996,7 +3121,6 @@ func (this *${className}) Init(userConfig map[string]any) {
 
             log.magenta ('→', (goFile as any).yellow);
 
-            goTests.push(capitalize(testName));
             overwriteFileAndFolder (goFile, file);
         }
     }
@@ -3041,12 +3165,7 @@ func (this *${className}) Init(userConfig map[string]any) {
         overwriteFileAndFolder (files.goFile, file);
     }
 
-    transpileExchangeTests(){
-        // remove above later debug only
-        this.transpileMainTest({
-            'tsFile': './ts/src/test/tests.ts',
-            'goFile': BASE_TESTS_FILE,
-        });
+    transpileExchangeTests(force = true){
         const baseFolders = {
             ts: './ts/src/test/Exchange',
             tsBase: './ts/src/test/Exchange/base',
@@ -3080,11 +3199,23 @@ func (this *${className}) Init(userConfig map[string]any) {
         });
 
         const testNames = tests.map (test => test.name);
+        // push before the gate: createFunctionsMapFile() rewrites the whole map from this
+        // accumulator, so a skipped stage must still contribute its names
         testNames.forEach (test => goTests.push(test));
+
+        if (skipUpToDateStage ('go', 'exchange tests', force, testStageInputs (), [ BASE_TESTS_FILE ].concat (tests.map ((t: any) => t.goFile)))) {
+            return;
+        }
+
+        // remove above later debug only
+        this.transpileMainTest({
+            'tsFile': './ts/src/test/tests.ts',
+            'goFile': BASE_TESTS_FILE,
+        });
         this.transpileAndSaveGoExchangeTests (tests);
     }
 
-    transpileWsExchangeTests(){
+    transpileWsExchangeTests(force = true){
 
         const baseFolders = {
             ts: `./ts/src/pro/test/Exchange`,
@@ -3103,6 +3234,10 @@ func (this *${className}) Init(userConfig map[string]any) {
             });
             goWsTests.push(test)
         });
+
+        if (skipUpToDateStage ('go', 'ws exchange tests', force, testStageInputs (), tests.map ((t: any) => t.goFile))) {
+            return;
+        }
 
         this.transpileAndSaveGoExchangeTests (tests, true);
     }
@@ -3187,18 +3322,22 @@ func (this *${className}) Init(userConfig map[string]any) {
         });
     }
 
-    transpileTests(){
+    transpileTests(force = true){
         if (!shouldTranspileTests) {
             log.bright.yellow ('Skipping tests transpilation');
             return;
         }
-        this.transpileBaseTestsToGo();
-        this.transpileExchangeTests();
-        this.transpileWsExchangeTests();
-        this.createFunctionsMapFile();
+        this.transpileBaseTestsToGo(force);
+        this.transpileExchangeTests(force);
+        this.transpileWsExchangeTests(force);
+        this.createFunctionsMapFile(force);
     }
 
-    createFunctionsMapFile() {
+    createFunctionsMapFile(force = true) {
+        // derived purely from the test source listings collected above
+        if (skipUpToDateStage ('go', 'functions map file', force, testStageInputs (), [ `${BASE_TESTS_FOLDER}/test.functions.go` ])) {
+            return;
+        }
         // const normalizedTestNames = goTests.map(test => 'Test' + capitalize(test.replace('Test.', '').replace('test.', '')) );
         const normalizedTestNames: string[] = [];
         const normalizedFunctionNames: string[] = [];
@@ -3253,9 +3392,14 @@ func (this *${className}) Init(userConfig map[string]any) {
         overwriteFileAndFolder (`${BASE_TESTS_FOLDER}/test.functions.go`, file);
     }
 
-    transpileProTypes() {
+    transpileProTypes(force = true) {
         const GO_TYPES_FILE = "./go/v4/exchange_types.go";
         const GO_TYPES_FILE_PRO = "./go/v4/pro/exchange_types.go";
+
+        // mirrors the hand-written go/v4/exchange_types.go into the pro package
+        if (skipUpToDateStage ('go', 'pro types', force, [ GO_TYPES_FILE ], [ GO_TYPES_FILE_PRO ])) {
+            return;
+        }
 
         const output: string[] = [
             'package ccxtpro',

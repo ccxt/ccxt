@@ -68,6 +68,156 @@ if (platform === 'win32') {
         __dirname = __dirname.substring(1)
     }
 }
+
+// ----------------------------------------------------------------------------
+// incremental-transpile gate, shared by every language driver
+//
+// An exchange is "dirty" when its ts source is newer than ANY of the files it
+// generates (or one of them is missing). This is the same rule the Python/PHP
+// pass applies inline in Transpiler#transpileDerivedExchangeFile — see the
+// `force || (tsMtime > python3Mtime) || ...` check there — factored out so the
+// C#, Go and Java drivers behave identically instead of always rewriting every
+// exchange.
+//
+// mtimes are floored to whole seconds: several filesystems (and some CI cache
+// restores) only keep 1s resolution, so a sub-second delta is not a real change.
+// ----------------------------------------------------------------------------
+
+// every .ts file directly inside `folder` (no recursion) — used to build the input
+// lists of the whole-stage incremental gates below
+function tsFilesIn (folder: string) {
+    try {
+        return fs.readdirSync (folder).filter ((f: string) => f.endsWith ('.ts')).map ((f: string) => folder + f)
+    } catch (e) {
+        return [] as string[]
+    }
+}
+
+// Shared input set for the test-transpile stages of every language driver. The test
+// sources cross-import each other (a base test pulls Exchange/base/test.sharedMethods.js,
+// every test pulls the ccxt entry point), and each stage prints off a sticky ts.Program
+// built from the whole stage list — so any edit under the test trees, or to the types they
+// resolve against, invalidates all of them. Computed once per process.
+let cachedTestStageInputs: string[] | undefined = undefined
+function testStageInputs () {
+    if (cachedTestStageInputs === undefined) {
+        cachedTestStageInputs = ([] as string[]).concat (
+            tsFilesIn ('./ts/src/test/'),
+            tsFilesIn ('./ts/src/test/base/'),
+            tsFilesIn ('./ts/src/test/Exchange/'),
+            tsFilesIn ('./ts/src/test/Exchange/base/'),
+            tsFilesIn ('./ts/src/pro/test/base/'),
+            tsFilesIn ('./ts/src/pro/test/Exchange/'),
+            // the entry point every test imports lives at ./ts/ccxt.ts (NOT ./ts/src/ccxt.ts)
+            [ './ts/ccxt.ts', './ts/src/base/Exchange.ts', './ts/src/base/types.ts' ],
+        ).filter ((p: string) => fs.existsSync (p))
+    }
+    return cachedTestStageInputs
+}
+
+function isTranspileNeeded (tsPath: string, outputPaths: string[]) {
+    if (!outputPaths.length) {
+        return true // no known output → we cannot prove it is up to date
+    }
+    let tsMtime = fs.statSync (tsPath).mtime.getTime ()
+    tsMtime = tsMtime - tsMtime % 1000
+    for (let i = 0; i < outputPaths.length; i++) {
+        const outputPath = outputPaths[i]
+        if (!fs.existsSync (outputPath)) {
+            return true
+        }
+        let outputMtime = fs.statSync (outputPath).mtime.getTime ()
+        outputMtime = outputMtime - outputMtime % 1000
+        if (tsMtime > outputMtime) {
+            return true
+        }
+    }
+    return false
+}
+
+// Drops the exchange files whose generated output is already up to date.
+//
+// This MUST run before the worker pool is fed: the per-language drivers hand the
+// whole file list to piscina as the sticky ts.Program `roots` (see
+// build/worker-program-batch.js), so a skipped exchange that stayed in the list
+// would still be parsed, printed and written — i.e. no saving at all.
+//
+// `resolvePaths` returns the ts source and every file the driver writes for that
+// exchange (transpiled class + wrapper, when the language emits one).
+function filterDirtyExchangeFiles (lang: string, files: string[], force: boolean, resolvePaths: (file: string) => { tsPath: string, outputs: string[] }) {
+    if (force) {
+        return files
+    }
+    const dirty = files.filter ((file: string) => {
+        try {
+            const { tsPath, outputs } = resolvePaths (file)
+            return isTranspileNeeded (tsPath, outputs)
+        } catch (e) {
+            return true // never let a stat error silently drop an exchange
+        }
+    })
+    const skipped = files.length - dirty.length
+    if (skipped > 0) {
+        log.bright.cyan ('[' + lang + ']', 'Already transpiled:', skipped, 'unchanged exchange(s) skipped, pass --force to transpile everything')
+    }
+    return dirty
+}
+
+// Whole-stage variant of the gate above, for the passes that are NOT per-exchange:
+// base methods, the error hierarchy, and the test groups. Those stages emit a fixed
+// set of files from a fixed set of sources, and they cannot be filtered file by file
+// — `webworkerTranspile` hands the whole stage list to piscina as the sticky
+// ts.Program `roots` (build/worker-program-batch.js), so printing a subset off a
+// different root set is not guaranteed to reproduce the full-run output. A stage is
+// therefore skipped all-or-nothing: clean only when every output exists and the
+// newest input is not newer than the oldest output.
+function isStageUpToDate (inputPaths: string[], outputPaths: string[]) {
+    if (!inputPaths.length || !outputPaths.length) {
+        return false // nothing to compare → we cannot prove it is up to date
+    }
+    let newestInput = 0
+    for (let i = 0; i < inputPaths.length; i++) {
+        if (!fs.existsSync (inputPaths[i])) {
+            return false
+        }
+        let mtime = fs.statSync (inputPaths[i]).mtime.getTime ()
+        mtime = mtime - mtime % 1000 // see isTranspileNeeded: 1s filesystem resolution
+        if (mtime > newestInput) {
+            newestInput = mtime
+        }
+    }
+    let oldestOutput = Infinity
+    for (let i = 0; i < outputPaths.length; i++) {
+        if (!fs.existsSync (outputPaths[i])) {
+            return false // a missing output always makes the stage dirty
+        }
+        let mtime = fs.statSync (outputPaths[i]).mtime.getTime ()
+        mtime = mtime - mtime % 1000
+        if (mtime < oldestOutput) {
+            oldestOutput = mtime
+        }
+    }
+    return newestInput <= oldestOutput
+}
+
+// Returns true when `stage` can be skipped entirely. `force` always returns false, and
+// any stat error is treated as dirty so a gate can never silently drop real work.
+function skipUpToDateStage (lang: string, stage: string, force: boolean, inputPaths: string[], outputPaths: string[]) {
+    if (force) {
+        return false
+    }
+    let upToDate = false
+    try {
+        upToDate = isStageUpToDate (inputPaths, outputPaths)
+    } catch (e) {
+        upToDate = false
+    }
+    if (upToDate) {
+        log.bright.cyan ('[' + lang + ']', 'Already transpiled:', stage, 'is up to date, skipping, pass --force to transpile everything')
+    }
+    return upToDate
+}
+
 class Transpiler {
 
     buildPython = true;
@@ -3514,5 +3664,10 @@ if (isMainEntry(metaFileUrl)) {
 export {
     Transpiler,
     parallelizeTranspiling,
-    isMainEntry
+    isMainEntry,
+    isTranspileNeeded,
+    filterDirtyExchangeFiles,
+    isStageUpToDate,
+    skipUpToDateStage,
+    testStageInputs
 }
