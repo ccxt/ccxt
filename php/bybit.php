@@ -5068,7 +5068,7 @@ class bybit extends Exchange {
          *
          * @see https://bybit-exchange.github.io/docs/v5/order/cancel-all
          *
-         * @param {string} $symbol unified $market $symbol, only $orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified $market $symbol, only $orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] true if trigger order
          * @param {boolean} [$params->stop] alias for trigger

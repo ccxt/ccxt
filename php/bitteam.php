@@ -1202,7 +1202,7 @@ class bitteam extends Exchange {
          *
          * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelallorder
          *
-         * @param {string} $symbol unified $market $symbol
+         * @param {string} [$symbol] unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */

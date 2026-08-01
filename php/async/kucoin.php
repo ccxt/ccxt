@@ -5250,7 +5250,7 @@ class kucoin extends Exchange {
              * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
              * @see https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-$symbol
              *
-             * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
              * @param {string} [$params->marginMode] *spot only* 'cross' or 'isolated'

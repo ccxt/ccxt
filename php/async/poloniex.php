@@ -2268,7 +2268,7 @@ class poloniex extends Exchange {
              * @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders  // trigger orders
              * @see https://api-docs.poloniex.com/v3/futures/api/trade/cancel-all-orders - contract markets
              *
-             * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->trigger] true if canceling trigger orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~

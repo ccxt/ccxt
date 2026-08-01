@@ -2523,7 +2523,7 @@ class bitrue extends Exchange {
              * @see https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
              * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
              *
-             * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
+             * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}

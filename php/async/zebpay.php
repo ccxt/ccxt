@@ -1185,10 +1185,10 @@ class zebpay extends Exchange {
              *
              * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders
              *
-             * @param {string} $symbol unified $symbol of the market the order was made in
+             * @param {string} [$symbol] unified $symbol of the market the orders were made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {array} [$params->timestamp] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/?id=order-structure order structure~
+             * @param {int} [$params->timestamp] the timestamp of the request in ms
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', null, $params);

@@ -1197,7 +1197,7 @@ class alpaca extends Exchange {
              *
              * @see https://docs.alpaca.markets/reference/deleteallorders
              *
-             * @param {string} $symbol alpaca cancelAllOrders cannot setting $symbol, it will cancel all open orders
+             * @param {string} [$symbol] alpaca cancelAllOrders cannot setting $symbol, it will cancel all open orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */

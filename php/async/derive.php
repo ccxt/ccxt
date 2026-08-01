@@ -1683,7 +1683,7 @@ class derive extends Exchange {
              * @see https://docs.derive.xyz/reference/post_private-cancel-all
              *
              * cancel all open orders in a $market
-             * @param {string} $symbol unified $market $symbol
+             * @param {string} [$symbol] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subaccount_id] *required* the subaccount id
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~

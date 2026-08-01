@@ -2241,7 +2241,7 @@ class whitebit extends Exchange {
              *
              * @see https://docs.whitebit.com/private/http-trade-v4/#cancel-all-orders
              *
-             * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] $market $type, ['swap', 'spot']
              * @param {boolean} [$params->isMargin] cancel all margin orders

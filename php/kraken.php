@@ -2688,7 +2688,7 @@ class kraken extends Exchange {
          *
          * @see https://docs.kraken.com/api-reference/trading/cancel-all-orders
          *
-         * @param {string} $symbol unified market $symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
+         * @param {string} [$symbol] unified market $symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */

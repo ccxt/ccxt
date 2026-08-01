@@ -1726,7 +1726,7 @@ class cryptocom extends Exchange {
          *
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
          *
-         * @param {string} $symbol unified $market $symbol of the orders to cancel
+         * @param {string} [$symbol] unified $market $symbol of the orders to cancel
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} Returns exchange raw messagearray(@link https://docs.ccxt.com/?id=order-structure)
          */

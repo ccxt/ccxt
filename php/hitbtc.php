@@ -2269,7 +2269,7 @@ class hitbtc extends Exchange {
          * @see https://api.hitbtc.com/#cancel-futures-orders
          * @see https://api.hitbtc.com/#cancel-all-margin-orders
          *
-         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
          * @param {bool} [$params->margin] true for canceling margin orders

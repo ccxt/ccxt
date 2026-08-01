@@ -734,7 +734,7 @@ class blockchaincom extends Exchange {
              *
              * @see https://api.blockchain.com/v3/#deleteallorders
              *
-             * @param {string} $symbol unified market $symbol of the market to cancel orders in, all markets are used if null, default is null
+             * @param {string} [$symbol] unified market $symbol of the market to cancel orders in, all markets are used if null, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
