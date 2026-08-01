@@ -858,7 +858,7 @@ class backpack(ccxt.async_support.backpack):
     def get_cache_index(self, orderbook, cache):
         #
         # {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
-        firstDelta = self.safe_dict(cache, 0)
+        firstDelta = self.safe_value(cache, 0)
         nonce = self.safe_integer(orderbook, 'nonce')
         firstDeltaStart = self.safe_integer(firstDelta, 'U')
         if nonce < firstDeltaStart - 1:

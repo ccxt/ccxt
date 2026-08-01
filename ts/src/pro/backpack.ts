@@ -949,7 +949,7 @@ export default class backpack extends backpackRest {
     getCacheIndex (orderbook, cache) {
         //
         // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
-        const firstDelta = this.safeDict (cache, 0);
+        const firstDelta = this.safeValue (cache, 0);
         const nonce = this.safeInteger (orderbook, 'nonce');
         const firstDeltaStart = this.safeInteger (firstDelta, 'U');
         if (nonce < firstDeltaStart - 1) {
