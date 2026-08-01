@@ -2748,6 +2748,14 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                     {
                         ((java.util.Map<String,Object>)client.subscriptions).remove((String)id);
                     }
+                    // the subscription is keyed by the messageHash, not by the id -
+                    // without removing it a repeated watch call attaches to a future
+                    // that nothing will resolve instead of resubscribing, see
+                    // https://github.com/ccxt/ccxt/issues/10280
+                    if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
+                    {
+                        ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+                    }
                 }
             }
             return false;
