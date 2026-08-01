@@ -5406,9 +5406,18 @@ export default class bingx extends Exchange {
         const currencyId = this.safeString (depositAddress, 'coin');
         currency = this.safeCurrency (currencyId, currency);
         const code = currency['code'];
-        const address = this.safeString (depositAddress, 'addressWithPrefix');
-        const networkdId = this.safeString (depositAddress, 'network');
-        const networkCode = this.networkIdToCode (networkdId, code);
+        let address = this.safeString (depositAddress, 'addressWithPrefix');
+        const networkId = this.safeString (depositAddress, 'network');
+        const networkCode = this.networkIdToCode (networkId, code);
+        // despite its name the addressWithPrefix field sometimes arrives without
+        // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
+        if (address !== undefined) {
+            const isPrefixed = address.startsWith ('0x') || address.startsWith ('0X');
+            const evmNetworks = [ 'BEP20', 'BSC', 'ERC20', 'ETH', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'ARB', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB' ];
+            if (!isPrefixed && this.inArray (networkCode, evmNetworks)) {
+                address = '0x' + address;
+            }
+        }
         this.checkAddress (address);
         return {
             'info': depositAddress,
