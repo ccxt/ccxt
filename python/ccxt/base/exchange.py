@@ -541,6 +541,13 @@ class BaseExchange(object):
         headers.update({'Accept-Encoding': 'gzip, deflate'})
         return self.set_headers(headers)
 
+    def set_rate_limit(self, rate_limit):
+        # change the request rate limit of a live instance and rebuild the
+        # throttler, see issue 28498 - init_rest_rate_limiter refreshes the
+        # derived bucket fields when it detects that the rate changed
+        self.rateLimit = rate_limit
+        self.init_rest_rate_limiter()
+
     def log(self, *args):
         print(*args)
 

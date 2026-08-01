@@ -3889,7 +3889,22 @@ export class BaseExchange {
             'rateLimit': this.rateLimit,
         };
         const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
+        const previousRateLimit = this.safeNumber (existingBucket, 'rateLimit');
+        if ((previousRateLimit !== undefined) && (previousRateLimit !== this.rateLimit)) {
+            // the rateLimit changed since the bucket was built, refresh the
+            // derived refillRate, otherwise the existing bucket wins the merge
+            // below and a changed rateLimit never reaches the throttler, see
+            // issue 28498 - a user customized refillRate is respected, detected
+            // by comparing against the snapshot of the previously derived value
+            // stored below, two identically produced values that compare
+            // exactly in every language
+            if (this.safeNumber (existingBucket, 'refillRate') === this.safeNumber (existingBucket, 'derivedRefillRate')) {
+                existingBucket['refillRate'] = refillRate;
+            }
+            existingBucket['rateLimit'] = this.rateLimit;
+        }
         this.tokenBucket = this.extend (defaultBucket, existingBucket);
+        this.tokenBucket['derivedRefillRate'] = refillRate;
         this.initThrottler ();
     }
 
