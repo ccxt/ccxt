@@ -23,7 +23,7 @@ function transformLeadingComment (comment) {
 
 const verbose = !!process.env.CCXT_TRANSPILE_VERBOSE;
 
-export default async ({transpilerConfig, configKey, file}) => {
+export default async ({transpilerConfig, configKey, file, files}) => {
     const key = configKey || JSON.stringify(transpilerConfig);
     if (!cachedTranspiler || cachedConfigKey !== key) {
         cachedTranspiler = new Transpiler(transpilerConfig);
@@ -31,11 +31,31 @@ export default async ({transpilerConfig, configKey, file}) => {
         cachedTranspiler.goTranspiler.transformLeadingComment = transformLeadingComment;
         cachedConfigKey = key;
     }
-    if (verbose) {
-        log.blue('[worker][go] Transpiling', file);
+    const transpiler = cachedTranspiler;
+    // accept either the legacy single-file payload or a multi-file chunk
+    const filePaths = files ?? [file];
+
+    // Multi-file task: compile the whole chunk as ONE ts.Program instead of one
+    // program per file. Every transpileGoByPath builds a program over
+    // [file, globalsShim]; the SourceFile cache already makes the ~340-file import
+    // closure parse-free, but the bind/check work behind getPreEmitDiagnostics is
+    // redone per file. createProgramBatch pays it once for the chunk. Files that
+    // import each other (a derived exchange and its parent) are just separate root
+    // files of the same program, and the emit is byte-identical to the per-file path.
+    const batch = (filePaths.length > 1 && typeof transpiler.createProgramBatch === 'function')
+        ? transpiler.createProgramBatch(filePaths)
+        : null;
+
+    const result = [];
+    for (const filePath of filePaths) {
+        if (verbose) {
+            log.blue('[worker][go] Transpiling', filePath);
+        }
+        result.push(batch ? batch.transpileGoByPath(filePath) : transpiler.transpileGoByPath(filePath));
     }
-    const transpiled = cachedTranspiler.transpileGoByPath(file);
+    // the comments collected by transformLeadingComment during this task, keyed
+    // exchange -> method, so one merge per chunk is equivalent to one per file
     const comments = goComments;
     goComments = {};
-    return { file: transpiled, goComments: comments };
+    return { files: result, file: result[0], goComments: comments };
 }
