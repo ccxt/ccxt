@@ -66,7 +66,7 @@ func (this *Hibachi) FetchBalance(params ...any) (Balances, error) {
  * @param {string} symbol unified market symbol
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
- * @param {object} [params] extra parameters specific to the hibachi api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of recent [trade structures]
  */
 func (this *Hibachi) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
@@ -105,7 +105,7 @@ func (this *Hibachi) FetchTrades(symbol string, options ...FetchTradesOptions) (
  * @see https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12
  * @description fetches a price ticker and the related information for the past 24h
  * @param {string} symbol unified symbol of the market
- * @param {object} [params] extra parameters specific to the hibachi api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Hibachi) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
@@ -386,7 +386,7 @@ func (this *Hibachi) CancelOrders(ids []string, options ...CancelOrdersOptions) 
  * @name hibachi#cancelAllOrders
  * @see https://api-doc.hibachi.xyz/#8ed24695-016e-49b2-a72d-7511ca921fee
  * @description cancel all open orders in a market
- * @param {string} symbol unified market symbol
+ * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */

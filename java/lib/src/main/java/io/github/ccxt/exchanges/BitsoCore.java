@@ -1294,7 +1294,7 @@ public class BitsoCore extends BitsoApi
      * @description cancels an open order
      * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
      * @param {string} id order id
-     * @param {string} symbol not used by bitso cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1383,7 +1383,7 @@ public class BitsoCore extends BitsoApi
      * @name bitso#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
-     * @param {undefined} symbol bitso does not support canceling orders for only a specific market
+     * @param {string} [symbol] bitso does not support canceling orders for only a specific market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */

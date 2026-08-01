@@ -377,7 +377,7 @@ cancels an open order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by latoken cancelOrder () |
+| symbol | <code>string</code> | Yes | not used by cancelOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>boolean</code> | No | true if cancelling a trigger order |
 
@@ -403,13 +403,13 @@ cancel all open orders in a market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market to cancel orders in |
+| symbol | <code>string</code> | No | unified market symbol of the market to cancel orders in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>boolean</code> | No | true if cancelling trigger orders |
 
 
 ```javascript
-latoken.cancelAllOrders (symbol, params?)
+latoken.cancelAllOrders (symbol?, params?)
 ```
 
 

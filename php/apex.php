@@ -1605,7 +1605,7 @@ class apex extends Exchange {
          *
          * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
          *
-         * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
+         * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */

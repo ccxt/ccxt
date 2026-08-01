@@ -1008,7 +1008,7 @@ func (this *Lighter) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrd
  * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
  * @param {string} symbol unified market symbol of the market to set margin in
  * @param {float} amount the amount to set the margin to
- * @param {object} [params] parameters specific to the bingx api endpoint
+ * @param {object} [params] parameters specific to the exchange API endpoint
  * @param {string} [params.accountIndex] account index
  * @param {string} [params.apiKeyIndex] api key index
  * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}

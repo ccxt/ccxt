@@ -1,7 +1,7 @@
 name: Deploy Playground
 run-name: ${{ github.event.head_commit.message || github.event.pull_request.title || format('{0} · {1}', github.ref_name, github.sha) }}
 
-# Builds the CCXT Playground as a container (arm64, matching the docs box) and
+# Builds the CCXT Playground as a container (amd64, matching the docs box) and
 # deploys it as a long-running Next.js server behind nginx at /playground on
 # docs.ccxt.com. Mirrors the Fumadocs flow: build image -> push to GHCR ->
 # box pulls + canary smoke test -> promote (no downtime, auto-abort on failure).
@@ -9,7 +9,9 @@ run-name: ${{ github.event.head_commit.message || github.event.pull_request.titl
 # Reuses the same DOCS_DEPLOY_* secrets and box as docs-fumadocs.yml.
 # One-time box setup (root): put the OpenRouter key in /root/ccxt-playground.env
 #   OPENROUTER_API_KEY=sk-or-...
-# and add an nginx `location /playground { proxy_pass http://127.0.0.1:3007; }`.
+# and add an nginx `location /playground { proxy_pass http://172.31.0.10:3000; }`
+# (the app's pinned IP on the internal network — see APP_IP below; publishing a
+# host port doesn't work on a Docker `internal` network).
 
 on:
   push:
@@ -30,7 +32,7 @@ permissions:
 jobs:
   deploy:
     if: github.repository == 'ccxt/ccxt'
-    runs-on: ubuntu-24.04-arm        # arm64 — native build matching the docs server
+    runs-on: ubuntu-latest           # amd64 — native build matching the docs server
     env:
       IMAGE: ghcr.io/ccxt/ccxt-playground
       IMAGE_PROXY: ghcr.io/ccxt/ccxt-playground-egress
@@ -61,14 +63,15 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: docs/playground
-          platforms: linux/arm64
+          platforms: linux/amd64
           push: true
-          # Go stays install-only on this 7.5 GB shared box: compiling ccxt-go needs
-          # ~5 GB, which would OOM the host at build and exceed the run container's
-          # 2 GB cap. Drop "go" from PLAYGROUND_DISABLED on a larger dedicated box.
+          # All five runnable languages (TS/Python/PHP/C#/Go) are enabled. The Go
+          # warm build (~5 GB peak) happens here on the GitHub-hosted runner, not
+          # on the docs box; the box only needs headroom for warm `go run`s, which
+          # the 4 GB run cap below covers. To make a language install-only again
+          # (e.g. on a small box), add it back: PLAYGROUND_DISABLED=go
           build-args: |
             NEXT_BASE_PATH=${{ env.BASE_PATH }}
-            PLAYGROUND_DISABLED=go
           # SHA tag enables canary validation + rollback; latest moves only after smoke passes.
           tags: |
             ${{ env.IMAGE }}:latest
@@ -78,7 +81,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: docs/playground/proxy
-          platforms: linux/arm64
+          platforms: linux/amd64
           push: true
           tags: |
             ${{ env.IMAGE_PROXY }}:latest
@@ -183,7 +186,10 @@ jobs:
             -e NO_PROXY=localhost,127.0.0.1 -e no_proxy=localhost,127.0.0.1"
 
           # Hardening flags so a user run can't reach the host or exhaust it.
-          RUNFLAGS="--init --memory 2g --memory-swap 2g --cpus 2 --pids-limit 512 --security-opt no-new-privileges:true --cap-drop ALL"
+          # 4 GB (not 2): a warm `go run` only recompiles the user's main package,
+          # but an import outside the warmed dependency graph triggers a large
+          # rebuild that OOMs inside 2 GB.
+          RUNFLAGS="--init --memory 4g --memory-swap 4g --cpus 2 --pids-limit 512 --security-opt no-new-privileges:true --cap-drop ALL"
 
           # Persistent submission log — only the promoted live app (not the throwaway
           # canary) writes to the durable host mount; the file is logrotated above.
@@ -196,7 +202,9 @@ jobs:
           smoke_lang() { # json-payload
             local out
             # no -f: install-only languages reply HTTP 400 with a "runs locally" body we must read
-            out=$(curl -sS --max-time 60 -X POST "${SMOKE_BASE}/api/run" -H 'Content-Type: application/json' -d "$1") \
+            # 120s (not 60): Go/C# compile on first run and COMPILE_TIMEOUT_MS is 90s —
+            # a 60s curl would abort a legitimate cold compile and fail the canary.
+            out=$(curl -sS --max-time 120 -X POST "${SMOKE_BASE}/api/run" -H 'Content-Type: application/json' -d "$1") \
               || { echo "smoke[$1]: request failed"; return 1; }
             echo "$out" | grep -q "runs locally, not in the browser" && { echo "smoke: skip (install-only) $1"; return 0; }
             # /api/run streams chunks like {"type":"chunk","stream":"stdout","data":"42\n"}

@@ -586,7 +586,7 @@ class hibachi extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch (maximum value is 100)
-         * @param {array} [$params] extra parameters specific to the hibachi api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of recent [trade structures]
          */
         if ($this->markets === null) {
@@ -621,7 +621,7 @@ class hibachi extends Exchange {
          *
          * fetches a price $ticker and the related information for the past 24h
          * @param {string} $symbol unified $symbol of the $market
-         * @param {array} [$params] extra parameters specific to the hibachi api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         if ($this->markets === null) {
@@ -1161,7 +1161,7 @@ class hibachi extends Exchange {
          * @see https://api-doc.hibachi.xyz/#8ed24695-016e-49b2-a72d-7511ca921fee
          *
          * cancel all open orders in a $market
-         * @param {string} $symbol unified $market $symbol
+         * @param {string} [$symbol] unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */

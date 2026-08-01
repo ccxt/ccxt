@@ -671,7 +671,7 @@ class deepcoin extends Exchange {
             $params = $this->omit($params, 'calculateUntil');
             if ($since !== null) {
                 // the exchange do not have a $since param for this endpoint
-                // we canlculate $until (after) for correct pagination
+                // we calculate $until (after) for correct pagination
                 $duration = $this->parse_timeframe($timeframe);
                 $numberOfCandles = ($limit === null) ? $maxLimit : $limit;
                 $endTime = $since . ($duration * $numberOfCandles) * 1000;

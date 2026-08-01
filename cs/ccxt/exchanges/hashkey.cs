@@ -827,7 +827,7 @@ public partial class hashkey : Exchange
         object markets = this.arrayConcat(spotMarkets, swapMarkets);
         if (isTrue(this.isEmpty(markets)))
         {
-            markets = new List<object>() {response}; // if user provides params.symbol the exchange returns a single object insted of list of objects
+            markets = new List<object>() {response}; // if user provides params.symbol the exchange returns a single object instead of list of objects
         }
         return this.parseMarkets(markets);
     }

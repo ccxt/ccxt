@@ -402,14 +402,14 @@ cancel all open orders in a market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | (optional) unified market symbol of the market to cancel orders in. |
+| symbol | <code>string</code> | No | (optional) unified market symbol of the market to cancel orders in. |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.excludeReduceOnly | <code>boolean</code> | No | whether to exclude reduce-only orders |
 | params.expiryWindow | <code>int</code> | No | time to live in milliseconds |
 
 
 ```javascript
-pacifica.cancelAllOrders (symbol, params?)
+pacifica.cancelAllOrders (symbol?, params?)
 ```
 
 

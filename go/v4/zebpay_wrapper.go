@@ -66,7 +66,7 @@ func (this *Zebpay) FetchTime(params ...any) (int64, error) {
  * @description retrieves data on all markets for zebpay
  * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
  * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
 func (this *Zebpay) FetchMarkets(params ...any) ([]MarketInterface, error) {
@@ -498,6 +498,17 @@ func (this *Zebpay) CancelOrder(id string, options ...CancelOrderOptions) (Order
 	}
 	return NewOrder(res), nil
 }
+
+/**
+ * @method
+ * @name zebpay#cancelAllOrders
+ * @description cancels all open orders
+ * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders
+ * @param {string} [symbol] unified symbol of the market the orders were made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.timestamp] the timestamp of the request in ms
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
 func (this *Zebpay) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
 	opts := CancelAllOrdersOptionsStruct{}

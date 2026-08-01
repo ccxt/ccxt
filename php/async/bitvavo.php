@@ -1248,7 +1248,7 @@ class bitvavo extends Exchange {
              * @see https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
              *
              * fetch all the $accounts associated with a profile
-             * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=account-structure account structures~
              */
             if ($this->markets === null) {
@@ -1295,7 +1295,7 @@ class bitvavo extends Exchange {
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from, either 'master' or the subaccount id
              * @param {string} $toAccount account to transfer to, either 'master' or the subaccount id
-             * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subaccountId] the unique identifier for the subaccount
              * @param {string} [$params->clientRequestId] client defined unique id
              * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
@@ -1358,7 +1358,7 @@ class bitvavo extends Exchange {
              * @param {string} [$code] unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch transfers for
              * @param {int} [$limit] the maximum number of transfers structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subaccountId] the unique identifier for the subaccount
              * @param {int} [$params->until] the latest time in ms to fetch transfers for
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
@@ -1417,7 +1417,7 @@ class bitvavo extends Exchange {
              * fetches a transfer
              * @param {string} $id transfer $id
              * @param {string} [$code] unified $currency $code of the $currency transferred
-             * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?$id=transfer-structure transfer structure~
              */
             if ($this->markets === null) {
@@ -1616,7 +1616,7 @@ class bitvavo extends Exchange {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
              * @param {float} [$params->stopPrice] Alias for triggerPrice
              * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
@@ -1730,7 +1730,7 @@ class bitvavo extends Exchange {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} [$amount] how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             if ($this->markets === null) {
@@ -1799,7 +1799,7 @@ class bitvavo extends Exchange {
              * @see https://docs.bitvavo.com/docs/rest-api/cancel-orders/
              *
              * cancel all open orders
-             * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
@@ -2290,7 +2290,7 @@ class bitvavo extends Exchange {
              * @param {string} [$code] unified $currency $code
              * @param {int} [$since] timestamp in ms of the earliest ledger entry
              * @param {int} [$limit] max number of ledger entries to return
-             * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest ledger entry
              * @param {int} [$params->page] the page number for the transaction history
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger ledger structures~
@@ -2474,7 +2474,7 @@ class bitvavo extends Exchange {
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             if ($this->markets === null) {
@@ -2535,7 +2535,7 @@ class bitvavo extends Exchange {
              * @param {string} $code unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
-             * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             if ($this->markets === null) {

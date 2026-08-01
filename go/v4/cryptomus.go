@@ -434,7 +434,7 @@ func (this *CryptomusCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 }
 func (this *CryptomusCore) ParseCurrency(rawCurrency any) any {
 	// currency here is array of networks
-	var id any = nil // all entried have same id, as they were grouped by
+	var id any = nil // all entries have same id, as they were grouped by
 	var code any = nil
 	var networks any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(rawCurrency)); i++ {

@@ -560,6 +560,12 @@ public partial class woofipro
     /// See <see href="https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint

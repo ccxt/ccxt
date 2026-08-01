@@ -666,7 +666,7 @@ func (this *Kraken) FetchOrderTrades(id string, options ...FetchOrderTradesOptio
  * @see https://docs.kraken.com/api-reference/account-data/get-closed-orders
  * @param {string[]} [ids] list of order id
  * @param {string} [symbol] unified ccxt market symbol
- * @param {object} [params] extra parameters specific to the kraken api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Kraken) FetchOrdersByIds(ids any, options ...FetchOrdersByIdsOptions) ([]map[string]any, error) {
@@ -815,7 +815,7 @@ func (this *Kraken) CancelOrders(ids []string, options ...CancelOrdersOptions) (
  * @name kraken#cancelAllOrders
  * @description cancel all open orders
  * @see https://docs.kraken.com/api-reference/trading/cancel-all-orders
- * @param {string} symbol unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
+ * @param {string} [symbol] unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1111,7 +1111,7 @@ func (this *Kraken) CreateDepositAddress(code string, options ...CreateDepositAd
  * @description fetch deposit methods for a currency associated with this account
  * @see https://docs.kraken.com/api-reference/funding/get-deposit-methods
  * @param {string} code unified currency code
- * @param {object} [params] extra parameters specific to the kraken api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} of deposit methods
  */
 func (this *Kraken) FetchDepositMethods(code string, options ...FetchDepositMethodsOptions) (map[string]any, error) {
@@ -1202,7 +1202,7 @@ func (this *Kraken) Withdraw(code string, amount float64, address string, option
  * @name kraken#fetchPositions
  * @description fetch all open positions
  * @see https://docs.kraken.com/api-reference/account-data/get-open-positions
- * @param {string[]} [symbols] not used by kraken fetchPositions ()
+ * @param {string[]} [symbols] not used by fetchPositions ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */

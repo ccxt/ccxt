@@ -558,8 +558,8 @@ export default class hollaex extends Exchange {
      * @name hollaex#fetchOrderBooks
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
      * @see https://apidocs.hollaex.com/#orderbooks
-     * @param {string[]|undefined} symbols not used by hollaex fetchOrderBooks ()
-     * @param {int} [limit] not used by hollaex fetchOrderBooks ()
+     * @param {string[]|undefined} symbols not used by fetchOrderBooks ()
+     * @param {int} [limit] not used by fetchOrderBooks ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
      */
@@ -1049,7 +1049,7 @@ export default class hollaex extends Exchange {
      * @description fetch an open order by it's id
      * @see https://apidocs.hollaex.com/#get-order
      * @param {string} id order id
-     * @param {string} symbol not used by hollaex fetchOpenOrder ()
+     * @param {string} symbol not used by fetchOpenOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */

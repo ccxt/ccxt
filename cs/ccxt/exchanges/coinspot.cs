@@ -819,7 +819,7 @@ public partial class coinspot : Exchange
      * @see https://www.coinspot.com.au/api#cancelbuyorder
      * @see https://www.coinspot.com.au/api#cancelsellorder
      * @param {string} id order id
-     * @param {string} symbol not used by coinspot cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */

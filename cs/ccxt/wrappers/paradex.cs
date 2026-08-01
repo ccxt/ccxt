@@ -456,7 +456,7 @@ public partial class paradex
     /// <item>
     /// <term>symbol</term>
     /// <description>
-    /// string : unified market symbol, not used by paradex cancelOrders()
+    /// string : unified market symbol, not used by cancelOrders()
     /// </description>
     /// </item>
     /// <item>

@@ -88,8 +88,8 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by hollaex fetchOrderBooks () |
-| limit | <code>int</code> | No | not used by hollaex fetchOrderBooks () |
+| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by fetchOrderBooks () |
+| limit | <code>int</code> | No | not used by fetchOrderBooks () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -263,7 +263,7 @@ fetch an open order by it's id
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by hollaex fetchOpenOrder () |
+| symbol | <code>string</code> | Yes | not used by fetchOpenOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 

@@ -626,7 +626,7 @@ public partial class weex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetApiV3Ping(parameters);
-        // reutns an empty response if the exchange is alive, otherwise will trigger an error
+        // returns an empty response if the exchange is alive, otherwise will trigger an error
         return new Dictionary<string, object>() {
             { "status", "ok" },
             { "updated", null },

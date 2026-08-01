@@ -2605,7 +2605,7 @@ public class BitmexCore extends BitmexApi
      * @description cancels an open order
      * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
      * @param {string} id order id
-     * @param {string} symbol not used by bitmex cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2652,7 +2652,7 @@ public class BitmexCore extends BitmexApi
      * @description cancel multiple orders
      * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by bitmex cancelOrders ()
+     * @param {string} symbol not used by cancelOrders ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2690,7 +2690,7 @@ public class BitmexCore extends BitmexApi
      * @name bitmex#cancelAllOrders
      * @description cancel all open orders
      * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAll
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -4203,7 +4203,7 @@ public class BitmexCore extends BitmexApi
      * @see https://docs.bitmex.com/api-explorer/order-close-position
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} side the buy or sell side of the closing order, if the position is long set the side to sell, reduceOnly is implied
-     * @param {object} [params] extra parameters specific to the bingx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbol, Object... optionalArgs)

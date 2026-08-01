@@ -1585,7 +1585,7 @@ class weex extends weex$1["default"] {
         //         ]
         //     }
         //
-        // coontract
+        // contract
         //     {
         //         "e": "account",
         //         "E": 1776189629849,

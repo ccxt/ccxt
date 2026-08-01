@@ -443,6 +443,7 @@ class p2b extends \ccxt\async\p2b {
         //    }
         //
         $params = $this->safe_list($message, 'params', array());
+        $isFullUpdate = $this->safe_bool($params, 0, false);
         $data = $this->safe_dict($params, 1);
         $asks = $this->safe_list($data, 'asks');
         $bids = $this->safe_list($data, 'bids');
@@ -456,6 +457,13 @@ class p2b extends \ccxt\async\p2b {
         if ($orderbook === null) {
             $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             $orderbook = $this->orderbooks[$symbol];
+        }
+        if ($isFullUpdate) {
+            // the first parameter signals whether the $message carries all
+            // records or only the changed ones, a full set replaces the book,
+            // otherwise stale levels that left the depth window would linger
+            // and cross the book, see https://github.com/ccxt/ccxt/issues/24944
+            $orderbook->reset(array());
         }
         if ($bids !== null) {
             for ($i = 0; $i < count($bids); $i++) {

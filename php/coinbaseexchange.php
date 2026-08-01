@@ -1651,7 +1651,7 @@ class coinbaseexchange extends Exchange {
          * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
          *
          * cancel all open orders
-         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */

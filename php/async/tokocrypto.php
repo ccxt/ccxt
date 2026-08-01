@@ -252,7 +252,7 @@ class tokocrypto extends Exchange {
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
                 // 'fetchPositions' => 'positionRisk', // or 'account'
                 'recvWindow' => 5 * 1000, // 5 sec, binance default
-                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'newOrderRespType' => array(
                     'market' => 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
@@ -1407,7 +1407,7 @@ class tokocrypto extends Exchange {
         //         "0",                    // Ignore
         //         1591256519999,          // Close time
         //         "0",                    // Ignore
-        //         60,                     // Number of bisic data
+        //         60,                     // Number of basic data
         //         "0",                    // Ignore
         //         "0",                    // Ignore
         //         "0"                     // Ignore
@@ -2646,7 +2646,7 @@ class tokocrypto extends Exchange {
             throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         }
         // $error $response in a form => array( "code" => -1013, "msg" => "Invalid quantity." )
-        // following block cointains legacy checks against $message patterns in "msg" property
+        // following block contains legacy checks against $message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if ($code >= 400) {
             if (mb_strpos($body, 'Price * QTY is zero or less') !== false) {

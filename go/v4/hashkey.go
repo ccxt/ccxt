@@ -861,7 +861,7 @@ func (this *HashkeyCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		var swapMarkets any = this.SafeList(response, "contracts", []any{})
 		var markets any = this.ArrayConcat(spotMarkets, swapMarkets)
 		if IsTrue(this.IsEmpty(markets)) {
-			markets = []any{response} // if user provides params.symbol the exchange returns a single object insted of list of objects
+			markets = []any{response} // if user provides params.symbol the exchange returns a single object instead of list of objects
 		}
 
 		ch <- this.ParseMarkets(markets)

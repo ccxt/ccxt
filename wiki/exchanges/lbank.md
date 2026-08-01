@@ -642,7 +642,7 @@ please use fetchDepositWithdrawFees instead
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by lbank fetchTransactionFees () |
+| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by fetchTransactionFees () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -737,7 +737,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the cex api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -758,7 +758,7 @@ watches a price ticker, a statistical calculation with the information calculate
 | Param | Type | Description |
 | --- | --- | --- |
 | symbol | <code>string</code> | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | extra parameters specific to the lbank api endpoint |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -827,7 +827,7 @@ get the list of trades associated with the user
 | symbol | <code>string</code> | No | unified symbol of the market to fetch trades for |
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
 | limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | Yes | extra parameters specific to the lbank api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -869,7 +869,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | --- | --- | --- |
 | symbol | <code>string</code> | unified symbol of the market to fetch the order book for |
 | limit | <code>int</code>, <code>undefined</code> | the maximum amount of order book entries to return |
-| params | <code>object</code> | extra parameters specific to the lbank api endpoint |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -891,7 +891,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | --- | --- | --- |
 | symbol | <code>string</code> | unified symbol of the market to fetch the order book for |
 | limit | <code>int</code>, <code>undefined</code> | the maximum amount of order book entries to return |
-| params | <code>object</code> | extra parameters specific to the lbank api endpoint |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript

@@ -9,10 +9,10 @@ export default class coinmate extends Exchange {
     /**
      * @method
      * @name coinmate#fetchTime
-     * @description fetches the current integer timestamp in milliseconds from the bingx server
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
      * @see https://coinmate.docs.apiary.io/#reference/system/get-server-time/get
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {int} the current integer timestamp in milliseconds from the bingx server
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     fetchTime(params?: {}): Promise<Int>;
     /**
@@ -195,7 +195,7 @@ export default class coinmate extends Exchange {
      * @description cancels an open order
      * @see https://coinmate.docs.apiary.io/#reference/order/cancel-order/post
      * @param {string} id order id
-     * @param {string} symbol not used by coinmate cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */

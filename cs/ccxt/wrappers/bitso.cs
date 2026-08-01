@@ -326,6 +326,12 @@ public partial class bitso
     /// See <see href="https://docs.bitso.com/bitso-api/docs/cancel-an-order"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : bitso does not support canceling orders for only a specific market
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint

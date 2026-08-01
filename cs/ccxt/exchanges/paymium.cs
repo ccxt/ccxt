@@ -492,7 +492,7 @@ public partial class paymium : Exchange
      * @description cancels an open order
      * @see https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order
      * @param {string} id order id
-     * @param {string} symbol not used by paymium cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */

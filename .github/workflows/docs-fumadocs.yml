@@ -1,6 +1,6 @@
 name: Deploy Fumadocs
 
-# Builds the Fumadocs site as a container (arm64, matching the docs box) and deploys it
+# Builds the Fumadocs site as a container (amd64, matching the docs box) and deploys it
 # as a long-running Next.js server behind nginx at / (root). Automates the manual flow:
 # build image -> push to GHCR -> box pulls + restarts the container.
 #
@@ -82,7 +82,7 @@ jobs:
 
   deploy:
     if: github.repository == 'ccxt/ccxt'
-    runs-on: ubuntu-24.04-arm        # arm64 — native build matching the docs server
+    runs-on: ubuntu-latest           # amd64 — native build matching the docs server
     env:
       IMAGE: ghcr.io/ccxt/ccxt-fumadocs
       CONTAINER: ccxt-docs
@@ -116,7 +116,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: docs/website
-          platforms: linux/arm64
+          platforms: linux/amd64
           push: true
           # Consistent Server Actions encryption key across builds, so a client served by an
           # earlier deploy doesn't hit "Failed to find Server Action" after a redeploy. If the

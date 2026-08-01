@@ -814,7 +814,7 @@ func (this *BitrueCore) ParseCurrency(rawCurrency any) any {
  * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
  * @see https://www.bitrue.com/api-docs#current-open-contract
  * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
 func (this *BitrueCore) FetchMarkets(optionalArgs ...any) <-chan any {
@@ -2027,7 +2027,7 @@ func (this *BitrueCore) ParseOrder(order any, optionalArgs ...any) any {
 	var amount any = this.SafeString(order, "origQty")
 	// - Spot/Margin market: cummulativeQuoteQty
 	// - Futures market: cumQuote.
-	//   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
+	//   Note this is not the actual cost, since the exchange uses leverage to calculate margins.
 	var cost any = this.SafeString2(order, "cummulativeQuoteQty", "cumQuote")
 	var id any = this.SafeString(order, "orderId")
 	var typeVar any = this.SafeStringLower(order, "type")
@@ -2662,7 +2662,7 @@ func (this *BitrueCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @description cancel all open orders in a market
  * @see https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
  * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
- * @param {string} symbol unified market symbol of the market to cancel orders in
+ * @param {string} [symbol] unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
  * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
@@ -3717,7 +3717,7 @@ func (this *BitrueCore) HandleErrors(code any, reason any, url any, method any, 
 		panic(DDoSProtection(Add(Add(Add(Add(Add(Add(this.Id, " "), ToString(code)), " "), reason), " "), body)))
 	}
 	// error response in a form: { "code": -1013, "msg": "Invalid quantity." }
-	// following block cointains legacy checks against message patterns in "msg" property
+	// following block contains legacy checks against message patterns in "msg" property
 	// will switch "code" checks eventually, when we know all of them
 	if IsTrue(IsGreaterThanOrEqual(code, 400)) {
 		if IsTrue(IsGreaterThanOrEqual(GetIndexOf(body, "Price * QTY is zero or less"), 0)) {

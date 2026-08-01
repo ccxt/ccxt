@@ -151,7 +151,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return (default 100, max 200) |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -175,7 +175,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in seconds of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch (default 100) |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -555,7 +555,7 @@ fetch an open order by it's id
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by hollaex fetchOpenOrder () |
+| symbol | <code>string</code> | Yes | not used by fetchOpenOrder () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -619,14 +619,14 @@ fetches information on multiple orders made by the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| symbol | <code>string</code> | No | unified market symbol of the market orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of  orde structures to retrieve (default 100, max 1000) |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve (default 100, max 1000) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-backpack.fetchOrders (symbol, since?, limit?, params?)
+backpack.fetchOrders (symbol?, since?, limit?, params?)
 ```
 
 

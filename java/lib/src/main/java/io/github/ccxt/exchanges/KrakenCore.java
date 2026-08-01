@@ -1925,7 +1925,7 @@ public class KrakenCore extends KrakenApi
             Helpers.addElementToObject(result, "usingCost", isUsingCost);
             // it's impossible to know if the order was created using cost or base currency
             // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
-            // this usingCost flag is used to help the parsing but omited from the order
+            // this usingCost flag is used to help the parsing but omitted from the order
             return this.parseOrder(result);
         });
 
@@ -2861,7 +2861,7 @@ final Object finalId = id;
      * @see https://docs.kraken.com/api-reference/account-data/get-closed-orders
      * @param {string[]} [ids] list of order id
      * @param {string} [symbol] unified ccxt market symbol
-     * @param {object} [params] extra parameters specific to the kraken api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrdersByIds(Object ids, Object... optionalArgs)
@@ -3078,7 +3078,7 @@ final Object finalId = id;
      * @name kraken#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.kraken.com/api-reference/trading/cancel-all-orders
-     * @param {string} symbol unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
+     * @param {string} [symbol] unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -3762,7 +3762,7 @@ final Object finalId = id;
      * @description fetch deposit methods for a currency associated with this account
      * @see https://docs.kraken.com/api-reference/funding/get-deposit-methods
      * @param {string} code unified currency code
-     * @param {object} [params] extra parameters specific to the kraken api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} of deposit methods
      */
     public java.util.concurrent.CompletableFuture<Object> fetchDepositMethods(Object code, Object... optionalArgs)
@@ -3969,7 +3969,7 @@ final Object finalId = id;
      * @name kraken#fetchPositions
      * @description fetch all open positions
      * @see https://docs.kraken.com/api-reference/account-data/get-open-positions
-     * @param {string[]} [symbols] not used by kraken fetchPositions ()
+     * @param {string[]} [symbols] not used by fetchPositions ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */

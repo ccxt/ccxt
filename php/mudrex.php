@@ -454,16 +454,16 @@ class mudrex extends Exchange {
             $items = array();
             if (gettype($data) === 'array' && (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
                 $items = $this->safe_list($data, 'items', array());
-                if (strlen(!$items)) {
+                if (!strlen($items)) {
                     $items = $this->safe_list($data, 'results', array());
                 }
-                if (strlen(!$items) && (is_array($data) && array_key_exists('symbol' ?? '', $data))) {
+                if (!strlen($items) && (is_array($data) && array_key_exists('symbol' ?? '', $data))) {
                     $items = array( $data );
                 }
             } else {
                 $items = $this->to_array($data);
             }
-            if (strlen(!$items)) {
+            if (!strlen($items)) {
                 $paging = false;
                 break;
             }

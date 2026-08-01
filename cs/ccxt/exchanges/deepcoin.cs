@@ -703,7 +703,7 @@ public partial class deepcoin : Exchange
             if (isTrue(!isEqual(since, null)))
             {
                 // the exchange do not have a since param for this endpoint
-                // we canlculate until (after) for correct pagination
+                // we calculate until (after) for correct pagination
                 object duration = this.parseTimeframe(timeframe);
                 object numberOfCandles = ((bool) isTrue((isEqual(limit, null)))) ? maxLimit : limit;
                 object endTime = add(since, multiply((multiply(duration, numberOfCandles)), 1000));

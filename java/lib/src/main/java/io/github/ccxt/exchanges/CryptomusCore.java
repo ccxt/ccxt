@@ -432,7 +432,7 @@ public class CryptomusCore extends CryptomusApi
     public Object parseCurrency(Object rawCurrency)
     {
         // currency here is array of networks
-        Object id = null; // all entried have same id, as they were grouped by
+        Object id = null; // all entries have same id, as they were grouped by
         Object code = null;
         Object networks = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawCurrency)); i++)

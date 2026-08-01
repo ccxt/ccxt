@@ -415,6 +415,12 @@ public partial class cryptocom
     /// See <see href="https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol of the orders to cancel
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint

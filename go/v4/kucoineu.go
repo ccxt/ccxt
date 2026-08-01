@@ -29,8 +29,18 @@ func (this *KucoineuCore) Describe() any {
 			"www": "https://www.kucoin.com/en-eu",
 			"doc": []any{"https://www.kucoin.com/en-eu/docs-new"},
 		},
+		"has": map[string]any{
+			"spot":   true,
+			"margin": true,
+			"swap":   false,
+			"future": false,
+			"option": false,
+		},
 		"options": map[string]any{
 			"mica": true,
+			"fetchMarkets": map[string]any{
+				"types": []any{"spot"},
+			},
 		},
 	})
 }

@@ -445,7 +445,7 @@ func (this *Apex) Transfer(code string, amount float64, fromAccount string, toAc
  * @name apex#cancelAllOrders
  * @description cancel all open orders in a market
  * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
- * @param {string} symbol unified market symbol of the market to cancel orders in
+ * @param {string} [symbol] unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */

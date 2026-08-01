@@ -431,6 +431,12 @@ public partial class latoken
     /// See <see href="https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol of the market to cancel orders in
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint

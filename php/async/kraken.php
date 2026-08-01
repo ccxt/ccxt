@@ -273,7 +273,7 @@ class kraken extends Exchange {
             ),
             'options' => array(
                 'mica' => true,
-                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'marketsByAltname' => array(),
                 'delistedMarketsById' => array(),
@@ -1777,7 +1777,7 @@ class kraken extends Exchange {
             $result['usingCost'] = $isUsingCost;
             // it's impossible to know if the order was created using cost or base currency
             // because kraken only returns something like this => array( order => 'buy 10.00000000 LTCUSD @ market' )
-            // this usingCost flag is used to help the parsing but omited from the order
+            // this usingCost flag is used to help the parsing but omitted from the order
             return $this->parse_order($result);
         })();
     }
@@ -2560,7 +2560,7 @@ class kraken extends Exchange {
              *
              * @param {string[]} [$ids] list of $order $id
              * @param {string} [$symbol] unified ccxt market $symbol
-             * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
             if ($this->markets === null) {
@@ -2751,7 +2751,7 @@ class kraken extends Exchange {
              *
              * @see https://docs.kraken.com/api-reference/trading/cancel-all-orders
              *
-             * @param {string} $symbol unified market $symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
+             * @param {string} [$symbol] unified market $symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
@@ -3332,7 +3332,7 @@ class kraken extends Exchange {
              * @see https://docs.kraken.com/api-reference/funding/get-deposit-methods
              *
              * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} of deposit methods
              */
             if ($this->markets === null) {
@@ -3508,7 +3508,7 @@ class kraken extends Exchange {
              *
              * @see https://docs.kraken.com/api-reference/account-data/get-open-positions
              *
-             * @param {string[]} [$symbols] not used by kraken fetchPositions ()
+             * @param {string[]} [$symbols] not used by fetchPositions ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */

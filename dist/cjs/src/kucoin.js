@@ -898,7 +898,7 @@ class kucoin extends kucoin$1["default"] {
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
-                'timeDifference': 0, // the difference between system clock and Binance clock
+                'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'fetchCurrencies': {
                     'brokenCurrencies': ['00', 'OPEN_ERROR', 'HUF', 'BDT'], // skip buggy entries: https://t.me/KuCoin_API/217798
@@ -4512,7 +4512,7 @@ class kucoin extends kucoin$1["default"] {
                 }
             }
         }
-        // handling with coinditional orders
+        // handling with conditional orders
         const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(params);
         const stopLoss = this.safeDict(params, 'stopLoss');
         const takeProfit = this.safeDict(params, 'takeProfit');
@@ -5196,7 +5196,7 @@ class kucoin extends kucoin$1["default"] {
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
      * @see https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated'
@@ -11205,7 +11205,7 @@ class kucoin extends kucoin$1["default"] {
      * @description set hedged to true or false for a market
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-position-mode
      * @param {bool} hedged set to true to use two way position
-     * @param {string} [symbol] not used by bybit setPositionMode ()
+     * @param {string} [symbol] not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a response from the exchange
      */
@@ -11254,7 +11254,7 @@ class kucoin extends kucoin$1["default"] {
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} side not used by kucoin closePositions
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id of the order
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */

@@ -1350,7 +1350,7 @@ class binance extends Exchange {
                     'method' => 'positionRisk', // or 'account' or 'option'
                 ),
                 'recvWindow' => 10 * 1000, // 10 sec
-                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'newOrderRespType' => array(
                     'market' => 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
@@ -1372,7 +1372,7 @@ class binance extends Exchange {
                     'margin' => 'MARGIN',
                     'cross' => 'MARGIN',
                     'future' => 'UMFUTURE', // backwards compatibility
-                    'delivery' => 'CMFUTURE', // backwards compatbility
+                    'delivery' => 'CMFUTURE', // backwards compatibility
                     'linear' => 'UMFUTURE',
                     'swap' => 'UMFUTURE',
                     'inverse' => 'CMFUTURE',
@@ -4746,7 +4746,7 @@ class binance extends Exchange {
         //         "0",                    // Ignore
         //         1591256519999,          // Close time
         //         "0",                    // Ignore
-        //         60,                     // Number of bisic data
+        //         60,                     // Number of basic data
         //         "0",                    // Ignore
         //         "0",                    // Ignore
         //         "0"                     // Ignore
@@ -8440,7 +8440,7 @@ class binance extends Exchange {
          *
          * @see https://developers.binance.com/docs/wallet/asset/dust-log
          *
-         * @param {string} $symbol not used by binance fetchMyDustTrades ()
+         * @param {string} $symbol not used by fetchMyDustTrades ()
          * @param {int} [$since] the earliest time in ms to fetch my dust $trades for
          * @param {int} [$limit] the maximum number of dust $trades to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -9472,7 +9472,7 @@ class binance extends Exchange {
          *
          * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
          *
-         * @param {string[]|null} $codes not used by binance fetchTransactionFees ()
+         * @param {string[]|null} $codes not used by fetchTransactionFees ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~
          */
@@ -9589,7 +9589,7 @@ class binance extends Exchange {
          *
          * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
          *
-         * @param {string[]|null} $codes not used by binance fetchDepositWithdrawFees ()
+         * @param {string[]|null} $codes not used by fetchDepositWithdrawFees ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
@@ -10396,7 +10396,7 @@ class binance extends Exchange {
         //         "breakEvenPrice" => "0.0"
         //     }
         //
-        // inverse portoflio margin
+        // inverse portfolio margin
         //
         //     {
         //         "symbol" => "TRXUSD_PERP",
@@ -11697,7 +11697,7 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
          *
          * @param {bool} $hedged set to true to use $dualSidePosition
-         * @param {string} $symbol not used by binance setPositionMode ()
+         * @param {string} $symbol not used by setPositionMode ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to set the position mode for a portfolio margin account
          * @param {string} [$params->subType] "linear" or "inverse"
@@ -12445,7 +12445,7 @@ class binance extends Exchange {
             throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         }
         // $error $response in a form => array( "code" => -1013, "msg" => "Invalid quantity." )
-        // following block cointains legacy checks against $message patterns in "msg" property
+        // following block contains legacy checks against $message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if ($code >= 400) {
             if (mb_strpos($body, 'Price * QTY is zero or less') !== false) {
@@ -14137,7 +14137,7 @@ class binance extends Exchange {
          * @param {string} [$type] "add" or "reduce"
          * @param {int} [$since] timestamp in ms of the earliest change to fetch
          * @param {int} [$limit] the maximum amount of changes to fetch
-         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest change to fetch
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=margin-loan-structure margin structures~
          */

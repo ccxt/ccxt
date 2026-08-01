@@ -753,7 +753,7 @@ func (this *XtCore) Nonce() any {
  * @name xt#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the xt server
  * @see https://doc.xt.com/#market1serverInfo
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the xt server
  */
 func (this *XtCore) FetchTime(optionalArgs ...any) <-chan any {
@@ -790,7 +790,7 @@ func (this *XtCore) FetchTime(optionalArgs ...any) <-chan any {
  * @name xt#fetchCurrencies
  * @description fetches all available currencies on an exchange
  * @see https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
 func (this *XtCore) FetchCurrencies(optionalArgs ...any) <-chan any {
@@ -946,7 +946,7 @@ func (this *XtCore) FetchCurrencies(optionalArgs ...any) <-chan any {
  * @description retrieves data on all markets for xt
  * @see https://doc.xt.com/#market2symbol
  * @see https://doc.xt.com/#futures_quotesgetSymbols
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
 func (this *XtCore) FetchMarkets(optionalArgs ...any) <-chan any {
@@ -1398,7 +1398,7 @@ func (this *XtCore) ParseMarket(market any) any {
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -1561,7 +1561,7 @@ func (this *XtCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified market symbol to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
  */
 func (this *XtCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
@@ -1678,7 +1678,7 @@ func (this *XtCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
  * @see https://doc.xt.com/#market10ticker24h
  * @see https://doc.xt.com/#futures_quotesgetAggTicker
  * @param {string} symbol unified market symbol to fetch the ticker for
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
 func (this *XtCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
@@ -1778,7 +1778,7 @@ func (this *XtCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
  * @see https://doc.xt.com/#market10ticker24h
  * @see https://doc.xt.com/#futures_quotesgetAggTickers
  * @param {string} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
 func (this *XtCore) FetchTickers(optionalArgs ...any) <-chan any {
@@ -1892,7 +1892,7 @@ func (this *XtCore) FetchTickers(optionalArgs ...any) <-chan any {
  * @description fetches the bid and ask price and volume for multiple markets
  * @see https://doc.xt.com/#market9tickerBook
  * @param {string} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
 func (this *XtCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
@@ -2044,7 +2044,7 @@ func (this *XtCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {string} symbol unified market symbol to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
  */
 func (this *XtCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
@@ -2143,7 +2143,7 @@ func (this *XtCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
  * @param {string} [symbol] unified market symbol to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
  */
 func (this *XtCore) FetchMyTrades(optionalArgs ...any) <-chan any {
@@ -2457,7 +2457,7 @@ func (this *XtCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://doc.xt.com/#balancebalancesGet
  * @see https://doc.xt.com/#futures_usergetBalances
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
  */
 func (this *XtCore) FetchBalance(optionalArgs ...any) <-chan any {
@@ -2652,7 +2652,7 @@ func (this *XtCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optionalA
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much you want to trade in units of the base currency
  * @param {float} [price] the price to fulfill the order, in units of the quote currency, can be ignored in market orders
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'GTX'
  * @param {string} [params.entrustType] 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
  * @param {string} [params.triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
@@ -2891,7 +2891,7 @@ func (this *XtCore) CreateContractOrder(symbol any, typeVar any, side any, amoun
  * @see https://doc.xt.com/#futures_entrustgetProfitById
  * @param {string} id order id
  * @param {string} [symbol] unified symbol of the market the order was made in
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -3104,7 +3104,7 @@ func (this *XtCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of order structures to retrieve
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
@@ -3627,7 +3627,7 @@ func (this *XtCore) FetchOrdersByStatus(status any, optionalArgs ...any) <-chan 
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of open order structures to retrieve
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -3666,7 +3666,7 @@ func (this *XtCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of order structures to retrieve
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -3705,7 +3705,7 @@ func (this *XtCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of order structures to retrieve
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -3743,7 +3743,7 @@ func (this *XtCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
  * @see https://doc.xt.com/#futures_entrustcancelProfit
  * @param {string} id order id
  * @param {string} [symbol] unified symbol of the market the order was made in
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -3860,7 +3860,7 @@ func (this *XtCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @see https://doc.xt.com/#futures_entrustcancelPlanBatch
  * @see https://doc.xt.com/#futures_entrustcancelProfitBatch
  * @param {string} [symbol] unified market symbol of the market to cancel orders in
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -3971,7 +3971,7 @@ func (this *XtCore) CancelAllOrders(optionalArgs ...any) <-chan any {
  * @see https://doc.xt.com/#orderbatchOrderDel
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol of the market to cancel orders in
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
 func (this *XtCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
@@ -4161,6 +4161,21 @@ func (this *XtCore) ParseOrder(order any, optionalArgs ...any) any {
 	var filledQuantity any = this.SafeNumber(order, "executedQty")
 	var filled any = Ternary(IsTrue((IsEqual(marketType, "spot"))), filledQuantity, Precise.StringMul(this.NumberToString(filledQuantity), this.NumberToString(GetValue(market, "contractSize"))))
 	var lastUpdatedTimestamp any = this.SafeInteger(order, "updatedTime")
+	var side any = this.SafeStringLower2(order, "side", "orderSide")
+	if IsTrue(IsEqual(side, nil)) {
+		// the stop loss and take profit entries carry only the position
+		// side, they close the position, so a long position closes with a
+		// sell and a short position closes with a buy
+		// see https://github.com/ccxt/ccxt/issues/25288
+		var positionSide any = this.SafeString(order, "positionSide")
+		if IsTrue(!IsEqual(positionSide, nil)) {
+			if IsTrue(IsEqual(positionSide, "LONG")) {
+				side = "sell"
+			} else {
+				side = "buy"
+			}
+		}
+	}
 	return this.SafeOrder(map[string]any{
 		"info":                order,
 		"id":                  this.SafeStringN(order, []any{"orderId", "result", "cancelId", "entrustId", "profitId"}),
@@ -4173,7 +4188,7 @@ func (this *XtCore) ParseOrder(order any, optionalArgs ...any) any {
 		"type":                this.SafeStringLower2(order, "type", "orderType"),
 		"timeInForce":         this.SafeString(order, "timeInForce"),
 		"postOnly":            nil,
-		"side":                this.SafeStringLower2(order, "side", "orderSide"),
+		"side":                side,
 		"price":               this.SafeNumber(order, "price"),
 		"triggerPrice":        this.SafeNumber(order, "stopPrice"),
 		"stopLoss":            this.SafeNumber(order, "triggerStopPrice"),
@@ -4218,7 +4233,7 @@ func (this *XtCore) ParseOrderStatus(status any) any {
  * @param {string} [code] unified currency code
  * @param {int} [since] timestamp in ms of the earliest ledger entry
  * @param {int} [limit] max number of ledger entries to return
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
  */
 func (this *XtCore) FetchLedger(optionalArgs ...any) <-chan any {
@@ -4236,8 +4251,8 @@ func (this *XtCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes370712 := (<-this.LoadMarkets())
-			PanicOnError(retRes370712)
+			retRes372212 := (<-this.LoadMarkets())
+			PanicOnError(retRes372212)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -4363,7 +4378,7 @@ func (this *XtCore) ParseLedgerEntryType(typeVar any) any {
  * @description fetch the deposit address for a currency associated with this account
  * @see https://doc.xt.com/#deposit_withdrawaldepositAddressGet
  * @param {string} code unified currency code
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} params.network required network id
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
  */
@@ -4376,8 +4391,8 @@ func (this *XtCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes382612 := (<-this.LoadMarkets())
-			PanicOnError(retRes382612)
+			retRes384112 := (<-this.LoadMarkets())
+			PanicOnError(retRes384112)
 		}
 		var networkCode any = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
@@ -4440,7 +4455,7 @@ func (this *XtCore) ParseDepositAddress(depositAddress any, optionalArgs ...any)
  * @param {string} [code] unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of transaction structures to retrieve
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
  */
 func (this *XtCore) FetchDeposits(optionalArgs ...any) <-chan any {
@@ -4458,8 +4473,8 @@ func (this *XtCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes388412 := (<-this.LoadMarkets())
-			PanicOnError(retRes388412)
+			retRes389912 := (<-this.LoadMarkets())
+			PanicOnError(retRes389912)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -4520,7 +4535,7 @@ func (this *XtCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @param {string} [code] unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of transaction structures to retrieve
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
  */
 func (this *XtCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
@@ -4538,8 +4553,8 @@ func (this *XtCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes394312 := (<-this.LoadMarkets())
-			PanicOnError(retRes394312)
+			retRes395812 := (<-this.LoadMarkets())
+			PanicOnError(retRes395812)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -4601,7 +4616,7 @@ func (this *XtCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} [tag]
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
  */
 func (this *XtCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
@@ -4616,8 +4631,8 @@ func (this *XtCore) Withdraw(code any, amount any, address any, optionalArgs ...
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes400412 := (<-this.LoadMarkets())
-			PanicOnError(retRes400412)
+			retRes401912 := (<-this.LoadMarkets())
+			PanicOnError(retRes401912)
 		}
 		var currency any = this.Currency(code)
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
@@ -4756,7 +4771,7 @@ func (this *XtCore) ParseTransactionStatus(status any) any {
  * @see https://doc.xt.com/#futures_useradjustLeverage
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} params.positionSide 'LONG' or 'SHORT'
  * @returns {object} response from the exchange
  */
@@ -4779,8 +4794,8 @@ func (this *XtCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes414612 := (<-this.LoadMarkets())
-			PanicOnError(retRes414612)
+			retRes416112 := (<-this.LoadMarkets())
+			PanicOnError(retRes416112)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue((GetValue(market, "contract"))) {
@@ -4828,7 +4843,7 @@ func (this *XtCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
  * @see https://doc.xt.com/#futures_useradjustMargin
  * @param {string} symbol unified market symbol
  * @param {float} amount amount of margin to add
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} params.positionSide 'LONG' or 'SHORT'
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
@@ -4840,9 +4855,9 @@ func (this *XtCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-cha
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes418815 := (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
-		PanicOnError(retRes418815)
-		ch <- retRes418815
+		retRes420315 := (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
+		PanicOnError(retRes420315)
+		ch <- retRes420315
 		return nil
 
 	}()
@@ -4856,7 +4871,7 @@ func (this *XtCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-cha
  * @see https://doc.xt.com/#futures_useradjustMargin
  * @param {string} symbol unified market symbol
  * @param {float} amount the amount of margin to remove
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} params.positionSide 'LONG' or 'SHORT'
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
@@ -4868,9 +4883,9 @@ func (this *XtCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) <-
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes420315 := (<-this.ModifyMarginHelper(symbol, amount, "SUB", params))
-		PanicOnError(retRes420315)
-		ch <- retRes420315
+		retRes421815 := (<-this.ModifyMarginHelper(symbol, amount, "SUB", params))
+		PanicOnError(retRes421815)
+		ch <- retRes421815
 		return nil
 
 	}()
@@ -4887,8 +4902,8 @@ func (this *XtCore) ModifyMarginHelper(symbol any, amount any, addOrReduce any, 
 		this.CheckRequiredArgument("setLeverage", positionSide, "positionSide", []any{"LONG", "SHORT"})
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes421012 := (<-this.LoadMarkets())
-			PanicOnError(retRes421012)
+			retRes422512 := (<-this.LoadMarkets())
+			PanicOnError(retRes422512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4949,7 +4964,7 @@ func (this *XtCore) ParseMarginModification(data any, optionalArgs ...any) any {
  * @description retrieve information on the maximum leverage for different trade sizes
  * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
  * @param {string} [symbols] a list of unified market symbols
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
 func (this *XtCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
@@ -4963,8 +4978,8 @@ func (this *XtCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes426412 := (<-this.LoadMarkets())
-			PanicOnError(retRes426412)
+			retRes427912 := (<-this.LoadMarkets())
+			PanicOnError(retRes427912)
 		}
 		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchLeverageTiers", nil, params)
@@ -5058,7 +5073,7 @@ func (this *XtCore) ParseLeverageTiers(response any, optionalArgs ...any) any {
  * @description retrieve information on the maximum leverage for different trade sizes of a single market
  * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
  * @param {string} symbol unified market symbol
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
 func (this *XtCore) FetchMarketLeverageTiers(symbol any, optionalArgs ...any) <-chan any {
@@ -5070,8 +5085,8 @@ func (this *XtCore) FetchMarketLeverageTiers(symbol any, optionalArgs ...any) <-
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes434912 := (<-this.LoadMarkets())
-			PanicOnError(retRes434912)
+			retRes436412 := (<-this.LoadMarkets())
+			PanicOnError(retRes436412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -5170,7 +5185,7 @@ func (this *XtCore) ParseMarketLeverageTiers(info any, optionalArgs ...any) any 
  * @param {string} [symbol] unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures] to fetch
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} params.paginate true/false whether to use the pagination helper to aumatically paginate through the results
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
  */
@@ -5192,8 +5207,8 @@ func (this *XtCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes444512 := (<-this.LoadMarkets())
-			PanicOnError(retRes444512)
+			retRes446012 := (<-this.LoadMarkets())
+			PanicOnError(retRes446012)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -5201,9 +5216,9 @@ func (this *XtCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes445019 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "id", "id", 1, 200))
-			PanicOnError(retRes445019)
-			ch <- retRes445019
+			retRes446519 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "id", "id", 1, 200))
+			PanicOnError(retRes446519)
+			ch <- retRes446519
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -5294,9 +5309,9 @@ func (this *XtCore) FetchFundingInterval(symbol any, optionalArgs ...any) <-chan
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes452215 := (<-this.FetchFundingRate(symbol, params))
-		PanicOnError(retRes452215)
-		ch <- retRes452215
+		retRes453715 := (<-this.FetchFundingRate(symbol, params))
+		PanicOnError(retRes453715)
+		ch <- retRes453715
 		return nil
 
 	}()
@@ -5309,7 +5324,7 @@ func (this *XtCore) FetchFundingInterval(symbol any, optionalArgs ...any) <-chan
  * @description fetch the current funding rate
  * @see https://doc.xt.com/#futures_quotesgetFundingRate
  * @param {string} symbol unified market symbol
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *XtCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan any {
@@ -5321,8 +5336,8 @@ func (this *XtCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes453612 := (<-this.LoadMarkets())
-			PanicOnError(retRes453612)
+			retRes455112 := (<-this.LoadMarkets())
+			PanicOnError(retRes455112)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
@@ -5414,7 +5429,7 @@ func (this *XtCore) ParseFundingRate(contract any, optionalArgs ...any) any {
  * @param {string} symbol unified market symbol
  * @param {int} [since] the starting timestamp in milliseconds
  * @param {int} [limit] the number of entries to return
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *XtCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
@@ -5432,8 +5447,8 @@ func (this *XtCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes462112 := (<-this.LoadMarkets())
-			PanicOnError(retRes462112)
+			retRes463612 := (<-this.LoadMarkets())
+			PanicOnError(retRes463612)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
@@ -5533,7 +5548,7 @@ func (this *XtCore) ParseFundingHistory(contract any, optionalArgs ...any) any {
  * @description fetch data on a single open contract trade position
  * @see https://doc.xt.com/#futures_usergetPosition
  * @param {string} symbol unified market symbol of the market the position is held in
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *XtCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
@@ -5545,8 +5560,8 @@ func (this *XtCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes471412 := (<-this.LoadMarkets())
-			PanicOnError(retRes471412)
+			retRes472912 := (<-this.LoadMarkets())
+			PanicOnError(retRes472912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -5616,7 +5631,7 @@ func (this *XtCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
  * @description fetch all open positions
  * @see https://doc.xt.com/#futures_usergetPosition
  * @param {string} [symbols] list of unified market symbols, not supported with xt
- * @param {object} params extra parameters specific to the xt api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *XtCore) FetchPositions(optionalArgs ...any) <-chan any {
@@ -5630,8 +5645,8 @@ func (this *XtCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes477712 := (<-this.LoadMarkets())
-			PanicOnError(retRes477712)
+			retRes479212 := (<-this.LoadMarkets())
+			PanicOnError(retRes479212)
 		}
 		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPositions", nil, params)
@@ -5750,7 +5765,7 @@ func (this *XtCore) ParsePosition(position any, optionalArgs ...any) any {
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from -  spot, swap, leverage, finance
  * @param {string} toAccount account to transfer to - spot, swap, leverage, finance
- * @param {object} params extra parameters specific to the whitebit api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *XtCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
@@ -5762,8 +5777,8 @@ func (this *XtCore) Transfer(code any, amount any, fromAccount any, toAccount an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes488912 := (<-this.LoadMarkets())
-			PanicOnError(retRes488912)
+			retRes490412 := (<-this.LoadMarkets())
+			PanicOnError(retRes490412)
 		}
 		var currency any = this.Currency(code)
 		var accountsByType any = this.SafeValue(this.Options, "accountsById")
@@ -5841,8 +5856,8 @@ func (this *XtCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan an
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes495012 := (<-this.LoadMarkets())
-			PanicOnError(retRes495012)
+			retRes496512 := (<-this.LoadMarkets())
+			PanicOnError(retRes496512)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(GetValue(market, "spot")) {
@@ -5922,8 +5937,8 @@ func (this *XtCore) EditOrder(id any, symbol any, typeVar any, side any, optiona
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes501212 := (<-this.LoadMarkets())
-			PanicOnError(retRes501212)
+			retRes502712 := (<-this.LoadMarkets())
+			PanicOnError(retRes502712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}

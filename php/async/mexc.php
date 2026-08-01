@@ -622,7 +622,7 @@ class mexc extends Exchange {
                     // 'ZEN' => 'ZEN',
                     // 'ZIL' => 'Zilliqa(ZIL)',
                     // 'ZTG' => 'ZTG',
-                    // todo => uncomment below after concensus
+                    // todo => uncomment below after consensus
                     // 'ALAYA' => 'ATP',
                     // 'ANDUSCHAIN' => 'DEB',
                     // 'ASSETMANTLE' => 'MNTL',
@@ -3452,7 +3452,7 @@ class mexc extends Exchange {
              * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-orders-under-a-contract // swap
              * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-planned-orders // swap trigger
              *
-             * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
@@ -5539,7 +5539,7 @@ class mexc extends Exchange {
              *
              * @param {string} $id transfer $id
              * @param {string} [$code] not used by mexc fetchTransfer
-             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?$id=transfer-structure transfer structure~
              */
             list($marketType, $query) = $this->handle_market_type_and_params('fetchTransfer', null, $params);
@@ -5922,7 +5922,7 @@ class mexc extends Exchange {
              * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-user-position-mode
              *
              * @param {bool} $hedged set to true to use dualSidePosition
-             * @param {string} $symbol not used by mexc setPositionMode ()
+             * @param {string} $symbol not used by setPositionMode ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} $response from the exchange
              */
@@ -6273,7 +6273,7 @@ class mexc extends Exchange {
              * @param {string[]} [$symbols] unified contract $symbols
              * @param {int} [$since] not used by mexc fetchPositionsHistory
              * @param {int} [$limit] the maximum amount of candles to fetch, default=1000
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              *
              * EXCHANGE SPECIFIC PARAMETERS
              * @param {int} [$params->type] position type，1 => long, 2 => short

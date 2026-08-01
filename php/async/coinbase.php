@@ -888,7 +888,7 @@ class coinbase extends Exchange {
              *
              * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
              *
-             * @param {string} $symbol not used by coinbase fetchMySells ()
+             * @param {string} $symbol not used by fetchMySells ()
              * @param {int} [$since] timestamp in ms of the earliest sell, default is null
              * @param {int} [$limit] max number of $sells to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -913,7 +913,7 @@ class coinbase extends Exchange {
              *
              * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
              *
-             * @param {string} $symbol not used by coinbase fetchMyBuys ()
+             * @param {string} $symbol not used by fetchMyBuys ()
              * @param {int} [$since] timestamp in ms of the earliest buy, default is null
              * @param {int} [$limit] max number of $buys to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -3500,7 +3500,7 @@ class coinbase extends Exchange {
              * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-$orders
              *
              * @param {string} $id order $id
-             * @param {string} $symbol not used by coinbase cancelOrder()
+             * @param {string} $symbol not used by cancelOrder()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
@@ -3520,7 +3520,7 @@ class coinbase extends Exchange {
              * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-$orders
              *
              * @param {string[]} $ids order $ids
-             * @param {string} $symbol not used by coinbase cancelOrders()
+             * @param {string} $symbol not used by cancelOrders()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
@@ -4565,7 +4565,7 @@ class coinbase extends Exchange {
                 'amount' => $this->number_to_string($amount),
                 'currency' => strtoupper($code), // need to use $code in case depositing USD etc.
                 'payment_method' => $id,
-                'commit' => true, // otheriwse the deposit does not go through
+                'commit' => true, // otherwise the deposit does not go through
             );
             $response = Async\await($this->v2PrivatePostAccountsAccountIdDeposits($this->extend($request, $params)));
             //
@@ -4905,7 +4905,7 @@ class coinbase extends Exchange {
              *
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} [$side] not used by coinbase
-             * @param {array} [$params] extra parameters specific to the coinbase api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string}  $params->clientOrderId *mandatory* the client $order id of the position to close
              * @param {float} [$params->size] the size of the position to close, optional
              * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~

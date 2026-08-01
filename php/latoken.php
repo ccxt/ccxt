@@ -1425,7 +1425,7 @@ class latoken extends Exchange {
          * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  // stop
          *
          * @param {string} $id order $id
-         * @param {string} $symbol not used by latoken cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] true if cancelling a trigger order
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
@@ -1462,7 +1462,7 @@ class latoken extends Exchange {
          * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
          * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
          *
-         * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
+         * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] true if cancelling trigger orders
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~

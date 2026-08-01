@@ -593,7 +593,7 @@ public partial class kraken
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the kraken api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -714,6 +714,12 @@ public partial class kraken
     /// <remarks>
     /// See <see href="https://docs.kraken.com/api-reference/trading/cancel-all-orders"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
@@ -1005,7 +1011,7 @@ public partial class kraken
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the kraken api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>

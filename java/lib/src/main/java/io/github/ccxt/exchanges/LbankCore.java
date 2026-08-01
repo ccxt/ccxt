@@ -3042,7 +3042,7 @@ public class LbankCore extends LbankApi
      * @name lbank#fetchTransactionFees
      * @deprecated
      * @description please use fetchDepositWithdrawFees instead
-     * @param {string[]|undefined} codes not used by lbank fetchTransactionFees ()
+     * @param {string[]|undefined} codes not used by fetchTransactionFees ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */

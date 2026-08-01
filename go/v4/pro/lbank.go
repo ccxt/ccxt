@@ -284,7 +284,7 @@ func (this *LbankCore) HandleOHLCV(client any, message any) {
  * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
- * @param {object} [params] extra parameters specific to the cex api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *LbankCore) FetchTickerWs(symbol any, optionalArgs ...any) <-chan any {
@@ -325,7 +325,7 @@ func (this *LbankCore) FetchTickerWs(symbol any, optionalArgs ...any) <-chan any
  * @see https://www.lbank.com/en-US/docs/index.html#market
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
- * @param {object} params extra parameters specific to the lbank api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
  */
 func (this *LbankCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
@@ -643,7 +643,7 @@ func (this *LbankCore) ParseWsTrade(trade any, optionalArgs ...any) any {
  * @param {string} [symbol] unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
- * @param {object} params extra parameters specific to the lbank api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *LbankCore) WatchOrders(optionalArgs ...any) <-chan any {
@@ -904,7 +904,7 @@ func (this *LbankCore) HandleBalance(client any, message any) {
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int|undefined} limit the maximum amount of order book entries to return
- * @param {object} params extra parameters specific to the lbank api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
  */
 func (this *LbankCore) FetchOrderBookWs(symbol any, optionalArgs ...any) <-chan any {
@@ -952,7 +952,7 @@ func (this *LbankCore) FetchOrderBookWs(symbol any, optionalArgs ...any) <-chan 
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int|undefined} limit the maximum amount of order book entries to return
- * @param {object} params extra parameters specific to the lbank api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
  */
 func (this *LbankCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
@@ -1149,7 +1149,7 @@ func (this *LbankCore) Authenticate(optionalArgs ...any) <-chan any {
 		defer close(ch)
 		defer ccxt.ReturnPanicError(ch)
 		// when we implement more private streams, we need to refactor the authentication
-		// to be concurent-safe and respect the same authentication token
+		// to be concurrent-safe and respect the same authentication token
 		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")

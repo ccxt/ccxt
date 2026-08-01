@@ -1796,7 +1796,7 @@ public partial class weex : ccxt.weex
         //         ]
         //     }
         //
-        // coontract
+        // contract
         //     {
         //         "e": "account",
         //         "E": 1776189629849,

@@ -641,7 +641,7 @@ public class WeexCore extends WeexApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object response = (this.publicGetApiV3Ping(parameters)).join();
-            // reutns an empty response if the exchange is alive, otherwise will trigger an error
+            // returns an empty response if the exchange is alive, otherwise will trigger an error
             return new java.util.HashMap<String, Object>() {{
                 put( "status", "ok" );
                 put( "updated", null );

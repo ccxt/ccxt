@@ -1109,7 +1109,7 @@ class foxbit extends Exchange {
          *
          * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel
          *
-         * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
+         * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */

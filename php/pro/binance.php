@@ -288,7 +288,7 @@ class binance extends \ccxt\async\binance {
          * @param {string} $symbol unified CCXT market $symbol
          * @param {int} [$since] the earliest time in ms to fetch liquidations for
          * @param {int} [$limit] the maximum number of liquidation structures to retrieve
-         * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
          */
         return $this->watch_liquidations_for_symbols(array( $symbol ), $since, $limit, $params);
@@ -305,7 +305,7 @@ class binance extends \ccxt\async\binance {
              * @param {string[]} $symbols list of unified $market $symbols
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
-             * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
              */
             if ($this->markets === null) {
@@ -518,7 +518,7 @@ class binance extends \ccxt\async\binance {
          * @param {string} $symbol unified CCXT market $symbol
          * @param {int} [$since] the earliest time in ms to fetch liquidations for
          * @param {int} [$limit] the maximum number of liquidation structures to retrieve
-         * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
          */
         return $this->watch_my_liquidations_for_symbols(array( $symbol ), $since, $limit, $params);
@@ -535,7 +535,7 @@ class binance extends \ccxt\async\binance {
              * @param {string[]} $symbols list of unified $market $symbols
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
-             * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
              */
             if ($this->markets === null) {

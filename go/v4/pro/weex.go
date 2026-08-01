@@ -2063,7 +2063,7 @@ func (this *WeexCore) HandleBalance(client any, message any) {
 	//         ]
 	//     }
 	//
-	// coontract
+	// contract
 	//     {
 	//         "e": "account",
 	//         "E": 1776189629849,

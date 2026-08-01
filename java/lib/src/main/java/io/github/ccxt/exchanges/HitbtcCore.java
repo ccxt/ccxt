@@ -2455,7 +2455,7 @@ public class HitbtcCore extends HitbtcApi
      * @see https://api.hitbtc.com/#cancel-all-spot-orders
      * @see https://api.hitbtc.com/#cancel-futures-orders
      * @see https://api.hitbtc.com/#cancel-all-margin-orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
      * @param {bool} [params.margin] true for canceling margin orders
@@ -3352,7 +3352,7 @@ public class HitbtcCore extends HitbtcApi
      * @description fetch all open positions
      * @see https://api.hitbtc.com/#get-futures-margin-accounts
      * @see https://api.hitbtc.com/#get-all-margin-accounts
-     * @param {string[]|undefined} symbols not used by hitbtc fetchPositions ()
+     * @param {string[]|undefined} symbols not used by fetchPositions ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
      * @param {bool} [params.margin] true for fetching spot-margin positions
@@ -4297,7 +4297,7 @@ public class HitbtcCore extends HitbtcApi
      * @see https://api.hitbtc.com/#close-all-futures-margin-positions
      * @param {string} symbol unified ccxt market symbol
      * @param {string} side 'buy' or 'sell'
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.symbol] *required* unified market symbol
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}

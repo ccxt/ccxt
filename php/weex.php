@@ -472,7 +472,7 @@ class weex extends Exchange {
             ),
             'options' => array(
                 'partner' => 'b-WEEX111125',
-                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'accountsByType' => array(
                     'spot' => 'spot',
@@ -690,7 +690,7 @@ class weex extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
          */
         $response = $this->publicGetApiV3Ping($params);
-        // reutns an empty $response if the exchange is alive, otherwise will trigger an error
+        // returns an empty $response if the exchange is alive, otherwise will trigger an error
         return array(
             'status' => 'ok',
             'updated' => null,

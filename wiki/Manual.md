@@ -2163,7 +2163,7 @@ while (true) {
 }
 ```
 
-See further examples in the `examples/php` directory; look for filenames that include the `async` word. Also, make sure you have installed the required dependencies using `composer require recoil/recoil clue/buzz-react react/event-loop recoil/react react/http`. Lastly, [this article](https://sergeyzhuk.me/2018/10/26/from-promise-to-coroutines/) provides a good introduction to the methods used here. While syntactically the change is simple (i.e., just using a `yield` keyword before relevant methods), concurrency has significant implications for the overall design of your code.
+See further examples in the `examples/php` directory; look for filenames that include the `async` word. When installing through Composer, all required dependencies, including the ReactPHP components used by the async classes, are installed automatically with `composer require ccxt/ccxt`. When installing manually, the ReactPHP components are only needed if you use the async classes, the synchronous version works without them, so install them by hand only in that case. While syntactically the change is simple (i.e., just using `await` around relevant methods), concurrency has significant implications for the overall design of your code.
 
 #### **Go**
 

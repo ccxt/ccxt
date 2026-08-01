@@ -657,7 +657,7 @@ public partial class phemex
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the exchange api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -962,7 +962,7 @@ public partial class phemex
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the phemex api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>

@@ -4915,7 +4915,7 @@ func (this *BinanceCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//         "0",                    // Ignore
 	//         1591256519999,          // Close time
 	//         "0",                    // Ignore
-	//         60,                     // Number of bisic data
+	//         60,                     // Number of basic data
 	//         "0",                    // Ignore
 	//         "0",                    // Ignore
 	//         "0"                     // Ignore
@@ -9207,7 +9207,7 @@ func (this *BinanceCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @name binance#fetchMyDustTrades
  * @description fetch all dust trades made by the user
  * @see https://developers.binance.com/docs/wallet/asset/dust-log
- * @param {string} symbol not used by binance fetchMyDustTrades ()
+ * @param {string} symbol not used by fetchMyDustTrades ()
  * @param {int} [since] the earliest time in ms to fetch my dust trades for
  * @param {int} [limit] the maximum number of dust trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -10196,7 +10196,7 @@ func (this *BinanceCore) ParseDepositAddress(response any, optionalArgs ...any) 
  * @deprecated
  * @description please use fetchDepositWithdrawFees instead
  * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
- * @param {string[]|undefined} codes not used by binance fetchTransactionFees ()
+ * @param {string[]|undefined} codes not used by fetchTransactionFees ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
@@ -10330,7 +10330,7 @@ func (this *BinanceCore) FetchTransactionFees(optionalArgs ...any) <-chan any {
  * @name binance#fetchDepositWithdrawFees
  * @description fetch deposit and withdraw fees
  * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
- * @param {string[]|undefined} codes not used by binance fetchDepositWithdrawFees ()
+ * @param {string[]|undefined} codes not used by fetchDepositWithdrawFees ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
@@ -11317,7 +11317,7 @@ func (this *BinanceCore) ParseAccountPosition(position any, optionalArgs ...any)
 	//         "breakEvenPrice": "0.0"
 	//     }
 	//
-	// inverse portoflio margin
+	// inverse portfolio margin
 	//
 	//     {
 	//         "symbol": "TRXUSD_PERP",
@@ -12807,7 +12807,7 @@ func (this *BinanceCore) SetMarginMode(marginMode any, optionalArgs ...any) <-ch
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
  * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
  * @param {bool} hedged set to true to use dualSidePosition
- * @param {string} symbol not used by binance setPositionMode ()
+ * @param {string} symbol not used by setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.portfolioMargin] set to true if you would like to set the position mode for a portfolio margin account
  * @param {string} [params.subType] "linear" or "inverse"
@@ -13731,7 +13731,7 @@ func (this *BinanceCore) HandleErrors(code any, reason any, url any, method any,
 		panic(DDoSProtection(Add(Add(Add(Add(Add(Add(this.Id, " "), ToString(code)), " "), reason), " "), body)))
 	}
 	// error response in a form: { "code": -1013, "msg": "Invalid quantity." }
-	// following block cointains legacy checks against message patterns in "msg" property
+	// following block contains legacy checks against message patterns in "msg" property
 	// will switch "code" checks eventually, when we know all of them
 	if IsTrue(IsGreaterThanOrEqual(code, 400)) {
 		if IsTrue(IsGreaterThanOrEqual(GetIndexOf(body, "Price * QTY is zero or less"), 0)) {
@@ -15839,7 +15839,7 @@ func (this *BinanceCore) ParseOption(chain any, optionalArgs ...any) any {
  * @param {string} [type] "add" or "reduce"
  * @param {int} [since] timestamp in ms of the earliest change to fetch
  * @param {int} [limit] the maximum amount of changes to fetch
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest change to fetch
  * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */

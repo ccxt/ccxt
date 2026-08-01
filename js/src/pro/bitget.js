@@ -1807,8 +1807,8 @@ export default class bitget extends bitgetRest {
         //         price: '0.81075', // limit price, field not present for market orders
         //         clientOid: 'a2330139-1d04-4d78-98be-07de3cfd1055',
         //         notional: '5.675250', // this is not cost! but notional
-        //         newSize: '7.0000', // this is not cost! quanity (for limit order or market sell) or cost (for market buy order)
-        //         size: '5.6752', // this is not cost, neither quanity, but notional! this field for "spot" can be ignored at all
+        //         newSize: '7.0000', // this is not cost! quantity (for limit order or market sell) or cost (for market buy order)
+        //         size: '5.6752', // this is not cost, neither quantity, but notional! this field for "spot" can be ignored at all
         //         // Note: for limit order (even filled) we don't have cost value in response, only in market order
         //         orderType: 'limit', // limit, market
         //         force: 'gtc',
@@ -2921,7 +2921,7 @@ export default class bitget extends bitgetRest {
             const arg = argsList[i];
             const channel = this.safeString2(arg, 'channel', 'topic', '');
             if (channel.indexOf('books') >= 0) {
-                // for now only unWatchOrderBook is supporteod
+                // for now only unWatchOrderBook is supported
                 this.handleOrderBookUnSubscription(client, message);
             }
             else if ((channel.indexOf('trade') >= 0) || (channel.indexOf('publicTrade') >= 0)) {

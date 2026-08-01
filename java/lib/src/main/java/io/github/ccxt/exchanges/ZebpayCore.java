@@ -328,7 +328,7 @@ public class ZebpayCore extends ZebpayApi
      * @description retrieves data on all markets for zebpay
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
@@ -1357,13 +1357,13 @@ public class ZebpayCore extends ZebpayApi
 
     /**
      * @method
-     * @name zebpay#cancelOrders
+     * @name zebpay#cancelAllOrders
      * @description cancels all open orders
      * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders
-     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} [symbol] unified symbol of the market the orders were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.timestamp] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     * @param {int} [params.timestamp] the timestamp of the request in ms
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
     {
@@ -1620,7 +1620,7 @@ public class ZebpayCore extends ZebpayApi
      * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-close-position
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} side not used by kucoinfutures closePositions
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.positionId] client order id of the order
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */

@@ -54,9 +54,9 @@ OPENROUTER_API_KEY=sk-or-... docker compose up --build
 The image bundles every runtime (Node, Python, PHP, Go, .NET) with CCXT
 pre-installed and the Go/C# build caches **warmed at build time**, so first runs
 are fast. Pass `--build-arg PLAYGROUND_DISABLED=go` (and/or `csharp`) to keep a
-compiled language **install-only** — useful on a small host where compiling
-ccxt-go (~5 GB) would OOM. Pass `--build-arg NEXT_BASE_PATH=/playground` to serve
-under a sub-path. `docker-compose.yml` enforces the host protections:
+compiled language **install-only** — an escape hatch for a small host where
+compiling ccxt-go (~5 GB) would OOM. Pass `--build-arg NEXT_BASE_PATH=/playground`
+to serve under a sub-path. `docker-compose.yml` enforces the host protections:
 
 - **minimal bind mounts** → the only host paths mounted are the two append-only
   log dirs (`/var/log/ccxt-playground/{app,proxy}`); nothing else on the host
@@ -115,21 +115,23 @@ the container's `/etc/hosts` and a non-root `/home/playground`, and a crash
 
 Live deploy is automated by [`.github/workflows/deploy-playground.yml`](../../.github/workflows/deploy-playground.yml)
 (modeled on the Fumadocs workflow, same box + secrets). On push to `master` under
-`docs/playground/**` (or manual dispatch) it: builds the arm64 image on a native
+`docs/playground/**` (or manual dispatch) it: builds the amd64 image on a native
 runner → pushes to `ghcr.io/ccxt/ccxt-playground` → SSHes to the docs box →
 runs a **canary** on a temp port → smoke-tests (homepage + a real `6*7→42` TypeScript
 run) → promotes to the live container only if green (else leaves the old one up).
 
 It's served behind the existing nginx as `location /playground` → the app's
 **static IP on the internal network** (`http://172.31.0.10:3000`), alongside the
-Fumadocs `/v2` and Docsify `/`. (Publishing a host port doesn't work on a Docker
+Fumadocs site at `/`. (Publishing a host port doesn't work on a Docker
 `internal` network, but the host can route *into* it — so nginx targets the
 container's fixed internal IP, and the container still has no route *out* except
 via the egress proxy.)
 
-**Go is install-only in production** (`PLAYGROUND_DISABLED=go`) because compiling
-ccxt-go needs ~5 GB — unsafe on the shared 7.5 GB box. TypeScript/Python/PHP/C# run.
-Drop that build-arg on a larger dedicated box to enable Go.
+**All five runnable languages (TypeScript/Python/PHP/C#/Go) run in production.**
+The Go warm build (~5 GB peak) happens on the GitHub-hosted build runner, not on
+the docs box; the run container's 4 GB cap covers warm `go run`s. On a small box,
+add `PLAYGROUND_DISABLED=go` back to the workflow's build-args to make Go
+install-only again.
 
 One-time box setup (already done on the current box):
 
@@ -140,13 +142,6 @@ One-time box setup (already done on the current box):
 
 The deploy puts the app on the internal network behind the egress proxy and
 installs the nightly-restart cron automatically.
-
-> **Defense in depth on the box (optional):** the neighbor services on this host
-> (grafana `:3001`, prometheus `:9090`, benchmark `:3000/:3003`) are bound to
-> `0.0.0.0`. The egress proxy already denies the playground any route to them, but
-> rebinding those services to `127.0.0.1` (as the docs container already is) closes
-> the path for anything else on the box too. That change lives in those projects'
-> compose files, not here.
 
 ## Runtimes
 
