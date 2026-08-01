@@ -39,7 +39,7 @@ export default class coinbase extends Exchange {
                 'spot': true,
                 'margin': false,
                 'swap': true,
-                'future': false,
+                'future': true,
                 'option': false,
                 'addMargin': false,
                 'borrowCrossMargin': false,
