@@ -152,15 +152,8 @@ public partial class coinone
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy"/>  <br/>
-    /// See <see href="https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell"/>  <br/>
+    /// See <see href="https://docs.coinone.co.kr/reference/order-v21"/>  <br/>
     /// <list type="table">
-    /// <item>
-    /// <term>price</term>
-    /// <description>
-    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-    /// </description>
-    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
