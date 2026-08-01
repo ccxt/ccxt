@@ -556,7 +556,7 @@ public class CryptocomCore extends CryptocomApi
                     // {"code":"10001","msg":"SYS_ERROR"}
                     return new java.util.HashMap<String, Object>() {{}};
                 }
-                throw e;
+                throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
             //
             //    {

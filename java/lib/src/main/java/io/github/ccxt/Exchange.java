@@ -1122,7 +1122,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 {
                     if (Helpers.isTrue(Helpers.isEqual((Helpers.add(i, 1)), fetchSnapshotMaxRetries)))
                     {
-                        throw e;
+                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
                 }
             }

@@ -2200,7 +2200,7 @@ public class HyperliquidCore extends HyperliquidApi
                 {
                     if (Helpers.isTrue(Helpers.isInstance(e, InvalidProxySettings.class)))
                     {
-                        throw e;
+                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
                     response = null; // ignore this error and assume unified margin is not enabled
                 }

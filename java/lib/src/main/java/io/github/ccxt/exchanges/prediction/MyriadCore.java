@@ -462,7 +462,7 @@ public class MyriadCore extends MyriadApi
             {
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isInstance(e, RateLimitExceeded.class))) || Helpers.isTrue((Helpers.isInstance(e, AuthenticationError.class)))))
                 {
-                    throw e;
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
                 Object keywordRequest = new java.util.HashMap<String, Object>() {{
                     put( "keyword", id );
@@ -484,7 +484,7 @@ public class MyriadCore extends MyriadApi
                         return q;
                     }
                 }
-                throw e;
+                throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
             }
             return result;
         });

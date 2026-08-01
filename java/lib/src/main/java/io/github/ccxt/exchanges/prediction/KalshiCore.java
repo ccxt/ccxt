@@ -376,7 +376,7 @@ public class KalshiCore extends KalshiApi
                     // fall through to the search-driven base resolution; let network failures propagate
                     if (!Helpers.isTrue((Helpers.isInstance(e, BadSymbol.class))))
                     {
-                        throw e;
+                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
                     response = null;
                 }
@@ -417,7 +417,7 @@ public class KalshiCore extends KalshiApi
                         // let network failures propagate
                         if (!Helpers.isTrue((Helpers.isInstance(e, BadSymbol.class))))
                         {
-                            throw e;
+                            throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                         }
                     }
                     if (Helpers.isTrue(this.hasOutcome(outcomeSymbol)))
@@ -2735,7 +2735,7 @@ final Object finalOi = oi;
                 {
                     if (!Helpers.isTrue((Helpers.isInstance(e, BadSymbol.class))))
                     {
-                        throw e;
+                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
                 }
             }
