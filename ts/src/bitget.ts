@@ -5486,10 +5486,20 @@ export default class bitget extends Exchange {
                 if (hasStopLoss) {
                     const slTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice');
                     request['presetStopLossPrice'] = this.priceToPrecision (symbol, slTriggerPrice);
+                    const slLimitPrice = this.safeValue (stopLoss, 'price');
+                    if (slLimitPrice !== undefined) {
+                        // without the execute price the exchange fills the attached stop loss
+                        // at the market price, see https://github.com/ccxt/ccxt/issues/23459
+                        request['presetStopLossExecutePrice'] = this.priceToPrecision (symbol, slLimitPrice);
+                    }
                 }
                 if (hasTakeProfit) {
                     const tpTriggerPrice = this.safeValue2 (takeProfit, 'triggerPrice', 'stopPrice');
                     request['presetStopSurplusPrice'] = this.priceToPrecision (symbol, tpTriggerPrice);
+                    const tpLimitPrice = this.safeValue (takeProfit, 'price');
+                    if (tpLimitPrice !== undefined) {
+                        request['presetStopSurplusExecutePrice'] = this.priceToPrecision (symbol, tpLimitPrice);
+                    }
                 }
             }
             if (!isStopLossOrTakeProfitTrigger) {
