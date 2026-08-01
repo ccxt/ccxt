@@ -3882,6 +3882,25 @@ public partial class xt : Exchange
         object filledQuantity = this.safeNumber(order, "executedQty");
         object filled = ((bool) isTrue((isEqual(marketType, "spot")))) ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString(getValue(market, "contractSize")));
         object lastUpdatedTimestamp = this.safeInteger(order, "updatedTime");
+        object side = this.safeStringLower2(order, "side", "orderSide");
+        if (isTrue(isEqual(side, null)))
+        {
+            // the stop loss and take profit entries carry only the position
+            // side, they close the position, so a long position closes with a
+            // sell and a short position closes with a buy
+            // see https://github.com/ccxt/ccxt/issues/25288
+            object positionSide = this.safeString(order, "positionSide");
+            if (isTrue(!isEqual(positionSide, null)))
+            {
+                if (isTrue(isEqual(positionSide, "LONG")))
+                {
+                    side = "sell";
+                } else
+                {
+                    side = "buy";
+                }
+            }
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeStringN(order, new List<object>() {"orderId", "result", "cancelId", "entrustId", "profitId"}) },
@@ -3894,7 +3913,7 @@ public partial class xt : Exchange
             { "type", this.safeStringLower2(order, "type", "orderType") },
             { "timeInForce", this.safeString(order, "timeInForce") },
             { "postOnly", null },
-            { "side", this.safeStringLower2(order, "side", "orderSide") },
+            { "side", side },
             { "price", this.safeNumber(order, "price") },
             { "triggerPrice", this.safeNumber(order, "stopPrice") },
             { "stopLoss", this.safeNumber(order, "triggerStopPrice") },
