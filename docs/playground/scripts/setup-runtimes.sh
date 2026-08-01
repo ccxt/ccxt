@@ -103,7 +103,12 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func main() { _ = ccxt.NewBinance(nil) }
 GO
   echo "$GOBIN" > "$GO_ROOT/.gobin"
-  export GOCACHE="$GO_ROOT/.cache" GOMODCACHE="$GO_ROOT/.modcache" GOPATH="$GO_ROOT/.gopath" GOTOOLCHAIN=auto GOFLAGS=-mod=mod
+  # GONOSUMDB for ccxt's own module: sum.golang.org indexes fresh (pseudo-)
+  # versions with a lag — deploy 30700554711 failed because the sumdb 404'd a
+  # pseudo-version that proxy.golang.org already served. Skipping the checksum
+  # DB for github.com/ccxt only is safe: the hashes still land in go.sum here,
+  # and every later `go run` verifies against that go.sum.
+  export GOCACHE="$GO_ROOT/.cache" GOMODCACHE="$GO_ROOT/.modcache" GOPATH="$GO_ROOT/.gopath" GOTOOLCHAIN=auto GOFLAGS=-mod=mod GONOSUMDB=github.com/ccxt
   if ( cd "$GO_ROOT" && "$GOBIN" mod tidy && "$GOBIN" build ./runs/warmup ); then
     echo "    go ccxt build cache warmed ($GOBIN)"
   else
