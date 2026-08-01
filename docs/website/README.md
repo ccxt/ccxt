@@ -47,7 +47,7 @@ Full production build: `npm run fumadocs-build` (converter + `next build`).
 ## Deploy
 
 Containerized (`Dockerfile`, `output: 'standalone'`) and deployed by
-`.github/workflows/docs-fumadocs.yml`: build arm64 image → push to GHCR → SSH to the box →
+`.github/workflows/docs-fumadocs.yml`: build amd64 image → push to GHCR → SSH to the box →
 canary smoke-test on a temp port → promote (zero-downtime).
 
 - **`OPENROUTER_API_KEY`** (Ask-AI) is provided only at runtime via a root-only env-file on

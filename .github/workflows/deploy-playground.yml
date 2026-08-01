@@ -1,7 +1,7 @@
 name: Deploy Playground
 run-name: ${{ github.event.head_commit.message || github.event.pull_request.title || format('{0} · {1}', github.ref_name, github.sha) }}
 
-# Builds the CCXT Playground as a container (arm64, matching the docs box) and
+# Builds the CCXT Playground as a container (amd64, matching the docs box) and
 # deploys it as a long-running Next.js server behind nginx at /playground on
 # docs.ccxt.com. Mirrors the Fumadocs flow: build image -> push to GHCR ->
 # box pulls + canary smoke test -> promote (no downtime, auto-abort on failure).
@@ -32,7 +32,7 @@ permissions:
 jobs:
   deploy:
     if: github.repository == 'ccxt/ccxt'
-    runs-on: ubuntu-24.04-arm        # arm64 — native build matching the docs server
+    runs-on: ubuntu-latest           # amd64 — native build matching the docs server
     env:
       IMAGE: ghcr.io/ccxt/ccxt-playground
       IMAGE_PROXY: ghcr.io/ccxt/ccxt-playground-egress
@@ -63,7 +63,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: docs/playground
-          platforms: linux/arm64
+          platforms: linux/amd64
           push: true
           # All five runnable languages (TS/Python/PHP/C#/Go) are enabled. The Go
           # warm build (~5 GB peak) happens here on the GitHub-hosted runner, not
@@ -81,7 +81,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: docs/playground/proxy
-          platforms: linux/arm64
+          platforms: linux/amd64
           push: true
           tags: |
             ${{ env.IMAGE_PROXY }}:latest
