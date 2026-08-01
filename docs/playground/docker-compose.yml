@@ -32,7 +32,7 @@ services:
       COMPILE_TIMEOUT_MS: ${COMPILE_TIMEOUT_MS:-90000}
       # Force all child-process egress through the allowlist proxy. Upper- and
       # lower-case both set: Python(requests)/PHP(libcurl)/Go(net/http)/C#(HttpClient)
-      # honor these automatically; the JS/TS runner wires undici to the same proxy.
+      # honor these automatically; the TypeScript runner wires undici to the same proxy.
       PLAYGROUND_EGRESS_PROXY: http://egress-proxy:3128
       HTTP_PROXY: http://egress-proxy:3128
       HTTPS_PROXY: http://egress-proxy:3128

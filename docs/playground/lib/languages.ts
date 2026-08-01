@@ -3,7 +3,7 @@
 // as a tab so users know CCXT supports it — with a one-line local install instead
 // of in-browser execution (its dependency tree can't be resolved in the sandbox).
 
-export type RunnableLanguageId = "js" | "ts" | "python" | "php" | "go" | "csharp";
+export type RunnableLanguageId = "ts" | "python" | "php" | "go" | "csharp";
 export type LanguageId = RunnableLanguageId | "java";
 
 export type Install = {
@@ -41,14 +41,6 @@ const DISABLED = new Set(
 const enabled = (id: string, base: boolean) => base && !DISABLED.has(id);
 
 export const languages: Language[] = [
-  {
-    id: "js",
-    label: "JavaScript",
-    monaco: "javascript",
-    ext: "mjs",
-    hint: "Node.js (ESM, top-level await)",
-    available: enabled("js", true),
-  },
   {
     id: "ts",
     label: "TypeScript",

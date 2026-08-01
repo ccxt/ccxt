@@ -25,7 +25,6 @@ export function isFreeModel(id: string): boolean {
 }
 
 const LANGUAGE_NAMES: Record<LanguageId, string> = {
-  js: "JavaScript (Node.js, ESM, ccxt imported as `import ccxt from 'ccxt'`, top-level await available)",
   ts: "TypeScript (Node.js native type-stripping, ESM, `import ccxt from 'ccxt'`, top-level await, types from ccxt)",
   python: "Python (synchronous ccxt, `import ccxt`, snake_case methods like fetch_ticker)",
   php: "PHP (synchronous ccxt, classes under the \\ccxt namespace, snake_case methods)",
