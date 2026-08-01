@@ -2320,7 +2320,7 @@ class bitfinex extends Exchange {
             'id' => $orderId,
             'symbol' => $market['id'],
         );
-        // valid for trades upto 10 days old
+        // valid for trades up to 10 days old
         $response = $this->privatePostAuthROrderSymbolIdTrades($this->extend($request, $params));
         $tradesList = array();
         for ($i = 0; $i < count($response); $i++) {

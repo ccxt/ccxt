@@ -225,7 +225,7 @@ class phemex extends Exchange {
                         'api-data/g-futures/trades' => 5, // ?symbol=<symbol>
                         'api-data/futures/trading-fees' => 5, // ?symbol=<symbol>
                         'api-data/g-futures/trading-fees' => 5, // ?symbol=<symbol>
-                        'api-data/futures/v2/tradeAccountDetail' => 5, // ?currency=<currecny>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
+                        'api-data/futures/v2/tradeAccountDetail' => 5, // ?currency=<currency>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
                         'api-data/g-futures/closedPosition' => 5,
                         'g-orders/activeList' => 1, // ?symbol=<symbol>
                         'orders/activeList' => 1, // ?symbol=<symbol>

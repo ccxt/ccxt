@@ -1137,7 +1137,7 @@ class bybit extends Exchange {
                     'usePrivateInstrumentsInfo' => false,
                     'types' => array( 'spot', 'linear', 'inverse', 'option' ),
                     'options' => array( 'BTC', 'ETH', 'SOL', 'XRP', 'MNT', 'DOGE' ),
-                    'loadAllOptions' => false, // load all possible option markets, adds signficant load time
+                    'loadAllOptions' => false, // load all possible option markets, adds significant load time
                     'loadExpiredOptions' => false, // loads expired options, to load all possible expired options set loadAllOptions to true
                 ),
                 'enableUnifiedMargin' => null,
@@ -2638,7 +2638,7 @@ class bybit extends Exchange {
                 $parsedSymbols = array();
                 $marketTypeInfo = $this->handle_market_type_and_params('fetchTickers', null, $params);
                 $defaultType = $marketTypeInfo[0]; // don't omit here
-                // we can't use marketSymbols here due to the conflicing ids between markets
+                // we can't use marketSymbols here due to the conflicting ids between markets
                 $currentType = null;
                 for ($i = 0; $i < count($symbols); $i++) {
                     $symbol = $symbols[$i];

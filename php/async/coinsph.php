@@ -201,13 +201,13 @@ class coinsph extends Exchange {
                         'openapi/v1/user/ip' => 1,
                         // cost 1 if 'symbol' param defined (one market symbol) or if 'symbols' param is a list of 1-20 market symbols
                         // cost 20 if 'symbols' param is a list of 21-100 market symbols
-                        // cost 40 if 'symbols' param is a list of 101 or more market symbols or if both 'symbol' and 'symbols' params are omited
+                        // cost 40 if 'symbols' param is a list of 101 or more market symbols or if both 'symbol' and 'symbols' params are omitted
                         'openapi/quote/v1/ticker/24hr' => array( 'cost' => 1, 'noSymbolAndNoSymbols' => 40, 'byNumberOfSymbols' => array( array( 101, 40 ), array( 21, 20 ), array( 0, 1 ) ) ),
                         // cost 1 if 'symbol' param defined (one market symbol)
-                        // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omited
+                        // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omitted
                         'openapi/quote/v1/ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         // cost 1 if 'symbol' param defined (one market symbol)
-                        // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omited
+                        // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omitted
                         'openapi/quote/v1/ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         'openapi/v1/exchangeInfo' => 10,
                         // cost 1 if limit <= 100; 5 if limit > 100.

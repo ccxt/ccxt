@@ -1889,7 +1889,7 @@ class dydx extends Exchange {
         $fromSubaccountId = $this->safe_integer($params, 'fromSubaccountId');
         $toSubaccountId = $this->safe_integer($params, 'toSubaccountId');
         if ($fromAccount !== 'main') {
-            // throw error if from subaccount id is undefind
+            // throw error if from subaccount id is null
             if ($fromAccount === null) {
                 throw new NotSupported($this->id . ' transfer only support main > subaccount and subaccount <> subaccount.');
             }

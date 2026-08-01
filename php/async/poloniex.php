@@ -221,7 +221,7 @@ class poloniex extends Exchange {
                         'v3/market/allInstruments' => 2 / 3,
                         'v3/market/instruments' => 2 / 3,
                         'v3/market/orderBook' => 2 / 3,
-                        'v3/market/candles' => 10, // candles have differnt RL
+                        'v3/market/candles' => 10, // candles have different RL
                         'v3/market/indexPriceCandlesticks' => 10,
                         'v3/market/premiumIndexCandlesticks' => 10,
                         'v3/market/markPriceCandlesticks' => 10,

@@ -7674,7 +7674,7 @@ class htx extends Exchange {
                     $request = $this->extend($request, $query);
                 }
                 $sortedRequest = $this->keysort($request);
-                $auth = $this->urlencode($sortedRequest, true); // true is a go only requirment
+                $auth = $this->urlencode($sortedRequest, true); // true is a go only requirement
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 $content = array( $method, $this->hostname, $url, $auth );
                 $payload = implode("\n", $content); // eslint-disable-line quotes

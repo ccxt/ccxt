@@ -636,7 +636,7 @@ class bitteam extends Exchange {
             //
             $responseResult = $this->safe_value($response, 'result', array());
             $currencies = $this->safe_value($responseResult, 'currencies', array());
-            // usding another endpoint to fetch statuses of deposits and withdrawals
+            // using another endpoint to fetch statuses of deposits and withdrawals
             $statusesResponse = Async\await($this->publicGetTradeApiCmcAssets());
             //
             //     {

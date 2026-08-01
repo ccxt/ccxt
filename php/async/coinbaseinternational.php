@@ -1773,7 +1773,7 @@ class coinbaseinternational extends Exchange {
             $currency = $this->currency($code);
             $request = array(
                 'asset' => $currency['id'],
-                'ammount' => $amount,
+                'amount' => $amount,
                 'from' => $fromAccount,
                 'to' => $toAccount,
             );

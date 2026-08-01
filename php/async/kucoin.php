@@ -4555,7 +4555,7 @@ class kucoin extends Exchange {
                 }
             }
         }
-        // handling with coinditional orders
+        // handling with conditional orders
         list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($params);
         $stopLoss = $this->safe_dict($params, 'stopLoss');
         $takeProfit = $this->safe_dict($params, 'takeProfit');

@@ -3320,7 +3320,7 @@ class bitrue extends Exchange {
             throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         }
         // $error $response in a form => array( "code" => -1013, "msg" => "Invalid quantity." )
-        // following block cointains legacy checks against $message patterns in "msg" property
+        // following block contains legacy checks against $message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if ($code >= 400) {
             if (mb_strpos($body, 'Price * QTY is zero or less') !== false) {

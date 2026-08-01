@@ -112,8 +112,8 @@ class toobit extends Exchange {
                         'quote/v1/markPrice/klines' => 1,
                         'quote/v1/markPrice' => 10, // 5 requests per second
                         'quote/v1/index' => 1,
-                        'quote/v1/ticker/24hr' => 40, // todo => 1-40 depenidng noSymbol
-                        'quote/v1/contract/ticker/24hr' => 40, // todo => 1-40 depenidng noSymbol
+                        'quote/v1/ticker/24hr' => 40, // todo => 1-40 depending noSymbol
+                        'quote/v1/contract/ticker/24hr' => 40, // todo => 1-40 depending noSymbol
                         'quote/v1/ticker/price' => 1,
                         'quote/v1/contract/ticker/price' => 1,
                         'quote/v1/ticker/bookTicker' => 1,
@@ -1530,7 +1530,7 @@ class toobit extends Exchange {
          *
          * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rates structures~, indexe by $market $symbols
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rates structures~, indexed by $market $symbols
          */
         if ($this->markets === null) {
             $this->load_markets();

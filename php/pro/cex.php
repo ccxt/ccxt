@@ -656,7 +656,7 @@ class cex extends \ccxt\async\cex {
         //         "fee_amount" => "0.05",
         //         "id" => "59091012962"
         //     }
-        // Note $symbol and symbol2 are inverse on sell and ammount is in $symbol currency.
+        // Note $symbol and symbol2 are inverse on sell and $amount is in $symbol currency.
         //
         $side = $this->safe_string($trade, 'type');
         $price = $this->safe_string($trade, 'price');

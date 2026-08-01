@@ -1663,7 +1663,7 @@ class bullish extends Exchange {
              */
             $request = array(
                 'status' => 'CANCELLED',
-                'method' => 'privateGetV2Orders', // current endpoint distinquishes between CLOSED and CANCELLED orders
+                'method' => 'privateGetV2Orders', // current endpoint distinguishes between CLOSED and CANCELLED orders
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         })();
@@ -1685,7 +1685,7 @@ class bullish extends Exchange {
              */
             $request = array(
                 'status' => 'CLOSED',
-                'method' => 'privateGetV2Orders', // current endpoint distinquishes between CLOSED and CANCELLED orders
+                'method' => 'privateGetV2Orders', // current endpoint distinguishes between CLOSED and CANCELLED orders
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         })();

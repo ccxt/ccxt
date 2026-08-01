@@ -68,7 +68,7 @@ class blockchaincom extends Exchange {
                 'fetchTransfers' => false,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
-                'fetchWithdrawalWhitelist' => true, // fetches exchange specific benficiary-ids needed for withdrawals
+                'fetchWithdrawalWhitelist' => true, // fetches exchange specific beneficiary-ids needed for withdrawals
                 'transfer' => false,
                 'withdraw' => true,
             ),

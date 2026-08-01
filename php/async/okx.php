@@ -3227,7 +3227,7 @@ class okx extends Exchange {
         $trigger = ($triggerPrice !== null) || ($type === 'trigger');
         $isReduceOnly = $this->safe_value($params, 'reduceOnly', false) || ($closeFraction !== null);
         $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
-        $marginMode = $this->safe_string_2($params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so be extended into the $request
+        $marginMode = $this->safe_string_2($params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not omitted so be extended into the $request
         $margin = false;
         if (($marginMode !== null) && ($marginMode !== 'cash')) {
             $margin = true;

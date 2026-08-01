@@ -979,7 +979,7 @@ class lbank extends \ccxt\async\lbank {
     public function authenticate($params = array()) {
         return Async\async(function () use ($params) {
             // when we implement more private streams, we need to refactor the authentication
-            // to be concurent-safe and respect the same authentication token
+            // to be concurrent-safe and respect the same authentication token
             $url = $this->urls['api']['ws'];
             $client = $this->client($url);
             $now = $this->milliseconds();

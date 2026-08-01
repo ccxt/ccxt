@@ -690,7 +690,7 @@ class weex extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
          */
         $response = $this->publicGetApiV3Ping($params);
-        // reutns an empty $response if the exchange is alive, otherwise will trigger an error
+        // returns an empty $response if the exchange is alive, otherwise will trigger an error
         return array(
             'status' => 'ok',
             'updated' => null,

@@ -421,7 +421,7 @@ class cryptomus extends Exchange {
 
     public function parse_currency(array $rawCurrency): array {
         // currency here is array of $networks
-        $id = null; // all entried have same $id, were grouped by
+        $id = null; // all entries have same $id, were grouped by
         $code = null;
         $networks = array();
         for ($i = 0; $i < count($rawCurrency); $i++) {

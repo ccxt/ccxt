@@ -27,21 +27,8 @@ class kucoineu extends kucoin {
                     'https://www.kucoin.com/en-eu/docs-new',
                 ),
             ),
-            'has' => array(
-                'CORS' => null,
-                'spot' => true,
-                'margin' => true,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-            ),
             'options' => array(
                 'mica' => true,
-                'fetchMarkets' => array(
-                    'types' => array(
-                        'spot',
-                    ),
-                ),
             ),
         ));
     }
