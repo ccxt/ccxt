@@ -37,7 +37,7 @@ export default class kucoineu extends kucoin {
                     'types': [
                         'spot',
                     ],
-                }
+                },
             },
         });
     }
