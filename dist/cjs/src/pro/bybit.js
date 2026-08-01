@@ -126,7 +126,7 @@ class bybit extends bybit$1["default"] {
                 },
                 'watchMyTrades': {
                     // filter execType: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
-                    'filterExecTypes': [
+                    'execType': [
                         'Trade', 'AdlTrade', 'BustTrade', 'Settle',
                     ],
                 },
@@ -1457,7 +1457,23 @@ class bybit extends bybit$1["default"] {
         }
         const trades = this.myTrades;
         const symbols = {};
-        const filterExecTypes = this.handleOption('watchMyTrades', 'filterExecTypes', []);
+        // the option was renamed from filterExecTypes to execType to mirror
+        // the exchange's own field name, the old key is still read as a
+        // fallback for backward compatibility
+        // see https://github.com/ccxt/ccxt/issues/17244
+        // and https://github.com/ccxt/ccxt/issues/28181
+        let execTypeOption = this.handleOption('watchMyTrades', 'execType');
+        if (execTypeOption === undefined) {
+            execTypeOption = this.handleOption('watchMyTrades', 'filterExecTypes');
+        }
+        let execTypes = undefined;
+        if (typeof execTypeOption === 'string') {
+            // a single execution type is accepted as a plain string as well
+            execTypes = [execTypeOption];
+        }
+        else {
+            execTypes = execTypeOption;
+        }
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
             let parsed = undefined;
@@ -1470,7 +1486,7 @@ class bybit extends bybit$1["default"] {
                 if (executionFast) {
                     execType = 'Trade';
                 }
-                if (!this.inArray(execType, filterExecTypes)) {
+                if ((execTypes !== undefined) && !this.inArray(execType, execTypes)) {
                     continue;
                 }
                 parsed = this.parseTrade(rawTrade);
