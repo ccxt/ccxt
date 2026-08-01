@@ -184,7 +184,10 @@ export default class opinion extends Exchange {
                     for (let ci = 0; ci < childMarketsLength; ci++) {
                         flatMarkets.push (childMarkets[ci] as unknown as Market);
                     }
-                    eventsDict[event['event']] = event;
+                    const eventKey = this.safeString (event, 'event');
+                    if ((eventKey !== undefined) && (eventKey !== '')) {
+                        eventsDict[eventKey] = event;
+                    }
                 } else {
                     flatMarkets.push (this.parseOpinionMarket (raw));
                 }
