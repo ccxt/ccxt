@@ -130,3 +130,42 @@ test ('CCXT_MCP_* env defines the implicit default account', () => {
         assert.equal (config.accounts['default'].trading, true);
     });
 });
+
+test ('CCXT_MCP_*_2 / _3 env slots define several accounts (the .mcpb multi-exchange form)', () => {
+    withConfig ({}, {
+        'CCXT_MCP_EXCHANGE': 'binance',
+        'CCXT_MCP_APIKEY': 'FAKEKEY111111',
+        'CCXT_MCP_SECRET': 'FAKESECRET111111',
+        'CCXT_MCP_EXCHANGE_2': 'kraken',
+        'CCXT_MCP_APIKEY_2': 'FAKEKEY222222',
+        'CCXT_MCP_SECRET_2': 'FAKESECRET222222',
+        'CCXT_MCP_EXCHANGE_3': 'okx',
+        'CCXT_MCP_APIKEY_3': 'FAKEKEY333333',
+        'CCXT_MCP_SECRET_3': 'FAKESECRET333333',
+        'CCXT_MCP_PASSWORD_3': 'FAKEPASS',
+        'CCXT_MCP_SANDBOX': 'true',
+    }, () => {
+        const config = loadConfig ();
+        // slot 1 keeps the name "default"; extra slots are named after their exchange id
+        assert.equal (config.accounts['default'].exchange, 'binance');
+        assert.equal (config.accounts['kraken'].exchange, 'kraken');
+        assert.equal (config.accounts['okx'].exchange, 'okx');
+        assert.equal (config.accounts['okx'].password, 'FAKEPASS');
+        // one global sandbox toggle applies to every slot
+        assert.equal (config.accounts['default'].sandbox, true);
+        assert.equal (config.accounts['kraken'].sandbox, true);
+        assert.equal (config.accounts['okx'].sandbox, true);
+        assert.equal (config.problems.length, 0);
+    });
+});
+
+test ('a config-file account wins over an env-var account of the same name', () => {
+    withConfig ({ 'accounts': { 'default': { 'exchange': 'kraken', 'apiKey': 'FAKEKEYCFG1234', 'secret': 'FAKESECRETCFG1234' } } }, {
+        'CCXT_MCP_EXCHANGE': 'binance',
+        'CCXT_MCP_APIKEY': 'FAKEKEYENV1234',
+        'CCXT_MCP_SECRET': 'FAKESECRETENV1234',
+    }, () => {
+        const config = loadConfig ();
+        assert.equal (config.accounts['default'].exchange, 'kraken');
+    });
+});

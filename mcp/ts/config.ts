@@ -167,49 +167,81 @@ function registerAccountSecrets (account: AccountConfig): void {
     }
 }
 
-// the CCXT_MCP_* env set defines one implicit account named "default" — this is how the
-// MCPB bundle injects keychain-stored values, and the quickest single-account setup
-function envDefaultAccount (problems: string[]): AccountConfig | undefined {
-    const exchange = process.env['CCXT_MCP_EXCHANGE'];
+// The CCXT_MCP_* env set defines accounts without a config file — how the .mcpb bundle
+// injects keychain values and the quickest setup. Slot 1 uses the unsuffixed names (account
+// "default"); further exchanges use a _<n> suffix (CCXT_MCP_EXCHANGE_2, CCXT_MCP_APIKEY_2, …),
+// which is how the .mcpb form exposes several exchanges at once. Mode flags
+// (sandbox/demo/trading/prediction/cap) fall back to the unsuffixed value, so one global
+// toggle in the form applies to every slot.
+const ENV_CREDENTIAL_MAP: Record<string, string> = {
+    'APIKEY': 'apiKey',
+    'API_KEY': 'apiKey',
+    'SECRET': 'secret',
+    'PASSWORD': 'password',
+    'UID': 'uid',
+    'WALLETADDRESS': 'walletAddress',
+    'PRIVATEKEY': 'privateKey',
+};
+const MAX_ENV_ACCOUNT_SLOTS = 10;
+
+function envAccountRaw (suffix: string): any | undefined {
+    const exchange = process.env['CCXT_MCP_EXCHANGE' + suffix];
     if (!exchange) {
         return undefined;
     }
     const raw: any = { exchange };
-    const envCredentialMap: Record<string, string> = {
-        'CCXT_MCP_APIKEY': 'apiKey',
-        'CCXT_MCP_API_KEY': 'apiKey',
-        'CCXT_MCP_SECRET': 'secret',
-        'CCXT_MCP_PASSWORD': 'password',
-        'CCXT_MCP_UID': 'uid',
-        'CCXT_MCP_WALLETADDRESS': 'walletAddress',
-        'CCXT_MCP_PRIVATEKEY': 'privateKey',
-    };
-    for (const [ envName, field ] of Object.entries (envCredentialMap)) {
-        const value = process.env[envName];
+    for (const [ envKey, field ] of Object.entries (ENV_CREDENTIAL_MAP)) {
+        const value = process.env['CCXT_MCP_' + envKey + suffix];
         if (value !== undefined && value !== '') {
             raw[field] = unescapePem (value);
         }
     }
-    if (process.env['CCXT_MCP_SANDBOX'] === 'true') {
+    // a per-slot flag wins, else the unsuffixed global (one toggle covering every slot)
+    const flag = (name: string): string | undefined => process.env['CCXT_MCP_' + name + suffix] ?? process.env['CCXT_MCP_' + name];
+    if (flag ('SANDBOX') === 'true') {
         raw['sandbox'] = true;
     }
-    if (process.env['CCXT_MCP_DEMO'] === 'true') {
+    if (flag ('DEMO') === 'true') {
         raw['demo'] = true;
     }
-    if (process.env['CCXT_MCP_PREDICTION'] === 'true') {
+    if (flag ('PREDICTION') === 'true') {
         raw['prediction'] = true;
     }
-    const trading = process.env['CCXT_MCP_TRADING'];
+    const trading = flag ('TRADING');
     if (trading === 'true' || trading === 'sandbox') {
         raw['trading'] = true;
     } else if (trading === 'live') {
         raw['trading'] = 'live';
     }
-    const maxOrderValue = process.env['CCXT_MCP_MAX_ORDER_VALUE'];
+    const maxOrderValue = flag ('MAX_ORDER_VALUE');
     if (maxOrderValue !== undefined && maxOrderValue !== '') {
         raw['maxOrderValue'] = (maxOrderValue === 'null') ? null : Number (maxOrderValue);
     }
-    return validateAccount ('default', raw, problems);
+    return raw;
+}
+
+function envAccounts (problems: string[]): AccountConfig[] {
+    const out: AccountConfig[] = [];
+    const usedNames = new Set<string> ();
+    for (let slot = 1; slot <= MAX_ENV_ACCOUNT_SLOTS; slot++) {
+        const suffix = (slot === 1) ? '' : ('_' + slot);
+        const raw = envAccountRaw (suffix);
+        if (raw === undefined) {
+            continue;
+        }
+        // slot 1 stays "default" (backwards compatible); extra slots are named after their
+        // exchange id so list_accounts reads clearly, de-duplicated if two slots share one
+        let name = (slot === 1) ? 'default' : String (raw.exchange);
+        while (usedNames.has (name)) {
+            name = name + '_' + slot;
+        }
+        const account = validateAccount (name, raw, problems);
+        if (account !== undefined) {
+            usedNames.add (name);
+            out.push (account);
+        }
+    }
+    return out;
 }
 
 export function unescapePem (value: string): string {
@@ -257,10 +289,10 @@ export function loadConfig (): ResolvedConfig {
         problems.push ('CCXT_MCP_CONFIG points to a missing file: ' + explicitPath);
     }
 
-    if (accounts['default'] === undefined) {
-        const envAccount = envDefaultAccount (problems);
-        if (envAccount !== undefined) {
-            accounts['default'] = envAccount;
+    // env-var accounts fill in any name a config file didn't already claim (config wins)
+    for (const envAccount of envAccounts (problems)) {
+        if (accounts[envAccount.name] === undefined) {
+            accounts[envAccount.name] = envAccount;
         }
     }
 

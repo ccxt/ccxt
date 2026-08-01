@@ -42,7 +42,13 @@ Or per‑project via a committed `.mcp.json` (safe to commit — it contains no 
 
 ### Claude Desktop
 
-Add to `claude_desktop_config.json` (Settings → Developer → Edit Config), then restart:
+**Easiest — one‑click bundle:** download [`ccxt-mcp.mcpb`](https://github.com/ccxt/ccxt/releases/download/ccxt-mcp-latest/ccxt-mcp.mcpb) and open it (Settings → Extensions → drag it in, or double‑click). The installer shows a form where you can enter up to **three exchanges'** keys (and point at a config file for more); keys are stored in your OS keychain, never seen by the model.
+
+```bash
+curl -L -o ccxt-mcp.mcpb https://github.com/ccxt/ccxt/releases/download/ccxt-mcp-latest/ccxt-mcp.mcpb
+```
+
+**Or via JSON** — add to `claude_desktop_config.json` (Settings → Developer → Edit Config), then restart:
 
 ```json
 { "mcpServers": { "ccxt": { "command": "npx", "args": ["-y", "ccxt-mcp"] } } }
@@ -141,7 +147,7 @@ The config field names are exactly the credential names — set only the fields 
 
 Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKEY`, `OKX_PASSWORD`) fill missing credentials, and the `CCXT_MCP_EXCHANGE` / `CCXT_MCP_APIKEY` / `CCXT_MCP_SECRET` / `CCXT_MCP_SANDBOX` / `CCXT_MCP_TRADING` set defines a single account named `default`. The `accounts` map holds as many exchanges as you want.
 
-**Claude Desktop (`.mcpb` bundle):** the install form configures one exchange. To use several — or to enable live trading/withdrawals — set the **Config file** field to a `config.json` with an `accounts` map (as above), or create it at the default path and leave the form blank.
+**Claude Desktop (`.mcpb` bundle):** the install form takes **up to three exchanges** inline (each with its key/secret, plus an optional passphrase for OKX/KuCoin/Bitget) and one global sandbox + "allow orders (sandbox)" toggle. For a fourth exchange, a wallet‑based venue (`walletAddress`/`privateKey`), or live trading/withdrawals, set the **Config file** field to a `config.json` with an `accounts` map (as above), or create it at the default path and leave the form blank — the file merges with the inline exchanges.
 
 ### Capability tiers
 
