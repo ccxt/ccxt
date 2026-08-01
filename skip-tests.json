@@ -1137,9 +1137,18 @@
     },
     "derive": {
         "skipMethods": {
+            "features": "not implemented",
             "loadMarkets": {
                 "currency": "messed",
                 "currencyIdAndCode": "messed"
+            },
+            "fetchCurrencies": {
+                "precision": "not provided",
+                "withdraw": "not provided",
+                "deposit": "not provided",
+                "networks":"empty",
+                "type": "not provided",
+                "activeMajorCurrencies": "todo"
             },
             "fetchOrderBook": "not implemented"
         }
