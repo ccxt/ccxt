@@ -1491,6 +1491,9 @@ export default class opinion extends Exchange {
     async deleteApiKey (params = {}): Promise<Dict> {
         const response = await this.opinionPrivateDeleteAuthApiKey (params);
         this.options['apiKey'] = undefined;
+        // sign() prefers this.apiKey over options['apiKey'] - clear it too, or a directly-set
+        // exchange.apiKey would keep being used for private calls after the key is revoked
+        this.apiKey = undefined;
         return response;
     }
 
