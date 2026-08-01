@@ -3687,6 +3687,22 @@ class xt extends xt$1["default"] {
         const filledQuantity = this.safeNumber(order, 'executedQty');
         const filled = (marketType === 'spot') ? filledQuantity : Precise["default"].stringMul(this.numberToString(filledQuantity), this.numberToString(market['contractSize']));
         const lastUpdatedTimestamp = this.safeInteger(order, 'updatedTime');
+        let side = this.safeStringLower2(order, 'side', 'orderSide');
+        if (side === undefined) {
+            // the stop loss and take profit entries carry only the position
+            // side, they close the position, so a long position closes with a
+            // sell and a short position closes with a buy
+            // see https://github.com/ccxt/ccxt/issues/25288
+            const positionSide = this.safeString(order, 'positionSide');
+            if (positionSide !== undefined) {
+                if (positionSide === 'LONG') {
+                    side = 'sell';
+                }
+                else {
+                    side = 'buy';
+                }
+            }
+        }
         return this.safeOrder({
             'info': order,
             'id': this.safeStringN(order, ['orderId', 'result', 'cancelId', 'entrustId', 'profitId']),
@@ -3699,7 +3715,7 @@ class xt extends xt$1["default"] {
             'type': this.safeStringLower2(order, 'type', 'orderType'),
             'timeInForce': this.safeString(order, 'timeInForce'),
             'postOnly': undefined,
-            'side': this.safeStringLower2(order, 'side', 'orderSide'),
+            'side': side,
             'price': this.safeNumber(order, 'price'),
             'triggerPrice': this.safeNumber(order, 'stopPrice'),
             'stopLoss': this.safeNumber(order, 'triggerStopPrice'),
