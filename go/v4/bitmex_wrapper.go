@@ -638,7 +638,7 @@ func (this *Bitmex) EditOrder(id string, symbol string, typeVar string, side str
  * @description cancels an open order
  * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
  * @param {string} id order id
- * @param {string} symbol not used by bitmex cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -672,7 +672,7 @@ func (this *Bitmex) CancelOrder(id string, options ...CancelOrderOptions) (Order
  * @description cancel multiple orders
  * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancel
  * @param {string[]} ids order ids
- * @param {string} symbol not used by bitmex cancelOrders ()
+ * @param {string} symbol not used by cancelOrders ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */

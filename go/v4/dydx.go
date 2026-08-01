@@ -2245,7 +2245,7 @@ func (this *DydxCore) Transfer(code any, amount any, fromAccount any, toAccount 
 		var fromSubaccountId any = this.SafeInteger(params, "fromSubaccountId")
 		var toSubaccountId any = this.SafeInteger(params, "toSubaccountId")
 		if IsTrue(!IsEqual(fromAccount, "main")) {
-			// throw error if from subaccount id is undefind
+			// throw error if from subaccount id is undefined
 			if IsTrue(IsEqual(fromAccount, nil)) {
 				panic(NotSupported(Add(this.Id, " transfer only support main > subaccount and subaccount <> subaccount.")))
 			}

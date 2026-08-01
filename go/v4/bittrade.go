@@ -1994,7 +1994,7 @@ func (this *BittradeCore) CreateOrder(symbol any, typeVar any, side any, amount 
  * @name bittrade#cancelOrder
  * @description cancels an open order
  * @param {string} id order id
- * @param {string} symbol not used by bittrade cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2034,7 +2034,7 @@ func (this *BittradeCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @name bittrade#cancelOrders
  * @description cancel multiple orders
  * @param {string[]} ids order ids
- * @param {string} symbol not used by bittrade cancelOrders ()
+ * @param {string} symbol not used by cancelOrders ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */

@@ -1693,7 +1693,7 @@ func (this *Coinex) FetchLeverage(symbol string, options ...FetchLeverageOptions
  * @param {string} symbol unified contract symbol
  * @param {int} [since] the earliest time in ms to fetch positions for
  * @param {int} [limit] the maximum amount of records to fetch, default is 10
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch positions for
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
@@ -1735,7 +1735,7 @@ func (this *Coinex) FetchPositionHistory(symbol string, options ...FetchPosition
  * @param {string} [type] not used by coinex fetchMarginAdjustmentHistory
  * @param {int} [since] timestamp in ms of the earliest change to fetch
  * @param {int} [limit] the maximum amount of changes to fetch, default is 10
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest change to fetch
  * @param {int} [params.positionId] the id of the position that you want to retrieve margin adjustment history for
  * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}

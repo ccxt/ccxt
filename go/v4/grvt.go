@@ -782,7 +782,7 @@ func (this *GrvtCore) InitializeClient(optionalArgs ...any) <-chan any {
  * @name grvt#fetchMarkets
  * @description retrieves data on all markets
  * @see https://api-docs.grvt.io/market_data_api/#get-instrument-prod
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
 func (this *GrvtCore) FetchMarkets(optionalArgs ...any) <-chan any {

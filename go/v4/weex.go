@@ -638,7 +638,7 @@ func (this *WeexCore) FetchStatus(optionalArgs ...any) <-chan any {
 		response := (<-this.PublicGetApiV3Ping(params))
 		PanicOnError(response)
 
-		// reutns an empty response if the exchange is alive, otherwise will trigger an error
+		// returns an empty response if the exchange is alive, otherwise will trigger an error
 		ch <- map[string]any{
 			"status":  "ok",
 			"updated": nil,

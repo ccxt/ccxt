@@ -8569,7 +8569,7 @@ func (this *HtxCore) Sign(path any, optionalArgs ...any) any {
 				request = this.Extend(request, query)
 			}
 			var sortedRequest any = this.Keysort(request)
-			var auth any = this.Urlencode(sortedRequest, true) // true is a go only requirment
+			var auth any = this.Urlencode(sortedRequest, true) // true is a go only requirement
 			// unfortunately, PHP demands double quotes for the escaped newline symbol
 			var content any = []any{method, this.Hostname, url, auth}
 			var payload any = Join(content, "\n") // eslint-disable-line quotes
@@ -10762,7 +10762,7 @@ func (this *HtxCore) ParseLiquidation(liquidation any, optionalArgs ...any) any 
  * @see https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      // Coin-M futures
  * @param {string} symbol unified CCXT market symbol
  * @param {string} side 'buy' or 'sell', the side of the closing order, opposite side as position side
- * @param {object} [params] extra parameters specific to the okx api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
  * @param {object} [params.marginMode] 'cross' or 'isolated', required for linear markets
  *

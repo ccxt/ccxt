@@ -1236,7 +1236,7 @@ func (this *WooCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		//     "success": true
 		// }
 		//
-		// only make one request for currrencies...
+		// only make one request for currencies...
 		var tokenNetworkResponsePromise any = this.V1PublicGetTokenNetwork(params)
 		//
 		// {

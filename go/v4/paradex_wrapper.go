@@ -491,7 +491,7 @@ func (this *Paradex) CancelOrder(id string, options ...CancelOrderOptions) (Orde
  * @description cancel multiple orders
  * @see https://docs.paradex.trade/api/prod/orders/cancel-batch
  * @param {string[]} ids order ids
- * @param {string} [symbol] unified market symbol, not used by paradex cancelOrders()
+ * @param {string} [symbol] unified market symbol, not used by cancelOrders()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.clientOrderIds] client order ids
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}

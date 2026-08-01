@@ -4039,7 +4039,7 @@ func (this *CryptocomCore) ParamsToString(object any, level any) any {
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} [side] not used by cryptocom.closePositions
- * @param {object} [params] extra parameters specific to the okx api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  *
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {string} [params.type] LIMIT or MARKET

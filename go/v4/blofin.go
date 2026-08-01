@@ -2706,7 +2706,7 @@ func (this *BlofinCore) FetchPositions(optionalArgs ...any) <-chan any {
  * @param {string[]} [symbols] unified contract symbols
  * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
  * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
  * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
@@ -3144,7 +3144,7 @@ func (this *BlofinCore) SetLeverage(leverage any, optionalArgs ...any) <-chan an
  * @see https://blofin.com/docs#close-positions
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
- * @param {object} [params] extra parameters specific to the blofin api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] a unique identifier for the order
  * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
  * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -3426,7 +3426,7 @@ func (this *BlofinCore) FetchPositionMode(optionalArgs ...any) <-chan any {
  * @description set hedged to true or false for a market
  * @see https://docs.blofin.com/index.html#set-position-mode
  * @param {bool} hedged set to true to use hedged mode, false for one-way mode
- * @param {string} [symbol] not used by blofin setPositionMode ()
+ * @param {string} [symbol] not used by setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */

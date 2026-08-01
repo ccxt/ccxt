@@ -2713,7 +2713,7 @@ func (this *BybitCore) FetchTickers(optionalArgs ...any) <-chan any {
 			parsedSymbols = []any{}
 			var marketTypeInfo any = this.HandleMarketTypeAndParams("fetchTickers", nil, params)
 			var defaultType any = GetValue(marketTypeInfo, 0) // don't omit here
-			// we can't use marketSymbols here due to the conflicing ids between markets
+			// we can't use marketSymbols here due to the conflicting ids between markets
 			var currentType any = nil
 			for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
 				var symbol any = GetValue(symbols, i)
@@ -10698,7 +10698,7 @@ func (this *BybitCore) ParseOption(chain any, optionalArgs ...any) any {
  * @param {string[]} symbols a list of unified market symbols
  * @param {int} [since] timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
  * @param {int} [limit] the maximum amount of records to fetch, default=50, max=100
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days
  * @param {string} [params.subType] 'linear' or 'inverse'
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}

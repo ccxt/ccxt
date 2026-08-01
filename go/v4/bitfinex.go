@@ -2630,7 +2630,7 @@ func (this *BitfinexCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan a
 			"id":     orderId,
 			"symbol": GetValue(market, "id"),
 		}
-		// valid for trades upto 10 days old
+		// valid for trades up to 10 days old
 
 		response := (<-this.PrivatePostAuthROrderSymbolIdTrades(this.Extend(request, params)))
 		PanicOnError(response)

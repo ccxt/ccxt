@@ -1481,7 +1481,7 @@ func (this *Mexc) FetchPositions(options ...FetchPositionsOptions) ([]Position, 
  * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry
  * @param {string} id transfer id
  * @param {string} [code] not used by mexc fetchTransfer
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Mexc) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
@@ -1633,7 +1633,7 @@ func (this *Mexc) Withdraw(code string, amount float64, address string, options 
  * @description set hedged to true or false for a market
  * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-user-position-mode
  * @param {bool} hedged set to true to use dualSidePosition
- * @param {string} symbol not used by mexc setPositionMode ()
+ * @param {string} symbol not used by setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
@@ -1796,7 +1796,7 @@ func (this *Mexc) FetchLeverage(symbol string, options ...FetchLeverageOptions) 
  * @param {string[]} [symbols] unified contract symbols
  * @param {int} [since] not used by mexc fetchPositionsHistory
  * @param {int} [limit] the maximum amount of candles to fetch, default=1000
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  *
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {int} [params.type] position type，1: long, 2: short
