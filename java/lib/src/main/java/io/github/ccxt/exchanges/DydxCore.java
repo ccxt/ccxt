@@ -2205,7 +2205,7 @@ public class DydxCore extends DydxApi
             Object toSubaccountId = this.safeInteger(parameters, "toSubaccountId");
             if (Helpers.isTrue(!Helpers.isEqual(fromAccount, "main")))
             {
-                // throw error if from subaccount id is undefind
+                // throw error if from subaccount id is undefined
                 if (Helpers.isTrue(Helpers.isEqual(fromAccount, null)))
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " transfer only support main > subaccount and subaccount <> subaccount.")) ;

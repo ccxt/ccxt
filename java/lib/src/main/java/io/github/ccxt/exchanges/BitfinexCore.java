@@ -2625,7 +2625,7 @@ public class BitfinexCore extends BitfinexApi
                 put( "id", orderId );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            // valid for trades upto 10 days old
+            // valid for trades up to 10 days old
             Object response = (this.privatePostAuthROrderSymbolIdTrades(this.extend(request, parameters))).join();
             Object tradesList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)

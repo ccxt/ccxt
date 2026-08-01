@@ -2740,7 +2740,7 @@ public class BybitCore extends BybitApi
                 parsedSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 Object marketTypeInfo = this.handleMarketTypeAndParams("fetchTickers", null, parameters);
                 Object defaultType = Helpers.GetValue(marketTypeInfo, 0); // don't omit here
-                // we can't use marketSymbols here due to the conflicing ids between markets
+                // we can't use marketSymbols here due to the conflicting ids between markets
                 Object currentType = null;
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
@@ -10549,7 +10549,7 @@ final Object finalMarket = market;
      * @param {string[]} symbols a list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
      * @param {int} [limit] the maximum amount of records to fetch, default=50, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days
      * @param {string} [params.subType] 'linear' or 'inverse'
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}

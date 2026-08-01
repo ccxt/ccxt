@@ -1233,7 +1233,7 @@ public class WooCore extends WooApi
             //     "success": true
             // }
             //
-            // only make one request for currrencies...
+            // only make one request for currencies...
             Object tokenNetworkResponsePromise = this.v1PublicGetTokenNetwork(parameters);
             //
             // {

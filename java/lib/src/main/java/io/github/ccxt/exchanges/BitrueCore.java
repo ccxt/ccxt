@@ -806,7 +806,7 @@ public class BitrueCore extends BitrueApi
      * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#exchangeInfo_endpoint
      * @see https://www.bitrue.com/api-docs#current-open-contract
      * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
@@ -2029,7 +2029,7 @@ public class BitrueCore extends BitrueApi
         Object amount = this.safeString(order, "origQty");
         // - Spot/Margin market: cummulativeQuoteQty
         // - Futures market: cumQuote.
-        //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
+        //   Note this is not the actual cost, since the exchange uses leverage to calculate margins.
         Object cost = this.safeString2(order, "cummulativeQuoteQty", "cumQuote");
         Object id = this.safeString(order, "orderId");
         Object type = this.safeStringLower(order, "type");
@@ -3692,7 +3692,7 @@ public class BitrueCore extends BitrueApi
             throw new DDoSProtection((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), String.valueOf(code)), " "), reason), " "), body)) ;
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
-        // following block cointains legacy checks against message patterns in "msg" property
+        // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(code, 400)))
         {

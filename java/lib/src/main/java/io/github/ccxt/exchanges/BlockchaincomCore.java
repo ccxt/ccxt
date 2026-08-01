@@ -1357,7 +1357,7 @@ public class BlockchaincomCore extends BlockchaincomApi
      * @description fetch information on a deposit
      * @see https://api.blockchain.com/v3/#getdepositbyid
      * @param {string} id deposit id
-     * @param {string} code not used by blockchaincom fetchDeposit ()
+     * @param {string} code not used by fetchDeposit ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */

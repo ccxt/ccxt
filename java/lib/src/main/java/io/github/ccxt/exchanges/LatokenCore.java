@@ -1626,7 +1626,7 @@ public class LatokenCore extends LatokenApi
      * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
      * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  // stop
      * @param {string} id order id
-     * @param {string} symbol not used by latoken cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if cancelling a trigger order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
