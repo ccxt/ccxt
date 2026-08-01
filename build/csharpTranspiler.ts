@@ -74,14 +74,14 @@ const EXAMPLES_INPUT_FOLDER = './examples/ts/';
 const EXAMPLES_OUTPUT_FOLDER = './examples/cs/examples/';
 const csharpComments: any = {};
 
-// default 1 worker thread (single warm Transpiler / Program). Override with
-// CCXT_TRANSPILE_PROCESSES when you want a wider pool.
+// every extra worker rebuilds the whole typescript program, so oversubscribing a wide CI
+// runner costs more than it wins — cap at 4 unless CCXT_TRANSPILE_PROCESSES asks for a size
 function csharpWorkerThreads () {
     const requested = Number (process.env.CCXT_TRANSPILE_PROCESSES);
     if (requested > 0) {
         return requested;
     }
-    return 1;
+    return Math.max (1, Math.min (4, os.availableParallelism ()));
 }
 
 class NewTranspiler {
