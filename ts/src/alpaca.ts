@@ -451,7 +451,7 @@ export default class alpaca extends Exchange {
      * @name alpaca#fetchMarkets
      * @description retrieves data on all markets for alpaca
      * @see https://docs.alpaca.markets/reference/get-v2-assets
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
@@ -729,7 +729,7 @@ export default class alpaca extends Exchange {
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the alpha api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume

@@ -593,7 +593,7 @@ export default class hibachi extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
-     * @param {object} [params] extra parameters specific to the hibachi api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of recent [trade structures]
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -628,7 +628,7 @@ export default class hibachi extends Exchange {
      * @see https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12
      * @description fetches a price ticker and the related information for the past 24h
      * @param {string} symbol unified symbol of the market
-     * @param {object} [params] extra parameters specific to the hibachi api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: Str, params = {}): Promise<Ticker> {

@@ -673,7 +673,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
      * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -707,7 +707,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {string} side 'buy' or 'sell'
      * @param {float} [amount] how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
@@ -726,7 +726,7 @@ export default class bitvavo extends bitvavoRest {
      * @description cancels an open order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
@@ -744,7 +744,7 @@ export default class bitvavo extends bitvavoRest {
      * @see https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete
      * @description cancel all open orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
@@ -796,7 +796,7 @@ export default class bitvavo extends bitvavoRest {
      * @description fetches information on an order made by the user
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
@@ -823,7 +823,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -862,7 +862,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -890,7 +890,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTradesWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -945,7 +945,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdrawWs (code: string, amount: number, address: string, tag: Str = undefined, params = {}) {
@@ -986,7 +986,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawalsWs (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1032,7 +1032,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCVWs (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -1053,7 +1053,7 @@ export default class bitvavo extends bitvavoRest {
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWs (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -1093,7 +1093,7 @@ export default class bitvavo extends bitvavoRest {
      * @name bitvavo#fetchTradingFeesWs
      * @see https://docs.bitvavo.com/#tag/Account/paths/~1account/get
      * @description fetch the trading fees for multiple markets
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFeesWs (params = {}): Promise<TradingFees> {
@@ -1109,7 +1109,7 @@ export default class bitvavo extends bitvavoRest {
      * @name bitvavo#fetchMarketsWs
      * @see https://docs.bitvavo.com/#tag/General/paths/~1markets/get
      * @description retrieves data on all markets for bitvavo
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarketsWs (params = {}): Promise<any> {
@@ -1121,7 +1121,7 @@ export default class bitvavo extends bitvavoRest {
      * @name bitvavo#fetchCurrenciesWs
      * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
      * @description fetches all available currencies on an exchange
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrenciesWs (params = {}): Promise<Currencies> {
@@ -1182,7 +1182,7 @@ export default class bitvavo extends bitvavoRest {
      * @name bitvavo#fetchBalanceWs
      * @see https://docs.bitvavo.com/#tag/Account/paths/~1balance/get
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
      */
     async fetchBalanceWs (params = {}): Promise<Balances> {
