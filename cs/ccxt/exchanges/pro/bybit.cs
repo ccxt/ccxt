@@ -124,7 +124,7 @@ public partial class bybit : ccxt.bybit
                     { "awaitPositionsSnapshot", true },
                 } },
                 { "watchMyTrades", new Dictionary<string, object>() {
-                    { "filterExecTypes", new List<object>() {"Trade", "AdlTrade", "BustTrade", "Settle"} },
+                    { "execType", new List<object>() {"Trade", "AdlTrade", "BustTrade", "Settle"} },
                 } },
                 { "spot", new Dictionary<string, object>() {
                     { "timeframes", new Dictionary<string, object>() {
@@ -1613,7 +1613,25 @@ public partial class bybit : ccxt.bybit
         }
         object trades = this.myTrades;
         object symbols = new Dictionary<string, object>() {};
-        object filterExecTypes = this.handleOption("watchMyTrades", "filterExecTypes", new List<object>() {});
+        // the option was renamed from filterExecTypes to execType to mirror
+        // the exchange's own field name, the old key is still read as a
+        // fallback for backward compatibility
+        // see https://github.com/ccxt/ccxt/issues/17244
+        // and https://github.com/ccxt/ccxt/issues/28181
+        object execTypeOption = this.handleOption("watchMyTrades", "execType");
+        if (isTrue(isEqual(execTypeOption, null)))
+        {
+            execTypeOption = this.handleOption("watchMyTrades", "filterExecTypes");
+        }
+        object execTypes = null;
+        if (isTrue((execTypeOption is string)))
+        {
+            // a single execution type is accepted as a plain string as well
+            execTypes = new List<object>() {execTypeOption};
+        } else
+        {
+            execTypes = execTypeOption;
+        }
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object rawTrade = getValue(data, i);
@@ -1629,7 +1647,7 @@ public partial class bybit : ccxt.bybit
                 {
                     execType = "Trade";
                 }
-                if (!isTrue(this.inArray(execType, filterExecTypes)))
+                if (isTrue(isTrue((!isEqual(execTypes, null))) && !isTrue(this.inArray(execType, execTypes))))
                 {
                     continue;
                 }
