@@ -2,8 +2,8 @@ import path from "node:path";
 import { runWithFile, type OnChunk, type RunResult } from "./sandbox";
 
 // Extra node args: when an egress proxy is configured, preload a module that
-// points http/https globalAgent at it (ccxt-js uses node-fetch, which ignores
-// proxy env vars).
+// reads HTTP(S)_PROXY and sets ccxt's httpsProxy/wssProxy so requests tunnel
+// through the allowlist proxy (ccxt doesn't automatically honor proxy env vars).
 function nodeProxyArgs(): string[] {
   const proxied =
     process.env.HTTPS_PROXY || process.env.https_proxy ||
