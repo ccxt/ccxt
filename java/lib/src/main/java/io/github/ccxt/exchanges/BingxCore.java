@@ -5474,14 +5474,26 @@ public class BingxCore extends BingxApi
         currency = this.safeCurrency(currencyId, currency);
         Object code = Helpers.GetValue(currency, "code");
         Object address = this.safeString(depositAddress, "addressWithPrefix");
-        Object networkdId = this.safeString(depositAddress, "network");
-        Object networkCode = this.networkIdToCode(networkdId, code);
+        Object networkId = this.safeString(depositAddress, "network");
+        Object networkCode = this.networkIdToCode(networkId, code);
+        // despite its name the addressWithPrefix field sometimes arrives without
+        // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
+        if (Helpers.isTrue(!Helpers.isEqual(address, null)))
+        {
+            Object isPrefixed = Helpers.isTrue(((String)address).startsWith(((String)"0x"))) || Helpers.isTrue(((String)address).startsWith(((String)"0X")));
+            Object evmNetworks = new java.util.ArrayList<Object>(java.util.Arrays.asList("BEP20", "BSC", "ERC20", "ETH", "HECO", "MATIC", "POLYGON", "ARBITRUM", "ARB", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"));
+            if (Helpers.isTrue(!Helpers.isTrue(isPrefixed) && Helpers.isTrue(this.inArray(networkCode, evmNetworks))))
+            {
+                address = Helpers.add("0x", address);
+            }
+        }
         this.checkAddress(address);
+        final Object finalAddress = address;
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );
             put( "network", networkCode );
-            put( "address", address );
+            put( "address", finalAddress );
             put( "tag", tag );
         }};
     }

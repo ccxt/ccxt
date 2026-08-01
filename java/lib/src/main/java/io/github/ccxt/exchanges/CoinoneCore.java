@@ -1098,7 +1098,7 @@ public class CoinoneCore extends CoinoneApi
             final Object finalFeeCostString = feeCostString;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
-                put( "rate", CoinoneCore.this.safeString(order, "feeRate") );
+                put( "rate", CoinoneCore.this.safeString2(order, "feeRate", "fee_rate") );
                 put( "currency", feeCurrencyCode );
             }};
         }
@@ -1124,9 +1124,9 @@ public class CoinoneCore extends CoinoneApi
             put( "price", CoinoneCore.this.safeString(order, "price") );
             put( "triggerPrice", null );
             put( "cost", null );
-            put( "average", CoinoneCore.this.safeString(order, "averageExecutedPrice") );
+            put( "average", CoinoneCore.this.safeString2(order, "averageExecutedPrice", "average_executed_price") );
             put( "amount", finalAmountString );
-            put( "filled", CoinoneCore.this.safeString(order, "executedQty") );
+            put( "filled", CoinoneCore.this.safeString2(order, "executedQty", "executed_qty") );
             put( "remaining", finalRemainingString );
             put( "status", finalStatus );
             put( "fee", finalFee );
