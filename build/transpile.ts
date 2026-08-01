@@ -83,6 +83,38 @@ if (platform === 'win32') {
 // restores) only keep 1s resolution, so a sub-second delta is not a real change.
 // ----------------------------------------------------------------------------
 
+// every .ts file directly inside `folder` (no recursion) — used to build the input
+// lists of the whole-stage incremental gates below
+function tsFilesIn (folder: string) {
+    try {
+        return fs.readdirSync (folder).filter ((f: string) => f.endsWith ('.ts')).map ((f: string) => folder + f)
+    } catch (e) {
+        return [] as string[]
+    }
+}
+
+// Shared input set for the test-transpile stages of every language driver. The test
+// sources cross-import each other (a base test pulls Exchange/base/test.sharedMethods.js,
+// every test pulls the ccxt entry point), and each stage prints off a sticky ts.Program
+// built from the whole stage list — so any edit under the test trees, or to the types they
+// resolve against, invalidates all of them. Computed once per process.
+let cachedTestStageInputs: string[] | undefined = undefined
+function testStageInputs () {
+    if (cachedTestStageInputs === undefined) {
+        cachedTestStageInputs = ([] as string[]).concat (
+            tsFilesIn ('./ts/src/test/'),
+            tsFilesIn ('./ts/src/test/base/'),
+            tsFilesIn ('./ts/src/test/Exchange/'),
+            tsFilesIn ('./ts/src/test/Exchange/base/'),
+            tsFilesIn ('./ts/src/pro/test/base/'),
+            tsFilesIn ('./ts/src/pro/test/Exchange/'),
+            // the entry point every test imports lives at ./ts/ccxt.ts (NOT ./ts/src/ccxt.ts)
+            [ './ts/ccxt.ts', './ts/src/base/Exchange.ts', './ts/src/base/types.ts' ],
+        ).filter ((p: string) => fs.existsSync (p))
+    }
+    return cachedTestStageInputs
+}
+
 function isTranspileNeeded (tsPath: string, outputPaths: string[]) {
     if (!outputPaths.length) {
         return true // no known output → we cannot prove it is up to date
@@ -3636,5 +3668,6 @@ export {
     isTranspileNeeded,
     filterDirtyExchangeFiles,
     isStageUpToDate,
-    skipUpToDateStage
+    skipUpToDateStage,
+    testStageInputs
 }

@@ -15,7 +15,7 @@ import { writeFile } from 'fs/promises';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
-import { filterDirtyExchangeFiles, skipUpToDateStage } from "./transpile.js";
+import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
 
 ansi.nice
@@ -39,37 +39,6 @@ function overwriteFileAndFolder (path: string, content: string) {
     }
     overwriteFile (path, content);
     fs.writeFileSync (path, content);
-}
-
-// every .ts file directly inside `folder` (no recursion) — used to build the input
-// lists of the whole-stage incremental gates below
-function tsFilesIn (folder: string) {
-    try {
-        return fs.readdirSync (folder).filter ((f: string) => f.endsWith ('.ts')).map ((f: string) => folder + f);
-    } catch (e) {
-        return [] as string[];
-    }
-}
-
-// Shared input set for the test-transpile stages. The test sources cross-import each
-// other (a base test pulls Exchange/base/test.sharedMethods.js, every test pulls
-// ../../../ccxt.js), and each stage prints off a sticky ts.Program built from the whole
-// stage list — so any edit under the test trees, or to the types they resolve against,
-// invalidates all of them. Computed once per process.
-let cachedTestStageInputs: string[] | undefined = undefined;
-function testStageInputs () {
-    if (cachedTestStageInputs === undefined) {
-        cachedTestStageInputs = ([] as string[]).concat (
-            tsFilesIn ('./ts/src/test/'),
-            tsFilesIn ('./ts/src/test/base/'),
-            tsFilesIn ('./ts/src/test/Exchange/'),
-            tsFilesIn ('./ts/src/test/Exchange/base/'),
-            tsFilesIn ('./ts/src/pro/test/base/'),
-            tsFilesIn ('./ts/src/pro/test/Exchange/'),
-            [ './ts/src/ccxt.ts', './ts/src/base/Exchange.ts', './ts/src/base/types.ts' ],
-        ).filter ((p: string) => fs.existsSync (p));
-    }
-    return cachedTestStageInputs;
 }
 
 // this is necessary because for some reason
