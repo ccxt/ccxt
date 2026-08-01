@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { implicitVerb, isImplicitMethod, listImplicitMethods, getArgsWithOptionality } from '../../ts/introspect.js';
+import { implicitVerb, isImplicitMethod, listImplicitMethods, getArgsWithOptionality, unifiedMethods } from '../../ts/introspect.js';
 import { buildArgs } from '../../ts/tools/market.js';
 import { FakeExchange } from '../helpers/fake-ccxt.js';
 
@@ -24,6 +24,19 @@ test ('listImplicitMethods filters by verb', () => {
     const exchange = new FakeExchange ();
     assert.deepEqual (listImplicitMethods (exchange, 'Get'), [ 'publicGetTime' ]);
     assert.deepEqual (listImplicitMethods (exchange, 'Post'), [ 'privatePostOrderCancel' ]);
+});
+
+test ('unifiedMethods returns only callable methods, not has capability flags', () => {
+    const exchange = new FakeExchange ();
+    const methods = unifiedMethods (exchange);
+    assert.ok (methods.includes ('fetchTicker'), 'real methods are included');
+    assert.ok (!methods.includes ('spot'), 'the "spot" capability flag is excluded');
+    assert.ok (!methods.includes ('publicAPI'), 'the "publicAPI" flag is excluded');
+    assert.ok (!methods.includes ('ws'), 'the "ws" flag is excluded');
+    assert.ok (!methods.includes ('fetchGreeks'), 'a has flag with no function is excluded');
+    for (const name of methods) {
+        assert.equal (typeof (exchange as any)[name], 'function', name + ' must be a real function');
+    }
 });
 
 test ('getArgsWithOptionality splits required and optional args', () => {

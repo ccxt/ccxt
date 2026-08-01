@@ -75,7 +75,10 @@ export function methodSignature (exchange: any, methodName: string): MethodSigna
 }
 
 export function unifiedMethods (exchange: any): string[] {
-    return Object.keys (exchange.has ?? {}).filter ((method) => exchange.has[method]);
+    // `has` is a map of capability FLAGS, not a method list — many truthy keys aren't callable
+    // methods (publicAPI, privateAPI, sandbox, spot, margin, swap, future, option, ws, CORS…),
+    // so keep only keys that are actual functions on the instance
+    return Object.keys (exchange.has ?? {}).filter ((method) => exchange.has[method] && typeof exchange[method] === 'function');
 }
 
 // implicit method names are built by defineRestApi as <section><Verb><CamelPath>

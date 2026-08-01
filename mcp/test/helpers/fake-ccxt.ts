@@ -62,6 +62,13 @@ export class FakeExchange {
         'fetchDepositAddress': true,
         'setLeverage': true,
         'closePosition': true,
+        // non-method capability flags — truthy in `has` but NOT callable methods; they must
+        // never leak into the unified-method surface (describe_method / describe_exchange)
+        'spot': true,
+        'swap': false,
+        'publicAPI': true,
+        'ws': true,
+        'fetchGreeks': true, // a method flag with no corresponding function on this instance
     };
     markets: Record<string, any> = { 'BTC/USDT': MARKET };
     config: Record<string, any>;

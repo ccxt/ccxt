@@ -76,6 +76,17 @@ test ('describe_method keyword search: token-matched and defaults to a complete 
     const noExchange = await call (client, 'describe_method', { 'query': 'ticker' });
     assert.equal (noExchange.ok, true);
     assert.ok (noExchange.meta.searchedExchange !== undefined);
+    // the unified results are real methods, never has capability flags (spot/publicAPI/ws/…)
+    const allNames = (await call (client, 'describe_method', { 'query': 'fetch', 'exchange': 'fakex' })).data.unified.map ((m: any) => m.name);
+    for (const flag of [ 'spot', 'publicAPI', 'ws', 'fetchGreeks' ]) {
+        assert.ok (!allNames.includes (flag), flag + ' must not appear as a unified method');
+    }
+    // a blank query is rejected, not treated as match-all
+    for (const q of [ '', '   ' ]) {
+        const blank = await call (client, 'describe_method', { 'query': q, 'exchange': 'fakex' });
+        assert.equal (blank.ok, false, JSON.stringify (q) + ' query should be rejected');
+        assert.equal (blank.error.code, 'BAD_REQUEST');
+    }
     await client.close ();
 });
 

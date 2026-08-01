@@ -108,6 +108,11 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             // match on whitespace-split tokens so "open interest" / "funding rate" hit the
             // camelCase names (a single substring never would)
             const tokens = query.toLowerCase ().split (/\s+/).filter (Boolean);
+            if (tokens.length === 0) {
+                // a blank query would token-match everything ([].every() === true) and dump the
+                // first 25 names — reject it like the no-argument case
+                return { 'ok': false, 'error': { 'code': 'BAD_REQUEST', 'message': 'query is empty — pass a keyword to search for', 'retryable': false, 'hint': 'e.g. {"query": "funding"}, or {"method": "fetchFundingRate"} for an exact method' } };
+            }
             const nameMatches = (name: string) => {
                 const lower = name.toLowerCase ();
                 return tokens.every ((token) => lower.includes (token));
