@@ -996,7 +996,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         https://docs.btcmarkets.net/v3/#tag/Batch-Order-APIs/paths/~1v3~1batchorders~1{ids}/delete
 
         :param str[] ids: order ids
-        :param str symbol: not used by btcmarkets cancelOrders()
+        :param str symbol: not used by cancelOrders()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1040,7 +1040,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         https://docs.btcmarkets.net/v3/#operation/cancelOrder
 
         :param str id: order id
-        :param str symbol: not used by btcmarket cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """

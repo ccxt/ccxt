@@ -1845,7 +1845,7 @@ class paradex(Exchange, ImplicitAPI):
         https://docs.paradex.trade/api/prod/orders/cancel-batch
 
         :param str[] ids: order ids
-        :param str [symbol]: unified market symbol, not used by paradex cancelOrders()
+        :param str [symbol]: unified market symbol, not used by cancelOrders()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str[] [params.clientOrderIds]: client order ids
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`

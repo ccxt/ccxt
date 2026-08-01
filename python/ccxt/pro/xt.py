@@ -261,7 +261,7 @@ class xt(ccxt.async_support.xt):
         https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
 
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param str [params.method]: 'agg_ticker'(contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
@@ -283,7 +283,7 @@ class xt(ccxt.async_support.xt):
         https://doc.xt.com/#futures_market_websocket_v2aggTickerRealTime
 
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param str [params.method]: 'agg_ticker'(contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
@@ -306,7 +306,7 @@ class xt(ccxt.async_support.xt):
         https://doc.xt.com/#futures_market_websocket_v2allAggTicker
 
         :param str [symbols]: unified market symbols
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param str [params.method]: 'agg_tickers'(contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
@@ -332,7 +332,7 @@ class xt(ccxt.async_support.xt):
         https://doc.xt.com/#futures_market_websocket_v2allAggTicker
 
         :param str [symbols]: unified market symbols
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param str [params.method]: 'agg_tickers'(contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
@@ -360,7 +360,7 @@ class xt(ccxt.async_support.xt):
         :param str timeframe: 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
         :param int [since]: not used by xt watchOHLCV
         :param int [limit]: not used by xt watchOHLCV
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         if self.markets is None:
@@ -381,7 +381,7 @@ class xt(ccxt.async_support.xt):
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, or 1M
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         if self.markets is None:
@@ -402,7 +402,7 @@ class xt(ccxt.async_support.xt):
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         if self.markets is None:
@@ -422,7 +422,7 @@ class xt(ccxt.async_support.xt):
         https://doc.xt.com/#futures_market_websocket_v2dealRecord
 
         :param str symbol: unified symbol of the market to fetch trades for
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         if self.markets is None:
@@ -443,7 +443,7 @@ class xt(ccxt.async_support.xt):
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: not used by xt watchOrderBook
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.levels]: 5, 10, 20, or 50
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
@@ -468,7 +468,7 @@ class xt(ccxt.async_support.xt):
         https://doc.xt.com/#futures_market_websocket_v2increDepth
 
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.levels]: 5, 10, 20, or 50
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
@@ -493,7 +493,7 @@ class xt(ccxt.async_support.xt):
         :param str [symbol]: unified market symbol
         :param int [since]: not used by xt watchOrders
         :param int [limit]: the maximum number of orders to return
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if self.markets is None:
@@ -517,7 +517,7 @@ class xt(ccxt.async_support.xt):
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
-        :param dict params: extra parameters specific to the kucoin api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         if self.markets is None:
@@ -538,7 +538,7 @@ class xt(ccxt.async_support.xt):
         https://doc.xt.com/#websocket_privatebalanceChange
         https://doc.xt.com/#futures_user_websocket_v2balance
 
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `balance structures <https://docs.ccxt.com/?id=balance-structure>`
         """
         if self.markets is None:

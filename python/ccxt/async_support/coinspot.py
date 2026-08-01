@@ -687,7 +687,7 @@ class coinspot(Exchange, ImplicitAPI):
         https://www.coinspot.com.au/api#cancelsellorder
 
         :param str id: order id
-        :param str symbol: not used by coinspot cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """

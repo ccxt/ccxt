@@ -229,7 +229,7 @@ class poloniex(Exchange, ImplicitAPI):
                         'v3/market/allInstruments': 2 / 3,
                         'v3/market/instruments': 2 / 3,
                         'v3/market/orderBook': 2 / 3,
-                        'v3/market/candles': 10,  # candles have differnt RL
+                        'v3/market/candles': 10,  # candles have different RL
                         'v3/market/indexPriceCandlesticks': 10,
                         'v3/market/premiumIndexCandlesticks': 10,
                         'v3/market/markPriceCandlesticks': 10,
@@ -2157,7 +2157,7 @@ class poloniex(Exchange, ImplicitAPI):
         https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders  # trigger orders
         https://api-docs.poloniex.com/v3/futures/api/trade/cancel-all-orders - contract markets
 
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if canceling trigger orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
@@ -3198,11 +3198,11 @@ class poloniex(Exchange, ImplicitAPI):
 
     def fetch_position_mode(self, symbol: Str = None, params={}):
         """
-        fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
+        fetches the position mode, hedged or one way, hedged is set identically for all linear markets or all inverse markets
 
         https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
 
-        :param str symbol: unified symbol of the market to fetch the order book for
+        :param str [symbol]: unified symbol of the market to fetch the position mode for(not used by fetchPositionMode)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an object detailing whether the market is in hedged or one-way mode
         """
@@ -3230,8 +3230,8 @@ class poloniex(Exchange, ImplicitAPI):
 
         https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
 
-        :param bool hedged: set to True to use dualSidePosition
-        :param str symbol: not used by binance setPositionMode()
+        :param bool hedged: set to True to use the hedged position mode
+        :param str symbol: not used by setPositionMode()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """

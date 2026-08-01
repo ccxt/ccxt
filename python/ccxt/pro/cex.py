@@ -315,7 +315,7 @@ class cex(ccxt.async_support.cex):
 
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if self.markets is None:
@@ -422,7 +422,7 @@ class cex(ccxt.async_support.cex):
         https://docs.cex.io/#ws-api-get-balance
 
         query for balance and get the amount of funds available for trading or funds locked in orders
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         if self.markets is None:
@@ -592,7 +592,7 @@ class cex(ccxt.async_support.cex):
         #         "fee_amount": "0.05",
         #         "id": "59091012962"
         #     }
-        # Note symbol and symbol2 are inverse on sell and ammount is in symbol currency.
+        # Note symbol and symbol2 are inverse on sell and amount is in symbol currency.
         #
         side = self.safe_string(trade, 'type')
         price = self.safe_string(trade, 'price')
@@ -1163,7 +1163,7 @@ class cex(ccxt.async_support.cex):
 
         :param str id: the order id
         :param str symbol: not used by cex fetchOrder
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1194,7 +1194,7 @@ class cex(ccxt.async_support.cex):
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
@@ -1227,7 +1227,7 @@ class cex(ccxt.async_support.cex):
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float price: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the kraken api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.maker_only]: Optional, maker only places an order only if offers best sell(<= max) or buy(>= max) price for self pair, if not order placement will be rejected with an error - "Order is not maker"
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -1265,7 +1265,7 @@ class cex(ccxt.async_support.cex):
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
         :param float|None [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if amount is None:
@@ -1300,8 +1300,8 @@ class cex(ccxt.async_support.cex):
 
         cancels an open order
         :param str id: order id
-        :param str symbol: not used by cex cancelOrder()
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param str symbol: not used by cancelOrder()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1330,8 +1330,8 @@ class cex(ccxt.async_support.cex):
         https://docs.cex.io/#ws-api-mass-cancel-place
 
         :param str[] ids: order ids
-        :param str symbol: not used by cex cancelOrders()
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param str symbol: not used by cancelOrders()
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is not None:

@@ -802,7 +802,7 @@ class btcturk(Exchange, ImplicitAPI):
         https://docs.btcturk.com/private-endpoints/cancel-order
 
         :param str id: order id
-        :param str symbol: not used by btcturk cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """

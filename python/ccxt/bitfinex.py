@@ -1879,7 +1879,7 @@ class bitfinex(Exchange, ImplicitAPI):
 
         https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple
 
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -2222,7 +2222,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'id': orderId,
             'symbol': market['id'],
         }
-        # valid for trades upto 10 days old
+        # valid for trades up to 10 days old
         response = self.privatePostAuthROrderSymbolIdTrades(self.extend(request, params))
         tradesList = []
         for i in range(0, len(response)):

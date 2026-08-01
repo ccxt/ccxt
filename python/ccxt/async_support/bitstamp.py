@@ -1657,7 +1657,7 @@ class bitstamp(Exchange, ImplicitAPI):
         https://www.bitstamp.net/api/#tag/Orders/operation/CancelAllOrders
         https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrdersForMarket
 
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """

@@ -2080,7 +2080,7 @@ class aster(Exchange, ImplicitAPI):
         https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-position-modetrade
 
         :param bool hedged: set to True to use dualSidePosition
-        :param str symbol: not used by bingx setPositionMode()
+        :param str symbol: not used by setPositionMode()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
@@ -3101,7 +3101,7 @@ class aster(Exchange, ImplicitAPI):
         :param str [type]: "add" or "reduce"
         :param int [since]: timestamp in ms of the earliest change to fetch
         :param int [limit]: the maximum amount of changes to fetch
-        :param dict params: extra parameters specific to the exchange api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest change to fetch
         :returns dict[]: a list of `margin structures <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
@@ -4074,7 +4074,7 @@ class aster(Exchange, ImplicitAPI):
                     {'name': 'msg', 'type': 'string'},
                 ],
             }
-            # Build v3 params: original endpoint params + nonce(macroseconds) + user + signer
+            # Build v3 params: original endpoint params + nonce(microseconds) + user + signer
             # Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
             finalParams = self.extend({
                 'nonce': str(nonce),

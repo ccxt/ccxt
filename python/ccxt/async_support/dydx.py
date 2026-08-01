@@ -1799,7 +1799,7 @@ class dydx(Exchange, ImplicitAPI):
         fromSubaccountId = self.safe_integer(params, 'fromSubaccountId')
         toSubaccountId = self.safe_integer(params, 'toSubaccountId')
         if fromAccount != 'main':
-            # raise error if from subaccount id is undefind
+            # raise error if from subaccount id is None
             if fromAccount is None:
                 raise NotSupported(self.id + ' transfer only support main > subaccount and subaccount <> subaccount.')
             if fromSubaccountId is None or toSubaccountId is None:

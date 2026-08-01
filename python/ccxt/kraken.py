@@ -283,7 +283,7 @@ class kraken(Exchange, ImplicitAPI):
             },
             'options': {
                 'mica': True,
-                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'marketsByAltname': {},
                 'delistedMarketsById': {},
@@ -1679,7 +1679,7 @@ class kraken(Exchange, ImplicitAPI):
         result['usingCost'] = isUsingCost
         # it's impossible to know if the order was created using cost or base currency
         # because kraken only returns something like self: {order: 'buy 10.00000000 LTCUSD @ market'}
-        # self usingCost flag is used to help the parsing but omited from the order
+        # self usingCost flag is used to help the parsing but omitted from the order
         return self.parse_order(result)
 
     def create_orders(self, orders: List[OrderRequest], params={}):
@@ -2375,7 +2375,7 @@ class kraken(Exchange, ImplicitAPI):
 
         :param str[] [ids]: list of order id
         :param str [symbol]: unified ccxt market symbol
-        :param dict [params]: extra parameters specific to the kraken api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -2542,7 +2542,7 @@ class kraken(Exchange, ImplicitAPI):
 
         https://docs.kraken.com/api-reference/trading/cancel-all-orders
 
-        :param str symbol: unified market symbol, not used by kraken cancelAllOrders(all open orders are cancelled)
+        :param str [symbol]: unified market symbol, not used by kraken cancelAllOrders(all open orders are cancelled)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -3064,7 +3064,7 @@ class kraken(Exchange, ImplicitAPI):
         https://docs.kraken.com/api-reference/funding/get-deposit-methods
 
         :param str code: unified currency code
-        :param dict [params]: extra parameters specific to the kraken api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: of deposit methods
         """
         if self.markets is None:
@@ -3219,7 +3219,7 @@ class kraken(Exchange, ImplicitAPI):
 
         https://docs.kraken.com/api-reference/account-data/get-open-positions
 
-        :param str[] [symbols]: not used by kraken fetchPositions()
+        :param str[] [symbols]: not used by fetchPositions()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """

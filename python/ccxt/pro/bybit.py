@@ -15,6 +15,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
+from ccxt.base.precise import Precise
 
 
 class bybit(ccxt.async_support.bybit):
@@ -134,7 +135,7 @@ class bybit(ccxt.async_support.bybit):
                 },
                 'watchMyTrades': {
                     # filter execType: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
-                    'filterExecTypes': [
+                    'execType': [
                         'Trade', 'AdlTrade', 'BustTrade', 'Settle',
                     ],
                 },
@@ -1389,7 +1390,20 @@ class bybit(ccxt.async_support.bybit):
             self.myTrades = ArrayCacheBySymbolById(limit)
         trades = self.myTrades
         symbols = {}
-        filterExecTypes = self.handle_option('watchMyTrades', 'filterExecTypes', [])
+        # the option was renamed from filterExecTypes to execType to mirror
+        # the exchange's own field name, the old key is still read
+        # fallback for backward compatibility
+        # see https://github.com/ccxt/ccxt/issues/17244
+        # and https://github.com/ccxt/ccxt/issues/28181
+        execTypeOption = self.handle_option('watchMyTrades', 'execType')
+        if execTypeOption is None:
+            execTypeOption = self.handle_option('watchMyTrades', 'filterExecTypes')
+        execTypes = None
+        if isinstance(execTypeOption, str):
+            # a single execution type is accepted plain string
+            execTypes = [execTypeOption]
+        else:
+            execTypes = execTypeOption
         for i in range(0, len(data)):
             rawTrade = data[i]
             parsed = None
@@ -1400,7 +1414,7 @@ class bybit(ccxt.async_support.bybit):
                 execType = self.safe_string(rawTrade, 'execType', '')
                 if executionFast:
                     execType = 'Trade'
-                if not self.in_array(execType, filterExecTypes):
+                if (execTypes is not None) and not self.in_array(execType, execTypes):
                     continue
                 parsed = self.parse_trade(rawTrade)
             symbol = parsed['symbol']
@@ -2166,9 +2180,21 @@ class bybit(ccxt.async_support.bybit):
         account = self.account()
         currencyId = self.safe_string_2(balance, 'a', 'coin')
         code = self.safe_currency_code(currencyId)
-        account['free'] = self.safe_string_n(balance, ['availableToWithdraw', 'f', 'free', 'availableToWithdraw'])
-        account['used'] = self.safe_string_2(balance, 'l', 'locked')
-        account['total'] = self.safe_string(balance, 'walletBalance')
+        account['free'] = self.safe_string_n(balance, ['availableToWithdraw', 'f', 'free'])
+        used = self.safe_string_2(balance, 'l', 'locked')
+        if used is not None:
+            account['used'] = used
+        else:
+            # the unified account wallet stream has no locked field, the margin
+            # lives in the per coin initial margin fields, so the used amount
+            # is derived from those, see https://github.com/ccxt/ccxt/issues/24365
+            totalPositionIm = self.safe_string(balance, 'totalPositionIM', '0')
+            totalOrderIm = self.safe_string(balance, 'totalOrderIM', '0')
+            account['used'] = Precise.string_add(totalPositionIm, totalOrderIm)
+        # on the unified rows the free amount and the margin are both measured
+        # against the equity, which includes the unrealized pnl, so the equity
+        # is the consistent total, the spot rows fall back to the wallet balance
+        account['total'] = self.safe_string_2(balance, 'equity', 'walletBalance')
         if accountType is not None:
             if self.safe_value(self.balance, accountType) is None:
                 self.balance[accountType] = {}

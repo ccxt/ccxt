@@ -1509,7 +1509,7 @@ class weex(ccxt.async_support.weex):
         #         ]
         #     }
         #
-        # coontract
+        # contract
         #     {
         #         "e": "account",
         #         "E": 1776189629849,

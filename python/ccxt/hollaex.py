@@ -560,8 +560,8 @@ class hollaex(Exchange, ImplicitAPI):
 
         https://apidocs.hollaex.com/#orderbooks
 
-        :param str[]|None symbols: not used by hollaex fetchOrderBooks()
-        :param int [limit]: not used by hollaex fetchOrderBooks()
+        :param str[]|None symbols: not used by fetchOrderBooks()
+        :param int [limit]: not used by fetchOrderBooks()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbol
         """
@@ -1022,7 +1022,7 @@ class hollaex(Exchange, ImplicitAPI):
         https://apidocs.hollaex.com/#get-order
 
         :param str id: order id
-        :param str symbol: not used by hollaex fetchOpenOrder()
+        :param str symbol: not used by fetchOpenOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """

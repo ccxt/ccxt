@@ -814,7 +814,7 @@ class bydfi(Exchange, ImplicitAPI):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch(max 500)
-        :param dict [params]: extra parameters specific to the bitteam api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
@@ -2096,7 +2096,7 @@ class bydfi(Exchange, ImplicitAPI):
         :param str symbol: a unified market symbol
         :param int [since]: timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
         :param int [limit]: the maximum amount of records to fetch(default 500, max 500)
-        :param dict params: extra parameters specific to the exchange api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
         :param str [params.contractType]: FUTURE or DELIVERY, default is FUTURE
         :param str [params.wallet]: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2130,7 +2130,7 @@ class bydfi(Exchange, ImplicitAPI):
         :param str[] symbols: a list of unified market symbols
         :param int [since]: timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
         :param int [limit]: the maximum amount of records to fetch(default 500, max 500)
-        :param dict params: extra parameters specific to the exchange api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
         :param str [params.contractType]: FUTURE or DELIVERY, default is FUTURE
         :param str [params.wallet]: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2281,7 +2281,7 @@ class bydfi(Exchange, ImplicitAPI):
         https://developers.bydfi.com/en/futures/user#change-position-mode-dual
 
         :param bool hedged: set to True to use dualSidePosition
-        :param str [symbol]: not used by bydfi setPositionMode()
+        :param str [symbol]: not used by setPositionMode()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.contractType]: FUTURE or DELIVERY, default is FUTURE
         :param str [params.wallet]: The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract

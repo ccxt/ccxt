@@ -3049,7 +3049,7 @@ class lighter(Exchange, ImplicitAPI):
         Either adds or reduces margin in an isolated position in order to set the margin to a specific value
         :param str symbol: unified market symbol of the market to set margin in
         :param float amount: the amount to set the margin to
-        :param dict [params]: parameters specific to the bingx api endpoint
+        :param dict [params]: parameters specific to the exchange API endpoint
         :param str [params.accountIndex]: account index
         :param str [params.apiKeyIndex]: api key index
         :returns dict: A `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`

@@ -885,7 +885,7 @@ class hashkey(Exchange, ImplicitAPI):
         swapMarkets = self.safe_list(response, 'contracts', [])
         markets = self.array_concat(spotMarkets, swapMarkets)
         if self.is_empty(markets):
-            markets = [response]  # if user provides params.symbol the exchange returns a single object insted of list of objects
+            markets = [response]  # if user provides params.symbol the exchange returns a single object instead of list of objects
         return self.parse_markets(markets)
 
     def parse_market(self, market: dict) -> Market:

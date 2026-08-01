@@ -663,7 +663,7 @@ class deepcoin(Exchange, ImplicitAPI):
             params = self.omit(params, 'calculateUntil')
             if since is not None:
                 # the exchange do not have a since param for self endpoint
-                # we canlculate until(after) for correct pagination
+                # we calculate until(after) for correct pagination
                 duration = self.parse_timeframe(timeframe)
                 numberOfCandles = maxLimit if (limit is None) else limit
                 endTime = since + (duration * numberOfCandles) * 1000

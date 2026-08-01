@@ -2533,7 +2533,7 @@ class lbank(Exchange, ImplicitAPI):
         """
  @deprecated
         please use fetchDepositWithdrawFees instead
-        :param str[]|None codes: not used by lbank fetchTransactionFees()
+        :param str[]|None codes: not used by fetchTransactionFees()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """

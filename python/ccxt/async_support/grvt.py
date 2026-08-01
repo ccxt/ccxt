@@ -617,7 +617,7 @@ class grvt(Exchange, ImplicitAPI):
 
         https://api-docs.grvt.io/market_data_api/#get-instrument-prod
 
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         marketsPromise = self.publicMarketPostFullV1AllInstruments(params)
@@ -2947,7 +2947,7 @@ class grvt(Exchange, ImplicitAPI):
 
         https://api-docs.grvt.io/trading_api/#cancel-all-orders
 
-        :param str symbol: cancel alls open orders
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """

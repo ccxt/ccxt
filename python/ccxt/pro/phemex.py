@@ -27,7 +27,7 @@ class phemex(ccxt.async_support.phemex):
                 'watchOrderBook': True,
                 'watchOHLCV': True,
                 'watchPositions': None,  # TODO
-                # mutli-endpoints are not supported: https://github.com/ccxt/ccxt/pull/21490
+                # multi-endpoints are not supported: https://github.com/ccxt/ccxt/pull/21490
                 'watchOrderBookForSymbols': False,
                 'watchTradesForSymbols': False,
                 'watchOHLCVForSymbols': False,

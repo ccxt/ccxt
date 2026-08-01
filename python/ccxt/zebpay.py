@@ -309,7 +309,7 @@ class zebpay(Exchange, ImplicitAPI):
         [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
         [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
 
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         promisesUnresolved = []
@@ -1088,10 +1088,10 @@ class zebpay(Exchange, ImplicitAPI):
 
         [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders
 
-        :param str symbol: unified symbol of the market the order was made in
+        :param str [symbol]: unified symbol of the market the orders were made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param dict [params.timestamp]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
+        :param int [params.timestamp]: the timestamp of the request in ms
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         type = None
         type, params = self.handle_market_type_and_params('cancelAllOrders', None, params)
@@ -1294,7 +1294,7 @@ class zebpay(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str side: not used by kucoinfutures closePositions
-        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.positionId]: client order id of the order
         :returns dict[]: `A list of position structures <https://docs.ccxt.com/?id=position-structure>`
         """

@@ -1700,8 +1700,8 @@ class bitget(ccxt.async_support.bitget):
         #         price: '0.81075',  # limit price, field not present for market orders
         #         clientOid: 'a2330139-1d04-4d78-98be-07de3cfd1055',
         #         notional: '5.675250',  # self is not cost! but notional
-        #         newSize: '7.0000',  # self is not cost! quanity(for limit order or market sell) or cost(for market buy order)
-        #         size: '5.6752',  # self is not cost, neither quanity, but notional! self field for "spot" can be ignored at all
+        #         newSize: '7.0000',  # self is not cost! quantity(for limit order or market sell) or cost(for market buy order)
+        #         size: '5.6752',  # self is not cost, neither quantity, but notional! self field for "spot" can be ignored at all
         #         # Note: for limit order(even filled) we don't have cost value in response, only in market order
         #         orderType: 'limit',  # limit, market
         #         force: 'gtc',
@@ -2723,7 +2723,7 @@ class bitget(ccxt.async_support.bitget):
             arg = argsList[i]
             channel = self.safe_string_2(arg, 'channel', 'topic', '')
             if channel.find('books') >= 0:
-                # for now only unWatchOrderBook is supporteod
+                # for now only unWatchOrderBook is supported
                 self.handle_order_book_un_subscription(client, message)
             elif (channel.find('trade') >= 0) or (channel.find('publicTrade') >= 0):
                 self.handle_trades_un_subscription(client, message)

@@ -1536,7 +1536,7 @@ class apex(Exchange, ImplicitAPI):
 
         https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
 
-        :param str symbol: unified market symbol of the market to cancel orders in
+        :param str [symbol]: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """

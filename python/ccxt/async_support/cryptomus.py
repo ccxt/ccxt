@@ -413,7 +413,7 @@ class cryptomus(Exchange, ImplicitAPI):
 
     def parse_currency(self, rawCurrency: dict) -> Currency:
         # currency here is array of networks
-        id = None  # all entried have same id, were grouped by
+        id = None  # all entries have same id, were grouped by
         code = None
         networks = {}
         for i in range(0, len(rawCurrency)):

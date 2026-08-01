@@ -828,7 +828,7 @@ class xt(Exchange, ImplicitAPI):
 
         https://doc.xt.com/#market1serverInfo
 
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the xt server
         """
         response = await self.publicSpotGetTime(params)
@@ -851,7 +851,7 @@ class xt(Exchange, ImplicitAPI):
 
         https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
 
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
         promisesRaw = [self.publicSpotGetWalletSupportCurrency(params), self.publicSpotGetCurrencies(params)]
@@ -990,7 +990,7 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/#market2symbol
         https://doc.xt.com/#futures_quotesgetSymbols
 
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         if self.options['adjustForTimeDifference']:
@@ -1391,7 +1391,7 @@ class xt(Exchange, ImplicitAPI):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
@@ -1520,7 +1520,7 @@ class xt(Exchange, ImplicitAPI):
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified market symbol to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         if self.markets is None:
@@ -1607,7 +1607,7 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/#futures_quotesgetAggTicker
 
         :param str symbol: unified market symbol to fetch the ticker for
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         if self.markets is None:
@@ -1682,7 +1682,7 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/#futures_quotesgetAggTickers
 
         :param str [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         if self.markets is None:
@@ -1766,7 +1766,7 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/#market9tickerBook
 
         :param str [symbols]: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         if self.markets is None:
@@ -1891,7 +1891,7 @@ class xt(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         if self.markets is None:
@@ -1961,7 +1961,7 @@ class xt(Exchange, ImplicitAPI):
         :param str [symbol]: unified market symbol to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         if self.markets is None:
@@ -2226,7 +2226,7 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/#balancebalancesGet
         https://doc.xt.com/#futures_usergetBalances
 
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         if self.markets is None:
@@ -2372,7 +2372,7 @@ class xt(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
         :param float [price]: the price to fulfill the order, in units of the quote currency, can be ignored in market orders
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: 'GTC', 'IOC', 'FOK' or 'GTX'
         :param str [params.entrustType]: 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side
         :param str [params.triggerPriceType]: 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
@@ -2524,7 +2524,7 @@ class xt(Exchange, ImplicitAPI):
 
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
@@ -2697,7 +2697,7 @@ class xt(Exchange, ImplicitAPI):
         :param str [symbol]: unified market symbol of the market the orders were made in
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of order structures to retrieve
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
@@ -3118,7 +3118,7 @@ class xt(Exchange, ImplicitAPI):
         :param str [symbol]: unified market symbol of the market the orders were made in
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of open order structures to retrieve
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
@@ -3137,7 +3137,7 @@ class xt(Exchange, ImplicitAPI):
         :param str [symbol]: unified market symbol of the market the orders were made in
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of order structures to retrieve
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
@@ -3156,7 +3156,7 @@ class xt(Exchange, ImplicitAPI):
         :param str [symbol]: unified market symbol of the market the orders were made in
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of order structures to retrieve
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
@@ -3174,7 +3174,7 @@ class xt(Exchange, ImplicitAPI):
 
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
@@ -3251,7 +3251,7 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/#futures_entrustcancelProfitBatch
 
         :param str [symbol]: unified market symbol of the market to cancel orders in
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: if the order is a trigger order or not
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
@@ -3323,7 +3323,7 @@ class xt(Exchange, ImplicitAPI):
 
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol of the market to cancel orders in
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if self.markets is None:
@@ -3490,6 +3490,18 @@ class xt(Exchange, ImplicitAPI):
         filledQuantity = self.safe_number(order, 'executedQty')
         filled = filledQuantity if (marketType == 'spot') else Precise.string_mul(self.number_to_string(filledQuantity), self.number_to_string(market['contractSize']))
         lastUpdatedTimestamp = self.safe_integer(order, 'updatedTime')
+        side = self.safe_string_lower_2(order, 'side', 'orderSide')
+        if side is None:
+            # the stop loss and take profit entries carry only the position
+            # side, they close the position, so a long position closes with a
+            # sell and a short position closes with a buy
+            # see https://github.com/ccxt/ccxt/issues/25288
+            positionSide = self.safe_string(order, 'positionSide')
+            if positionSide is not None:
+                if positionSide == 'LONG':
+                    side = 'sell'
+                else:
+                    side = 'buy'
         return self.safe_order({
             'info': order,
             'id': self.safe_string_n(order, ['orderId', 'result', 'cancelId', 'entrustId', 'profitId']),
@@ -3502,7 +3514,7 @@ class xt(Exchange, ImplicitAPI):
             'type': self.safe_string_lower_2(order, 'type', 'orderType'),
             'timeInForce': self.safe_string(order, 'timeInForce'),
             'postOnly': None,
-            'side': self.safe_string_lower_2(order, 'side', 'orderSide'),
+            'side': side,
             'price': self.safe_number(order, 'price'),
             'triggerPrice': self.safe_number(order, 'stopPrice'),
             'stopLoss': self.safe_number(order, 'triggerStopPrice'),
@@ -3547,7 +3559,7 @@ class xt(Exchange, ImplicitAPI):
         :param str [code]: unified currency code
         :param int [since]: timestamp in ms of the earliest ledger entry
         :param int [limit]: max number of ledger entries to return
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
         """
         if self.markets is None:
@@ -3657,7 +3669,7 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/#deposit_withdrawaldepositAddressGet
 
         :param str code: unified currency code
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param str params['network']: required network id
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
         """
@@ -3713,7 +3725,7 @@ class xt(Exchange, ImplicitAPI):
         :param str [code]: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of transaction structures to retrieve
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         if self.markets is None:
@@ -3767,7 +3779,7 @@ class xt(Exchange, ImplicitAPI):
         :param str [code]: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of transaction structures to retrieve
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         if self.markets is None:
@@ -3822,7 +3834,7 @@ class xt(Exchange, ImplicitAPI):
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str [tag]:
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         self.check_address(address)
@@ -3951,7 +3963,7 @@ class xt(Exchange, ImplicitAPI):
 
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param str params['positionSide']: 'LONG' or 'SHORT'
         :returns dict: response from the exchange
         """
@@ -3996,7 +4008,7 @@ class xt(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param str params['positionSide']: 'LONG' or 'SHORT'
         :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
@@ -4010,7 +4022,7 @@ class xt(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param str params['positionSide']: 'LONG' or 'SHORT'
         :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
@@ -4066,7 +4078,7 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/#futures_quotesgetLeverageBrackets
 
         :param str [symbols]: a list of unified market symbols
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/?id=leverage-tiers-structure>`
         """
         if self.markets is None:
@@ -4144,7 +4156,7 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/#futures_quotesgetLeverageBracket
 
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/?id=leverage-tiers-structure>`
         """
         if self.markets is None:
@@ -4231,7 +4243,7 @@ class xt(Exchange, ImplicitAPI):
         :param str [symbol]: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of [funding rate structures] to fetch
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param bool params['paginate']: True/false whether to use the pagination helper to aumatically paginate through the results
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
@@ -4317,7 +4329,7 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/#futures_quotesgetFundingRate
 
         :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         if self.markets is None:
@@ -4396,7 +4408,7 @@ class xt(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: the starting timestamp in milliseconds
         :param int [limit]: the number of entries to return
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         if self.markets is None:
@@ -4481,7 +4493,7 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/#futures_usergetPosition
 
         :param str symbol: unified market symbol of the market the position is held in
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         if self.markets is None:
@@ -4539,7 +4551,7 @@ class xt(Exchange, ImplicitAPI):
         https://doc.xt.com/#futures_usergetPosition
 
         :param str [symbols]: list of unified market symbols, not supported with xt
-        :param dict params: extra parameters specific to the xt api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         if self.markets is None:
@@ -4646,7 +4658,7 @@ class xt(Exchange, ImplicitAPI):
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from -  spot, swap, leverage, finance
         :param str toAccount: account to transfer to - spot, swap, leverage, finance
-        :param dict params: extra parameters specific to the whitebit api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         if self.markets is None:

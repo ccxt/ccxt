@@ -1859,7 +1859,7 @@ class woofipro(Exchange, ImplicitAPI):
         https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
 
         cancel all open orders in a market
-        :param str symbol: unified market symbol
+        :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a stop/algo order
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`

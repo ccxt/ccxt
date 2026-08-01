@@ -860,7 +860,7 @@ class coinbase(Exchange, ImplicitAPI):
 
         https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
 
-        :param str symbol: not used by coinbase fetchMySells()
+        :param str symbol: not used by fetchMySells()
         :param int [since]: timestamp in ms of the earliest sell, default is None
         :param int [limit]: max number of sells to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -881,7 +881,7 @@ class coinbase(Exchange, ImplicitAPI):
 
         https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
 
-        :param str symbol: not used by coinbase fetchMyBuys()
+        :param str symbol: not used by fetchMyBuys()
         :param int [since]: timestamp in ms of the earliest buy, default is None
         :param int [limit]: max number of buys to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3284,7 +3284,7 @@ class coinbase(Exchange, ImplicitAPI):
         https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
 
         :param str id: order id
-        :param str symbol: not used by coinbase cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -3300,7 +3300,7 @@ class coinbase(Exchange, ImplicitAPI):
         https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
 
         :param str[] ids: order ids
-        :param str symbol: not used by coinbase cancelOrders()
+        :param str symbol: not used by cancelOrders()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -4235,7 +4235,7 @@ class coinbase(Exchange, ImplicitAPI):
             'amount': self.number_to_string(amount),
             'currency': code.upper(),  # need to use code in case depositing USD etc.
             'payment_method': id,
-            'commit': True,  # otheriwse the deposit does not go through
+            'commit': True,  # otherwise the deposit does not go through
         }
         response = await self.v2PrivatePostAccountsAccountIdDeposits(self.extend(request, params))
         #
@@ -4539,7 +4539,7 @@ class coinbase(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str [side]: not used by coinbase
-        :param dict [params]: extra parameters specific to the coinbase api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
  @param {str}  params.clientOrderId *mandatory* the client order id of the position to close
         :param float [params.size]: the size of the position to close, optional
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`

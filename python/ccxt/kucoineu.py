@@ -28,7 +28,20 @@ class kucoineu(kucoin, ImplicitAPI):
                     'https://www.kucoin.com/en-eu/docs-new',
                 ],
             },
+            'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': True,
+                'swap': False,
+                'future': False,
+                'option': False,
+            },
             'options': {
                 'mica': True,
+                'fetchMarkets': {
+                    'types': [
+                        'spot',
+                    ],
+                },
             },
         })
