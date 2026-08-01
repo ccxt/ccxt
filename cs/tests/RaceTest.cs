@@ -126,6 +126,44 @@ public partial class BaseTest
         }
     }
 
+    // reproduces https://github.com/ccxt/ccxt/issues/29412 : concurrent reject()/resolve()
+    // calls on the same Future (e.g. ping-loop timeout vs receive-loop error, both racing to
+    // fail the same pending message hash) used to throw InvalidOperationException from
+    // TaskCompletionSource.SetException/SetResult on the second call.
+    public async Task FutureDoubleCompletionTest()
+    {
+        for (int i = 0; i < 200; i++)
+        {
+            var future = new ccxt.BaseExchange.Future();
+            var tasks = new List<Task>();
+            for (int j = 0; j < 8; j++)
+            {
+                tasks.Add(Task.Run(() => future.reject(new Exception("race reject " + j))));
+            }
+            tasks.Add(Task.Run(() => future.resolve("race resolve")));
+            await Task.WhenAll(tasks); // must not throw - a second SetException/SetResult call used to crash the process
+        }
+
+        // Future.race() shares one output Future across N ContinueWith continuations;
+        // completing several source futures at nearly the same time exercises the same path.
+        for (int i = 0; i < 200; i++)
+        {
+            var sources = new List<ccxt.BaseExchange.Future>();
+            for (int j = 0; j < 5; j++)
+            {
+                sources.Add(new ccxt.BaseExchange.Future());
+            }
+            _ = ccxt.BaseExchange.Future.race(sources.ToArray());
+            var tasks = new List<Task>();
+            foreach (var source in sources)
+            {
+                tasks.Add(Task.Run(() => source.reject(new Exception("race source reject"))));
+            }
+            await Task.WhenAll(tasks);
+            await Task.Delay(1); // let the ContinueWith continuations run
+        }
+    }
+
     public async Task RaceTest()
     {
         var orderBookInput = new Dictionary<string, object>() {

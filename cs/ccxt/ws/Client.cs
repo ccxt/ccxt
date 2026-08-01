@@ -234,7 +234,20 @@ public partial class BaseExchange
                 {
                     Console.WriteLine($"PingLoop error: {ex.Message}");
                 }
-                this.onError(this, ex);
+                // PingLoop is async void: any exception that escapes it (including one thrown
+                // by onError/CleanupClients/rejectFutures) is rethrown on the thread pool and
+                // crashes the whole process instead of surfacing as a faulted Task - never let it propagate
+                try
+                {
+                    this.onError(this, ex);
+                }
+                catch (Exception onErrorException)
+                {
+                    if (this.verbose)
+                    {
+                        Console.WriteLine($"PingLoop onError handler error: {onErrorException.Message}");
+                    }
+                }
             }
         }
 
