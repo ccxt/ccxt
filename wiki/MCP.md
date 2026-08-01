@@ -110,9 +110,15 @@ To add accounts, create the config file (its path is reported by the `get_safety
       "allowedSymbols": ["BTC/USDT", "ETH/*"],  // optional strict allowlist
       "confirm": "live"         // always | live (default) | never
     },
+    "okx-main": {
+      "exchange": "okx",
+      "apiKey": "…",
+      "secret": "…",
+      "password": "…"          // OKX / KuCoin / Bitget also require the API passphrase
+    },
     "polymarket-main": {
       "exchange": "polymarket",
-      "walletAddress": "0x…",
+      "walletAddress": "0x…",   // wallet-based venues (DEXes, prediction markets) use a key pair
       "privateKey": "0x…"
     }
   }
@@ -120,6 +126,18 @@ To add accounts, create the config file (its path is reported by the `get_safety
 ```
 
 Account fields accept any credential from the exchange's `requiredCredentials` (`apiKey`, `secret`, `password`, `uid`, `walletAddress`, `privateKey`, …), plus `sandbox`/`demo`, `defaultType`, `options` (CCXT constructor options), `prediction: true` (for exchanges that exist in both the crypto and prediction namespaces, e.g. hyperliquid), and the safety switches below. `chmod 600` the file; the server warns otherwise (or refuses with `"settings": { "strictPermissions": true }`).
+
+### Which credentials does each exchange need?
+
+Each account names its own `exchange` and carries **that exchange's** credentials, so a multi‑exchange setup is just several entries side by side — each with the fields that venue requires:
+
+| Exchange | Credential fields to set |
+|---|---|
+| Most CEXs — Binance, Bybit, Kraken, Gate, MEXC… | `apiKey`, `secret` |
+| OKX, KuCoin, Bitget | `apiKey`, `secret`, `password` (the API **passphrase** you chose when creating the key) |
+| Wallet‑based — Hyperliquid, Polymarket, Limitless, other DEX / prediction venues | `walletAddress`, `privateKey` |
+
+The config field names are exactly the credential names — set only the fields a venue needs and omit the rest. **Not sure what a given exchange takes?** Ask the agent to run **`describe_exchange`** for it: the `requiredCredentials` field lists precisely which of `apiKey` / `secret` / `password` / `uid` / `walletAddress` / `privateKey` / `token` / `twofa` to provide. (Credentials only ever live in this file — no tool accepts or returns them.)
 
 Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKEY`, `OKX_PASSWORD`) fill missing credentials, and the `CCXT_MCP_EXCHANGE` / `CCXT_MCP_APIKEY` / `CCXT_MCP_SECRET` / `CCXT_MCP_SANDBOX` / `CCXT_MCP_TRADING` set defines a single account named `default`. The `accounts` map holds as many exchanges as you want.
 
