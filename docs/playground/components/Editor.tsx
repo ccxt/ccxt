@@ -67,7 +67,7 @@ export default function Editor({
         language={language.monaco}
         // Root-level file:// path so Monaco's TS module resolver can find the
         // virtual file:///node_modules/ccxt declarations for `import 'ccxt'`.
-        path={`file:///main.${language.ext}`}
+        path={`file:///main.${language.monacoExt ?? language.ext}`}
         theme={theme === "dark" ? "vs-dark" : "vs"}
         value={value}
         onChange={(v) => onChange(v ?? "")}

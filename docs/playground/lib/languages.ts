@@ -18,6 +18,11 @@ export type Language = {
   label: string;
   monaco: string;
   ext: string;
+  // Extension for the Monaco model URI when it must differ from `ext`. Monaco's
+  // TS worker picks the script kind off the file suffix and only knows
+  // ts/tsx/js/jsx — anything else falls back to JS when allowJs is on, which
+  // flags every type annotation as "can only be used in TypeScript files".
+  monacoExt?: string;
   hint: string;
   available: boolean;
   // Runnable languages not covered by the shared examples fall back to this.
@@ -45,7 +50,8 @@ export const languages: Language[] = [
     id: "ts",
     label: "TypeScript",
     monaco: "typescript",
-    ext: "mts",
+    ext: "mts", // the runner writes .mts so Node treats the snippet as ESM
+    monacoExt: "ts",
     hint: "Node.js native TypeScript",
     available: enabled("ts", true),
   },
