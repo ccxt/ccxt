@@ -34,7 +34,7 @@ export default class okxus extends okx {
                 'spot': true,
                 'margin': undefined,
                 'swap': true,
-                'future': false,
+                'future': true,
                 'option': false,
             },
             'features': {
