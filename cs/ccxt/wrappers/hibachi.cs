@@ -307,6 +307,12 @@ public partial class hibachi
     /// See <see href="https://api-doc.hibachi.xyz/#8ed24695-016e-49b2-a72d-7511ca921fee"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint

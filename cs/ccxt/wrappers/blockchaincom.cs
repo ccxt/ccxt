@@ -180,6 +180,12 @@ public partial class blockchaincom
     /// See <see href="https://api.blockchain.com/v3/#deleteallorders"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint

@@ -560,6 +560,12 @@ public partial class pacifica
     /// See <see href="https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : (optional) unified market symbol of the market to cancel orders in.
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint

@@ -406,6 +406,12 @@ public partial class apex
     /// See <see href="https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol of the market to cancel orders in
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint

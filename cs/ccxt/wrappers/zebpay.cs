@@ -408,6 +408,33 @@ public partial class zebpay
         var res = await this.cancelOrder(id, symbol, parameters);
         return new Order(res);
     }
+    /// <summary>
+    /// cancels all open orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="[Spot]"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified symbol of the market the orders were made in
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.timestamp</term>
+    /// <description>
+    /// int : the timestamp of the request in ms
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);

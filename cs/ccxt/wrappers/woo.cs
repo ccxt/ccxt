@@ -440,6 +440,12 @@ public partial class woo
     /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint

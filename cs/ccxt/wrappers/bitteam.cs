@@ -302,6 +302,12 @@ public partial class bitteam
     /// See <see href="https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelallorder"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
