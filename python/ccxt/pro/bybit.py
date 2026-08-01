@@ -2321,6 +2321,16 @@ class bybit(ccxt.async_support.bybit):
                 client.reject(error, authenticatedHash)
                 if authenticatedHash in client.subscriptions:
                     del client.subscriptions[authenticatedHash]
+                op = self.safe_string(message, 'op')
+                if (op is not None) and (op != 'auth'):
+                    # an operation response that carries no reqId, e.g. bybit
+                    # omits it on some permission rejections of trade ops,
+                    # would leave the awaiting future pending forever, and
+                    # since nothing on self client can proceed without
+                    # authentication, reject everything pending, mirroring the
+                    # behavior of unattributable non auth errors, see
+                    # https://github.com/ccxt/ccxt/issues/29361
+                    client.reject(error)
             else:
                 client.reject(error, messageHash)
             return True

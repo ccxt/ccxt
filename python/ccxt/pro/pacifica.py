@@ -77,7 +77,7 @@ class pacifica(ccxt.async_support.pacifica):
         if key is not None:
             headers['PF-API-KEY'] = key
         else:
-            if self.handle_option('setupApiKeyHeaders', 'apiKey', None) is not None:
+            if self.handle_option('setupApiKeyHeaders', 'apiKey') is not None:
                 headers['PF-API-KEY'] = self.options['apiKey']
         self.options['ws']['options']['headers'] = headers
 
@@ -276,7 +276,7 @@ class pacifica(ccxt.async_support.pacifica):
         ordersToReturn = []
         for i in range(0, len(results)):
             order = results[i]
-            error = self.safe_string(order, 'error', None)
+            error = self.safe_string(order, 'error')
             success = self.safe_bool(order, 'success', False)
             marketId = self.safe_string(order, 'symbol')
             market = self.safe_market(marketId)
@@ -1258,7 +1258,7 @@ class pacifica(ccxt.async_support.pacifica):
         #
         if self.handle_error_message(client, message):
             return
-        postType = self.safe_string(message, 'type', None)
+        postType = self.safe_string(message, 'type')
         topic = self.safe_string(message, 'channel', '')
         methods = {
             'pong': self.handle_pong,

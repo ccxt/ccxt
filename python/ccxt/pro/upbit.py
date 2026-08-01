@@ -311,7 +311,7 @@ class upbit(ccxt.async_support.upbit):
         #     stream_type: 'REALTIME'
         #   }
         marketId = self.safe_string(message, 'code')
-        symbol = self.safe_symbol(marketId, None)
+        symbol = self.safe_symbol(marketId)
         messageHash = 'candle.1s:' + symbol
         ohlcv = self.parse_ohlcv(message)
         client.resolve(ohlcv, messageHash)

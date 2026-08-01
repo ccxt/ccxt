@@ -1039,7 +1039,7 @@ class toobit(ccxt.async_support.toobit):
         return self.safe_position({
             'info': position,
             'id': None,
-            'symbol': self.safe_symbol(marketId, None),
+            'symbol': self.safe_symbol(marketId),
             'notional': self.omit_zero(self.safe_string(position, 'pv')),
             'marginMode': self.safe_string_lower(position, 'mt'),
             'liquidationPrice': self.safe_string(position, 'f'),

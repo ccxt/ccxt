@@ -1894,7 +1894,7 @@ class paradex(Exchange, ImplicitAPI):
         for i in range(0, len(results)):
             result = results[i]
             marketId = self.safe_string(result, 'market')
-            market = self.safe_market(marketId, None)
+            market = self.safe_market(marketId)
             status = self.safe_string(result, 'status')
             orderStatus = None
             if status == 'QUEUED_FOR_CANCELLATION':

@@ -311,7 +311,7 @@ class whitebit(ccxt.async_support.whitebit):
         #
         tickers = self.safe_value(message, 'params', [])
         marketId = self.safe_string(tickers, 0)
-        market = self.safe_market(marketId, None)
+        market = self.safe_market(marketId)
         symbol = market['symbol']
         rawTicker = self.safe_value(tickers, 1, {})
         messageHash = 'ticker' + ':' + symbol

@@ -1026,7 +1026,7 @@ class zebpay(Exchange, ImplicitAPI):
 
     def order_request(self, symbol, type, amount, request, price=None, params={}):
         upperCaseType = type.upper()
-        triggerPrice = self.safe_string(params, 'stopLossPrice', None)
+        triggerPrice = self.safe_string(params, 'stopLossPrice')
         quoteOrderQty = self.safe_string_2(params, 'quoteOrderQty', 'cost', None)
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
         clientOrderId = self.safe_string(params, 'clientOrderId', self.uuid())
@@ -1259,7 +1259,7 @@ class zebpay(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         status = self.safe_string_lower(order, 'status')
-        orderId = self.safe_string(order, 'orderId', None)
+        orderId = self.safe_string(order, 'orderId')
         parsedOrder = self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
