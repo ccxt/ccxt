@@ -115,14 +115,14 @@ the container's `/etc/hosts` and a non-root `/home/playground`, and a crash
 
 Live deploy is automated by [`.github/workflows/deploy-playground.yml`](../../.github/workflows/deploy-playground.yml)
 (modeled on the Fumadocs workflow, same box + secrets). On push to `master` under
-`docs/playground/**` (or manual dispatch) it: builds the arm64 image on a native
+`docs/playground/**` (or manual dispatch) it: builds the amd64 image on a native
 runner → pushes to `ghcr.io/ccxt/ccxt-playground` → SSHes to the docs box →
 runs a **canary** on a temp port → smoke-tests (homepage + a real `6*7→42` TypeScript
 run) → promotes to the live container only if green (else leaves the old one up).
 
 It's served behind the existing nginx as `location /playground` → the app's
 **static IP on the internal network** (`http://172.31.0.10:3000`), alongside the
-Fumadocs `/v2` and Docsify `/`. (Publishing a host port doesn't work on a Docker
+Fumadocs site at `/`. (Publishing a host port doesn't work on a Docker
 `internal` network, but the host can route *into* it — so nginx targets the
 container's fixed internal IP, and the container still has no route *out* except
 via the egress proxy.)
@@ -142,13 +142,6 @@ One-time box setup (already done on the current box):
 
 The deploy puts the app on the internal network behind the egress proxy and
 installs the nightly-restart cron automatically.
-
-> **Defense in depth on the box (optional):** the neighbor services on this host
-> (grafana `:3001`, prometheus `:9090`, benchmark `:3000/:3003`) are bound to
-> `0.0.0.0`. The egress proxy already denies the playground any route to them, but
-> rebinding those services to `127.0.0.1` (as the docs container already is) closes
-> the path for anything else on the box too. That change lives in those projects'
-> compose files, not here.
 
 ## Runtimes
 
