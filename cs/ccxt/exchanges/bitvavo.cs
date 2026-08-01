@@ -345,7 +345,7 @@ public partial class bitvavo : Exchange
                     { "230", typeof(ExchangeError) },
                     { "231", typeof(ExchangeError) },
                     { "232", typeof(BadRequest) },
-                    { "233", typeof(InvalidOrder) },
+                    { "233", typeof(OrderNotFound) },
                     { "234", typeof(InvalidOrder) },
                     { "235", typeof(ExchangeError) },
                     { "236", typeof(BadRequest) },

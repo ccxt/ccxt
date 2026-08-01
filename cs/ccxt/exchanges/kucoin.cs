@@ -577,7 +577,7 @@ public partial class kucoin : Exchange
                     { "order not exist", typeof(OrderNotFound) },
                     { "order not exist.", typeof(OrderNotFound) },
                     { "order_not_exist", typeof(OrderNotFound) },
-                    { "order_not_exist_or_not_allow_to_cancel", typeof(InvalidOrder) },
+                    { "order_not_exist_or_not_allow_to_cancel", typeof(OrderNotFound) },
                     { "Order size below the minimum requirement.", typeof(InvalidOrder) },
                     { "Order size increment invalid.", typeof(InvalidOrder) },
                     { "The withdrawal amount is below the minimum requirement.", typeof(ExchangeError) },

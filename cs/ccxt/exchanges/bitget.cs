@@ -5811,12 +5811,32 @@ public partial class bitget : Exchange
                 if (isTrue(hasStopLoss))
                 {
                     object slTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice");
+                    if (isTrue(isEqual(slTriggerPrice, null)))
+                    {
+                        throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter")) ;
+                    }
                     ((IDictionary<string,object>)request)["presetStopLossPrice"] = this.priceToPrecision(symbol, slTriggerPrice);
+                    object slLimitPrice = this.safeValue(stopLoss, "price");
+                    if (isTrue(!isEqual(slLimitPrice, null)))
+                    {
+                        // without the execute price the exchange fills the attached stop loss
+                        // at the market price, see https://github.com/ccxt/ccxt/issues/23459
+                        ((IDictionary<string,object>)request)["presetStopLossExecutePrice"] = this.priceToPrecision(symbol, slLimitPrice);
+                    }
                 }
                 if (isTrue(hasTakeProfit))
                 {
                     object tpTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice");
+                    if (isTrue(isEqual(tpTriggerPrice, null)))
+                    {
+                        throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter")) ;
+                    }
                     ((IDictionary<string,object>)request)["presetStopSurplusPrice"] = this.priceToPrecision(symbol, tpTriggerPrice);
+                    object tpLimitPrice = this.safeValue(takeProfit, "price");
+                    if (isTrue(!isEqual(tpLimitPrice, null)))
+                    {
+                        ((IDictionary<string,object>)request)["presetStopSurplusExecutePrice"] = this.priceToPrecision(symbol, tpLimitPrice);
+                    }
                 }
             }
             if (!isTrue(isStopLossOrTakeProfitTrigger))
