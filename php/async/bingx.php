@@ -5467,8 +5467,17 @@ class bingx extends Exchange {
         $currency = $this->safe_currency($currencyId, $currency);
         $code = $currency['code'];
         $address = $this->safe_string($depositAddress, 'addressWithPrefix');
-        $networkdId = $this->safe_string($depositAddress, 'network');
-        $networkCode = $this->network_id_to_code($networkdId, $code);
+        $networkId = $this->safe_string($depositAddress, 'network');
+        $networkCode = $this->network_id_to_code($networkId, $code);
+        // despite its name the addressWithPrefix field sometimes arrives without
+        // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
+        if ($address !== null) {
+            $isPrefixed = str_starts_with($address, '0x') || str_starts_with($address, '0X');
+            $evmNetworks = array( 'BEP20', 'BSC', 'ERC20', 'ETH', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'ARB', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB' );
+            if (!$isPrefixed && $this->in_array($networkCode, $evmNetworks)) {
+                $address = '0x' . $address;
+            }
+        }
         $this->check_address($address);
         return array(
             'info' => $depositAddress,
