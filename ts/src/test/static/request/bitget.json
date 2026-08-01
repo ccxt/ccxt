@@ -818,6 +818,23 @@
                 "output": "{\"orderId\":\"1113281809859813380\",\"size\":\"0.0002\",\"orderType\":\"limit\",\"triggerPrice\":28000,\"executePrice\":\"27000\"}"
             },
             {
+              "description": "Spot edit a market trigger order without a price, the execute price must not be sent",
+              "method": "editOrder",
+              "url": "https://api.bitget.com/api/v2/spot/trade/modify-plan-order",
+              "input": [
+                "1113281809859813380",
+                "BTC/USDT",
+                "market",
+                "sell",
+                0.0002,
+                null,
+                {
+                  "triggerPrice": 28000
+                }
+              ],
+              "output": "{\"orderId\":\"1113281809859813380\",\"size\":\"0.0002\",\"orderType\":\"market\",\"triggerPrice\":28000}"
+            },
+            {
                 "description": "Swap edit order",
                 "method": "editOrder",
                 "url": "https://api.bitget.com/api/v2/mix/order/modify-order",
