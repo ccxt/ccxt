@@ -5171,8 +5171,19 @@ public partial class bingx : Exchange
         currency = this.safeCurrency(currencyId, currency);
         object code = getValue(currency, "code");
         object address = this.safeString(depositAddress, "addressWithPrefix");
-        object networkdId = this.safeString(depositAddress, "network");
-        object networkCode = this.networkIdToCode(networkdId, code);
+        object networkId = this.safeString(depositAddress, "network");
+        object networkCode = this.networkIdToCode(networkId, code);
+        // despite its name the addressWithPrefix field sometimes arrives without
+        // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
+        if (isTrue(!isEqual(address, null)))
+        {
+            object isPrefixed = isTrue(((string)address).StartsWith(((string)"0x"))) || isTrue(((string)address).StartsWith(((string)"0X")));
+            object evmNetworks = new List<object>() {"BEP20", "BSC", "ERC20", "ETH", "HECO", "MATIC", "POLYGON", "ARBITRUM", "ARB", "OPTIMISM", "AVAXC", "BASE", "FTM", "LINEA", "ZKSYNC", "OPBNB"};
+            if (isTrue(!isTrue(isPrefixed) && isTrue(this.inArray(networkCode, evmNetworks))))
+            {
+                address = add("0x", address);
+            }
+        }
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
