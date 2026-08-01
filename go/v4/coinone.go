@@ -1120,7 +1120,7 @@ func (this *CoinoneCore) ParseOrder(order any, optionalArgs ...any) any {
 		var feeCurrencyCode any = Ternary(IsTrue((IsEqual(side, "sell"))), quote, base)
 		fee = map[string]any{
 			"cost":     feeCostString,
-			"rate":     this.SafeString(order, "feeRate"),
+			"rate":     this.SafeString2(order, "feeRate", "fee_rate"),
 			"currency": feeCurrencyCode,
 		}
 	}
@@ -1139,9 +1139,9 @@ func (this *CoinoneCore) ParseOrder(order any, optionalArgs ...any) any {
 		"price":              this.SafeString(order, "price"),
 		"triggerPrice":       nil,
 		"cost":               nil,
-		"average":            this.SafeString(order, "averageExecutedPrice"),
+		"average":            this.SafeString2(order, "averageExecutedPrice", "average_executed_price"),
 		"amount":             amountString,
-		"filled":             this.SafeString(order, "executedQty"),
+		"filled":             this.SafeString2(order, "executedQty", "executed_qty"),
 		"remaining":          remainingString,
 		"status":             status,
 		"fee":                fee,
