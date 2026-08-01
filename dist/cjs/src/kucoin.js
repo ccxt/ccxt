@@ -623,7 +623,7 @@ class kucoin extends kucoin$1["default"] {
                     'order not exist': errors.OrderNotFound,
                     'order not exist.': errors.OrderNotFound, // duplicated error temporarily
                     'order_not_exist': errors.OrderNotFound, // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
-                    'order_not_exist_or_not_allow_to_cancel': errors.InvalidOrder, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
+                    'order_not_exist_or_not_allow_to_cancel': errors.OrderNotFound, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}, same condition as the spaced variant above, see https://github.com/ccxt/ccxt/issues/24154
                     'Order size below the minimum requirement.': errors.InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
                     'Order size increment invalid.': errors.InvalidOrder, // {"msg":"Order size increment invalid.","code":"600100"}
                     'The withdrawal amount is below the minimum requirement.': errors.ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
