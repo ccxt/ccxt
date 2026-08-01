@@ -2369,12 +2369,14 @@ ${caseStatements.join('\n')}
         log.bright.green ('Transpiled successfully.');
     }
 
+    // default 1 worker thread (single warm Transpiler / Program). Override with
+    // CCXT_TRANSPILE_PROCESSES when you want a wider pool.
     goWorkerThreads () {
         const n = Number (process.env.CCXT_TRANSPILE_PROCESSES)
         if (n > 0) {
             return Math.floor (n)
         }
-        return Math.max (1, Math.min (4, os.availableParallelism ()))
+        return 1
     }
 
     async webworkerTranspile (allFiles: any[], parserConfig: any) {
