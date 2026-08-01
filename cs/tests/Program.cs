@@ -143,6 +143,7 @@ public class Tests
                 WsCacheTests();
                 WsOrderBookTests();
                 await WsFutureTests();
+                await WsDisconnectTests();
                 Helper.Green("[C#] base WS tests passed");
             }
             else
@@ -188,6 +189,12 @@ public class Tests
     {
         await baseTestInstance.testWsFuture();
         Helper.Green(" [C#] Future tests passed");
+    }
+
+    static async Task WsDisconnectTests()
+    {
+        await baseTestInstance.testWsDisconnect();
+        Helper.Green(" [C#] disconnect cleanup tests passed");
     }
 
     static void RaceConditionTests()

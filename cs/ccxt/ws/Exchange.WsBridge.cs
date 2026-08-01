@@ -57,14 +57,13 @@ public partial class BaseExchange
         foreach (var KeyValue in urlClient.subscriptions)
         {
             urlClient.subscriptions.Remove(KeyValue.Key);
-            Future existingFuture = null;
-            // remove instead of read, so two concurrent cleanup passes (the ping loop
-            // and the receive loop both failing at once) cannot pick up the same future
-            if ((urlClient.futures as ConcurrentDictionary<string, Future>).TryRemove(KeyValue.Key, out existingFuture))
-            {
-                existingFuture.reject(error);
-            }
         }
+        // futures are keyed by message hash while subscriptions are keyed by subscribe
+        // hash, and the two differ for most exchanges ('orders' vs 'orders::BTC/USDT'),
+        // so matching futures against subscription keys left every other watcher
+        // awaiting a future nobody would ever complete - reject them all, the way the
+        // js client does in Client.reset()
+        urlClient.reject(error);
     }
 
     public async virtual Task loadOrderBook(WebSocketClient client, object messageHash, object symbol, object limit = null, object parameters = null)
