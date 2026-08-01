@@ -1511,6 +1511,9 @@ export default class opinion extends Exchange {
             'walletAddress': this.safeString (response, 'walletAddress'),
         };
         this.options['apiKey'] = creds['apiKey'];
+        // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
+        // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
+        this.apiKey = creds['apiKey'] as string;
         return creds;
     }
 
