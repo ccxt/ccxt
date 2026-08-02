@@ -2917,7 +2917,10 @@ public class BullishCore extends BullishApi
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "availableQuantity"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "lockedQuantity"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }

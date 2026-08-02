@@ -351,7 +351,7 @@ public class BtcturkCore extends BtcturkApi
         final Object finalMinPrice = minPrice;
         final Object finalMaxPrice = maxPrice;
         final Object finalMinCost = minCost;
-        return new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
             put( "base", finalBase );
@@ -399,7 +399,7 @@ public class BtcturkCore extends BtcturkApi
             }} );
             put( "created", null );
             put( "info", entry );
-        }};
+        }});
     }
 
     public Object parseBalance(Object response)
@@ -419,7 +419,10 @@ public class BtcturkCore extends BtcturkApi
             Helpers.addElementToObject(account, "total", this.safeString(entry, "balance"));
             Helpers.addElementToObject(account, "free", this.safeString(entry, "free"));
             Helpers.addElementToObject(account, "used", this.safeString(entry, "locked"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -731,7 +734,12 @@ public class BtcturkCore extends BtcturkApi
             //     }
             //
             Object data = this.safeList(response, "data");
-            return this.parseTrades(data, market, since, limit);
+            Object dataList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(!Helpers.isEqual(data, null)))
+            {
+                dataList = data;
+            }
+            return this.parseTrades(dataList, market, since, limit);
         });
 
     }
@@ -927,7 +935,7 @@ public class BtcturkCore extends BtcturkApi
                 Helpers.addElementToObject(request, "newClientOrderId", this.uuid());
             }
             Object response = (this.privatePostOrder(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data");
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         });
 
@@ -1204,7 +1212,12 @@ public class BtcturkCore extends BtcturkApi
             //     }
             //
             Object data = this.safeList(response, "data");
-            return this.parseTrades(data, market, since, limit);
+            Object dataList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(!Helpers.isEqual(data, null)))
+            {
+                dataList = data;
+            }
+            return this.parseTrades(dataList, market, since, limit);
         });
 
     }

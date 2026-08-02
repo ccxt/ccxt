@@ -528,9 +528,12 @@ public class HollaexCore extends HollaexApi
             Object networkId = Helpers.GetValue(networkIds, j);
             Object networkEntry = this.safeDict(rawNetworks, networkId);
             Object networkCode = this.networkIdToCode(networkId, code);
-            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkCode = networkCode;
+                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
-    put( "network", networkCode );
+    put( "network", finalNetworkCode );
     put( "active", HollaexCore.this.safeBool(networkEntry, "active") );
     put( "deposit", null );
     put( "withdraw", null );
@@ -544,6 +547,7 @@ public class HollaexCore extends HollaexApi
     }} );
     put( "info", networkEntry );
 }});
+            }
         }
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -654,7 +658,7 @@ public class HollaexCore extends HollaexApi
             //         // ...
             //     }
             //
-            Object orderbook = this.safeValue(response, ((String)Helpers.GetValue(market, "id")));
+            Object orderbook = this.safeValue(response, Helpers.GetValue(market, "id"));
             Object timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp);
         });
@@ -860,7 +864,7 @@ public class HollaexCore extends HollaexApi
             //         ]
             //     }
             //
-            Object trades = this.safeList(response, ((String)Helpers.GetValue(market, "id")), new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object trades = this.safeList(response, Helpers.GetValue(market, "id"), new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         });
 
@@ -985,8 +989,8 @@ public class HollaexCore extends HollaexApi
             {
                 Object symbol = Helpers.GetValue(((Object)this.symbols), i);
                 Object market = this.market(symbol);
-                Object makerString = this.safeString(makerFees, ((String)Helpers.GetValue(market, "id")));
-                Object takerString = this.safeString(takerFees, ((String)Helpers.GetValue(market, "id")));
+                Object makerString = this.safeString(makerFees, Helpers.GetValue(market, "id"));
+                Object takerString = this.safeString(takerFees, Helpers.GetValue(market, "id"));
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", fees );
         put( "symbol", symbol );
@@ -1100,7 +1104,12 @@ public class HollaexCore extends HollaexApi
             put( "timestamp", timestamp );
             put( "datetime", HollaexCore.this.iso8601(timestamp) );
         }};
-        Object currencyIds = Helpers.objectKeys(this.currencies_by_id);
+        Object currenciesById = this.currencies_by_id;
+        if (Helpers.isTrue(Helpers.isEqual(currenciesById, null)))
+        {
+            throw new ExchangeError((String)Helpers.add(this.id, " currencies not loaded")) ;
+        }
+        Object currencyIds = Helpers.objectKeys(currenciesById);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -1108,7 +1117,10 @@ public class HollaexCore extends HollaexApi
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(response, Helpers.add(currencyId, "_available")));
             Helpers.addElementToObject(account, "total", this.safeString(response, Helpers.add(currencyId, "_balance")));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -2259,6 +2271,10 @@ public class HollaexCore extends HollaexApi
                 Object currencyId = this.safeString(value, "symbol");
                 Object currencyCode = this.safeCurrencyCode(currencyId);
                 Object networkCode = this.networkIdToCode(key, currencyCode);
+                if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a networkCode argument")) ;
+                }
                 Object networkCodeUpper = ((String)networkCode).toUpperCase(); // default to the upper case network code
                 Object withdrawalFee = this.safeNumber(value, "value");
                 Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCodeUpper, new java.util.HashMap<String, Object>() {{

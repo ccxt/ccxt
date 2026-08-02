@@ -201,7 +201,10 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
                 {
                     Helpers.addElementToObject(account, "used", used);
                 }
-                Helpers.addElementToObject(this.balance, code, account);
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(this.balance, code, account);
+                }
             }
         }
         this.balance = this.safeBalance(this.balance);
@@ -476,17 +479,22 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
 
     public Object findSwapMarketByWsBaseQuote(Object wsBaseQuote)
     {
-        Object symbols = Helpers.objectKeys(this.markets);
+        Object markets = this.markets;
+        if (Helpers.isTrue(Helpers.isEqual(markets, null)))
+        {
+            return null;
+        }
+        Object symbols = Helpers.objectKeys(markets);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
-            Object candidate = Helpers.GetValue(this.markets, Helpers.GetValue(symbols, i));
+            Object candidate = Helpers.GetValue(markets, Helpers.GetValue(symbols, i));
             if (!Helpers.isTrue(Helpers.GetValue(candidate, "swap")))
             {
                 continue;
             }
             Object baseId = this.safeStringLower(candidate, "baseId", "");
             Object quoteId = this.safeStringLower(candidate, "quoteId", "");
-            if (Helpers.isTrue(Helpers.isEqual(Helpers.add(((String)baseId), ((String)quoteId)), wsBaseQuote)))
+            if (Helpers.isTrue(Helpers.isEqual(Helpers.add(((String)baseId), quoteId), wsBaseQuote)))
             {
                 return candidate;
             }
@@ -979,7 +987,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
                 put( "BALANCE", "handleBalance");
                 put( "ORDER", "handleOrder");
             }};
-            Object handler = this.safeValue(handlers, ((String)eventVar));
+            Object handler = this.safeValue(handlers, eventVar);
             if (Helpers.isTrue(!Helpers.isEqual(handler, null)))
             {
                 Helpers.callDynamically(this, handler, new Object[] {client, message});

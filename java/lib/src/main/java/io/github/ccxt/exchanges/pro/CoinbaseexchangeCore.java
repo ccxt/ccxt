@@ -186,6 +186,10 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             {
                 (this.loadMarkets()).join();
             }
+            if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTickers() symbols is required")) ;
+            }
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
@@ -571,7 +575,10 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             {
                 Object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
                 tradesArray = new ArrayCache(((Number)tradesLimit).intValue());
-                Helpers.addElementToObject(this.trades, symbol, tradesArray);
+                if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                {
+                    Helpers.addElementToObject(this.trades, symbol, tradesArray);
+                }
             }
             Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
             client.resolve(tradesArray, messageHash);
@@ -799,6 +806,10 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             Object makerOrderId = this.safeString(message, "maker_order_id");
             Object takerOrderId = this.safeString(message, "taker_order_id");
             Object orders = this.orders;
+            if (Helpers.isTrue(Helpers.isEqual(orders, null)))
+            {
+                return;
+            }
             Object previousOrders = this.safeValue(((io.github.ccxt.ws.ArrayCache)orders).hashmap, symbol, new java.util.HashMap<String, Object>() {{}});
             Object previousOrder = this.safeValue(previousOrders, orderId);
             if (Helpers.isTrue(Helpers.isEqual(previousOrder, null)))
@@ -813,6 +824,10 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             } else
             {
                 Object sequence = this.safeInteger(message, "sequence");
+                if (Helpers.isTrue(Helpers.isEqual(sequence, null)))
+                {
+                    return;
+                }
                 Object previousInfo = this.safeValue(previousOrder, "info", new java.util.HashMap<String, Object>() {{}});
                 Object previousSequence = this.safeInteger(previousInfo, "sequence");
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(previousSequence, null))) || Helpers.isTrue((Helpers.isGreaterThan(sequence, previousSequence)))))
@@ -881,6 +896,10 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                             }
                         }
                         // update the newUpdates count
+                        if (Helpers.isTrue(Helpers.isEqual(orders, null)))
+                        {
+                            return;
+                        }
                         Helpers.callDynamically(orders, "append", new Object[]{previousOrder});
                         client.resolve(orders, messageHash);
                     }
@@ -973,7 +992,10 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         {
             Object ticker = this.parseTicker(message);
             Object symbol = Helpers.GetValue(ticker, "symbol");
-            Helpers.addElementToObject(this.tickers, symbol, ticker);
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                Helpers.addElementToObject(this.tickers, symbol, ticker);
+            }
             Object messageHash = Helpers.add("ticker:", symbol);
             Object idMessageHash = Helpers.add("ticker:", marketId);
             client.resolve(ticker, messageHash);
@@ -1115,7 +1137,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                 Object side = this.safeString(sides, key);
                 Object price = this.safeNumber(change, 1);
                 Object amount = this.safeNumber(change, 2);
-                Object bookside = Helpers.GetValue(orderbook, side);
+                Object bookside = this.safeValue(orderbook, side);
                 Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
             }
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);

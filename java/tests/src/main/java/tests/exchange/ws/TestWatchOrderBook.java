@@ -36,7 +36,7 @@ public class TestWatchOrderBook extends BaseTest {
                 // continue;
                 success = false;
             }
-            if (Helpers.isTrue(Helpers.isEqual(success, true)))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
             {
                 now = exchange.milliseconds();
                 TestOrderBook.testOrderBook(exchange, skippedProperties, method, response, symbol);

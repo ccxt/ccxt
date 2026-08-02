@@ -536,6 +536,10 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         // }
         //
         Object channel = this.safeString(message, "channel");
+        if (Helpers.isTrue(Helpers.isEqual(channel, null)))
+        {
+            return;
+        }
         Object marketId = this.safeString(message, "instrument_name");
         Object symbolSpecificMessageHash = this.safeString(message, "subscription");
         Object market = this.safeMarket(marketId);
@@ -779,7 +783,10 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             Object ticker = Helpers.GetValue(data, i);
             Object parsed = this.parseWsTicker(ticker, market);
             Object symbol = Helpers.GetValue(parsed, "symbol");
-            Helpers.addElementToObject(this.tickers, symbol, parsed);
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                Helpers.addElementToObject(this.tickers, symbol, parsed);
+            }
             client.resolve(parsed, messageHash);
         }
     }
@@ -892,7 +899,10 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         Object ticker = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
         Object parsedTicker = this.parseWsBidAsk(ticker);
         Object symbol = Helpers.GetValue(parsedTicker, "symbol");
-        Helpers.addElementToObject(this.bidsasks, symbol, parsedTicker);
+        if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+        {
+            Helpers.addElementToObject(this.bidsasks, symbol, parsedTicker);
+        }
         Object messageHash = Helpers.add("bidask.", symbol);
         client.resolve(parsedTicker, messageHash);
     }
@@ -1008,12 +1018,15 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         Object interval = this.safeString(message, "interval");
         Object timeframe = this.findTimeframe(interval);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(symbol, null)) && Helpers.isTrue(!Helpers.isEqual(timeframe, null))))
+            {
+                Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+            }
         }
         Object data = this.safeValue(message, "data");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
@@ -1162,6 +1175,10 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             symbols = this.marketSymbols(symbols);
             if (!Helpers.isTrue(this.isEmpty(symbols)))
             {
+                if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " watchPositions() symbols is required")) ;
+                }
                 messageHash = Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols));
             }
             Client client = this.client(url);
@@ -1213,7 +1230,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             {
                 Object position = Helpers.GetValue(positions, i);
                 Object contracts = this.safeNumber(position, "contracts", 0);
-                if (Helpers.isTrue(Helpers.isGreaterThan(contracts, 0)))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(contracts, null))) && Helpers.isTrue((Helpers.isGreaterThan(contracts, 0)))))
                 {
                     Helpers.callDynamically(cache, "append", new Object[]{position});
                 }
@@ -1369,7 +1386,10 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "quantity"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "reserved_qty"));
-            Helpers.addElementToObject(this.balance, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(this.balance, code, account);
+            }
             this.balance = this.safeBalance(this.balance);
         }
         client.resolve(this.balance, messageHash);

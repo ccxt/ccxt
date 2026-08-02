@@ -324,15 +324,20 @@ public class CryptomusCore extends CryptomusApi
         //     }
         //
         Object marketId = this.safeString(market, "symbol");
+        if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
+        {
+            throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
+        }
         Object parts = Helpers.split(marketId, "_");
         Object baseId = Helpers.GetValue(parts, 0);
         Object quoteId = Helpers.GetValue(parts, 1);
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
         Object fees = this.safeDict(this.fees, "trading");
+        final Object finalMarketId = marketId;
         final Object finalBase = base;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
-            put( "id", marketId );
+            put( "id", finalMarketId );
             put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
             put( "base", finalBase );
             put( "quote", quote );
@@ -446,9 +451,12 @@ public class CryptomusCore extends CryptomusApi
             }
             Object networkId = this.safeString(networkEntry, "network_code");
             Object networkCode = this.networkIdToCode(networkId, code);
-            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkCode = networkCode;
+                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
-    put( "network", networkCode );
+    put( "network", finalNetworkCode );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
             put( "min", CryptomusCore.this.safeNumber(networkEntry, "min_withdraw") );
@@ -466,6 +474,7 @@ public class CryptomusCore extends CryptomusApi
     put( "precision", null );
     put( "info", networkEntry );
 }});
+            }
         }
         final Object finalId = id;
         final Object finalCode = code;
@@ -657,7 +666,12 @@ public class CryptomusCore extends CryptomusApi
             //     }
             //
             Object data = this.safeList(response, "data");
-            return this.parseTrades(data, market, since, limit);
+            Object dataList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(!Helpers.isEqual(data, null)))
+            {
+                dataList = data;
+            }
+            return this.parseTrades(dataList, market, since, limit);
         });
 
     }
@@ -753,7 +767,10 @@ public class CryptomusCore extends CryptomusApi
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balanceEntry, "available"));
             Helpers.addElementToObject(account, "used", this.safeString(balanceEntry, "held"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }

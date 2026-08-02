@@ -558,10 +558,13 @@ public class ApexCore extends ApexApi
                 {
                     Object networkId = this.safeString(chain, "chainId");
                     Object networkCode = this.networkIdToCode(networkId, code);
-                    Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+                    if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+                    {
+                        final Object finalNetworkCode = networkCode;
+                        Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
-    put( "network", networkCode );
+    put( "network", finalNetworkCode );
     put( "active", null );
     put( "deposit", !Helpers.isTrue(ApexCore.this.safeBool(chain, "depositDisable")) );
     put( "withdraw", ApexCore.this.safeBool(token, "withdrawEnable") );
@@ -578,6 +581,7 @@ public class ApexCore extends ApexApi
         }} );
     }} );
 }});
+                    }
                 }
             }
         }
@@ -1411,7 +1415,7 @@ public class ApexCore extends ApexApi
             put( "TAKE_PROFIT_LIMIT", "limit" );
             put( "TAKE_PROFIT_MARKET", "market" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object safeMarket(Object... optionalArgs)
@@ -1422,24 +1426,26 @@ public class ApexCore extends ApexApi
         Object marketType = Helpers.getArg(optionalArgs, 3, null);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(market, null)) && Helpers.isTrue(!Helpers.isEqual(marketId, null))))
         {
-            if (Helpers.isTrue(Helpers.inOp(this.markets, marketId)))
+            Object marketsMap = this.markets;
+            Object marketsById = this.markets_by_id;
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketsMap, null))) && Helpers.isTrue((Helpers.inOp(marketsMap, marketId)))))
             {
-                market = Helpers.GetValue(this.markets, marketId);
-            } else if (Helpers.isTrue(Helpers.inOp(this.markets_by_id, marketId)))
+                market = Helpers.GetValue(marketsMap, marketId);
+            } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketsById, null))) && Helpers.isTrue((Helpers.inOp(marketsById, marketId)))))
             {
-                market = Helpers.GetValue(this.markets_by_id, marketId);
+                market = Helpers.GetValue(marketsById, marketId);
             } else
             {
                 Object newMarketId = this.addHyphenBeforeUsdt(marketId);
-                if (Helpers.isTrue(Helpers.inOp(this.markets_by_id, newMarketId)))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketsById, null))) && Helpers.isTrue((Helpers.inOp(marketsById, newMarketId)))))
                 {
-                    Object markets = Helpers.GetValue(this.markets_by_id, newMarketId);
+                    Object markets = Helpers.GetValue(marketsById, newMarketId);
                     Object numMarkets = Helpers.getArrayLength(markets);
                     if (Helpers.isTrue(Helpers.isGreaterThan(numMarkets, 0)))
                     {
-                        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.markets_by_id, newMarketId), 0), "id2"), marketId)))
+                        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(marketsById, newMarketId), 0), "id2"), marketId)))
                         {
-                            market = Helpers.GetValue(Helpers.GetValue(this.markets_by_id, newMarketId), 0);
+                            market = Helpers.GetValue(Helpers.GetValue(marketsById, newMarketId), 0);
                         }
                     }
                 }
@@ -1512,11 +1518,11 @@ public class ApexCore extends ApexApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side2, Object amount, Object... optionalArgs)
     {
-
+        final Object side3 = side2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+            Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1525,6 +1531,10 @@ public class ApexCore extends ApexApi
             }
             Object market = this.market(symbol);
             Object orderType = ((String)type).toUpperCase();
+            if (Helpers.isTrue(Helpers.isEqual(side, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+            }
             Object orderSide = ((String)side).toUpperCase();
             Object orderSize = this.amountToPrecision(symbol, amount);
             Object orderPrice = "0";
@@ -1691,7 +1701,8 @@ public class ApexCore extends ApexApi
             }
             Object tokenId = this.safeString(currency, "tokenId", "");
             Object decimalsNum = this.safeNumber(currency, "decimals", 0);
-            Object mathPowResult = (Helpers.mathPow(Double.parseDouble(Helpers.toString(10)), Double.parseDouble(Helpers.toString(decimalsNum))));
+            Object decimalsNumber = ((Helpers.isTrue((Helpers.isEqual(decimalsNum, null))))) ? 0 : decimalsNum;
+            Object mathPowResult = (Helpers.mathPow(Double.parseDouble(Helpers.toString(10)), Double.parseDouble(Helpers.toString(decimalsNumber))));
             Object amountNumber = this.parseToInt(Helpers.multiply(amount, mathPowResult));
             Object timestampSeconds = this.parseToInt(Helpers.divide(this.milliseconds(), 1000));
             Object clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientId", "clientOrderId", "client_order_id")));

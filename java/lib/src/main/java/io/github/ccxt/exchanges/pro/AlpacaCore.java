@@ -121,8 +121,11 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         Object ticker = this.parseTicker(message);
         Object symbol = Helpers.GetValue(ticker, "symbol");
         Object messageHash = Helpers.add("ticker:", symbol);
-        Helpers.addElementToObject(this.tickers, symbol, ticker);
-        client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
+        if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+        {
+            Helpers.addElementToObject(this.tickers, symbol, ticker);
+        }
+        client.resolve(ticker, messageHash);
     }
 
     public Object parseTicker(Object ticker, Object... optionalArgs)
@@ -638,6 +641,10 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
             myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object trade = this.parseMyTrade(rawOrder);
+        if (Helpers.isTrue(Helpers.isEqual(trade, null)))
+        {
+            return;
+        }
         Helpers.callDynamically(myTrades, "append", new Object[]{trade});
         Object messageHash = Helpers.add("myTrades:", Helpers.GetValue(trade, "symbol"));
         client.resolve(myTrades, messageHash);
@@ -688,6 +695,10 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         Object marketId = this.safeString(trade, "symbol");
         Object datetime = this.safeString(trade, "filled_at");
         Object type = this.safeString(trade, "type");
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            return null;
+        }
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "limit"), 0)))
         {
             // might be limit or stop-limit

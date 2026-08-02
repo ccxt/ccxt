@@ -155,7 +155,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                 Object splitHashes = Helpers.split(messageHash, ":");
                 Object symbol = this.safeString(splitHashes, 2);
                 Object timeframe = this.safeString(splitHashes, 3);
-                if (Helpers.isTrue(Helpers.inOp(this.ohlcvs, symbol)))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && Helpers.isTrue((!Helpers.isEqual(timeframe, null)))) && Helpers.isTrue((Helpers.inOp(this.ohlcvs, symbol)))))
                 {
                     if (Helpers.isTrue(Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), timeframe)))
                     {
@@ -181,16 +181,19 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                 if (Helpers.isTrue(Helpers.isEqual(messageHash, "unsubscribe:orders")))
                 {
                     Object cache = this.orders;
-                    Object keys = Helpers.objectKeys(cache);
-                    for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(keys)); j++)
+                    if (Helpers.isTrue(!Helpers.isEqual(cache, null)))
                     {
-                        Object symbol = Helpers.GetValue(keys, j);
-                        ((java.util.Map<String,Object>)this.orders).remove((String)symbol);
+                        Object keys = Helpers.objectKeys(cache);
+                        for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(keys)); j++)
+                        {
+                            Object symbol = Helpers.GetValue(keys, j);
+                            ((java.util.Map<String,Object>)cache).remove((String)symbol);
+                        }
                     }
                 } else
                 {
                     Object symbol = Helpers.replace((String)messageHash, (String)"unsubscribe:orders:", (String)"");
-                    if (Helpers.isTrue(Helpers.inOp(this.orders, symbol)))
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.orders, null))) && Helpers.isTrue((Helpers.inOp(this.orders, symbol)))))
                     {
                         ((java.util.Map<String,Object>)this.orders).remove((String)symbol);
                     }
@@ -383,7 +386,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object microseconds = this.safeInteger(ticker, "E");
+        Object microseconds = this.safeInteger(ticker, "E", 0);
         Object timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
         Object marketId = this.safeString(ticker, "s");
         market = this.safeMarket(marketId, market);
@@ -530,7 +533,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object marketId = this.safeString(ticker, "s");
         market = this.safeMarket(marketId, market);
         Object symbol = this.safeString(market, "symbol");
-        Object microseconds = this.safeInteger(ticker, "E");
+        Object microseconds = this.safeInteger(ticker, "E", 0);
         Object timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
         Object ask = this.safeString(ticker, "a");
         Object askVolume = this.safeString(ticker, "A");
@@ -717,9 +720,9 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object marketId = this.safeString(data, "s");
         Object market = this.market(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object stream = this.safeString(message, "stream");
+        Object stream = this.safeString(message, "stream", "");
         Object parts = Helpers.split(stream, ".");
-        Object timeframe = this.safeString(parts, 1);
+        Object timeframe = this.safeString(parts, 1, "");
         if (!Helpers.isTrue((Helpers.inOp(this.ohlcvs, symbol))))
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}});
@@ -947,7 +950,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object microseconds = this.safeInteger(trade, "E");
+        Object microseconds = this.safeInteger(trade, "E", 0);
         Object timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
         Object id = this.safeString(trade, "t");
         Object marketId = this.safeString(trade, "s");
@@ -1160,7 +1163,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             }
             ((java.util.List<Object>)((java.util.List<Object>)Helpers.GetValue(storedOrderBook, "cache"))).add(data);
             return;
-        } else if (Helpers.isTrue(Helpers.isGreaterThan(nonce, deltaNonce)))
+        } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(deltaNonce, null))) && Helpers.isTrue((Helpers.isGreaterThan(nonce, deltaNonce)))))
         {
             return;
         }
@@ -1198,6 +1201,14 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object firstDelta = this.safeDict(cache, 0);
         Object nonce = this.safeInteger(orderbook, "nonce");
         Object firstDeltaStart = this.safeInteger(firstDelta, "U");
+        if (Helpers.isTrue(Helpers.isEqual(nonce, null)))
+        {
+            return Helpers.getArrayLength(cache);
+        }
+        if (Helpers.isTrue(Helpers.isEqual(firstDeltaStart, null)))
+        {
+            return Helpers.opNeg(1);
+        }
         if (Helpers.isTrue(Helpers.isLessThan(nonce, Helpers.subtract(firstDeltaStart, 1))))
         {
             return Helpers.opNeg(1);
@@ -1207,6 +1218,10 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             Object delta = Helpers.GetValue(cache, i);
             Object deltaStart = this.safeInteger(delta, "U");
             Object deltaEnd = this.safeInteger(delta, "u");
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(deltaStart, null))) || Helpers.isTrue((Helpers.isEqual(deltaEnd, null)))))
+            {
+                return Helpers.getArrayLength(cache);
+            }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThanOrEqual(nonce, Helpers.subtract(deltaStart, 1)))) && Helpers.isTrue((Helpers.isLessThan(nonce, deltaEnd)))))
             {
                 return i;
@@ -1376,7 +1391,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = this.safeString(order, "i");
         Object clientOrderId = this.safeString(order, "c");
-        Object microseconds = this.safeInteger(order, "E");
+        Object microseconds = this.safeInteger(order, "E", 0);
         Object timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
         Object status = this.parseWsOrderStatus(this.safeString(order, "X"), market);
         Object marketId = this.safeString(order, "s");
@@ -1574,7 +1589,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         }
         Object cache = this.positions;
         Object parsedPosition = this.parseWsPosition(data);
-        Object microseconds = this.safeInteger(data, "E");
+        Object microseconds = this.safeInteger(data, "E", 0);
         Object timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
         Helpers.addElementToObject(parsedPosition, "timestamp", timestamp);
         Helpers.addElementToObject(parsedPosition, "datetime", this.iso8601(timestamp));
@@ -1609,8 +1624,9 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = this.safeString(position, "i");
         Object marketId = this.safeString(position, "s");
-        market = this.safeMarket(marketId, market);
-        Object symbol = Helpers.GetValue(market, "symbol");
+        Object marketResolved = this.safeMarket(marketId, market);
+        market = marketResolved;
+        Object symbol = Helpers.GetValue(marketResolved, "symbol");
         Object notional = this.safeString(position, "n");
         Object liquidationPrice = this.safeString(position, "l");
         Object entryPrice = this.safeString(position, "b");
@@ -1621,16 +1637,18 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object netQuantity = this.safeNumber(position, "q");
         Object hedged = false;
         Object side = "long";
-        if (Helpers.isTrue(Helpers.isLessThan(netQuantity, 0)))
+        if (Helpers.isTrue(!Helpers.isEqual(netQuantity, null)))
         {
-            side = "short";
-        }
-        if (Helpers.isTrue(Helpers.isEqual(netQuantity, null)))
+            if (Helpers.isTrue(Helpers.isLessThan(netQuantity, 0)))
+            {
+                side = "short";
+            }
+        } else
         {
             hedged = null;
             side = null;
         }
-        Object microseconds = this.safeInteger(position, "E");
+        Object microseconds = this.safeInteger(position, "E", 0);
         Object timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
         Object maintenanceMarginPercentage = this.safeNumber(position, "m");
         Object initialMarginPercentage = this.safeNumber(position, "f");

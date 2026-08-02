@@ -287,6 +287,10 @@ public class MercadoCore extends MercadoApi
                 Object quoteId = "BRL";
                 Object base = this.safeCurrencyCode(baseId);
                 Object quote = this.safeCurrencyCode(quoteId);
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || Helpers.isTrue((Helpers.isEqual(quote, null)))))
+                {
+                    continue;
+                }
                 Object id = Helpers.add(quote, base);
     final Object finalBase = base;
                 final Object finalQuote = quote;
@@ -560,7 +564,10 @@ public class MercadoCore extends MercadoApi
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
                 Helpers.addElementToObject(account, "total", this.safeString(balance, "total"));
-                Helpers.addElementToObject(result, code, account);
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(result, code, account);
+                }
             }
         }
         return this.safeBalance(result);

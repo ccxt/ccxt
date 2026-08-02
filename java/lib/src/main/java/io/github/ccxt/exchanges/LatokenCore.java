@@ -440,16 +440,21 @@ public class LatokenCore extends LatokenApi
                 {
                     Object base = this.safeCurrencyCode(this.safeString(baseCurrencyInfo, "tag"));
                     Object quote = this.safeCurrencyCode(this.safeString(quoteCurrencyInfo, "tag"));
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || Helpers.isTrue((Helpers.isEqual(quote, null)))))
+                    {
+                        continue;
+                    }
                     Object lowercaseQuote = ((String)quote).toLowerCase();
                     Object capitalizedQuote = this.capitalize(lowercaseQuote);
                     Object status = this.safeString(market, "status");
     final Object finalBase = base;
+                    final Object finalQuote = quote;
                     final Object finalStatus = status;
                                     ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                         put( "id", id );
-                        put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
+                        put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), finalQuote) );
                         put( "base", finalBase );
-                        put( "quote", quote );
+                        put( "quote", finalQuote );
                         put( "settle", null );
                         put( "baseId", baseId );
                         put( "quoteId", quoteId );
@@ -656,7 +661,10 @@ public class LatokenCore extends LatokenApi
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
                 Helpers.addElementToObject(account, "used", this.safeString(balance, "blocked"));
-                Helpers.addElementToObject(result, code, account);
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(result, code, account);
+                }
             }
             Helpers.addElementToObject(result, "timestamp", maxTimestamp);
             Helpers.addElementToObject(result, "datetime", this.iso8601(maxTimestamp));
@@ -927,7 +935,7 @@ public class LatokenCore extends LatokenApi
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        if (Helpers.isTrue(Helpers.inOp(this.markets, symbol)))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.markets, null))) && Helpers.isTrue((Helpers.inOp(this.markets, symbol)))))
         {
             market = this.market(symbol);
         }
@@ -1264,7 +1272,7 @@ public class LatokenCore extends LatokenApi
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(base, null))) && Helpers.isTrue((!Helpers.isEqual(quote, null)))))
         {
             symbol = Helpers.add(Helpers.add(base, "/"), quote);
-            if (Helpers.isTrue(Helpers.inOp(this.markets, symbol)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.markets, null))) && Helpers.isTrue((Helpers.inOp(this.markets, symbol)))))
             {
                 market = this.market(symbol);
             }
@@ -1563,11 +1571,11 @@ public class LatokenCore extends LatokenApi
      * @param {string} [params.clientOrderId] [ 0 .. 50 ] characters, client's custom order id (free field for your convenience)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side2, Object amount, Object... optionalArgs)
     {
-
+        final Object side3 = side2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+            Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1576,11 +1584,16 @@ public class LatokenCore extends LatokenApi
             }
             Object market = this.market(symbol);
             Object uppercaseType = ((String)type).toUpperCase();
+            if (Helpers.isTrue(Helpers.isEqual(side, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+            }
+            final Object finalSide = side;
             final Object finalUppercaseType = uppercaseType;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "baseCurrency", Helpers.GetValue(market, "baseId") );
                 put( "quoteCurrency", Helpers.GetValue(market, "quoteId") );
-                put( "side", ((String)side).toUpperCase() );
+                put( "side", ((String)finalSide).toUpperCase() );
                 put( "condition", "GTC" );
                 put( "type", finalUppercaseType );
                 put( "clientOrderId", LatokenCore.this.uuid() );
@@ -1883,7 +1896,7 @@ public class LatokenCore extends LatokenApi
             put( "TRANSACTION_TYPE_DEPOSIT", "deposit" );
             put( "TRANSACTION_TYPE_WITHDRAWAL", "withdrawal" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     /**

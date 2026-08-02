@@ -299,7 +299,7 @@ public class DeltaCore extends DeltaApi
         final Object finalOptionType = optionType;
         final Object finalBase = base;
         final Object finalExpiry = expiry;
-        return new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(finalOptionType, "-"), finalBase), "-"), strike), "-"), finalExpiry) );
             put( "symbol", Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(finalBase, "/"), quote), ":"), settle), "-"), finalExpiry), "-"), strike), "-"), finalOptionType) );
             put( "base", finalBase );
@@ -342,7 +342,7 @@ public class DeltaCore extends DeltaApi
                 }} );
             }} );
             put( "info", null );
-        }};
+        }});
     }
 
     public Object safeMarket(Object... optionalArgs)
@@ -352,7 +352,7 @@ public class DeltaCore extends DeltaApi
         Object delimiter = Helpers.getArg(optionalArgs, 2, null);
         Object marketType = Helpers.getArg(optionalArgs, 3, null);
         Object isOption = Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((((String)marketId).endsWith(((String)"-C")))) || Helpers.isTrue((((String)marketId).endsWith(((String)"-P"))))) || Helpers.isTrue((((String)marketId).startsWith(((String)"C-"))))) || Helpers.isTrue((((String)marketId).startsWith(((String)"P-"))))));
-        if (Helpers.isTrue(Helpers.isTrue(isOption) && !Helpers.isTrue((Helpers.inOp(this.markets_by_id, marketId)))))
+        if (Helpers.isTrue(Helpers.isTrue(isOption) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(this.markets_by_id, null))) || !Helpers.isTrue((Helpers.inOp(this.markets_by_id, marketId)))))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -544,9 +544,12 @@ public class DeltaCore extends DeltaApi
             Object chain = Helpers.GetValue(chains, j);
             Object networkId = this.safeString(chain, "network");
             Object networkCode = this.networkIdToCode(networkId, code);
-            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkCode = networkCode;
+                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
-    put( "network", networkCode );
+    put( "network", finalNetworkCode );
     put( "name", DeltaCore.this.safeString(chain, "name") );
     put( "info", chain );
     put( "active", Helpers.isEqual(DeltaCore.this.safeString(chain, "status"), "enabled") );
@@ -564,6 +567,7 @@ public class DeltaCore extends DeltaApi
         }} );
     }} );
 }});
+            }
         }
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -915,7 +919,7 @@ public class DeltaCore extends DeltaApi
                 final Object finalState = state;
                 final Object finalOptionType = optionType;
                 final Object finalAmountPrecision = amountPrecision;
-                            ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
+                            ((java.util.List<Object>)result).add(this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                     put( "numericId", numericId );
                     put( "symbol", finalSymbol );
@@ -966,7 +970,7 @@ public class DeltaCore extends DeltaApi
                     }} );
                     put( "created", DeltaCore.this.parse8601(DeltaCore.this.safeString(market, "launch_time")) );
                     put( "info", market );
-                }});
+                }}));
             }
             return result;
         });
@@ -1434,7 +1438,10 @@ public class DeltaCore extends DeltaApi
                 }
                 Object ticker = this.parseTicker(rawTicker);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
-                Helpers.addElementToObject(result, symbol, ticker);
+                if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                {
+                    Helpers.addElementToObject(result, symbol, ticker);
+                }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         });
@@ -1705,6 +1712,10 @@ public class DeltaCore extends DeltaApi
             {
                 Object end = ((Helpers.isTrue(untilIsDefined))) ? until : this.seconds();
                 Helpers.addElementToObject(request, "end", end);
+                if (Helpers.isTrue(Helpers.isEqual(end, null)))
+                {
+                    throw new ExchangeError((String)Helpers.add(this.id, " fetchOHLCV() missing end")) ;
+                }
                 Helpers.addElementToObject(request, "start", Helpers.subtract(end, Helpers.multiply(limit, duration)));
             } else
             {
@@ -2226,7 +2237,12 @@ public class DeltaCore extends DeltaApi
             }};
             if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
             {
-                Helpers.addElementToObject(request, "size", Helpers.parseInt(this.amountToPrecision(symbol, amount)));
+                Object sizeString = this.amountToPrecision(symbol, amount);
+                if (Helpers.isTrue(Helpers.isEqual(sizeString, null)))
+                {
+                    sizeString = "0";
+                }
+                Helpers.addElementToObject(request, "size", Helpers.parseInt(sizeString));
             }
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
             {
@@ -2250,7 +2266,7 @@ public class DeltaCore extends DeltaApi
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result");
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
         });
 
@@ -2320,7 +2336,7 @@ public class DeltaCore extends DeltaApi
             //         "success":true
             //     }
             //
-            Object result = this.safeDict(response, "result");
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
         });
 
@@ -2704,7 +2720,7 @@ public class DeltaCore extends DeltaApi
             put( "referral_bonus", "referral" );
             put( "commission_rebate", "rebate" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseLedgerEntry(Object item, Object... optionalArgs)

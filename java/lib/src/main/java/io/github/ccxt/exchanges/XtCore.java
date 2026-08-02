@@ -873,10 +873,13 @@ public class XtCore extends XtApi
                     Object rawNetwork = Helpers.GetValue(rawNetworks, j);
                     Object networkId = this.safeString(rawNetwork, "chain");
                     Object networkCode = this.networkIdToCode(networkId, code);
-                    Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+                    if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+                    {
+                        final Object finalNetworkCode = networkCode;
+                        Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
         put( "info", rawNetwork );
         put( "id", networkId );
-        put( "network", networkCode );
+        put( "network", finalNetworkCode );
         put( "name", null );
         put( "active", null );
         put( "fee", XtCore.this.safeNumber(rawNetwork, "withdrawFeeAmount") );
@@ -898,6 +901,7 @@ public class XtCore extends XtApi
             }} );
         }} );
     }});
+                    }
                 }
                 Object typeRaw = this.safeString(entry, "type");
                 Object type = null;
@@ -908,11 +912,14 @@ public class XtCore extends XtApi
                 {
                     type = "other";
                 }
-                final Object finalType = type;
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    final Object finalCode = code;
+                    final Object finalType = type;
+                    Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", currencyId );
-        put( "code", code );
+        put( "code", finalCode );
         put( "name", XtCore.this.safeString(entry, "fullName") );
         put( "active", null );
         put( "fee", null );
@@ -936,6 +943,7 @@ public class XtCore extends XtApi
             }} );
         }} );
     }}));
+                }
             }
             return result;
         });
@@ -1873,7 +1881,10 @@ public class XtCore extends XtApi
             {
                 Object ticker = this.parseTicker(Helpers.GetValue(tickers, i), market);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
-                Helpers.addElementToObject(result, symbol, ticker);
+                if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                {
+                    Helpers.addElementToObject(result, symbol, ticker);
+                }
             }
             return this.filterByArray(result, "symbol", symbols);
         });
@@ -2593,7 +2604,10 @@ public class XtCore extends XtApi
             Helpers.addElementToObject(account, "free", free);
             Helpers.addElementToObject(account, "used", used);
             Helpers.addElementToObject(account, "total", total);
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -3589,7 +3603,7 @@ public class XtCore extends XtApi
                 orders = this.safeList(resultDict, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             } else
             {
-                orders = this.safeList(response, "result");
+                orders = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             }
             return this.parseOrders(orders, market, since, limit);
         });
@@ -3895,7 +3909,7 @@ public class XtCore extends XtApi
             //         "result": true
             //     }
             //
-            return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(response)));
+            return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(((Object)response))));
         });
 
     }
@@ -3948,7 +3962,7 @@ public class XtCore extends XtApi
             //         "result": null
             //     }
             //
-            return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(response)));
+            return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(((Object)response))));
         });
 
     }
@@ -4305,7 +4319,7 @@ public class XtCore extends XtApi
             put( "FEE", "fee" );
             put( "ADL", "auto-deleveraging" );
         }};
-        return this.safeString(ledgerType, type, type);
+        return this.safeString(ledgerType, ((String)type), type);
     }
 
     /**
@@ -5476,7 +5490,7 @@ final Object finalMarket = market;
                     return this.parsePosition(entry, marketInner);
                 }
             }
-            return null;
+            throw new NullResponse((String)Helpers.add(Helpers.add(this.id, " fetchPosition() could not find a position for "), symbol)) ;
         });
 
     }
@@ -5954,9 +5968,17 @@ final Object finalMarket = market;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(payload, "/v4/order"))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/order/create")))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/entrust/create-plan")))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/entrust/create-profit")))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/order/create-batch")))))
             {
                 Object id = "CCXT";
+                if (Helpers.isTrue(Helpers.isEqual(body, null)))
+                {
+                    throw new NullResponse((String)Helpers.add(this.id, " sign() returned empty body")) ;
+                }
                 if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(payload, "future"), Helpers.opNeg(1))))
                 {
                     Helpers.addElementToObject(body, "clientMedia", id);
+                    if (Helpers.isTrue(Helpers.isEqual(body, null)))
+                    {
+                        throw new NullResponse((String)Helpers.add(this.id, " sign() returned empty body")) ;
+                    }
                 } else
                 {
                     Helpers.addElementToObject(body, "media", id);

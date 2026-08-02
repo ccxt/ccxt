@@ -297,7 +297,7 @@ public class HibachiCore extends HibachiApi
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
         Object created = this.safeIntegerProduct(market, "marketCreationTimestamp", 1000);
         final Object finalBase = base;
-        return new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", marketId );
             put( "numericId", numericId );
             put( "symbol", symbol );
@@ -346,7 +346,7 @@ public class HibachiCore extends HibachiApi
             }} );
             put( "created", created );
             put( "info", market );
-        }};
+        }});
     }
 
     /**
@@ -421,11 +421,14 @@ public class HibachiCore extends HibachiApi
     put( "info", new java.util.HashMap<String, Object>() {{}} );
 }});
         Object code = this.safeCurrencyCode("USDT");
-        Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+        if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+        {
+            final Object finalCode = code;
+            Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
     put( "id", "USDT" );
     put( "name", "USDT" );
     put( "type", "fiat" );
-    put( "code", code );
+    put( "code", finalCode );
     put( "precision", HibachiCore.this.parseNumber("0.000001") );
     put( "active", true );
     put( "fee", null );
@@ -444,6 +447,7 @@ public class HibachiCore extends HibachiApi
     }} );
     put( "info", new java.util.HashMap<String, Object>() {{}} );
 }}));
+        }
         return result;
     }
 
@@ -457,7 +461,10 @@ public class HibachiCore extends HibachiApi
         Object account = this.account();
         Helpers.addElementToObject(account, "total", this.safeString(response, "balance"));
         Helpers.addElementToObject(account, "free", this.safeString(response, "maximalWithdraw"));
-        Helpers.addElementToObject(result, code, account);
+        if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+        {
+            Helpers.addElementToObject(result, code, account);
+        }
         return this.safeBalance(result);
     }
 
@@ -661,7 +668,12 @@ public class HibachiCore extends HibachiApi
             // }
             //
             Object trades = this.safeList(response, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            return this.parseTrades(trades, market);
+            Object tradesList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(!Helpers.isEqual(trades, null)))
+            {
+                tradesList = trades;
+            }
+            return this.parseTrades(tradesList, market);
         });
 
     }
@@ -890,9 +902,10 @@ public class HibachiCore extends HibachiApi
             Object makerFeeRate = this.safeNumber(response, "tradeMakerFeeRate");
             Object takerFeeRate = this.safeNumber(response, "tradeTakerFeeRate");
             Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+            Object symbols = this.symbols;
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                Object symbol = Helpers.GetValue(this.symbols, i);
+                Object symbol = Helpers.GetValue(symbols, i);
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
@@ -909,6 +922,14 @@ public class HibachiCore extends HibachiApi
     public Object orderMessage(Object market, Object nonce, Object feeRate, Object type, Object side, Object amount, Object... optionalArgs)
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+        }
         Object sideInternal = 0;
         if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
         {
@@ -965,8 +986,20 @@ public class HibachiCore extends HibachiApi
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+        }
         Object market = this.market(symbol);
-        Object feeRate = Helpers.mathMax(this.safeNumber(market, "taker", this.safeNumber(this.options, "defaultTakerFee", 0.00045)), this.safeNumber(market, "maker", this.safeNumber(this.options, "defaultMakerFee", 0.00015)));
+        Object takerFee = this.safeNumber(market, "taker", this.safeNumber(this.options, "defaultTakerFee", 0.00045));
+        Object makerFee = this.safeNumber(market, "maker", this.safeNumber(this.options, "defaultMakerFee", 0.00015));
+        Object takerFeeValue = ((Helpers.isTrue((Helpers.isEqual(takerFee, null))))) ? 0 : takerFee;
+        Object makerFeeValue = ((Helpers.isTrue((Helpers.isEqual(makerFee, null))))) ? 0 : makerFee;
+        Object feeRate = Helpers.mathMax(takerFeeValue, makerFeeValue);
         Object sideInternal = "";
         if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
         {
@@ -983,12 +1016,13 @@ public class HibachiCore extends HibachiApi
         Object message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         Object signature = this.signMessage(message, this.privateKey);
         final Object finalSideInternal = sideInternal;
+        final Object finalType = type;
         final Object finalPriceInternal = priceInternal;
         Object request = new java.util.HashMap<String, Object>() {{
             put( "symbol", HibachiCore.this.safeString(market, "id") );
             put( "nonce", nonce );
             put( "side", finalSideInternal );
-            put( "orderType", ((String)type).toUpperCase() );
+            put( "orderType", ((String)finalType).toUpperCase() );
             put( "quantity", HibachiCore.this.amountToPrecision(symbol, amount) );
             put( "price", finalPriceInternal );
             put( "signature", signature );
@@ -1120,8 +1154,20 @@ public class HibachiCore extends HibachiApi
         Object amount = Helpers.getArg(optionalArgs, 0, null);
         Object price = Helpers.getArg(optionalArgs, 1, null);
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+        }
         Object market = this.market(symbol);
-        Object feeRate = Helpers.mathMax(this.safeNumber(market, "taker"), this.safeNumber(market, "maker"));
+        Object takerFee = this.safeNumber(market, "taker", 0);
+        Object makerFee = this.safeNumber(market, "maker", 0);
+        Object takerFeeValue = ((Helpers.isTrue((Helpers.isEqual(takerFee, null))))) ? 0 : takerFee;
+        Object makerFeeValue = ((Helpers.isTrue((Helpers.isEqual(makerFee, null))))) ? 0 : makerFee;
+        Object feeRate = Helpers.mathMax(takerFeeValue, makerFeeValue);
         Object message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         Object signature = this.signMessage(message, this.privateKey);
         Object request = new java.util.HashMap<String, Object>() {{
@@ -1635,7 +1681,12 @@ public class HibachiCore extends HibachiApi
             // }
             //
             Object trades = this.safeList(response, "trades");
-            return this.parseTrades(trades, market, since, limit, parameters);
+            Object tradesList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(!Helpers.isEqual(trades, null)))
+            {
+                tradesList = trades;
+            }
+            return this.parseTrades(tradesList, market, since, limit, parameters);
         });
 
     }
@@ -2133,7 +2184,7 @@ public class HibachiCore extends HibachiApi
             put( "transfer-in", "transfer" );
             put( "transfer-out", "transfer" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseTransactionStatus(Object status)
@@ -2307,7 +2358,7 @@ public class HibachiCore extends HibachiApi
             //     ]
             // }
             //
-            Object rowsCapitalHistory = this.safeList(responseCapitalHistory, "transactions");
+            Object rowsCapitalHistory = this.safeList(responseCapitalHistory, "transactions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object responseTradingHistory = Helpers.GetValue(promises, 1);
             //
             // {
@@ -2335,7 +2386,7 @@ public class HibachiCore extends HibachiApi
             //     ]
             // }
             //
-            Object rowsTradingHistory = this.safeList(responseTradingHistory, "tradingHistory");
+            Object rowsTradingHistory = this.safeList(responseTradingHistory, "tradingHistory", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rows = this.arrayConcat(rowsCapitalHistory, rowsTradingHistory);
             return this.parseLedger(rows, currency, since, limit, parameters);
         });

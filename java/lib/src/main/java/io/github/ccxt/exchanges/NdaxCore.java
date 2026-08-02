@@ -481,9 +481,9 @@ public class NdaxCore extends NdaxApi
                     throw new AuthenticationError((String)Helpers.add(this.id, " signIn() requires exchange.twofa credentials")) ;
                 }
                 Helpers.addElementToObject(this.options, "pending2faToken", pending2faToken);
-                request = ((Object)new java.util.HashMap<String, Object>() {{
+                request = new java.util.HashMap<String, Object>() {{
                     put( "Code", totp(NdaxCore.this.twofa) );
-                }});
+                }};
                 Object responseInner = (this.publicGetAuthenticate2FA(this.extend(request, parameters))).join();
                 //
                 //     {
@@ -665,7 +665,7 @@ public class NdaxCore extends NdaxApi
         Object sessionRunning = (Helpers.isEqual(sessionStatus, "Running"));
         final Object finalBase = base;
         final Object finalSessionRunning = sessionRunning;
-        return new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
             put( "base", finalBase );
@@ -713,7 +713,7 @@ public class NdaxCore extends NdaxApi
             }} );
             put( "created", null );
             put( "info", market );
-        }};
+        }});
     }
 
     public Object parseOrderBook(Object orderbook, Object symbol, Object... optionalArgs)
@@ -1389,13 +1389,16 @@ public class NdaxCore extends NdaxApi
         {
             Object balance = Helpers.GetValue(response, i);
             Object currencyId = this.safeString(balance, "ProductId");
-            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(currencyId, null))) && Helpers.isTrue((Helpers.inOp(this.currencies_by_id, currencyId)))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(currencyId, null))) && Helpers.isTrue((!Helpers.isEqual(this.currencies_by_id, null)))) && Helpers.isTrue((Helpers.inOp(this.currencies_by_id, currencyId)))))
             {
                 Object code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "total", this.safeString(balance, "Amount"));
                 Helpers.addElementToObject(account, "used", this.safeString(balance, "Hold"));
-                Helpers.addElementToObject(result, code, account);
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(result, code, account);
+                }
             }
         }
         return this.safeBalance(result);
@@ -1487,7 +1490,7 @@ public class NdaxCore extends NdaxApi
             put( "MarginRelinquish", "trade" );
             put( "MarginQuoteHold", "trade" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseLedgerEntry(Object item, Object... optionalArgs)
@@ -1800,7 +1803,12 @@ public class NdaxCore extends NdaxApi
             // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
             {
-                Helpers.addElementToObject(request, "LimitPrice", Helpers.parseFloat(this.priceToPrecision(symbol, price)));
+                Object limitPriceString = this.priceToPrecision(symbol, price);
+                if (Helpers.isTrue(Helpers.isEqual(limitPriceString, null)))
+                {
+                    limitPriceString = "0";
+                }
+                Helpers.addElementToObject(request, "LimitPrice", Helpers.parseFloat(limitPriceString));
             }
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
@@ -1872,7 +1880,12 @@ public class NdaxCore extends NdaxApi
             // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
             {
-                Helpers.addElementToObject(request, "LimitPrice", Helpers.parseFloat(this.priceToPrecision(symbol, price)));
+                Object limitPriceString = this.priceToPrecision(symbol, price);
+                if (Helpers.isTrue(Helpers.isEqual(limitPriceString, null)))
+                {
+                    limitPriceString = "0";
+                }
+                Helpers.addElementToObject(request, "LimitPrice", Helpers.parseFloat(limitPriceString));
             }
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {

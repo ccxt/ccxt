@@ -388,7 +388,10 @@ public class IndependentreserveCore extends IndependentreserveApi
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "AvailableBalance"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "TotalBalance"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -979,15 +982,19 @@ public class IndependentreserveCore extends IndependentreserveApi
                 Object currencyId = this.safeString(fee, "CurrencyCode");
                 Object code = this.safeCurrencyCode(currencyId);
                 Object tradingFee = this.safeNumber(fee, "Fee");
-                Helpers.addElementToObject(fees, code, new java.util.HashMap<String, Object>() {{
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(fees, code, new java.util.HashMap<String, Object>() {{
         put( "info", fee );
         put( "fee", tradingFee );
     }});
+                }
             }
             Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+            Object symbols = this.symbols;
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                Object symbol = Helpers.GetValue(this.symbols, i);
+                Object symbol = Helpers.GetValue(symbols, i);
                 Object market = this.market(symbol);
                 Object fee = this.safeValue(fees, Helpers.GetValue(market, "base"), new java.util.HashMap<String, Object>() {{}});
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{

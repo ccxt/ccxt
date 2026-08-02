@@ -510,6 +510,10 @@ public class DeribitCore extends DeribitApi
             settle = base;
         }
         Object splitBase = base;
+        if (Helpers.isTrue(Helpers.isEqual(base, null)))
+        {
+            throw new ExchangeError((String)Helpers.add(this.id, " createExpiredOptionMarket() missing base")) ;
+        }
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(base, "_"), Helpers.opNeg(1))))
         {
             Object splitSymbol = Helpers.split(base, "_");
@@ -578,7 +582,7 @@ public class DeribitCore extends DeribitApi
         Object delimiter = Helpers.getArg(optionalArgs, 2, null);
         Object marketType = Helpers.getArg(optionalArgs, 3, null);
         Object isOption = Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((Helpers.isTrue((((String)marketId).endsWith(((String)"-C")))) || Helpers.isTrue((((String)marketId).endsWith(((String)"-P"))))));
-        if (Helpers.isTrue(Helpers.isTrue(isOption) && !Helpers.isTrue((Helpers.inOp(this.markets_by_id, marketId)))))
+        if (Helpers.isTrue(Helpers.isTrue(isOption) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(this.markets_by_id, null))) || !Helpers.isTrue((Helpers.inOp(this.markets_by_id, marketId)))))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -982,8 +986,20 @@ public class DeribitCore extends DeribitApi
                     Object settle = this.safeCurrencyCode(settleId);
                     Object settlementPeriod = this.safeValue(market, "settlement_period");
                     Object swap = (Helpers.isEqual(settlementPeriod, "perpetual"));
+                    if (Helpers.isTrue(Helpers.isEqual(kind, null)))
+                    {
+                        throw new ExchangeError((String)Helpers.add(this.id, " method() missing kind")) ;
+                    }
                     Object future = !Helpers.isTrue(swap) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(kind, "future"), 0)));
+                    if (Helpers.isTrue(Helpers.isEqual(kind, null)))
+                    {
+                        throw new ExchangeError((String)Helpers.add(this.id, " method() missing kind")) ;
+                    }
                     Object option = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(kind, "option"), 0));
+                    if (Helpers.isTrue(Helpers.isEqual(kind, null)))
+                    {
+                        throw new ExchangeError((String)Helpers.add(this.id, " method() missing kind")) ;
+                    }
                     Object isComboMarket = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(kind, "combo"), 0);
                     Object expiry = this.safeInteger(market, "expiration_timestamp");
                     Object strike = null;
@@ -1027,7 +1043,10 @@ public class DeribitCore extends DeribitApi
                     {
                         continue;
                     }
-                    Helpers.addElementToObject(parsedMarkets, symbol, true);
+                    if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                    {
+                        Helpers.addElementToObject(parsedMarkets, symbol, true);
+                    }
                     Object minTradeAmount = this.safeNumber(market, "min_trade_amount");
                     Object tickSize = this.safeNumber(market, "tick_size");
     final Object finalSymbol = symbol;
@@ -1106,7 +1125,7 @@ public class DeribitCore extends DeribitApi
         Object summaries = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.inOp(balance, "summaries")))
         {
-            summaries = this.safeList(balance, "summaries");
+            summaries = this.safeList(balance, "summaries", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         } else
         {
             summaries = new java.util.ArrayList<Object>(java.util.Arrays.asList(balance));
@@ -1120,7 +1139,10 @@ public class DeribitCore extends DeribitApi
             Helpers.addElementToObject(account, "free", this.safeString(data, "available_funds"));
             Helpers.addElementToObject(account, "used", this.safeString(data, "maintenance_margin"));
             Helpers.addElementToObject(account, "total", this.safeString(data, "equity"));
-            Helpers.addElementToObject(result, currencyCode, account);
+            if (Helpers.isTrue(!Helpers.isEqual(currencyCode, null)))
+            {
+                Helpers.addElementToObject(result, currencyCode, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -1555,7 +1577,10 @@ public class DeribitCore extends DeribitApi
             {
                 Object ticker = this.parseTicker(Helpers.GetValue(result, i));
                 Object symbol = Helpers.GetValue(ticker, "symbol");
-                Helpers.addElementToObject(tickers, symbol, ticker);
+                if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                {
+                    Helpers.addElementToObject(tickers, symbol, ticker);
+                }
             }
             return this.filterByArrayTickers(tickers, "symbol", symbols);
         });
@@ -1947,9 +1972,10 @@ public class DeribitCore extends DeribitApi
                 }
             }
             Object parsedFees = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+            Object symbols = this.symbols;
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                Object symbol = Helpers.GetValue(this.symbols, i);
+                Object symbol = Helpers.GetValue(symbols, i);
                 Object market = this.market(symbol);
                 Object fee = new java.util.HashMap<String, Object>() {{
                     put( "info", market );
@@ -3777,6 +3803,10 @@ public class DeribitCore extends DeribitApi
             if (Helpers.isTrue(Helpers.inOp(parameters, "isDeribitPaginationCall")))
             {
                 parameters = this.omit(parameters, "isDeribitPaginationCall");
+                if (Helpers.isTrue(Helpers.isEqual(limit, null)))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a limit argument")) ;
+                }
                 Object maxUntil = this.sum(since, Helpers.multiply(limit, duration));
                 Helpers.addElementToObject(request, "end_timestamp", Helpers.mathMin(Helpers.GetValue(request, "end_timestamp"), maxUntil));
             }

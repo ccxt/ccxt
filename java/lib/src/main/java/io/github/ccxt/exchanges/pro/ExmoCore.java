@@ -142,6 +142,10 @@ public class ExmoCore extends io.github.ccxt.exchanges.Exmo
         //     }
         //
         Object topic = this.safeString(message, "topic");
+        if (Helpers.isTrue(Helpers.isEqual(topic, null)))
+        {
+            return;
+        }
         Object parts = Helpers.split(topic, "/");
         Object type = this.safeString(parts, 0);
         if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
@@ -186,7 +190,10 @@ public class ExmoCore extends io.github.ccxt.exchanges.Exmo
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(balances, currencyId));
                 Helpers.addElementToObject(account, "used", this.safeString(reserved, currencyId));
-                Helpers.addElementToObject(this.balance, code, account);
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(this.balance, code, account);
+                }
             }
         } else if (Helpers.isTrue(Helpers.isEqual(eventVar, "update")))
         {
@@ -195,7 +202,10 @@ public class ExmoCore extends io.github.ccxt.exchanges.Exmo
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(data, "balance"));
             Helpers.addElementToObject(account, "used", this.safeString(data, "reserved"));
-            Helpers.addElementToObject(this.balance, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(this.balance, code, account);
+            }
         }
         this.balance = this.safeBalance(this.balance);
     }
@@ -228,7 +238,10 @@ public class ExmoCore extends io.github.ccxt.exchanges.Exmo
             Helpers.addElementToObject(account, "free", this.safeString(wallet, "free"));
             Helpers.addElementToObject(account, "used", this.safeString(wallet, "used"));
             Helpers.addElementToObject(account, "total", this.safeString(wallet, "balance"));
-            Helpers.addElementToObject(this.balance, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(this.balance, code, account);
+            }
             this.balance = this.safeBalance(this.balance);
         }
     }
@@ -331,6 +344,10 @@ public class ExmoCore extends io.github.ccxt.exchanges.Exmo
         //      }
         //
         Object topic = this.safeString(message, "topic");
+        if (Helpers.isTrue(Helpers.isEqual(topic, null)))
+        {
+            return;
+        }
         Object topicParts = Helpers.split(topic, ":");
         Object marketId = this.safeString(topicParts, 1);
         Object symbol = this.safeSymbol(marketId);
@@ -398,6 +415,10 @@ public class ExmoCore extends io.github.ccxt.exchanges.Exmo
         //      }
         //
         Object topic = this.safeString(message, "topic");
+        if (Helpers.isTrue(Helpers.isEqual(topic, null)))
+        {
+            return;
+        }
         Object parts = Helpers.split(topic, ":");
         Object marketId = this.safeString(parts, 1);
         Object symbol = this.safeSymbol(marketId);
@@ -532,6 +553,10 @@ public class ExmoCore extends io.github.ccxt.exchanges.Exmo
         //     }
         //
         Object topic = this.safeString(message, "topic");
+        if (Helpers.isTrue(Helpers.isEqual(topic, null)))
+        {
+            return;
+        }
         Object parts = Helpers.split(topic, "/");
         Object type = this.safeString(parts, 0);
         Object messageHash = Helpers.add("myTrades:", type);
@@ -561,7 +586,10 @@ public class ExmoCore extends io.github.ccxt.exchanges.Exmo
         {
             Object trade = Helpers.GetValue(trades, j);
             Helpers.callDynamically(myTrades, "append", new Object[]{trade});
-            Helpers.addElementToObject(symbols, Helpers.GetValue(trade, "symbol"), true);
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(trade, "symbol"), null)))
+            {
+                Helpers.addElementToObject(symbols, Helpers.GetValue(trade, "symbol"), true);
+            }
         }
         Object symbolKeys = Helpers.objectKeys(symbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolKeys)); i++)
@@ -646,6 +674,10 @@ public class ExmoCore extends io.github.ccxt.exchanges.Exmo
         //     }
         //
         Object topic = this.safeString(message, "topic");
+        if (Helpers.isTrue(Helpers.isEqual(topic, null)))
+        {
+            return;
+        }
         Object parts = Helpers.split(topic, ":");
         Object marketId = this.safeString(parts, 1);
         Object symbol = this.safeSymbol(marketId);
@@ -799,6 +831,10 @@ public class ExmoCore extends io.github.ccxt.exchanges.Exmo
         // }
         //
         Object topic = this.safeString(message, "topic");
+        if (Helpers.isTrue(Helpers.isEqual(topic, null)))
+        {
+            return;
+        }
         Object parts = Helpers.split(topic, "/");
         Object type = this.safeString(parts, 0);
         Object messageHash = Helpers.add("orders:", type);
@@ -823,7 +859,10 @@ public class ExmoCore extends io.github.ccxt.exchanges.Exmo
         {
             Object order = this.parseWsOrder(Helpers.GetValue(rawOrders, j));
             Helpers.callDynamically(cachedOrders, "append", new Object[]{order});
-            Helpers.addElementToObject(symbols, Helpers.GetValue(order, "symbol"), true);
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(order, "symbol"), null)))
+            {
+                Helpers.addElementToObject(symbols, Helpers.GetValue(order, "symbol"), true);
+            }
         }
         Object symbolKeys = Helpers.objectKeys(symbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolKeys)); i++)

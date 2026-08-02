@@ -749,9 +749,10 @@ public class CoinexCore extends CoinexApi
                 continue;
             }
             final Object finalNetworkId = networkId;
+            final Object finalNetworkCode = networkCode;
             Object network = new java.util.HashMap<String, Object>() {{
                 put( "id", finalNetworkId );
-                put( "network", networkCode );
+                put( "network", finalNetworkCode );
                 put( "name", null );
                 put( "active", null );
                 put( "deposit", CoinexCore.this.safeBool(chain, "deposit_enabled") );
@@ -774,7 +775,10 @@ public class CoinexCore extends CoinexApi
                 }} );
                 put( "info", chain );
             }};
-            Helpers.addElementToObject(networks, networkCode, network);
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                Helpers.addElementToObject(networks, networkCode, network);
+            }
         }
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", currencyId );
@@ -1750,7 +1754,10 @@ public class CoinexCore extends CoinexApi
                 Object baseDebt = this.safeString(loan, "base_ccy");
                 Object baseInterest = this.safeString(interest, "base_ccy");
                 Helpers.addElementToObject(baseAccount, "debt", Precise.stringAdd(baseDebt, baseInterest));
-                Helpers.addElementToObject(result, baseCurrencyCode, baseAccount);
+                if (Helpers.isTrue(!Helpers.isEqual(baseCurrencyCode, null)))
+                {
+                    Helpers.addElementToObject(result, baseCurrencyCode, baseAccount);
+                }
             }
             return this.safeBalance(result);
         });
@@ -1793,7 +1800,10 @@ public class CoinexCore extends CoinexApi
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
                 Helpers.addElementToObject(account, "used", this.safeString(entry, "frozen"));
-                Helpers.addElementToObject(result, code, account);
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(result, code, account);
+                }
             }
             return this.safeBalance(result);
         });
@@ -1839,7 +1849,10 @@ public class CoinexCore extends CoinexApi
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
                 Helpers.addElementToObject(account, "used", this.safeString(entry, "frozen"));
-                Helpers.addElementToObject(result, code, account);
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(result, code, account);
+                }
             }
             return this.safeBalance(result);
         });
@@ -1882,7 +1895,10 @@ public class CoinexCore extends CoinexApi
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
                 Helpers.addElementToObject(account, "used", this.safeString(entry, "frozen"));
-                Helpers.addElementToObject(result, code, account);
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(result, code, account);
+                }
             }
             return this.safeBalance(result);
         });
@@ -2263,6 +2279,14 @@ public class CoinexCore extends CoinexApi
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+        }
         Object market = this.market(symbol);
         Object swap = Helpers.GetValue(market, "swap");
         Object clientOrderId = this.safeString2(parameters, "client_id", "clientOrderId");
@@ -2814,7 +2838,10 @@ public class CoinexCore extends CoinexApi
                 Object rawOrder = Helpers.GetValue(orders, i);
                 Object marketId = this.safeString(rawOrder, "symbol");
                 Object market = this.market(marketId);
-                ((java.util.List<Object>)orderSymbols).add(marketId);
+                if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
+                {
+                    ((java.util.List<Object>)orderSymbols).add(marketId);
+                }
                 Object id = this.safeString(rawOrder, "id");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
@@ -4009,7 +4036,7 @@ final Object finalI = i;
             //         "message": "OK"
             //     }
             //
-            Object data = this.safeDict(response, "data");
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object status = this.safeStringLower(response, "message");
             Object type = ((Helpers.isTrue((Helpers.isEqual(addOrReduce, "reduce"))))) ? "reduce" : "add";
             return this.extend(this.parseMarginModification(data, market), new java.util.HashMap<String, Object>() {{
@@ -5522,7 +5549,10 @@ final Object finalI = i;
                 Object code = this.safeCurrencyCode(currencyId);
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(codes, null)) || Helpers.isTrue(this.inArray(code, codes))))
                 {
-                    Helpers.addElementToObject(result, code, this.parseDepositWithdrawFee(item));
+                    if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                    {
+                        Helpers.addElementToObject(result, code, this.parseDepositWithdrawFee(item));
+                    }
                 }
             }
             return result;
@@ -5590,7 +5620,9 @@ final Object finalI = i;
                     Object currencyId = this.safeString(asset, "ccy");
                     Object feeCode = this.safeCurrencyCode(currencyId, currency);
                     Object networkCode = this.networkIdToCode(networkId, feeCode);
-                    Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new java.util.HashMap<String, Object>() {{
+                    if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+                    {
+                        Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "withdraw", new java.util.HashMap<String, Object>() {{
         put( "fee", CoinexCore.this.safeNumber(entry, "withdrawal_fee") );
         put( "percentage", false );
@@ -5600,6 +5632,7 @@ final Object finalI = i;
         put( "percentage", null );
     }} );
 }});
+                    }
                 }
             }
         }

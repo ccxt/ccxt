@@ -459,9 +459,11 @@ public class GeminiCore extends GeminiApi
         if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
         {
             networkCode = this.networkIdToCode(networkId, code);
-            final Object finalNetworkId = networkId;
-            final Object finalNetworkCode = networkCode;
-            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkId = networkId;
+                final Object finalNetworkCode = networkCode;
+                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "info", rawCurrency );
     put( "id", finalNetworkId );
     put( "network", finalNetworkCode );
@@ -481,6 +483,7 @@ public class GeminiCore extends GeminiApi
         }} );
     }} );
 }});
+            }
         }
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "info", rawCurrency );
@@ -897,7 +900,7 @@ public class GeminiCore extends GeminiApi
         final Object finalTickSize = tickSize;
         final Object finalAmountPrecision = amountPrecision;
         final Object finalMinSize = minSize;
-        return new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", finalMarketId );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
@@ -945,7 +948,7 @@ public class GeminiCore extends GeminiApi
             }} );
             put( "created", null );
             put( "info", response );
-        }};
+        }});
     }
 
     /**
@@ -1178,8 +1181,8 @@ public class GeminiCore extends GeminiApi
         Object last = this.safeString2(ticker, "last", "close", price);
         Object percentage = this.safeString(ticker, "percentChange24h");
         Object open = this.safeString(ticker, "open");
-        Object baseVolume = this.safeString(volume, ((String)baseId));
-        Object quoteVolume = this.safeString(volume, ((String)quoteId));
+        Object baseVolume = this.safeString(volume, baseId);
+        Object quoteVolume = this.safeString(volume, quoteId);
         final Object finalSymbol = symbol;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", finalSymbol );
@@ -1380,7 +1383,10 @@ public class GeminiCore extends GeminiApi
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "amount"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -1439,9 +1445,10 @@ public class GeminiCore extends GeminiApi
             Object maker = this.parseNumber(makerString);
             Object taker = this.parseNumber(takerString);
             Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+            Object symbols = this.symbols;
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                Object symbol = Helpers.GetValue(this.symbols, i);
+                Object symbol = Helpers.GetValue(symbols, i);
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
@@ -2225,7 +2232,7 @@ public class GeminiCore extends GeminiApi
             var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
             networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
-            Object networkGroup = this.indexBy(this.safeValue(groupedByNetwork, ((String)networkCode)), "currency");
+            Object networkGroup = this.indexBy(this.safeValue(groupedByNetwork, networkCode), "currency");
             return this.safeValue(networkGroup, code);
         });
 

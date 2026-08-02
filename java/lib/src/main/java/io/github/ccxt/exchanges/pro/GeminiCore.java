@@ -72,11 +72,16 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("trades:", Helpers.GetValue(market, "symbol"));
             Object marketId = Helpers.GetValue(market, "id");
+            if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTrades() marketId is required")) ;
+            }
+            final Object finalMarketId = marketId;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "subscribe" );
                 put( "subscriptions", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
         put( "name", "l2" );
-        put( "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(((String)marketId).toUpperCase())) );
+        put( "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(((String)finalMarketId).toUpperCase())) );
     }})) );
             }};
             Object subscribeHash = Helpers.add("l2:", Helpers.GetValue(market, "symbol"));
@@ -205,7 +210,10 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             stored = new ArrayCache(((Number)tradesLimit).intValue());
-            Helpers.addElementToObject(this.trades, symbol, stored);
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                Helpers.addElementToObject(this.trades, symbol, stored);
+            }
         }
         Helpers.callDynamically(stored, "append", new Object[]{trade});
         Object messageHash = Helpers.add("trades:", symbol);
@@ -395,12 +403,15 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}});
         }
-        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(symbol, null)) && Helpers.isTrue(!Helpers.isEqual(timeframe, null))))
+            {
+                Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+            }
         }
         Object changesLength = Helpers.getArrayLength(changes);
         // reverse order of array to store candles in ascending order
@@ -439,11 +450,16 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
             Object marketId = Helpers.GetValue(market, "id");
+            if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrderBook() marketId is required")) ;
+            }
+            final Object finalMarketId = marketId;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "subscribe" );
                 put( "subscriptions", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
         put( "name", "l2" );
-        put( "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(((String)marketId).toUpperCase())) );
+        put( "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(((String)finalMarketId).toUpperCase())) );
     }})) );
             }};
             Object subscribeHash = Helpers.add("l2:", Helpers.GetValue(market, "symbol"));
@@ -1032,6 +1048,10 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             Object ts = this.safeInteger(message, "timestampms", this.milliseconds());
             Object eventId = this.safeInteger(message, "eventId");
             Object events = this.safeList(message, "events");
+            if (Helpers.isTrue(Helpers.isEqual(events, null)))
+            {
+                return;
+            }
             Object orderBookItems = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object bidaskItems = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object collectedEventsOfTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1079,6 +1099,10 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = this.safeString(parameters, "url");
+            if (Helpers.isTrue(Helpers.isEqual(url, null)))
+            {
+                return null;
+            }
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.clients, null))) && Helpers.isTrue((Helpers.inOp(this.clients, url)))))
             {
                 return null;
@@ -1086,7 +1110,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             this.checkRequiredCredentials();
             Object startIndex = Helpers.getArrayLength(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"));
             Object urlParamsIndex = Helpers.getIndexOf(url, "?");
-            Object urlLength = Helpers.getArrayLength(url);
+            Object urlLength = ((String)url).length();
             Object endIndex = ((Helpers.isTrue((Helpers.isGreaterThanOrEqual(urlParamsIndex, 0))))) ? urlParamsIndex : urlLength;
             Object request = Helpers.slice(url, startIndex, endIndex);
             Object payload = new java.util.HashMap<String, Object>() {{

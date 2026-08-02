@@ -269,6 +269,10 @@ public class ZaifCore extends ZaifApi
     {
         Object id = this.safeString(market, "currency_pair");
         Object name = this.safeString(market, "name");
+        if (Helpers.isTrue(Helpers.isEqual(name, null)))
+        {
+            throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing name")) ;
+        }
         var baseIdquoteIdVariable = Helpers.split(name, "/");
         var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
         var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
@@ -276,7 +280,7 @@ public class ZaifCore extends ZaifApi
         Object quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         final Object finalBase = base;
-        return new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", symbol );
             put( "base", finalBase );
@@ -324,7 +328,7 @@ public class ZaifCore extends ZaifApi
             }} );
             put( "created", null );
             put( "info", market );
-        }};
+        }});
     }
 
     public Object parseBalance(Object response)
@@ -353,7 +357,10 @@ public class ZaifCore extends ZaifApi
                     Helpers.addElementToObject(account, "total", this.safeString(deposit, currencyId));
                 }
             }
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -671,7 +678,7 @@ public class ZaifCore extends ZaifApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "return");
+            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(data);
         });
 
@@ -868,7 +875,7 @@ public class ZaifCore extends ZaifApi
             //         }
             //     }
             //
-            Object returnData = this.safeDict(result, "return");
+            Object returnData = this.safeDict(result, "return", new java.util.HashMap<String, Object>() {{}});
             return this.parseTransaction(returnData, currency);
         });
 

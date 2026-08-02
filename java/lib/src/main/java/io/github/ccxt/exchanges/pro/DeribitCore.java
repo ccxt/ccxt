@@ -172,7 +172,10 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Object currencyId = this.safeString(data, "currency");
         Object currencyCode = this.safeCurrencyCode(currencyId);
         Object balance = this.parseBalance(data);
-        Helpers.addElementToObject(this.balance, currencyCode, balance);
+        if (Helpers.isTrue(!Helpers.isEqual(currencyCode, null)))
+        {
+            Helpers.addElementToObject(this.balance, currencyCode, balance);
+        }
         Object messageHash = "balance";
         client.resolve(this.balance, messageHash);
     }
@@ -703,7 +706,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                 descriptor = Helpers.add(Helpers.add(Helpers.add(Helpers.add(group, "."), depth), "."), interval);
             } else
             {
-                descriptor = ((String)interval);
+                descriptor = interval;
             }
             Object orderbook = (this.watchMultipleWrapper("book", descriptor, symbols, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
@@ -1053,7 +1056,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Object timeframes = this.safeDict(wsOptions, "timeframes", new java.util.HashMap<String, Object>() {{}});
         Object unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-        if (Helpers.isTrue(Helpers.isEqual(this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)unifiedTimeframe)), null)))
+        if (Helpers.isTrue(Helpers.isEqual(this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), unifiedTimeframe), null)))
         {
             Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)unifiedTimeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
@@ -1105,8 +1108,16 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             Object isOHLCV = (Helpers.isEqual(channelName, "chart.trades"));
             Object symbols = ((Helpers.isTrue(isOHLCV))) ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
             this.marketSymbols(symbols, null, false);
+            if (Helpers.isTrue(Helpers.isEqual(symbolsArray, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMultipleWrapper() symbolsArray is required")) ;
+            }
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsArray)); i++)
             {
+                if (Helpers.isTrue(Helpers.isEqual(symbolsArray, null)))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMultipleWrapper() symbolsArray is required")) ;
+                }
                 Object current = Helpers.GetValue(symbolsArray, i);
                 Object market = null;
                 if (Helpers.isTrue(isOHLCV))
@@ -1226,9 +1237,9 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                 put( "book", "handleOrderBook");
                 put( "trades", "handleTrades");
                 put( "chart", "handleOHLCV");
-                put( "user", DeribitCore.this.safeValue(userHandlers, ((String)DeribitCore.this.safeString(parts, 1))) );
+                put( "user", DeribitCore.this.safeValue(userHandlers, DeribitCore.this.safeString(parts, 1)) );
             }};
-            Object handler = this.safeValue(handlers, ((String)channelId));
+            Object handler = this.safeValue(handlers, channelId);
             if (Helpers.isTrue(!Helpers.isEqual(handler, null)))
             {
                 Helpers.callDynamically(this, handler, new Object[] {client, message});

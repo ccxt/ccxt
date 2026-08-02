@@ -239,7 +239,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             Object timeframeId = this.safeString(message, "kbar");
             Object timeframe = this.findTimeframe(timeframeId, timeframes);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-            Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
+            Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
                 Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -257,7 +257,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             Object parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parse8601(datetime), this.safeNumber(rawOHLCV, "o"), this.safeNumber(rawOHLCV, "h"), this.safeNumber(rawOHLCV, "l"), this.safeNumber(rawOHLCV, "c"), this.safeNumber(rawOHLCV, "v")));
             Object timeframe = this.findTimeframe(timeframeId, timeframes);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-            Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
+            Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
                 Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -690,6 +690,10 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             myOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object order = this.parseWsOrder(message);
+        if (Helpers.isTrue(Helpers.isEqual(myOrders, null)))
+        {
+            return;
+        }
         Helpers.callDynamically(myOrders, "append", new Object[]{order});
         this.orders = myOrders;
         client.resolve(myOrders, "orders");
@@ -861,7 +865,10 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         Helpers.addElementToObject(account, "free", this.safeString(data, "free"));
         Helpers.addElementToObject(account, "used", this.safeString(data, "freeze"));
         Helpers.addElementToObject(account, "total", this.safeString(data, "asset"));
-        Helpers.addElementToObject(this.balance, code, account);
+        if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+        {
+            Helpers.addElementToObject(this.balance, code, account);
+        }
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, "balance");
     }
@@ -1089,7 +1096,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             put( "orderUpdate", "handleOrders");
             put( "assetUpdate", "handleBalance");
         }};
-        Object handler = this.safeValue(handlers, ((String)type));
+        Object handler = this.safeValue(handlers, type);
         if (Helpers.isTrue(!Helpers.isEqual(handler, null)))
         {
             Helpers.callDynamically(this, handler, new Object[] {client, message});
