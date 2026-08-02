@@ -266,13 +266,9 @@ export default class woo extends wooRest {
             return;
         }
         if (symbol in this.orderbooks) {
-            if (symbol !== undefined) {
-                delete this.orderbooks[symbol];
-            }
+            delete this.orderbooks[symbol];
         }
-        if (symbol !== undefined) {
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
-        }
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 

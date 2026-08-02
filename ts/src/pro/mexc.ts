@@ -685,12 +685,15 @@ export default class mexc extends mexcRest {
             parsed = this.parseWsOHLCV (rawOhlcv, market);
         }
         const messageHash = 'candles:' + symbol + ':' + timeframe;
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
-        if ((stored === undefined) && (symbol !== undefined) && (timeframe !== undefined)) {
+        const symbolOhlcvs = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = symbolOhlcvs;
+        let stored = this.safeValue (symbolOhlcvs, timeframe);
+        if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            if (timeframe !== undefined) {
+                symbolOhlcvs[timeframe] = stored;
+            }
         }
         stored.append (parsed);
         client.resolve (stored, messageHash);
@@ -818,7 +821,7 @@ export default class mexc extends mexcRest {
             const delta = cache[i];
             const deltaNonce = this.safeIntegerN (delta, [ 'r', 'version', 'fromVersion' ]);
             if (deltaNonce === undefined) {
-                return -1;
+                continue;
             }
             if (deltaNonce >= nonce) {
                 return i;

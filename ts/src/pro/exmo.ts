@@ -494,9 +494,6 @@ export default class exmo extends exmoRest {
         } else {
             myTrades = this.myTrades;
         }
-        if (myTrades === undefined) {
-            return;
-        }
         if (event === 'snapshot') {
             rawTrades = this.safeValue (message, 'data', []);
         } else if (event === 'update') {

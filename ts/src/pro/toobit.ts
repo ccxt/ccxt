@@ -367,11 +367,14 @@ export default class toobit extends toobitRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if ((symbol !== undefined) && (timeframe !== undefined) && !(timeframe in this.ohlcvs[symbol])) {
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
             const limit = this.safeInteger (this.options['ws'], 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+            stored = new ArrayCacheByTimestamp (limit);
+            if (timeframe !== undefined) {
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
         }
-        const stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV (data[i], market);

@@ -1067,14 +1067,13 @@ export default class pacifica extends pacificaRest {
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        if ((symbol === undefined) || (timeframe === undefined) || !(timeframe in this.ohlcvs[symbol])) {
+        const symbolOhlcvs = this.safeValue (this.ohlcvs, symbol, {});
+        let ohlcv = this.safeValue (symbolOhlcvs, timeframe);
+        if (ohlcv === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            const stored = new ArrayCacheByTimestamp (limit);
-            if (symbol !== undefined && timeframe !== undefined) {
-                this.ohlcvs[symbol][timeframe] = stored;
-            }
+            ohlcv = new ArrayCacheByTimestamp (limit);
+            symbolOhlcvs[timeframe] = ohlcv;
         }
-        const ohlcv = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         const parsed = this.parseOHLCV (data);
         ohlcv.append (parsed);
         const messageHash = 'candles:' + timeframe + ':' + symbol;

@@ -107,7 +107,7 @@ export default class alpaca extends alpacaRest {
         if (symbol !== undefined) {
             this.tickers[symbol] = ticker;
         }
-        client.resolve (this.safeValue (this.tickers, symbol), messageHash);
+        client.resolve (ticker, messageHash);
     }
 
     parseTicker (ticker, market: Market = undefined): Ticker {

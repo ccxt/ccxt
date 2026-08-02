@@ -453,13 +453,12 @@ export default class woofipro extends woofiproRest {
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            if (symbol !== undefined && timeframe !== undefined) {
+            if ((symbol !== undefined) && (timeframe !== undefined)) {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
         }
-        const ohlcvCache = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
-        ohlcvCache.append (parsed);
-        client.resolve (ohlcvCache, topic);
+        stored.append (parsed);
+        client.resolve (stored, topic);
     }
 
     /**

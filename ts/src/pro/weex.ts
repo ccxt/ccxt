@@ -729,13 +729,14 @@ export default class weex extends weexRest {
         const firstEntry = this.safeDict (data, 0, {});
         const interval = this.safeString (firstEntry, 'i');
         const timeframe = this.findTimeframe (interval);
-        if ((symbol === undefined) || (timeframe === undefined) || !(timeframe in this.ohlcvs[symbol])) {
+        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
+        if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
             if (symbol !== undefined && timeframe !== undefined) {
-                this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+                this.ohlcvs[symbol][timeframe] = stored;
             }
         }
-        const stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
         for (let i = 0; i < data.length; i++) {
             const entry = this.safeDict (data, i, {});
             const parsed = this.parseWsOHLCV (entry);

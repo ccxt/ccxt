@@ -2599,9 +2599,6 @@ export default class binance extends binanceRest {
             const response = await this.sapiPostUserListenToken (request);
             const listenToken = this.safeString (response, 'token');
             const expirationTime = this.safeInteger (response, 'expirationTime');
-            if (expirationTime === undefined) {
-                return;
-            }
             // Step 2: Subscribe to user data stream via WebSocket API
             const requestId = this.requestId (url);
             const messageHash = requestId.toString ();
@@ -2626,10 +2623,12 @@ export default class binance extends binanceRest {
                 'validity': validity,
             });
             // Schedule token renewal before expiration
-            const renewalTime = expirationTime - time - 60000; // Renew 1 minute before expiration
-            if (renewalTime > 0) {
-                const extendedParams = this.extend (params, { 'type': marketType });
-                this.delay (renewalTime, this.renewListenToken, extendedParams);
+            if (expirationTime !== undefined) {
+                const renewalTime = expirationTime - time - 60000; // Renew 1 minute before expiration
+                if (renewalTime > 0) {
+                    const extendedParams = this.extend (params, { 'type': marketType });
+                    this.delay (renewalTime, this.renewListenToken, extendedParams);
+                }
             }
             await this.watch (url, messageHash, message, messageHash, subscription);
         }

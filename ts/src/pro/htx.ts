@@ -548,9 +548,6 @@ export default class htx extends htxRest {
         }
         const id = this.safeString (message, 'id');
         const lastTimestamp = this.safeInteger (subscription, 'lastTimestamp');
-        if (lastTimestamp === undefined) {
-            return;
-        }
         try {
             const orderbook = this.safeValue (this.orderbooks, symbol);
             const data = this.safeValue (message, 'data');
@@ -577,14 +574,12 @@ export default class htx extends htxRest {
                     // safety guard
                     if (messageHash in client.subscriptions) {
                         numAttempts = this.sum (numAttempts, 1);
-                        if ((lastTimestamp === undefined) || (snapshotTimestamp === undefined)) {
-                            return;
+                        let delayTime = 1000;
+                        if ((lastTimestamp !== undefined) && (snapshotTimestamp !== undefined)) {
+                            delayTime = this.sum (1000, lastTimestamp - snapshotTimestamp);
                         }
-                        const delayTime = this.sum (1000, lastTimestamp - snapshotTimestamp);
                         subscription['numAttempts'] = numAttempts;
-                        if (messageHash !== undefined) {
-                            client.subscriptions[messageHash] = subscription;
-                        }
+                        client.subscriptions[messageHash] = subscription;
                         this.delay (delayTime, this.watchOrderBookSnapshot, client, message, subscription);
                     }
                 } else {
@@ -1604,11 +1599,8 @@ export default class htx extends htxRest {
         }
         let market: Market = undefined;
         let messageHash = '';
-        if (!this.isEmpty (symbols)) {
+        if ((!this.isEmpty (symbols)) && (symbols !== undefined)) {
             market = this.getMarketFromSymbols (symbols);
-            if (symbols === undefined) {
-                throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
-            }
             messageHash = '::' + symbols.join (',');
         }
         let type: Str = undefined;
@@ -1635,11 +1627,10 @@ export default class htx extends htxRest {
         messageHash = marginMode + ':positions' + messageHash;
         let channel: Str = (marginMode === 'cross') ? 'positions_cross.*' : 'positions.*';
         if (isV5Linear) {
-            if (symbols === undefined) {
-                throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
+            let v5Market: Market = undefined;
+            if ((symbols !== undefined) && (symbols.length === 1)) {
+                v5Market = market;
             }
-            const isOneMarket = (!this.isEmpty (symbols) && (symbols.length === 1));
-            const v5Market = isOneMarket ? market : undefined;
             const channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash ('positions', v5Market, params);
             channel = this.safeString (channelAndMessageHashAndParams, 0);
             params = this.safeValue (channelAndMessageHashAndParams, 2, {});
@@ -1838,9 +1829,6 @@ export default class htx extends htxRest {
             const symbol = this.safeString (params, 'symbol');
             const currency = this.safeString (params, 'currency');
             const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-            if (market === undefined) {
-                throw new ArgumentsRequired (this.id + ' watchBalance() market is required');
-            }
             const currencyCode = (currency !== undefined) ? this.currency (currency) : undefined;
             marginMode = this.safeString (params, 'margin', 'cross');
             params = this.omit (params, [ 'currency', 'symbol', 'margin' ]);
@@ -1858,7 +1846,7 @@ export default class htx extends htxRest {
                     messageHash = prefix;
                     if (marginMode === 'isolated') {
                         // isolated margin only allows filtering by symbol3
-                        if (symbol !== undefined) {
+                        if ((symbol !== undefined) && (market !== undefined)) {
                             messageHash += '.' + market['id'];
                             channel = messageHash;
                         } else {
