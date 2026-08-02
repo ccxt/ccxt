@@ -702,7 +702,7 @@ class woofipro extends Exchange {
             $networkEntry = $networks[$j];
             $networkId = $this->safe_string($networkEntry, 'chain_id');
             $networkRow = $this->safe_dict($indexedChains, $networkId);
-            $networkName = $this->safe_string($networkRow, 'name');
+            $networkName = $this->safe_string($networkRow, 'name', $networkId);
             $networkCode = $this->network_id_to_code($networkName, $code);
             $resultingNetworks[$networkCode] = array(
                 'id' => $networkId,

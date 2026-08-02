@@ -198,7 +198,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
             $symbol = $this->safe_symbol($marketId, null, '-');
             $messageHash = 'ohlcv:' . $symbol;
             $request = $this->safe_value($client->subscriptions, $messageHash);
-            $timeframeId = $this->safe_number($request, 'granularity');
+            $timeframeId = $this->safe_string($request, 'granularity');
             $timeframe = $this->find_timeframe($timeframeId);
             $ohlcv = $this->safe_value($message, 'price', array());
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
