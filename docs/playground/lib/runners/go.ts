@@ -40,9 +40,52 @@ function goBin(): string {
   return "go";
 }
 
+// Imports are restricted to the Go standard library and the warmed ccxt
+// module. Anything else is either not in the module graph (GOPROXY=off makes
+// it fail, but only after go resolves the graph) or — worse — IS in the cache
+// as one of ccxt's transitive dependencies (go-ethereum, gnark-crypto,
+// gorilla/websocket, …) and compiles from source: a cold multi-GB build that
+// the run's cpu/memory caps exist to contain, not to invite. Rejecting up
+// front gives a clear message at zero cost. `import "C"` (cgo) is blocked
+// explicitly — it would hand user code a C compiler.
+const ALLOWED_MODULE = "github.com/ccxt/ccxt/go/v4";
+
+export function disallowedGoImports(code: string): string[] {
+  const paths: string[] = [];
+  // Single-line form: import "fmt" / import alias "path" / import _ "path"
+  const single = /^\s*import\s+(?:[A-Za-z_.][\w.]*\s+)?"([^"]+)"/gm;
+  // Block form: import ( ... ) — collect every quoted path inside.
+  const block = /import\s*\(([^)]*)\)/gm;
+  for (const m of code.matchAll(single)) paths.push(m[1]);
+  for (const m of code.matchAll(block)) {
+    for (const q of m[1].matchAll(/"([^"]+)"/g)) paths.push(q[1]);
+  }
+  const bad = paths.filter((p) => {
+    if (p === "C") return true; // cgo
+    if (p === ALLOWED_MODULE || p.startsWith(ALLOWED_MODULE + "/")) return false;
+    // Stdlib packages have no dot in their first path segment ("fmt",
+    // "net/http") — the same heuristic the go tool itself uses.
+    return p.split("/")[0].includes(".");
+  });
+  return [...new Set(bad)];
+}
+
 export async function runGo(code: string, onChunk?: OnChunk): Promise<RunResult> {
   if (!existsSync(path.join(GO_ROOT, "go.mod"))) {
     return notProvisioned();
+  }
+  const bad = disallowedGoImports(code);
+  if (bad.length > 0) {
+    return {
+      stdout: "",
+      stderr:
+        `import not allowed in the playground: ${bad.map((p) => `"${p}"`).join(", ")}\n` +
+        `Only the Go standard library and ${ALLOWED_MODULE} (incl. /pro and /prediction) can be imported.`,
+      exitCode: null,
+      durationMs: 0,
+      timedOut: false,
+      truncated: false,
+    };
   }
   const id = "run-" + Math.random().toString(36).slice(2);
   const dir = path.join(GO_ROOT, "runs", id);
