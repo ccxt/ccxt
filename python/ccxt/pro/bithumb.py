@@ -426,7 +426,8 @@ class bithumb(ccxt.async_support.bithumb):
             account = self.account()
             account['free'] = self.safe_string(asset, 'balance')
             account['used'] = self.safe_string(asset, 'locked')
-            self.balance[code] = account
+            if code is not None:
+                self.balance[code] = account
         self.balance['info'] = message
         timestamp = self.safe_integer(message, 'timestamp')
         self.balance['timestamp'] = timestamp

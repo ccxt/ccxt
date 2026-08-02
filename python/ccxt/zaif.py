@@ -266,11 +266,13 @@ class zaif(Exchange, ImplicitAPI):
     def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'currency_pair')
         name = self.safe_string(market, 'name')
+        if name is None:
+            raise ExchangeError(self.id + ' parseMarket() missing name')
         baseId, quoteId = name.split('/')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
-        return {
+        return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -318,7 +320,7 @@ class zaif(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': market,
-        }
+        })
 
     def parse_balance(self, response) -> Balances:
         balances = self.safe_value(response, 'return', {})
@@ -340,7 +342,8 @@ class zaif(Exchange, ImplicitAPI):
             if deposit is not None:
                 if currencyId in deposit:
                     account['total'] = self.safe_string(deposit, currencyId)
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -582,7 +585,7 @@ class zaif(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_dict(response, 'return')
+        data = self.safe_dict(response, 'return', {})
         return self.parse_order(data)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
@@ -742,7 +745,7 @@ class zaif(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        returnData = self.safe_dict(result, 'return')
+        returnData = self.safe_dict(result, 'return', {})
         return self.parse_transaction(returnData, currency)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:

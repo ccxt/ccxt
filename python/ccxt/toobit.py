@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.toobit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import PermissionDenied
@@ -742,7 +742,7 @@ class toobit(Exchange, ImplicitAPI):
                 result[code] = parsed
         return result
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'coinId')
         code = self.safe_currency_code(id)
         networks = {}
@@ -751,27 +751,28 @@ class toobit(Exchange, ImplicitAPI):
             rawNetwork = rawNetworks[j]
             networkId = self.safe_string(rawNetwork, 'chainType')
             networkCode = self.network_id_to_code(networkId, code)
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'margin': None,
-                'deposit': self.safe_bool(rawNetwork, 'allowDeposit'),
-                'withdraw': self.safe_bool(rawNetwork, 'allowWithdraw'),
-                'active': None,
-                'fee': self.safe_number(rawNetwork, 'withdrawFee'),
-                'precision': None,
-                'limits': {
-                    'deposit': {
-                        'min': self.safe_number(rawNetwork, 'minDepositQuantity'),
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'margin': None,
+                    'deposit': self.safe_bool(rawNetwork, 'allowDeposit'),
+                    'withdraw': self.safe_bool(rawNetwork, 'allowWithdraw'),
+                    'active': None,
+                    'fee': self.safe_number(rawNetwork, 'withdrawFee'),
+                    'precision': None,
+                    'limits': {
+                        'deposit': {
+                            'min': self.safe_number(rawNetwork, 'minDepositQuantity'),
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': self.safe_number(rawNetwork, 'minWithdrawQuantity'),
+                            'max': self.safe_number(rawNetwork, 'maxWithdrawQuantity'),
+                        },
                     },
-                    'withdraw': {
-                        'min': self.safe_number(rawNetwork, 'minWithdrawQuantity'),
-                        'max': self.safe_number(rawNetwork, 'maxWithdrawQuantity'),
-                    },
-                },
-                'info': rawNetwork,
-            }
+                    'info': rawNetwork,
+                }
         return self.safe_currency_structure({
             'id': id,
             'code': code,
@@ -1654,7 +1655,8 @@ class toobit(Exchange, ImplicitAPI):
             account['free'] = self.safe_string_2(balance, 'free', 'availableBalance')
             account['total'] = self.safe_string_2(balance, 'total', 'balance')
             account['used'] = self.safe_string(balance, 'locked')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -1708,7 +1710,9 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
         market = self.market(symbol)
         if side is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
@@ -1736,7 +1740,11 @@ class toobit(Exchange, ImplicitAPI):
             request['type'] = type.upper()
         return [request, params]
 
-    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_contract_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         request = {
             'symbol': market['id'],

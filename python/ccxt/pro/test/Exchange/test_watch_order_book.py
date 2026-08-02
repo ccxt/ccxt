@@ -30,7 +30,7 @@ async def test_watch_order_book(exchange, skipped_properties, symbol):
             now = exchange.milliseconds()
             # continue;
             success = False
-        if success:
+        if (success) and (response is not None):
             now = exchange.milliseconds()
             test_order_book(exchange, skipped_properties, method, response, symbol)
     return True

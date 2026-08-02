@@ -517,7 +517,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         minPrice = None
         if quote == 'AUD':
             minPrice = pricePrecision
-        return {
+        return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -567,7 +567,7 @@ class btcmarkets(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': market,
-        }
+        })
 
     def fetch_time(self, params={}) -> Int:
         """
@@ -595,7 +595,8 @@ class btcmarkets(Exchange, ImplicitAPI):
             account = self.account()
             account['used'] = self.safe_string(balance, 'locked')
             account['total'] = self.safe_string(balance, 'balance')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1070,7 +1071,7 @@ class btcmarkets(Exchange, ImplicitAPI):
         :param dict params:
         :returns dict: contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
         """
-        market = self.markets[symbol]
+        market = self.market(symbol)
         currency = None
         cost = None
         if market['quote'] == 'AUD':
@@ -1084,11 +1085,14 @@ class btcmarkets(Exchange, ImplicitAPI):
             cost = self.amount_to_precision(symbol, amount)
         rate = market[takerOrMaker]
         rateCost = Precise.string_mul(self.number_to_string(rate), cost)
+        feeCost = self.fee_to_precision(symbol, rateCost)
+        if feeCost is None:
+            feeCost = '0'
         return {
             'type': takerOrMaker,
             'currency': currency,
             'rate': rate,
-            'cost': float(self.fee_to_precision(symbol, rateCost)),
+            'cost': float(feeCost),
         }
 
     def parse_order_status(self, status: Str):

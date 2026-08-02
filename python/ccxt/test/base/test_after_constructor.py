@@ -99,7 +99,7 @@ def helper_test_init_market():
             'BTC/USD': sample_market,
         },
     })
-    assert exchange2.markets['BTC/USD'] is not None
+    assert (exchange2.markets is not None) and (exchange2.markets['BTC/USD'] is not None)
 
 
 def helper_test_properties():

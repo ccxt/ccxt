@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.modetrade import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -523,7 +523,7 @@ class modetrade(Exchange, ImplicitAPI):
         settleId = self.safe_string(parts, 2)
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
-        return {
+        return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -571,7 +571,7 @@ class modetrade(Exchange, ImplicitAPI):
             },
             'created': self.safe_integer(market, 'created_time'),
             'info': market,
-        }
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -658,7 +658,7 @@ class modetrade(Exchange, ImplicitAPI):
         tokenRows = self.safe_list(data, 'rows', [])
         return self.parse_currencies(tokenRows)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(rawCurrency, 'token')
         networks = self.safe_list(rawCurrency, 'chain_details', [])
         code = self.safe_currency_code(currencyId)
@@ -1426,7 +1426,11 @@ class modetrade(Exchange, ImplicitAPI):
             return None
         return self.safe_string_lower(types, type, type)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
         """
  @ignore
         helper function to build the request
@@ -2195,7 +2199,8 @@ class modetrade(Exchange, ImplicitAPI):
             account = self.account()
             account['total'] = self.safe_string(balance, 'holding')
             account['used'] = self.safe_string(balance, 'frozen')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -2682,7 +2687,7 @@ class modetrade(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def fetch_position(self, symbol: Str, params={}):
+    async def fetch_position(self, symbol: str, params={}):
         """
 
         https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info

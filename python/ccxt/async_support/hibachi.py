@@ -10,6 +10,7 @@ import hashlib
 from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -294,7 +295,7 @@ class hibachi(Exchange, ImplicitAPI):
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
         created = self.safe_integer_product(market, 'marketCreationTimestamp', 1000)
-        return {
+        return self.safe_market_structure({
             'id': marketId,
             'numericId': numericId,
             'symbol': symbol,
@@ -343,7 +344,7 @@ class hibachi(Exchange, ImplicitAPI):
             },
             'created': created,
             'info': market,
-        }
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -408,29 +409,30 @@ class hibachi(Exchange, ImplicitAPI):
             'info': {},
         }
         code = self.safe_currency_code('USDT')
-        result[code] = self.safe_currency_structure({
-            'id': 'USDT',
-            'name': 'USDT',
-            'type': 'fiat',
-            'code': code,
-            'precision': self.parse_number('0.000001'),
-            'active': True,
-            'fee': None,
-            'networks': networks,
-            'deposit': True,
-            'withdraw': True,
-            'limits': {
-                'deposit': {
-                    'min': None,
-                    'max': None,
+        if code is not None:
+            result[code] = self.safe_currency_structure({
+                'id': 'USDT',
+                'name': 'USDT',
+                'type': 'fiat',
+                'code': code,
+                'precision': self.parse_number('0.000001'),
+                'active': True,
+                'fee': None,
+                'networks': networks,
+                'deposit': True,
+                'withdraw': True,
+                'limits': {
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
                 },
-                'withdraw': {
-                    'min': None,
-                    'max': None,
-                },
-            },
-            'info': {},
-        })
+                'info': {},
+            })
         return result
 
     def parse_balance(self, response) -> Balances:
@@ -442,7 +444,8 @@ class hibachi(Exchange, ImplicitAPI):
         account = self.account()
         account['total'] = self.safe_string(response, 'balance')
         account['free'] = self.safe_string(response, 'maximalWithdraw')
-        result[code] = account
+        if code is not None:
+            result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -607,9 +610,12 @@ class hibachi(Exchange, ImplicitAPI):
         # }
         #
         trades = self.safe_list(response, 'trades', [])
-        return self.parse_trades(trades, market)
+        tradesList = []
+        if trades is not None:
+            tradesList = trades
+        return self.parse_trades(tradesList, market)
 
-    async def fetch_ticker(self, symbol: Str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
 
         https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e
@@ -780,8 +786,9 @@ class hibachi(Exchange, ImplicitAPI):
         makerFeeRate = self.safe_number(response, 'tradeMakerFeeRate')
         takerFeeRate = self.safe_number(response, 'tradeTakerFeeRate')
         result = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -791,7 +798,11 @@ class hibachi(Exchange, ImplicitAPI):
             }
         return result
 
-    def order_message(self, market, nonce: float, feeRate: float, type: OrderType, side: OrderSide, amount: float, price: Num = None):
+    def order_message(self, market, nonce: float, feeRate: float, type: Str, side: Str, amount: Num, price: Num = None):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         sideInternal = 0
         if side == 'sell':
             sideInternal = 0
@@ -838,9 +849,17 @@ class hibachi(Exchange, ImplicitAPI):
         message = self.binary_concat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate)
         return message
 
-    def create_order_request(self, nonce: float, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, nonce: float, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
-        feeRate = max(self.safe_number(market, 'taker', self.safe_number(self.options, 'defaultTakerFee', 0.00045)), self.safe_number(market, 'maker', self.safe_number(self.options, 'defaultMakerFee', 0.00015)))
+        takerFee = self.safe_number(market, 'taker', self.safe_number(self.options, 'defaultTakerFee', 0.00045))
+        makerFee = self.safe_number(market, 'maker', self.safe_number(self.options, 'defaultMakerFee', 0.00015))
+        takerFeeValue = 0 if (takerFee is None) else takerFee
+        makerFeeValue = 0 if (makerFee is None) else makerFee
+        feeRate = max(takerFeeValue, makerFeeValue)
         sideInternal = ''
         if side == 'sell':
             sideInternal = 'ASK'
@@ -950,9 +969,17 @@ class hibachi(Exchange, ImplicitAPI):
             }))
         return ret
 
-    def edit_order_request(self, nonce: float, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    def edit_order_request(self, nonce: float, id: Str, symbol: Str, type: Str, side: Str, amount: Num = None, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
-        feeRate = max(self.safe_number(market, 'taker'), self.safe_number(market, 'maker'))
+        takerFee = self.safe_number(market, 'taker', 0)
+        makerFee = self.safe_number(market, 'maker', 0)
+        takerFeeValue = 0 if (takerFee is None) else takerFee
+        makerFeeValue = 0 if (makerFee is None) else makerFee
+        feeRate = max(takerFeeValue, makerFeeValue)
         message = self.order_message(market, nonce, feeRate, type, side, amount, price)
         signature = self.sign_message(message, self.privateKey)
         request = {
@@ -1146,7 +1173,7 @@ class hibachi(Exchange, ImplicitAPI):
             }),
         ]
 
-    def encode_withdraw_message(self, amount: float, maxFees: float, address: str):
+    def encode_withdraw_message(self, amount: Num, maxFees: Num, address: str):
         # Converting them to internal representation:
         # - Quantity: Internal = External * (10^6)
         # - maxFees: Internal = External * (10^6)
@@ -1358,7 +1385,10 @@ class hibachi(Exchange, ImplicitAPI):
         # }
         #
         trades = self.safe_list(response, 'trades')
-        return self.parse_trades(trades, market, since, limit, params)
+        tradesList = []
+        if trades is not None:
+            tradesList = trades
+        return self.parse_trades(tradesList, market, since, limit, params)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
@@ -1383,7 +1413,7 @@ class hibachi(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volumeNotional'),
         ]
 
-    async def fetch_open_orders(self, symbol: str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches all current open orders
 
@@ -1867,7 +1897,7 @@ class hibachi(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        rowsCapitalHistory = self.safe_list(responseCapitalHistory, 'transactions')
+        rowsCapitalHistory = self.safe_list(responseCapitalHistory, 'transactions', [])
         responseTradingHistory = promises[1]
         #
         # {
@@ -1895,7 +1925,7 @@ class hibachi(Exchange, ImplicitAPI):
         #     ]
         # }
         #
-        rowsTradingHistory = self.safe_list(responseTradingHistory, 'tradingHistory')
+        rowsTradingHistory = self.safe_list(responseTradingHistory, 'tradingHistory', [])
         rows = self.array_concat(rowsCapitalHistory, rowsTradingHistory)
         return self.parse_ledger(rows, currency, since, limit, params)
 
@@ -2038,7 +2068,7 @@ class hibachi(Exchange, ImplicitAPI):
         withdrawals = self.filter_by(transactions, 'type', 'withdrawal')
         return self.filter_by_since_limit(withdrawals, since, limit, 'timestamp')
 
-    def parse_settlement(self, settlement, market=None):
+    def parse_settlement(self, settlement, market: Market = None):
         #
         #     {
         #         "direction": "Long",
@@ -2060,7 +2090,7 @@ class hibachi(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_settlements(self, settlements, market=None):
+    def parse_settlements(self, settlements, market: Market = None):
         result = []
         for i in range(0, len(settlements)):
             result.append(self.parse_settlement(settlements[i], market))

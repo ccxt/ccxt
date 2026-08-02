@@ -391,7 +391,7 @@ class upbit(Exchange, ImplicitAPI):
         market = self.market(symbol)
         return self.fetch_market_by_id(market['id'], params)
 
-    def fetch_market_by_id(self, id: str, params={}):
+    def fetch_market_by_id(self, id: Str, params={}):
         # self method is for retrieving trading fees and limits per market
         # it requires private access and API keys properly set up
         request = {
@@ -518,6 +518,8 @@ class upbit(Exchange, ImplicitAPI):
 
     def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'market')
+        if id is None:
+            raise ExchangeError(self.id + ' parseMarket() missing id')
         quoteId, baseId = id.split('-')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
@@ -586,7 +588,8 @@ class upbit(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(balance, 'balance')
             account['used'] = self.safe_string(balance, 'locked')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -812,7 +815,9 @@ class upbit(Exchange, ImplicitAPI):
         concated = self.arrays_concat(responses)
         return self.parse_tickers(concated, symbols)
 
-    def ids_query_strings(self, ids: List[str], maxQueryLength: float):
+    def ids_query_strings(self, ids: Strings, maxQueryLength: float):
+        if ids is None:
+            return []
         idsString = ''
         queries = []
         for i in range(0, len(ids)):
@@ -1041,7 +1046,9 @@ class upbit(Exchange, ImplicitAPI):
             element['percentage'] = True
             element['tierBased'] = False
             element['info'] = fetchMarketResponse[i]
-            response[self.safe_string(fetchMarketResponse[i], 'symbol')] = element
+            feeSymbol = self.safe_string(fetchMarketResponse[i], 'symbol')
+            if feeSymbol is not None:
+                response[feeSymbol] = element
         return response
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
@@ -1137,7 +1144,7 @@ class upbit(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def calc_order_price(self, symbol: str, amount: float, price: Num = None, params={}) -> str:
+    def calc_order_price(self, symbol: str, amount: Num, price: Num = None, params={}) -> Str:
         quoteAmount = None
         createMarketBuyOrderRequiresPrice = self.safe_value(self.options, 'createMarketBuyOrderRequiresPrice')
         cost = self.safe_string(params, 'cost')
@@ -1154,6 +1161,8 @@ class upbit(Exchange, ImplicitAPI):
             if amount is None:
                 raise ArgumentsRequired(self.id + ' When createMarketBuyOrderRequiresPrice is False, "amount" is required and should be the total quote amount to spend.')
             quoteAmount = self.cost_to_precision(symbol, amount)
+        if quoteAmount is None:
+            raise ArgumentsRequired(self.id + ' calcOrderPrice() could not determine quote amount')
         return quoteAmount
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):

@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.derive import ImplicitAPI
 import asyncio
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, Trade, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, FundingRate, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -509,7 +509,7 @@ class derive(Exchange, ImplicitAPI):
         currencies = self.safe_list(tokenResponse, 'result', [])
         return self.parse_currencies(currencies)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(currencyId)
         return self.safe_currency_structure({
@@ -1137,7 +1137,7 @@ class derive(Exchange, ImplicitAPI):
         binaryMessageLength = self.binary_length(binaryMessage)
         x19 = self.base16_to_binary('19')
         newline = self.base16_to_binary('0a')
-        prefix = self.binary_concat(x19, self.encode('Ethereum Signed Message:'), newline, self.encode((self.number_to_string(binaryMessageLength))))
+        prefix = self.binary_concat(x19, self.encode('Ethereum Signed Message:'), newline, self.encode(self.number_to_string(binaryMessageLength)))
         return '0x' + self.hash(self.binary_concat(prefix, binaryMessage), 'keccak', 'hex')
 
     def sign_hash(self, hash, privateKey):
@@ -2398,7 +2398,8 @@ class derive(Exchange, ImplicitAPI):
                 else:
                     amount = self.safe_string(balance, 'amount')
                     account['total'] = Precise.string_add(account['total'], amount)
-                result[code] = account
+                if code is not None:
+                    result[code] = account
         return self.safe_balance(result)
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -2540,7 +2541,7 @@ class derive(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def handle_derive_subaccount_id(self, methodName: str, params: dict):
+    def handle_derive_subaccount_id(self, methodName: str, params: dict) -> list:
         derivesubAccountId = None
         derivesubAccountId, params = self.handle_option_and_params(params, methodName, 'subaccount_id')
         if (derivesubAccountId is not None) and (derivesubAccountId != ''):

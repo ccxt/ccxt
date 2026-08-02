@@ -831,7 +831,8 @@ class bitfinex(ccxt.async_support.bitfinex):
             balance = self.parse_ws_balance(rawBalance)
             balanceType = self.safe_string(rawBalance, 0)
             oldBalance = self.safe_value(self.balance, balanceType, {})
-            oldBalance[code] = balance
+            if code is not None:
+                oldBalance[code] = balance
             oldBalance['info'] = message
             self.balance[balanceType] = self.safe_balance(oldBalance)
             updatedTypes[balanceType] = True
@@ -1134,7 +1135,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         price = self.safe_string(order, 16)
         timestamp = self.safe_integer_2(order, 5, 4)
         average = self.safe_string(order, 17)
-        stopPrice = self.omit_zero((self.safe_string(order, 18)))
+        stopPrice = self.omit_zero(self.safe_string(order, 18))
         return self.safe_order({
             'info': order,
             'id': id,
