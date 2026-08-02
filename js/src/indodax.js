@@ -804,6 +804,7 @@ export default class indodax extends Exchange {
         const price = this.safeString(order, 'price');
         let amount = undefined;
         let remaining = undefined;
+        let filled = undefined;
         const marketId = this.safeString(order, 'pair');
         market = this.safeMarket(marketId, market);
         if (market !== undefined) {
@@ -817,10 +818,11 @@ export default class indodax extends Exchange {
                 baseId = 'rp';
             }
             cost = this.safeString(order, 'order_' + quoteId);
-            if (!cost) {
-                amount = this.safeString(order, 'order_' + baseId);
-                remaining = this.safeString(order, 'remain_' + baseId);
-            }
+            amount = this.safeString(order, 'order_' + baseId);
+            remaining = this.safeString(order, 'remain_' + baseId);
+            // filled buy orders on idr-quoted markets carry the executed base amount
+            // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
+            filled = this.safeString(order, 'receive_' + baseId);
         }
         const timestamp = this.safeInteger(order, 'submit_time');
         const fee = undefined;
@@ -842,7 +844,7 @@ export default class indodax extends Exchange {
             'cost': cost,
             'average': undefined,
             'amount': amount,
-            'filled': undefined,
+            'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,
