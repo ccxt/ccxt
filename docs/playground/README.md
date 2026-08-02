@@ -21,8 +21,10 @@ code for you.
   using a pinned CCXT install, so you get real responses from real exchanges.
 - **AI assistant:** streams free models via [OpenRouter](https://openrouter.ai);
   every code answer covers all six languages at once — the sidebar shows the
-  active tab's language, and one Insert files the snippet into every language
-  tab. The model list is
+  active tab's language as soon as that block finishes streaming (Insert is
+  ready before the other five). One Insert files it immediately; the remaining
+  languages fill their editor tabs in the background as each fence completes.
+  The model list is
   fetched from OpenRouter at server startup (free slugs rotate constantly) and
   cached for the process lifetime.
 
