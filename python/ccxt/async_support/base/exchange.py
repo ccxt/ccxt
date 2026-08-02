@@ -24,7 +24,7 @@ from ccxt.async_support.base.throttler import Throttler
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.errors import BadSymbol, BadRequest, BadResponse, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidAddress, RateLimitExceeded, OperationFailed
+from ccxt.base.errors import BadSymbol, BadRequest, BadResponse, ExchangeClosedByUser, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidAddress, RateLimitExceeded, OperationFailed
 from ccxt.base.types import ConstructorArgs, OrderType, OrderSide, OrderRequest, CancellationRequest, Order
 
 # -----------------------------------------------------------------------------
@@ -68,6 +68,7 @@ class BaseExchange(SyncExchange):
     newUpdates = True
     clients = {}
     timeout_on_exit = 250  # needed for: https://github.com/ccxt/ccxt/pull/23470
+    closed_by_user = False
 
     def __init__(self, config: ConstructorArgs = {}):
         if 'asyncio_loop' in config:
@@ -108,7 +109,12 @@ class BaseExchange(SyncExchange):
         async def __aexit__(self, exc_type, exc, tb):
             await self.close()
 
-    def open(self):
+    def open(self, lazy=False):
+        # a request orphaned by a failing gathered sibling can resume after close() and
+        # lazily recreate a session that nobody will ever close, see issue #27418
+        if lazy and self.closed_by_user:
+            raise ExchangeClosedByUser(self.id + ' instance was closed by the user')
+        self.closed_by_user = False
         if self.asyncio_loop is None:
             if sys.version_info >= (3, 7):
                 self.asyncio_loop = asyncio.get_running_loop()
@@ -133,6 +139,8 @@ class BaseExchange(SyncExchange):
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.tcp_connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self, clean_instance_data=False):
+        # set before the first await, a lazy open() during close() would leak a session
+        self.closed_by_user = True
         # ##### language-specific cleanup of WS & REST resources #####
         # [WS]
         await self.close_ws_clients()
@@ -178,6 +186,7 @@ class BaseExchange(SyncExchange):
         final_proxy = None  # set default
         proxy_session = None
         httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
+        self.open(True)
         if httpProxy:
             final_proxy = httpProxy
         elif httpsProxy:
@@ -186,9 +195,6 @@ class BaseExchange(SyncExchange):
             # override session
             if (self.socks_proxy_sessions is None):
                 self.socks_proxy_sessions = {}
-            if (socksProxy not in self.socks_proxy_sessions):
-                # Create our SSL context object with our CA cert file
-                self.open()  # ensure `asyncio_loop` is set
             proxy_session = self.get_socks_proxy_session(socksProxy)
         # add aiohttp_proxy for python as exclusion
         elif self.aiohttp_proxy:
@@ -230,7 +236,6 @@ class BaseExchange(SyncExchange):
         else:
             # asyncio would handle it for multipart/form-data
             del request_headers[content_type_key]
-        self.open()
         final_session = proxy_session if proxy_session is not None else self.session
         session_method = getattr(final_session, method.lower())
 
