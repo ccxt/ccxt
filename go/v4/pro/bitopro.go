@@ -574,7 +574,9 @@ func (this *BitoproCore) HandleBalance(client any, message any) {
 		var account any = this.Account()
 		ccxt.AddElementToObject(account, "free", this.SafeString(balance, "available"))
 		ccxt.AddElementToObject(account, "total", this.SafeString(balance, "amount"))
-		ccxt.AddElementToObject(result, code, account)
+		if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+			ccxt.AddElementToObject(result, code, account)
+		}
 	}
 	this.Balance = this.SafeBalance(result)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, event)

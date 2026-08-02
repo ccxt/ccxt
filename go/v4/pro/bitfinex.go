@@ -1103,7 +1103,9 @@ func (this *BitfinexCore) HandleBalance(client any, message any, subscription an
 		var balance any = this.ParseWsBalance(rawBalance)
 		var balanceType any = this.SafeString(rawBalance, 0)
 		var oldBalance any = this.SafeValue(this.Balance, balanceType, map[string]any{})
-		ccxt.AddElementToObject(oldBalance, code, balance)
+		if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+			ccxt.AddElementToObject(oldBalance, code, balance)
+		}
 		ccxt.AddElementToObject(oldBalance, "info", message)
 		ccxt.AddElementToObject(this.Balance, balanceType, this.SafeBalance(oldBalance))
 		ccxt.AddElementToObject(updatedTypes, balanceType, true)
@@ -1243,9 +1245,9 @@ func (this *BitfinexCore) Authenticate(optionalArgs ...any) <-chan any {
 			this.Watch(url, messageHash, message, messageHash)
 		}
 
-		retRes104815 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes104815)
-		ch <- retRes104815
+		retRes105015 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes105015)
+		ch <- retRes105015
 		return nil
 
 	}()
@@ -1293,8 +1295,8 @@ func (this *BitfinexCore) WatchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes108012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes108012)
+			retRes108212 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes108212)
 		}
 		var messageHash any = "orders"
 		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {

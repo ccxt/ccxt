@@ -61,7 +61,7 @@ func (this *Polymarket) FetchMarkets(params ...any) ([]ccxt.MarketInterface, err
  * @param {int} [params.limit] page size per search query, defaults to 50
  * @returns {object[]} an array of raw gamma event objects
  */
-func (this *Polymarket) FetchRawEventsBySearch(queries []any, options ...FetchRawEventsBySearchOptions) ([]map[string]any, error) {
+func (this *Polymarket) FetchRawEventsBySearch(queries []string, options ...FetchRawEventsBySearchOptions) ([]map[string]any, error) {
 
 	opts := FetchRawEventsBySearchOptionsStruct{}
 

@@ -76,6 +76,9 @@ func (this *GeminiCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any 
 		var market any = this.Market(symbol)
 		var messageHash any = ccxt.Add("trades:", ccxt.GetValue(market, "symbol"))
 		var marketId any = ccxt.GetValue(market, "id")
+		if ccxt.IsTrue(ccxt.IsEqual(marketId, nil)) {
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchTrades() marketId is required")))
+		}
 		var request any = map[string]any{
 			"type": "subscribe",
 			"subscriptions": []any{map[string]any{
@@ -212,7 +215,9 @@ func (this *GeminiCore) HandleTrade(client any, message any) {
 	var stored any = this.SafeValue(this.Trades, symbol)
 	if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
 		stored = ccxt.NewArrayCache(tradesLimit)
-		ccxt.AddElementToObject(this.Trades, symbol, stored)
+		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+			ccxt.AddElementToObject(this.Trades, symbol, stored)
+		}
 	}
 	stored.(ccxt.Appender).Append(trade)
 	var messageHash any = ccxt.Add("trades:", symbol)
@@ -331,8 +336,8 @@ func (this *GeminiCore) WatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes28112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes28112)
+			retRes28612 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes28612)
 		}
 		var market any = this.Market(symbol)
 		var timeframeId any = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -397,11 +402,13 @@ func (this *GeminiCore) HandleOHLCV(client any, message any) any {
 	if ccxt.IsTrue(ccxt.IsEqual(ohlcvsBySymbol, nil)) {
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, map[string]any{})
 	}
-	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
 		var limit any = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+		if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) && ccxt.IsTrue(!ccxt.IsEqual(timeframe, nil))) {
+			ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
+		}
 	}
 	var changesLength any = ccxt.GetArrayLength(changes)
 	// reverse order of array to store candles in ascending order
@@ -436,12 +443,15 @@ func (this *GeminiCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes37412 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes37412)
+			retRes38112 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes38112)
 		}
 		var market any = this.Market(symbol)
 		var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
 		var marketId any = ccxt.GetValue(market, "id")
+		if ccxt.IsTrue(ccxt.IsEqual(marketId, nil)) {
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOrderBook() marketId is required")))
+		}
 		var request any = map[string]any{
 			"type": "subscribe",
 			"subscriptions": []any{map[string]any{
@@ -542,9 +552,9 @@ func (this *GeminiCore) WatchBidsAsks(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes45315 := (<-this.HelperForWatchMultipleConstruct("bidsasks", symbols, params))
-		ccxt.PanicOnError(retRes45315)
-		ch <- retRes45315
+		retRes46315 := (<-this.HelperForWatchMultipleConstruct("bidsasks", symbols, params))
+		ccxt.PanicOnError(retRes46315)
+		ch <- retRes46315
 		return nil
 
 	}()
@@ -624,8 +634,8 @@ func (this *GeminiCore) HelperForWatchMultipleConstruct(itemHashName any, option
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes52212 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes52212)
+			retRes53212 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes53212)
 		}
 		if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
 			panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchMultiple requires at least one symbol")))
@@ -654,9 +664,9 @@ func (this *GeminiCore) HelperForWatchMultipleConstruct(itemHashName any, option
 			url = ccxt.Add(url, "trades=true&bids=false&offers=false")
 		}
 
-		retRes55015 := (<-this.WatchMultiple(url, messageHashes, nil))
-		ccxt.PanicOnError(retRes55015)
-		ch <- retRes55015
+		retRes56015 := (<-this.WatchMultiple(url, messageHashes, nil))
+		ccxt.PanicOnError(retRes56015)
+		ch <- retRes56015
 		return nil
 
 	}()
@@ -778,15 +788,15 @@ func (this *GeminiCore) WatchOrders(optionalArgs ...any) <-chan any {
 		var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked")
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes65712 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes65712)
+			retRes66712 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes66712)
 		}
 		var authParams any = map[string]any{
 			"url": url,
 		}
 
-		retRes6628 := (<-this.Authenticate(authParams))
-		ccxt.PanicOnError(retRes6628)
+		retRes6728 := (<-this.Authenticate(authParams))
+		ccxt.PanicOnError(retRes6728)
 		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 			var market any = this.Market(symbol)
 			symbol = ccxt.GetValue(market, "symbol")
@@ -1017,6 +1027,9 @@ func (this *GeminiCore) HandleMessage(client any, message any) {
 		var ts any = this.SafeInteger(message, "timestampms", this.Milliseconds())
 		var eventId any = this.SafeInteger(message, "eventId")
 		var events any = this.SafeList(message, "events")
+		if ccxt.IsTrue(ccxt.IsEqual(events, nil)) {
+			return
+		}
 		var orderBookItems any = []any{}
 		var bidaskItems any = []any{}
 		var collectedEventsOfTrades any = []any{}
@@ -1057,6 +1070,10 @@ func (this *GeminiCore) Authenticate(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 		var url any = this.SafeString(params, "url")
+		if ccxt.IsTrue(ccxt.IsEqual(url, nil)) {
+
+			return nil
+		}
 		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(this.Clients, nil))) && ccxt.IsTrue((ccxt.InOp(this.Clients, url)))) {
 
 			return nil
@@ -1064,7 +1081,7 @@ func (this *GeminiCore) Authenticate(optionalArgs ...any) <-chan any {
 		this.CheckRequiredCredentials()
 		var startIndex any = ccxt.GetArrayLength(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 		var urlParamsIndex any = ccxt.GetIndexOf(url, "?")
-		var urlLength any = ccxt.GetArrayLength(url)
+		var urlLength any = ccxt.GetLength(url)
 		var endIndex any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(urlParamsIndex, 0))), urlParamsIndex, urlLength)
 		var request any = ccxt.Slice(url, startIndex, endIndex)
 		var payload any = map[string]any{

@@ -1267,7 +1267,7 @@ func (this *XtCore) HandleOHLCV(client any, message any) any {
 		var symbol any = ccxt.GetValue(market, "symbol")
 		var parsed any = this.ParseOHLCV(data, market)
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeDict(this.Ohlcvs, symbol, map[string]any{}))
-		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+		var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
 		if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
 			var limit any = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 			stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -1688,7 +1688,9 @@ func (this *XtCore) HandleBalance(client any, message any) {
 	ccxt.AddElementToObject(account, "free", this.SafeString(data, "availableBalance"))
 	ccxt.AddElementToObject(account, "used", this.SafeString(data, "f"))
 	ccxt.AddElementToObject(account, "total", this.SafeString2(data, "b", "walletBalance"))
-	ccxt.AddElementToObject(this.Balance, code, account)
+	if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+		ccxt.AddElementToObject(this.Balance, code, account)
+	}
 	this.Balance = this.SafeBalance(this.Balance)
 	var tradeType any = ccxt.Ternary(ccxt.IsTrue((ccxt.InOp(data, "coin"))), "contract", "spot")
 	client.(ccxt.ClientInterface).Resolve(this.Balance, ccxt.Add("balance::", tradeType))

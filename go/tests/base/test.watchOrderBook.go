@@ -44,7 +44,7 @@ func TestWatchOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, symb
 				}()
 
 			}
-			if IsTrue(IsEqual(success, true)) {
+			if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
 				now = exchange.Milliseconds()
 				TestOrderBook(exchange, skippedProperties, method, response, symbol)
 			}

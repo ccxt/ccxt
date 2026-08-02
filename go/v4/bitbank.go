@@ -325,7 +325,7 @@ func (this *BitbankCore) ParseMarket(entry any) any {
 	var quoteId any = this.SafeString(entry, "quote_asset")
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
-	return map[string]any{
+	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         Add(Add(base, "/"), quote),
 		"base":           base,
@@ -375,7 +375,7 @@ func (this *BitbankCore) ParseMarket(entry any) any {
 		},
 		"created": nil,
 		"info":    entry,
-	}
+	})
 }
 func (this *BitbankCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
@@ -758,7 +758,9 @@ func (this *BitbankCore) ParseBalance(response any) any {
 		AddElementToObject(account, "free", this.SafeString(balance, "free_amount"))
 		AddElementToObject(account, "used", this.SafeString(balance, "locked_amount"))
 		AddElementToObject(account, "total", this.SafeString(balance, "onhand_amount"))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -780,8 +782,8 @@ func (this *BitbankCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes68212 := (<-this.LoadMarkets())
-			PanicOnError(retRes68212)
+			retRes68412 := (<-this.LoadMarkets())
+			PanicOnError(retRes68412)
 		}
 
 		response := (<-this.PrivateGetUserAssets(params))
@@ -900,8 +902,8 @@ func (this *BitbankCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes78512 := (<-this.LoadMarkets())
-			PanicOnError(retRes78512)
+			retRes78712 := (<-this.LoadMarkets())
+			PanicOnError(retRes78712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -946,8 +948,8 @@ func (this *BitbankCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes81412 := (<-this.LoadMarkets())
-			PanicOnError(retRes81412)
+			retRes81612 := (<-this.LoadMarkets())
+			PanicOnError(retRes81612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1010,8 +1012,8 @@ func (this *BitbankCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes86112 := (<-this.LoadMarkets())
-			PanicOnError(retRes86112)
+			retRes86312 := (<-this.LoadMarkets())
+			PanicOnError(retRes86312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1078,8 +1080,8 @@ func (this *BitbankCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes90812 := (<-this.LoadMarkets())
-			PanicOnError(retRes90812)
+			retRes91012 := (<-this.LoadMarkets())
+			PanicOnError(retRes91012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1130,8 +1132,8 @@ func (this *BitbankCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes93912 := (<-this.LoadMarkets())
-			PanicOnError(retRes93912)
+			retRes94112 := (<-this.LoadMarkets())
+			PanicOnError(retRes94112)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -1176,8 +1178,8 @@ func (this *BitbankCore) FetchDepositAddress(code any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes97012 := (<-this.LoadMarkets())
-			PanicOnError(retRes97012)
+			retRes97212 := (<-this.LoadMarkets())
+			PanicOnError(retRes97212)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -1234,8 +1236,8 @@ func (this *BitbankCore) Withdraw(code any, amount any, address any, optionalArg
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes100912 := (<-this.LoadMarkets())
-			PanicOnError(retRes100912)
+			retRes101112 := (<-this.LoadMarkets())
+			PanicOnError(retRes101112)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{

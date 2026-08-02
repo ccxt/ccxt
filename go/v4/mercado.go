@@ -284,6 +284,9 @@ func (this *MercadoCore) FetchMarkets(optionalArgs ...any) <-chan any {
 			var quoteId any = "BRL"
 			var base any = this.SafeCurrencyCode(baseId)
 			var quote any = this.SafeCurrencyCode(quoteId)
+			if IsTrue(IsTrue((IsEqual(base, nil))) || IsTrue((IsEqual(quote, nil)))) {
+				continue
+			}
 			var id any = Add(quote, base)
 			AppendToArray(&result, map[string]any{
 				"id":             id,
@@ -363,8 +366,8 @@ func (this *MercadoCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes37312 := (<-this.LoadMarkets())
-			PanicOnError(retRes37312)
+			retRes37612 := (<-this.LoadMarkets())
+			PanicOnError(retRes37612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -439,8 +442,8 @@ func (this *MercadoCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes43312 := (<-this.LoadMarkets())
-			PanicOnError(retRes43312)
+			retRes43612 := (<-this.LoadMarkets())
+			PanicOnError(retRes43612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -529,8 +532,8 @@ func (this *MercadoCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes50312 := (<-this.LoadMarkets())
-			PanicOnError(retRes50312)
+			retRes50612 := (<-this.LoadMarkets())
+			PanicOnError(retRes50612)
 		}
 		var market any = this.Market(symbol)
 		var method any = "publicGetCoinTrades"
@@ -570,7 +573,9 @@ func (this *MercadoCore) ParseBalance(response any) any {
 			var account any = this.Account()
 			AddElementToObject(account, "free", this.SafeString(balance, "available"))
 			AddElementToObject(account, "total", this.SafeString(balance, "total"))
-			AddElementToObject(result, code, account)
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(result, code, account)
+			}
 		}
 	}
 	return this.SafeBalance(result)
@@ -592,8 +597,8 @@ func (this *MercadoCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes55012 := (<-this.LoadMarkets())
-			PanicOnError(retRes55012)
+			retRes55512 := (<-this.LoadMarkets())
+			PanicOnError(retRes55512)
 		}
 
 		response := (<-this.PrivatePostGetAccountInfo(params))
@@ -629,8 +634,8 @@ func (this *MercadoCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes57012 := (<-this.LoadMarkets())
-			PanicOnError(retRes57012)
+			retRes57512 := (<-this.LoadMarkets())
+			PanicOnError(retRes57512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -693,8 +698,8 @@ func (this *MercadoCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes61712 := (<-this.LoadMarkets())
-			PanicOnError(retRes61712)
+			retRes62212 := (<-this.LoadMarkets())
+			PanicOnError(retRes62212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -842,8 +847,8 @@ func (this *MercadoCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes74912 := (<-this.LoadMarkets())
-			PanicOnError(retRes74912)
+			retRes75412 := (<-this.LoadMarkets())
+			PanicOnError(retRes75412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -889,8 +894,8 @@ func (this *MercadoCore) Withdraw(code any, amount any, address any, optionalArg
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes77712 := (<-this.LoadMarkets())
-			PanicOnError(retRes77712)
+			retRes78212 := (<-this.LoadMarkets())
+			PanicOnError(retRes78212)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -1021,8 +1026,8 @@ func (this *MercadoCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes89312 := (<-this.LoadMarkets())
-			PanicOnError(retRes89312)
+			retRes89812 := (<-this.LoadMarkets())
+			PanicOnError(retRes89812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1079,8 +1084,8 @@ func (this *MercadoCore) FetchOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes93012 := (<-this.LoadMarkets())
-			PanicOnError(retRes93012)
+			retRes93512 := (<-this.LoadMarkets())
+			PanicOnError(retRes93512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1127,8 +1132,8 @@ func (this *MercadoCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes95712 := (<-this.LoadMarkets())
-			PanicOnError(retRes95712)
+			retRes96212 := (<-this.LoadMarkets())
+			PanicOnError(retRes96212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1176,8 +1181,8 @@ func (this *MercadoCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes98512 := (<-this.LoadMarkets())
-			PanicOnError(retRes98512)
+			retRes99012 := (<-this.LoadMarkets())
+			PanicOnError(retRes99012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
