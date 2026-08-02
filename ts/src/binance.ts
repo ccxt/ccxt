@@ -8351,7 +8351,7 @@ export default class binance extends Exchange {
                 //
             }
         } else if (stock) {
-            response = await this.sapiPostEquityCancelAll (this.extend (request, params));
+            response = await this.sapiPostEquityOrderCancelAll (this.extend (request, params));
             //
             //     {
             //         "success": true
