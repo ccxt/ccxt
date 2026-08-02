@@ -706,7 +706,7 @@ class woofipro(Exchange, ImplicitAPI):
             networkEntry = networks[j]
             networkId = self.safe_string(networkEntry, 'chain_id')
             networkRow = self.safe_dict(indexedChains, networkId)
-            networkName = self.safe_string(networkRow, 'name')
+            networkName = self.safe_string(networkRow, 'name', networkId)
             networkCode = self.network_id_to_code(networkName, code)
             resultingNetworks[networkCode] = {
                 'id': networkId,

@@ -795,6 +795,7 @@ class indodax(Exchange, ImplicitAPI):
         price = self.safe_string(order, 'price')
         amount = None
         remaining = None
+        filled = None
         marketId = self.safe_string(order, 'pair')
         market = self.safe_market(marketId, market)
         if market is not None:
@@ -806,9 +807,11 @@ class indodax(Exchange, ImplicitAPI):
             if (market['baseId'] == 'idr') and ('remain_rp' in order):
                 baseId = 'rp'
             cost = self.safe_string(order, 'order_' + quoteId)
-            if not cost:
-                amount = self.safe_string(order, 'order_' + baseId)
-                remaining = self.safe_string(order, 'remain_' + baseId)
+            amount = self.safe_string(order, 'order_' + baseId)
+            remaining = self.safe_string(order, 'remain_' + baseId)
+            # filled buy orders on idr-quoted markets carry the executed base amount
+            # only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
+            filled = self.safe_string(order, 'receive_' + baseId)
         timestamp = self.safe_integer(order, 'submit_time')
         fee = None
         id = self.safe_string(order, 'order_id')
@@ -829,7 +832,7 @@ class indodax(Exchange, ImplicitAPI):
             'cost': cost,
             'average': None,
             'amount': amount,
-            'filled': None,
+            'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,

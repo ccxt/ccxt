@@ -185,7 +185,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             symbol = self.safe_symbol(marketId, None, '-')
             messageHash = 'ohlcv:' + symbol
             request = self.safe_value(client.subscriptions, messageHash)
-            timeframeId = self.safe_number(request, 'granularity')
+            timeframeId = self.safe_string(request, 'granularity')
             timeframe = self.find_timeframe(timeframeId)
             ohlcv = self.safe_value(message, 'price', [])
             self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
