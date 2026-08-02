@@ -5154,7 +5154,7 @@ class coinex extends Exchange {
         if ($type === 'deposit') {
             $feeCost = '0';
         }
-        $feeCurrencyId = $this->safe_string($transaction, 'fee_asset');
+        $feeCurrencyId = $this->safe_string_2($transaction, 'fee_asset', 'fee_ccy'); // https://github.com/ccxt/ccxt/issues/25153
         $fee = array(
             'cost' => $this->parse_number($feeCost),
             'currency' => $this->safe_currency_code($feeCurrencyId),
