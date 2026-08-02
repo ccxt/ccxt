@@ -7336,7 +7336,7 @@ export default class binance extends Exchange {
             market = this.market (symbol);
             stock = market['stock'];
             request['symbol'] = market['id'];
-        } else {
+        } else if (!stock) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
         }
         let type = undefined;
