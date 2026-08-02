@@ -80,7 +80,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                 $productIds[] = $market['id'];
             }
             $url = $this->urls['api']['ws'];
-            if (is_array($params) && array_key_exists('signature', $params)) {
+            if (is_array($params) && array_key_exists('signature' ?? '', $params)) {
                 // need to distinguish between public trades and user trades
                 $url = $url . '?';
             }
@@ -112,7 +112,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                 $messageHashes[] = $messageHashStart . ':' . $market['symbol'];
             }
             $url = $this->urls['api']['ws'];
-            if (is_array($params) && array_key_exists('signature', $params)) {
+            if (is_array($params) && array_key_exists('signature' ?? '', $params)) {
                 // need to distinguish between public trades and user trades
                 $url = $url . '?';
             }
@@ -338,7 +338,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $symbolsLength = count($symbols);
             if ($symbolsLength === 0) {
@@ -383,7 +383,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $name = 'level2';
             if ($this->markets === null) {
@@ -523,7 +523,7 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
         $parsed = parent::parse_trade($trade);
         $feeRate = null;
         $isMaker = false;
-        if (is_array($trade) && array_key_exists('maker_fee_rate', $trade)) {
+        if (is_array($trade) && array_key_exists('maker_fee_rate' ?? '', $trade)) {
             $isMaker = true;
             $parsed['takerOrMaker'] = 'maker';
             $feeRate = $this->safe_string($trade, 'maker_fee_rate');

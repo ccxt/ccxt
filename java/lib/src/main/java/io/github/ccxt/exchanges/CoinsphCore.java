@@ -1093,7 +1093,7 @@ public class CoinsphCore extends CoinsphApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -1677,7 +1677,7 @@ public class CoinsphCore extends CoinsphApi
      * @description fetches information on an order made by the user
      * @see https://docs.coins.ph/rest-api/#query-order-user_data
      * @param {int|string} id order id
-     * @param {string} symbol not used by coinsph fetchOrder ()
+     * @param {string} symbol not used by fetchOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1798,7 +1798,7 @@ public class CoinsphCore extends CoinsphApi
      * @description cancels an open order
      * @see https://docs.coins.ph/rest-api/#cancel-order-trade
      * @param {string} id order id
-     * @param {string} symbol not used by coinsph cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2184,7 +2184,7 @@ public class CoinsphCore extends CoinsphApi
      * @see https://docs.coins.ph/rest-api/#withdrawuser_data
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
-     * @param {string} address not used by coinsph withdraw ()
+     * @param {string} address not used by withdraw ()
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}

@@ -255,7 +255,7 @@ public class TestCreateOrder extends BaseTest {
                 // if it was limit order, try to cancel it before exiting the script
                 (tcoTryCancelOrder(exchange, symbol, order, skippedProperties)).join();
             }
-            throw new RuntimeException(e);
+            throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
         }
         return order;
         });

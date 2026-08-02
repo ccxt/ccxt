@@ -112,8 +112,8 @@ class toobit extends Exchange {
                         'quote/v1/markPrice/klines' => 1,
                         'quote/v1/markPrice' => 10, // 5 requests per second
                         'quote/v1/index' => 1,
-                        'quote/v1/ticker/24hr' => 40, // todo => 1-40 depenidng noSymbol
-                        'quote/v1/contract/ticker/24hr' => 40, // todo => 1-40 depenidng noSymbol
+                        'quote/v1/ticker/24hr' => 40, // todo => 1-40 depending noSymbol
+                        'quote/v1/contract/ticker/24hr' => 40, // todo => 1-40 depending noSymbol
                         'quote/v1/ticker/price' => 1,
                         'quote/v1/contract/ticker/price' => 1,
                         'quote/v1/ticker/bookTicker' => 1,
@@ -963,7 +963,7 @@ class toobit extends Exchange {
         $lotSizeFilter = $this->safe_dict($filtersByType, 'LOT_SIZE', array());
         $minNotionalFilter = $this->safe_dict($filtersByType, 'MIN_NOTIONAL', array());
         $symbol = $base . '/' . $quote;
-        $isContract = (is_array($market) && array_key_exists('contractMultiplier', $market));
+        $isContract = (is_array($market) && array_key_exists('contractMultiplier' ?? '', $market));
         $inverse = $this->safe_bool_2($market, 'isInverse', 'inverse');
         if ($isContract) {
             $symbol .= ':' . $settle;
@@ -1029,7 +1029,7 @@ class toobit extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1530,7 +1530,7 @@ class toobit extends Exchange {
          *
          * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rates structures~, indexe by $market $symbols
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rates structures~, indexed by $market $symbols
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1867,7 +1867,7 @@ class toobit extends Exchange {
             }
             $params = $this->omit($params, 'takeProfit');
         }
-        if (!(is_array($params) && array_key_exists('newClientOrderId', $params))) {
+        if (!(is_array($params) && array_key_exists('newClientOrderId' ?? '', $params))) {
             $request['newClientOrderId'] = $this->uuid();
         }
         return array( $request, $params );
@@ -2854,7 +2854,7 @@ class toobit extends Exchange {
         $tagFrom = $this->safe_string($transaction, 'fromAddressTag');
         $addressTo = $this->safe_string($transaction, 'address');
         $addressFrom = $this->safe_string($transaction, 'fromAddress');
-        $isWithdraw = (is_array($transaction) && array_key_exists('arriveQuantity', $transaction));
+        $isWithdraw = (is_array($transaction) && array_key_exists('arriveQuantity' ?? '', $transaction));
         $type = $isWithdraw ? 'withdrawal' : 'deposit';
         return array(
             'info' => $transaction,

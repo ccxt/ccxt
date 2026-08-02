@@ -15,6 +15,7 @@ declare class OrderBook implements CustomOrderBookProp {
     limit(): this;
     update(snapshot: any): this;
     reset(snapshot?: {}): this;
+    copy(): any;
 }
 declare class CountedOrderBook extends OrderBook {
     constructor(snapshot?: {}, depth?: Int);

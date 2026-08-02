@@ -210,7 +210,7 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market $orders
-             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->timeInForce] GTC (default), IOC, FOK
              * @param {string} [$params->clientOrderId] Maximum 64-character length.*
              * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
@@ -280,7 +280,7 @@ class poloniex extends \ccxt\async\poloniex {
              * cancel multiple $orders
              * @param {string} $id $order $id
              * @param {string} [$symbol] unified market $symbol
-             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->clientOrderId] client $order $id
              * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structures}
              */
@@ -304,7 +304,7 @@ class poloniex extends \ccxt\async\poloniex {
              * cancel multiple orders
              * @param {string[]} $ids order $ids
              * @param {string} $symbol unified market $symbol, default is null
-             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string[]} [$params->clientOrderIds] client order $ids
              * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
@@ -327,7 +327,7 @@ class poloniex extends \ccxt\async\poloniex {
              *
              * cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
              * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
-             * @param {array} [$params] extra parameters specific to the poloniex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
             if ($this->markets === null) {
@@ -504,7 +504,7 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] not used by poloniex watchOrderBook
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -901,6 +901,13 @@ class poloniex extends \ccxt\async\poloniex {
                     $previousOrder = $this->safe_value_2($previousOrders, $orderId, $clientOrderId);
                     $trade = $this->parse_ws_trade($order);
                     $this->handle_my_trades($client, $trade);
+                    if ($previousOrder === null) {
+                        // fill event for an $order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse fresh $order instead of aggregating
+                        $parsedOrder = $this->parse_ws_order($order);
+                        $orders->append($parsedOrder);
+                        $marketIds[] = $marketId;
+                        continue;
+                    }
                     if ($previousOrder['trades'] === null) {
                         $previousOrder['trades'] = array();
                     }
@@ -1355,7 +1362,7 @@ class poloniex extends \ccxt\async\poloniex {
                 if ($e instanceof AuthenticationError) {
                     $messageHash = 'authenticated';
                     $client->reject($e, $messageHash);
-                    if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                    if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                         unset($client->subscriptions[$messageHash]);
                     }
                 } else {
@@ -1384,7 +1391,7 @@ class poloniex extends \ccxt\async\poloniex {
         } else {
             $error = new AuthenticationError($this->id . ' ' . $this->json($message));
             $client->reject($error, $messageHash);
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }

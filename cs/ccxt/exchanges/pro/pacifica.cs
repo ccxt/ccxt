@@ -74,7 +74,7 @@ public partial class pacifica : ccxt.pacifica
             ((IDictionary<string,object>)headers)["PF-API-KEY"] = key;
         } else
         {
-            if (isTrue(!isEqual(this.handleOption("setupApiKeyHeaders", "apiKey", null), null)))
+            if (isTrue(!isEqual(this.handleOption("setupApiKeyHeaders", "apiKey"), null)))
             {
                 ((IDictionary<string,object>)headers)["PF-API-KEY"] = getValue(this.options, "apiKey");
             }
@@ -318,7 +318,7 @@ public partial class pacifica : ccxt.pacifica
         for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
             object order = getValue(results, i);
-            object error = this.safeString(order, "error", null);
+            object error = this.safeString(order, "error");
             object success = this.safeBool(order, "success", false);
             object marketId = this.safeString(order, "symbol");
             object market = this.safeMarket(marketId);
@@ -470,7 +470,7 @@ public partial class pacifica : ccxt.pacifica
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1528,7 +1528,7 @@ public partial class pacifica : ccxt.pacifica
         {
             return;
         }
-        object postType = this.safeString(message, "type", null);
+        object postType = this.safeString(message, "type");
         object topic = this.safeString(message, "channel", "");
         object methods = new Dictionary<string, object>() {
             { "pong", this.handlePong },

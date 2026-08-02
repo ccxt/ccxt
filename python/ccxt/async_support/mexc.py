@@ -631,7 +631,7 @@ class mexc(Exchange, ImplicitAPI):
                     # 'ZEN': 'ZEN',
                     # 'ZIL': 'Zilliqa(ZIL)',
                     # 'ZTG': 'ZTG',
-                    # todo: uncomment below after concensus
+                    # todo: uncomment below after consensus
                     # 'ALAYA': 'ATP',
                     # 'ANDUSCHAIN': 'DEB',
                     # 'ASSETMANTLE': 'MNTL',
@@ -1512,7 +1512,7 @@ class mexc(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -3245,7 +3245,7 @@ class mexc(Exchange, ImplicitAPI):
         https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-orders-under-a-contract  # swap
         https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-planned-orders  # swap trigger
 
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -5165,7 +5165,7 @@ class mexc(Exchange, ImplicitAPI):
 
         :param str id: transfer id
         :param str [code]: not used by mexc fetchTransfer
-        :param dict params: extra parameters specific to the exchange api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         marketType, query = self.handle_market_type_and_params('fetchTransfer', None, params)
@@ -5511,7 +5511,7 @@ class mexc(Exchange, ImplicitAPI):
         https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-user-position-mode
 
         :param bool hedged: set to True to use dualSidePosition
-        :param str symbol: not used by mexc setPositionMode()
+        :param str symbol: not used by setPositionMode()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
@@ -5832,7 +5832,7 @@ class mexc(Exchange, ImplicitAPI):
         :param str[] [symbols]: unified contract symbols
         :param int [since]: not used by mexc fetchPositionsHistory
         :param int [limit]: the maximum amount of candles to fetch, default=1000
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
 
  EXCHANGE SPECIFIC PARAMETERS
         :param int [params.type]: position type，1: long, 2: short

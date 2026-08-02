@@ -84,13 +84,16 @@ func AssertStructure(exchange ccxt.ICoreExchange, skippedProperties any, method 
 		var keys any = ObjectKeys(format)
 		for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 			var key any = GetValue(keys, i)
+			if IsTrue(InOp(skippedProperties, key)) {
+				continue
+			}
 			Assert(InOp(entry, key), Add(Add(Add("\"", StringValue(key)), "\" key is missing from structure"), logText))
 			var emptyAllowedForThisKey any = IsTrue((IsEqual(emptyAllowedFor, nil))) || IsTrue(exchange.InArray(key, emptyAllowedFor))
 			var value any = GetValue(entry, key)
 			// check when:
 			// - it's not inside "allowed empty values" list
 			// - it's not undefined
-			if IsTrue(IsTrue((IsTrue(emptyAllowedForThisKey) && IsTrue((IsEqual(value, nil))))) || IsTrue((InOp(skippedProperties, key)))) {
+			if IsTrue(IsTrue(emptyAllowedForThisKey) && IsTrue((IsEqual(value, nil)))) {
 				continue
 			}
 			// if it was in needed keys, then it should have value.

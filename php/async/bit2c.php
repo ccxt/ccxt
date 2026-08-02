@@ -300,7 +300,7 @@ class bit2c extends Exchange {
             $account = $this->account();
             $currency = $this->currency($code);
             $uppercase = strtoupper($currency['id']);
-            if (is_array($response) && array_key_exists($uppercase, $response)) {
+            if (is_array($response) && array_key_exists($uppercase ?? '', $response)) {
                 $account['free'] = $this->safe_string($response, 'AVAILABLE_' . $uppercase);
                 $account['total'] = $this->safe_string($response, $uppercase);
             }
@@ -379,7 +379,7 @@ class bit2c extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -708,7 +708,7 @@ class bit2c extends Exchange {
         //
         $orderUnified = null;
         $isNewOrder = false;
-        if (is_array($order) && array_key_exists('NewOrder', $order)) {
+        if (is_array($order) && array_key_exists('NewOrder' ?? '', $order)) {
             $orderUnified = $order['NewOrder'];
             $isNewOrder = true;
         } else {

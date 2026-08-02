@@ -607,6 +607,9 @@ class bingx extends Exchange {
             ),
             'options' => array(
                 'defaultType' => 'spot',
+                'fetchOHLCV' => array(
+                    'timeZone' => 0, // candle boundary offset in hours, 0 anchors daily candles to UTC midnight, set 8 for the bingx-native UTC+8 anchoring
+                ),
                 'accountsByType' => array(
                     'funding' => 'fund',
                     'spot' => 'spot',
@@ -773,7 +776,7 @@ class bingx extends Exchange {
                     ),
                 ),
             ),
-            'rollingWindowSize' => 2000.0,  // Some endpoints have a 10s window, some have a 5s window, a more complicated rate limiter is needed to accomodate for this
+            'rollingWindowSize' => 2000.0,  // Some endpoints have a 10s window, some have a 5s window, a more complicated rate limiter is needed to accommodate for this
         ));
     }
 
@@ -1185,6 +1188,13 @@ class bingx extends Exchange {
             $request['endTime'] = $until;
         }
         if ($market['spot']) {
+            // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
+            // the $timeZone $request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
+            $timeZone = null;
+            list($timeZone, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'timeZone', 0);
+            if ($timeZone !== null) {
+                $request['timeZone'] = $timeZone;
+            }
             $response = $this->spotV1PublicGetMarketKline($this->extend($request, $params));
         } else {
             if ($market['inverse']) {
@@ -1505,7 +1515,7 @@ class bingx extends Exchange {
             $takeOrMaker = $isMaker ? 'maker' : 'taker';
         }
         $amount = $this->safe_string_n($trade, array( 'qty', 'amount', 'q' ));
-        if (($market !== null) && $market['swap'] && (is_array($trade) && array_key_exists('volume', $trade))) {
+        if (($market !== null) && $market['swap'] && (is_array($trade) && array_key_exists('volume' ?? '', $trade))) {
             // private $trade returns num of contracts instead of base currency (as the order-related methods do)
             $contractSize = $this->safe_string($market['info'], 'tradeMinQuantity');
             $volume = $this->safe_string($trade, 'volume');
@@ -1542,7 +1552,7 @@ class bingx extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -2615,7 +2625,7 @@ class bingx extends Exchange {
          * @param {string} $symbol unified contract $symbol
          * @param {int} [$since] the earliest time in ms to fetch $positions for
          * @param {int} [$limit] the maximum amount of $records to fetch
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch $positions for
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
@@ -5363,8 +5373,17 @@ class bingx extends Exchange {
         $currency = $this->safe_currency($currencyId, $currency);
         $code = $currency['code'];
         $address = $this->safe_string($depositAddress, 'addressWithPrefix');
-        $networkdId = $this->safe_string($depositAddress, 'network');
-        $networkCode = $this->network_id_to_code($networkdId, $code);
+        $networkId = $this->safe_string($depositAddress, 'network');
+        $networkCode = $this->network_id_to_code($networkId, $code);
+        // despite its name the addressWithPrefix field sometimes arrives without
+        // the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
+        if ($address !== null) {
+            $isPrefixed = str_starts_with($address, '0x') || str_starts_with($address, '0X');
+            $evmNetworks = array( 'BEP20', 'BSC', 'ERC20', 'ETH', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'ARB', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB' );
+            if (!$isPrefixed && $this->in_array($networkCode, $evmNetworks)) {
+                $address = '0x' . $address;
+            }
+        }
         $this->check_address($address);
         return array(
             'info' => $depositAddress,
@@ -5656,7 +5675,7 @@ class bingx extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol of the $market to set margin in
          * @param {float} $amount the $amount to set the margin to
-         * @param {array} [$params] parameters specific to the bingx api endpoint
+         * @param {array} [$params] parameters specific to the exchange API endpoint
          * @return {array} A ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         $type = $this->safe_integer($params, 'type'); // 1 increase margin 2 decrease margin
@@ -6314,7 +6333,7 @@ class bingx extends Exchange {
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} [$side] not used by bingx
-         * @param {array} [$params] extra parameters specific to the bingx api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string|null} [$params->positionId] the id of the position you would like to close
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
@@ -6384,7 +6403,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
          * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
          *
-         * @param {array} [$params] extra parameters specific to the bingx api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->recvWindow] $request valid time window value
          * @return {array[]} ~@link https://docs.ccxt.com/?id=$position-structure a list of $position structures~
          */
@@ -6478,7 +6497,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
          *
          * @param {bool} $hedged set to true to use $dualSidePosition
-         * @param {string} $symbol not used by bingx setPositionMode ()
+         * @param {string} $symbol not used by setPositionMode ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} response from the exchange
          */

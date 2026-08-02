@@ -50,8 +50,8 @@ export function baseEnv(): Record<string, string> {
   };
   // Forward egress-proxy settings into the (otherwise scrubbed) child env so runs
   // reach exchanges only via the allowlist proxy. Python(requests)/PHP(libcurl)/
-  // Go(net-http)/C#(HttpClient) honor these automatically; the JS/TS runner also
-  // wires node-fetch's agent to the proxy (see node-proxy-preload.mjs).
+  // Go(net-http)/C#(HttpClient) honor these automatically; the TypeScript runner
+  // preloads node-proxy-preload.mjs, which sets ccxt's own httpsProxy/wssProxy.
   for (const k of [
     "HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy",
     "ALL_PROXY", "all_proxy", "NO_PROXY", "no_proxy",

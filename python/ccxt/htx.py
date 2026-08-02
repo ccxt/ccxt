@@ -2468,7 +2468,7 @@ class htx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -7210,7 +7210,7 @@ class htx(Exchange, ImplicitAPI):
                 if method != 'POST':
                     request = self.extend(request, query)
                 sortedRequest = self.keysort(request)
-                auth = self.urlencode(sortedRequest, True)  # True is a go only requirment
+                auth = self.urlencode(sortedRequest, True)  # True is a go only requirement
                 # unfortunately, PHP demands double quotes for the escaped newline symbol
                 content = [method, self.hostname, url, auth]
                 payload = "\n".join(content)  # eslint-disable-line quotes
@@ -9198,7 +9198,7 @@ class htx(Exchange, ImplicitAPI):
 
         :param str symbol: unified CCXT market symbol
         :param str side: 'buy' or 'sell', the side of the closing order, opposite side side
-        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
         :param dict [params.marginMode]: 'cross' or 'isolated', required for linear markets
 

@@ -312,7 +312,7 @@ class zebpay extends Exchange {
              * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
              * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
              *
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
             $promisesUnresolved = array();
@@ -579,7 +579,7 @@ class zebpay extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1111,7 +1111,7 @@ class zebpay extends Exchange {
 
     public function order_request($symbol, $type, $amount, $request, $price = null, $params = array()) {
         $upperCaseType = strtoupper($type);
-        $triggerPrice = $this->safe_string($params, 'stopLossPrice', null);
+        $triggerPrice = $this->safe_string($params, 'stopLossPrice');
         $quoteOrderQty = $this->safe_string_2($params, 'quoteOrderQty', 'cost', null);
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
         $clientOrderId = $this->safe_string($params, 'clientOrderId', $this->uuid());
@@ -1185,10 +1185,10 @@ class zebpay extends Exchange {
              *
              * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders
              *
-             * @param {string} $symbol unified $symbol of the market the order was made in
+             * @param {string} [$symbol] unified $symbol of the market the orders were made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {array} [$params->timestamp] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/?id=order-structure order structure~
+             * @param {int} [$params->timestamp] the timestamp of the request in ms
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', null, $params);
@@ -1372,7 +1372,7 @@ class zebpay extends Exchange {
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $status = $this->safe_string_lower($order, 'status');
-        $orderId = $this->safe_string($order, 'orderId', null);
+        $orderId = $this->safe_string($order, 'orderId');
         $parsedOrder = $this->safe_order(array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,
@@ -1410,7 +1410,7 @@ class zebpay extends Exchange {
              *
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} $side not used by kucoinfutures closePositions
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->positionId] client order id of the order
              * @return {array[]} ~@link https://docs.ccxt.com/?id=position-structure A list of position structures~
              */

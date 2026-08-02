@@ -1680,7 +1680,7 @@ func (this *WhitebitCore) FetchTickers(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *WhitebitCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2476,7 +2476,7 @@ func (this *WhitebitCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @name whitebit#cancelAllOrders
  * @description cancel all open orders
  * @see https://docs.whitebit.com/private/http-trade-v4/#cancel-all-orders
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] market type, ['swap', 'spot']
  * @param {boolean} [params.isMargin] cancel all margin orders
@@ -3734,7 +3734,7 @@ func (this *WhitebitCore) ParseTransactionStatus(status any) any {
  * @description fetch information on a deposit
  * @see https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
  * @param {string} id deposit id
- * @param {string} code not used by whitebit fetchDeposit ()
+ * @param {string} code not used by fetchDeposit ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
@@ -4656,7 +4656,7 @@ func (this *WhitebitCore) ParseConversion(conversion any, optionalArgs ...any) a
  * @param {string} symbol unified contract symbol
  * @param {int} [since] the earliest time in ms to fetch positions for
  * @param {int} [limit] the maximum amount of records to fetch
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.positionId] the id of the requested position
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */

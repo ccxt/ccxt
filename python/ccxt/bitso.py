@@ -716,7 +716,7 @@ class bitso(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -1152,7 +1152,7 @@ class bitso(Exchange, ImplicitAPI):
         https://docs.bitso.com/bitso-api/docs/cancel-an-order
 
         :param str id: order id
-        :param str symbol: not used by bitso cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1215,7 +1215,7 @@ class bitso(Exchange, ImplicitAPI):
 
         https://docs.bitso.com/bitso-api/docs/cancel-an-order
 
-        :param None symbol: bitso does not support canceling orders for only a specific market
+        :param str [symbol]: bitso does not support canceling orders for only a specific market
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """

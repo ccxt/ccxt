@@ -587,7 +587,7 @@ class deepcoin(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -663,7 +663,7 @@ class deepcoin(Exchange, ImplicitAPI):
             params = self.omit(params, 'calculateUntil')
             if since is not None:
                 # the exchange do not have a since param for self endpoint
-                # we canlculate until(after) for correct pagination
+                # we calculate until(after) for correct pagination
                 duration = self.parse_timeframe(timeframe)
                 numberOfCandles = maxLimit if (limit is None) else limit
                 endTime = since + (duration * numberOfCandles) * 1000

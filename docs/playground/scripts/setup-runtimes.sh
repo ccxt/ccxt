@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Provision the Python and PHP runtimes the executor uses.
 #
-# JavaScript needs nothing extra — it uses the playground's own node_modules/ccxt.
+# TypeScript needs nothing extra — it uses the playground's own node_modules/ccxt.
 # Python and PHP get isolated, pinned CCXT installs under runtime/.
 #
 # Both runners fall back to the monorepo's in-repo CCXT if these are missing
@@ -60,7 +60,12 @@ else
   echo "    composer not found — runner will fall back to monorepo ../../ccxt.php"
 fi
 
-CCXT_GO_VERSION="${CCXT_GO_VERSION:-v4.5.56}"
+# Pseudo-version of master @ 6654bd39a17c (#29357) — the first ccxt-go with
+# Proxy: http.ProxyFromEnvironment on its transport. Every tagged release up to
+# v4.5.70 dials direct, ignoring HTTP(S)_PROXY, so behind the playground's
+# egress proxy (internal network, squid allowlist) all exchange calls fail with
+# a DNS error. Move this back to a normal release pin once the next tag is cut.
+CCXT_GO_VERSION="${CCXT_GO_VERSION:-v4.5.71-0.20260730115723-6654bd39a17c}"
 CCXT_NUGET_VERSION="${CCXT_NUGET_VERSION:-}" # empty = latest
 
 echo "==> Go runtime (runtime/go) — warms the ccxt build cache (~45s cold)"
@@ -98,8 +103,21 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func main() { _ = ccxt.NewBinance(nil) }
 GO
   echo "$GOBIN" > "$GO_ROOT/.gobin"
-  export GOCACHE="$GO_ROOT/.cache" GOMODCACHE="$GO_ROOT/.modcache" GOPATH="$GO_ROOT/.gopath" GOTOOLCHAIN=auto GOFLAGS=-mod=mod
-  ( cd "$GO_ROOT" && "$GOBIN" mod tidy && "$GOBIN" build ./runs/warmup ) && echo "    go ccxt build cache warmed ($GOBIN)"
+  # GONOSUMDB for ccxt's own module: sum.golang.org indexes fresh (pseudo-)
+  # versions with a lag — deploy 30700554711 failed because the sumdb 404'd a
+  # pseudo-version that proxy.golang.org already served. Skipping the checksum
+  # DB for github.com/ccxt only is safe: the hashes still land in go.sum here,
+  # and every later `go run` verifies against that go.sum.
+  export GOCACHE="$GO_ROOT/.cache" GOMODCACHE="$GO_ROOT/.modcache" GOPATH="$GO_ROOT/.gopath" GOTOOLCHAIN=auto GOFLAGS=-mod=mod GONOSUMDB=github.com/ccxt
+  if ( cd "$GO_ROOT" && "$GOBIN" mod tidy && "$GOBIN" build ./runs/warmup ); then
+    echo "    go ccxt build cache warmed ($GOBIN)"
+  else
+    # The runner treats a present go.mod as "provisioned" — leaving it behind
+    # after a failed warm gives users raw compile errors instead of the clean
+    # provision message, and go run without go.sum can't work at all.
+    echo "    warning: go warm build failed (Go tab will show the provision message)"
+    rm -f "$GO_ROOT/go.mod" "$GO_ROOT/go.sum"
+  fi
   rm -rf "$GO_ROOT/runs/warmup" "$GO_ROOT/warmup"
 else
   echo "    no Go >= 1.24 found — the Go tab will show a 'provision' message until one is installed"

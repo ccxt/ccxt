@@ -1160,7 +1160,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -3192,7 +3192,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if coin is not None:
             marketId = self.coin_to_market_id(coin)
         if self.safe_string(entry, 'id') is None:
-            market = self.safe_market(marketId, None)
+            market = self.safe_market(marketId)
         else:
             market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -3341,7 +3341,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         amount = self.safe_string(trade, 'sz')
         coin = self.safe_string(trade, 'coin')
         marketId = self.coin_to_market_id(coin)
-        market = self.safe_market(marketId, None)
+        market = self.safe_market(marketId)
         symbol = market['symbol']
         id = self.safe_string(trade, 'tid')
         side = self.safe_string(trade, 'side')
@@ -3514,7 +3514,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         entry = self.safe_dict(position, 'position', {})
         coin = self.safe_string(entry, 'coin')
         marketId = self.coin_to_market_id(coin)
-        market = self.safe_market(marketId, None)
+        market = self.safe_market(marketId)
         symbol = market['symbol']
         leverage = self.safe_dict(entry, 'leverage', {})
         marginMode = self.safe_string(leverage, 'type')

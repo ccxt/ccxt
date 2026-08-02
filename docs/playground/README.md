@@ -4,16 +4,17 @@ An online IDE that runs [CCXT](https://github.com/ccxt/ccxt) against **live publ
 exchange endpoints** in multiple languages, with an AI assistant that writes the
 code for you.
 
-- **Languages:** JavaScript, TypeScript, Python, PHP, **Go** and **C#** all run
+- **Languages:** TypeScript, Python, PHP, **Go** and **C#** all run
   in the playground. **Java** appears as a tab marked **local** — its dependency
   tree (guava/jackson/web3j/netty) can't be resolved in the sandbox without a
   build tool, so it shows a one-line install + sample instead. The AI assistant
-  writes code for all seven.
-  - TypeScript runs via Node's native type-stripping (no tsc) — types are erased, not checked.
+  writes code for all six.
+  - TypeScript runs natively on Node (`--experimental-transform-types`, no tsc) — so
+    `enum`/`namespace`/parameter properties work, but types are erased, not checked.
   - Go (~2–3s/run) and C# (~3–4s/run) compile each run, but only the user's file
     recompiles against a pre-warmed ccxt build, so they stay fast.
 - **Editor:** Monaco (the VS Code editor) with syntax highlighting per language,
-  and **CCXT IntelliSense for JS/TS** — `exchange.` autocompletes every unified
+  and **CCXT IntelliSense for TypeScript** — `exchange.` autocompletes every unified
   method with signatures and JSDoc. This uses Monaco's built-in TypeScript
   service (no language server): `/api/ccxt-types` serves CCXT's base `.d.ts`
   files plus a synthetic module entry typing each exchange as `Exchange`, which
@@ -22,7 +23,9 @@ code for you.
 - **Execution:** a backend executor spawns the real interpreter for each language
   using a pinned CCXT install, so you get real responses from real exchanges.
 - **AI assistant:** streams free models via [OpenRouter](https://openrouter.ai);
-  generated code can be inserted straight into the editor.
+  generated code can be inserted straight into the editor. The model list is
+  fetched from OpenRouter at server startup (free slugs rotate constantly) and
+  cached for the process lifetime.
 
 ## Quick start
 
@@ -53,9 +56,9 @@ OPENROUTER_API_KEY=sk-or-... docker compose up --build
 The image bundles every runtime (Node, Python, PHP, Go, .NET) with CCXT
 pre-installed and the Go/C# build caches **warmed at build time**, so first runs
 are fast. Pass `--build-arg PLAYGROUND_DISABLED=go` (and/or `csharp`) to keep a
-compiled language **install-only** — useful on a small host where compiling
-ccxt-go (~5 GB) would OOM. Pass `--build-arg NEXT_BASE_PATH=/playground` to serve
-under a sub-path. `docker-compose.yml` enforces the host protections:
+compiled language **install-only** — an escape hatch for a small host where
+compiling ccxt-go (~5 GB) would OOM. Pass `--build-arg NEXT_BASE_PATH=/playground`
+to serve under a sub-path. `docker-compose.yml` enforces the host protections:
 
 - **minimal bind mounts** → the only host paths mounted are the two append-only
   log dirs (`/var/log/ccxt-playground/{app,proxy}`); nothing else on the host
@@ -114,21 +117,23 @@ the container's `/etc/hosts` and a non-root `/home/playground`, and a crash
 
 Live deploy is automated by [`.github/workflows/deploy-playground.yml`](../../.github/workflows/deploy-playground.yml)
 (modeled on the Fumadocs workflow, same box + secrets). On push to `master` under
-`docs/playground/**` (or manual dispatch) it: builds the arm64 image on a native
+`docs/playground/**` (or manual dispatch) it: builds the amd64 image on a native
 runner → pushes to `ghcr.io/ccxt/ccxt-playground` → SSHes to the docs box →
-runs a **canary** on a temp port → smoke-tests (homepage + a real `6*7→42` JS
+runs a **canary** on a temp port → smoke-tests (homepage + a real `6*7→42` TypeScript
 run) → promotes to the live container only if green (else leaves the old one up).
 
 It's served behind the existing nginx as `location /playground` → the app's
 **static IP on the internal network** (`http://172.31.0.10:3000`), alongside the
-Fumadocs `/v2` and Docsify `/`. (Publishing a host port doesn't work on a Docker
+Fumadocs site at `/`. (Publishing a host port doesn't work on a Docker
 `internal` network, but the host can route *into* it — so nginx targets the
 container's fixed internal IP, and the container still has no route *out* except
 via the egress proxy.)
 
-**Go is install-only in production** (`PLAYGROUND_DISABLED=go`) because compiling
-ccxt-go needs ~5 GB — unsafe on the shared 7.5 GB box. JS/TS/Python/PHP/C# run.
-Drop that build-arg on a larger dedicated box to enable Go.
+**All five runnable languages (TypeScript/Python/PHP/C#/Go) run in production.**
+The Go warm build (~5 GB peak) happens on the GitHub-hosted build runner, not on
+the docs box; the run container's 4 GB cap covers warm `go run`s. On a small box,
+add `PLAYGROUND_DISABLED=go` back to the workflow's build-args to make Go
+install-only again.
 
 One-time box setup (already done on the current box):
 
@@ -140,18 +145,11 @@ One-time box setup (already done on the current box):
 The deploy puts the app on the internal network behind the egress proxy and
 installs the nightly-restart cron automatically.
 
-> **Defense in depth on the box (optional):** the neighbor services on this host
-> (grafana `:3001`, prometheus `:9090`, benchmark `:3000/:3003`) are bound to
-> `0.0.0.0`. The egress proxy already denies the playground any route to them, but
-> rebinding those services to `127.0.0.1` (as the docs container already is) closes
-> the path for anything else on the box too. That change lives in those projects'
-> compose files, not here.
-
 ## Runtimes
 
 `npm run setup-runtimes` provisions isolated, pinned CCXT installs:
 
-- **JavaScript / TypeScript** use the playground's own `node_modules/ccxt` (TS via Node type-stripping — nothing extra).
+- **TypeScript** uses the playground's own `node_modules/ccxt` (run natively by Node — nothing extra).
 - **Python** → `runtime/python/.venv` (`pip install ccxt`)
 - **PHP** → `runtime/php/vendor` (`composer require ccxt/ccxt`)
 - **Go** → `runtime/go` module (`go get github.com/ccxt/ccxt/go/v4`) with its build
@@ -207,11 +205,12 @@ app/
   page.tsx              playground shell (state lives here)
   api/run/route.ts      POST {language, code} -> execution result
   api/ai/route.ts       POST {messages, model} -> streamed OpenRouter completion
+  api/ai/models/route.ts GET -> free models for the picker (cached at startup)
 components/             Toolbar, Editor (Monaco), OutputPanel, AssistantPanel
 lib/
   languages.ts          language metadata
   examples.ts           starter snippets per (example, language)
-  runners/              sandbox + js/python/php runners + dispatcher
-  ai/openrouter.ts      free-model list + system prompt
+  runners/              sandbox + ts/python/php runners + dispatcher
+  ai/openrouter.ts      free-model fetch/cache + system prompt
 scripts/setup-runtimes.sh
 ```

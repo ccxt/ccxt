@@ -940,7 +940,7 @@ class digifinex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -1862,7 +1862,7 @@ class digifinex(Exchange, ImplicitAPI):
         https://docs.digifinex.com/en-ww/swap/v2/rest.html#cancelorder
 
         :param str id: order id
-        :param str symbol: not used by digifinex cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1956,7 +1956,7 @@ class digifinex(Exchange, ImplicitAPI):
         https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
 
         :param str[] ids: order ids
-        :param str symbol: not used by digifinex cancelOrders()
+        :param str symbol: not used by cancelOrders()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """

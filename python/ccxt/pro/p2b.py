@@ -230,7 +230,7 @@ class p2b(ccxt.async_support.p2b):
         :param int [limit]: 1-100, default=100
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.interval]: 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -404,6 +404,7 @@ class p2b(ccxt.async_support.p2b):
         #    }
         #
         params = self.safe_list(message, 'params', [])
+        isFullUpdate = self.safe_bool(params, 0, False)
         data = self.safe_dict(params, 1)
         asks = self.safe_list(data, 'asks')
         bids = self.safe_list(data, 'bids')
@@ -417,6 +418,12 @@ class p2b(ccxt.async_support.p2b):
         if orderbook is None:
             self.orderbooks[symbol] = self.order_book({}, limit)
             orderbook = self.orderbooks[symbol]
+        if isFullUpdate:
+            # the first parameter signals whether the message carries all
+            # records or only the changed ones, a full set replaces the book,
+            # otherwise stale levels that left the depth window would linger
+            # and cross the book, see https://github.com/ccxt/ccxt/issues/24944
+            orderbook.reset({})
         if bids is not None:
             for i in range(0, len(bids)):
                 bid = self.safe_value(bids, i)

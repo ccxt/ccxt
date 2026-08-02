@@ -275,7 +275,7 @@ class coincheck extends Exchange {
             $code = $codes[$i];
             $currency = $this->currency($code);
             $currencyId = $currency['id'];
-            if (is_array($response) && array_key_exists($currencyId, $response)) {
+            if (is_array($response) && array_key_exists($currencyId ?? '', $response)) {
                 $account = $this->account();
                 $reserved = $currencyId . '_reserved';
                 $account['free'] = $this->safe_string($response, $currencyId);
@@ -445,7 +445,7 @@ class coincheck extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -580,7 +580,7 @@ class coincheck extends Exchange {
         $side = null;
         $fee = null;
         $orderId = null;
-        if (is_array($trade) && array_key_exists('liquidity', $trade)) {
+        if (is_array($trade) && array_key_exists('liquidity' ?? '', $trade)) {
             if ($this->safe_string($trade, 'liquidity') === 'T') {
                 $takerOrMaker = 'taker';
             } elseif ($this->safe_string($trade, 'liquidity') === 'M') {
@@ -816,7 +816,7 @@ class coincheck extends Exchange {
              * @see https://coincheck.com/documents/exchange/api#order-cancel
              *
              * @param {string} $id order $id
-             * @param {string} $symbol not used by coincheck cancelOrder ()
+             * @param {string} $symbol not used by cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */

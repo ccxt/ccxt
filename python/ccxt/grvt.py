@@ -616,7 +616,7 @@ class grvt(Exchange, ImplicitAPI):
 
         https://api-docs.grvt.io/market_data_api/#get-instrument-prod
 
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         marketsPromise = self.publicMarketPostFullV1AllInstruments(params)
@@ -896,9 +896,12 @@ class grvt(Exchange, ImplicitAPI):
         #        }
         #
         marketId = self.safe_string(ticker, 'instrument')
+        timestamp = self.safe_integer_product(ticker, 'event_time', 0.000001)
         return self.safe_ticker({
             'info': ticker,
             'symbol': self.safe_symbol(marketId, market),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'open': self.safe_string(ticker, 'open_price'),
             'high': self.safe_string(ticker, 'high_price'),
             'low': self.safe_string(ticker, 'low_price'),
@@ -928,7 +931,7 @@ class grvt(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.loc]: crypto location, default: us
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -2943,7 +2946,7 @@ class grvt(Exchange, ImplicitAPI):
 
         https://api-docs.grvt.io/trading_api/#cancel-all-orders
 
-        :param str symbol: cancel alls open orders
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """

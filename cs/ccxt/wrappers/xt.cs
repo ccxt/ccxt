@@ -101,7 +101,7 @@ public partial class xt
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -785,7 +785,7 @@ public partial class xt
     /// <item>
     /// <term>tag</term>
     /// <description>
-    /// string :      * @param {object} params extra parameters specific to the xt api endpoint
+    /// string :      * @param {object} params extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>

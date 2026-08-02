@@ -28,7 +28,10 @@ class ArrayCacheBySymbolById extends ArrayCache {
             # updates the reference
             $prev_ref = $item;
             $item = &$prev_ref;
-            $index = array_search($item['id'], $this->index);
+            # index by key_field + id - different symbols can share an order id
+            # (binance uses per-symbol id sequences), and matching on id alone
+            # would remove the wrong row, see https://github.com/ccxt/ccxt/issues/26092
+            $index = array_search($key . $item['id'], $this->index);
             array_splice($this->index, $index, 1);
             array_splice($this->deque, $index, 1);
         } else {
@@ -41,7 +44,7 @@ class ArrayCacheBySymbolById extends ArrayCache {
         }
         # this allows us to effectively pass by reference
         $this->deque[] = &$item;
-        $this->index[] = $item['id'];
+        $this->index[] = $key . $item['id'];
         if ($this->clear_all_updates) {
             $this->clear_all_updates = false;
             $this->clear_updates_by_symbol = array();

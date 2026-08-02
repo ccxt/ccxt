@@ -27,8 +27,8 @@ func (this *WeexCore) Describe() any {
 			"watchMyTrades":              true,
 			"watchOHLCV":                 true,
 			"watchOHLCVForSymbols":       true,
-			"watchOrderBook":             false,
-			"watchOrderBookForSymbols":   false,
+			"watchOrderBook":             true,
+			"watchOrderBookForSymbols":   true,
 			"watchOrders":                true,
 			"watchPositions":             true,
 			"watchTicker":                true,
@@ -1006,7 +1006,7 @@ func (this *WeexCore) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *WeexCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1039,7 +1039,7 @@ func (this *WeexCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *WeexCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2063,7 +2063,7 @@ func (this *WeexCore) HandleBalance(client any, message any) {
 	//         ]
 	//     }
 	//
-	// coontract
+	// contract
 	//     {
 	//         "e": "account",
 	//         "E": 1776189629849,

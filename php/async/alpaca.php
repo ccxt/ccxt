@@ -458,7 +458,7 @@ class alpaca extends Exchange {
              *
              * @see https://docs.alpaca.markets/reference/get-v2-$assets
              *
-             * @param {array} [$params] extra parameters specific to the exchange api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
             $request = array(
@@ -673,7 +673,7 @@ class alpaca extends Exchange {
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->loc] crypto location, default => us
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -742,7 +742,7 @@ class alpaca extends Exchange {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the alpha api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->loc] crypto location, default => us
              * @param {string} [$params->method] $method, default => marketPublicGetV1beta3CryptoLocBars
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
@@ -1197,7 +1197,7 @@ class alpaca extends Exchange {
              *
              * @see https://docs.alpaca.markets/reference/deleteallorders
              *
-             * @param {string} $symbol alpaca cancelAllOrders cannot setting $symbol, it will cancel all open orders
+             * @param {string} [$symbol] alpaca cancelAllOrders cannot setting $symbol, it will cancel all open orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */

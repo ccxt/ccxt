@@ -807,7 +807,7 @@ class coinbaseexchange extends Exchange {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1699,7 +1699,7 @@ class coinbaseexchange extends Exchange {
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_deleteorders
              *
              * cancel all open orders
-             * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
@@ -1749,9 +1749,9 @@ class coinbaseexchange extends Exchange {
                 'amount' => $amount,
             );
             $method = 'privatePostWithdrawals';
-            if (is_array($params) && array_key_exists('payment_method_id', $params)) {
+            if (is_array($params) && array_key_exists('payment_method_id' ?? '', $params)) {
                 $method .= 'PaymentMethod';
-            } elseif (is_array($params) && array_key_exists('coinbase_account_id', $params)) {
+            } elseif (is_array($params) && array_key_exists('coinbase_account_id' ?? '', $params)) {
                 $method .= 'CoinbaseAccount';
             } else {
                 $method .= 'Crypto';
@@ -2251,7 +2251,7 @@ class coinbaseexchange extends Exchange {
         return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config) {
             $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
             if (gettype($response) !== 'string') {
-                if (is_array($response) && array_key_exists('message', $response)) {
+                if (is_array($response) && array_key_exists('message' ?? '', $response)) {
                     throw new ExchangeError($this->id . ' ' . $this->json($response));
                 }
             }

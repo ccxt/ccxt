@@ -3400,7 +3400,7 @@ final Object finalMinNotional = minNotional;
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -6032,12 +6032,32 @@ final Object finalMinNotional = minNotional;
                 if (Helpers.isTrue(hasStopLoss))
                 {
                     Object slTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice");
+                    if (Helpers.isTrue(Helpers.isEqual(slTriggerPrice, null)))
+                    {
+                        throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter")) ;
+                    }
                     Helpers.addElementToObject(request, "presetStopLossPrice", this.priceToPrecision(symbol, slTriggerPrice));
+                    Object slLimitPrice = this.safeValue(stopLoss, "price");
+                    if (Helpers.isTrue(!Helpers.isEqual(slLimitPrice, null)))
+                    {
+                        // without the execute price the exchange fills the attached stop loss
+                        // at the market price, see https://github.com/ccxt/ccxt/issues/23459
+                        Helpers.addElementToObject(request, "presetStopLossExecutePrice", this.priceToPrecision(symbol, slLimitPrice));
+                    }
                 }
                 if (Helpers.isTrue(hasTakeProfit))
                 {
                     Object tpTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice");
+                    if (Helpers.isTrue(Helpers.isEqual(tpTriggerPrice, null)))
+                    {
+                        throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter")) ;
+                    }
                     Helpers.addElementToObject(request, "presetStopSurplusPrice", this.priceToPrecision(symbol, tpTriggerPrice));
+                    Object tpLimitPrice = this.safeValue(takeProfit, "price");
+                    if (Helpers.isTrue(!Helpers.isEqual(tpLimitPrice, null)))
+                    {
+                        Helpers.addElementToObject(request, "presetStopSurplusExecutePrice", this.priceToPrecision(symbol, tpLimitPrice));
+                    }
                 }
             }
             if (!Helpers.isTrue(isStopLossOrTakeProfitTrigger))
@@ -6519,7 +6539,12 @@ final Object finalMinNotional = minNotional;
                 if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
                 {
                     Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
-                    Helpers.addElementToObject(request, "executePrice", this.priceToPrecision(symbol, price));
+                    // market plan orders carry no execute price, follow up to
+                    // https://github.com/ccxt/ccxt/issues/25427
+                    if (Helpers.isTrue(!Helpers.isEqual(price, null)))
+                    {
+                        Helpers.addElementToObject(request, "executePrice", this.priceToPrecision(symbol, price));
+                    }
                 } else
                 {
                     Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
@@ -10450,7 +10475,7 @@ final Object finalMinNotional = minNotional;
      * @see https://www.bitget.com/api-doc/contract/account/Change-Hold-Mode
      * @see https://www.bitget.com/api-doc/uta/account/Change-Position-Mode
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by bitget setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.productType] required if not uta and symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
@@ -11984,7 +12009,7 @@ final Object finalMinNotional = minNotional;
      * @param {string[]} [symbols] unified contract symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
      * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
      * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false

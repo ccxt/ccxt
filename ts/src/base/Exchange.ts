@@ -8039,7 +8039,14 @@ export class BaseExchange {
         if (symbols === undefined) {
             return undefined;
         }
-        return this.market (symbols[0]);
+        const firstMarket = this.safeString (symbols, 0);
+        if (firstMarket === undefined) {
+            // an empty symbols list must behave like an undefined one,
+            // this.market (undefined) would throw an unreadable error
+            return undefined;
+        }
+        const market = this.market (firstMarket);
+        return market;
     }
 
     parseWsOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined) {
@@ -9505,6 +9512,7 @@ export default class Exchange extends BaseExchange {
         }
         const maxRetries = this.handleOption ('watchOrderBook', 'snapshotMaxRetries', 3);
         let tries = 0;
+        let error: any = undefined;
         try {
             const stored = this.orderbooks[symbol];
             while (tries < maxRetries) {
@@ -9520,13 +9528,19 @@ export default class Exchange extends BaseExchange {
                 }
                 tries++;
             }
-            client.reject (new ExchangeError (this.id + ' nonce is behind the cache after ' + maxRetries.toString () + ' tries.'), messageHash);
-            delete this.clients[client.url];
-            this.orderbooks[symbol] = this.orderBook (); // clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
+            error = new ExchangeError (this.id + ' nonce is behind the cache after ' + maxRetries.toString () + ' tries.');
         } catch (e) {
-            client.reject (e, messageHash);
-            await this.loadOrderBook (client, messageHash, symbol, limit, params);
+            error = e;
         }
+        // a failed synchronization must not recurse into another attempt with the
+        // same broken state - previously the catch invoked loadOrderBook again,
+        // recursing endlessly when the snapshot request kept failing, see
+        // https://github.com/ccxt/ccxt/pull/24224 and https://github.com/ccxt/ccxt/issues/14567
+        // instead, reject the watcher and drop the connection and the cached
+        // orderbook, so the next watchOrderBook () call resubscribes cleanly
+        client.reject (error, messageHash);
+        delete this.clients[client.url];
+        this.orderbooks[symbol] = this.orderBook (); // clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753
     }
 
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {

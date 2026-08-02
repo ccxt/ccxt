@@ -424,7 +424,7 @@ class htx(ccxt.async_support.htx):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -2253,6 +2253,12 @@ class htx(ccxt.async_support.htx):
                     client.reject(e, id)
                     if id in client.subscriptions:
                         del client.subscriptions[id]
+                    # the subscription is keyed by the messageHash, not by the id -
+                    # without removing it a repeated watch call attaches to a future
+                    # that nothing will resolve instead of resubscribing, see
+                    # https://github.com/ccxt/ccxt/issues/10280
+                    if messageHash in client.subscriptions:
+                        del client.subscriptions[messageHash]
             return False
         code = self.safe_string_2(message, 'code', 'err-code')
         if code is not None and ((code != '200') and (code != '0')):

@@ -77,7 +77,7 @@ class pacifica(ccxt.async_support.pacifica):
         if key is not None:
             headers['PF-API-KEY'] = key
         else:
-            if self.handle_option('setupApiKeyHeaders', 'apiKey', None) is not None:
+            if self.handle_option('setupApiKeyHeaders', 'apiKey') is not None:
                 headers['PF-API-KEY'] = self.options['apiKey']
         self.options['ws']['options']['headers'] = headers
 
@@ -276,7 +276,7 @@ class pacifica(ccxt.async_support.pacifica):
         ordersToReturn = []
         for i in range(0, len(results)):
             order = results[i]
-            error = self.safe_string(order, 'error', None)
+            error = self.safe_string(order, 'error')
             success = self.safe_bool(order, 'success', False)
             marketId = self.safe_string(order, 'symbol')
             market = self.safe_market(marketId)
@@ -397,7 +397,7 @@ class pacifica(ccxt.async_support.pacifica):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int|None [params.aggLevel]: aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.setup_api_key_headers()
         if self.markets is None:
@@ -1258,7 +1258,7 @@ class pacifica(ccxt.async_support.pacifica):
         #
         if self.handle_error_message(client, message):
             return
-        postType = self.safe_string(message, 'type', None)
+        postType = self.safe_string(message, 'type')
         topic = self.safe_string(message, 'channel', '')
         methods = {
             'pong': self.handle_pong,

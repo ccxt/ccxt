@@ -793,7 +793,7 @@ public partial class delta : Exchange
         {
             object market = getValue(markets, i);
             object type = this.safeString(market, "contract_type");
-            if (isTrue(isEqual(type, "options_combos")))
+            if (isTrue(isTrue(isTrue((isEqual(type, "options_combos"))) || isTrue((isEqual(type, "binary_call_options")))) || isTrue((isEqual(type, "binary_put_options")))))
             {
                 continue;
             }
@@ -1363,7 +1363,13 @@ public partial class delta : Exchange
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
-            object ticker = this.parseTicker(getValue(tickers, i));
+            object rawTicker = getValue(tickers, i);
+            object contractType = this.safeString(rawTicker, "contract_type");
+            if (isTrue(isTrue(isTrue((isEqual(contractType, "options_combos"))) || isTrue((isEqual(contractType, "binary_call_options")))) || isTrue((isEqual(contractType, "binary_put_options")))))
+            {
+                continue;
+            }
+            object ticker = this.parseTicker(rawTicker);
             object symbol = getValue(ticker, "symbol");
             ((IDictionary<string,object>)result)[(string)symbol] = ticker;
         }
@@ -1378,7 +1384,7 @@ public partial class delta : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {

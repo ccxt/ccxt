@@ -745,7 +745,7 @@ class cex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -905,7 +905,7 @@ class cex extends Exchange {
         }
         for ($i = 0; $i < count($this->symbols); $i++) {
             $symbol = $this->symbols[$i];
-            if (!(is_array($result) && array_key_exists($symbol, $result))) {
+            if (!(is_array($result) && array_key_exists($symbol ?? '', $result))) {
                 $market = $this->market($symbol);
                 $result[$symbol] = $this->parse_trading_fee($response, $market);
             }
@@ -1440,7 +1440,7 @@ class cex extends Exchange {
              *
              * @see https://trade.cex.io/docs/#rest-private-api-calls-cancel-all-$orders
              *
-             * @param {string} $symbol alpaca cancelAllOrders cannot setting $symbol, it will cancel all open $orders
+             * @param {string} [$symbol] unified market $symbol, only $orders in the market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
              */

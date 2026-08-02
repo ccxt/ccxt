@@ -22,7 +22,12 @@ function goEnv(): Record<string, string> {
     GOMODCACHE: path.join(GO_ROOT, ".modcache"),
     GOPATH: path.join(GO_ROOT, ".gopath"),
     GOTOOLCHAIN: "auto",
-    GOFLAGS: "-mod=mod",
+    // readonly + GOPROXY=off: a user import outside the warmed module graph
+    // fails instantly with a clear error instead of stalling through the
+    // egress proxy (module fetches are denied by the allowlist) until
+    // COMPILE_TIMEOUT_MS kills the run.
+    GOFLAGS: "-mod=readonly",
+    GOPROXY: "off",
   };
 }
 

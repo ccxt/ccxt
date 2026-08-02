@@ -380,15 +380,15 @@ class hyperliquid extends Exchange {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
-        if (($symbol !== null) && !(is_array($this->markets) && array_key_exists($symbol, $this->markets))) {
+        if (($symbol !== null) && !(is_array($this->markets) && array_key_exists($symbol ?? '', $this->markets))) {
             $symbolParts = explode('/', $symbol);
             $baseName = $this->safe_string($symbolParts, 0);
             $spotCurrencyMapping = $this->safe_dict($this->options, 'spotCurrencyMapping', array());
-            if (is_array($spotCurrencyMapping) && array_key_exists($baseName, $spotCurrencyMapping)) {
+            if (is_array($spotCurrencyMapping) && array_key_exists($baseName ?? '', $spotCurrencyMapping)) {
                 $unifiedBaseName = $this->safe_string($spotCurrencyMapping, $baseName);
                 $quote = $this->safe_string($symbolParts, 1);
                 $newSymbol = $this->safe_currency_code($unifiedBaseName) . '/' . $quote;
-                if (is_array($this->markets) && array_key_exists($newSymbol, $this->markets)) {
+                if (is_array($this->markets) && array_key_exists($newSymbol ?? '', $this->markets)) {
                     return $this->markets[$newSymbol];
                 }
             }
@@ -657,7 +657,7 @@ class hyperliquid extends Exchange {
                     $data['dex'] = $dexName;
                     $cachedCurrencies = $this->safe_dict($this->options, 'cachedCurrenciesById', array());
                     // injecting collateral token $name for further usage in parseMarket, already converted from like '0' to 'USDC', etc
-                    if (is_array($cachedCurrencies) && array_key_exists($collateralToken, $cachedCurrencies)) {
+                    if (is_array($cachedCurrencies) && array_key_exists($collateralToken ?? '', $cachedCurrencies)) {
                         $name = $this->safe_string($data, 'name');
                         $collateralTokenCode = $this->safe_string($cachedCurrencies, $collateralToken);
                         $data['collateralTokenName'] = $collateralTokenCode;
@@ -1225,7 +1225,7 @@ class hyperliquid extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -3293,7 +3293,7 @@ class hyperliquid extends Exchange {
                 }
                 $oid = $this->safe_string($entry, 'oid');
                 if ($oid !== null) {
-                    if (!(is_array($deduplicatedByOid) && array_key_exists($oid, $deduplicatedByOid))) {
+                    if (!(is_array($deduplicatedByOid) && array_key_exists($oid ?? '', $deduplicatedByOid))) {
                         $deduplicatedByOid[$oid] = $rawOrder;
                     } else {
                         $existingTimestamp = $this->safe_integer($deduplicatedByOid[$oid], 'statusTimestamp');
@@ -3494,7 +3494,7 @@ class hyperliquid extends Exchange {
             $marketId = $this->coin_to_market_id($coin);
         }
         if ($this->safe_string($entry, 'id') === null) {
-            $market = $this->safe_market($marketId, null);
+            $market = $this->safe_market($marketId);
         } else {
             $market = $this->safe_market($marketId, $market);
         }
@@ -3659,7 +3659,7 @@ class hyperliquid extends Exchange {
         $amount = $this->safe_string($trade, 'sz');
         $coin = $this->safe_string($trade, 'coin');
         $marketId = $this->coin_to_market_id($coin);
-        $market = $this->safe_market($marketId, null);
+        $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $id = $this->safe_string($trade, 'tid');
         $side = $this->safe_string($trade, 'side');
@@ -3851,7 +3851,7 @@ class hyperliquid extends Exchange {
         $entry = $this->safe_dict($position, 'position', array());
         $coin = $this->safe_string($entry, 'coin');
         $marketId = $this->coin_to_market_id($coin);
-        $market = $this->safe_market($marketId, null);
+        $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $leverage = $this->safe_dict($entry, 'leverage', array());
         $marginMode = $this->safe_string($leverage, 'type');
@@ -5017,7 +5017,7 @@ class hyperliquid extends Exchange {
                     break;
                 }
             }
-            if (is_array($data) && array_key_exists('status', $data)) {
+            if (is_array($data) && array_key_exists('status' ?? '', $data)) {
                 $errorStatus = $this->safe_dict($data, 'status', array());
                 $errorMsg = $this->safe_string($errorStatus, 'error');
                 if ($errorStatus !== null) {
@@ -5049,10 +5049,10 @@ class hyperliquid extends Exchange {
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array()) {
-        if ((is_array($config) && array_key_exists('byType', $config)) && (is_array($params) && array_key_exists('type', $params))) {
+        if ((is_array($config) && array_key_exists('byType' ?? '', $config)) && (is_array($params) && array_key_exists('type' ?? '', $params))) {
             $type = $params['type'];
             $byType = $config['byType'];
-            if (is_array($byType) && array_key_exists($type, $byType)) {
+            if (is_array($byType) && array_key_exists($type ?? '', $byType)) {
                 return $byType[$type];
             }
         }

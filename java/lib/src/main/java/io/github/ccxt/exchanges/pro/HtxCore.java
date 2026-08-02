@@ -516,7 +516,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
     {
@@ -2747,6 +2747,14 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                     if (Helpers.isTrue(Helpers.inOp(client.subscriptions, id)))
                     {
                         ((java.util.Map<String,Object>)client.subscriptions).remove((String)id);
+                    }
+                    // the subscription is keyed by the messageHash, not by the id -
+                    // without removing it a repeated watch call attaches to a future
+                    // that nothing will resolve instead of resubscribing, see
+                    // https://github.com/ccxt/ccxt/issues/10280
+                    if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
+                    {
+                        ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
                     }
                 }
             }

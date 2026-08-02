@@ -373,7 +373,7 @@ class bitvavo(Exchange, ImplicitAPI):
                     '230': ExchangeError,  # The order is rejected by the matching engine.
                     '231': ExchangeError,  # The order is rejected by the matching engine. TimeInForce must be GTC when markets are paused.
                     '232': BadRequest,  # You must change at least one of amount, amountRemaining, price, timeInForce, selfTradePrevention or postOnly.
-                    '233': InvalidOrder,  # {"errorCode":233,"error":"Order must be active(status new or partiallyFilled) to allow updating/cancelling."}
+                    '233': OrderNotFound,  # {"errorCode":233,"error":"Order must be active(status new or partiallyFilled) to allow updating/cancelling."}, canceling an already filled or canceled order, see https://github.com/ccxt/ccxt/issues/24154
                     '234': InvalidOrder,  # Market orders cannot be updated.
                     '235': ExchangeError,  # You can only have 100 open orders on each book.
                     '236': BadRequest,  # You can only update amount or amountRemaining, not both.
@@ -1041,7 +1041,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -1193,7 +1193,7 @@ class bitvavo(Exchange, ImplicitAPI):
         https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
 
         fetch all the accounts associated with a profile
-        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `account structures <https://docs.ccxt.com/?id=account-structure>`
         """
         if self.markets is None:
@@ -1235,7 +1235,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from, either 'master' or the subaccount id
         :param str toAccount: account to transfer to, either 'master' or the subaccount id
-        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subaccountId]: the unique identifier for the subaccount
         :param str [params.clientRequestId]: client defined unique id
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
@@ -1290,7 +1290,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :param str [code]: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of transfers structures to retrieve
-        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subaccountId]: the unique identifier for the subaccount
         :param int [params.until]: the latest time in ms to fetch transfers for
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
@@ -1341,7 +1341,7 @@ class bitvavo(Exchange, ImplicitAPI):
         fetches a transfer
         :param str id: transfer id
         :param str [code]: unified currency code of the currency transferred
-        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         if self.markets is None:
@@ -1514,7 +1514,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float price: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: "GTC", "IOC", or "PO"
         :param float [params.stopPrice]: Alias for triggerPrice
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
@@ -1616,7 +1616,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :param str side: 'buy' or 'sell'
         :param float [amount]: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -1673,7 +1673,7 @@ class bitvavo(Exchange, ImplicitAPI):
         https://docs.bitvavo.com/docs/rest-api/cancel-orders/
 
         cancel all open orders
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -2119,7 +2119,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :param str [code]: unified currency code
         :param int [since]: timestamp in ms of the earliest ledger entry
         :param int [limit]: max number of ledger entries to return
-        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
         :param int [params.page]: the page number for the transaction history
         :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/?id=ledger>`
@@ -2282,7 +2282,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
-        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if self.markets is None:
@@ -2334,7 +2334,7 @@ class bitvavo(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
-        :param dict [params]: extra parameters specific to the bitvavo api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if self.markets is None:

@@ -225,6 +225,10 @@ public partial class pacifica : Exchange
                     { "taker", this.parseNumber("0.0004") },
                     { "maker", this.parseNumber("0.00015") },
                 } },
+                { "spot", new Dictionary<string, object>() {
+                    { "taker", this.parseNumber("0.0004") },
+                    { "maker", this.parseNumber("0.00015") },
+                } },
             } },
             { "requiredCredentials", new Dictionary<string, object>() {
                 { "apiKey", false },
@@ -854,7 +858,7 @@ public partial class pacifica : Exchange
         object settings = null;
         if (isTrue(isEqual(userAccount, cacheAddress)))
         {
-            settings = this.handleOption("fetchLeverage", "settings", null);
+            settings = this.handleOption("fetchLeverage", "settings");
         } else
         {
             object request = new Dictionary<string, object>() {
@@ -862,7 +866,7 @@ public partial class pacifica : Exchange
             };
             settings = await this.fetchAccountSettings(this.extend(request, parameters));
         }
-        object setting = this.safeDict(settings, symbol, null);
+        object setting = this.safeDict(settings, symbol);
         if (isTrue(isEqual(setting, null)))
         {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -951,7 +955,7 @@ public partial class pacifica : Exchange
     {
         refresh ??= false;
         parameters ??= new Dictionary<string, object>();
-        object settings = this.handleOption("loadAccountSettings", "settings", null);
+        object settings = this.handleOption("loadAccountSettings", "settings");
         if (isTrue(isTrue((isEqual(settings, null))) || isTrue((isEqual(refresh, true)))))
         {
             ((IDictionary<string,object>)this.options)["settings"] = this.createSafeDictionary();
@@ -1000,7 +1004,7 @@ public partial class pacifica : Exchange
         object settings = null;
         if (isTrue(isEqual(userAccount, cacheAddress)))
         {
-            settings = this.handleOption("fetchMarginMode", "settings", null);
+            settings = this.handleOption("fetchMarginMode", "settings");
         } else
         {
             object request = new Dictionary<string, object>() {
@@ -1017,7 +1021,7 @@ public partial class pacifica : Exchange
         //       "updated_at": 1758086074002
         //    },
         // }
-        object setting = this.safeDict(settings, symbol, null);
+        object setting = this.safeDict(settings, symbol);
         if (isTrue(isEqual(setting, null)))
         {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -1060,7 +1064,7 @@ public partial class pacifica : Exchange
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1859,7 +1863,7 @@ public partial class pacifica : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
             object order = getValue(results, i);
-            object error = this.safeString(order, "error", null);
+            object error = this.safeString(order, "error");
             object success = this.safeBool(order, "success", false);
             object status = null;
             if (isTrue(isTrue((!isEqual(error, null))) || isTrue((!isTrue(success)))))
@@ -1931,7 +1935,7 @@ public partial class pacifica : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
             object order = getValue(results, i);
-            object error = this.safeString(order, "error", null);
+            object error = this.safeString(order, "error");
             object success = this.safeBool(order, "success", false);
             object status = null;
             if (isTrue(isTrue((!isEqual(error, null))) || isTrue((!isTrue(success)))))
@@ -1987,7 +1991,7 @@ public partial class pacifica : Exchange
      * @name pacifica#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-all-orders
-     * @param {string} symbol (optional) unified market symbol of the market to cancel orders in.
+     * @param {string} [symbol] (optional) unified market symbol of the market to cancel orders in.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.excludeReduceOnly] whether to exclude reduce-only orders
      * @param {int} [params.expiryWindow] time to live in milliseconds
@@ -2706,7 +2710,7 @@ public partial class pacifica : Exchange
         {
             tif = ((string)tifRaw).ToUpper();
         }
-        return this.safeString(tifMap, tif, null);
+        return this.safeString(tifMap, tif);
     }
 
     public virtual object mapSide(object sideRaw)
@@ -3564,7 +3568,7 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         object finalHeaders = new Dictionary<string, object>() {};
         object agentAddress = null;
-        var agentAddressparametersVariable = this.handleOption("createSubAccount", "agentAddress", null);
+        var agentAddressparametersVariable = this.handleOption("createSubAccount", "agentAddress");
         agentAddress = ((IList<object>)agentAddressparametersVariable)[0];
         parameters = ((IList<object>)agentAddressparametersVariable)[1];
         object originAddress = null;
@@ -3782,7 +3786,7 @@ public partial class pacifica : Exchange
         {
             body = this.json(parameters);
         }
-        if (isTrue(!isEqual(this.handleOption("sign", "apiKey", null), null)))
+        if (isTrue(!isEqual(this.handleOption("sign", "apiKey"), null)))
         {
             ((IDictionary<string,object>)headers)["PF-API-KEY"] = getValue(this.options, "apiKey");
         }
@@ -3802,7 +3806,7 @@ public partial class pacifica : Exchange
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if (isTrue(isGreaterThan(costNumber, 1)))
         {
-            if (isTrue(!isEqual(this.handleOption(method, "apiKey", null), null)))
+            if (isTrue(!isEqual(this.handleOption(method, "apiKey"), null)))
             {
                 object costWithKey = this.handleOption(method, "maxCostHugeWithApiKey", 3);
                 return costWithKey;

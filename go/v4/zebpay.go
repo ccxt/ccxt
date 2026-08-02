@@ -334,7 +334,7 @@ func (this *ZebpayCore) FetchTime(optionalArgs ...any) <-chan any {
  * @description retrieves data on all markets for zebpay
  * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
  * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
 func (this *ZebpayCore) FetchMarkets(optionalArgs ...any) <-chan any {
@@ -652,7 +652,7 @@ func (this *ZebpayCore) FetchTradingFees(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *ZebpayCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1341,7 +1341,7 @@ func (this *ZebpayCore) OrderRequest(symbol any, typeVar any, amount any, reques
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var upperCaseType any = ToUpper(typeVar)
-	var triggerPrice any = this.SafeString(params, "stopLossPrice", nil)
+	var triggerPrice any = this.SafeString(params, "stopLossPrice")
 	var quoteOrderQty any = this.SafeString2(params, "quoteOrderQty", "cost", nil)
 	var timeInForce any = this.SafeString(params, "timeInForce", "GTC")
 	var clientOrderId any = this.SafeString(params, "clientOrderId", this.Uuid())
@@ -1427,13 +1427,13 @@ func (this *ZebpayCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 
 /**
  * @method
- * @name zebpay#cancelOrders
+ * @name zebpay#cancelAllOrders
  * @description cancels all open orders
  * @see [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders
- * @param {string} symbol unified symbol of the market the order was made in
+ * @param {string} [symbol] unified symbol of the market the orders were made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {object} [params.timestamp] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ * @param {int} [params.timestamp] the timestamp of the request in ms
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ZebpayCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1675,7 +1675,7 @@ func (this *ZebpayCore) ParseOrder(order any, optionalArgs ...any) any {
 	var clientOrderId any = this.SafeString(order, "clientOrderId")
 	var timeInForce any = this.SafeString(order, "timeInForce")
 	var status any = this.SafeStringLower(order, "status")
-	var orderId any = this.SafeString(order, "orderId", nil)
+	var orderId any = this.SafeString(order, "orderId")
 	var parsedOrder any = this.SafeOrder(map[string]any{
 		"id":                  orderId,
 		"clientOrderId":       clientOrderId,
@@ -1711,7 +1711,7 @@ func (this *ZebpayCore) ParseOrder(order any, optionalArgs ...any) any {
  * @see [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/private-endpoints/trade.md#-close-position
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} side not used by kucoinfutures closePositions
- * @param {object} [params] extra parameters specific to the okx api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.positionId] client order id of the order
  * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */

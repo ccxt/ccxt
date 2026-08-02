@@ -347,7 +347,7 @@ class nado extends Exchange {
         $market = $this->market($symbol);
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $placeOrder = $this->safe_dict($request, 'place_order', array());
-        $isTriggerOrder = (is_array($placeOrder) && array_key_exists('trigger', $placeOrder));
+        $isTriggerOrder = (is_array($placeOrder) && array_key_exists('trigger' ?? '', $placeOrder));
         $response = null;
         if ($isTriggerOrder) {
             $response = $this->triggerPrivatePostExecute($request);
@@ -2045,7 +2045,7 @@ class nado extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);

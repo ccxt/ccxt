@@ -187,7 +187,7 @@ class bullish extends \ccxt\async\bullish {
         $market = $this->market($symbol);
         $rawTrades = $this->safe_list($data, 'trades', array());
         $trades = $this->parse_trades($rawTrades, $market);
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $tradesArrayCache = new ArrayCache($limit);
             $this->trades[$symbol] = $tradesArrayCache;
@@ -295,7 +295,7 @@ class bullish extends \ccxt\async\bullish {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -340,7 +340,7 @@ class bullish extends \ccxt\async\bullish {
         $symbol = $this->safe_symbol($marketId);
         $messageHash = 'orderbook::' . $symbol;
         $timestamp = $this->safe_integer($data, 'timestamp');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -682,7 +682,7 @@ class bullish extends \ccxt\async\bullish {
         if ($tradingAccountId === null) {
             return;
         }
-        if (!(is_array($this->balance) && array_key_exists($tradingAccountId, $this->balance))) {
+        if (!(is_array($this->balance) && array_key_exists($tradingAccountId ?? '', $this->balance))) {
             $this->balance[$tradingAccountId] = array();
         }
         $messageType = $this->safe_string($message, 'type');

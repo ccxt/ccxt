@@ -256,30 +256,31 @@ class testMainClass {
         else if (!(methodName in this.testFiles)) {
             skipMessage = '[INFO] UNIMPLEMENTED_TEST';
         }
+        const name = exchange.id;
+        // the TESTING / TESTING DONE / TESTING FAILED markers are dumped unconditionally
+        // (not gated on `--info`) because run-tests.js diffs them on RUNTEST_TIMED_OUT to
+        // report which method(s) were still running when the per-exchange timeout fired
         // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
         if (isLoadMarkets) {
+            dump(this.addPadding('[INFO] TESTING', 25), name, methodName);
             await exchange.loadMarkets(true);
+            dump(this.addPadding('[INFO] TESTING DONE', 25), name, methodName);
         }
-        const name = exchange.id;
         if (skipMessage) {
             if (this.info) {
                 dump(this.addPadding(skipMessage, 25), name, methodName);
             }
             return true;
         }
-        if (this.info) {
-            const argsStringified = '(' + exchange.json(args) + ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-            dump(this.addPadding('[INFO] TESTING', 25), name, methodName, argsStringified);
-        }
+        const argsStringified = '(' + exchange.json(args) + ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+        dump(this.addPadding('[INFO] TESTING', 25), name, methodName, argsStringified);
         if (isSync()) {
             callMethodSync(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
         }
         else {
             await callMethod(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
         }
-        if (this.info) {
-            dump(this.addPadding('[INFO] TESTING DONE', 25), name, methodName);
-        }
+        dump(this.addPadding('[INFO] TESTING DONE', 25), name, methodName);
         // add to the list of successed tests
         if (isPublic) {
             this.checkedPublicTests[methodName] = true;
@@ -353,6 +354,9 @@ class testMainClass {
                 return true;
             }
             catch (ex) {
+                // close the TESTING marker (pairs with the dump in `testMethod`), so on a
+                // RUNTEST_TIMED_OUT run-tests.js doesn't misreport a failed method as hung
+                dump(this.addPadding('[INFO] TESTING FAILED', 25), exchange.id, methodName);
                 const e = getRootException(ex);
                 const isLoadMarkets = (methodName === 'loadMarkets');
                 const isAuthError = (e instanceof AuthenticationError);
@@ -813,15 +817,20 @@ class testMainClass {
             // Java and its async lambda can't propagate (or re-throw) a checked exception
             try {
                 // the scoping contract: an unscoped fetchEvents must throw ArgumentsRequired on
-                // every prediction venue — assert it so the contract can't silently regress
-                let unscopedError = '';
-                try {
-                    await callExchangeMethodDynamically(exchange, 'fetchEvents', [{}]);
+                // every prediction venue — assert it so the contract can't silently regress.
+                // venues with bounded listings may opt out via options['allowUnscopedFetchEvents']
+                const exchangeOptions = getExchangeProp(exchange, 'options', {});
+                const allowUnscopedFetchEvents = exchange.safeBool(exchangeOptions, 'allowUnscopedFetchEvents', false);
+                if (!allowUnscopedFetchEvents) {
+                    let unscopedError = '';
+                    try {
+                        await callExchangeMethodDynamically(exchange, 'fetchEvents', [{}]);
+                    }
+                    catch (e) {
+                        unscopedError = exceptionMessage(e);
+                    }
+                    assert(unscopedError.indexOf('requires at least one of') >= 0, exchange.id + ' fetchEvents () without a scope must throw ArgumentsRequired, got: ' + unscopedError);
                 }
-                catch (e) {
-                    unscopedError = exceptionMessage(e);
-                }
-                assert(unscopedError.indexOf('requires at least one of') >= 0, exchange.id + ' fetchEvents () without a scope must throw ArgumentsRequired, got: ' + unscopedError);
                 // every venue requires fetchEvents to be scoped; a skip-tests.json
                 // preferredEventQuery supplies a query known to match the venue's markets
                 let eventQuery = exchange.safeString(this.skippedSettingsForExchange, 'preferredEventQuery');
@@ -2074,7 +2083,6 @@ class testMainClass {
             this.testMexc(),
             this.testHtx(),
             this.testWoo(),
-            this.testBitmart(),
             this.testCoinex(),
             this.testBingx(),
             this.testPhemex(),
@@ -2423,24 +2431,6 @@ class testMainClass {
         }
         const clientOrderIdStop = stopOrderRequest['brokerId'];
         assert(clientOrderIdStop.startsWith(idString), 'woo - brokerId: ' + clientOrderIdStop + ' does not start with id: ' + idString);
-        if (!isSync()) {
-            await close(exchange);
-        }
-        return true;
-    }
-    async testBitmart() {
-        const exchange = this.initOfflineExchange('bitmart');
-        let reqHeaders = {};
-        const id = 'CCXTxBitmart000';
-        assert(exchange.options['brokerId'] === id, 'bitmart - id: ' + id + ' not in options');
-        await exchange.loadMarkets();
-        try {
-            await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
-        }
-        catch (e) {
-            reqHeaders = exchange.last_request_headers;
-        }
-        assert(reqHeaders['X-BM-BROKER-ID'] === id, 'bitmart - id: ' + id + ' not in headers');
         if (!isSync()) {
             await close(exchange);
         }

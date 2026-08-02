@@ -27,7 +27,7 @@ function initialCode(): Record<RunnableLanguageId, string> {
 }
 
 export default function Page() {
-  const [language, setLanguage] = useState<LanguageId>("js");
+  const [language, setLanguage] = useState<LanguageId>("ts");
   const [codeByLang, setCodeByLang] = useState<Record<RunnableLanguageId, string>>(initialCode);
   const [run, setRun] = useState<RunState>({ status: "idle" });
   const [aiOpen, setAiOpen] = useState(true);
@@ -38,6 +38,8 @@ export default function Page() {
     const initial = (document.documentElement.dataset.theme as Theme) || "dark";
     setTheme(initial);
     setMounted(true);
+    // Assistant is a full-screen overlay below the globals.css 900px breakpoint — start closed there.
+    if (!window.matchMedia("(min-width: 900px)").matches) setAiOpen(false);
   }, []);
 
   const toggleTheme = useCallback(() => {

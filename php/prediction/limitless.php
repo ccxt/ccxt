@@ -219,7 +219,7 @@ class limitless extends Exchange {
                     for ($j = 0; $j < count($found); $j++) {
                         $raw = $found[$j];
                         $slug = $this->safe_string($raw, 'slug');
-                        if ($slug && !(is_array($seen) && array_key_exists($slug, $seen))) {
+                        if ($slug && !(is_array($seen) && array_key_exists($slug ?? '', $seen))) {
                             $seen[$slug] = true;
                             $allRaw[] = $raw;
                         }
@@ -291,7 +291,7 @@ class limitless extends Exchange {
                 $m = $this->parse_market($raw);
                 $markets[] = $m;
                 if ($eventKey) {
-                    if (!(is_array($eventGroups) && array_key_exists($eventKey, $eventGroups))) {
+                    if (!(is_array($eventGroups) && array_key_exists($eventKey ?? '', $eventGroups))) {
                         $eventGroups[$eventKey] = array( 'groupId' => $groupId, 'title' => $this->safe_string_2($raw, 'groupTitle', 'title', $groupId), 'raw' => $raw, 'markets' => array() );
                     }
                     $eventGroup = $eventGroups[$eventKey];
@@ -411,7 +411,7 @@ class limitless extends Exchange {
         $active = !$isExpired && ($marketStatus === 'FUNDED');
         // expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
         $expiryTimestamp = $this->safe_integer($raw, 'expirationTimestamp');
-        // limitless reports lifetime volume (is_array(`volumeFormatted`) && array_key_exists(human-readable, `volumeFormatted`)), not a 24h figure
+        // limitless reports lifetime volume (is_array(`volumeFormatted`) && array_key_exists(human-readable ?? '', `volumeFormatted`)), not a 24h figure
         $volume24h = $this->safe_number($raw, 'volumeFormatted');
         // resolution => $winningOutcomeIndex is null until the market resolves, then the winning outcome index
         $winningOutcomeIndex = $this->safe_integer($raw, 'winningOutcomeIndex');
@@ -477,7 +477,7 @@ class limitless extends Exchange {
             );
         }
         $outcomesLength = count($outcomes);
-        // effectively-final copy for the market object literal below (is_array(the loop) && array_key_exists(reassigned, the loop))
+        // effectively-final copy for the market object literal below (is_array(the loop) && array_key_exists(reassigned ?? '', the loop))
         $marketResolvedOutcome = $resolvedOutcome;
         return array(
             'id' => $slug,
@@ -1025,7 +1025,7 @@ class limitless extends Exchange {
         // $ticker is either a plain $raw $market object, or a composite dict array( 'market' => rawMarket, 'book' => rawOrderbook )
         $raw = $ticker;
         $book = null;
-        if (is_array($ticker) && array_key_exists('market', $ticker)) {
+        if (is_array($ticker) && array_key_exists('market' ?? '', $ticker)) {
             $raw = $this->safe_dict($ticker, 'market', array());
             $book = $this->safe_dict($ticker, 'book');
         }
@@ -1145,7 +1145,7 @@ class limitless extends Exchange {
             for ($i = 0; $i < count($outcomes); $i++) {
                 $outcomeObj = $this->outcome($outcomes[$i]);
                 $slug = $this->safe_string($outcomeObj['info'], 'slug');
-                if (!(is_array($outcomesBySlug) && array_key_exists($slug, $outcomesBySlug))) {
+                if (!(is_array($outcomesBySlug) && array_key_exists($slug ?? '', $outcomesBySlug))) {
                     $outcomesBySlug[$slug] = array();
                     $slugs[] = $slug;
                 }
@@ -1433,7 +1433,7 @@ class limitless extends Exchange {
                 $pPrice = $this->safe_number($point, 'price');
                 $bucket = $this->parse_to_int($pTs / $ms) * $ms;
                 $key = (string) $bucket;
-                if (!(is_array($candles) && array_key_exists($key, $candles))) {
+                if (!(is_array($candles) && array_key_exists($key ?? '', $candles))) {
                     $candles[$key] = array( $bucket, $pPrice, $pPrice, $pPrice, $pPrice, 0 );
                     $bucketOrder[] = $key;
                 } else {
@@ -2896,7 +2896,7 @@ class limitless extends Exchange {
                     for ($j = 0; $j < count($found); $j++) {
                         $raw = $found[$j];
                         $rawSlug = $this->safe_string($raw, 'slug');
-                        if ($rawSlug && !(is_array($seen) && array_key_exists($rawSlug, $seen))) {
+                        if ($rawSlug && !(is_array($seen) && array_key_exists($rawSlug ?? '', $seen))) {
                             $seen[$rawSlug] = true;
                             $rawMarkets[] = $raw;
                         }
@@ -2933,7 +2933,7 @@ class limitless extends Exchange {
                 $m = $this->parse_market($raw);
                 $this->markets[$m['market']] = $m;
                 if ($eventKey) {
-                    if (!(is_array($eventGroups) && array_key_exists($eventKey, $eventGroups))) {
+                    if (!(is_array($eventGroups) && array_key_exists($eventKey ?? '', $eventGroups))) {
                         $eventGroups[$eventKey] = array( 'groupId' => $groupId, 'title' => $this->safe_string_2($raw, 'groupTitle', 'title', $groupId), 'raw' => $raw, 'markets' => array() );
                     }
                     $eventGroup = $eventGroups[$eventKey];
@@ -3058,7 +3058,7 @@ class limitless extends Exchange {
                 for ($mi = 0; $mi < $categoryMarketsLength; $mi++) {
                     $raw = $categoryMarkets[$mi];
                     $slug = $this->safe_string($raw, 'slug');
-                    if (($slug !== null) && !(is_array($seen) && array_key_exists($slug, $seen))) {
+                    if (($slug !== null) && !(is_array($seen) && array_key_exists($slug ?? '', $seen))) {
                         $seen[$slug] = true;
                         $allRaw[] = $raw;
                     }

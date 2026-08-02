@@ -191,13 +191,13 @@ class coinsph extends Exchange {
                         'openapi/v1/user/ip' => 1,
                         // cost 1 if 'symbol' param defined (one market symbol) or if 'symbols' param is a list of 1-20 market symbols
                         // cost 20 if 'symbols' param is a list of 21-100 market symbols
-                        // cost 40 if 'symbols' param is a list of 101 or more market symbols or if both 'symbol' and 'symbols' params are omited
+                        // cost 40 if 'symbols' param is a list of 101 or more market symbols or if both 'symbol' and 'symbols' params are omitted
                         'openapi/quote/v1/ticker/24hr' => array( 'cost' => 1, 'noSymbolAndNoSymbols' => 40, 'byNumberOfSymbols' => array( array( 101, 40 ), array( 21, 20 ), array( 0, 1 ) ) ),
                         // cost 1 if 'symbol' param defined (one market symbol)
-                        // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omited
+                        // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omitted
                         'openapi/quote/v1/ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         // cost 1 if 'symbol' param defined (one market symbol)
-                        // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omited
+                        // cost 2 if 'symbols' param is a list of 1 or more market symbols or if both 'symbol' and 'symbols' params are omitted
                         'openapi/quote/v1/ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         'openapi/v1/exchangeInfo' => 10,
                         // cost 1 if limit <= 100; 5 if limit > 100.
@@ -673,11 +673,11 @@ class coinsph extends Exchange {
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array()) {
-        if ((is_array($config) && array_key_exists('noSymbol', $config)) && !(is_array($params) && array_key_exists('symbol', $params))) {
+        if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
             return $config['noSymbol'];
-        } elseif ((is_array($config) && array_key_exists('noSymbolAndNoSymbols', $config)) && !(is_array($params) && array_key_exists('symbol', $params)) && !(is_array($params) && array_key_exists('symbols', $params))) {
+        } elseif ((is_array($config) && array_key_exists('noSymbolAndNoSymbols' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params)) && !(is_array($params) && array_key_exists('symbols' ?? '', $params))) {
             return $config['noSymbolAndNoSymbols'];
-        } elseif ((is_array($config) && array_key_exists('byNumberOfSymbols', $config)) && (is_array($params) && array_key_exists('symbols', $params))) {
+        } elseif ((is_array($config) && array_key_exists('byNumberOfSymbols' ?? '', $config)) && (is_array($params) && array_key_exists('symbols' ?? '', $params))) {
             $symbols = $params['symbols'];
             $symbolsAmount = count($symbols);
             $byNumberOfSymbols = $config['byNumberOfSymbols'];
@@ -687,7 +687,7 @@ class coinsph extends Exchange {
                     return $entry[1];
                 }
             }
-        } elseif ((is_array($config) && array_key_exists('byLimit', $config)) && (is_array($params) && array_key_exists('limit', $params))) {
+        } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {
             $limit = $params['limit'];
             $byLimit = $config['byLimit'];
             for ($i = 0; $i < count($byLimit); $i++) {
@@ -1033,7 +1033,7 @@ class coinsph extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return (default 100, max 200)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1509,7 +1509,7 @@ class coinsph extends Exchange {
          * @see https://docs.coins.ph/rest-api/#query-order-user_data
          *
          * @param {int|string} $id order $id
-         * @param {string} $symbol not used by coinsph fetchOrder ()
+         * @param {string} $symbol not used by fetchOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -1593,7 +1593,7 @@ class coinsph extends Exchange {
          * @see https://docs.coins.ph/rest-api/#cancel-order-trade
          *
          * @param {string} $id order $id
-         * @param {string} $symbol not used by coinsph cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -1920,7 +1920,7 @@ class coinsph extends Exchange {
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
-         * @param {string} $address not used by coinsph withdraw ()
+         * @param {string} $address not used by withdraw ()
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~

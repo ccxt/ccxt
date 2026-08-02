@@ -132,11 +132,11 @@ class whitebit extends \ccxt\async\whitebit {
             $messageHash = 'candles' . ':' . $symbol;
             $parsed = $this->parse_ohlcv($data, $market);
             // $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol);
-            if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+            if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
                 $this->ohlcvs[$symbol] = array();
             }
             // $stored = $this->ohlcvs[$symbol]['unknown']; // we don't know the timeframe but we need to respect the type
-            if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists('unknown', $this->ohlcvs[$symbol]))) {
+            if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists('unknown' ?? '', $this->ohlcvs[$symbol]))) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
                 $stored = new ArrayCacheByTimestamp($limit);
                 $this->ohlcvs[$symbol]['unknown'] = $stored;
@@ -158,7 +158,7 @@ class whitebit extends \ccxt\async\whitebit {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -229,7 +229,7 @@ class whitebit extends \ccxt\async\whitebit {
         $symbol = $market['symbol'];
         $data = $this->safe_value($params, 1);
         $timestamp = $this->safe_timestamp($data, 'timestamp');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $ob = $this->order_book();
             $this->orderbooks[$symbol] = $ob;
         }
@@ -341,7 +341,7 @@ class whitebit extends \ccxt\async\whitebit {
         //
         $tickers = $this->safe_value($message, 'params', array());
         $marketId = $this->safe_string($tickers, 0);
-        $market = $this->safe_market($marketId, null);
+        $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $rawTicker = $this->safe_value($tickers, 1, array());
         $messageHash = 'ticker' . ':' . $symbol;
@@ -885,7 +885,7 @@ class whitebit extends \ccxt\async\whitebit {
                         'method' => $method,
                         'params' => $marketIdsNew,
                     );
-                    if (is_array($client->subscriptions) && array_key_exists($method, $client->subscriptions)) {
+                    if (is_array($client->subscriptions) && array_key_exists($method ?? '', $client->subscriptions)) {
                         unset($client->subscriptions[$method]);
                     }
                     return Async\await($this->watch($url, $messageHash, $resubRequest, $method, $subscription));
@@ -977,7 +977,7 @@ class whitebit extends \ccxt\async\whitebit {
         } catch (Exception $e) {
             if ($e instanceof AuthenticationError) {
                 $client->reject($e, 'authenticated');
-                if (is_array($client->subscriptions) && array_key_exists('authenticated', $client->subscriptions)) {
+                if (is_array($client->subscriptions) && array_key_exists('authenticated' ?? '', $client->subscriptions)) {
                     unset($client->subscriptions['authenticated']);
                 }
                 return false;

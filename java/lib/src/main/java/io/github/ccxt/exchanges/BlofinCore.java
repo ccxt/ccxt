@@ -518,7 +518,7 @@ public class BlofinCore extends BlofinApi
         Object contract = Helpers.isTrue(swap) || Helpers.isTrue(future);
         Object baseId = this.safeString(market, "baseCurrency");
         Object quoteId = this.safeString(market, "quoteCurrency");
-        Object settleId = this.safeString(market, "quoteCurrency");
+        Object settleId = this.safeString(market, "settleCurrency", quoteId);
         Object settle = this.safeCurrencyCode(settleId);
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
@@ -538,21 +538,23 @@ public class BlofinCore extends BlofinApi
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         Object isActive = (Helpers.isEqual(this.safeString(market, "state"), "live"));
         Object isMargin = Helpers.isTrue(spot) && Helpers.isTrue((Precise.stringGt(maxLeverage, "1")));
+        Object contractType = this.safeString(market, "contractType");
+        Object maxLimitAmount = this.safeNumber(market, "maxLimitSize");
+        Object maxSpotCost = this.safeNumber(market, "maxMarketSize"); // for spot, market-buy size is denominated in the quote currency, i.e. cost
         final Object finalSymbol = symbol;
         final Object finalBase = base;
-        final Object finalBaseId = baseId;
-        final Object finalQuoteId = quoteId;
         final Object finalType = type;
         final Object finalSpot = spot;
         final Object finalSwap = swap;
+        final Object finalContractType = contractType;
         final Object finalMaxLeverage = maxLeverage;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
             put( "quote", quote );
-            put( "baseId", finalBaseId );
-            put( "quoteId", finalQuoteId );
+            put( "baseId", baseId );
+            put( "quoteId", quoteId );
             put( "settle", settle );
             put( "settleId", settleId );
             put( "type", finalType );
@@ -565,8 +567,8 @@ public class BlofinCore extends BlofinApi
             put( "taker", taker );
             put( "maker", maker );
             put( "contract", contract );
-            put( "linear", ((Helpers.isTrue(contract))) ? (Helpers.isEqual(finalQuoteId, settleId)) : null );
-            put( "inverse", ((Helpers.isTrue(contract))) ? (Helpers.isEqual(finalBaseId, settleId)) : null );
+            put( "linear", ((Helpers.isTrue(contract))) ? (Helpers.isEqual(finalContractType, "linear")) : null );
+            put( "inverse", ((Helpers.isTrue(contract))) ? (Helpers.isEqual(finalContractType, "inverse")) : null );
             put( "contractSize", ((Helpers.isTrue(contract))) ? BlofinCore.this.safeNumber(market, "contractValue") : null );
             put( "expiry", expiry );
             put( "expiryDatetime", expiry );
@@ -584,7 +586,7 @@ public class BlofinCore extends BlofinApi
                 }} );
                 put( "amount", new java.util.HashMap<String, Object>() {{
                     put( "min", BlofinCore.this.safeNumber(market, "minSize") );
-                    put( "max", null );
+                    put( "max", maxLimitAmount );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
@@ -592,7 +594,7 @@ public class BlofinCore extends BlofinApi
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
                     put( "min", null );
-                    put( "max", null );
+                    put( "max", ((Helpers.isTrue(contract))) ? null : maxSpotCost );
                 }} );
             }} );
             put( "info", market );
@@ -607,7 +609,7 @@ public class BlofinCore extends BlofinApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -2642,7 +2644,7 @@ public class BlofinCore extends BlofinApi
      * @param {string[]} [symbols] unified contract symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
      * @param {int} [limit] the maximum amount of records to fetch, default=20, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
      * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
@@ -3084,7 +3086,7 @@ public class BlofinCore extends BlofinApi
      * @see https://blofin.com/docs#close-positions
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
-     * @param {object} [params] extra parameters specific to the blofin api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
      * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -3331,7 +3333,7 @@ public class BlofinCore extends BlofinApi
      * @description set hedged to true or false for a market
      * @see https://docs.blofin.com/index.html#set-position-mode
      * @param {bool} hedged set to true to use hedged mode, false for one-way mode
-     * @param {string} [symbol] not used by blofin setPositionMode ()
+     * @param {string} [symbol] not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */

@@ -286,7 +286,7 @@ class bittrade extends \ccxt\async\bittrade {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if (($limit !== null) && ($limit !== 150)) {
                 throw new ExchangeError($this->id . ' watchOrderBook accepts $limit = 150 only');
@@ -485,7 +485,7 @@ class bittrade extends \ccxt\async\bittrade {
     public function handle_order_book_subscription(Client $client, $message, $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
-        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+        if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
         $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
@@ -511,7 +511,7 @@ class bittrade extends \ccxt\async\bittrade {
                 return $method($client, $message, $subscription);
             }
             // clean up
-            if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($id ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$id]);
             }
         }
@@ -608,7 +608,7 @@ class bittrade extends \ccxt\async\bittrade {
                     $messageHash = $this->safe_string($subscription, 'messageHash');
                     $client->reject($e, $messageHash);
                     $client->reject($e, $id);
-                    if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
+                    if (is_array($client->subscriptions) && array_key_exists($id ?? '', $client->subscriptions)) {
                         unset($client->subscriptions[$id]);
                     }
                 }

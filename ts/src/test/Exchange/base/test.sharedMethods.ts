@@ -85,13 +85,18 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
         const keys = Object.keys (format);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
+            if (key in skippedProperties) {
+                // a skipped key must not be required to exist at all, e.g. prediction
+                // market structures are keyed by an outcome handle and omit 'symbol'
+                continue;
+            }
             assert (key in entry, '"' + stringValue (key) + '" key is missing from structure' + logText);
             const emptyAllowedForThisKey = (emptyAllowedFor === undefined) || exchange.inArray (key, emptyAllowedFor);
             const value = entry[key];
             // check when:
             // - it's not inside "allowed empty values" list
             // - it's not undefined
-            if ((emptyAllowedForThisKey && (value === undefined)) || (key in skippedProperties)) {
+            if (emptyAllowedForThisKey && (value === undefined)) {
                 continue;
             }
             // if it was in needed keys, then it should have value.

@@ -576,7 +576,7 @@ public partial class kucoin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -1440,6 +1440,12 @@ public partial class kucoin
     /// See <see href="https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
@@ -3599,7 +3605,7 @@ public partial class kucoin
     /// <item>
     /// <term>symbol</term>
     /// <description>
-    /// string : not used by bybit setPositionMode ()
+    /// string : not used by setPositionMode ()
     /// </description>
     /// </item>
     /// <item>

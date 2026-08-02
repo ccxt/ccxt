@@ -210,7 +210,7 @@ class poloniex extends Exchange {
                         'v3/market/allInstruments' => 2 / 3,
                         'v3/market/instruments' => 2 / 3,
                         'v3/market/orderBook' => 2 / 3,
-                        'v3/market/candles' => 10, // candles have differnt RL
+                        'v3/market/candles' => 10, // candles have different RL
                         'v3/market/indexPriceCandlesticks' => 10,
                         'v3/market/premiumIndexCandlesticks' => 10,
                         'v3/market/markPriceCandlesticks' => 10,
@@ -803,7 +803,7 @@ class poloniex extends Exchange {
     }
 
     public function parse_market(array $market): array {
-        if (is_array($market) && array_key_exists('ctType', $market)) {
+        if (is_array($market) && array_key_exists('ctType' ?? '', $market)) {
             return $this->parse_swap_market($market);
         } else {
             return $this->parse_spot_market($market);
@@ -2048,7 +2048,7 @@ class poloniex extends Exchange {
                 if ($marginMode === null) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a $marginMode parameter "cross" or "isolated" for $hedged orders');
                 }
-                if (!(is_array($params) && array_key_exists('posSide', $params))) {
+                if (!(is_array($params) && array_key_exists('posSide' ?? '', $params))) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a posSide parameter "LONG" or "SHORT" for $hedged orders');
                 }
             }
@@ -2224,7 +2224,7 @@ class poloniex extends Exchange {
          * @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders  // trigger orders
          * @see https://api-docs.poloniex.com/v3/futures/api/trade/cancel-all-orders - contract markets
          *
-         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] true if canceling trigger orders
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
@@ -2357,7 +2357,7 @@ class poloniex extends Exchange {
         $this->load_markets();
         $orders = $this->fetch_open_orders($symbol, null, null, $params);
         $indexed = $this->index_by($orders, 'id');
-        return (is_array($indexed) && array_key_exists($id, $indexed)) ? 'open' : 'closed';
+        return (is_array($indexed) && array_key_exists($id ?? '', $indexed)) ? 'open' : 'closed';
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -2564,7 +2564,7 @@ class poloniex extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum $amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2684,7 +2684,7 @@ class poloniex extends Exchange {
     }
 
     public function prepare_request_for_deposit_address(string $code, array $params = array()): mixed {
-        if (!(is_array($this->currencies) && array_key_exists($code, $this->currencies))) {
+        if (!(is_array($this->currencies) && array_key_exists($code ?? '', $this->currencies))) {
             throw new BadSymbol($this->id . ' fetchDepositAddress() => can not recognize ' . $code . ' $currency, you might try using unified $currency-$code and add provide specific "network" parameter, like => fetchDepositAddress("USDT", array( "network" => "TRC20" ))');
         }
         $currency = $this->currency($code);
@@ -3159,7 +3159,7 @@ class poloniex extends Exchange {
         //     }
         //
         // if it's being parsed from "withdraw()" method, get the original response
-        if (is_array($transaction) && array_key_exists('withdrawNetworkEntry', $transaction)) {
+        if (is_array($transaction) && array_key_exists('withdrawNetworkEntry' ?? '', $transaction)) {
             $transaction = $transaction['response'];
         }
         $timestamp = $this->safe_timestamp($transaction, 'timestamp');
@@ -3168,7 +3168,7 @@ class poloniex extends Exchange {
         $status = $this->safe_string($transaction, 'status', 'pending');
         $status = $this->parse_transaction_status($status);
         $txid = $this->safe_string($transaction, 'txid');
-        $type = (is_array($transaction) && array_key_exists('withdrawalRequestsId', $transaction)) ? 'withdrawal' : 'deposit';
+        $type = (is_array($transaction) && array_key_exists('withdrawalRequestsId' ?? '', $transaction)) ? 'withdrawal' : 'deposit';
         $id = $this->safe_string_2($transaction, 'withdrawalRequestsId', 'depositNumber');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'paymentID');
@@ -3230,7 +3230,7 @@ class poloniex extends Exchange {
         $hedged = null;
         list($hedged, $params) = $this->handle_param_bool($params, 'hedged', false);
         if ($hedged) {
-            if (!(is_array($params) && array_key_exists('posSide', $params))) {
+            if (!(is_array($params) && array_key_exists('posSide' ?? '', $params))) {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires a posSide parameter for $hedged mode => "LONG" or "SHORT"');
             }
         }
@@ -3337,11 +3337,11 @@ class poloniex extends Exchange {
 
     public function fetch_position_mode(?string $symbol = null, $params = array()) {
         /**
-         * fetchs the position mode, $hedged or one way, $hedged for binance is set identically for all linear markets or all inverse markets
+         * fetches the position mode, $hedged or one way, $hedged is set identically for all linear markets or all inverse markets
          *
          * @see https://api-docs.poloniex.com/v3/futures/api/positions/position-mode-switch
          *
-         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {string} [$symbol] unified $symbol of the market to fetch the position mode for (not used by fetchPositionMode)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an object detailing whether the market is in $hedged or one-way mode
          */
@@ -3370,8 +3370,8 @@ class poloniex extends Exchange {
          *
          * @see https://api-docs.poloniex.com/v3/futures/api/positions/position-$mode-switch
          *
-         * @param {bool} $hedged set to true to use dualSidePosition
-         * @param {string} $symbol not used by binance setPositionMode ()
+         * @param {bool} $hedged set to true to use the $hedged position $mode
+         * @param {string} $symbol not used by setPositionMode ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} $response from the exchange
          */
@@ -3525,7 +3525,7 @@ class poloniex extends Exchange {
             'type' => strtoupper($type), // 'ADD' or 'REDUCE'
         );
         // todo => hedged handling, tricky
-        if (!(is_array($params) && array_key_exists('posMode', $params))) {
+        if (!(is_array($params) && array_key_exists('posMode' ?? '', $params))) {
             $request['posMode'] = 'BOTH';
         }
         $response = $this->swapPrivatePostV3TradePositionMargin($this->extend($request, $params));
@@ -3599,7 +3599,7 @@ class poloniex extends Exchange {
         if ($this->in_array($api, array( 'swapPublic', 'swapPrivate' ))) {
             $url = $this->urls['api']['swap'];
         }
-        if ($method === 'GET' && (is_array($params) && array_key_exists('symbol', $params))) {
+        if ($method === 'GET' && (is_array($params) && array_key_exists('symbol' ?? '', $params))) {
             $params['symbol'] = $this->encode_uri_component($params['symbol']); // handle symbols like 索拉拉/USDT'
         }
         $query = $this->omit($params, $this->extract_params($path));

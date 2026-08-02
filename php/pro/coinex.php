@@ -611,7 +611,7 @@ class coinex extends \ccxt\async\coinex {
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'created_at');
-        $isSpot = (is_array($trade) && array_key_exists('margin_market', $trade));
+        $isSpot = (is_array($trade) && array_key_exists('margin_market' ?? '', $trade));
         $defaultType = $isSpot ? 'spot' : 'swap';
         $marketId = $this->safe_string($trade, 'market');
         $market = $this->safe_market($marketId, $market, null, $defaultType);
@@ -788,7 +788,7 @@ class coinex extends \ccxt\async\coinex {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -852,7 +852,7 @@ class coinex extends \ccxt\async\coinex {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $params['callerMethodName'] = 'watchOrderBook';
             return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
@@ -1221,7 +1221,7 @@ class coinex extends \ccxt\async\coinex {
         $timestamp = $this->safe_integer($order, 'created_at');
         $marketId = $this->safe_string($order, 'market');
         $status = $this->safe_string($order, 'status');
-        $isSpot = (is_array($order) && array_key_exists('margin_market', $order));
+        $isSpot = (is_array($order) && array_key_exists('margin_market' ?? '', $order));
         $defaultType = $isSpot ? 'spot' : 'swap';
         $market = $this->safe_market($marketId, $market, null, $defaultType);
         $fee = null;
@@ -1440,7 +1440,7 @@ class coinex extends \ccxt\async\coinex {
         } else {
             $error = new AuthenticationError($this->json($message));
             $client->reject($error, $messageHash);
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }

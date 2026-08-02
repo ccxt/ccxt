@@ -421,7 +421,7 @@ class bitbank extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -998,7 +998,7 @@ class bitbank extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        if (!(is_array($params) && array_key_exists('uuid', $params))) {
+        if (!(is_array($params) && array_key_exists('uuid' ?? '', $params))) {
             throw new ExchangeError($this->id . ' uuid is required for withdrawal');
         }
         if ($this->markets === null) {

@@ -647,7 +647,7 @@ class bitfinex extends \ccxt\async\bitfinex {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($limit !== null) {
                 if (($limit !== 25) && ($limit !== 100)) {
@@ -691,7 +691,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //         358169, // $channel id
         //         array(
         //            1807.1, // $price
-        //            0, // cound
+        //            0, // count
         //            1 // $size
         //         )
         //     )
@@ -703,7 +703,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $prec = $this->safe_string($subscription, 'prec', 'P0');
         $isRaw = ($prec === 'R0');
         // if it is an initial snapshot
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $limit = $this->safe_integer($subscription, 'len');
             if ($isRaw) {
                 // raw order books
@@ -1014,7 +1014,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             'trades' => 'trades',
         );
         $unifiedChannel = $this->safe_string($mappings, $this->safe_string($message, 'channel'));
-        if (is_array($message) && array_key_exists('key', $message)) {
+        if (is_array($message) && array_key_exists('key' ?? '', $message)) {
             // handle ohlcv differently because the $message is different
             $key = $this->safe_string($message, 'key');
             $subKeyId = 'unsubscribe:' . $key;
@@ -1067,7 +1067,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             $error = new AuthenticationError($this->json($message));
             $client->reject($error, $messageHash);
             // allows further authentication attempts
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }
@@ -1124,7 +1124,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //           null,
         //           30, // price
         //           0, // price average
-        //           0, // price_trailling
+        //           0, // price_trailing
         //           0, // price_aux_limit
         //           null,
         //           null,
@@ -1208,7 +1208,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //       null,
         //       42.799, // $price
         //       42.821, // $price $average
-        //       0, // $price trailling
+        //       0, // $price trailing
         //       0, // price_aux_limit
         //       null,
         //       null,

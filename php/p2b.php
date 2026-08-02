@@ -551,7 +551,7 @@ class p2b extends Exchange {
         //    }
         //
         $timestamp = $this->safe_integer_product($ticker, 'at', 1000);
-        if (is_array($ticker) && array_key_exists('ticker', $ticker)) {
+        if (is_array($ticker) && array_key_exists('ticker' ?? '', $ticker)) {
             $ticker = $this->safe_value($ticker, 'ticker');
         }
         $last = $this->safe_string($ticker, 'last');
@@ -591,7 +591,7 @@ class p2b extends Exchange {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();

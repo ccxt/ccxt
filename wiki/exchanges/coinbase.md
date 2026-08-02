@@ -452,7 +452,7 @@ cancels an open order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by coinbase cancelOrder() |
+| symbol | <code>string</code> | Yes | not used by cancelOrder() |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -474,7 +474,7 @@ cancel multiple orders
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
-| symbol | <code>string</code> | Yes | not used by coinbase cancelOrders() |
+| symbol | <code>string</code> | Yes | not used by cancelOrders() |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -720,7 +720,7 @@ coinbase.fetchMyTrades (symbol, since?, limit?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -984,7 +984,7 @@ coinbase.fetchConvertTrade (id, code, params?)
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | No | not used by coinbase |
-| params | <code>object</code> | No | extra parameters specific to the coinbase api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderId | <code>string</code> | Yes | *mandatory* the client order id of the position to close |
 | params.size | <code>float</code> | No | the size of the position to close, optional |
 

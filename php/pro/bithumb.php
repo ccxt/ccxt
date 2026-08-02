@@ -202,7 +202,7 @@ class bithumb extends \ccxt\async\bithumb {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -251,7 +251,7 @@ class bithumb extends \ccxt\async\bithumb {
         $symbol = $this->safe_symbol($marketId, null, '_');
         $timestampStr = $this->safe_string($content, 'datetime');
         $timestamp = $this->parse_to_int(mb_substr($timestampStr, 0, 13 - 0));
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $ob = $this->order_book();
             $ob['symbol'] = $symbol;
             $this->orderbooks[$symbol] = $ob;
@@ -344,7 +344,7 @@ class bithumb extends \ccxt\async\bithumb {
             $rawTrade = $rawTrades[$i];
             $marketId = $this->safe_string($rawTrade, 'symbol');
             $symbol = $this->safe_symbol($marketId, null, '_');
-            if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+            if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
                 $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
                 $stored = new ArrayCache($limit);
                 $this->trades[$symbol] = $stored;
@@ -398,7 +398,7 @@ class bithumb extends \ccxt\async\bithumb {
         //        "resmsg" : "Invalid Filter Syntax"
         //    }
         //
-        if (!(is_array($message) && array_key_exists('status', $message))) {
+        if (!(is_array($message) && array_key_exists('status' ?? '', $message))) {
             return true;
         }
         $errorCode = $this->safe_string($message, 'status');

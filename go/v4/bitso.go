@@ -741,7 +741,7 @@ func (this *BitsoCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitsoCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1327,7 +1327,7 @@ func (this *BitsoCore) CreateOrder(symbol any, typeVar any, side any, amount any
  * @description cancels an open order
  * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
  * @param {string} id order id
- * @param {string} symbol not used by bitso cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1428,7 +1428,7 @@ func (this *BitsoCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
  * @name bitso#cancelAllOrders
  * @description cancel all open orders
  * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
- * @param {undefined} symbol bitso does not support canceling orders for only a specific market
+ * @param {string} [symbol] bitso does not support canceling orders for only a specific market
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */

@@ -24,7 +24,10 @@ public class GateeuCore extends io.github.ccxt.exchanges.Gateeu
         var restInstance = new io.github.ccxt.exchanges.Gateeu();
         Object restDescribe = restInstance.describe();
         Object parentWsDescribe = new io.github.ccxt.exchanges.pro.Binance().describeData();
-        Object extended = this.deepExtend(parentWsDescribe, restDescribe);
+        // the ws describe-data must be applied on top of the rest describe,
+        // otherwise the explicit-undefined watch* defaults of the rest 'has'
+        // block wipe the parent's ws capability flags in the deep extend
+        Object extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new java.util.HashMap<String, Object>() {{
             put( "id", "gateeu" );
             put( "name", "Gate EU" );

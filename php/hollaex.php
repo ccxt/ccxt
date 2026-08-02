@@ -553,8 +553,8 @@ class hollaex extends Exchange {
          *
          * @see https://apidocs.hollaex.com/#orderbooks
          *
-         * @param {string[]|null} $symbols not used by hollaex fetchOrderBooks ()
-         * @param {int} [$limit] not used by hollaex fetchOrderBooks ()
+         * @param {string[]|null} $symbols not used by fetchOrderBooks ()
+         * @param {int} [$limit] not used by fetchOrderBooks ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbol
          */
@@ -583,7 +583,7 @@ class hollaex extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1044,7 +1044,7 @@ class hollaex extends Exchange {
          * @see https://apidocs.hollaex.com/#get-order
          *
          * @param {string} $id order $id
-         * @param {string} $symbol not used by hollaex fetchOpenOrder ()
+         * @param {string} $symbol not used by fetchOpenOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */

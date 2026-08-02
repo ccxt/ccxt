@@ -30,7 +30,7 @@ public class TestWatchPositions extends BaseTest {
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
                 {
-                    throw new RuntimeException(e);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
                 now = exchange.milliseconds();
                 // continue;
@@ -58,7 +58,7 @@ public class TestWatchPositions extends BaseTest {
             {
                 if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
                 {
-                    throw new RuntimeException(e);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
                 now = exchange.milliseconds();
                 // continue;

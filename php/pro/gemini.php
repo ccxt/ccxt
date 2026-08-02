@@ -382,7 +382,7 @@ class gemini extends \ccxt\async\gemini {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -409,18 +409,18 @@ class gemini extends \ccxt\async\gemini {
     }
 
     public function handle_order_book(Client $client, $message) {
-        $isInitial = (is_array($message) && array_key_exists('auction_events', $message)) && (is_array($message) && array_key_exists('trades', $message)) && (is_array($message) && array_key_exists('changes', $message));
+        $isInitial = (is_array($message) && array_key_exists('auction_events' ?? '', $message)) && (is_array($message) && array_key_exists('trades' ?? '', $message)) && (is_array($message) && array_key_exists('changes' ?? '', $message));
         $changes = $this->safe_value($message, 'changes', array());
         $marketId = $this->safe_string_lower($message, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $messageHash = 'orderbook:' . $symbol;
         // $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         } elseif ($isInitial) {
             // handle https://github.com/ccxt/ccxt/issues/29210
-            if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+            if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
                 unset($this->orderbooks[$symbol]);
             }
             $this->orderbooks[$symbol] = $this->order_book();
@@ -450,7 +450,7 @@ class gemini extends \ccxt\async\gemini {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $orderbook = Async\await($this->helper_for_watch_multiple_construct('orderbook', $symbols, $params));
             return $orderbook->limit();
@@ -501,7 +501,7 @@ class gemini extends \ccxt\async\gemini {
         $marketId = $rawBidAskChanges[0]['symbol'];
         $market = $this->safe_market(strtolower($marketId));
         $symbol = $market['symbol'];
-        if (!(is_array($this->bidsasks) && array_key_exists($symbol, $this->bidsasks))) {
+        if (!(is_array($this->bidsasks) && array_key_exists($symbol ?? '', $this->bidsasks))) {
             $this->bidsasks[$symbol] = $this->parse_ticker(array());
             $this->bidsasks[$symbol]['symbol'] = $symbol;
         }
@@ -589,7 +589,7 @@ class gemini extends \ccxt\async\gemini {
         $market = $this->safe_market(strtolower($marketId));
         $symbol = $market['symbol'];
         $messageHash = 'orderbook:' . $symbol;
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $ob = $this->order_book();
             $this->orderbooks[$symbol] = $ob;
         }
@@ -923,7 +923,7 @@ class gemini extends \ccxt\async\gemini {
             for ($i = 0; $i < count($events); $i++) {
                 $event = $events[$i];
                 $eventType = $this->safe_string($event, 'type');
-                $isOrderBook = ($eventType === 'change') && (is_array($event) && array_key_exists('side', $event)) && $this->in_array($event['side'], array( 'ask', 'bid' ));
+                $isOrderBook = ($eventType === 'change') && (is_array($event) && array_key_exists('side' ?? '', $event)) && $this->in_array($event['side'], array( 'ask', 'bid' ));
                 $eventReason = $this->safe_string($event, 'reason');
                 $isBidAsk = ($eventReason === 'top-of-book') || ($isOrderBook && ($eventReason === 'initial') && $eventsLength === 2);
                 if ($isBidAsk) {
@@ -951,7 +951,7 @@ class gemini extends \ccxt\async\gemini {
 
     public function authenticate($params = array()) {
         $url = $this->safe_string($params, 'url');
-        if (($this->clients !== null) && (is_array($this->clients) && array_key_exists($url, $this->clients))) {
+        if (($this->clients !== null) && (is_array($this->clients) && array_key_exists($url ?? '', $this->clients))) {
             return;
         }
         $this->check_required_credentials();

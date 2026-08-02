@@ -546,12 +546,12 @@ class bitfinex extends Exchange {
     }
 
     public function is_fiat($code) {
-        return (is_array($this->options['fiat']) && array_key_exists($code, $this->options['fiat']));
+        return (is_array($this->options['fiat']) && array_key_exists($code ?? '', $this->options['fiat']));
     }
 
     public function get_currency_name($code) {
         // temporary fix for transpiler recognition, even though this is in parent class
-        if (is_array($this->options['currencyNames']) && array_key_exists($code, $this->options['currencyNames'])) {
+        if (is_array($this->options['currencyNames']) && array_key_exists($code ?? '', $this->options['currencyNames'])) {
             return $this->options['currencyNames'][$code];
         }
         throw new NotSupported($this->id . ' ' . $code . ' not supported for withdrawal');
@@ -883,7 +883,7 @@ class bitfinex extends Exchange {
         $name = $this->safe_string($label, 1);
         $pool = $this->safe_list($indexed['pool'], $id, array());
         $rawType = $this->safe_string($pool, 1);
-        $isCryptoCoin = ($rawType !== null) || (is_array($indexed['explorer']) && array_key_exists($id, $indexed['explorer'])); // "hacky" solution
+        $isCryptoCoin = ($rawType !== null) || (is_array($indexed['explorer']) && array_key_exists($id ?? '', $indexed['explorer'])); // "hacky" solution
         $type = $isCryptoCoin ? 'crypto' : null;
         $feeValues = $this->safe_list($indexed['fees'], $id, array());
         $fees = $this->safe_list($feeValues, 1, array());
@@ -1148,7 +1148,7 @@ class bitfinex extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the $order book for
          * @param {int} [$limit] the maximum $amount of $order book entries to return, bitfinex only allows 1, 25, or 100
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=$order-book-structure $order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$order-book-structure $order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1863,7 +1863,7 @@ class bitfinex extends Exchange {
         //                      array("$F7":1)               // additional meta information about the $order ( $F7 = IS_POST_ONLY (0 if false, 1 if true), $F33 = Leverage (int))
         //                  )
         //              ),
-        //          null,      // CODE (is_array(progress) && array_key_exists(work, progress))
+        //          null,      // CODE (is_array(progress) && array_key_exists(work ?? '', progress))
         //          "SUCCESS",                    // Status of the $request
         //          "Submitting 1 $orders->"      // Message
         //       )
@@ -1950,7 +1950,7 @@ class bitfinex extends Exchange {
          *
          * @see https://docs.bitfinex.com/reference/rest-auth-cancel-$orders-multiple
          *
-         * @param {string} $symbol unified market $symbol, only $orders in the market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified market $symbol, only $orders in the market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -2320,7 +2320,7 @@ class bitfinex extends Exchange {
             'id' => $orderId,
             'symbol' => $market['id'],
         );
-        // valid for trades upto 10 days old
+        // valid for trades up to 10 days old
         $response = $this->privatePostAuthROrderSymbolIdTrades($this->extend($request, $params));
         $tradesList = array();
         for ($i = 0; $i < count($response); $i++) {
@@ -2709,7 +2709,7 @@ class bitfinex extends Exchange {
                 'percentage' => true,
                 'tierBased' => true,
             );
-            if (is_array($fiat) && array_key_exists($market['quote'], $fiat)) {
+            if (is_array($fiat) && array_key_exists($market['quote'] ?? '', $fiat)) {
                 $fee['maker'] = $makerFeeFiat;
                 $fee['taker'] = $takerFeeFiat;
             } elseif ($market['contract']) {

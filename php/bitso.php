@@ -721,7 +721,7 @@ class bitso extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1121,7 +1121,7 @@ class bitso extends Exchange {
         // the don't support fetching trades starting from a date yet
         // use the `$marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-        $markerInParams = (is_array($params) && array_key_exists('marker', $params));
+        $markerInParams = (is_array($params) && array_key_exists('marker' ?? '', $params));
         // warn the user with an exception if the user wants to filter
         // starting from $since timestamp, but does not set the trade id with an extra 'marker' param
         if (($since !== null) && !$markerInParams) {
@@ -1186,7 +1186,7 @@ class bitso extends Exchange {
          * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
          *
          * @param {string} $id order $id
-         * @param {string} $symbol not used by bitso cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -1255,7 +1255,7 @@ class bitso extends Exchange {
          *
          * @see https://docs.bitso.com/bitso-api/docs/cancel-an-$order
          *
-         * @param {null} $symbol bitso does not support canceling orders for only a specific market
+         * @param {string} [$symbol] bitso does not support canceling orders for only a specific market
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
          */
@@ -1354,7 +1354,7 @@ class bitso extends Exchange {
         // the don't support fetching trades starting from a date yet
         // use the `$marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-        $markerInParams = (is_array($params) && array_key_exists('marker', $params));
+        $markerInParams = (is_array($params) && array_key_exists('marker' ?? '', $params));
         // warn the user with an exception if the user wants to filter
         // starting from $since timestamp, but does not set the trade id with an extra 'marker' param
         if (($since !== null) && !$markerInParams) {
@@ -1760,7 +1760,7 @@ class bitso extends Exchange {
             $entry = $depositResponse[$i];
             $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            if (($codes === null) || (is_array($codes) && array_key_exists($code, $codes))) {
+            if (($codes === null) || (is_array($codes) && array_key_exists($code ?? '', $codes))) {
                 $result[$code] = array(
                     'deposit' => array(
                         'fee' => $this->safe_number($entry, 'fee'),
@@ -1779,7 +1779,7 @@ class bitso extends Exchange {
         for ($i = 0; $i < count($withdrawalKeys); $i++) {
             $currencyId = $withdrawalKeys[$i];
             $code = $this->safe_currency_code($currencyId);
-            if (($codes === null) || (is_array($codes) && array_key_exists($code, $codes))) {
+            if (($codes === null) || (is_array($codes) && array_key_exists($code ?? '', $codes))) {
                 $withdrawFee = $this->parse_number($withdrawalResponse[$currencyId]);
                 $resultValue = $this->safe_value($result, $code);
                 if ($resultValue === null) {
@@ -1815,7 +1815,7 @@ class bitso extends Exchange {
             'LTC' => 'Litecoin',
         );
         $currency = $this->currency($code);
-        $method = (is_array($methods) && array_key_exists($code, $methods)) ? $methods[$code] : null;
+        $method = (is_array($methods) && array_key_exists($code ?? '', $methods)) ? $methods[$code] : null;
         if ($method === null) {
             throw new ExchangeError($this->id . ' not valid withdraw coin => ' . $code);
         }
@@ -1971,7 +1971,7 @@ class bitso extends Exchange {
         if ($response === null) {
             return null; // fallback to default $error handler
         }
-        if (is_array($response) && array_key_exists('success', $response)) {
+        if (is_array($response) && array_key_exists('success' ?? '', $response)) {
             //
             //     array("success":false,"error":array("code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"))
             //

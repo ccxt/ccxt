@@ -574,7 +574,7 @@ class deribit extends \ccxt\async\deribit {
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->interval] Frequency of notifications. Events will be aggregated over this interval. Possible values => 100ms, raw
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $params['callerMethodName'] = 'watchOrderBook';
             return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
@@ -591,7 +591,7 @@ class deribit extends \ccxt\async\deribit {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $interval = null;
             list($interval, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'interval', '100ms');
@@ -680,7 +680,7 @@ class deribit extends \ccxt\async\deribit {
         $marketId = $this->safe_string($data, 'instrument_name');
         $symbol = $this->safe_symbol($marketId);
         $timestamp = $this->safe_integer($data, 'timestamp');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->counted_order_book();
         }
         $storedOrderBook = $this->orderbooks[$symbol];

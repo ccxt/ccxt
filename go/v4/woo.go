@@ -1236,7 +1236,7 @@ func (this *WooCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		//     "success": true
 		// }
 		//
-		// only make one request for currrencies...
+		// only make one request for currencies...
 		var tokenNetworkResponsePromise any = this.V1PublicGetTokenNetwork(params)
 		//
 		// {
@@ -1923,7 +1923,7 @@ func (this *WooCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
  * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
  * @description cancel all open orders in a market
- * @param {string} symbol unified market symbol
+ * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a trigger/algo order
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2452,7 +2452,7 @@ func (this *WooCore) ParseOrderStatus(status any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *WooCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)

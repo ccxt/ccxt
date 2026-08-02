@@ -1309,7 +1309,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -2200,7 +2200,7 @@ public class HyperliquidCore extends HyperliquidApi
                 {
                     if (Helpers.isTrue(Helpers.isInstance(e, InvalidProxySettings.class)))
                     {
-                        throw e;
+                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
                     response = null; // ignore this error and assume unified margin is not enabled
                 }
@@ -4076,7 +4076,7 @@ final Object finalClientOrderId = clientOrderId;
         }
         if (Helpers.isTrue(Helpers.isEqual(this.safeString(entry, "id"), null)))
         {
-            market = this.safeMarket(marketId, null);
+            market = this.safeMarket(marketId);
         } else
         {
             market = this.safeMarket(marketId, market);
@@ -4272,7 +4272,7 @@ final Object finalClientOrderId = clientOrderId;
         Object amount = this.safeString(trade, "sz");
         Object coin = this.safeString(trade, "coin");
         Object marketId = this.coinToMarketId(coin);
-        market = this.safeMarket(marketId, null);
+        market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object id = this.safeString(trade, "tid");
         Object side = this.safeString(trade, "side");
@@ -4497,7 +4497,7 @@ final Object finalClientOrderId = clientOrderId;
         Object entry = this.safeDict(position, "position", new java.util.HashMap<String, Object>() {{}});
         Object coin = this.safeString(entry, "coin");
         Object marketId = this.coinToMarketId(coin);
-        market = this.safeMarket(marketId, null);
+        market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object leverage = this.safeDict(entry, "leverage", new java.util.HashMap<String, Object>() {{}});
         Object marginMode = this.safeString(leverage, "type");

@@ -1298,7 +1298,7 @@ class kucoin(ccxt.async_support.kucoin):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), default is False
         :param str [params.method]: either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         #
         # https://docs.kucoin.com/#level-2-market-data
@@ -1396,7 +1396,7 @@ class kucoin(ccxt.async_support.kucoin):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         symbolsLength = len(symbols)
         if symbolsLength == 0:
@@ -2066,9 +2066,32 @@ class kucoin(ccxt.async_support.kucoin):
         orders = self.safe_value(cachedOrders.hashmap, symbol, {})
         order = self.safe_value(orders, orderId)
         if order is not None:
-            # todo add others to calculate average etc
             if order['status'] == 'closed':
                 parsed['status'] = 'closed'
+            # carry the accumulated fill state forward, the raw feed only
+            # carries the match prices on the match messages, and safeOrder
+            # derives cost from the order price otherwise, which is wrong for
+            # orders filled at better prices, so the accumulated values win on
+            # the non match messages, see https://github.com/ccxt/ccxt/issues/19083
+            if order['average'] is not None:
+                parsed['average'] = order['average']
+                parsed['cost'] = order['cost']
+            if parsed['filled'] is None:
+                parsed['filled'] = order['filled']
+        # accumulate the average fill price and cost from the match messages,
+        # which carry matchPrice and matchSize, the terminal filled message
+        # does not repeat them, see https://github.com/ccxt/ccxt/issues/19083
+        rawType = self.safe_string(data, 'type')
+        matchPrice = self.safe_string(data, 'matchPrice')
+        matchSize = self.safe_string(data, 'matchSize')
+        if (rawType == 'match') and (matchPrice is not None) and (matchSize is not None):
+            matchCost = Precise.string_mul(matchPrice, matchSize)
+            previousCost = '0' if (order is None) else self.number_to_string(self.safe_number(order, 'cost', 0))
+            costString = Precise.string_add(previousCost, matchCost)
+            parsed['cost'] = self.parse_number(costString)
+            filledString = self.number_to_string(parsed['filled'])
+            if (filledString is not None) and (Precise.string_gt(filledString, '0')):
+                parsed['average'] = self.parse_number(Precise.string_div(costString, filledString))
         cachedOrders.append(parsed)
         messageHash = 'orders'
         topic = self.safe_string(message, 'topic')

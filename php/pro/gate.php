@@ -439,7 +439,7 @@ class gate extends \ccxt\async\gate {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1424,13 +1424,13 @@ class gate extends \ccxt\async\gate {
         if ($this->positions === null) {
             $this->positions = array();
         }
-        if (is_array($this->positions) && array_key_exists($type, $this->positions)) {
+        if (is_array($this->positions) && array_key_exists($type ?? '', $this->positions)) {
             return;
         }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
         if ($fetchPositionsSnapshot) {
             $messageHash = $type . ':fetchPositionsSnapshot';
-            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+            if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
                 $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash, $type);
             }
@@ -1452,7 +1452,7 @@ class gate extends \ccxt\async\gate {
                 }
             }
             // don't remove the $future from the .futures $cache
-            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
                 $future = $client->futures[$messageHash];
                 $future->resolve($cache);
                 $client->resolve($cache, $type . ':position');
@@ -1925,7 +1925,7 @@ class gate extends \ccxt\async\gate {
                 throw new ExchangeError($this->json($message));
             } catch (Exception $e) {
                 $client->reject($e, $messageHash);
-                if (($messageHash !== null) && (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
+                if (($messageHash !== null) && (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
                     unset($client->subscriptions[$messageHash]);
                 }
                 // remove subscriptions for watchSymbols
@@ -1937,13 +1937,13 @@ class gate extends \ccxt\async\gate {
                         $marketType = $parsedChannel[0] === 'futures' ? 'swap' : $parsedChannel[0];
                         $symbol = $this->safe_symbol($payload[$i], null, '_', $marketType);
                         $messageHashSymbol = $parsedChannel[1] . ':' . $symbol;
-                        if (($messageHashSymbol !== null) && (is_array($client->subscriptions) && array_key_exists($messageHashSymbol, $client->subscriptions))) {
+                        if (($messageHashSymbol !== null) && (is_array($client->subscriptions) && array_key_exists($messageHashSymbol ?? '', $client->subscriptions))) {
                             unset($client->subscriptions[$messageHashSymbol]);
                         }
                     }
                 }
             }
-            if (($id !== null) && (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions))) {
+            if (($id !== null) && (is_array($client->subscriptions) && array_key_exists($id ?? '', $client->subscriptions))) {
                 unset($client->subscriptions[$id]);
             }
             return true;
@@ -1964,13 +1964,13 @@ class gate extends \ccxt\async\gate {
             'options.order_book_update' => array($this, 'handle_order_book_subscription'),
         );
         $id = $this->safe_string($message, 'id');
-        if (is_array($methods) && array_key_exists($channel, $methods)) {
+        if (is_array($methods) && array_key_exists($channel ?? '', $methods)) {
             $subscriptionHash = $this->safe_string($client->subscriptions, $id);
             $subscription = $this->safe_value($client->subscriptions, $subscriptionHash);
             $method = $methods[$channel];
             $method($client, $message, $subscription);
         }
-        if (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions)) {
+        if (is_array($client->subscriptions) && array_key_exists($id ?? '', $client->subscriptions)) {
             unset($client->subscriptions[$id]);
         }
     }
@@ -1998,7 +1998,7 @@ class gate extends \ccxt\async\gate {
         $keys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $messageHash = $keys[$i];
-            if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
+            if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
                 continue;
                 // the previous iteration can have deleted the $messageHash from the subscriptions
             }
@@ -2230,7 +2230,7 @@ class gate extends \ccxt\async\gate {
             );
             if ($subscription !== null) {
                 $client = $this->client($url);
-                if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
+                if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
                     $tempSubscriptionHash = (string) $requestId;
                     $client->subscriptions[$tempSubscriptionHash] = $messageHash;
                 }
@@ -2373,7 +2373,7 @@ class gate extends \ccxt\async\gate {
                 $request['payload'] = $payload;
             }
             $client = $this->client($url);
-            if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
+            if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
                 $tempSubscriptionHash = (string) $requestId;
                 // in case of authenticationError we will throw
                 $client->subscriptions[$tempSubscriptionHash] = $messageHash;

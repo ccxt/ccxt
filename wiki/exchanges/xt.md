@@ -58,7 +58,7 @@ fetches the current integer timestamp in milliseconds from the xt server
 
 | Param | Type | Description |
 | --- | --- | --- |
-| params | <code>object</code> | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -78,7 +78,7 @@ fetches all available currencies on an exchange
 
 | Param | Type | Description |
 | --- | --- | --- |
-| params | <code>object</code> | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -102,7 +102,7 @@ retrieves data on all markets for xt
 
 | Param | Type | Description |
 | --- | --- | --- |
-| params | <code>object</code> | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -130,7 +130,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
@@ -146,7 +146,7 @@ xt.fetchOHLCV (symbol, timeframe, since?, limit?, params)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/en/latest/manual.html#order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -158,7 +158,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol to fetch the order book for |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -183,7 +183,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 | Param | Type | Description |
 | --- | --- | --- |
 | symbol | <code>string</code> | unified market symbol to fetch the ticker for |
-| params | <code>object</code> | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -208,7 +208,7 @@ fetches price tickers for multiple markets, statistical calculations with the in
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>string</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -229,7 +229,7 @@ fetches the bid and ask price and volume for multiple markets
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>string</code> | No | unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -256,7 +256,7 @@ get the list of most recent trades for a particular symbol
 | symbol | <code>string</code> | Yes | unified market symbol to fetch trades for |
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
 | limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -283,7 +283,7 @@ fetch all trades made by the user
 | symbol | <code>string</code> | No | unified market symbol to fetch trades for |
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
 | limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -307,7 +307,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 | Param | Type | Description |
 | --- | --- | --- |
-| params | <code>object</code> | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -360,7 +360,7 @@ create a trade order
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much you want to trade in units of the base currency |
 | price | <code>float</code> | No | the price to fulfill the order, in units of the quote currency, can be ignored in market orders |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.timeInForce | <code>string</code> | No | 'GTC', 'IOC', 'FOK' or 'GTX' |
 | params.entrustType | <code>string</code> | No | 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's side |
 | params.triggerPriceType | <code>string</code> | No | 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined |
@@ -395,7 +395,7 @@ fetches information on an order made by the user
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
 | symbol | <code>string</code> | No | unified symbol of the market the order was made in |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
 
@@ -425,7 +425,7 @@ fetches information on multiple orders made by the user
 | symbol | <code>string</code> | No | unified market symbol of the market the orders were made in |
 | since | <code>int</code> | No | timestamp in ms of the earliest order |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 
 
@@ -455,7 +455,7 @@ fetch all unfilled currently open orders
 | symbol | <code>string</code> | No | unified market symbol of the market the orders were made in |
 | since | <code>int</code> | No | timestamp in ms of the earliest order |
 | limit | <code>int</code> | No | the maximum number of open order structures to retrieve |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
 
@@ -486,7 +486,7 @@ fetches information on multiple closed orders made by the user
 | symbol | <code>string</code> | No | unified market symbol of the market the orders were made in |
 | since | <code>int</code> | No | timestamp in ms of the earliest order |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
 
@@ -517,7 +517,7 @@ fetches information on multiple canceled orders made by the user
 | symbol | <code>string</code> | No | unified market symbol of the market the orders were made in |
 | since | <code>int</code> | No | timestamp in ms of the earliest order |
 | limit | <code>int</code> | No | the maximum number of order structures to retrieve |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
 
@@ -547,7 +547,7 @@ cancels an open order
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
 | symbol | <code>string</code> | No | unified symbol of the market the order was made in |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
 
@@ -576,7 +576,7 @@ cancel all open orders in a market
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | No | unified market symbol of the market to cancel orders in |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | if the order is a trigger order or not |
 | params.stopLossTakeProfit | <code>bool</code> | No | if the order is a stop-loss or take-profit order |
 
@@ -600,7 +600,7 @@ cancel multiple orders
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
 | symbol | <code>string</code> | No | unified market symbol of the market to cancel orders in |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -623,7 +623,7 @@ fetch the history of changes, actions done by the user or operations that altere
 | code | <code>string</code> | No | unified currency code |
 | since | <code>int</code> | No | timestamp in ms of the earliest ledger entry |
 | limit | <code>int</code> | No | max number of ledger entries to return |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -644,7 +644,7 @@ fetch the deposit address for a currency associated with this account
 | Param | Type | Description |
 | --- | --- | --- |
 | code | <code>string</code> | unified currency code |
-| params | <code>object</code> | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
 | params.network | <code>string</code> | required network id |
 
 
@@ -668,7 +668,7 @@ fetch all deposits made to an account
 | code | <code>string</code> | No | unified currency code |
 | since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
 | limit | <code>int</code> | No | the maximum number of transaction structures to retrieve |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -691,7 +691,7 @@ fetch all withdrawals made from an account
 | code | <code>string</code> | No | unified currency code |
 | since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
 | limit | <code>int</code> | No | the maximum number of transaction structures to retrieve |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -715,7 +715,7 @@ make a withdrawal
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
 | tag | <code>string</code> | No |  |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -737,7 +737,7 @@ set the level of leverage for a market
 | --- | --- | --- |
 | leverage | <code>float</code> | the rate of leverage |
 | symbol | <code>string</code> | unified market symbol |
-| params | <code>object</code> | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
 | params.positionSide | <code>string</code> | 'LONG' or 'SHORT' |
 
 
@@ -760,7 +760,7 @@ add margin to a position
 | --- | --- | --- |
 | symbol | <code>string</code> | unified market symbol |
 | amount | <code>float</code> | amount of margin to add |
-| params | <code>object</code> | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
 | params.positionSide | <code>string</code> | 'LONG' or 'SHORT' |
 
 
@@ -783,7 +783,7 @@ remove margin from a position
 | --- | --- | --- |
 | symbol | <code>string</code> | unified market symbol |
 | amount | <code>float</code> | the amount of margin to remove |
-| params | <code>object</code> | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
 | params.positionSide | <code>string</code> | 'LONG' or 'SHORT' |
 
 
@@ -805,7 +805,7 @@ retrieve information on the maximum leverage for different trade sizes
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>string</code> | No | a list of unified market symbols |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -826,7 +826,7 @@ retrieve information on the maximum leverage for different trade sizes of a sing
 | Param | Type | Description |
 | --- | --- | --- |
 | symbol | <code>string</code> | unified market symbol |
-| params | <code>object</code> | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -849,7 +849,7 @@ fetches historical funding rates
 | symbol | <code>string</code> | No | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
 | limit | <code>int</code> | No | the maximum amount of [funding rate structures] to fetch |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.paginate | <code>bool</code> | Yes | true/false whether to use the pagination helper to aumatically paginate through the results |
 
 
@@ -892,7 +892,7 @@ fetch the current funding rate
 | Param | Type | Description |
 | --- | --- | --- |
 | symbol | <code>string</code> | unified market symbol |
-| params | <code>object</code> | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -915,7 +915,7 @@ fetch the funding history
 | symbol | <code>string</code> | Yes | unified market symbol |
 | since | <code>int</code> | No | the starting timestamp in milliseconds |
 | limit | <code>int</code> | No | the number of entries to return |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -936,7 +936,7 @@ fetch data on a single open contract trade position
 | Param | Type | Description |
 | --- | --- | --- |
 | symbol | <code>string</code> | unified market symbol of the market the position is held in |
-| params | <code>object</code> | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -957,7 +957,7 @@ fetch all open positions
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>string</code> | No | list of unified market symbols, not supported with xt |
-| params | <code>object</code> | Yes | extra parameters specific to the xt api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -981,7 +981,7 @@ transfer currency internally between wallets on the same account
 | amount | <code>float</code> | amount to transfer |
 | fromAccount | <code>string</code> | account to transfer from -  spot, swap, leverage, finance |
 | toAccount | <code>string</code> | account to transfer to - spot, swap, leverage, finance |
-| params | <code>object</code> | extra parameters specific to the whitebit api endpoint |
+| params | <code>object</code> | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript

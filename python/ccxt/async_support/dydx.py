@@ -1627,7 +1627,7 @@ class dydx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -1799,7 +1799,7 @@ class dydx(Exchange, ImplicitAPI):
         fromSubaccountId = self.safe_integer(params, 'fromSubaccountId')
         toSubaccountId = self.safe_integer(params, 'toSubaccountId')
         if fromAccount != 'main':
-            # raise error if from subaccount id is undefind
+            # raise error if from subaccount id is None
             if fromAccount is None:
                 raise NotSupported(self.id + ' transfer only support main > subaccount and subaccount <> subaccount.')
             if fromSubaccountId is None or toSubaccountId is None:

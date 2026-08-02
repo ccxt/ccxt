@@ -626,6 +626,9 @@ class bingx(Exchange, ImplicitAPI):
             },
             'options': {
                 'defaultType': 'spot',
+                'fetchOHLCV': {
+                    'timeZone': 0,  # candle boundary offset in hours, 0 anchors daily candles to UTC midnight, set 8 for the bingx-native UTC+8 anchoring
+                },
                 'accountsByType': {
                     'funding': 'fund',
                     'spot': 'spot',
@@ -792,7 +795,7 @@ class bingx(Exchange, ImplicitAPI):
                     },
                 },
             },
-            'rollingWindowSize': 2000.0,  # Some endpoints have a 10s window, some have a 5s window, a more complicated rate limiter is needed to accomodate for self
+            'rollingWindowSize': 2000.0,  # Some endpoints have a 10s window, some have a 5s window, a more complicated rate limiter is needed to accommodate for self
         })
 
     def fetch_time(self, params={}) -> Int:
@@ -1180,6 +1183,12 @@ class bingx(Exchange, ImplicitAPI):
             request['endTime'] = until
         response: dict
         if market['spot']:
+            # bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
+            # the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
+            timeZone = None
+            timeZone, params = self.handle_option_and_params(params, 'fetchOHLCV', 'timeZone', 0)
+            if timeZone is not None:
+                request['timeZone'] = timeZone
             response = self.spotV1PublicGetMarketKline(self.extend(request, params))
         else:
             if market['inverse']:
@@ -1518,7 +1527,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -2535,7 +2544,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: unified contract symbol
         :param int [since]: the earliest time in ms to fetch positions for
         :param int [limit]: the maximum amount of records to fetch
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch positions for
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
@@ -5135,8 +5144,15 @@ class bingx(Exchange, ImplicitAPI):
         currency = self.safe_currency(currencyId, currency)
         code = currency['code']
         address = self.safe_string(depositAddress, 'addressWithPrefix')
-        networkdId = self.safe_string(depositAddress, 'network')
-        networkCode = self.network_id_to_code(networkdId, code)
+        networkId = self.safe_string(depositAddress, 'network')
+        networkCode = self.network_id_to_code(networkId, code)
+        # despite its name the addressWithPrefix field sometimes arrives without
+        # the 0x prefix on the evm networks, see https://github.com/ccxt/ccxt/issues/24331
+        if address is not None:
+            isPrefixed = address.startswith('0x') or address.startswith('0X')
+            evmNetworks = ['BEP20', 'BSC', 'ERC20', 'ETH', 'HECO', 'MATIC', 'POLYGON', 'ARBITRUM', 'ARB', 'OPTIMISM', 'AVAXC', 'BASE', 'FTM', 'LINEA', 'ZKSYNC', 'OPBNB']
+            if not isPrefixed and self.in_array(networkCode, evmNetworks):
+                address = '0x' + address
         self.check_address(address)
         return {
             'info': depositAddress,
@@ -5403,7 +5419,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market to set margin in
         :param float amount: the amount to set the margin to
-        :param dict [params]: parameters specific to the bingx api endpoint
+        :param dict [params]: parameters specific to the exchange API endpoint
         :returns dict: A `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         type = self.safe_integer(params, 'type')  # 1 increase margin 2 decrease margin
@@ -6019,7 +6035,7 @@ class bingx(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str [side]: not used by bingx
-        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str|None [params.positionId]: the id of the position you would like to close
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -6086,7 +6102,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
         https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
 
-        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.recvWindow]: request valid time window value
         :returns dict[]: `a list of position structures <https://docs.ccxt.com/?id=position-structure>`
         """
@@ -6175,7 +6191,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
 
         :param bool hedged: set to True to use dualSidePosition
-        :param str symbol: not used by bingx setPositionMode()
+        :param str symbol: not used by setPositionMode()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """

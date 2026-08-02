@@ -409,7 +409,7 @@ public partial class cryptomus : Exchange
     public override object parseCurrency(object rawCurrency)
     {
         // currency here is array of networks
-        object id = null; // all entried have same id, as they were grouped by
+        object id = null; // all entries have same id, as they were grouped by
         object code = null;
         object networks = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawCurrency)); postFixIncrement(ref i))
@@ -533,7 +533,7 @@ public partial class cryptomus : Exchange
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {

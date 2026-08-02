@@ -73,7 +73,7 @@ export default class pacifica extends pacificaRest {
         if (key !== undefined) {
             headers['PF-API-KEY'] = key;
         } else {
-            if (this.handleOption ('setupApiKeyHeaders', 'apiKey', undefined) !== undefined) {
+            if (this.handleOption ('setupApiKeyHeaders', 'apiKey') !== undefined) {
                 headers['PF-API-KEY'] = this.options['apiKey'];
             }
         }
@@ -286,7 +286,7 @@ export default class pacifica extends pacificaRest {
         const ordersToReturn: Order[] = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
-            const error = this.safeString (order, 'error', undefined);
+            const error = this.safeString (order, 'error');
             const success = this.safeBool (order, 'success', false);
             const marketId = this.safeString (order, 'symbol');
             const market = this.safeMarket (marketId);
@@ -416,7 +416,7 @@ export default class pacifica extends pacificaRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         this.setupApiKeyHeaders ();
@@ -1368,7 +1368,7 @@ export default class pacifica extends pacificaRest {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
-        const postType = this.safeString (message, 'type', undefined);
+        const postType = this.safeString (message, 'type');
         const topic = this.safeString (message, 'channel', '');
         const methods: Dict = {
             'pong': this.handlePong,

@@ -82,7 +82,7 @@ func (this *Coinone) FetchBalance(params ...any) (Balances, error) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Coinone) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -214,13 +214,12 @@ func (this *Coinone) FetchTrades(symbol string, options ...FetchTradesOptions) (
  * @method
  * @name coinone#createOrder
  * @description create a trade order
- * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_buy
- * @see https://doc.coinone.co.kr/#tag/Order-V2/operation/v2_order_limit_sell
+ * @see https://docs.coinone.co.kr/reference/order-v21
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type must be 'limit'
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of currency you want to trade in units of base currency
- * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+ * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, required for the limit orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */

@@ -313,7 +313,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
      * @param {int} [limit] 1-100, default=100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -515,6 +515,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
         //    }
         //
         Object parameters = this.safeList(message, "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object isFullUpdate = this.safeBool(parameters, 0, false);
         Object data = this.safeDict(parameters, 1);
         Object asks = this.safeList(data, "asks");
         Object bids = this.safeList(data, "bids");
@@ -529,6 +530,14 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
             orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        }
+        if (Helpers.isTrue(isFullUpdate))
+        {
+            // the first parameter signals whether the message carries all
+            // records or only the changed ones, a full set replaces the book,
+            // otherwise stale levels that left the depth window would linger
+            // and cross the book, see https://github.com/ccxt/ccxt/issues/24944
+            Helpers.callDynamically(orderbook, "reset", new Object[]{new java.util.HashMap<String, Object>() {{}}});
         }
         if (Helpers.isTrue(!Helpers.isEqual(bids, null)))
         {

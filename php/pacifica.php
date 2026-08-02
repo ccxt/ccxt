@@ -229,6 +229,12 @@ class pacifica extends Exchange {
                     'taker' => $this->parse_number('0.0004'),
                     'maker' => $this->parse_number('0.00015'),
                 ),
+                'spot' => array(
+                    // https://docs.pacifica.fi/trading-on-pacifica/trading-fees
+                    // one unified fee schedule for all product types
+                    'taker' => $this->parse_number('0.0004'),
+                    'maker' => $this->parse_number('0.00015'),
+                ),
             ),
             //
             // Reminder:
@@ -836,14 +842,14 @@ class pacifica extends Exchange {
         $cacheAddress = $this->walletAddress;
         $settings = null;
         if ($userAccount === $cacheAddress) {
-            $settings = $this->handle_option('fetchLeverage', 'settings', null);
+            $settings = $this->handle_option('fetchLeverage', 'settings');
         } else {
             $request = array(
                 'account' => $userAccount,
             );
             $settings = $this->fetch_account_settings($this->extend($request, $params));
         }
-        $setting = $this->safe_dict($settings, $symbol, null);
+        $setting = $this->safe_dict($settings, $symbol);
         if ($setting === null) {
             // NOTE => Upon account creation, all markets have margin $settings default to cross margin and leverage default to max.
             // When querying this endpoint, all markets with default margin and leverage $settings on this account will return blank.
@@ -921,7 +927,7 @@ class pacifica extends Exchange {
     }
 
     public function load_account_settings(bool $refresh = false, $params = array()) {
-        $settings = $this->handle_option('loadAccountSettings', 'settings', null);
+        $settings = $this->handle_option('loadAccountSettings', 'settings');
         if (($settings === null) || ($refresh === true)) {
             $this->options['settings'] = $this->create_safe_dictionary();
             $settings = $this->fetch_account_settings($params);
@@ -961,7 +967,7 @@ class pacifica extends Exchange {
         $cacheAddress = $this->walletAddress;
         $settings = null;
         if ($userAccount === $cacheAddress) {
-            $settings = $this->handle_option('fetchMarginMode', 'settings', null);
+            $settings = $this->handle_option('fetchMarginMode', 'settings');
         } else {
             $request = array(
                 'account' => $userAccount,
@@ -977,7 +983,7 @@ class pacifica extends Exchange {
         //       "updated_at" => 1758086074002
         //    ),
         // }
-        $setting = $this->safe_dict($settings, $symbol, null);
+        $setting = $this->safe_dict($settings, $symbol);
         if ($setting === null) {
             // NOTE => Upon account creation, all markets have margin $settings default to cross margin and leverage default to max.
             // When querying this endpoint, all markets with default margin and leverage $settings on this account will return blank.
@@ -1018,7 +1024,7 @@ class pacifica extends Exchange {
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1732,7 +1738,7 @@ class pacifica extends Exchange {
         $ordersToReturn = array();
         for ($i = 0; $i < count($results); $i++) {
             $order = $results[$i];
-            $error = $this->safe_string($order, 'error', null);
+            $error = $this->safe_string($order, 'error');
             $success = $this->safe_bool($order, 'success', false);
             $status = null;
             if (($error !== null) || (!$success)) {
@@ -1793,7 +1799,7 @@ class pacifica extends Exchange {
         $ordersToReturn = array();
         for ($i = 0; $i < count($results); $i++) {
             $order = $results[$i];
-            $error = $this->safe_string($order, 'error', null);
+            $error = $this->safe_string($order, 'error');
             $success = $this->safe_bool($order, 'success', false);
             $status = null;
             if (($error !== null) || (!$success)) {
@@ -1840,7 +1846,7 @@ class pacifica extends Exchange {
          *
          * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-all-orders
          *
-         * @param {string} $symbol (optional) unified market $symbol of the market to cancel orders in.
+         * @param {string} [$symbol] (optional) unified market $symbol of the market to cancel orders in.
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->excludeReduceOnly] whether to exclude reduce-only orders
          * @param {int} [$params->expiryWindow] time to live in milliseconds
@@ -2472,7 +2478,7 @@ class pacifica extends Exchange {
         if ($tifRaw !== null) {
             $tif = strtoupper($tifRaw);
         }
-        return $this->safe_string($tifMap, $tif, null);
+        return $this->safe_string($tifMap, $tif);
     }
 
     public function map_side(string $sideRaw) {
@@ -3260,7 +3266,7 @@ class pacifica extends Exchange {
          */
         $finalHeaders = array( );
         $agentAddress = null;
-        list($agentAddress, $params) = $this->handle_option('createSubAccount', 'agentAddress', null);
+        list($agentAddress, $params) = $this->handle_option('createSubAccount', 'agentAddress');
         $originAddress = null;
         list($originAddress, $params) = $this->handle_origin_and_single_address('createSubAccount', $params);
         if ($originAddress === null) {
@@ -3435,7 +3441,7 @@ class pacifica extends Exchange {
         if ($method === 'POST') {
             $body = $this->json($params);
         }
-        if ($this->handle_option('sign', 'apiKey', null) !== null) {
+        if ($this->handle_option('sign', 'apiKey') !== null) {
             $headers['PF-API-KEY'] = $this->options['apiKey'];
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
@@ -3446,7 +3452,7 @@ class pacifica extends Exchange {
         $costNumber = $this->parse_number($cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if ($costNumber > 1) {
-            if ($this->handle_option($method, 'apiKey', null) !== null) {
+            if ($this->handle_option($method, 'apiKey') !== null) {
                 $costWithKey = $this->handle_option(
                     $method,
                     'maxCostHugeWithApiKey',

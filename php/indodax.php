@@ -501,7 +501,7 @@ class indodax extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -800,7 +800,7 @@ class indodax extends Exchange {
         //    }
         //
         $side = null;
-        if (is_array($order) && array_key_exists('type', $order)) {
+        if (is_array($order) && array_key_exists('type' ?? '', $order)) {
             $side = $order['type'];
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status', 'open'));
@@ -809,23 +809,25 @@ class indodax extends Exchange {
         $price = $this->safe_string($order, 'price');
         $amount = null;
         $remaining = null;
+        $filled = null;
         $marketId = $this->safe_string($order, 'pair');
         $market = $this->safe_market($marketId, $market);
         if ($market !== null) {
             $symbol = $market['symbol'];
             $quoteId = $market['quoteId'];
             $baseId = $market['baseId'];
-            if (($market['quoteId'] === 'idr') && (is_array($order) && array_key_exists('order_rp', $order))) {
+            if (($market['quoteId'] === 'idr') && (is_array($order) && array_key_exists('order_rp' ?? '', $order))) {
                 $quoteId = 'rp';
             }
-            if (($market['baseId'] === 'idr') && (is_array($order) && array_key_exists('remain_rp', $order))) {
+            if (($market['baseId'] === 'idr') && (is_array($order) && array_key_exists('remain_rp' ?? '', $order))) {
                 $baseId = 'rp';
             }
             $cost = $this->safe_string($order, 'order_' . $quoteId);
-            if (!$cost) {
-                $amount = $this->safe_string($order, 'order_' . $baseId);
-                $remaining = $this->safe_string($order, 'remain_' . $baseId);
-            }
+            $amount = $this->safe_string($order, 'order_' . $baseId);
+            $remaining = $this->safe_string($order, 'remain_' . $baseId);
+            // $filled buy orders on idr-quoted markets carry the executed base $amount
+            // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
+            $filled = $this->safe_string($order, 'receive_' . $baseId);
         }
         $timestamp = $this->safe_integer($order, 'submit_time');
         $fee = null;
@@ -847,7 +849,7 @@ class indodax extends Exchange {
             'cost' => $cost,
             'average' => null,
             'amount' => $amount,
-            'filled' => null,
+            'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
@@ -1420,7 +1422,7 @@ class indodax extends Exchange {
             if (($address !== null) && (($codes === null) || ($this->in_array($code, $codes)))) {
                 $this->check_address($address);
                 $network = null;
-                if (is_array($networks) && array_key_exists($marketId, $networks)) {
+                if (is_array($networks) && array_key_exists($marketId ?? '', $networks)) {
                     $networkId = $this->safe_string($networks, $marketId);
                     if (mb_strpos($networkId, ',') !== false) {
                         $network = array();
@@ -1482,7 +1484,7 @@ class indodax extends Exchange {
             return null; // public endpoints may return array()-arrays
         }
         $error = $this->safe_value($response, 'error', '');
-        if (!(is_array($response) && array_key_exists('success', $response)) && $error === '') {
+        if (!(is_array($response) && array_key_exists('success' ?? '', $response)) && $error === '') {
             return null; // no 'success' property on public responses
         }
         $status = $this->safe_string($response, 'success');
@@ -1491,7 +1493,7 @@ class indodax extends Exchange {
         }
         if ($this->safe_integer($response, 'success', 0) === 1) {
             // array( success => 1, return => array( orders => array() ))
-            if (!(is_array($response) && array_key_exists('return', $response))) {
+            if (!(is_array($response) && array_key_exists('return' ?? '', $response))) {
                 throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json($response));
             } else {
                 return null;

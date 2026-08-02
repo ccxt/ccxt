@@ -586,7 +586,7 @@ class hibachi extends Exchange {
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch (maximum value is 100)
-         * @param {array} [$params] extra parameters specific to the hibachi api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of recent [trade structures]
          */
         if ($this->markets === null) {
@@ -621,7 +621,7 @@ class hibachi extends Exchange {
          *
          * fetches a price $ticker and the related information for the past 24h
          * @param {string} $symbol unified $symbol of the $market
-         * @param {array} [$params] extra parameters specific to the hibachi api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         if ($this->markets === null) {
@@ -1161,7 +1161,7 @@ class hibachi extends Exchange {
          * @see https://api-doc.hibachi.xyz/#8ed24695-016e-49b2-a72d-7511ca921fee
          *
          * cancel all open orders in a $market
-         * @param {string} $symbol unified $market $symbol
+         * @param {string} [$symbol] unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -1318,7 +1318,7 @@ class hibachi extends Exchange {
          * @param {string} $symbol unified $symbol of the $market
          * @param {int} [$limit] currently unused
          * @param {array} [$params] extra parameters to be passed -- see documentation link above
-         * @return {array} A dictionary containg ~@link https://docs.ccxt.com/?id=order-book-structure orderbook information~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1789,7 +1789,7 @@ class hibachi extends Exchange {
         if ($response === null) {
             return null; // fallback to default error handler
         }
-        if (is_array($response) && array_key_exists('status', $response)) {
+        if (is_array($response) && array_key_exists('status' ?? '', $response)) {
             //
             //     array("errorCode":4,"message":"Invalid input => Invalid quantity => 0","status":"failed")
             //

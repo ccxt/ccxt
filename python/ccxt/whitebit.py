@@ -1541,7 +1541,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -2086,7 +2086,7 @@ class whitebit(Exchange, ImplicitAPI):
 
         https://docs.whitebit.com/private/http-trade-v4/#cancel-all-orders
 
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: market type, ['swap', 'spot']
         :param boolean [params.isMargin]: cancel all margin orders
@@ -2983,7 +2983,7 @@ class whitebit(Exchange, ImplicitAPI):
         https://docs.whitebit.com/private/http-main-v4/#get-depositwithdraw-history
 
         :param str id: deposit id
-        :param str code: not used by whitebit fetchDeposit()
+        :param str code: not used by fetchDeposit()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
@@ -3662,7 +3662,7 @@ class whitebit(Exchange, ImplicitAPI):
         :param str symbol: unified contract symbol
         :param int [since]: the earliest time in ms to fetch positions for
         :param int [limit]: the maximum amount of records to fetch
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.positionId]: the id of the requested position
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """

@@ -451,7 +451,7 @@ func (this *CoinspotCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *CoinspotCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -908,7 +908,7 @@ func (this *CoinspotCore) CreateOrder(symbol any, typeVar any, side any, amount 
  * @see https://www.coinspot.com.au/api#cancelbuyorder
  * @see https://www.coinspot.com.au/api#cancelsellorder
  * @param {string} id order id
- * @param {string} symbol not used by coinspot cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */

@@ -874,7 +874,7 @@ class hashkey extends Exchange {
             $swapMarkets = $this->safe_list($response, 'contracts', array());
             $markets = $this->array_concat($spotMarkets, $swapMarkets);
             if ($this->is_empty($markets)) {
-                $markets = array( $response ); // if user provides $params->symbol the exchange returns a single object insted of list of objects
+                $markets = array( $response ); // if user provides $params->symbol the exchange returns a single object instead of list of objects
             }
             return $this->parse_markets($markets);
         })();
@@ -1260,7 +1260,7 @@ class hashkey extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return (maximum value is 200)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());

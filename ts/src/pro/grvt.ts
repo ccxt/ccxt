@@ -272,7 +272,7 @@ export default class grvt extends grvtRest {
         const selector = this.safeString (message, 'selector', '');
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
-        const market = this.safeMarket (marketId, undefined);
+        const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const ticker = this.parseWsTicker (data, market);
         this.tickers[symbol] = ticker;
@@ -366,7 +366,7 @@ export default class grvt extends grvtRest {
         const selector = this.safeString (message, 'selector', '');
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
-        const market = this.safeMarket (marketId, undefined);
+        const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -469,7 +469,7 @@ export default class grvt extends grvtRest {
         const selector = this.safeString (message, 'selector', '');
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
-        const market = this.safeMarket (marketId, undefined);
+        const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const secondPart = this.safeString (parts, 1, '');
         const timeframeId = secondPart.replace ('-TRADE', '');
@@ -501,7 +501,7 @@ export default class grvt extends grvtRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
@@ -520,7 +520,7 @@ export default class grvt extends grvtRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
@@ -588,7 +588,7 @@ export default class grvt extends grvtRest {
         const selector = this.safeString (message, 'selector', '');
         const parts = selector.split ('@');
         const marketId = this.safeString (parts, 0);
-        const market = this.safeMarket (marketId, undefined);
+        const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const timestamp = this.safeIntegerProduct (data, 'event_time', 0.000001);
         if (!(symbol in this.orderbooks)) {

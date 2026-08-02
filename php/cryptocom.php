@@ -1167,7 +1167,7 @@ class cryptocom extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the number of order book entries to return, max 50
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1726,7 +1726,7 @@ class cryptocom extends Exchange {
          *
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
          *
-         * @param {string} $symbol unified $market $symbol of the orders to cancel
+         * @param {string} [$symbol] unified $market $symbol of the orders to cancel
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} Returns exchange raw messagearray(@link https://docs.ccxt.com/?id=order-structure)
          */
@@ -2133,7 +2133,7 @@ class cryptocom extends Exchange {
         $network = $this->safe_string_upper($params, 'network');
         $params = $this->omit($params, array( 'network' ));
         $depositAddresses = $this->fetch_deposit_addresses_by_network($code, $params);
-        if (is_array($depositAddresses) && array_key_exists($network, $depositAddresses)) {
+        if (is_array($depositAddresses) && array_key_exists($network ?? '', $depositAddresses)) {
             return $depositAddresses[$network];
         }
         $keys = is_array($depositAddresses) ? array_keys($depositAddresses) : array();
@@ -2597,7 +2597,7 @@ class cryptocom extends Exchange {
         $type = null;
         $rawStatus = $this->safe_string($transaction, 'status');
         $status = null;
-        if (is_array($transaction) && array_key_exists('client_wid', $transaction)) {
+        if (is_array($transaction) && array_key_exists('client_wid' ?? '', $transaction)) {
             $type = 'withdrawal';
             $status = $this->parse_withdrawal_status($rawStatus);
         } else {
@@ -3419,7 +3419,7 @@ class cryptocom extends Exchange {
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} [$side] not used by cryptocom.closePositions
-         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->type] LIMIT or MARKET

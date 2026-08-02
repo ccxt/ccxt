@@ -590,7 +590,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if limit is not None:
             if (limit != 25) and (limit != 100):
@@ -629,7 +629,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         #         358169,  # channel id
         #         [
         #            1807.1,  # price
-        #            0,  # cound
+        #            0,  # count
         #            1  # size
         #         ]
         #     ]
@@ -1018,7 +1018,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         #           null,
         #           30,  # price
         #           0,  # price average
-        #           0,  # price_trailling
+        #           0,  # price_trailing
         #           0,  # price_aux_limit
         #           null,
         #           null,
@@ -1095,7 +1095,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         #       null,
         #       42.799,  # price
         #       42.821,  # price average
-        #       0,  # price trailling
+        #       0,  # price trailing
         #       0,  # price_aux_limit
         #       null,
         #       null,

@@ -901,7 +901,7 @@ class apex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1311,13 +1311,13 @@ class apex extends Exchange {
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         if ($market === null && $marketId !== null) {
-            if (is_array($this->markets) && array_key_exists($marketId, $this->markets)) {
+            if (is_array($this->markets) && array_key_exists($marketId ?? '', $this->markets)) {
                 $market = $this->markets[$marketId];
-            } elseif (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            } elseif (is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             } else {
                 $newMarketId = $this->add_hyphen_before_usdt($marketId);
-                if (is_array($this->markets_by_id) && array_key_exists($newMarketId, $this->markets_by_id)) {
+                if (is_array($this->markets_by_id) && array_key_exists($newMarketId ?? '', $this->markets_by_id)) {
                     $markets = $this->markets_by_id[$newMarketId];
                     $numMarkets = count($markets);
                     if ($numMarkets > 0) {
@@ -1644,7 +1644,7 @@ class apex extends Exchange {
              *
              * @see https://api-docs.omni.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders
              *
-             * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
+             * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */

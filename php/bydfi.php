@@ -562,7 +562,7 @@ class bydfi extends Exchange {
          * @param {int} [$limit] the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000 (default 500)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->loc] crypto location, default => us
-         * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -822,7 +822,7 @@ class bydfi extends Exchange {
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch (max 500)
-         * @param {array} [$params] extra parameters specific to the bitteam api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
@@ -2199,7 +2199,7 @@ class bydfi extends Exchange {
          * @param {string} $symbol a unified $market $symbol
          * @param {int} [$since] timestamp in ms of the earliest position to fetch , $params["until"] - $since <= 7 days
          * @param {int} [$limit] the maximum amount of records to fetch (default 500, max 500)
-         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest position to fetch , $params["until"] - $since <= 7 days
          * @param {string} [$params->contractType] FUTURE or DELIVERY, default is FUTURE
          * @param {string} [$params->wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2236,7 +2236,7 @@ class bydfi extends Exchange {
          * @param {string[]} $symbols a list of unified market $symbols
          * @param {int} [$since] timestamp in ms of the earliest position to fetch , $params["until"] - $since <= 7 days
          * @param {int} [$limit] the maximum amount of records to fetch (default 500, max 500)
-         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest position to fetch , $params["until"] - $since <= 7 days
          * @param {string} [$params->contractType] FUTURE or DELIVERY, default is FUTURE
          * @param {string} [$params->wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2397,7 +2397,7 @@ class bydfi extends Exchange {
          * @see https://developers.bydfi.com/en/futures/user#change-position-mode-dual
          *
          * @param {bool} $hedged set to true to use dualSidePosition
-         * @param {string} [$symbol] not used by bydfi setPositionMode ()
+         * @param {string} [$symbol] not used by setPositionMode ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->contractType] FUTURE or DELIVERY, default is FUTURE
          * @param {string} [$params->wallet] The unique code of a sub-$wallet-> W001 is the default $wallet and the main $wallet code of the contract

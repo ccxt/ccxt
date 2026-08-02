@@ -1151,7 +1151,7 @@ func (this *ParadexCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *ParadexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2290,7 +2290,7 @@ func (this *ParadexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @description cancel multiple orders
  * @see https://docs.paradex.trade/api/prod/orders/cancel-batch
  * @param {string[]} ids order ids
- * @param {string} [symbol] unified market symbol, not used by paradex cancelOrders()
+ * @param {string} [symbol] unified market symbol, not used by cancelOrders()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.clientOrderIds] client order ids
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2358,7 +2358,7 @@ func (this *ParadexCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		for i := 0; IsLessThan(i, GetArrayLength(results)); i++ {
 			var result any = GetValue(results, i)
 			var marketId any = this.SafeString(result, "market")
-			var market any = this.SafeMarket(marketId, nil)
+			var market any = this.SafeMarket(marketId)
 			var status any = this.SafeString(result, "status")
 			var orderStatus any = nil
 			if IsTrue(IsEqual(status, "QUEUED_FOR_CANCELLATION")) {

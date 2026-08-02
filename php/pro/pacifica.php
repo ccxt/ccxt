@@ -79,7 +79,7 @@ class pacifica extends \ccxt\async\pacifica {
         if ($key !== null) {
             $headers['PF-API-KEY'] = $key;
         } else {
-            if ($this->handle_option('setupApiKeyHeaders', 'apiKey', null) !== null) {
+            if ($this->handle_option('setupApiKeyHeaders', 'apiKey') !== null) {
                 $headers['PF-API-KEY'] = $this->options['apiKey'];
             }
         }
@@ -297,7 +297,7 @@ class pacifica extends \ccxt\async\pacifica {
             $ordersToReturn = array();
             for ($i = 0; $i < count($results); $i++) {
                 $order = $results[$i];
-                $error = $this->safe_string($order, 'error', null);
+                $error = $this->safe_string($order, 'error');
                 $success = $this->safe_bool($order, 'success', false);
                 $marketId = $this->safe_string($order, 'symbol');
                 $market = $this->safe_market($marketId);
@@ -434,7 +434,7 @@ class pacifica extends \ccxt\async\pacifica {
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int|null} [$params->aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $this->setup_api_key_headers();
             if ($this->markets === null) {
@@ -546,7 +546,7 @@ class pacifica extends \ccxt\async\pacifica {
         if ($nonce) {
             $snapshot['nonce'] = $nonce;
         }
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $ob = $this->order_book($snapshot);
             $this->orderbooks[$symbol] = $ob;
         }
@@ -903,7 +903,7 @@ class pacifica extends \ccxt\async\pacifica {
         $marketId = $this->safe_string($first, 's');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
@@ -1097,10 +1097,10 @@ class pacifica extends \ccxt\async\pacifica {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $timeframe = $this->safe_string($data, 'i');
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
@@ -1277,7 +1277,7 @@ class pacifica extends \ccxt\async\pacifica {
         $subMessageHash = 'orderbook:' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+        if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
     }
@@ -1289,7 +1289,7 @@ class pacifica extends \ccxt\async\pacifica {
         $subMessageHash = 'trade:' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+        if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
             unset($this->trades[$symbol]);
         }
     }
@@ -1313,8 +1313,8 @@ class pacifica extends \ccxt\async\pacifica {
         $subMessageHash = 'candles:' . $timeframe . ':' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
-            if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+        if (is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs)) {
+            if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol])) {
                 unset($this->ohlcvs[$symbol][$timeframe]);
             }
         }
@@ -1398,7 +1398,7 @@ class pacifica extends \ccxt\async\pacifica {
         if ($this->handle_error_message($client, $message)) {
             return;
         }
-        $postType = $this->safe_string($message, 'type', null);
+        $postType = $this->safe_string($message, 'type');
         $topic = $this->safe_string($message, 'channel', '');
         $methods = array(
             'pong' => array($this, 'handle_pong'),

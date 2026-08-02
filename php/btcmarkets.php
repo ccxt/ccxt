@@ -698,7 +698,7 @@ class btcmarkets extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1034,7 +1034,7 @@ class btcmarkets extends Exchange {
          * @see https://docs.btcmarkets.net/v3/#tag/Batch-Order-APIs/paths/{1v3}1batchorders{1}$ids~/delete
          *
          * @param {string[]} $ids order $ids
-         * @param {string} $symbol not used by btcmarkets $cancelOrders ()
+         * @param {string} $symbol not used by $cancelOrders ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -1081,7 +1081,7 @@ class btcmarkets extends Exchange {
          * @see https://docs.btcmarkets.net/v3/#operation/cancelOrder
          *
          * @param {string} $id order $id
-         * @param {string} $symbol not used by btcmarket cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */

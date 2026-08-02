@@ -1262,7 +1262,7 @@ class okx extends \ccxt\async\okx {
              * @param {int} [$limit] 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->depth] okx order book $depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1559,7 +1559,7 @@ class okx extends \ccxt\async\okx {
                 $client->resolve($orderbook, $messageHash);
             }
         } elseif ($action === 'update') {
-            if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+            if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
                 $orderbook = $this->orderbooks[$symbol];
                 for ($i = 0; $i < count($data); $i++) {
                     $update = $data[$i];
@@ -1568,7 +1568,7 @@ class okx extends \ccxt\async\okx {
                 }
             }
         } elseif (($channel === 'books5') || ($channel === 'bbo-tbt')) {
-            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             }
             $orderbook = $this->orderbooks[$symbol];
@@ -1612,7 +1612,7 @@ class okx extends \ccxt\async\okx {
                     ),
                 );
                 // Only add $params['access'] to prevent sending custom parameters, such.
-                if (is_array($params) && array_key_exists('access', $params)) {
+                if (is_array($params) && array_key_exists('access' ?? '', $params)) {
                     $request['access'] = $params['access'];
                 }
                 $this->watch($url, $messageHash, $request, $messageHash);
@@ -2661,7 +2661,7 @@ class okx extends \ccxt\async\okx {
         $subMessageHash = $channel . ':' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+        if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
             unset($this->trades[$symbol]);
         }
     }
@@ -2670,7 +2670,7 @@ class okx extends \ccxt\async\okx {
         $subMessageHash = $channel . ':' . $symbol;
         $messageHash = 'unsubscribe:orderbook:' . $symbol;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+        if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
     }
@@ -2681,7 +2681,7 @@ class okx extends \ccxt\async\okx {
         $subMessageHash = 'multi:' . $channel . ':' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+        if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol])) {
             unset($this->ohlcvs[$symbol][$timeframe]);
         }
     }
@@ -2690,7 +2690,7 @@ class okx extends \ccxt\async\okx {
         $subMessageHash = $channel . '::' . $symbol;
         $messageHash = 'unsubscribe:ticker:' . $symbol;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->tickers) && array_key_exists($symbol, $this->tickers)) {
+        if (is_array($this->tickers) && array_key_exists($symbol ?? '', $this->tickers)) {
             unset($this->tickers[$symbol]);
         }
     }

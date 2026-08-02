@@ -578,8 +578,8 @@ func (this *HollaexCore) ParseCurrency(rawCurrency any) any {
  * @name hollaex#fetchOrderBooks
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
  * @see https://apidocs.hollaex.com/#orderbooks
- * @param {string[]|undefined} symbols not used by hollaex fetchOrderBooks ()
- * @param {int} [limit] not used by hollaex fetchOrderBooks ()
+ * @param {string[]|undefined} symbols not used by fetchOrderBooks ()
+ * @param {int} [limit] not used by fetchOrderBooks ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
  */
@@ -627,7 +627,7 @@ func (this *HollaexCore) FetchOrderBooks(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *HollaexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1211,7 +1211,7 @@ func (this *HollaexCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @description fetch an open order by it's id
  * @see https://apidocs.hollaex.com/#get-order
  * @param {string} id order id
- * @param {string} symbol not used by hollaex fetchOpenOrder ()
+ * @param {string} symbol not used by fetchOpenOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */

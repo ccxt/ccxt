@@ -147,6 +147,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                     put( "invalidAccount", BadRequest.class );
                     put( "invalidAmount", BadRequest.class );
                     put( "insufficientFunds", InsufficientFunds.class );
+                    put( "INSUFFICIENT_MARGIN", InsufficientFunds.class );
                     put( "Bad Request", BadRequest.class );
                     put( "Unavailable", ExchangeNotAvailable.class );
                     put( "invalidUnit", BadRequest.class );
@@ -1558,7 +1559,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
      * @name krakenfutures#cancelAllOrders
      * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders
      * @description Cancels all orders on the exchange, including trigger orders
-     * @param {str} symbol Unified market symbol
+     * @param {string} [symbol] Unified market symbol
      * @param {dict} [params] Exchange specific params
      * @returns Response from exchange api
      */
@@ -3094,7 +3095,9 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object positions = this.safeValue(response, "openPositions");
+        // a degraded response can omit openPositions entirely - default to an
+        // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
+        Object positions = this.safeList(response, "openPositions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
         {
             Object position = this.parsePosition(Helpers.GetValue(positions, i));

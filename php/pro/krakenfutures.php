@@ -109,7 +109,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $orderbook = Async\await($this->watch_multi_helper('orderbook', 'book', $symbols, array( 'limit' => $limit ), $params));
             return $orderbook->limit();
@@ -1592,7 +1592,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
 
     public function subscription_exists_for_hash(string $url, string $hash) {
         $client = $this->client($url);
-        return (is_array($client->subscriptions) && array_key_exists($hash, $client->subscriptions));
+        return (is_array($client->subscriptions) && array_key_exists($hash ?? '', $client->subscriptions));
     }
 
     public function get_message_hash(string $unifiedElementName, ?string $subChannelName = null, ?string $symbol = null) {
@@ -1699,7 +1699,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         } else {
             $error = new AuthenticationError($this->id . ' ' . $this->json($message));
             $client->reject($error, $messageHash);
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }

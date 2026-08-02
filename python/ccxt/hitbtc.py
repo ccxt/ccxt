@@ -1674,7 +1674,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -2187,7 +2187,7 @@ class hitbtc(Exchange, ImplicitAPI):
         https://api.hitbtc.com/#cancel-futures-orders
         https://api.hitbtc.com/#cancel-all-margin-orders
 
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported
         :param bool [params.margin]: True for canceling margin orders
@@ -2856,7 +2856,7 @@ class hitbtc(Exchange, ImplicitAPI):
         https://api.hitbtc.com/#get-futures-margin-accounts
         https://api.hitbtc.com/#get-all-margin-accounts
 
-        :param str[]|None symbols: not used by hitbtc fetchPositions()
+        :param str[]|None symbols: not used by fetchPositions()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if self is set
         :param bool [params.margin]: True for fetching spot-margin positions
@@ -3587,7 +3587,7 @@ class hitbtc(Exchange, ImplicitAPI):
 
         :param str symbol: unified ccxt market symbol
         :param str side: 'buy' or 'sell'
-        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.symbol]: *required* unified market symbol
         :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross'
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`

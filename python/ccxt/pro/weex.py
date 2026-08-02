@@ -24,8 +24,8 @@ class weex(ccxt.async_support.weex):
                 'watchMyTrades': True,
                 'watchOHLCV': True,
                 'watchOHLCVForSymbols': True,
-                'watchOrderBook': False,
-                'watchOrderBookForSymbols': False,
+                'watchOrderBook': True,
+                'watchOrderBookForSymbols': True,
                 'watchOrders': True,
                 'watchPositions': True,
                 'watchTicker': True,
@@ -724,7 +724,7 @@ class weex(ccxt.async_support.weex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         params = self.extend(params, {
             'callerMethodName': 'watchOrderBook',
@@ -741,7 +741,7 @@ class weex(ccxt.async_support.weex):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -1509,7 +1509,7 @@ class weex(ccxt.async_support.weex):
         #         ]
         #     }
         #
-        # coontract
+        # contract
         #     {
         #         "e": "account",
         #         "E": 1776189629849,

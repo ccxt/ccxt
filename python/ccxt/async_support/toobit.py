@@ -129,8 +129,8 @@ class toobit(Exchange, ImplicitAPI):
                         'quote/v1/markPrice/klines': 1,
                         'quote/v1/markPrice': 10,  # 5 requests per second
                         'quote/v1/index': 1,
-                        'quote/v1/ticker/24hr': 40,  # todo: 1-40 depenidng noSymbol
-                        'quote/v1/contract/ticker/24hr': 40,  # todo: 1-40 depenidng noSymbol
+                        'quote/v1/ticker/24hr': 40,  # todo: 1-40 depending noSymbol
+                        'quote/v1/contract/ticker/24hr': 40,  # todo: 1-40 depending noSymbol
                         'quote/v1/ticker/price': 1,
                         'quote/v1/contract/ticker/price': 1,
                         'quote/v1/ticker/bookTicker': 1,
@@ -1032,7 +1032,7 @@ class toobit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -1493,7 +1493,7 @@ class toobit(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `funding rates structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexe by market symbols
+        :returns dict[]: a list of `funding rates structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexed by market symbols
         """
         if self.markets is None:
             await self.load_markets()

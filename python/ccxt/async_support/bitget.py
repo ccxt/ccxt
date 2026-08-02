@@ -1498,7 +1498,7 @@ class bitget(Exchange, ImplicitAPI):
             },
             'options': {
                 'uta': None,
-                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'fetchMarkets': {
                     'types': ['spot', 'swap'],  # there is future markets but they use the same endpoints
@@ -3136,7 +3136,7 @@ class bitget(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -5285,10 +5285,22 @@ class bitget(Exchange, ImplicitAPI):
             else:
                 if hasStopLoss:
                     slTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice')
+                    if slTriggerPrice is None:
+                        raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice or a stopPrice inside the stopLoss parameter')
                     request['presetStopLossPrice'] = self.price_to_precision(symbol, slTriggerPrice)
+                    slLimitPrice = self.safe_value(stopLoss, 'price')
+                    if slLimitPrice is not None:
+                        # without the execute price the exchange fills the attached stop loss
+                        # at the market price, see https://github.com/ccxt/ccxt/issues/23459
+                        request['presetStopLossExecutePrice'] = self.price_to_precision(symbol, slLimitPrice)
                 if hasTakeProfit:
                     tpTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice')
+                    if tpTriggerPrice is None:
+                        raise ArgumentsRequired(self.id + ' createOrder() requires a triggerPrice or a stopPrice inside the takeProfit parameter')
                     request['presetStopSurplusPrice'] = self.price_to_precision(symbol, tpTriggerPrice)
+                    tpLimitPrice = self.safe_value(takeProfit, 'price')
+                    if tpLimitPrice is not None:
+                        request['presetStopSurplusExecutePrice'] = self.price_to_precision(symbol, tpLimitPrice)
             if not isStopLossOrTakeProfitTrigger:
                 if marginMode is None:
                     marginMode = 'cross'
@@ -5620,7 +5632,10 @@ class bitget(Exchange, ImplicitAPI):
             request['orderType'] = type
             if triggerPrice is not None:
                 request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-                request['executePrice'] = self.price_to_precision(symbol, price)
+                # market plan orders carry no execute price, follow up to
+                # https://github.com/ccxt/ccxt/issues/25427
+                if price is not None:
+                    request['executePrice'] = self.price_to_precision(symbol, price)
             else:
                 request['price'] = self.price_to_precision(symbol, price)
             if triggerPrice is not None:
@@ -8823,7 +8838,7 @@ class bitget(Exchange, ImplicitAPI):
         https://www.bitget.com/api-doc/uta/account/Change-Position-Mode
 
         :param bool hedged: set to True to use dualSidePosition
-        :param str symbol: not used by bitget setPositionMode()
+        :param str symbol: not used by setPositionMode()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.productType]: required if not uta and symbol is None: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
@@ -10152,7 +10167,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str[] [symbols]: unified contract symbols
         :param int [since]: timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
         :param int [limit]: the maximum amount of records to fetch, default=20, max=100
-        :param dict params: extra parameters specific to the exchange api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
         :param str [params.productType]: USDT-FUTURES(default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False

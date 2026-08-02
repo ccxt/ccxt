@@ -589,7 +589,7 @@ public class KucoinCore extends KucoinApi
                     put( "order not exist", OrderNotFound.class );
                     put( "order not exist.", OrderNotFound.class );
                     put( "order_not_exist", OrderNotFound.class );
-                    put( "order_not_exist_or_not_allow_to_cancel", InvalidOrder.class );
+                    put( "order_not_exist_or_not_allow_to_cancel", OrderNotFound.class );
                     put( "Order size below the minimum requirement.", InvalidOrder.class );
                     put( "Order size increment invalid.", InvalidOrder.class );
                     put( "The withdrawal amount is below the minimum requirement.", ExchangeError.class );
@@ -3790,7 +3790,7 @@ public class KucoinCore extends KucoinApi
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -4675,7 +4675,7 @@ public class KucoinCore extends KucoinApi
                 }
             }
         }
-        // handling with coinditional orders
+        // handling with conditional orders
         var triggerPricestopLossPricetakeProfitPriceVariable = this.handleTriggerPrices(parameters);
         var triggerPrice = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(0);
         var stopLossPrice = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPriceVariable).get(1);
@@ -5507,7 +5507,7 @@ public class KucoinCore extends KucoinApi
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
      * @see https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated'
@@ -12613,7 +12613,7 @@ public class KucoinCore extends KucoinApi
      * @description set hedged to true or false for a market
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-position-mode
      * @param {bool} hedged set to true to use two way position
-     * @param {string} [symbol] not used by bybit setPositionMode ()
+     * @param {string} [symbol] not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a response from the exchange
      */
@@ -12682,7 +12682,7 @@ public class KucoinCore extends KucoinApi
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} side not used by kucoin closePositions
-     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id of the order
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */

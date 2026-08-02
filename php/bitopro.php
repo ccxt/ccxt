@@ -611,7 +611,7 @@ class bitopro extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1291,7 +1291,7 @@ class bitopro extends Exchange {
          *
          * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/cancel_all_orders.md
          *
-         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -1802,7 +1802,7 @@ class bitopro extends Exchange {
             'amount' => $this->number_to_string($amount),
             'address' => $address,
         );
-        if (is_array($params) && array_key_exists('network', $params)) {
+        if (is_array($params) && array_key_exists('network' ?? '', $params)) {
             $networks = $this->safe_dict($this->options, 'networks', array());
             $requestedNetwork = $this->safe_string_upper($params, 'network');
             $params = $this->omit($params, array( 'network' ));

@@ -363,7 +363,7 @@ class bitmex extends \ccxt\async\bitmex {
             $update = $data[$i];
             $marketId = $this->safe_string($update, 'symbol');
             $symbol = $this->safe_symbol($marketId);
-            if (!(is_array($this->tickers) && array_key_exists($symbol, $this->tickers))) {
+            if (!(is_array($this->tickers) && array_key_exists($symbol ?? '', $this->tickers))) {
                 $this->tickers[$symbol] = $this->parse_ticker(array());
             }
             $updatedTicker = $this->parse_ticker($update);
@@ -751,7 +751,7 @@ class bitmex extends \ccxt\async\bitmex {
         } else {
             $error = new AuthenticationError($this->json($message));
             $client->reject($error, $messageHash);
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }
@@ -1359,7 +1359,7 @@ class bitmex extends \ccxt\async\bitmex {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $table = null;
             if ($limit === null) {
@@ -1683,7 +1683,7 @@ class bitmex extends \ccxt\async\bitmex {
                 if ($marketId === null) {
                     return; // protecting from weird update
                 }
-                if (!(is_array($numUpdatesByMarketId) && array_key_exists($marketId, $numUpdatesByMarketId))) {
+                if (!(is_array($numUpdatesByMarketId) && array_key_exists($marketId ?? '', $numUpdatesByMarketId))) {
                     $numUpdatesByMarketId[$marketId] = 0;
                 }
                 $numUpdatesByMarketId[$marketId] = $this->sum($numUpdatesByMarketId[$marketId], 1);

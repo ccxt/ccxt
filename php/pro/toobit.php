@@ -254,7 +254,7 @@ class toobit extends \ccxt\async\toobit {
         $marketId = $this->safe_string($message, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->trades[$symbol] = new ArrayCache($limit);
         }
@@ -378,10 +378,10 @@ class toobit extends \ccxt\async\toobit {
         $params = $this->safe_dict($message, 'params', array());
         $timeframeId = $this->safe_string($params, 'klineType');
         $timeframe = $this->find_timeframe($timeframeId);
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options['ws'], 'OHLCVLimit', 1000);
             $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }
@@ -561,7 +561,7 @@ class toobit extends \ccxt\async\toobit {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return.
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -624,7 +624,7 @@ class toobit extends \ccxt\async\toobit {
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
             $messageHash = 'orderBook::' . $symbol . '::' . 'diffDepth';
-            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
                 $limit = $this->safe_integer($this->options['ws'], 'orderBookLimit', 1000);
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             }
@@ -682,7 +682,7 @@ class toobit extends \ccxt\async\toobit {
             $marketId = $this->safe_string($entry, 's');
             $symbol = $this->safe_symbol($marketId);
             $messageHash = 'orderBook::' . $symbol . '::' . $channel;
-            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
                 $limit = $this->safe_integer($this->options['ws'], 'orderBookLimit', 1000);
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             }
@@ -728,12 +728,12 @@ class toobit extends \ccxt\async\toobit {
     }
 
     public function set_balance_cache(Client $client, $marketType, ?string $subscriptionHash = null, $params = array()) {
-        if (is_array($client->subscriptions) && array_key_exists($subscriptionHash, $client->subscriptions)) {
+        if (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions)) {
             return;
         }
         $type = ($marketType === 'spot') ? 'spot' : 'contract';
         $messageHash = $type . ':fetchBalanceSnapshot';
-        if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+        if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
             $client->future($messageHash);
             $this->spawn(array($this, 'load_balance_snapshot'), $client, $messageHash, $marketType);
         }
@@ -777,7 +777,7 @@ class toobit extends \ccxt\async\toobit {
         $data = $this->safe_list($message, 'B', array());
         $timestamp = $this->safe_integer($message, 'E');
         $type = ($channel === 'outboundContractAccountInfo') ? 'contract' : 'spot';
-        if (!(is_array($this->balance) && array_key_exists($type, $this->balance))) {
+        if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }
         $this->balance[$type]['info'] = $data;
@@ -803,7 +803,7 @@ class toobit extends \ccxt\async\toobit {
             $type = ($marketType === 'spot') ? 'spot' : 'contract';
             $this->balance[$type] = $this->extend($response, $this->safe_dict($this->balance, $type, array()));
             // don't remove the $future from the .futures cache
-            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
                 $future = $client->futures[$messageHash];
                 $future->resolve();
                 $client->resolve($this->balance[$type], $type . ':fetchBalanceSnapshot');
@@ -1063,13 +1063,13 @@ class toobit extends \ccxt\async\toobit {
         if ($this->positions === null) {
             $this->positions = array();
         }
-        if (is_array($this->positions) && array_key_exists($type, $this->positions)) {
+        if (is_array($this->positions) && array_key_exists($type ?? '', $this->positions)) {
             return;
         }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
         if ($fetchPositionsSnapshot) {
             $messageHash = $type . ':fetchPositionsSnapshot';
-            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+            if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
                 $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash, $type, $isPortfolioMargin);
             }
@@ -1091,7 +1091,7 @@ class toobit extends \ccxt\async\toobit {
                 $cache->append($position);
             }
             // don't remove the $future from the .futures $cache
-            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
                 $future = $client->futures[$messageHash];
                 $future->resolve($cache);
                 $client->resolve($cache, $type . ':positions');
@@ -1129,7 +1129,7 @@ class toobit extends \ccxt\async\toobit {
         if ($this->positions === null) {
             $this->positions = array();
         }
-        if (!(is_array($this->positions) && array_key_exists($accountType, $this->positions))) {
+        if (!(is_array($this->positions) && array_key_exists($accountType ?? '', $this->positions))) {
             $this->positions[$accountType] = new ArrayCacheBySymbolBySide();
         }
         $cache = $this->positions[$accountType];
@@ -1162,7 +1162,7 @@ class toobit extends \ccxt\async\toobit {
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
-            'symbol' => $this->safe_symbol($marketId, null),
+            'symbol' => $this->safe_symbol($marketId),
             'notional' => $this->omit_zero($this->safe_string($position, 'pv')),
             'marginMode' => $this->safe_string_lower($position, 'mt'),
             'liquidationPrice' => $this->safe_string($position, 'f'),
@@ -1210,7 +1210,7 @@ class toobit extends \ccxt\async\toobit {
                     } catch (Exception $e) {
                         $err = new AuthenticationError($this->id . ' ' . $this->exception_message($e));
                         $client->reject($err, $messageHash);
-                        if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                        if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                             unset($client->subscriptions[$messageHash]);
                         }
                     }

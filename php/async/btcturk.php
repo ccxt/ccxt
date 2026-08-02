@@ -449,7 +449,7 @@ class btcturk extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -831,9 +831,9 @@ class btcturk extends Exchange {
             if ($type !== 'market') {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            if (is_array($params) && array_key_exists('clientOrderId', $params)) {
+            if (is_array($params) && array_key_exists('clientOrderId' ?? '', $params)) {
                 $request['newClientOrderId'] = $params['clientOrderId'];
-            } elseif (!(is_array($params) && array_key_exists('newClientOrderId', $params))) {
+            } elseif (!(is_array($params) && array_key_exists('newClientOrderId' ?? '', $params))) {
                 $request['newClientOrderId'] = $this->uuid();
             }
             $response = Async\await($this->privatePostOrder($this->extend($request, $params)));
@@ -850,7 +850,7 @@ class btcturk extends Exchange {
              * @see https://docs.btcturk.com/private-endpoints/cancel-order
              *
              * @param {string} $id order $id
-             * @param {string} $symbol not used by btcturk cancelOrder ()
+             * @param {string} $symbol not used by cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */

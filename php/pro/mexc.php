@@ -680,7 +680,7 @@ class mexc extends \ccxt\async\mexc {
         //
         $symbol = null;
         $timeframe = null;
-        if (is_array($message) && array_key_exists('publicSpotKline', $message)) {
+        if (is_array($message) && array_key_exists('publicSpotKline' ?? '', $message)) {
             $symbol = $this->symbol($this->safe_string($message, 'symbol'));
             $data = $this->safe_dict($message, 'publicSpotKline', array());
             $timeframeId = $this->safe_string($data, 'interval');
@@ -781,7 +781,7 @@ class mexc extends \ccxt\async\mexc {
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->frequency] the $frequency of the order book updates, default is '10ms', can be '100ms' or '10ms
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -908,7 +908,7 @@ class mexc extends \ccxt\async\mexc {
         $messageHash = 'orderbook:' . $symbol;
         $subscription = $this->safe_value($client->subscriptions, $messageHash);
         $limit = $this->safe_integer($subscription, 'limit');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $storedOrderBook = $this->orderbooks[$symbol];
@@ -1629,7 +1629,7 @@ class mexc extends \ccxt\async\mexc {
         $data = $this->safe_dict_n($message, array( 'data', 'privateAccount' ));
         $futuresTimestamp = $this->safe_integer_2($message, 'ts', 'createTime');
         $timestamp = $this->safe_integer_2($data, 'time', $futuresTimestamp);
-        if (!(is_array($this->balance) && array_key_exists($type, $this->balance))) {
+        if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }
         $this->balance[$type]['info'] = $data;
@@ -1983,12 +1983,12 @@ class mexc extends \ccxt\async\mexc {
                     for ($j = 0; $j < count($symbols); $j++) {
                         unset($this->tickers[$symbols[$j]]);
                     }
-                } elseif (is_array($this->tickers) && array_key_exists($symbol, $this->tickers)) {
+                } elseif (is_array($this->tickers) && array_key_exists($symbol ?? '', $this->tickers)) {
                     unset($this->tickers[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'bidask') !== false) {
                 $symbol = str_replace('unsubscribe:bidask:', '', $messageHash);
-                if (is_array($this->bidsasks) && array_key_exists($symbol, $this->bidsasks)) {
+                if (is_array($this->bidsasks) && array_key_exists($symbol ?? '', $this->bidsasks)) {
                     unset($this->bidsasks[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'candles') !== false) {
@@ -1997,22 +1997,22 @@ class mexc extends \ccxt\async\mexc {
                 if (strlen($splitHashes) > 4) {
                     $symbol .= ':' . $this->safe_string($splitHashes, 3);
                 }
-                if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
+                if (is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs)) {
                     unset($this->ohlcvs[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'orderbook') !== false) {
                 $symbol = str_replace('unsubscribe:orderbook:', '', $messageHash);
-                if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+                if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
                     unset($this->orderbooks[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'trades') !== false) {
                 $symbol = str_replace('unsubscribe:trades:', '', $messageHash);
-                if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+                if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
                     unset($this->trades[$symbol]);
                 }
             } elseif (mb_strpos($messageHash, 'fundingRate') !== false) {
                 $symbol = str_replace('unsubscribe:fundingRate:', '', $messageHash);
-                if (is_array($this->fundingRates) && array_key_exists($symbol, $this->fundingRates)) {
+                if (is_array($this->fundingRates) && array_key_exists($symbol ?? '', $this->fundingRates)) {
                     unset($this->fundingRates[$symbol]);
                 }
             }
@@ -2026,7 +2026,28 @@ class mexc extends \ccxt\async\mexc {
             if ($listenKey !== null) {
                 return $listenKey;
             }
-            $response = Async\await($this->spotPrivatePostUserDataStream($params));
+            // guard against concurrent $listenKey requests with a future on the base
+            // spot ws $client - the first caller fetches the $listenKey, concurrent
+            // callers wait on the future and resume when the $listenKey is ready,
+            // otherwise the user-data subscriptions would be split across two connections
+            $client = $this->client($this->urls['api']['ws']['spot']);
+            $messageHash = 'authenticate:listenKey';
+            $isFetching = $this->safe_bool($this->options, 'listenKeyFetching', false);
+            if ($isFetching) {
+                Async\await($client->future($messageHash));
+                return $this->safe_string($this->options, 'listenKey');
+            }
+            $this->options['listenKeyFetching'] = true;
+            $client->future($messageHash); // created ahead of the request below, so concurrent callers can find it
+            $response = null;
+            try {
+                $response = Async\await($this->spotPrivatePostUserDataStream($params));
+            } catch (Exception $e) {
+                $this->options['listenKeyFetching'] = false;
+                $client->reject($e, $messageHash);
+                throw $e;
+            }
+            $this->options['listenKeyFetching'] = false;
             //
             //    {
             //        "listenKey" => "pqia91ma19a5s61cv6a81va65sdf19v8a65a1a5s61cv6a81va65sdf19v8a65a1"
@@ -2034,6 +2055,7 @@ class mexc extends \ccxt\async\mexc {
             //
             $listenKey = $this->safe_string($response, 'listenKey');
             $this->options['listenKey'] = $listenKey;
+            $client->resolve($listenKey, $messageHash);
             $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
             $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $listenKey, $params);
             return $listenKey;
@@ -2145,7 +2167,7 @@ class mexc extends \ccxt\async\mexc {
             $this->handle_protobuf_message($client, $message);
             return;
         }
-        if (is_array($message) && array_key_exists('msg', $message)) {
+        if (is_array($message) && array_key_exists('msg' ?? '', $message)) {
             $this->handle_subscription_status($client, $message);
             return;
         }
@@ -2178,7 +2200,7 @@ class mexc extends \ccxt\async\mexc {
             'pong' => array($this, 'handle_pong'),
             'push.funding.rate' => array($this, 'handle_funding_rate'),
         );
-        if (is_array($methods) && array_key_exists($channel, $methods)) {
+        if (is_array($methods) && array_key_exists($channel ?? '', $methods)) {
             $method = $methods[$channel];
             $method($client, $message);
         }

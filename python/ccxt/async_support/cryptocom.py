@@ -1151,7 +1151,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the number of order book entries to return, max 50
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -1654,7 +1654,7 @@ class cryptocom(Exchange, ImplicitAPI):
 
         https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
 
-        :param str symbol: unified market symbol of the orders to cancel
+        :param str [symbol]: unified market symbol of the orders to cancel
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict} Returns exchange raw message{@link https://docs.ccxt.com/?id=order-structure:
         """
@@ -3225,7 +3225,7 @@ class cryptocom(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str [side]: not used by cryptocom.closePositions
-        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
 
  EXCHANGE SPECIFIC PARAMETERS
         :param str [params.type]: LIMIT or MARKET

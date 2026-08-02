@@ -237,6 +237,12 @@ export default class pacifica extends Exchange {
                     'taker': this.parseNumber('0.0004'),
                     'maker': this.parseNumber('0.00015'),
                 },
+                'spot': {
+                    // https://docs.pacifica.fi/trading-on-pacifica/trading-fees
+                    // one unified fee schedule for all product types
+                    'taker': this.parseNumber('0.0004'),
+                    'maker': this.parseNumber('0.00015'),
+                },
             },
             //
             // Reminder:
@@ -839,7 +845,7 @@ export default class pacifica extends Exchange {
         const cacheAddress = this.walletAddress;
         let settings = undefined;
         if (userAccount === cacheAddress) {
-            settings = this.handleOption('fetchLeverage', 'settings', undefined);
+            settings = this.handleOption('fetchLeverage', 'settings');
         }
         else {
             const request = {
@@ -847,7 +853,7 @@ export default class pacifica extends Exchange {
             };
             settings = await this.fetchAccountSettings(this.extend(request, params));
         }
-        const setting = this.safeDict(settings, symbol, undefined);
+        const setting = this.safeDict(settings, symbol);
         if (setting === undefined) {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
             // When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
@@ -922,7 +928,7 @@ export default class pacifica extends Exchange {
         return this.parseAccountSettings(this.safeList(response, 'data', []));
     }
     async loadAccountSettings(refresh = false, params = {}) {
-        let settings = this.handleOption('loadAccountSettings', 'settings', undefined);
+        let settings = this.handleOption('loadAccountSettings', 'settings');
         if ((settings === undefined) || (refresh === true)) {
             this.options['settings'] = this.createSafeDictionary();
             settings = await this.fetchAccountSettings(params);
@@ -960,7 +966,7 @@ export default class pacifica extends Exchange {
         const cacheAddress = this.walletAddress;
         let settings = undefined;
         if (userAccount === cacheAddress) {
-            settings = this.handleOption('fetchMarginMode', 'settings', undefined);
+            settings = this.handleOption('fetchMarginMode', 'settings');
         }
         else {
             const request = {
@@ -977,7 +983,7 @@ export default class pacifica extends Exchange {
         //       "updated_at": 1758086074002
         //    },
         // }
-        const setting = this.safeDict(settings, symbol, undefined);
+        const setting = this.safeDict(settings, symbol);
         if (setting === undefined) {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
             // When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
@@ -1016,7 +1022,7 @@ export default class pacifica extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1732,7 +1738,7 @@ export default class pacifica extends Exchange {
         const ordersToReturn = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
-            const error = this.safeString(order, 'error', undefined);
+            const error = this.safeString(order, 'error');
             const success = this.safeBool(order, 'success', false);
             let status = undefined;
             if ((error !== undefined) || (!success)) {
@@ -1793,7 +1799,7 @@ export default class pacifica extends Exchange {
         const ordersToReturn = [];
         for (let i = 0; i < results.length; i++) {
             const order = results[i];
-            const error = this.safeString(order, 'error', undefined);
+            const error = this.safeString(order, 'error');
             const success = this.safeBool(order, 'success', false);
             let status = undefined;
             if ((error !== undefined) || (!success)) {
@@ -1838,7 +1844,7 @@ export default class pacifica extends Exchange {
      * @name pacifica#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-all-orders
-     * @param {string} symbol (optional) unified market symbol of the market to cancel orders in.
+     * @param {string} [symbol] (optional) unified market symbol of the market to cancel orders in.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.excludeReduceOnly] whether to exclude reduce-only orders
      * @param {int} [params.expiryWindow] time to live in milliseconds
@@ -2459,7 +2465,7 @@ export default class pacifica extends Exchange {
         if (tifRaw !== undefined) {
             tif = tifRaw.toUpperCase();
         }
-        return this.safeString(tifMap, tif, undefined);
+        return this.safeString(tifMap, tif);
     }
     mapSide(sideRaw) {
         const sideMap = {
@@ -3225,7 +3231,7 @@ export default class pacifica extends Exchange {
     async createSubAccount(name, params = {}) {
         const finalHeaders = {};
         let agentAddress = undefined;
-        [agentAddress, params] = this.handleOption('createSubAccount', 'agentAddress', undefined);
+        [agentAddress, params] = this.handleOption('createSubAccount', 'agentAddress');
         let originAddress = undefined;
         [originAddress, params] = this.handleOriginAndSingleAddress('createSubAccount', params);
         if (originAddress === undefined) {
@@ -3391,7 +3397,7 @@ export default class pacifica extends Exchange {
         if (method === 'POST') {
             body = this.json(params);
         }
-        if (this.handleOption('sign', 'apiKey', undefined) !== undefined) {
+        if (this.handleOption('sign', 'apiKey') !== undefined) {
             headers['PF-API-KEY'] = this.options['apiKey'];
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -3401,7 +3407,7 @@ export default class pacifica extends Exchange {
         const costNumber = this.parseNumber(cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if (costNumber > 1) {
-            if (this.handleOption(method, 'apiKey', undefined) !== undefined) {
+            if (this.handleOption(method, 'apiKey') !== undefined) {
                 const costWithKey = this.handleOption(method, 'maxCostHugeWithApiKey', 3);
                 return costWithKey;
             }

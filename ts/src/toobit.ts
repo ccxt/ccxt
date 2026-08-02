@@ -117,8 +117,8 @@ export default class toobit extends Exchange {
                         'quote/v1/markPrice/klines': 1,
                         'quote/v1/markPrice': 10, // 5 requests per second
                         'quote/v1/index': 1,
-                        'quote/v1/ticker/24hr': 40, // todo: 1-40 depenidng noSymbol
-                        'quote/v1/contract/ticker/24hr': 40, // todo: 1-40 depenidng noSymbol
+                        'quote/v1/ticker/24hr': 40, // todo: 1-40 depending noSymbol
+                        'quote/v1/contract/ticker/24hr': 40, // todo: 1-40 depending noSymbol
                         'quote/v1/ticker/price': 1,
                         'quote/v1/contract/ticker/price': 1,
                         'quote/v1/ticker/bookTicker': 1,
@@ -1035,7 +1035,7 @@ export default class toobit extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
@@ -1536,7 +1536,7 @@ export default class toobit extends Exchange {
      * @see https://api-docs.toobit.com/api/usdt-m-market-data.html#funding-rate
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
+     * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         if (this.markets === undefined) {

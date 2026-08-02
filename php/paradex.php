@@ -1034,7 +1034,7 @@ class paradex extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1491,7 +1491,7 @@ class paradex extends Exchange {
         $lastUpdateTimestamp = $this->safe_integer($order, 'last_updated_at');
         $flags = $this->safe_list($order, 'flags', array());
         $reduceOnly = null;
-        if (is_array($flags) && array_key_exists('REDUCE_ONLY', $flags)) {
+        if (is_array($flags) && array_key_exists('REDUCE_ONLY' ?? '', $flags)) {
             $reduceOnly = true;
         }
         return $this->safe_order(array(
@@ -1921,7 +1921,7 @@ class paradex extends Exchange {
          * @see https://docs.paradex.trade/api/prod/orders/cancel-batch
          *
          * @param {string[]} $ids order $ids
-         * @param {string} [$symbol] unified $market $symbol, not used by paradex cancelOrders()
+         * @param {string} [$symbol] unified $market $symbol, not used by cancelOrders()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string[]} [$params->clientOrderIds] client order $ids
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
@@ -1974,7 +1974,7 @@ class paradex extends Exchange {
         for ($i = 0; $i < count($results); $i++) {
             $result = $results[$i];
             $marketId = $this->safe_string($result, 'market');
-            $market = $this->safe_market($marketId, null);
+            $market = $this->safe_market($marketId);
             $status = $this->safe_string($result, 'status');
             $orderStatus = null;
             if ($status === 'QUEUED_FOR_CANCELLATION') {

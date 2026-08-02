@@ -67,7 +67,7 @@ class hollaex extends \ccxt\async\hollaex {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -110,7 +110,7 @@ class hollaex extends \ccxt\async\hollaex {
         $timestampMs = $this->parse8601($timestamp);
         $snapshot = $this->parse_order_book($data, $symbol, $timestampMs);
         $orderbook = null;
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $orderbook = $this->order_book($snapshot);
             $this->orderbooks[$symbol] = $orderbook;
         } else {
@@ -442,7 +442,7 @@ class hollaex extends \ccxt\async\hollaex {
             $parts = explode('_', $key);
             $currencyId = $this->safe_string($parts, 0);
             $code = $this->safe_currency_code($currencyId);
-            $account = (is_array($this->balance) && array_key_exists($code, $this->balance)) ? $this->balance[$code] : $this->account();
+            $account = (is_array($this->balance) && array_key_exists($code ?? '', $this->balance)) ? $this->balance[$code] : $this->account();
             $second = $this->safe_string($parts, 1);
             $freeOrTotal = ($second === 'available') ? 'free' : 'total';
             $account[$freeOrTotal] = $this->safe_string($data, $key);

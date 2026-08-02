@@ -166,7 +166,7 @@ class paymium extends Exchange {
             $currency = $this->currency($code);
             $currencyId = $currency['id'];
             $free = 'balance_' . $currencyId;
-            if (is_array($response) && array_key_exists($free, $response)) {
+            if (is_array($response) && array_key_exists($free ?? '', $response)) {
                 $account = $this->account();
                 $used = 'locked_' . $currencyId;
                 $account['free'] = $this->safe_string($response, $free);
@@ -205,7 +205,7 @@ class paymium extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -509,7 +509,7 @@ class paymium extends Exchange {
              * @see https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order
              *
              * @param {string} $id order $id
-             * @param {string} $symbol not used by paymium cancelOrder ()
+             * @param {string} $symbol not used by cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */

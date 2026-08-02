@@ -935,7 +935,7 @@ class digifinex extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1932,7 +1932,7 @@ class digifinex extends Exchange {
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#cancelorder
          *
          * @param {string} $id order $id
-         * @param {string} $symbol not used by digifinex cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -2037,7 +2037,7 @@ class digifinex extends Exchange {
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
          *
          * @param {string[]} $ids order $ids
-         * @param {string} $symbol not used by digifinex cancelOrders ()
+         * @param {string} $symbol not used by cancelOrders ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
@@ -2921,7 +2921,7 @@ class digifinex extends Exchange {
 
     public function parse_transaction_status(?string $status) {
         // deposit state includes => 1 (in deposit), 2 (to be confirmed), 3 (successfully deposited), 4 (stopped)
-        // withdrawal state includes => 1 (is_array(progress) && array_key_exists(application, progress)), 2 (to be confirmed), 3 (completed), 4 (rejected)
+        // withdrawal state includes => 1 (is_array(progress) && array_key_exists(application ?? '', progress)), 2 (to be confirmed), 3 (completed), 4 (rejected)
         $statuses = array(
             '1' => 'pending', // in Progress
             '2' => 'pending', // to be confirmed

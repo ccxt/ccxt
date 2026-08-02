@@ -861,7 +861,7 @@ func (this *HashkeyCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		var swapMarkets any = this.SafeList(response, "contracts", []any{})
 		var markets any = this.ArrayConcat(spotMarkets, swapMarkets)
 		if IsTrue(this.IsEmpty(markets)) {
-			markets = []any{response} // if user provides params.symbol the exchange returns a single object insted of list of objects
+			markets = []any{response} // if user provides params.symbol the exchange returns a single object instead of list of objects
 		}
 
 		ch <- this.ParseMarkets(markets)
@@ -1260,7 +1260,7 @@ func (this *HashkeyCore) ParseCurrency(rawCurrency any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return (maximum value is 200)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *HashkeyCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)

@@ -223,6 +223,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                     'invalidAccount': BadRequest,                  # the fromAccount or the toAccount are invalid
                     'invalidAmount': BadRequest,
                     'insufficientFunds': InsufficientFunds,
+                    'INSUFFICIENT_MARGIN': InsufficientFunds,      # 500 with {"errors":[{"code":92,"message":"INSUFFICIENT_MARGIN"}]}, see https://github.com/ccxt/ccxt/issues/19896
                     'Bad Request': BadRequest,                     # The URL contains invalid characters.(Please encode the json URL parameter)
                     'Unavailable': ExchangeNotAvailable,              # https://github.com/ccxt/ccxt/issues/24338
                     'invalidUnit': BadRequest,
@@ -1372,7 +1373,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders
 
         Cancels all orders on the exchange, including trigger orders
-        :param str symbol: Unified market symbol
+        :param str [symbol]: Unified market symbol
         :param dict [params]: Exchange specific params
         :returns: Response from exchange api
         """
@@ -2590,7 +2591,9 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     def parse_positions(self, response, symbols: Strings = None, params={}):
         result = []
-        positions = self.safe_value(response, 'openPositions')
+        # a degraded response can omit openPositions entirely - default to an
+        # empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
+        positions = self.safe_list(response, 'openPositions', [])
         for i in range(0, len(positions)):
             position = self.parse_position(positions[i])
             result.append(position)

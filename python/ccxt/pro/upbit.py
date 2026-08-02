@@ -147,7 +147,7 @@ class upbit(ccxt.async_support.upbit):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         orderbook = await self.watch_public_multiple([symbol], 'orderbook')
         return orderbook.limit()
@@ -311,7 +311,7 @@ class upbit(ccxt.async_support.upbit):
         #     stream_type: 'REALTIME'
         #   }
         marketId = self.safe_string(message, 'code')
-        symbol = self.safe_symbol(marketId, None)
+        symbol = self.safe_symbol(marketId)
         messageHash = 'candle.1s:' + symbol
         ohlcv = self.parse_ohlcv(message)
         client.resolve(ohlcv, messageHash)

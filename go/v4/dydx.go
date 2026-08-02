@@ -1996,7 +1996,7 @@ func (this *DydxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *DydxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2245,7 +2245,7 @@ func (this *DydxCore) Transfer(code any, amount any, fromAccount any, toAccount 
 		var fromSubaccountId any = this.SafeInteger(params, "fromSubaccountId")
 		var toSubaccountId any = this.SafeInteger(params, "toSubaccountId")
 		if IsTrue(!IsEqual(fromAccount, "main")) {
-			// throw error if from subaccount id is undefind
+			// throw error if from subaccount id is undefined
 			if IsTrue(IsEqual(fromAccount, nil)) {
 				panic(NotSupported(Add(this.Id, " transfer only support main > subaccount and subaccount <> subaccount.")))
 			}

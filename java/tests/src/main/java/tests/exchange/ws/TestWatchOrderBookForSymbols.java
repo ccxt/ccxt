@@ -33,17 +33,15 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
                 // interim workaround for InvalidNonce raised by the c# runtime
                 if (Helpers.isTrue(!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !Helpers.isTrue((Helpers.isInstance(e, InvalidNonce.class)))))
                 {
-                    throw new RuntimeException(e);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
                 currentTime = exchange.milliseconds();
                 succeeded = false;
             }
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(succeeded, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
+            if (Helpers.isTrue(Helpers.isEqual(succeeded, true)))
             {
-                Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return a dictionary. "), exchange.json(response)));
-                currentTime = exchange.milliseconds();
-                TestSharedMethods.AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
                 TestOrderBook.testOrderBook(exchange, skippedProperties, method, response, null);
+                TestSharedMethods.AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
                 Object symbol = Helpers.GetValue(response, "symbol");
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && !Helpers.isTrue(exchange.inArray(symbol, seenSymbols))))
                 {

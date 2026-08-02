@@ -1359,7 +1359,7 @@ export default class binance extends Exchange {
                     'method': 'positionRisk', // or 'account' or 'option'
                 },
                 'recvWindow': 10 * 1000, // 10 sec
-                'timeDifference': 0, // the difference between system clock and Binance clock
+                'timeDifference': 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'newOrderRespType': {
                     'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
@@ -1381,7 +1381,7 @@ export default class binance extends Exchange {
                     'margin': 'MARGIN',
                     'cross': 'MARGIN',
                     'future': 'UMFUTURE', // backwards compatibility
-                    'delivery': 'CMFUTURE', // backwards compatbility
+                    'delivery': 'CMFUTURE', // backwards compatibility
                     'linear': 'UMFUTURE',
                     'swap': 'UMFUTURE',
                     'inverse': 'CMFUTURE',
@@ -4153,7 +4153,7 @@ export default class binance extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
@@ -4799,7 +4799,7 @@ export default class binance extends Exchange {
         //         "0",                    // Ignore
         //         1591256519999,          // Close time
         //         "0",                    // Ignore
-        //         60,                     // Number of bisic data
+        //         60,                     // Number of basic data
         //         "0",                    // Ignore
         //         "0",                    // Ignore
         //         "0"                     // Ignore
@@ -8548,7 +8548,7 @@ export default class binance extends Exchange {
      * @name binance#fetchMyDustTrades
      * @description fetch all dust trades made by the user
      * @see https://developers.binance.com/docs/wallet/asset/dust-log
-     * @param {string} symbol not used by binance fetchMyDustTrades ()
+     * @param {string} symbol not used by fetchMyDustTrades ()
      * @param {int} [since] the earliest time in ms to fetch my dust trades for
      * @param {int} [limit] the maximum number of dust trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -9597,7 +9597,7 @@ export default class binance extends Exchange {
      * @deprecated
      * @description please use fetchDepositWithdrawFees instead
      * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
-     * @param {string[]|undefined} codes not used by binance fetchTransactionFees ()
+     * @param {string[]|undefined} codes not used by fetchTransactionFees ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
@@ -9718,7 +9718,7 @@ export default class binance extends Exchange {
      * @name binance#fetchDepositWithdrawFees
      * @description fetch deposit and withdraw fees
      * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
-     * @param {string[]|undefined} codes not used by binance fetchDepositWithdrawFees ()
+     * @param {string[]|undefined} codes not used by fetchDepositWithdrawFees ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
@@ -10549,7 +10549,7 @@ export default class binance extends Exchange {
         //         "breakEvenPrice": "0.0"
         //     }
         //
-        // inverse portoflio margin
+        // inverse portfolio margin
         //
         //     {
         //         "symbol": "TRXUSD_PERP",
@@ -11865,7 +11865,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Current-Position-Mode
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Current-Position-Mode
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by binance setPositionMode ()
+     * @param {string} symbol not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.portfolioMargin] set to true if you would like to set the position mode for a portfolio margin account
      * @param {string} [params.subType] "linear" or "inverse"
@@ -12624,7 +12624,7 @@ export default class binance extends Exchange {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
-        // following block cointains legacy checks against message patterns in "msg" property
+        // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if ((code >= 400) && (body !== undefined)) {
             if (body.indexOf ('Price * QTY is zero or less') >= 0) {
@@ -14330,7 +14330,7 @@ export default class binance extends Exchange {
      * @param {string} [type] "add" or "reduce"
      * @param {int} [since] timestamp in ms of the earliest change to fetch
      * @param {int} [limit] the maximum amount of changes to fetch
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest change to fetch
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */

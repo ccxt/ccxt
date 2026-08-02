@@ -27,7 +27,7 @@ class phemex(ccxt.async_support.phemex):
                 'watchOrderBook': True,
                 'watchOHLCV': True,
                 'watchPositions': None,  # TODO
-                # mutli-endpoints are not supported: https://github.com/ccxt/ccxt/pull/21490
+                # multi-endpoints are not supported: https://github.com/ccxt/ccxt/pull/21490
                 'watchOrderBookForSymbols': False,
                 'watchTradesForSymbols': False,
                 'watchOHLCVForSymbols': False,
@@ -604,7 +604,7 @@ class phemex(ccxt.async_support.phemex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()

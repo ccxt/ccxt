@@ -421,7 +421,7 @@ class cryptomus extends Exchange {
 
     public function parse_currency(array $rawCurrency): array {
         // currency here is array of $networks
-        $id = null; // all entried have same $id, were grouped by
+        $id = null; // all entries have same $id, were grouped by
         $code = null;
         $networks = array();
         for ($i = 0; $i < count($rawCurrency); $i++) {
@@ -543,7 +543,7 @@ class cryptomus extends Exchange {
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->level] 0 or 1 or 2 or 3 or 4 or 5 - the $level of volume
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1209,12 +1209,12 @@ class cryptomus extends Exchange {
         if ($response === null) {
             return null;
         }
-        if (is_array($response) && array_key_exists('code', $response)) {
+        if (is_array($response) && array_key_exists('code' ?? '', $response)) {
             $code = $this->safe_string($response, 'code');
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
             throw new ExchangeError($feedback);
-        } elseif (is_array($response) && array_key_exists('message', $response)) {
+        } elseif (is_array($response) && array_key_exists('message' ?? '', $response)) {
             //
             //      array("message":"Minimum amount 15 USDT","state":1)
             //

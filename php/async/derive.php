@@ -379,7 +379,7 @@ class derive extends Exchange {
                     '14020' => '\\ccxt\\BadRequest', // The X-LyraWallet header does not match the requested subaccount_id or wallet
                     '14021' => '\\ccxt\\BadRequest', // The X-LyraWallet header not provided
                     '14022' => '\\ccxt\\AuthenticationError', // Subscription to a private channel failed
-                    '14023' => '\\ccxt\\InvalidOrder', // array(is_array(on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet") && array_key_exists("code":"14023","message":"Signer, on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet"))
+                    '14023' => '\\ccxt\\InvalidOrder', // array(is_array(on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet") && array_key_exists("code":"14023","message":"Signer ?? '', on-chain related request is not wallet owner or registered session key","data":"Session key does not belong to wallet"))
                     '14024' => '\\ccxt\\BadRequest', // Chain ID must match the current roll up chain id
                     '14025' => '\\ccxt\\BadRequest', // The private request is missing a wallet or subaccount_id param
                     '14026' => '\\ccxt\\BadRequest', // Session key not found
@@ -1683,7 +1683,7 @@ class derive extends Exchange {
              * @see https://docs.derive.xyz/reference/post_private-cancel-all
              *
              * cancel all open orders in a $market
-             * @param {string} $symbol unified $market $symbol
+             * @param {string} [$symbol] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subaccount_id] *required* the subaccount id
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
@@ -2217,7 +2217,7 @@ class derive extends Exchange {
              *
              * @see https://docs.derive.xyz/reference/post_private-get-$positions
              *
-             * @param {string[]} [$symbols] not used by kraken fetchPositions ()
+             * @param {string[]} [$symbols] not used by fetchPositions ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->subaccount_id] *required* the subaccount id
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~

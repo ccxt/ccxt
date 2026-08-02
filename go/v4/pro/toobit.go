@@ -670,7 +670,7 @@ func (this *ToobitCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan a
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *ToobitCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1393,7 +1393,7 @@ func (this *ToobitCore) ParseWsPosition(position any, optionalArgs ...any) any {
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
-		"symbol":                      this.SafeSymbol(marketId, nil),
+		"symbol":                      this.SafeSymbol(marketId),
 		"notional":                    this.OmitZero(this.SafeString(position, "pv")),
 		"marginMode":                  this.SafeStringLower(position, "mt"),
 		"liquidationPrice":            this.SafeString(position, "f"),

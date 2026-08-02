@@ -434,6 +434,136 @@ class aster extends Exchange {
                     'taker' => $this->parse_number('0.00035'),
                 ),
             ),
+            'features' => array(
+                'spot' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => null,
+                        'triggerDirection' => null,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => false,
+                        'trailing' => false,
+                        'leverage' => false,
+                        'marketBuyByCost' => true,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => 1500,
+                    ),
+                ),
+                'forDerivs' => array(
+                    'sandbox' => false,
+                    'createOrder' => array(
+                        'marginMode' => false,
+                        'triggerPrice' => true,
+                        'triggerPriceType' => array(
+                            'last' => true,
+                            'mark' => true,
+                            'index' => false,
+                        ),
+                        'triggerDirection' => false,
+                        'stopLossPrice' => true,
+                        'takeProfitPrice' => true,
+                        'attachedStopLossTakeProfit' => null,
+                        'timeInForce' => array(
+                            'IOC' => true,
+                            'FOK' => true,
+                            'PO' => true,
+                            'GTD' => false,
+                        ),
+                        'hedged' => true,
+                        'trailing' => true,
+                        'leverage' => false,
+                        'marketBuyByCost' => false,
+                        'marketBuyRequiresPrice' => false,
+                        'selfTradePrevention' => false,
+                        'iceberg' => false,
+                    ),
+                    'createOrders' => null,
+                    'fetchMyTrades' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOrder' => array(
+                        'marginMode' => false,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchOpenOrders' => array(
+                        'marginMode' => false,
+                        'limit' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 1000,
+                        'daysBack' => null,
+                        'untilDays' => null,
+                        'trigger' => false,
+                        'trailing' => false,
+                        'symbolRequired' => true,
+                    ),
+                    'fetchClosedOrders' => null,
+                    'fetchOHLCV' => array(
+                        'limit' => 1500,
+                    ),
+                ),
+                'swap' => array(
+                    'linear' => array(
+                        'extends' => 'forDerivs',
+                    ),
+                    'inverse' => null,
+                ),
+            ),
             'options' => array(
                 'defaultType' => 'spot',
                 'recvWindow' => 10 * 1000, // 10 sec
@@ -1131,7 +1261,7 @@ class aster extends Exchange {
         //
         $id = $this->safe_string_2($trade, 'id', 'a');
         $marketId = $this->safe_string($trade, 'symbol');
-        $marketType = (is_array($trade) && array_key_exists('positionSide', $trade)) ? 'swap' : 'spot';
+        $marketType = (is_array($trade) && array_key_exists('positionSide' ?? '', $trade)) ? 'swap' : 'spot';
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $currencyId = $this->safe_string_2($trade, 'commissionAsset', 'marginAsset');
         $currencyCode = $this->safe_currency_code($currencyId);
@@ -1202,7 +1332,7 @@ class aster extends Exchange {
                 $request['limit'] = min($limit, 1000);
             }
             $sinceDefined = $since !== null;
-            $untilDefined = (is_array($params) && array_key_exists('until', $params));
+            $untilDefined = (is_array($params) && array_key_exists('until' ?? '', $params));
             if ($sinceDefined) {
                 $request['startTime'] = $since;
             }
@@ -1210,7 +1340,7 @@ class aster extends Exchange {
                 $request = $this->handle_until_option('endTime', $request, $params);
             }
             // use historical endpoint for targeted requests
-            if (is_array($request) && array_key_exists('startTime', $request)) {
+            if (is_array($request) && array_key_exists('startTime' ?? '', $request)) {
                 if ($market['swap']) {
                     $response = Async\await($this->fapiPublicGetV3AggTrades($this->extend($request, $params)));
                 } else {
@@ -1330,7 +1460,7 @@ class aster extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1424,12 +1554,12 @@ class aster extends Exchange {
         $baseVolume = $this->safe_string($ticker, 'volume');
         $high = $this->safe_string($ticker, 'highPrice');
         $low = $this->safe_string($ticker, 'lowPrice');
-        $isTickerResponse = (is_array($ticker) && array_key_exists('priceChange', $ticker));
+        $isTickerResponse = (is_array($ticker) && array_key_exists('priceChange' ?? '', $ticker));
         $marketType = null;
         if ($isTickerResponse) {
-            $marketType = (is_array($ticker) && array_key_exists('baseAsset', $ticker)) ? 'spot' : 'swap';
+            $marketType = (is_array($ticker) && array_key_exists('baseAsset' ?? '', $ticker)) ? 'spot' : 'swap';
         } else {
-            $marketType = (is_array($ticker) && array_key_exists('lastUpdateId', $ticker)) ? 'swap' : 'spot';
+            $marketType = (is_array($ticker) && array_key_exists('lastUpdateId' ?? '', $ticker)) ? 'swap' : 'spot';
         }
         $marketId = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($marketId, $market, null, $marketType);
@@ -2047,7 +2177,7 @@ class aster extends Exchange {
              * @see https://asterdex.github.io/aster-api-website/futures-v3/account%26trades/#change-position-modetrade
              *
              * @param {bool} $hedged set to true to use dualSidePosition
-             * @param {string} $symbol not used by bingx setPositionMode ()
+             * @param {string} $symbol not used by setPositionMode ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} response from the exchange
              */
@@ -3162,7 +3292,7 @@ class aster extends Exchange {
              * @param {string} [$type] "add" or "reduce"
              * @param {int} [$since] timestamp in ms of the earliest change to fetch
              * @param {int} [$limit] the maximum amount of changes to fetch
-             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest change to fetch
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=margin-loan-structure margin structures~
              */
@@ -3530,7 +3660,7 @@ class aster extends Exchange {
         $contractSize = $this->safe_value($market, 'contractSize');
         $contractSizeString = $this->number_to_string($contractSize);
         // to notionalValue
-        $linear = (is_array($position) && array_key_exists('notional', $position));
+        $linear = (is_array($position) && array_key_exists('notional' ?? '', $position));
         if ($marginMode === 'cross') {
             // calculate $collateral
             $precision = $this->safe_dict($market, 'precision', array());
@@ -3753,7 +3883,7 @@ class aster extends Exchange {
             $isPositionOpen = ($maintenanceMargin !== '0') && ($maintenanceMargin !== '0.00000000');
             if (!$filterClosed || $isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
-                if (is_array($balances) && array_key_exists($code, $balances)) {
+                if (is_array($balances) && array_key_exists($code ?? '', $balances)) {
                     $parsed = $this->parse_account_position($this->extend($position, array(
                         'crossMargin' => $balances[$code]['crossMargin'],
                         'crossWalletBalance' => $balances[$code]['crossWalletBalance'],
@@ -3782,7 +3912,7 @@ class aster extends Exchange {
             }
         }
         // to notionalValue
-        $usdm = (is_array($position) && array_key_exists('notional', $position));
+        $usdm = (is_array($position) && array_key_exists('notional' ?? '', $position));
         $maintenanceMarginString = $this->safe_string($position, 'maintMargin');
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
         $entryPriceString = $this->safe_string($position, 'entryPrice');
@@ -4253,7 +4383,7 @@ class aster extends Exchange {
                     array( 'name' => 'msg', 'type' => 'string' ),
                 ),
             );
-            // Build v3 $params => original endpoint $params . $nonce (macroseconds) . user . signer
+            // Build v3 $params => original endpoint $params . $nonce (microseconds) . user . signer
             // Note => timestamp and recvWindow are not used for v3; $nonce replaces timestamp
             $finalParams = $this->extend(array(
                 'nonce' => (string) $nonce,

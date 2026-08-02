@@ -83,7 +83,7 @@ func (this *PacificaCore) SetupApiKeyHeaders(optionalArgs ...any) {
 	if ccxt.IsTrue(!ccxt.IsEqual(key, nil)) {
 		ccxt.AddElementToObject(headers, "PF-API-KEY", key)
 	} else {
-		if ccxt.IsTrue(!ccxt.IsEqual(this.HandleOption("setupApiKeyHeaders", "apiKey", nil), nil)) {
+		if ccxt.IsTrue(!ccxt.IsEqual(this.HandleOption("setupApiKeyHeaders", "apiKey"), nil)) {
 			ccxt.AddElementToObject(headers, "PF-API-KEY", ccxt.GetValue(this.Options, "apiKey"))
 		}
 	}
@@ -355,7 +355,7 @@ func (this *PacificaCore) CancelOrdersWs(ids any, optionalArgs ...any) <-chan an
 		var ordersToReturn any = []any{}
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(results)); i++ {
 			var order any = ccxt.GetValue(results, i)
-			var error any = this.SafeString(order, "error", nil)
+			var error any = this.SafeString(order, "error")
 			var success any = this.SafeBool(order, "success", false)
 			var marketId any = this.SafeString(order, "symbol")
 			var market any = this.SafeMarket(marketId)
@@ -534,7 +534,7 @@ func (this *PacificaCore) CancelAllOrdersWs(optionalArgs ...any) <-chan any {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *PacificaCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1721,7 +1721,7 @@ func (this *PacificaCore) HandleMessage(client any, message any) {
 	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
 		return
 	}
-	var postType any = this.SafeString(message, "type", nil)
+	var postType any = this.SafeString(message, "type")
 	var topic any = this.SafeString(message, "channel", "")
 	var methods any = map[string]any{
 		"pong":                  this.HandlePong,

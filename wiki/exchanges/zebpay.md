@@ -20,7 +20,7 @@
 * [fetchBalance](#fetchbalance)
 * [createOrder](#createorder)
 * [cancelOrder](#cancelorder)
-* [cancelOrders](#cancelorders)
+* [cancelAllOrders](#cancelallorders)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchOrder](#fetchorder)
 * [closePosition](#closeposition)
@@ -95,7 +95,7 @@ retrieves data on all markets for zebpay
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
@@ -175,7 +175,7 @@ zebpay.fetchTradingFees (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -405,25 +405,25 @@ zebpay.cancelOrder (id, symbol, params?)
 ```
 
 
-<a name="cancelOrders" id="cancelorders"></a>
+<a name="cancelAllOrders" id="cancelallorders"></a>
 
-### cancelOrders{docsify-ignore}
+### cancelAllOrders{docsify-ignore}
 cancels all open orders
 
 **Kind**: instance method of [<code>zebpay</code>](#zebpay)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| symbol | <code>string</code> | No | unified symbol of the market the orders were made in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.timestamp | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.timestamp | <code>int</code> | No | the timestamp of the request in ms |
 
 
 ```javascript
-zebpay.cancelOrders (symbol, params?)
+zebpay.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -496,7 +496,7 @@ closes open positions for a market
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | Yes | not used by kucoinfutures closePositions |
-| params | <code>object</code> | No | extra parameters specific to the okx api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.positionId | <code>string</code> | No | client order id of the order |
 
 

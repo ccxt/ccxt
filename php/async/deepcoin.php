@@ -604,7 +604,7 @@ class deepcoin extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -689,7 +689,7 @@ class deepcoin extends Exchange {
                 $params = $this->omit($params, 'calculateUntil');
                 if ($since !== null) {
                     // the exchange do not have a $since param for this endpoint
-                    // we canlculate $until (after) for correct pagination
+                    // we calculate $until (after) for correct pagination
                     $duration = $this->parse_timeframe($timeframe);
                     $numberOfCandles = ($limit === null) ? $maxLimit : $limit;
                     $endTime = $since . ($duration * $numberOfCandles) * 1000;
@@ -3178,7 +3178,7 @@ class deepcoin extends Exchange {
             throw new ExchangeError($feedback);
         } else {
             $list = $this->safe_list($data, 'list', array());
-            if ((is_array($data) && array_key_exists('list', $data)) && ($list === null)) {
+            if ((is_array($data) && array_key_exists('list' ?? '', $data)) && ($list === null)) {
                 throw new NullResponse($feedback);
             }
         }

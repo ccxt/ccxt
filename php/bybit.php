@@ -1125,7 +1125,7 @@ class bybit extends Exchange {
                     'usePrivateInstrumentsInfo' => false,
                     'types' => array( 'spot', 'linear', 'inverse', 'option' ),
                     'options' => array( 'BTC', 'ETH', 'SOL', 'XRP', 'MNT', 'DOGE' ),
-                    'loadAllOptions' => false, // load all possible option markets, adds signficant load time
+                    'loadAllOptions' => false, // load all possible option markets, adds significant load time
                     'loadExpiredOptions' => false, // loads expired options, to load all possible expired options set loadAllOptions to true
                 ),
                 'enableUnifiedMargin' => null,
@@ -1401,7 +1401,7 @@ class bybit extends Exchange {
         if ($enable) {
             $this->urls['apiBackupDemoTrading'] = $this->urls['api'];
             $this->urls['api'] = $this->urls['demotrading'];
-        } elseif (is_array($this->urls) && array_key_exists('apiBackupDemoTrading', $this->urls)) {
+        } elseif (is_array($this->urls) && array_key_exists('apiBackupDemoTrading' ?? '', $this->urls)) {
             $this->urls['api'] = $this->urls['apiBackupDemoTrading'];
             $newUrls = $this->omit($this->urls, 'apiBackupDemoTrading');
             $this->urls = $newUrls;
@@ -1624,7 +1624,7 @@ class bybit extends Exchange {
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1));
-        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
+        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
             // handle expired option contracts
             return $this->create_expired_option_market($marketId);
         }
@@ -2605,7 +2605,7 @@ class bybit extends Exchange {
             $parsedSymbols = array();
             $marketTypeInfo = $this->handle_market_type_and_params('fetchTickers', null, $params);
             $defaultType = $marketTypeInfo[0]; // don't omit here
-            // we can't use marketSymbols here due to the conflicing ids between markets
+            // we can't use marketSymbols here due to the conflicting ids between markets
             $currentType = null;
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
@@ -2769,7 +2769,15 @@ class bybit extends Exchange {
             $limit = 200; // default is 200 when requested with `$since`
         }
         if ($since !== null) {
-            $request['start'] = $since;
+            // bybit returns the candle that contains `start`, whose timestamp is
+            // before a mid-interval `$since` and gets dropped by the client-side
+            // $since-filter, emptying a $limit=1 $request entirely, see issue
+            // https://github.com/ccxt/ccxt/issues/26736 - align the requested
+            // start up to the interval boundary so that the exchange returns
+            // candles from the first bucket at or after `$since`
+            $duration = $this->parse_timeframe($timeframe) * 1000;
+            $rounded = $this->parse_to_int($since / $duration) * $duration;
+            $request['start'] = ($rounded === $since) ? $since : $this->sum($rounded, $duration);
         }
         if ($limit !== null) {
             $request['limit'] = $limit; // max 1000, default 1000
@@ -3236,7 +3244,7 @@ class bybit extends Exchange {
         //
         $id = $this->safe_string_n($trade, array( 'execId', 'id', 'tradeId' ));
         $marketId = $this->safe_string($trade, 'symbol');
-        $marketType = (is_array($trade) && array_key_exists('createType', $trade)) ? 'contract' : 'spot';
+        $marketType = (is_array($trade) && array_key_exists('createType' ?? '', $trade)) ? 'contract' : 'spot';
         $category = $this->safe_string($trade, 'category');
         if ($category !== null) {
             $marketType = ($category === 'spot') ? 'spot' : 'contract';
@@ -3394,7 +3402,7 @@ class bybit extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrderBook() requires a $symbol argument');
@@ -3947,7 +3955,7 @@ class bybit extends Exchange {
             }
         }
         $marketId = $this->safe_string($order, 'symbol');
-        $isContract = (is_array($order) && array_key_exists('tpslMode', $order));
+        $isContract = (is_array($order) && array_key_exists('tpslMode' ?? '', $order));
         $marketType = null;
         if ($market !== null) {
             $marketType = $market['type'];
@@ -5060,7 +5068,7 @@ class bybit extends Exchange {
          *
          * @see https://bybit-exchange.github.io/docs/v5/order/cancel-all
          *
-         * @param {string} $symbol unified $market $symbol, only $orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified $market $symbol, only $orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] true if trigger order
          * @param {boolean} [$params->stop] alias for trigger
@@ -6208,7 +6216,7 @@ class bybit extends Exchange {
         $updated = $this->safe_integer($transaction, 'updateTime');
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $feeCost = $this->safe_number_2($transaction, 'depositFee', 'withdrawFee');
-        $type = (is_array($transaction) && array_key_exists('depositFee', $transaction)) ? 'deposit' : 'withdrawal';
+        $type = (is_array($transaction) && array_key_exists('depositFee' ?? '', $transaction)) ? 'deposit' : 'withdrawal';
         $fee = null;
         if ($feeCost !== null) {
             $fee = array(
@@ -6764,7 +6772,7 @@ class bybit extends Exchange {
         $results = array();
         for ($i = 0; $i < count($positions); $i++) {
             $rawPosition = $positions[$i];
-            if ((is_array($rawPosition) && array_key_exists('data', $rawPosition)) && (is_array($rawPosition) && array_key_exists('is_valid', $rawPosition))) {
+            if ((is_array($rawPosition) && array_key_exists('data' ?? '', $rawPosition)) && (is_array($rawPosition) && array_key_exists('is_valid' ?? '', $rawPosition))) {
                 // futures only
                 $rawPosition = $this->safe_dict($rawPosition, 'data');
             }
@@ -9179,7 +9187,7 @@ class bybit extends Exchange {
          * @param {string[]} $symbols a list of unified $market $symbols
          * @param {int} [$since] timestamp in ms of the earliest position to fetch, $params["until"] - $since <= 7 days
          * @param {int} [$limit] the maximum amount of records to fetch, default=50, max=100
-         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest position to fetch, $params["until"] - $since <= 7 days
          * @param {string} [$params->subType] 'linear' or 'inverse'
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~

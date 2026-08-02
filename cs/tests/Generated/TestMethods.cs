@@ -300,12 +300,17 @@ public partial class testMainClass
         {
             skipMessage = "[INFO] UNIMPLEMENTED_TEST";
         }
+        object name = exchange.id;
+        // the TESTING / TESTING DONE / TESTING FAILED markers are dumped unconditionally
+        // (not gated on `--info`) because run-tests.js diffs them on RUNTEST_TIMED_OUT to
+        // report which method(s) were still running when the per-exchange timeout fired
         // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
         if (isTrue(isLoadMarkets))
         {
+            dump(this.addPadding("[INFO] TESTING", 25), name, methodName);
             await exchange.loadMarkets(true);
+            dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
         }
-        object name = exchange.id;
         if (isTrue(skipMessage))
         {
             if (isTrue(this.info))
@@ -314,11 +319,8 @@ public partial class testMainClass
             }
             return true;
         }
-        if (isTrue(this.info))
-        {
-            object argsStringified = add(add("(", exchange.json(args)), ")"); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-            dump(this.addPadding("[INFO] TESTING", 25), name, methodName, argsStringified);
-        }
+        object argsStringified = add(add("(", exchange.json(args)), ")"); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+        dump(this.addPadding("[INFO] TESTING", 25), name, methodName, argsStringified);
         if (isTrue(isSync()))
         {
             callMethodSync(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
@@ -326,10 +328,7 @@ public partial class testMainClass
         {
             await callMethod(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
         }
-        if (isTrue(this.info))
-        {
-            dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
-        }
+        dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
         // add to the list of successed tests
         if (isTrue(isPublic))
         {
@@ -421,6 +420,9 @@ public partial class testMainClass
                 return true;
             } catch(Exception ex)
             {
+                // close the TESTING marker (pairs with the dump in `testMethod`), so on a
+                // RUNTEST_TIMED_OUT run-tests.js doesn't misreport a failed method as hung
+                dump(this.addPadding("[INFO] TESTING FAILED", 25), exchange.id, methodName);
                 object e = getRootException(ex);
                 object isLoadMarkets = (isEqual(methodName, "loadMarkets"));
                 object isAuthError = (e is AuthenticationError);
@@ -897,16 +899,22 @@ public partial class testMainClass
             try
             {
                 // the scoping contract: an unscoped fetchEvents must throw ArgumentsRequired on
-                // every prediction venue — assert it so the contract can't silently regress
-                object unscopedError = "";
-                try
+                // every prediction venue — assert it so the contract can't silently regress.
+                // venues with bounded listings may opt out via options['allowUnscopedFetchEvents']
+                object exchangeOptions = getExchangeProp(exchange, "options", new Dictionary<string, object>() {});
+                object allowUnscopedFetchEvents = exchange.safeBool(exchangeOptions, "allowUnscopedFetchEvents", false);
+                if (!isTrue(allowUnscopedFetchEvents))
                 {
-                    await callExchangeMethodDynamically(exchange, "fetchEvents", new List<object>() {new Dictionary<string, object>() {}});
-                } catch(Exception e)
-                {
-                    unscopedError = exceptionMessage(e);
+                    object unscopedError = "";
+                    try
+                    {
+                        await callExchangeMethodDynamically(exchange, "fetchEvents", new List<object>() {new Dictionary<string, object>() {}});
+                    } catch(Exception e)
+                    {
+                        unscopedError = exceptionMessage(e);
+                    }
+                    assert(isGreaterThanOrEqual(getIndexOf(unscopedError, "requires at least one of"), 0), add(add(exchange.id, " fetchEvents () without a scope must throw ArgumentsRequired, got: "), unscopedError));
                 }
-                assert(isGreaterThanOrEqual(getIndexOf(unscopedError, "requires at least one of"), 0), add(add(exchange.id, " fetchEvents () without a scope must throw ArgumentsRequired, got: "), unscopedError));
                 // every venue requires fetchEvents to be scoped; a skip-tests.json
                 // preferredEventQuery supplies a query known to match the venue's markets
                 object eventQuery = exchange.safeString(this.skippedSettingsForExchange, "preferredEventQuery");
@@ -2357,7 +2365,7 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -2745,28 +2753,6 @@ public partial class testMainClass
         }
         object clientOrderIdStop = getValue(stopOrderRequest, "brokerId");
         assert(((string)clientOrderIdStop).StartsWith(((string)idString)), add(add(add("woo - brokerId: ", clientOrderIdStop), " does not start with id: "), idString));
-        if (!isTrue(isSync()))
-        {
-            await close(exchange);
-        }
-        return true;
-    }
-
-    public async virtual Task<object> testBitmart()
-    {
-        Exchange exchange = ((Exchange)this.initOfflineExchange("bitmart"));
-        object reqHeaders = new Dictionary<string, object>() {};
-        object id = "CCXTxBitmart000";
-        assert(isEqual(getValue(exchange.options, "brokerId"), id), add(add("bitmart - id: ", id), " not in options"));
-        await exchange.loadMarkets();
-        try
-        {
-            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
-        } catch(Exception e)
-        {
-            reqHeaders = exchange.last_request_headers;
-        }
-        assert(isEqual(getValue(reqHeaders, "X-BM-BROKER-ID"), id), add(add("bitmart - id: ", id), " not in headers"));
         if (!isTrue(isSync()))
         {
             await close(exchange);

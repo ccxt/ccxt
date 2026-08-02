@@ -1019,7 +1019,7 @@ class paradex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -1845,7 +1845,7 @@ class paradex(Exchange, ImplicitAPI):
         https://docs.paradex.trade/api/prod/orders/cancel-batch
 
         :param str[] ids: order ids
-        :param str [symbol]: unified market symbol, not used by paradex cancelOrders()
+        :param str [symbol]: unified market symbol, not used by cancelOrders()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str[] [params.clientOrderIds]: client order ids
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
@@ -1894,7 +1894,7 @@ class paradex(Exchange, ImplicitAPI):
         for i in range(0, len(results)):
             result = results[i]
             marketId = self.safe_string(result, 'market')
-            market = self.safe_market(marketId, None)
+            market = self.safe_market(marketId)
             status = self.safe_string(result, 'status')
             orderStatus = None
             if status == 'QUEUED_FOR_CANCELLATION':

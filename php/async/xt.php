@@ -824,7 +824,7 @@ class xt extends Exchange {
              *
              * @see https://doc.xt.com/#market1serverInfo
              *
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the xt server
              */
             $response = Async\await($this->publicSpotGetTime($params));
@@ -850,7 +850,7 @@ class xt extends Exchange {
              *
              * @see https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
              *
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
             $promisesRaw = array( $this->publicSpotGetWalletSupportCurrency($params), $this->publicSpotGetCurrencies($params) );
@@ -995,7 +995,7 @@ class xt extends Exchange {
              * @see https://doc.xt.com/#market2symbol
              * @see https://doc.xt.com/#futures_quotesgetSymbols
              *
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
             if ($this->options['adjustForTimeDifference']) {
@@ -1419,7 +1419,7 @@ class xt extends Exchange {
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
@@ -1559,8 +1559,8 @@ class xt extends Exchange {
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $market $symbol to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the xt api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @param {array} $params extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1655,7 +1655,7 @@ class xt extends Exchange {
              * @see https://doc.xt.com/#futures_quotesgetAggTicker
              *
              * @param {string} $symbol unified $market $symbol to fetch the $ticker for
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
              */
             if ($this->markets === null) {
@@ -1736,7 +1736,7 @@ class xt extends Exchange {
              * @see https://doc.xt.com/#futures_quotesgetAggTickers
              *
              * @param {string} [$symbols] unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
              */
             if ($this->markets === null) {
@@ -1827,7 +1827,7 @@ class xt extends Exchange {
              * @see https://doc.xt.com/#market9tickerBook
              *
              * @param {string} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             if ($this->markets === null) {
@@ -1915,7 +1915,7 @@ class xt extends Exchange {
         //
         $marketId = $this->safe_string($ticker, 's');
         $marketType = ($market !== null) ? $market['type'] : null;
-        $hasSpotKeys = (is_array($ticker) && array_key_exists('cv', $ticker)) || (is_array($ticker) && array_key_exists('aq', $ticker));
+        $hasSpotKeys = (is_array($ticker) && array_key_exists('cv' ?? '', $ticker)) || (is_array($ticker) && array_key_exists('aq' ?? '', $ticker));
         if ($marketType === null) {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
         }
@@ -1961,7 +1961,7 @@ class xt extends Exchange {
              * @param {string} $symbol unified $market $symbol to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             if ($this->markets === null) {
@@ -2039,7 +2039,7 @@ class xt extends Exchange {
              * @param {string} [$symbol] unified $market $symbol to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             if ($this->markets === null) {
@@ -2252,7 +2252,7 @@ class xt extends Exchange {
         //
         $marketId = $this->safe_string_2($trade, 's', 'symbol');
         $marketType = ($market !== null) ? $market['type'] : null;
-        $hasSpotKeys = (is_array($trade) && array_key_exists('b', $trade)) || (is_array($trade) && array_key_exists('bizType', $trade)) || (is_array($trade) && array_key_exists('oi', $trade));
+        $hasSpotKeys = (is_array($trade) && array_key_exists('b' ?? '', $trade)) || (is_array($trade) && array_key_exists('bizType' ?? '', $trade)) || (is_array($trade) && array_key_exists('oi' ?? '', $trade));
         if ($marketType === null) {
             $marketType = $hasSpotKeys ? 'spot' : 'contract';
         }
@@ -2323,7 +2323,7 @@ class xt extends Exchange {
              * @see https://doc.xt.com/#balancebalancesGet
              * @see https://doc.xt.com/#futures_usergetBalances
              *
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             if ($this->markets === null) {
@@ -2483,7 +2483,7 @@ class xt extends Exchange {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much you want to trade in units of the base currency
              * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, can be ignored in $market orders
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK' or 'GTX'
              * @param {string} [$params->entrustType] 'TAKE_PROFIT', 'STOP', 'TAKE_PROFIT_MARKET', 'STOP_MARKET', 'TRAILING_STOP_MARKET', required if stopPrice is defined, currently isn't functioning on xt's $side
              * @param {string} [$params->triggerPriceType] 'INDEX_PRICE', 'MARK_PRICE', 'LATEST_PRICE', required if stopPrice is defined
@@ -2663,7 +2663,7 @@ class xt extends Exchange {
              *
              * @param {string} $id $order $id
              * @param {string} [$symbol] unified $symbol of the $market the $order was made in
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->trigger] if the $order is a $trigger $order or not
              * @param {bool} [$params->stopLossTakeProfit] if the $order is a stop-loss or take-profit $order
              * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
@@ -2845,7 +2845,7 @@ class xt extends Exchange {
              * @param {string} [$symbol] unified $market $symbol of the $market the $orders were made in
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->trigger] if the order is a $trigger order or not
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
@@ -3297,7 +3297,7 @@ class xt extends Exchange {
              * @param {string} [$symbol] unified market $symbol of the market the orders were made in
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the maximum number of open order structures to retrieve
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->trigger] if the order is a trigger order or not
              * @param {bool} [$params->stopLossTakeProfit] if the order is a stop-loss or take-profit order
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
@@ -3319,7 +3319,7 @@ class xt extends Exchange {
              * @param {string} [$symbol] unified market $symbol of the market the orders were made in
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->trigger] if the order is a trigger order or not
              * @param {bool} [$params->stopLossTakeProfit] if the order is a stop-loss or take-profit order
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
@@ -3341,7 +3341,7 @@ class xt extends Exchange {
              * @param {string} [$symbol] unified market $symbol of the market the orders were made in
              * @param {int} [$since] timestamp in ms of the earliest order
              * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->trigger] if the order is a trigger order or not
              * @param {bool} [$params->stopLossTakeProfit] if the order is a stop-loss or take-profit order
              * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
@@ -3362,7 +3362,7 @@ class xt extends Exchange {
              *
              * @param {string} $id $order $id
              * @param {string} [$symbol] unified $symbol of the $market the $order was made in
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->trigger] if the $order is a $trigger $order or not
              * @param {bool} [$params->stopLossTakeProfit] if the $order is a stop-loss or take-profit $order
              * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
@@ -3448,7 +3448,7 @@ class xt extends Exchange {
              * @see https://doc.xt.com/#futures_entrustcancelProfitBatch
              *
              * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->trigger] if the order is a $trigger order or not
              * @param {bool} [$params->stopLossTakeProfit] if the order is a stop-loss or take-profit order
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
@@ -3528,7 +3528,7 @@ class xt extends Exchange {
              *
              * @param {string[]} $ids order $ids
              * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
             if ($this->markets === null) {
@@ -3691,7 +3691,7 @@ class xt extends Exchange {
         //     }
         //
         $marketId = $this->safe_string($order, 'symbol');
-        $marketType = (is_array($order) && array_key_exists('result', $order)) || (is_array($order) && array_key_exists('positionSide', $order)) ? 'contract' : 'spot';
+        $marketType = (is_array($order) && array_key_exists('result' ?? '', $order)) || (is_array($order) && array_key_exists('positionSide' ?? '', $order)) ? 'contract' : 'spot';
         $market = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
         $timestamp = $this->safe_integer_2($order, 'time', 'createdTime');
@@ -3700,6 +3700,21 @@ class xt extends Exchange {
         $filledQuantity = $this->safe_number($order, 'executedQty');
         $filled = ($marketType === 'spot') ? $filledQuantity : Precise::string_mul($this->number_to_string($filledQuantity), $this->number_to_string($market['contractSize']));
         $lastUpdatedTimestamp = $this->safe_integer($order, 'updatedTime');
+        $side = $this->safe_string_lower_2($order, 'side', 'orderSide');
+        if ($side === null) {
+            // the stop loss and take profit entries carry only the position
+            // $side, they close the position, so a long position closes with a
+            // sell and a short position closes with a buy
+            // see https://github.com/ccxt/ccxt/issues/25288
+            $positionSide = $this->safe_string($order, 'positionSide');
+            if ($positionSide !== null) {
+                if ($positionSide === 'LONG') {
+                    $side = 'sell';
+                } else {
+                    $side = 'buy';
+                }
+            }
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string_n($order, array( 'orderId', 'result', 'cancelId', 'entrustId', 'profitId' )),
@@ -3712,7 +3727,7 @@ class xt extends Exchange {
             'type' => $this->safe_string_lower_2($order, 'type', 'orderType'),
             'timeInForce' => $this->safe_string($order, 'timeInForce'),
             'postOnly' => null,
-            'side' => $this->safe_string_lower_2($order, 'side', 'orderSide'),
+            'side' => $side,
             'price' => $this->safe_number($order, 'price'),
             'triggerPrice' => $this->safe_number($order, 'stopPrice'),
             'stopLoss' => $this->safe_number($order, 'triggerStopPrice'),
@@ -3760,7 +3775,7 @@ class xt extends Exchange {
              * @param {string} [$code] unified $currency $code
              * @param {int} [$since] timestamp in ms of the earliest $ledger entry
              * @param {int} [$limit] max number of $ledger entries to return
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ledger-structure $ledger structure}
              */
             if ($this->markets === null) {
@@ -3880,7 +3895,7 @@ class xt extends Exchange {
              * @see https://doc.xt.com/#deposit_withdrawaldepositAddressGet
              *
              * @param {string} $code unified $currency $code
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} $params->network required network id
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
              */
@@ -3941,7 +3956,7 @@ class xt extends Exchange {
              * @param {string} [$code] unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch $deposits for
              * @param {int} [$limit] the maximum number of transaction structures to retrieve
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
              */
             if ($this->markets === null) {
@@ -4002,7 +4017,7 @@ class xt extends Exchange {
              * @param {string} [$code] unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch $withdrawals for
              * @param {int} [$limit] the maximum number of transaction structures to retrieve
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
              */
             if ($this->markets === null) {
@@ -4064,7 +4079,7 @@ class xt extends Exchange {
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
              * @param {string} [$tag]
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
              */
             $this->check_address($address);
@@ -4142,7 +4157,7 @@ class xt extends Exchange {
         //         "id" => 950898
         //     }
         //
-        $type = (is_array($transaction) && array_key_exists('fromAddr', $transaction)) ? 'deposit' : 'withdraw';
+        $type = (is_array($transaction) && array_key_exists('fromAddr' ?? '', $transaction)) ? 'deposit' : 'withdraw';
         $timestamp = $this->safe_integer($transaction, 'createdTime');
         $address = $this->safe_string($transaction, 'address');
         $memo = $this->safe_string($transaction, 'memo');
@@ -4200,7 +4215,7 @@ class xt extends Exchange {
              *
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} $params->positionSide 'LONG' or 'SHORT'
              * @return {array} $response from the exchange
              */
@@ -4252,7 +4267,7 @@ class xt extends Exchange {
              *
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} $params->positionSide 'LONG' or 'SHORT'
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
@@ -4269,7 +4284,7 @@ class xt extends Exchange {
              *
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {string} $params->positionSide 'LONG' or 'SHORT'
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
@@ -4334,7 +4349,7 @@ class xt extends Exchange {
              * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
              *
              * @param {string} [$symbols] a list of unified market $symbols
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structures~
              */
             if ($this->markets === null) {
@@ -4421,7 +4436,7 @@ class xt extends Exchange {
              * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
              *
              * @param {string} $symbol unified $market $symbol
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
              */
             if ($this->markets === null) {
@@ -4515,7 +4530,7 @@ class xt extends Exchange {
              * @param {string} [$symbol] unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
              * @param {int} [$limit] the maximum amount of [funding rate structures] to fetch
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {bool} $params->paginate true/false whether to use the pagination helper to aumatically $paginate through the results
              * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
              */
@@ -4614,7 +4629,7 @@ class xt extends Exchange {
              * @see https://doc.xt.com/#futures_quotesgetFundingRate
              *
              * @param {string} $symbol unified $market $symbol
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
             if ($this->markets === null) {
@@ -4701,7 +4716,7 @@ class xt extends Exchange {
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the starting timestamp in milliseconds
              * @param {int} [$limit] the number of entries to return
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
              */
             if ($this->markets === null) {
@@ -4796,7 +4811,7 @@ class xt extends Exchange {
              * @see https://doc.xt.com/#futures_usergetPosition
              *
              * @param {string} $symbol unified $market $symbol of the $market the position is held in
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
             if ($this->markets === null) {
@@ -4861,7 +4876,7 @@ class xt extends Exchange {
              * @see https://doc.xt.com/#futures_usergetPosition
              *
              * @param {string} [$symbols] list of unified market $symbols, not supported with xt
-             * @param {array} $params extra parameters specific to the xt api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
             if ($this->markets === null) {
@@ -4975,7 +4990,7 @@ class xt extends Exchange {
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from -  spot, swap, leverage, finance
              * @param {string} $toAccount account to transfer to - spot, swap, leverage, finance
-             * @param {array} $params extra parameters specific to the whitebit api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
              */
             if ($this->markets === null) {

@@ -382,6 +382,7 @@ export interface OrderBook {
     timestamp: Int;
     nonce: Int;
     symbol: Str;
+    copy(): OrderBook;
 }
 export interface OrderBooks extends Dictionary<OrderBook> {
 }

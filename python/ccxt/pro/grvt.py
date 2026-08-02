@@ -263,7 +263,7 @@ class grvt(ccxt.async_support.grvt):
         selector = self.safe_string(message, 'selector', '')
         parts = selector.split('@')
         marketId = self.safe_string(parts, 0)
-        market = self.safe_market(marketId, None)
+        market = self.safe_market(marketId)
         symbol = market['symbol']
         ticker = self.parse_ws_ticker(data, market)
         self.tickers[symbol] = ticker
@@ -350,7 +350,7 @@ class grvt(ccxt.async_support.grvt):
         selector = self.safe_string(message, 'selector', '')
         parts = selector.split('@')
         marketId = self.safe_string(parts, 0)
-        market = self.safe_market(marketId, None)
+        market = self.safe_market(marketId)
         symbol = market['symbol']
         if not (symbol in self.trades):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -444,7 +444,7 @@ class grvt(ccxt.async_support.grvt):
         selector = self.safe_string(message, 'selector', '')
         parts = selector.split('@')
         marketId = self.safe_string(parts, 0)
-        market = self.safe_market(marketId, None)
+        market = self.safe_market(marketId)
         symbol = market['symbol']
         secondPart = self.safe_string(parts, 1, '')
         timeframeId = secondPart.replace('-TRADE', '')
@@ -474,7 +474,7 @@ class grvt(ccxt.async_support.grvt):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -491,7 +491,7 @@ class grvt(ccxt.async_support.grvt):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -553,7 +553,7 @@ class grvt(ccxt.async_support.grvt):
         selector = self.safe_string(message, 'selector', '')
         parts = selector.split('@')
         marketId = self.safe_string(parts, 0)
-        market = self.safe_market(marketId, None)
+        market = self.safe_market(marketId)
         symbol = market['symbol']
         timestamp = self.safe_integer_product(data, 'event_time', 0.000001)
         if not (symbol in self.orderbooks):

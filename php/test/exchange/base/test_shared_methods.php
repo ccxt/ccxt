@@ -92,13 +92,16 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
         $keys = is_array($format) ? array_keys($format) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
+            if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
+                continue;
+            }
             assert(is_array($entry) && array_key_exists($key, $entry), '"' . string_value($key) . '" key is missing from structure' . $log_text);
             $empty_allowed_for_this_key = ($empty_allowed_for === null) || $exchange->in_array($key, $empty_allowed_for);
             $value = $entry[$key];
             // check when:
             // - it's not inside "allowed empty values" list
             // - it's not undefined
-            if (($empty_allowed_for_this_key && ($value === null)) || (is_array($skipped_properties) && array_key_exists($key, $skipped_properties))) {
+            if ($empty_allowed_for_this_key && ($value === null)) {
                 continue;
             }
             // if it was in needed keys, then it should have value.

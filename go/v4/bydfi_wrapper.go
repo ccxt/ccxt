@@ -51,7 +51,7 @@ func (this *Bydfi) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @param {int} [limit] the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000 (default 500)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.loc] crypto location, default: us
- * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Bydfi) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -176,7 +176,7 @@ func (this *Bydfi) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, erro
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch (max 500)
- * @param {object} [params] extra parameters specific to the bitteam api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
@@ -807,7 +807,7 @@ func (this *Bydfi) FetchPositionsForSymbol(symbol string, options ...FetchPositi
  * @param {string} symbol a unified market symbol
  * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
  * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
  * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -850,7 +850,7 @@ func (this *Bydfi) FetchPositionHistory(symbol string, options ...FetchPositionH
  * @param {string[]} symbols a list of unified market symbols
  * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
  * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
  * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -962,7 +962,7 @@ func (this *Bydfi) SetMarginMode(marginMode string, options ...SetMarginModeOpti
  * @description set hedged to true or false for a market, hedged for bydfi is set identically for all markets with same settle currency
  * @see https://developers.bydfi.com/en/futures/user#change-position-mode-dual
  * @param {bool} hedged set to true to use dualSidePosition
- * @param {string} [symbol] not used by bydfi setPositionMode ()
+ * @param {string} [symbol] not used by setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
  * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract

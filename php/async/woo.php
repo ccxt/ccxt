@@ -640,7 +640,7 @@ class woo extends Exchange {
                     'symbol must not be blank' => '\\ccxt\\BadRequest', // when sending 'cancelOrder' without symbol [-1005]
                     'The token is not supported' => '\\ccxt\\BadRequest', // when getting incorrect token's deposit address [-1005]
                     'Your order and symbol are not valid or already canceled' => '\\ccxt\\BadRequest', // actual response whensending 'cancelOrder' for already canceled id [-1006]
-                    'Insufficient WOO. Please enable margin trading for leverage trading' => '\\ccxt\\BadRequest', // when selling insufficent token [-1012]
+                    'Insufficient WOO. Please enable margin trading for leverage trading' => '\\ccxt\\BadRequest', // when selling insufficient token [-1012]
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -931,7 +931,7 @@ class woo extends Exchange {
         //         "isMaker" => 0
         //     }
         //
-        $isFromFetchOrder = (is_array($trade) && array_key_exists('id', $trade));
+        $isFromFetchOrder = (is_array($trade) && array_key_exists('id' ?? '', $trade));
         $timestampString = $this->safe_string_2($trade, 'executed_timestamp', 'executedTimestamp');
         $timestamp = null;
         if ($timestampString !== null) {
@@ -1165,7 +1165,7 @@ class woo extends Exchange {
             //     "success" => true
             // }
             //
-            // only make one request for currrencies...
+            // only make one request for currencies...
             $tokenNetworkResponsePromise = $this->v1PublicGetTokenNetwork($params);
             //
             // {
@@ -1231,7 +1231,7 @@ class woo extends Exchange {
             $specialNetworkId = $this->safe_string($tokenEntry, 'token');
             $resultingNetworks[$networkCode] = array(
                 'id' => $networkId,
-                'currencyNetworkId' => $specialNetworkId, // exchange uses special crrency-ids (coin . network junction)
+                'currencyNetworkId' => $specialNetworkId, // exchange uses special currency-ids (coin . network junction)
                 'network' => $networkCode,
                 'active' => null,
                 'deposit' => $this->safe_string($networkEntry, 'allow_deposit') === '1',
@@ -1762,7 +1762,7 @@ class woo extends Exchange {
              * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
              *
              * cancel all open orders in a $market
-             * @param {string} $symbol unified $market $symbol
+             * @param {string} [$symbol] unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
@@ -2326,7 +2326,7 @@ class woo extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -2376,7 +2376,7 @@ class woo extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] max=1000, max=100 when $since is defined and is less than (now - (999 * (is_array(ms) && array_key_exists($timeframe, ms))))
+             * @param {int} [$limit] max=1000, max=100 when $since is defined and is less than (now - (999 * (is_array(ms) && array_key_exists($timeframe ?? '', ms))))
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume

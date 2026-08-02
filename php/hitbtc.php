@@ -1716,7 +1716,7 @@ class hitbtc extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -2269,7 +2269,7 @@ class hitbtc extends Exchange {
          * @see https://api.hitbtc.com/#cancel-futures-orders
          * @see https://api.hitbtc.com/#cancel-all-margin-orders
          *
-         * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+         * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported
          * @param {bool} [$params->margin] true for canceling margin orders
@@ -3004,7 +3004,7 @@ class hitbtc extends Exchange {
          * @see https://api.hitbtc.com/#get-futures-margin-accounts
          * @see https://api.hitbtc.com/#get-all-margin-accounts
          *
-         * @param {string[]|null} $symbols not used by hitbtc fetchPositions ()
+         * @param {string[]|null} $symbols not used by fetchPositions ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
          * @param {bool} [$params->margin] true for fetching spot-margin positions
@@ -3784,7 +3784,7 @@ class hitbtc extends Exchange {
          *
          * @param {string} $symbol unified ccxt $market $symbol
          * @param {string} $side 'buy' or 'sell'
-         * @param {array} [$params] extra parameters specific to the okx api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->symbol] *required* unified $market $symbol
          * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross'
          * @return {array} An ~@link https://docs.ccxt.com/?id=order-structure order structure~

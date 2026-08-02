@@ -783,7 +783,7 @@ class exmo extends Exchange {
                 $replaceChar = ')'; // transpiler trick
                 $networkId = str_replace($replaceChar, '', $networkId);
                 $networkCode = $this->network_id_to_code($networkId, $code);
-                if (!(is_array($networks) && array_key_exists($networkCode, $networks))) {
+                if (!(is_array($networks) && array_key_exists($networkCode ?? '', $networks))) {
                     $networks[$networkCode] = array(
                         'id' => $networkId,
                         'network' => $networkCode,
@@ -1101,10 +1101,10 @@ class exmo extends Exchange {
                 $currencyId = $currencyIds[$i];
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
-                if (is_array($free) && array_key_exists($currencyId, $free)) {
+                if (is_array($free) && array_key_exists($currencyId ?? '', $free)) {
                     $account['free'] = $this->safe_string($free, $currencyId);
                 }
-                if (is_array($used) && array_key_exists($currencyId, $used)) {
+                if (is_array($used) && array_key_exists($currencyId ?? '', $used)) {
                     $account['used'] = $this->safe_string($used, $currencyId);
                 }
                 $result[$code] = $account;
@@ -1175,7 +1175,7 @@ class exmo extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1780,7 +1780,7 @@ class exmo extends Exchange {
              * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#705dfec5-2b35-4667-862b-faf54eca6209  // margin
              *
              * @param {string} $id order $id
-             * @param {string} $symbol not used by exmo cancelOrder ()
+             * @param {string} $symbol not used by cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->trigger] true to cancel a $trigger order
              * @param {string} [$params->marginMode] set to 'cross' or 'isolated' to cancel a margin order
@@ -2164,9 +2164,9 @@ class exmo extends Exchange {
         $orderType = $this->safe_string_2($order, 'type', 'order_type');
         $side = $this->parse_side($orderType);
         $marketId = null;
-        if (is_array($order) && array_key_exists('pair', $order)) {
+        if (is_array($order) && array_key_exists('pair' ?? '', $order)) {
             $marketId = $order['pair'];
-        } elseif ((is_array($order) && array_key_exists('in_currency', $order)) && (is_array($order) && array_key_exists('out_currency', $order))) {
+        } elseif ((is_array($order) && array_key_exists('in_currency' ?? '', $order)) && (is_array($order) && array_key_exists('out_currency' ?? '', $order))) {
             if ($side === 'buy') {
                 $marketId = $order['in_currency'] . '_' . $order['out_currency'];
             } else {
@@ -2904,7 +2904,7 @@ class exmo extends Exchange {
         if ($response === null) {
             return null; // fallback to default error handler
         }
-        if ((is_array($response) && array_key_exists('error', $response)) && !(is_array($response) && array_key_exists('result', $response))) {
+        if ((is_array($response) && array_key_exists('error' ?? '', $response)) && !(is_array($response) && array_key_exists('result' ?? '', $response))) {
             // error => {
             //     "code" => "140434",
             //     "msg" => "Your margin balance is not sufficient to place the order for '5 TON'. Please top up your margin wallet by "2.5 USDT"."
@@ -2918,7 +2918,7 @@ class exmo extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageError, $feedback);
             throw new ExchangeError($feedback);
         }
-        if ((is_array($response) && array_key_exists('result', $response)) || (is_array($response) && array_key_exists('errmsg', $response))) {
+        if ((is_array($response) && array_key_exists('result' ?? '', $response)) || (is_array($response) && array_key_exists('errmsg' ?? '', $response))) {
             //
             //     array("result":false,"error":"Error 50052 => Insufficient funds")
             //     array("s":"error","errmsg":"strconv.ParseInt => parsing \"\" => invalid syntax")

@@ -274,9 +274,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "bithumb":
 		itf := NewBithumb(options)
 		return itf
-	case "bitmart":
-		itf := NewBitmart(options)
-		return itf
 	case "bitmex":
 		itf := NewBitmex(options)
 		return itf

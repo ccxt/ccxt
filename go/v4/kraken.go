@@ -1017,7 +1017,7 @@ func (this *KrakenCore) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) an
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *KrakenCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1958,7 +1958,7 @@ func (this *KrakenCore) CreateOrder(symbol any, typeVar any, side any, amount an
 
 		// it's impossible to know if the order was created using cost or base currency
 		// because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
-		// this usingCost flag is used to help the parsing but omited from the order
+		// this usingCost flag is used to help the parsing but omitted from the order
 		ch <- this.ParseOrder(result)
 		return nil
 
@@ -2815,7 +2815,7 @@ func (this *KrakenCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any
  * @see https://docs.kraken.com/api-reference/account-data/get-closed-orders
  * @param {string[]} [ids] list of order id
  * @param {string} [symbol] unified ccxt market symbol
- * @param {object} [params] extra parameters specific to the kraken api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KrakenCore) FetchOrdersByIds(ids any, optionalArgs ...any) <-chan any {
@@ -3070,7 +3070,7 @@ func (this *KrakenCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
  * @name kraken#cancelAllOrders
  * @description cancel all open orders
  * @see https://docs.kraken.com/api-reference/trading/cancel-all-orders
- * @param {string} symbol unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
+ * @param {string} [symbol] unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -3790,7 +3790,7 @@ func (this *KrakenCore) CreateDepositAddress(code any, optionalArgs ...any) <-ch
  * @description fetch deposit methods for a currency associated with this account
  * @see https://docs.kraken.com/api-reference/funding/get-deposit-methods
  * @param {string} code unified currency code
- * @param {object} [params] extra parameters specific to the kraken api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} of deposit methods
  */
 func (this *KrakenCore) FetchDepositMethods(code any, optionalArgs ...any) <-chan any {
@@ -4011,7 +4011,7 @@ func (this *KrakenCore) Withdraw(code any, amount any, address any, optionalArgs
  * @name kraken#fetchPositions
  * @description fetch all open positions
  * @see https://docs.kraken.com/api-reference/account-data/get-open-positions
- * @param {string[]} [symbols] not used by kraken fetchPositions ()
+ * @param {string[]} [symbols] not used by fetchPositions ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */

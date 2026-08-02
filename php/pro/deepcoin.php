@@ -432,7 +432,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $marketId = $this->safe_string($data, 'I');
         $market = $this->safe_market($marketId, null, '/');
         $symbol = $this->safe_symbol($marketId, $market);
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->trades[$symbol] = new ArrayCache($limit);
         }
@@ -615,10 +615,10 @@ class deepcoin extends \ccxt\async\deepcoin {
         $symbol = $this->safe_symbol($marketId, $market);
         $interval = $this->safe_string($data, 'P');
         $timeframe = $this->find_timeframe($interval);
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }
@@ -665,7 +665,7 @@ class deepcoin extends \ccxt\async\deepcoin {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return.
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -725,7 +725,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $marketId = $this->safe_string($data, 'I');
         $market = $this->safe_market($marketId, null, '/');
         $symbol = $this->safe_symbol($marketId, $market);
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book();
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -893,7 +893,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $symbol = $this->safe_symbol($marketId, $market);
         $messageHash = 'myTrades';
         $symbolMessageHash = $messageHash . '::' . $symbol;
-        if ((is_array($client->futures) && array_key_exists($messageHash, $client->futures)) || (is_array($client->futures) && array_key_exists($symbolMessageHash, $client->futures))) {
+        if ((is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) || (is_array($client->futures) && array_key_exists($symbolMessageHash ?? '', $client->futures))) {
             if ($this->myTrades === null) {
                 $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
                 $this->myTrades = new ArrayCacheBySymbolById($limit);
@@ -974,7 +974,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $symbol = $this->safe_symbol($marketId, $market);
         $messageHash = 'orders';
         $symbolMessageHash = $messageHash . '::' . $symbol;
-        if ((is_array($client->futures) && array_key_exists($messageHash, $client->futures)) || (is_array($client->futures) && array_key_exists($symbolMessageHash, $client->futures))) {
+        if ((is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) || (is_array($client->futures) && array_key_exists($symbolMessageHash ?? '', $client->futures))) {
             if ($this->orders === null) {
                 $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
                 $this->orders = new ArrayCacheBySymbolById($limit);
@@ -1120,7 +1120,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $symbol = $this->safe_symbol($marketId, $market);
         $messageHash = 'positions';
         $symbolMessageHash = $messageHash . '::' . $symbol;
-        if ((is_array($client->futures) && array_key_exists($messageHash, $client->futures)) || (is_array($client->futures) && array_key_exists($symbolMessageHash, $client->futures))) {
+        if ((is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) || (is_array($client->futures) && array_key_exists($symbolMessageHash ?? '', $client->futures))) {
             if ($this->positions === null) {
                 $this->positions = new ArrayCacheBySymbolBySide();
             }

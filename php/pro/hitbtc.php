@@ -238,7 +238,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} [$params->method] 'orderbook/full', 'orderbook/{$depth}/{$speed}', 'orderbook/{$depth}/{$speed}/batch'
              * @param {int} [$params->depth] 5 , 10, or 20 (default)
              * @param {int} [$params->speed] 100 (default), 500, or 1000
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $options = $this->safe_value($this->options, 'watchOrderBook');
             $defaultMethod = $this->safe_string($options, 'method', 'orderbook/full');
@@ -295,7 +295,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $symbol = $market['symbol'];
             $item = $data[$marketId];
             $messageHash = 'orderbooks::' . $symbol;
-            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
                 $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
                 $limit = $this->safe_integer($subscription, 'limit');
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
@@ -1408,14 +1408,14 @@ class hitbtc extends \ccxt\async\hitbtc {
             if ($clientOrderId !== null) {
                 $this->handle_order_request($client, $message);
             }
-            if (($result === true) && !(is_array($message) && array_key_exists('id', $message))) {
+            if (($result === true) && !(is_array($message) && array_key_exists('id' ?? '', $message))) {
                 $this->handle_authenticate($client, $message);
             }
             if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
                 // to do improve this, not very reliable right now
                 $first = $this->safe_value($result, 0, array());
                 $arrayLength = count($result);
-                if (($arrayLength === 0) || (is_array($first) && array_key_exists('client_order_id', $first))) {
+                if (($arrayLength === 0) || (is_array($first) && array_key_exists('client_order_id' ?? '', $first))) {
                     $this->handle_order_request($client, $message);
                 }
             }
@@ -1437,7 +1437,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         } else {
             $error = new AuthenticationError($this->id . ' ' . $this->json($message));
             $client->reject($error, $messageHash);
-            if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                 unset($client->subscriptions[$messageHash]);
             }
         }
@@ -1470,7 +1470,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                 if ($e instanceof AuthenticationError) {
                     $messageHash = 'authenticated';
                     $client->reject($e, $messageHash);
-                    if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                    if (is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions)) {
                         unset($client->subscriptions[$messageHash]);
                     }
                 } else {

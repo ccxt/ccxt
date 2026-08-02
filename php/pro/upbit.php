@@ -56,7 +56,7 @@ class upbit extends \ccxt\async\upbit {
             ));
             $client = $this->client($url);
             $subscriptionsKey = 'upbitPublicSubscriptions';
-            if (!(is_array($client->subscriptions) && array_key_exists($subscriptionsKey, $client->subscriptions))) {
+            if (!(is_array($client->subscriptions) && array_key_exists($subscriptionsKey ?? '', $client->subscriptions))) {
                 $client->subscriptions[$subscriptionsKey] = array();
             }
             $subscriptions = $client->subscriptions[$subscriptionsKey];
@@ -66,7 +66,7 @@ class upbit extends \ccxt\async\upbit {
                 $symbol = $symbols[$i];
                 $messageHash = $channel . ':' . $symbol;
                 $messageHashes[] = $messageHash;
-                if (!(is_array($subscriptions) && array_key_exists($messageHash, $subscriptions))) {
+                if (!(is_array($subscriptions) && array_key_exists($messageHash ?? '', $subscriptions))) {
                     $subscriptions[$messageHash] = array(
                         'type' => $channel,
                         'codes' => array( $marketId ),
@@ -169,7 +169,7 @@ class upbit extends \ccxt\async\upbit {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $orderbook = Async\await($this->watch_public_multiple(array( $symbol ), 'orderbook'));
             return $orderbook->limit();
@@ -347,7 +347,7 @@ class upbit extends \ccxt\async\upbit {
         //     stream_type => 'REALTIME'
         //   }
         $marketId = $this->safe_string($message, 'code');
-        $symbol = $this->safe_symbol($marketId, null);
+        $symbol = $this->safe_symbol($marketId);
         $messageHash = 'candle.1s:' . $symbol;
         $ohlcv = $this->parse_ohlcv($message);
         $client->resolve($ohlcv, $messageHash);
@@ -398,7 +398,7 @@ class upbit extends \ccxt\async\upbit {
             $client = $this->client($url);
             // Track private $channel $subscriptions to support multiple concurrent watches
             $subscriptionsKey = 'upbitPrivateSubscriptions';
-            if (!(is_array($client->subscriptions) && array_key_exists($subscriptionsKey, $client->subscriptions))) {
+            if (!(is_array($client->subscriptions) && array_key_exists($subscriptionsKey ?? '', $client->subscriptions))) {
                 $client->subscriptions[$subscriptionsKey] = array();
             }
             $channelKey = $channel;
@@ -406,7 +406,7 @@ class upbit extends \ccxt\async\upbit {
                 $channelKey = $channel . ':' . $symbol;
             }
             $subscriptions = $client->subscriptions[$subscriptionsKey];
-            $isNewChannel = !(is_array($subscriptions) && array_key_exists($channelKey, $subscriptions));
+            $isNewChannel = !(is_array($subscriptions) && array_key_exists($channelKey ?? '', $subscriptions));
             if ($isNewChannel) {
                 $subscriptions[$channelKey] = $request;
             }

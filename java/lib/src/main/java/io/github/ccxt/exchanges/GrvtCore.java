@@ -753,7 +753,7 @@ public class GrvtCore extends GrvtApi
      * @name grvt#fetchMarkets
      * @description retrieves data on all markets
      * @see https://api-docs.grvt.io/market_data_api/#get-instrument-prod
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     public java.util.concurrent.CompletableFuture<Object> fetchMarkets(Object... optionalArgs)
@@ -1075,9 +1075,12 @@ public class GrvtCore extends GrvtApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(ticker, "instrument");
+        Object timestamp = this.safeIntegerProduct(ticker, "event_time", 0.000001);
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "info", ticker );
             put( "symbol", GrvtCore.this.safeSymbol(marketId, market) );
+            put( "timestamp", timestamp );
+            put( "datetime", GrvtCore.this.iso8601(timestamp) );
             put( "open", GrvtCore.this.safeString(ticker, "open_price") );
             put( "high", GrvtCore.this.safeString(ticker, "high_price") );
             put( "low", GrvtCore.this.safeString(ticker, "low_price") );
@@ -1107,7 +1110,7 @@ public class GrvtCore extends GrvtApi
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -2140,7 +2143,7 @@ public class GrvtCore extends GrvtApi
                 {
                     throw new PermissionDenied((String)Helpers.add(Helpers.add(this.id, " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: "), msg)) ;
                 }
-                throw error;
+                throw (error instanceof RuntimeException ? (RuntimeException)error : new RuntimeException(error));
             }
             //
             // {
@@ -3626,7 +3629,7 @@ public class GrvtCore extends GrvtApi
      * @name grvt#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://api-docs.grvt.io/trading_api/#cancel-all-orders
-     * @param {string} symbol cancel alls open orders
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */

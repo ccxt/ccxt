@@ -523,7 +523,7 @@ class blofin(Exchange, ImplicitAPI):
         contract = swap or future
         baseId = self.safe_string(market, 'baseCurrency')
         quoteId = self.safe_string(market, 'quoteCurrency')
-        settleId = self.safe_string(market, 'quoteCurrency')
+        settleId = self.safe_string(market, 'settleCurrency', quoteId)
         settle = self.safe_currency_code(settleId)
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
@@ -541,6 +541,9 @@ class blofin(Exchange, ImplicitAPI):
         maxLeverage = Precise.string_max(maxLeverage, '1')
         isActive = (self.safe_string(market, 'state') == 'live')
         isMargin = spot and (Precise.string_gt(maxLeverage, '1'))
+        contractType = self.safe_string(market, 'contractType')
+        maxLimitAmount = self.safe_number(market, 'maxLimitSize')
+        maxSpotCost = self.safe_number(market, 'maxMarketSize')  # for spot, market-buy size is denominated in the quote currency, i.e. cost
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
@@ -560,8 +563,8 @@ class blofin(Exchange, ImplicitAPI):
             'taker': taker,
             'maker': maker,
             'contract': contract,
-            'linear': (quoteId == settleId) if contract else None,
-            'inverse': (baseId == settleId) if contract else None,
+            'linear': (contractType == 'linear') if contract else None,
+            'inverse': (contractType == 'inverse') if contract else None,
             'contractSize': self.safe_number(market, 'contractValue') if contract else None,
             'expiry': expiry,
             'expiryDatetime': expiry,
@@ -579,7 +582,7 @@ class blofin(Exchange, ImplicitAPI):
                 },
                 'amount': {
                     'min': self.safe_number(market, 'minSize'),
-                    'max': None,
+                    'max': maxLimitAmount,
                 },
                 'price': {
                     'min': None,
@@ -587,7 +590,7 @@ class blofin(Exchange, ImplicitAPI):
                 },
                 'cost': {
                     'min': None,
-                    'max': None,
+                    'max': None if contract else maxSpotCost,
                 },
             },
             'info': market,
@@ -602,7 +605,7 @@ class blofin(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -2096,7 +2099,7 @@ class blofin(Exchange, ImplicitAPI):
         :param str[] [symbols]: unified contract symbols
         :param int [since]: timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
         :param int [limit]: the maximum amount of records to fetch, default=20, max=100
-        :param dict params: extra parameters specific to the exchange api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
         :param str [params.productType]: USDT-FUTURES(default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
@@ -2424,7 +2427,7 @@ class blofin(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str [side]: 'buy' or 'sell', leave in net mode
-        :param dict [params]: extra parameters specific to the blofin api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: a unique identifier for the order
         :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross
         :param str [params.code]: *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -2592,7 +2595,7 @@ class blofin(Exchange, ImplicitAPI):
         https://docs.blofin.com/index.html#set-position-mode
 
         :param bool hedged: set to True to use hedged mode, False for one-way mode
-        :param str [symbol]: not used by blofin setPositionMode()
+        :param str [symbol]: not used by setPositionMode()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
