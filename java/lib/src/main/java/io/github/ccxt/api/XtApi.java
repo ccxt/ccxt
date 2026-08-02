@@ -754,6 +754,11 @@ public class XtApi extends Exchange
         return this.callAsync ("privateInversePostFutureUserV1UserCollectionCancel", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privateInversePostFutureUserV1PositionChangeType (Object... optionalArgs)
+    {
+        return this.callAsync ("privateInversePostFutureUserV1PositionChangeType", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privateUserGetUserAccount (Object... optionalArgs)
     {
         return this.callAsync ("privateUserGetUserAccount", optionalArgs);

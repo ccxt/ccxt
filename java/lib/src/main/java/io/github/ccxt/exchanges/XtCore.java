@@ -323,6 +323,7 @@ public class XtCore extends XtApi
                             put( "future/user/v1/position/margin", 1 );
                             put( "future/user/v1/user/collection/add", 1 );
                             put( "future/user/v1/user/collection/cancel", 1 );
+                            put( "future/user/v1/position/change-type", 1 );
                         }} );
                     }} );
                     put( "user", new java.util.HashMap<String, Object>() {{
@@ -635,7 +636,7 @@ public class XtCore extends XtApi
                 put( "default", new java.util.HashMap<String, Object>() {{
                     put( "sandbox", false );
                     put( "createOrder", new java.util.HashMap<String, Object>() {{
-                        put( "marginMode", false );
+                        put( "marginMode", true );
                         put( "triggerPrice", false );
                         put( "triggerDirection", false );
                         put( "triggerPriceType", null );
@@ -716,6 +717,7 @@ public class XtCore extends XtApi
                 put( "forDerivatives", new java.util.HashMap<String, Object>() {{
                     put( "extends", "default" );
                     put( "createOrder", new java.util.HashMap<String, Object>() {{
+                        put( "marginMode", false );
                         put( "triggerPrice", true );
                         put( "triggerPriceType", new java.util.HashMap<String, Object>() {{
                             put( "last", true );
@@ -1384,8 +1386,8 @@ public class XtCore extends XtApi
             put( "contract", finalContract );
             put( "linear", finalLinear );
             put( "inverse", finalInverse );
-            put( "taker", XtCore.this.safeNumber(market, "takerFee") );
-            put( "maker", XtCore.this.safeNumber(market, "makerFee") );
+            put( "taker", XtCore.this.safeNumber2(market, "takerFee", "takerFeeRate") );
+            put( "maker", XtCore.this.safeNumber2(market, "makerFee", "makerFeeRate") );
             put( "contractSize", XtCore.this.safeNumber(market, "contractSize") );
             put( "expiry", finalExpiry );
             put( "expiryDatetime", XtCore.this.iso8601(finalExpiry) );
@@ -1586,7 +1588,7 @@ public class XtCore extends XtApi
      * @param {string} symbol unified market symbol to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} params extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -5734,18 +5736,26 @@ final Object finalMarket = market;
                 marginMode = "ISOLATED";
             }
             Object posSide = this.safeStringUpper(parameters, "positionSide");
-            if (Helpers.isTrue(Helpers.isEqual(posSide, null)))
-            {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a positionSide parameter, either \"LONG\" or \"SHORT\"")) ;
-            }
+            this.checkRequiredArgument("setMarginMode", posSide, "positionSide", new java.util.ArrayList<Object>(java.util.Arrays.asList("LONG", "SHORT")));
+            parameters = this.omit(parameters, "positionSide");
             final Object finalMarginMode = marginMode;
-            final Object finalPosSide = posSide;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "positionType", finalMarginMode );
-                put( "positionSide", finalPosSide );
+                put( "positionSide", posSide );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, parameters))).join();
+            Object subType = null;
+            var subTypeparametersVariable = this.handleSubTypeAndParams("setMarginMode", market, parameters);
+            subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
+            {
+                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInversePostFutureUserV1PositionChangeType", new Object[] { this.extend(request, parameters) })).join();
+            } else
+            {
+                response = (this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, parameters))).join();
+            }
             //
             // {
             //     "error": {
