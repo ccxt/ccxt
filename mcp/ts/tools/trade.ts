@@ -46,6 +46,14 @@ export function registerTradeTools (server: McpServer, ctx: ServerContext): void
                 return { 'ok': false, 'error': { 'code': 'BAD_REQUEST', 'message': 'limit orders require a "price"', 'retryable': false, 'hint': 'pass "price", or use type "market"' } };
             }
             const byCost = args.amount === undefined;
+            // ordering by "cost" (quote value to spend) is a MARKET-order concept — never let a
+            // limit/other order missing "amount" silently become a market-by-cost order
+            if (byCost && args.type !== 'market') {
+                return { 'ok': false, 'error': { 'code': 'BAD_REQUEST', 'message': 'a ' + args.type + ' order requires an explicit "amount" — ordering by "cost" is market-only', 'retryable': false, 'hint': 'pass "amount" (base-currency size), plus "price" for a limit order; use type "market" to order by "cost"' } };
+            }
+            if (byCost && args.cost === undefined) {
+                return { 'ok': false, 'error': { 'code': 'BAD_REQUEST', 'message': 'provide either "amount" or "cost"', 'retryable': false, 'hint': '"amount" is the base-currency size; "cost" (market orders only) is the quote-currency value to spend' } };
+            }
             if (byCost && args.side === 'sell' && !exchange.has?.['createMarketSellOrderWithCost']) {
                 // there is no safe emulation: passing cost in the amount slot would SELL
                 // that many BASE units (the buy-side flag convention is buy-only in ccxt)
