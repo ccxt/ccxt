@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { FALLBACK_FREE_MODELS, type FreeModel } from "@/lib/ai/openrouter";
-import type { LanguageId } from "@/lib/languages";
+import { FALLBACK_FREE_MODELS, languageFromFence, type FreeModel } from "@/lib/ai/openrouter";
+import { getLanguage, isRunnable, type LanguageId } from "@/lib/languages";
 import { apiUrl } from "@/lib/basePath";
 
 type Msg = { role: "user" | "assistant"; content: string };
+
+type InsertFn = (code: string, target?: LanguageId) => void;
 
 const SUGGESTIONS = [
   "Fetch the BTC/USDT order book on kraken",
@@ -21,7 +23,7 @@ export default function AssistantPanel({
 }: {
   language: LanguageId;
   code: string;
-  onInsert: (code: string) => void;
+  onInsert: InsertFn;
 }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -149,7 +151,8 @@ export default function AssistantPanel({
       <div className="ai-msgs" ref={scrollRef}>
         {messages.length === 0 ? (
           <div className="ai-empty">
-            Ask for CCXT code and it lands in your editor. Free models via OpenRouter.
+            Ask for CCXT code and it lands in your editor — in every language tab at once. Free
+            models via OpenRouter.
             <div className="chips">
               {SUGGESTIONS.map((s) => (
                 <button key={s} className="chip" onClick={() => send(s)}>
@@ -200,39 +203,88 @@ function Message({
 }: {
   msg: Msg;
   streaming: boolean;
-  onInsert: (code: string) => void;
+  onInsert: InsertFn;
 }) {
+  const blocks = parseBlocks(msg.content);
+  // Java (and anything disabled) has no editor to insert into.
+  const targeted =
+    msg.role === "assistant"
+      ? blocks.filter(
+          (b): b is CodeBlock & { lang: LanguageId } =>
+            b.kind === "code" && b.lang !== null && isRunnable(b.lang),
+        )
+      : [];
   return (
     <div className={"msg " + msg.role}>
       <div className="who">{msg.role === "user" ? "You" : "Assistant"}</div>
       {msg.role === "user" ? (
-        <div className="bubble">{renderContent(msg.content, onInsert)}</div>
+        <div className="bubble">{renderBlocks(blocks, onInsert)}</div>
       ) : (
-        renderContent(msg.content, onInsert)
+        renderBlocks(blocks, onInsert)
+      )}
+      {/* Held back until the stream ends, so the count can't shift mid-answer. */}
+      {!streaming && targeted.length > 1 && (
+        <div className="code-actions">
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={() => targeted.forEach((b) => onInsert(b.text, b.lang))}
+            title="Put each block in its own language tab"
+          >
+            Insert all {targeted.length} languages →
+          </button>
+        </div>
       )}
       {streaming && msg.content === "" && <span className="ai-empty dots" />}
     </div>
   );
 }
 
+type CodeBlock = { kind: "code"; text: string; lang: LanguageId | null };
+type Block = { kind: "text"; text: string } | CodeBlock;
+
 // Lightweight markdown: split fenced code blocks out, render the rest as text
-// with inline `code`. Avoids a markdown dependency for a small surface.
-function renderContent(content: string, onInsert: (code: string) => void) {
-  const parts = content.split(/```(?:[a-zA-Z]*)\n?/);
-  return parts.map((part, i) => {
-    const isCode = i % 2 === 1;
-    if (isCode) {
-      const codeText = part.replace(/\n$/, "");
+// with inline `code`. Avoids a markdown dependency for a small surface. The
+// fence tag is kept — an answer covers every language, so it is what tells a
+// block which editor it belongs in.
+function parseBlocks(content: string): Block[] {
+  // The capture group stays in the output: [text, tag, code, tag, text, …].
+  const parts = content.split(/```([^\n`]*)\n?/);
+  const blocks: Block[] = [];
+  for (let i = 0; i < parts.length; i += 2) {
+    const text = parts[i] ?? "";
+    if (i % 4 === 2) {
+      blocks.push({ kind: "code", text: text.replace(/\n$/, ""), lang: languageFromFence(parts[i - 1] ?? "") });
+    } else if (text.trim().length > 0) {
+      blocks.push({ kind: "text", text });
+    }
+  }
+  return blocks;
+}
+
+function renderBlocks(blocks: Block[], onInsert: InsertFn) {
+  return blocks.map((block, i) => {
+    if (block.kind === "code") {
+      // A tagged block goes to its own tab; an untagged one to the active tab.
+      // Install-only languages (Java) have no editor, so they get no button.
+      const target = block.lang;
+      const label = target ? getLanguage(target)?.label : undefined;
+      const insertable = target === null || isRunnable(target);
       return (
         <pre key={i}>
-          <button className="btn btn-outline btn-sm insert" onClick={() => onInsert(codeText)}>
-            Insert →
-          </button>
-          <code>{codeText}</code>
+          {insertable && (
+            <button
+              className="btn btn-outline btn-sm insert"
+              onClick={() => onInsert(block.text, target ?? undefined)}
+              title={label ? `Insert into the ${label} tab` : "Insert into the current tab"}
+            >
+              Insert{label ? ` ${label}` : ""} →
+            </button>
+          )}
+          <code>{block.text}</code>
         </pre>
       );
     }
-    return part
+    return block.text
       .split(/\n{2,}/)
       .filter((p) => p.trim().length > 0)
       .map((para, j) => <p key={`${i}-${j}`} dangerouslySetInnerHTML={{ __html: inlineCode(para) }} />);
