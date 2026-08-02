@@ -4926,7 +4926,7 @@ class coinex(Exchange, ImplicitAPI):
             amount = self.safe_number(transaction, 'amount')
         if type == 'deposit':
             feeCost = '0'
-        feeCurrencyId = self.safe_string(transaction, 'fee_asset')
+        feeCurrencyId = self.safe_string_2(transaction, 'fee_asset', 'fee_ccy')  # https://github.com/ccxt/ccxt/issues/25153
         fee = {
             'cost': self.parse_number(feeCost),
             'currency': self.safe_currency_code(feeCurrencyId),
