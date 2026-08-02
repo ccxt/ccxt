@@ -2518,7 +2518,10 @@ export default class polymarket extends Exchange {
         } else {
             response = await this.gammaPublicGetEventsId (this.extend ({ 'id': id }, params));
         }
-        const eventForParsing = this.safeDict (response, 'event', response) || {};
+        let eventForParsing = this.safeDict (response, 'event', response);
+        if (eventForParsing === undefined) {
+            eventForParsing = {};
+        }
         const event: any = this.parseEvent (eventForParsing);
         this.indexEventOutcomes (event);
         return event;
