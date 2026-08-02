@@ -151,8 +151,8 @@ export default function AssistantPanel({
       <div className="ai-msgs" ref={scrollRef}>
         {messages.length === 0 ? (
           <div className="ai-empty">
-            Ask for CCXT code and it lands in your editor — in every language tab at once. Free
-            models via OpenRouter.
+            Ask for CCXT code and it lands in your editor — one Insert fills every language
+            tab. Free models via OpenRouter.
             <div className="chips">
               {SUGGESTIONS.map((s) => (
                 <button key={s} className="chip" onClick={() => send(s)}>
@@ -163,7 +163,13 @@ export default function AssistantPanel({
           </div>
         ) : (
           messages.map((m, i) => (
-            <Message key={i} msg={m} streaming={busy && i === messages.length - 1} onInsert={onInsert} />
+            <Message
+              key={i}
+              msg={m}
+              streaming={busy && i === messages.length - 1}
+              language={language}
+              onInsert={onInsert}
+            />
           ))
         )}
       </div>
@@ -199,28 +205,54 @@ export default function AssistantPanel({
 function Message({
   msg,
   streaming,
+  language,
   onInsert,
 }: {
   msg: Msg;
   streaming: boolean;
+  language: LanguageId;
   onInsert: InsertFn;
 }) {
   const blocks = parseBlocks(msg.content);
-  // Java (and anything disabled) has no editor to insert into.
+  // The sidebar surfaces only the active tab's language. The other languages'
+  // blocks are stashed and filed into their tabs silently by the primary Insert.
+  const primary =
+    msg.role === "assistant" && isRunnable(language)
+      ? blocks.filter(
+          (b): b is CodeBlock & { lang: LanguageId } => b.kind === "code" && b.lang === language,
+        )
+      : [];
+  const background =
+    primary.length > 0
+      ? blocks.filter(
+          (b): b is CodeBlock & { lang: LanguageId } =>
+            b.kind === "code" && b.lang !== null && b.lang !== language && isRunnable(b.lang),
+        )
+      : [];
+  // Degraded mode: the model dropped the active language (or it is disabled) —
+  // show every tagged block rather than hide code, with Insert-all as the bulk path.
   const targeted =
-    msg.role === "assistant"
+    msg.role === "assistant" && primary.length === 0
       ? blocks.filter(
           (b): b is CodeBlock & { lang: LanguageId } =>
             b.kind === "code" && b.lang !== null && isRunnable(b.lang),
         )
       : [];
+  const visible =
+    primary.length > 0
+      ? blocks.filter((b) => b.kind === "text" || b.lang === null || b.lang === language)
+      : blocks;
+  const insertPrimary = (b: CodeBlock & { lang: LanguageId }) => {
+    onInsert(b.text, b.lang);
+    for (const x of background) onInsert(x.text, x.lang);
+  };
   return (
     <div className={"msg " + msg.role}>
       <div className="who">{msg.role === "user" ? "You" : "Assistant"}</div>
       {msg.role === "user" ? (
         <div className="bubble">{renderBlocks(blocks, onInsert)}</div>
       ) : (
-        renderBlocks(blocks, onInsert)
+        renderBlocks(visible, onInsert, primary.length > 0 ? insertPrimary : undefined)
       )}
       {/* Held back until the stream ends, so the count can't shift mid-answer. */}
       {!streaming && targeted.length > 1 && (
@@ -232,6 +264,12 @@ function Message({
           >
             Insert all {targeted.length} languages →
           </button>
+        </div>
+      )}
+      {!streaming && background.length > 0 && (
+        <div className="code-note">
+          Insert {getLanguage(language)?.label} also fills the{" "}
+          {background.map((b) => getLanguage(b.lang)?.label).join(", ")} tabs.
         </div>
       )}
       {streaming && msg.content === "" && <span className="ai-empty dots" />}
@@ -261,20 +299,29 @@ function parseBlocks(content: string): Block[] {
   return blocks;
 }
 
-function renderBlocks(blocks: Block[], onInsert: InsertFn) {
+function renderBlocks(
+  blocks: Block[],
+  onInsert: InsertFn,
+  onInsertPrimary?: (block: CodeBlock & { lang: LanguageId }) => void,
+) {
   return blocks.map((block, i) => {
     if (block.kind === "code") {
       // A tagged block goes to its own tab; an untagged one to the active tab.
-      // Install-only languages (Java) have no editor, so they get no button.
+      // Disabled languages have no editor buffer, so they get no button. The
+      // primary block's Insert also files the stashed background blocks.
       const target = block.lang;
       const label = target ? getLanguage(target)?.label : undefined;
       const insertable = target === null || isRunnable(target);
+      const handle =
+        onInsertPrimary && target !== null
+          ? () => onInsertPrimary(block as CodeBlock & { lang: LanguageId })
+          : () => onInsert(block.text, target ?? undefined);
       return (
         <pre key={i}>
           {insertable && (
             <button
               className="btn btn-outline btn-sm insert"
-              onClick={() => onInsert(block.text, target ?? undefined)}
+              onClick={handle}
               title={label ? `Insert into the ${label} tab` : "Insert into the current tab"}
             >
               Insert{label ? ` ${label}` : ""} →

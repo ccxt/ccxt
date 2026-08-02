@@ -439,6 +439,12 @@ button {
   justify-content: flex-end;
   margin-top: 8px;
 }
+.code-note {
+  margin-top: 6px;
+  font-size: 12px;
+  text-align: right;
+  color: hsl(var(--muted-foreground));
+}
 .msg code {
   font-family: var(--mono);
   font-size: 12px;
