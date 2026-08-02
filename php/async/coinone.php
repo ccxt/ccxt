@@ -492,7 +492,9 @@ class coinone extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'avail');
             $account['total'] = $this->safe_string($balance, 'balance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1281,7 +1283,9 @@ class coinone extends Exchange {
                     $depositAddress['tag'] = $value;
                     $depositAddress['info'] = array( $address, $value );
                 }
-                $result[$code] = $depositAddress;
+                if ($code !== null) {
+                    $result[$code] = $depositAddress;
+                }
             }
             return $result;
         })();

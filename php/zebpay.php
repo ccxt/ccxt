@@ -398,26 +398,28 @@ class zebpay extends Exchange {
             if ($minNetworkDepositString !== null) {
                 $minDepositString = ($minDepositString === null) ? $minNetworkDepositString : Precise::string_min($minNetworkDepositString, $minDepositString);
             }
-            $networks[$networkCode] = array(
-                'info' => $chain,
-                'id' => $networkId,
-                'network' => $networkCode,
-                'active' => $depositAllowed && $withdrawAllowed,
-                'deposit' => $depositAllowed,
-                'withdraw' => $withdrawAllowed,
-                'fee' => $this->parse_number($withdrawFeeString),
-                'precision' => $precision,
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->parse_number($minNetworkWithdrawString),
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'info' => $chain,
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'active' => $depositAllowed && $withdrawAllowed,
+                    'deposit' => $depositAllowed,
+                    'withdraw' => $withdrawAllowed,
+                    'fee' => $this->parse_number($withdrawFeeString),
+                    'precision' => $precision,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->parse_number($minNetworkWithdrawString),
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $this->parse_number($minNetworkDepositString),
+                            'max' => null,
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => $this->parse_number($minNetworkDepositString),
-                        'max' => null,
-                    ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'info' => $rawCurrency,
@@ -542,7 +544,9 @@ class zebpay extends Exchange {
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $this->parse_trading_fee($fees[$i]);
             $symbol = $fee['symbol'];
-            $result[$symbol] = $fee;
+            if ($symbol !== null) {
+                $result[$symbol] = $fee;
+            }
         }
         return $result;
     }
@@ -1024,6 +1028,9 @@ class zebpay extends Exchange {
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice');
         $params = $this->omit($params, array( 'marginAsset', 'takeProfitPrice', 'takeProfitPrice' ));
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+        }
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
@@ -1070,7 +1077,7 @@ class zebpay extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function order_request($symbol, $type, $amount, $request, $price = null, $params = array()) {
+    public function order_request($symbol, $type, $amount, $request, ?float $price = null, $params = array()) {
         $upperCaseType = strtoupper($type);
         $triggerPrice = $this->safe_string($params, 'stopLossPrice');
         $quoteOrderQty = $this->safe_string_2($params, 'quoteOrderQty', 'cost', null);
@@ -1134,7 +1141,7 @@ class zebpay extends Exchange {
         //        ),
         //    }
         //
-        return $this->parse_order($this->safe_dict($response, 'data'));
+        return $this->parse_order($this->safe_dict($response, 'data', array()));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
@@ -1239,7 +1246,7 @@ class zebpay extends Exchange {
         return $this->parse_orders($orders, $market, null, $limit);
     }
 
-    public function fetch_order(?string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *
@@ -1750,7 +1757,9 @@ class zebpay extends Exchange {
             $account['used'] = $this->safe_string($entry, 'used');
             $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }

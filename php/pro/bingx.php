@@ -1317,7 +1317,7 @@ class bingx extends \ccxt\async\bingx {
         })();
     }
 
-    public function parse_ws_position($position, $market = null) {
+    public function parse_ws_position($position, ?array $market = null) {
         //
         //     {
         //         "s" => "LINK-USDT",     // Symbol
@@ -1763,7 +1763,9 @@ class bingx extends \ccxt\async\bingx {
             $account['info'] = $balance;
             $account['used'] = $this->safe_string($balance, 'lk');
             $account['free'] = $this->safe_string($balance, 'wb');
-            $this->balance[$type][$code] = $account;
+            if (($type !== null) && ($code !== null)) {
+                $this->balance[$type][$code] = $account;
+            }
         }
         $this->balance[$type] = $this->safe_balance($this->balance[$type]);
         $client->resolve($this->balance[$type], $type . ':balance');

@@ -1503,7 +1503,9 @@ class extended extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'availableToWithdraw');
             $account['total'] = $this->safe_string($balance, 'balance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -2597,7 +2599,13 @@ class extended extends Exchange {
         return $settlement;
     }
 
-    public function create_extended_order_request(string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
+    public function create_extended_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);

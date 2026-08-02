@@ -280,7 +280,8 @@ class bithumb extends Exchange {
     }
 
     public function amount_to_precision($symbol, $amount) {
-        return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
+        $market = $this->market($symbol);
+        return $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], DECIMAL_PLACES);
     }
 
     public function fetch_markets($params = array()): array {

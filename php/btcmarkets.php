@@ -524,7 +524,7 @@ class btcmarkets extends Exchange {
         if ($quote === 'AUD') {
             $minPrice = $pricePrecision;
         }
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
@@ -574,7 +574,7 @@ class btcmarkets extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
     public function fetch_time($params = array()): ?int {
@@ -604,7 +604,9 @@ class btcmarkets extends Exchange {
             $account = $this->account();
             $account['used'] = $this->safe_string($balance, 'locked');
             $account['total'] = $this->safe_string($balance, 'balance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1113,7 +1115,7 @@ class btcmarkets extends Exchange {
          * @param {array} $params
          * @return {array} contains the $rate, the percentage multiplied to the order $amount to obtain the fee $amount, and $cost, the total value of the fee in units of the quote $currency, for the order
          */
-        $market = $this->markets[$symbol];
+        $market = $this->market($symbol);
         $currency = null;
         $cost = null;
         if ($market['quote'] === 'AUD') {
@@ -1128,11 +1130,15 @@ class btcmarkets extends Exchange {
         }
         $rate = $market[$takerOrMaker];
         $rateCost = Precise::string_mul($this->number_to_string($rate), $cost);
+        $feeCost = $this->fee_to_precision($symbol, $rateCost);
+        if ($feeCost === null) {
+            $feeCost = '0';
+        }
         return array(
             'type' => $takerOrMaker,
             'currency' => $currency,
             'rate' => $rate,
-            'cost' => floatval($this->fee_to_precision($symbol, $rateCost)),
+            'cost' => floatval($feeCost),
         );
     }
 

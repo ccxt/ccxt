@@ -1558,6 +1558,9 @@ class bybit extends Exchange {
             $base = $this->safe_string($symbolBase, 0);
             $expiry = $this->safe_string($optionParts, 1);
             $symbolQuoteAndSettle = $this->safe_string($symbolBase, 1);
+            if ($symbolQuoteAndSettle === null) {
+                throw new ExchangeError($this->id . ' createExpiredOptionMarket() missing symbolQuoteAndSettle');
+            }
             $splitQuote = explode(':', $symbolQuoteAndSettle);
             $quoteAndSettle = $this->safe_string($splitQuote, 0);
             $quote = $quoteAndSettle;
@@ -1640,7 +1643,7 @@ class bybit extends Exchange {
 
     public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         $isOption = ($marketId !== null) && ((mb_strpos($marketId, '-C') > -1) || (mb_strpos($marketId, '-P') > -1));
-        if ($isOption && !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
+        if ($isOption && (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id)))) {
             // handle expired option contracts
             return $this->create_expired_option_market($marketId);
         }
@@ -1658,7 +1661,7 @@ class bybit extends Exchange {
         return array( $subType, $params );
     }
 
-    public function get_amount(string $symbol, float $amount) {
+    public function get_amount(?string $symbol, ?float $amount) {
         // some markets like options might not have the precision available
         // and we shouldn't crash in those cases
         $market = $this->market($symbol);
@@ -1670,7 +1673,7 @@ class bybit extends Exchange {
         return $amountString;
     }
 
-    public function get_price(string $symbol, string $price) {
+    public function get_price(?string $symbol, ?string $price) {
         if ($price === null) {
             return $price;
         }
@@ -1682,7 +1685,7 @@ class bybit extends Exchange {
         return $price;
     }
 
-    public function get_cost(string $symbol, string $cost) {
+    public function get_cost(?string $symbol, ?string $cost) {
         $market = $this->market($symbol);
         $emptyPrecisionPrice = ($market['precision']['price'] === null);
         if (!$emptyPrecisionPrice) {
@@ -1845,26 +1848,28 @@ class bybit extends Exchange {
             $chain = $chains[$j];
             $networkId = $this->safe_string($chain, 'chain');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networks[$networkCode] = array(
-                'info' => $chain,
-                'id' => $networkId,
-                'network' => $networkCode,
-                'active' => null,
-                'deposit' => $this->safe_integer($chain, 'chainDeposit') === 1,
-                'withdraw' => $this->safe_integer($chain, 'chainWithdraw') === 1,
-                'fee' => $this->safe_number($chain, 'withdrawFee'),
-                'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'minAccuracy'))),
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($chain, 'withdrawMin'),
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'info' => $chain,
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'active' => null,
+                    'deposit' => $this->safe_integer($chain, 'chainDeposit') === 1,
+                    'withdraw' => $this->safe_integer($chain, 'chainWithdraw') === 1,
+                    'fee' => $this->safe_number($chain, 'withdrawFee'),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'minAccuracy'))),
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($chain, 'withdrawMin'),
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($chain, 'depositMin'),
+                            'max' => null,
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => $this->safe_number($chain, 'depositMin'),
-                        'max' => null,
-                    ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'info' => $currency,
@@ -2358,6 +2363,9 @@ class bybit extends Exchange {
                 $priceFilter = $this->safe_dict($market, 'priceFilter', array());
                 $status = $this->safe_string($market, 'status');
                 $expiry = $this->safe_integer($market, 'deliveryTime');
+                if ($id === null) {
+                    throw new ExchangeError($this->id . ' method() missing id');
+                }
                 $splitId = explode('-', $id);
                 $strike = $this->safe_string($splitId, 2);
                 $optionLetter = $this->safe_string($splitId, 3);
@@ -2610,7 +2618,7 @@ class bybit extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             $tickers = $this->safe_list($result, 'list', array());
-            $rawTicker = $this->safe_dict($tickers, 0);
+            $rawTicker = $this->safe_dict($tickers, 0, array());
             return $this->parse_ticker($rawTicker, $market);
         })();
     }
@@ -3656,7 +3664,9 @@ class bybit extends Exchange {
                         // $account['used'] = $this->safe_string($coinEntry, 'locked');
                         $currencyId = $this->safe_string($coinEntry, 'coin');
                         $code = $this->safe_currency_code($currencyId);
-                        $result[$code] = $account;
+                        if ($code !== null) {
+                            $result[$code] = $account;
+                        }
                     }
                 } else {
                     $account = $this->account();
@@ -3670,7 +3680,9 @@ class bybit extends Exchange {
                     $account['used'] = $this->safe_string($entry, 'locked');
                     $currencyId = $this->safe_string_n($entry, array( 'tokenId', 'coin', 'currencyCoin' ));
                     $code = $this->safe_currency_code($currencyId);
-                    $result[$code] = $account;
+                    if ($code !== null) {
+                        $result[$code] = $account;
+                    }
                 }
             }
         }
@@ -4241,7 +4253,13 @@ class bybit extends Exchange {
         })();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array(), $isUTA = true) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array(), $isUTA = true) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $symbol = $market['symbol'];
         $lowerCaseType = strtolower($type);
@@ -4623,7 +4641,13 @@ class bybit extends Exchange {
         })();
     }
 
-    public function edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function edit_order_request(?string $id, ?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -5014,6 +5038,9 @@ class bybit extends Exchange {
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
+            }
+            if ($timeout === null) {
+                throw new ExchangeError($this->id . ' cancelAllOrdersAfter() missing timeout');
             }
             $request = array(
                 'timeWindow' => $this->parse_to_int($timeout / 1000),
@@ -6085,7 +6112,7 @@ class bybit extends Exchange {
             list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
             $indexedAddresses = Async\await($this->fetch_deposit_addresses_by_network($code, $paramsOmited));
             $selectedNetworkCode = $this->select_network_code_from_unified_networks($currency['code'], $networkCode, $indexedAddresses);
-            return $indexedAddresses[$selectedNetworkCode];
+            return $this->safe_value($indexedAddresses, $selectedNetworkCode);
         })();
     }
 
@@ -8214,7 +8241,9 @@ class bybit extends Exchange {
             for ($i = 0; $i < count($fees); $i++) {
                 $fee = $this->parse_trading_fee($fees[$i]);
                 $symbol = $fee['symbol'];
-                $result[$symbol] = $fee;
+                if ($symbol !== null) {
+                    $result[$symbol] = $fee;
+                }
             }
             return $result;
         })();
@@ -8261,10 +8290,12 @@ class bybit extends Exchange {
                 $networkId = $this->safe_string($chain, 'chain');
                 $currencyCode = $this->safe_string($currency, 'code');
                 $networkCode = $this->network_id_to_code($networkId, $currencyCode);
-                $result['networks'][$networkCode] = array(
-                    'deposit' => array( 'fee' => null, 'percentage' => null ),
-                    'withdraw' => array( 'fee' => $this->safe_number($chain, 'withdrawFee'), 'percentage' => false ),
-                );
+                if ($networkCode !== null) {
+                    $result['networks'][$networkCode] = array(
+                        'deposit' => array( 'fee' => null, 'percentage' => null ),
+                        'withdraw' => array( 'fee' => $this->safe_number($chain, 'withdrawFee'), 'percentage' => false ),
+                    );
+                }
                 if ($chainsLength === 1) {
                     $result['withdraw']['fee'] = $this->safe_number($chain, 'withdrawFee');
                     $result['withdraw']['percentage'] = false;
@@ -8987,7 +9018,7 @@ class bybit extends Exchange {
         })();
     }
 
-    public function parse_leverage_tiers($response, ?array $symbols = null, $marketIdKey = null): array {
+    public function parse_leverage_tiers($response, ?array $symbols = null, ?string $marketIdKey = null): array {
         //
         //  array(
         //      {
@@ -9003,8 +9034,9 @@ class bybit extends Exchange {
         //
         $tiers = array();
         $marketIds = $this->market_ids($symbols);
-        $filteredResults = $this->filter_by_array($response, $marketIdKey, $marketIds, false);
-        $grouped = $this->group_by($filteredResults, $marketIdKey);
+        $idKey = ($marketIdKey === null) ? 'symbol' : $marketIdKey;
+        $filteredResults = $this->filter_by_array($response, $idKey, $marketIds, false);
+        $grouped = $this->group_by($filteredResults, $idKey);
         $keys = is_array($grouped) ? array_keys($grouped) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $marketId = $keys[$i];
@@ -9429,7 +9461,11 @@ class bybit extends Exchange {
             //
             $result = $this->safe_dict($response, 'result');
             $rawPositions = $this->safe_list($result, 'list');
-            $positions = $this->parse_positions($rawPositions, $symbols, $params);
+            $rawPositionsList = array();
+            if ($rawPositions !== null) {
+                $rawPositionsList = $rawPositions;
+            }
+            $positions = $this->parse_positions($rawPositionsList, $symbols, $params);
             return $this->filter_by_since_limit($positions, $since, $limit);
         })();
     }
@@ -9500,34 +9536,36 @@ class bybit extends Exchange {
                 $disableTo = $this->safe_bool($entry, 'disableTo');
                 $inactive = ($disableFrom || $disableTo);
                 $code = $this->safe_currency_code($id);
-                $result[$code] = array(
-                    'info' => $entry,
-                    'id' => $id,
-                    'code' => $code,
-                    'networks' => null,
-                    'type' => $this->safe_string($entry, 'coinType'),
-                    'name' => $this->safe_string($entry, 'fullName'),
-                    'active' => !$inactive,
-                    'deposit' => null,
-                    'withdraw' => $this->safe_number($entry, 'balance'),
-                    'fee' => null,
-                    'precision' => null,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => $this->safe_number($entry, 'singleFromMinLimit'),
-                            'max' => $this->safe_number($entry, 'singleFromMaxLimit'),
+                if ($code !== null) {
+                    $result[$code] = array(
+                        'info' => $entry,
+                        'id' => $id,
+                        'code' => $code,
+                        'networks' => null,
+                        'type' => $this->safe_string($entry, 'coinType'),
+                        'name' => $this->safe_string($entry, 'fullName'),
+                        'active' => !$inactive,
+                        'deposit' => null,
+                        'withdraw' => $this->safe_number($entry, 'balance'),
+                        'fee' => null,
+                        'precision' => null,
+                        'limits' => array(
+                            'amount' => array(
+                                'min' => $this->safe_number($entry, 'singleFromMinLimit'),
+                                'max' => $this->safe_number($entry, 'singleFromMaxLimit'),
+                            ),
+                            'withdraw' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'deposit' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
                         ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'created' => null,
-                );
+                        'created' => null,
+                    );
+                }
             }
             return $result;
         })();
@@ -10071,7 +10109,7 @@ class bybit extends Exchange {
         })();
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         $marginType = $this->safe_string($marginMode, 'marginMode');
         return array(
             'info' => $marginMode,

@@ -62,7 +62,7 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     $is_fetch_ticker_called = $method === 'fetchTicker';
     $symbol_for_market = ($symbol !== null) ? $symbol : $exchange->safe_string($entry, 'symbol');
     if ($symbol_for_market !== null) {
-        if (is_array($exchange->markets) && array_key_exists($symbol_for_market, $exchange->markets)) {
+        if (($exchange->markets !== null) && (is_array($exchange->markets) && array_key_exists($symbol_for_market, $exchange->markets))) {
             $market = $exchange->market($symbol_for_market);
         } else {
             $is_unrecognized_symbol = true;

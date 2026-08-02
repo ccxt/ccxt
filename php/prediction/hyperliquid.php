@@ -760,7 +760,7 @@ class hyperliquid extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
+    public function fetch_order_book(?string $outcome, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($outcome, $limit, $params) {
             /**
              * fetches the L2 order book for an $outcome market
@@ -836,6 +836,9 @@ class hyperliquid extends Exchange {
                 $candleCount = ($limit !== null) ? $limit : 100;
                 $startOffset = $tf * $candleCount * -1000;
                 $startTime = $this->sum($until, $startOffset);
+                if ($startTime === null) {
+                    throw new ExchangeError($this->id . ' fetchOHLCV() missing startTime');
+                }
                 if ($startTime < 0) {
                     $startTime = 0;
                 }
@@ -941,7 +944,9 @@ class hyperliquid extends Exchange {
                 $account = $this->account();
                 $account['total'] = $total;
                 $account['used'] = $used;
-                $result[$coin] = $account;
+                if ($coin !== null) {
+                    $result[$coin] = $account;
+                }
             }
             return $this->safe_balance($result);
         })();
@@ -1162,7 +1167,7 @@ class hyperliquid extends Exchange {
                 return $this->safe_dict($this->outcomes_by_id, $key, array());
             }
         }
-        if ((is_array($this->markets) && array_key_exists($outcomeInput ?? '', $this->markets)) || (is_array($this->markets_by_id) && array_key_exists($outcomeInput ?? '', $this->markets_by_id))) {
+        if ((($this->markets !== null) && (is_array($this->markets) && array_key_exists($outcomeInput ?? '', $this->markets))) || (($this->markets_by_id !== null) && (is_array($this->markets_by_id) && array_key_exists($outcomeInput ?? '', $this->markets_by_id)))) {
             $market = $this->safe_market($outcomeInput);
             $sideHintOrDefault = ($sideHint !== null) ? $sideHint : 'YES';
             $found = $this->find_outcome_in_market($market, $sideHintOrDefault);
@@ -1222,12 +1227,16 @@ class hyperliquid extends Exchange {
                 }
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a limit $price for $outcome markets in between 0 and 1.');
             }
+            $px = null;
             if ($isMarket) {
                 $priceStr = $this->number_to_string($price);
                 $px = $isBuy ? Precise::string_mul($priceStr, Precise::string_add('1', $slippage)) : Precise::string_mul($priceStr, Precise::string_sub('1', $slippage));
                 $px = $this->price_to_precision($marketSymbol, $px);
             } else {
                 $px = $this->price_to_precision($marketSymbol, $price);
+            }
+            if ($px === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() could not determine price');
             }
             $sz = $this->amount_to_precision($marketSymbol, $amount);
             $orderType = array(
@@ -1828,6 +1837,9 @@ class hyperliquid extends Exchange {
             $marketValues = $this->to_array($marketsDict);
             // Group markets by $parentSymbol
             $groupMap = array();
+            if ($queries === null) {
+                throw new ExchangeError($this->id . ' fetchEvents() missing queries');
+            }
             $lowerQueries = array();
             for ($i = 0; $i < count($queries); $i++) {
                 $queryString = $queries[$i];
@@ -1871,15 +1883,22 @@ class hyperliquid extends Exchange {
                         continue;
                     }
                 }
+                if ($parentSymbol === null) {
+                    throw new ExchangeError($this->id . ' fetchEvents() missing parentSymbol');
+                }
                 if (!(is_array($groupMap) && array_key_exists($parentSymbol ?? '', $groupMap))) {
-                    $groupMap[$parentSymbol] = array();
+                    if ($parentSymbol !== null) {
+                        $groupMap[$parentSymbol] = array();
+                    }
                 }
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on $groupMap[$parentSymbol] loses the element in go
-                $parentMarkets = $groupMap[$parentSymbol];
+                $parentMarkets = $this->safe_value($groupMap, $parentSymbol);
                 $parentMarkets[] = $mkt;
-                $groupMap[$parentSymbol] = $parentMarkets;
+                if ($parentSymbol !== null) {
+                    $groupMap[$parentSymbol] = $parentMarkets;
+                }
             }
             $events = array();
             $groupKeys = is_array($groupMap) ? array_keys($groupMap) : array();
@@ -1962,21 +1981,27 @@ class hyperliquid extends Exchange {
         ));
     }
 
-    public function amount_to_precision(string $outcome, mixed $amount): string {
+    public function amount_to_precision(?string $outcome, mixed $amount): string {
         $market = $this->market($outcome);
         $prec = $this->safe_number($this->safe_dict($market, 'precision', array()), 'amount', 0.0001);
         // Convert precision to decimal places
         $decimals = 4;
+        if ($prec === null) {
+            throw new ExchangeError($this->id . ' amountToPrecision() missing prec');
+        }
         if ($prec > 0) {
             $decimals = $this->precision_from_string($this->number_to_string($prec));
         }
         return $this->decimal_to_precision($amount, 1, $decimals, 2, $this->paddingMode);
     }
 
-    public function price_to_precision(string $outcome, mixed $price): string {
+    public function price_to_precision(?string $outcome, mixed $price): string {
         $market = $this->market($outcome);
         $prec = $this->safe_number($this->safe_dict($market, 'precision', array()), 'price', 0.0001);
         $decimals = 4;
+        if ($prec === null) {
+            throw new ExchangeError($this->id . ' priceToPrecision() missing prec');
+        }
         if ($prec > 0) {
             $decimals = $this->precision_from_string($this->number_to_string($prec));
         }

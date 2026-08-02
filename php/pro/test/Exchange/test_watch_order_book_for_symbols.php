@@ -31,7 +31,7 @@ function test_watch_order_book_for_symbols($exchange, $skipped_properties, $symb
                 $current_time = $exchange->milliseconds();
                 $succeeded = false;
             }
-            if ($succeeded === true) {
+            if (($succeeded === true) && ($response !== null)) {
                 test_order_book($exchange, $skipped_properties, $method, $response, null);
                 assert_in_array($exchange, $skipped_properties, $method, $response, 'symbol', $symbols);
                 $symbol = $response['symbol'];

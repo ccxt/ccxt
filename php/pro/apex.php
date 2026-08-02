@@ -598,7 +598,7 @@ class apex extends \ccxt\async\apex {
         $client->resolve($resolveData, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, $market = null): array {
+    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
         //
         //     {
         //         "start" => 1670363160000,
