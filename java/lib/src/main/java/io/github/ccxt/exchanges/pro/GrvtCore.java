@@ -323,7 +323,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         Object selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
-        Object market = this.safeMarket(marketId, null);
+        Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object ticker = this.parseWsTicker(data, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -441,7 +441,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         Object selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
-        Object market = this.safeMarket(marketId, null);
+        Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
@@ -574,7 +574,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         Object selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
-        Object market = this.safeMarket(marketId, null);
+        Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object secondPart = this.safeString(parts, 1, "");
         Object timeframeId = Helpers.replace((String)secondPart, (String)"-TRADE", (String)"");
@@ -725,7 +725,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         Object selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
-        Object market = this.safeMarket(marketId, null);
+        Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeIntegerProduct(data, "event_time", 0.000001);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))

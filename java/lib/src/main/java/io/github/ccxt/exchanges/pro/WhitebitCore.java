@@ -383,7 +383,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         //
         Object tickers = this.safeValue(message, "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object marketId = this.safeString(tickers, 0);
-        Object market = this.safeMarket(marketId, null);
+        Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object rawTicker = this.safeValue(tickers, 1, new java.util.HashMap<String, Object>() {{}});
         Object messageHash = Helpers.add(Helpers.add("ticker", ":"), symbol);

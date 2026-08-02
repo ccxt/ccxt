@@ -1374,7 +1374,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
-            put( "symbol", ToobitCore.this.safeSymbol(marketId, null) );
+            put( "symbol", ToobitCore.this.safeSymbol(marketId) );
             put( "notional", ToobitCore.this.omitZero(ToobitCore.this.safeString(position, "pv")) );
             put( "marginMode", ToobitCore.this.safeStringLower(position, "mt") );
             put( "liquidationPrice", ToobitCore.this.safeString(position, "f") );

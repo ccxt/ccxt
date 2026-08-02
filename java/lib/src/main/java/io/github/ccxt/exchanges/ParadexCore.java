@@ -2268,7 +2268,7 @@ public class ParadexCore extends ParadexApi
             {
                 Object result = Helpers.GetValue(results, i);
                 Object marketId = this.safeString(result, "market");
-                Object market = this.safeMarket(marketId, null);
+                Object market = this.safeMarket(marketId);
                 Object status = this.safeString(result, "status");
                 Object orderStatus = null;
                 if (Helpers.isTrue(Helpers.isEqual(status, "QUEUED_FOR_CANCELLATION")))

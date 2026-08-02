@@ -2966,6 +2966,18 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 {
                     ((java.util.Map<String,Object>)client.subscriptions).remove((String)authenticatedHash);
                 }
+                Object op = this.safeString(message, "op");
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(op, null))) && Helpers.isTrue((!Helpers.isEqual(op, "auth")))))
+                {
+                    // an operation response that carries no reqId, e.g. bybit
+                    // omits it on some permission rejections of trade ops,
+                    // would leave the awaiting future pending forever, and
+                    // since nothing on this client can proceed without
+                    // authentication, reject everything pending, mirroring the
+                    // behavior of unattributable non auth errors, see
+                    // https://github.com/ccxt/ccxt/issues/29361
+                    client.reject(error);
+                }
             } else
             {
                 client.reject(error, messageHash);

@@ -86,7 +86,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Helpers.addElementToObject(headers, "PF-API-KEY", key);
         } else
         {
-            if (Helpers.isTrue(!Helpers.isEqual(this.handleOption("setupApiKeyHeaders", "apiKey", null), null)))
+            if (Helpers.isTrue(!Helpers.isEqual(this.handleOption("setupApiKeyHeaders", "apiKey"), null)))
             {
                 Helpers.addElementToObject(headers, "PF-API-KEY", Helpers.GetValue(this.options, "apiKey"));
             }
@@ -349,7 +349,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(results)); i++)
             {
                 Object order = Helpers.GetValue(results, i);
-                Object error = this.safeString(order, "error", null);
+                Object error = this.safeString(order, "error");
                 Object success = this.safeBool(order, "success", false);
                 Object marketId = this.safeString(order, "symbol");
                 Object market = this.safeMarket(marketId);
@@ -1666,7 +1666,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         {
             return;
         }
-        Object postType = this.safeString(message, "type", null);
+        Object postType = this.safeString(message, "type");
         Object topic = this.safeString(message, "channel", "");
         Object methods = new java.util.HashMap<String, Object>() {{
             put( "pong", "handlePong");

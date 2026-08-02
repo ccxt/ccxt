@@ -4693,7 +4693,7 @@ final Object finalI = i;
         {
             feeCost = "0";
         }
-        Object feeCurrencyId = this.safeString(transaction, "fee_asset");
+        Object feeCurrencyId = this.safeString2(transaction, "fee_asset", "fee_ccy"); // https://github.com/ccxt/ccxt/issues/25153
         final Object finalFeeCost = feeCost;
         Object fee = new java.util.HashMap<String, Object>() {{
             put( "cost", CoinexCore.this.parseNumber(finalFeeCost) );

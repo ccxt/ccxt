@@ -421,7 +421,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         //     stream_type: 'REALTIME'
         //   }
         Object marketId = this.safeString(message, "code");
-        Object symbol = this.safeSymbol(marketId, null);
+        Object symbol = this.safeSymbol(marketId);
         Object messageHash = Helpers.add("candle.1s:", symbol);
         Object ohlcv = this.parseOHLCV(message);
         client.resolve(ohlcv, messageHash);

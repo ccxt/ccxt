@@ -913,7 +913,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         Object amount = this.safeString(trade, "sz");
         Object coin = this.safeString(trade, "coin");
         Object marketId = this.coinToMarketId(coin);
-        market = this.safeMarket(marketId, null);
+        market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object id = this.safeString(trade, "tid");
         Object side = this.safeString(trade, "side");

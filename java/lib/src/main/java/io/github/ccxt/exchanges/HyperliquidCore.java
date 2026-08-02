@@ -4076,7 +4076,7 @@ final Object finalClientOrderId = clientOrderId;
         }
         if (Helpers.isTrue(Helpers.isEqual(this.safeString(entry, "id"), null)))
         {
-            market = this.safeMarket(marketId, null);
+            market = this.safeMarket(marketId);
         } else
         {
             market = this.safeMarket(marketId, market);
@@ -4272,7 +4272,7 @@ final Object finalClientOrderId = clientOrderId;
         Object amount = this.safeString(trade, "sz");
         Object coin = this.safeString(trade, "coin");
         Object marketId = this.coinToMarketId(coin);
-        market = this.safeMarket(marketId, null);
+        market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object id = this.safeString(trade, "tid");
         Object side = this.safeString(trade, "side");
@@ -4497,7 +4497,7 @@ final Object finalClientOrderId = clientOrderId;
         Object entry = this.safeDict(position, "position", new java.util.HashMap<String, Object>() {{}});
         Object coin = this.safeString(entry, "coin");
         Object marketId = this.coinToMarketId(coin);
-        market = this.safeMarket(marketId, null);
+        market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object leverage = this.safeDict(entry, "leverage", new java.util.HashMap<String, Object>() {{}});
         Object marginMode = this.safeString(leverage, "type");
