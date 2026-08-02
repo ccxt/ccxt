@@ -67,6 +67,18 @@ export default function Page() {
     [language],
   );
 
+  // The assistant answers in every language at once, so a block can be filed
+  // under a tab that isn't the active one — it's there when the user switches.
+  // Java (and anything disabled) has no editor buffer, so it's dropped.
+  const insertCode = useCallback(
+    (value: string, target?: LanguageId) => {
+      const id = target ?? language;
+      if (!isRunnable(id)) return;
+      setCodeByLang((prev) => ({ ...prev, [id]: value }));
+    },
+    [language],
+  );
+
   const loadExample = useCallback(
     (id: string) => {
       if (!isRunnable(language)) return;
@@ -176,7 +188,7 @@ export default function Page() {
             <UnavailablePanel language={lang} />
           )}
         </div>
-        {aiOpen && <AssistantPanel language={language} code={code} onInsert={setCode} />}
+        {aiOpen && <AssistantPanel language={language} code={code} onInsert={insertCode} />}
       </div>
     </div>
   );
