@@ -38,13 +38,21 @@ ENV PATH="/usr/share/dotnet:${PATH}" \
 
 WORKDIR /app
 
+# Create the unprivileged user BEFORE the heavy steps and build as that user,
+# so every file is owned correctly from the start. The previous layout ran the
+# 10.5 GB build/warm layer as root and then `chown -R`ed /app in a separate
+# RUN — overlayfs copy-up duplicated the entire tree into a second ~11 GB
+# layer, doubling the image.
+RUN useradd -m -u 1001 playground && chown playground:playground /app
+USER playground
+
 # Node deps first (better layer caching). Use `npm ci` (lockfile-exact, fails on
 # drift) rather than `npm install` — reproducible builds.
-COPY package.json package-lock.json ./
+COPY --chown=playground:playground package.json package-lock.json ./
 RUN npm ci
 
 # App source
-COPY . .
+COPY --chown=playground:playground . .
 
 # Sub-path the app is served under (e.g. /playground behind nginx). Baked into
 # the build; empty = served at root.
@@ -62,10 +70,6 @@ ENV PLAYGROUND_DISABLED=${PLAYGROUND_DISABLED} \
 # user run is fast (python venv, php composer, go build cache, dotnet restore).
 RUN npm run build \
     && bash scripts/setup-runtimes.sh
-
-# Run as an unprivileged user; give it ownership of the warmed caches it writes to.
-RUN useradd -m -u 1001 playground && chown -R playground:playground /app
-USER playground
 
 ENV NODE_ENV=production PORT=3000
 EXPOSE 3000
