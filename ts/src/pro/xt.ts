@@ -701,7 +701,7 @@ export default class xt extends xtRest {
             fundingRate['timestamp'] = timestamp;
             fundingRate['datetime'] = this.iso8601 (timestamp);
             const symbol = fundingRate['symbol'];
-            this.fundingRates[symbol] = fundingRate;
+            this.fundingRates[(symbol as string)] = fundingRate;
             const event = this.safeString (message, 'event');
             const messageHash = event + '::contract';
             client.resolve (fundingRate, messageHash);
