@@ -7,6 +7,21 @@ import type { LanguageId } from "../languages";
 export const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 export const OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models";
 
+// OpenRouter app attribution (HTTP-Referer + X-Title). Override via env when the
+// playground is served under a different public URL.
+export const OPENROUTER_SITE_URL =
+  process.env.OPENROUTER_SITE_URL?.trim() || "https://ccxt.com/playground";
+export const OPENROUTER_APP_TITLE =
+  process.env.OPENROUTER_APP_TITLE?.trim() || "CCXT Playground";
+
+export function openRouterHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  return {
+    "HTTP-Referer": OPENROUTER_SITE_URL,
+    "X-Title": OPENROUTER_APP_TITLE,
+    ...extra,
+  };
+}
+
 export type FreeModel = { id: string; label: string };
 
 // OpenRouter's own free-model router — picks whichever free model is up.
@@ -74,7 +89,7 @@ async function fetchFreeModels(): Promise<FreeModel[]> {
   // Bounded: this sits in front of every AI request, and the deployment's
   // egress proxy can black-hole rather than refuse.
   const res = await fetch(OPENROUTER_MODELS_URL, {
-    headers: { Accept: "application/json" },
+    headers: openRouterHeaders({ Accept: "application/json" }),
     signal: AbortSignal.timeout(8000),
   });
   if (!res.ok) throw new Error(`OpenRouter models request failed: ${res.status}`);
