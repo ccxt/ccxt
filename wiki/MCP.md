@@ -149,7 +149,7 @@ Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKE
 
 **Zero‑config env keys (ccxt `--loadKeys` parity).** Set `"settings": { "loadEnvKeys": true }` (or `CCXT_MCP_LOAD_ENV_KEYS=true`) and the server auto‑registers an account for every exchange whose keys are already in the environment as `<EXCHANGEID>_APIKEY`/`_SECRET` (or `_WALLETADDRESS`/`_PRIVATEKEY`) — e.g. `BINANCE_APIKEY`+`BINANCE_SECRET` → a `binance` account, no config file needed. These accounts are **read‑only** unless you also set the global `CCXT_MCP_SANDBOX`/`CCXT_MCP_TRADING` toggles (which enable sandbox trading only — live trading is never auto‑armed from ambient env vars). It's **off by default**, so keys sitting in your shell for other tools are never silently activated.
 
-**Claude Desktop (`.mcpb` bundle):** the install form takes **up to three exchanges** inline (each with its key/secret, plus an optional passphrase for OKX/KuCoin/Bitget) and one global sandbox + "allow orders (sandbox)" toggle. For a fourth exchange, a wallet‑based venue (`walletAddress`/`privateKey`), or live trading/withdrawals, set the **Config file** field to a `config.json` with an `accounts` map (as above), or create it at the default path and leave the form blank — the file merges with the inline exchanges.
+**Claude Desktop (`.mcpb` bundle):** the install form takes **up to three exchanges** inline (each with its key/secret, plus an optional passphrase for OKX/KuCoin/Bitget) and global **Sandbox**, **Demo trading** and "allow orders" toggles. Pick **Sandbox** for testnet keys or **Demo trading** for demo‑portal keys (e.g. Binance `demo.binance.com`) — one or the other, not both. For a fourth exchange, a wallet‑based venue (`walletAddress`/`privateKey`), or live trading/withdrawals, set the **Config file** field to a `config.json` with an `accounts` map (as above), or create it at the default path and leave the form blank — the file merges with the inline exchanges.
 
 ### Capability tiers
 
@@ -182,7 +182,7 @@ The prediction‑market exchanges (Polymarket, Kalshi, Limitless, Myriad, and Hy
 ## Troubleshooting
 
 - **"Trading is not enabled for account …"** — edit the config file (see tiers above). This is not something the conversation can change.
-- **AUTH_FAILED on a sandbox account** — testnet keys come from the exchange's testnet portal, not your live account (and vice versa).
+- **AUTH_FAILED / "Invalid API-key" on a sandbox account** — testnet keys come from the exchange's testnet portal, not your live account (and vice versa). Note **sandbox ≠ demo**: some exchanges (e.g. Binance) run a separate *demo‑trading* environment on a different host — those keys need `"demo": true` (or `CCXT_MCP_DEMO=true`, or the **Demo trading** toggle in the `.mcpb` form), not `sandbox`. Binance's futures testnet is deprecated; use demo trading instead.
 - **HTTP 451 / geo‑blocks** — some exchanges block cloud/VPN/US IPs; set a proxy via account `options` if needed.
 - **Slow first call on a big exchange** — the initial `loadMarkets()` can take a few seconds; it is cached on disk for 24h afterwards.
 - Run `npx @modelcontextprotocol/inspector npx -y ccxt-mcp` to open an interactive tool console.
