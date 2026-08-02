@@ -222,7 +222,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
             Object symbol = this.safeSymbol(marketId, null, "-");
             Object messageHash = Helpers.add("ohlcv:", symbol);
             Object request = this.safeValue(client.subscriptions, messageHash);
-            Object timeframeId = this.safeNumber(request, "granularity");
+            Object timeframeId = this.safeString(request, "granularity");
             Object timeframe = this.findTimeframe(timeframeId);
             Object ohlcv = this.safeValue(message, "price", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));

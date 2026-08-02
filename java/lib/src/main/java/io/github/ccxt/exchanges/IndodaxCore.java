@@ -887,6 +887,7 @@ public class IndodaxCore extends IndodaxApi
         Object price = this.safeString(order, "price");
         Object amount = null;
         Object remaining = null;
+        Object filled = null;
         Object marketId = this.safeString(order, "pair");
         market = this.safeMarket(marketId, market);
         if (Helpers.isTrue(!Helpers.isEqual(market, null)))
@@ -903,11 +904,11 @@ public class IndodaxCore extends IndodaxApi
                 baseId = "rp";
             }
             cost = this.safeString(order, Helpers.add("order_", quoteId));
-            if (!Helpers.isTrue(cost))
-            {
-                amount = this.safeString(order, Helpers.add("order_", baseId));
-                remaining = this.safeString(order, Helpers.add("remain_", baseId));
-            }
+            amount = this.safeString(order, Helpers.add("order_", baseId));
+            remaining = this.safeString(order, Helpers.add("remain_", baseId));
+            // filled buy orders on idr-quoted markets carry the executed base amount
+            // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
+            filled = this.safeString(order, Helpers.add("receive_", baseId));
         }
         Object timestamp = this.safeInteger(order, "submit_time");
         Object fee = null;
@@ -916,6 +917,7 @@ public class IndodaxCore extends IndodaxApi
         final Object finalSide = side;
         final Object finalCost = cost;
         final Object finalAmount = amount;
+        final Object finalFilled = filled;
         final Object finalRemaining = remaining;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
@@ -934,7 +936,7 @@ public class IndodaxCore extends IndodaxApi
             put( "cost", finalCost );
             put( "average", null );
             put( "amount", finalAmount );
-            put( "filled", null );
+            put( "filled", finalFilled );
             put( "remaining", finalRemaining );
             put( "status", status );
             put( "fee", fee );

@@ -747,7 +747,7 @@ public class WoofiproCore extends WoofiproApi
             Object networkEntry = Helpers.GetValue(networks, j);
             Object networkId = this.safeString(networkEntry, "chain_id");
             Object networkRow = this.safeDict(indexedChains, networkId);
-            Object networkName = this.safeString(networkRow, "name");
+            Object networkName = this.safeString(networkRow, "name", networkId);
             Object networkCode = this.networkIdToCode(networkName, code);
             Helpers.addElementToObject(resultingNetworks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
