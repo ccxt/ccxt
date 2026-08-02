@@ -751,7 +751,7 @@ func (this *WoofiproCore) ParseCurrency(rawCurrency any) any {
 		var networkEntry any = GetValue(networks, j)
 		var networkId any = this.SafeString(networkEntry, "chain_id")
 		var networkRow any = this.SafeDict(indexedChains, networkId)
-		var networkName any = this.SafeString(networkRow, "name")
+		var networkName any = this.SafeString(networkRow, "name", networkId)
 		var networkCode any = this.NetworkIdToCode(networkName, code)
 		AddElementToObject(resultingNetworks, networkCode, map[string]any{
 			"id":      networkId,

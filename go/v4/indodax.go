@@ -925,6 +925,7 @@ func (this *IndodaxCore) ParseOrder(order any, optionalArgs ...any) any {
 	var price any = this.SafeString(order, "price")
 	var amount any = nil
 	var remaining any = nil
+	var filled any = nil
 	var marketId any = this.SafeString(order, "pair")
 	market = this.SafeMarket(marketId, market)
 	if IsTrue(!IsEqual(market, nil)) {
@@ -938,10 +939,11 @@ func (this *IndodaxCore) ParseOrder(order any, optionalArgs ...any) any {
 			baseId = "rp"
 		}
 		cost = this.SafeString(order, Add("order_", quoteId))
-		if !IsTrue(cost) {
-			amount = this.SafeString(order, Add("order_", baseId))
-			remaining = this.SafeString(order, Add("remain_", baseId))
-		}
+		amount = this.SafeString(order, Add("order_", baseId))
+		remaining = this.SafeString(order, Add("remain_", baseId))
+		// filled buy orders on idr-quoted markets carry the executed base amount
+		// only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
+		filled = this.SafeString(order, Add("receive_", baseId))
 	}
 	var timestamp any = this.SafeInteger(order, "submit_time")
 	var fee any = nil
@@ -963,7 +965,7 @@ func (this *IndodaxCore) ParseOrder(order any, optionalArgs ...any) any {
 		"cost":               cost,
 		"average":            nil,
 		"amount":             amount,
-		"filled":             nil,
+		"filled":             filled,
 		"remaining":          remaining,
 		"status":             status,
 		"fee":                fee,
@@ -995,8 +997,8 @@ func (this *IndodaxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes88012 := (<-this.LoadMarkets())
-			PanicOnError(retRes88012)
+			retRes88212 := (<-this.LoadMarkets())
+			PanicOnError(retRes88212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1045,8 +1047,8 @@ func (this *IndodaxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes90712 := (<-this.LoadMarkets())
-			PanicOnError(retRes90712)
+			retRes90912 := (<-this.LoadMarkets())
+			PanicOnError(retRes90912)
 		}
 		var market any = nil
 		var request any = map[string]any{}
@@ -1117,8 +1119,8 @@ func (this *IndodaxCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes95412 := (<-this.LoadMarkets())
-			PanicOnError(retRes95412)
+			retRes95612 := (<-this.LoadMarkets())
+			PanicOnError(retRes95612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1161,8 +1163,8 @@ func (this *IndodaxCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes98112 := (<-this.LoadMarkets())
-			PanicOnError(retRes98112)
+			retRes98312 := (<-this.LoadMarkets())
+			PanicOnError(retRes98312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1252,8 +1254,8 @@ func (this *IndodaxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes105512 := (<-this.LoadMarkets())
-			PanicOnError(retRes105512)
+			retRes105712 := (<-this.LoadMarkets())
+			PanicOnError(retRes105712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1310,8 +1312,8 @@ func (this *IndodaxCore) FetchTransactionFee(code any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes109812 := (<-this.LoadMarkets())
-			PanicOnError(retRes109812)
+			retRes110012 := (<-this.LoadMarkets())
+			PanicOnError(retRes110012)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -1370,8 +1372,8 @@ func (this *IndodaxCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes113712 := (<-this.LoadMarkets())
-			PanicOnError(retRes113712)
+			retRes113912 := (<-this.LoadMarkets())
+			PanicOnError(retRes113912)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -1496,8 +1498,8 @@ func (this *IndodaxCore) Withdraw(code any, amount any, address any, optionalArg
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes124412 := (<-this.LoadMarkets())
-			PanicOnError(retRes124412)
+			retRes124612 := (<-this.LoadMarkets())
+			PanicOnError(retRes124612)
 		}
 		var currency any = this.Currency(code)
 		// Custom string you need to provide to identify each withdrawal.
@@ -1647,8 +1649,8 @@ func (this *IndodaxCore) FetchDepositAddresses(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes137812 := (<-this.LoadMarkets())
-			PanicOnError(retRes137812)
+			retRes138012 := (<-this.LoadMarkets())
+			PanicOnError(retRes138012)
 		}
 
 		response := (<-this.PrivatePostGetInfo(params))
