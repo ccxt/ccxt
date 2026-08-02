@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { FALLBACK_FREE_MODELS, languageFromFence, type FreeModel } from "@/lib/ai/openrouter";
 import { getLanguage, isRunnable, type LanguageId } from "@/lib/languages";
 import { apiUrl } from "@/lib/basePath";
@@ -151,8 +151,7 @@ export default function AssistantPanel({
       <div className="ai-msgs" ref={scrollRef}>
         {messages.length === 0 ? (
           <div className="ai-empty">
-            Ask for CCXT code and it lands in your editor — in every language tab at once. Free
-            models via OpenRouter.
+            Ask for CCXT code and it lands in your editor. Free models via OpenRouter.
             <div className="chips">
               {SUGGESTIONS.map((s) => (
                 <button key={s} className="chip" onClick={() => send(s)}>
@@ -163,7 +162,13 @@ export default function AssistantPanel({
           </div>
         ) : (
           messages.map((m, i) => (
-            <Message key={i} msg={m} streaming={busy && i === messages.length - 1} onInsert={onInsert} />
+            <Message
+              key={i}
+              msg={m}
+              streaming={busy && i === messages.length - 1}
+              language={language}
+              onInsert={onInsert}
+            />
           ))
         )}
       </div>
@@ -196,85 +201,176 @@ export default function AssistantPanel({
   );
 }
 
+type CodeBlock = { kind: "code"; text: string; lang: LanguageId | null; complete: boolean };
+type Block = { kind: "text"; text: string } | CodeBlock;
+type TaggedCode = CodeBlock & { lang: LanguageId };
+
 function Message({
   msg,
   streaming,
+  language,
   onInsert,
 }: {
   msg: Msg;
   streaming: boolean;
+  language: LanguageId;
   onInsert: InsertFn;
 }) {
-  const blocks = parseBlocks(msg.content);
-  // Java (and anything disabled) has no editor to insert into.
-  const targeted =
+  const blocks = useMemo(() => parseBlocks(msg.content, streaming), [msg.content, streaming]);
+  // Primary Insert arms progressive fill: primary buffer now, each other language
+  // as its fence closes (even while the model is still streaming later blocks).
+  const [fillArmed, setFillArmed] = useState(false);
+  const [filledLangs, setFilledLangs] = useState<LanguageId[]>([]);
+  const filledSet = useMemo(() => new Set(filledLangs), [filledLangs]);
+  const onInsertRef = useRef(onInsert);
+  onInsertRef.current = onInsert;
+
+  const primary =
+    msg.role === "assistant" && isRunnable(language)
+      ? blocks.filter((b): b is TaggedCode => b.kind === "code" && b.lang === language)
+      : [];
+  // Stash every other runnable language for silent fill — never render them.
+  const background =
     msg.role === "assistant"
       ? blocks.filter(
-          (b): b is CodeBlock & { lang: LanguageId } =>
-            b.kind === "code" && b.lang !== null && isRunnable(b.lang),
+          (b): b is TaggedCode =>
+            b.kind === "code" && b.lang !== null && b.lang !== language && isRunnable(b.lang),
         )
       : [];
+  const completeBackground = background.filter((b) => b.complete);
+  const completeBgKey = completeBackground.map((b) => `${b.lang}:${b.text.length}:${hashText(b.text)}`).join("|");
+  const completeBgRef = useRef(completeBackground);
+  completeBgRef.current = completeBackground;
+  // Sidebar: prose + untagged dumps + the *currently selected* language only.
+  // Other playground-language fences are never shown, even if the model dropped the active one.
+  const visible =
+    msg.role === "assistant"
+      ? blocks.filter((b) => b.kind === "text" || b.lang === null || b.lang === language)
+      : blocks;
+
+  // After Insert, file each newly completed background language on a macrotask so
+  // the primary click stays snappy and later fences don't block the stream UI.
+  useEffect(() => {
+    if (!fillArmed) return;
+    const due = completeBgRef.current.filter((b) => !filledSet.has(b.lang));
+    if (due.length === 0) return;
+    setFilledLangs((prev) => {
+      const next = new Set(prev);
+      for (const b of due) next.add(b.lang);
+      return [...next];
+    });
+    const timer = window.setTimeout(() => {
+      for (const b of due) onInsertRef.current(b.text, b.lang);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [fillArmed, completeBgKey, filledSet]);
+
+  const insertPrimary = (b: TaggedCode) => {
+    if (!b.complete) return;
+    onInsert(b.text, b.lang);
+    const ready = completeBgRef.current.filter((x) => x.lang !== b.lang && !filledSet.has(x.lang));
+    setFillArmed(true);
+    setFilledLangs((prev) => {
+      const next = new Set(prev);
+      next.add(b.lang);
+      for (const x of ready) next.add(x.lang);
+      return [...next];
+    });
+    if (ready.length > 0) {
+      window.setTimeout(() => {
+        for (const x of ready) onInsertRef.current(x.text, x.lang);
+      }, 0);
+    }
+  };
+
   return (
     <div className={"msg " + msg.role}>
       <div className="who">{msg.role === "user" ? "You" : "Assistant"}</div>
       {msg.role === "user" ? (
         <div className="bubble">{renderBlocks(blocks, onInsert)}</div>
       ) : (
-        renderBlocks(blocks, onInsert)
-      )}
-      {/* Held back until the stream ends, so the count can't shift mid-answer. */}
-      {!streaming && targeted.length > 1 && (
-        <div className="code-actions">
-          <button
-            className="btn btn-outline btn-sm"
-            onClick={() => targeted.forEach((b) => onInsert(b.text, b.lang))}
-            title="Put each block in its own language tab"
-          >
-            Insert all {targeted.length} languages →
-          </button>
-        </div>
+        renderBlocks(visible, onInsert, primary.length > 0 ? insertPrimary : undefined, {
+          // Primary Insert appears as soon as that fence closes — do not wait for the other five.
+          requireCompleteForPrimary: true,
+        })
       )}
       {streaming && msg.content === "" && <span className="ai-empty dots" />}
     </div>
   );
 }
 
-type CodeBlock = { kind: "code"; text: string; lang: LanguageId | null };
-type Block = { kind: "text"; text: string } | CodeBlock;
+// Cheap content fingerprint so complete-fence effect deps stay stable without
+// holding full source strings in the dependency array.
+function hashText(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+  return h;
+}
 
 // Lightweight markdown: split fenced code blocks out, render the rest as text
 // with inline `code`. Avoids a markdown dependency for a small surface. The
 // fence tag is kept — an answer covers every language, so it is what tells a
 // block which editor it belongs in.
-function parseBlocks(content: string): Block[] {
+// Odd ``` count while streaming ⇒ the last fence is still open (incomplete).
+function parseBlocks(content: string, streaming = false): Block[] {
   // The capture group stays in the output: [text, tag, code, tag, text, …].
   const parts = content.split(/```([^\n`]*)\n?/);
   const blocks: Block[] = [];
   for (let i = 0; i < parts.length; i += 2) {
     const text = parts[i] ?? "";
     if (i % 4 === 2) {
-      blocks.push({ kind: "code", text: text.replace(/\n$/, ""), lang: languageFromFence(parts[i - 1] ?? "") });
+      blocks.push({
+        kind: "code",
+        text: text.replace(/\n$/, ""),
+        lang: languageFromFence(parts[i - 1] ?? ""),
+        complete: true,
+      });
     } else if (text.trim().length > 0) {
       blocks.push({ kind: "text", text });
+    }
+  }
+  if (streaming) {
+    const fences = content.match(/```/g)?.length ?? 0;
+    if (fences % 2 === 1) {
+      for (let i = blocks.length - 1; i >= 0; i--) {
+        const b = blocks[i];
+        if (b?.kind === "code") {
+          blocks[i] = { ...b, complete: false };
+          break;
+        }
+      }
     }
   }
   return blocks;
 }
 
-function renderBlocks(blocks: Block[], onInsert: InsertFn) {
+function renderBlocks(
+  blocks: Block[],
+  onInsert: InsertFn,
+  onInsertPrimary?: (block: TaggedCode) => void,
+  opts?: { requireCompleteForPrimary?: boolean },
+) {
   return blocks.map((block, i) => {
     if (block.kind === "code") {
       // A tagged block goes to its own tab; an untagged one to the active tab.
-      // Install-only languages (Java) have no editor, so they get no button.
+      // Disabled languages have no editor buffer, so they get no button. The
+      // primary block's Insert arms progressive fill of the other languages.
       const target = block.lang;
       const label = target ? getLanguage(target)?.label : undefined;
-      const insertable = target === null || isRunnable(target);
+      const runnable = target === null || isRunnable(target);
+      const primaryGate = onInsertPrimary && target !== null;
+      const showInsert =
+        runnable && (!primaryGate || !opts?.requireCompleteForPrimary || block.complete);
+      const handle =
+        primaryGate && target !== null
+          ? () => onInsertPrimary(block as TaggedCode)
+          : () => onInsert(block.text, target ?? undefined);
       return (
         <pre key={i}>
-          {insertable && (
+          {showInsert && (
             <button
               className="btn btn-outline btn-sm insert"
-              onClick={() => onInsert(block.text, target ?? undefined)}
+              onClick={handle}
               title={label ? `Insert into the ${label} tab` : "Insert into the current tab"}
             >
               Insert{label ? ` ${label}` : ""} →

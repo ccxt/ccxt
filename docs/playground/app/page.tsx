@@ -69,7 +69,7 @@ export default function Page() {
 
   // The assistant answers in every language at once, so a block can be filed
   // under a tab that isn't the active one — it's there when the user switches.
-  // Java (and anything disabled) has no editor buffer, so it's dropped.
+  // Disabled languages have no editor buffer, so they're dropped.
   const insertCode = useCallback(
     (value: string, target?: LanguageId) => {
       const id = target ?? language;

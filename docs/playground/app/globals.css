@@ -434,11 +434,6 @@ button {
   top: 7px;
   right: 7px;
 }
-.code-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 8px;
-}
 .msg code {
   font-family: var(--mono);
   font-size: 12px;
