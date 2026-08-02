@@ -2067,24 +2067,52 @@ export class BaseExchange {
         const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (this.safeString (params, 'nonce', '')), sha256, 'hex'))).toString ();
         const formattedUint64 = '18446744073709551615';
         const formattedUint32 = '4294967295';
-        const accountId = parseInt (Precise.stringMod (this.safeString (params, 'accountId', '0'), formattedUint32) || '0', 10);
-        const slotId = parseInt (Precise.stringDiv (Precise.stringMod (formattedSlotId, formattedUint64), formattedUint32) || '0', 10);
-        const nonce = parseInt (Precise.stringMod (formattedNonce, formattedUint32) || '0', 10);
+        let accountIdString = Precise.stringMod (this.safeString (params, 'accountId', '0'), formattedUint32);
+        if (accountIdString === undefined) {
+            accountIdString = '0';
+        }
+        let slotIdString = Precise.stringDiv (Precise.stringMod (formattedSlotId, formattedUint64), formattedUint32);
+        if (slotIdString === undefined) {
+            slotIdString = '0';
+        }
+        let nonceString = Precise.stringMod (formattedNonce, formattedUint32);
+        if (nonceString === undefined) {
+            nonceString = '0';
+        }
+        const accountId = parseInt (accountIdString, 10);
+        const slotId = parseInt (slotIdString, 10);
+        const nonce = parseInt (nonceString, 10);
         await init ();
         const _signer = zklink.newRpcSignerWithProvider ({});
         await _signer.initZklinkSigner (seed);
         const pairId = this.safeInteger (params, 'pairId', 0);
+        let sizeString = Precise.stringMul (this.safeString (params, 'size', '0'), '1e18');
+        if (sizeString === undefined) {
+            sizeString = '0';
+        }
+        let priceString = Precise.stringMul (this.safeString (params, 'price', '0'), '1e18');
+        if (priceString === undefined) {
+            priceString = '0';
+        }
+        let makerFeeRateString = Precise.stringMul (this.safeString (params, 'makerFeeRate', '0'), '10000');
+        if (makerFeeRateString === undefined) {
+            makerFeeRateString = '0';
+        }
+        let takerFeeRateString = Precise.stringMul (this.safeString (params, 'takerFeeRate', '0'), '10000');
+        if (takerFeeRateString === undefined) {
+            takerFeeRateString = '0';
+        }
         const tx_builder = new zklink.ContractBuilder (
             accountId,
             0,
             slotId,
             nonce,
-            (pairId === undefined) ? 0 : pairId,
-            Precise.stringMul (this.safeString (params, 'size') || '0', '1e18') || '0',
-            Precise.stringMul (this.safeString (params, 'price') || '0', '1e18') || '0',
+            pairId,
+            sizeString,
+            priceString,
             this.safeString (params, 'direction') === 'BUY',
-            parseInt (Precise.stringMul (this.safeString (params, 'makerFeeRate', '0'), '10000') || '0'),
-            parseInt (Precise.stringMul (this.safeString (params, 'takerFeeRate', '0'), '10000') || '0'),
+            parseInt (makerFeeRateString),
+            parseInt (takerFeeRateString),
             false
         );
         const contractor = zklink.newContract (tx_builder);

@@ -568,10 +568,7 @@ export default class gate extends gateRest {
         } else {
             const nonce = this.safeInteger (orderbook, 'nonce');
             const deltaStart = this.safeInteger (result, 'u');
-            if (deltaStart === undefined) {
-                return;
-            }
-            if (nonce === undefined || nonce >= deltaStart) {
+            if ((nonce === undefined) || ((deltaStart !== undefined) && (nonce >= deltaStart))) {
                 return;
             }
             this.handleDelta (orderbook, result);
@@ -644,13 +641,7 @@ export default class gate extends gateRest {
         const marketType = isSpot ? 'spot' : 'contract';
         const delta = this.safeValue (message, 'result');
         const deltaStart = this.safeInteger (delta, 'U');
-        if (deltaStart === undefined) {
-            return;
-        }
         const deltaEnd = this.safeInteger (delta, 'u');
-        if (deltaEnd === undefined) {
-            return;
-        }
         const marketId = this.safeString (delta, 's');
         const symbol = this.safeSymbol (marketId, undefined, '_', marketType);
         const messageHash = 'orderbook:' + symbol;
@@ -671,9 +662,9 @@ export default class gate extends gateRest {
             }
             storedOrderBook.cache.push (delta);
             return;
-        } else if (nonce >= deltaEnd) {
+        } else if ((deltaEnd !== undefined) && (nonce >= deltaEnd)) {
             return;
-        } else if (nonce >= deltaStart - 1) {
+        } else if ((deltaStart !== undefined) && (nonce >= deltaStart - 1)) {
             this.handleDelta (storedOrderBook, delta);
         } else {
             delete client.subscriptions[messageHash];
@@ -691,20 +682,14 @@ export default class gate extends gateRest {
         const nonce = this.safeInteger (orderBook, 'nonce');
         const firstDelta = cache[0];
         const firstDeltaStart = this.safeInteger (firstDelta, 'U');
-        if ((nonce === undefined) || (firstDeltaStart === undefined)) {
-            return -1;
-        }
-        if (nonce < firstDeltaStart) {
+        if ((nonce !== undefined) && (firstDeltaStart !== undefined) && (nonce < firstDeltaStart)) {
             return -1;
         }
         for (let i = 0; i < cache.length; i++) {
             const delta = cache[i];
             const deltaStart = this.safeInteger (delta, 'U');
             const deltaEnd = this.safeInteger (delta, 'u');
-            if ((deltaStart === undefined) || (deltaEnd === undefined)) {
-                return -1;
-            }
-            if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
+            if ((nonce !== undefined) && (deltaStart !== undefined) && (deltaEnd !== undefined) && (nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
                 return i;
             }
         }
@@ -1169,7 +1154,7 @@ export default class gate extends gateRest {
             messageHash += ':' + symbol;
         }
         const isInverse = (subType === 'inverse');
-        const url = this.getUrlByMarketType (type || 'spot', isInverse);
+        const url = this.getUrlByMarketType (type, isInverse);
         const payload = [ marketId ];
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
@@ -1251,7 +1236,7 @@ export default class gate extends gateRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
         const isInverse = (subType === 'inverse');
-        const url = this.getUrlByMarketType (type || 'spot', isInverse);
+        const url = this.getUrlByMarketType (type, isInverse);
         const requiresUid = (type !== 'spot');
         const channelType = this.getSupportedMapping (type, {
             'spot': 'spot',
@@ -1406,7 +1391,7 @@ export default class gate extends gateRest {
         let subType: Str = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('watchPositions', market, query);
         const isInverse = (subType === 'inverse');
-        const url = this.getUrlByMarketType (type || 'spot', isInverse);
+        const url = this.getUrlByMarketType (type, isInverse);
         const client = this.client (url);
         this.setPositionsCache (client, type, symbols);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
@@ -1588,7 +1573,7 @@ export default class gate extends gateRest {
         let subType: Str = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('watchOrders', market, query);
         const isInverse = (subType === 'inverse');
-        const url = this.getUrlByMarketType (type || 'spot', isInverse);
+        const url = this.getUrlByMarketType (type, isInverse);
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
         const orders = await this.subscribePrivate (url, messageHash, payload, channel, query, requiresUid);
@@ -1725,7 +1710,7 @@ export default class gate extends gateRest {
         let subType: Str = undefined;
         [ subType, query ] = this.handleSubTypeAndParams ('watchMyLiquidationsForSymbols', market, query);
         const isInverse = (subType === 'inverse');
-        const url = this.getUrlByMarketType (type || 'spot', isInverse);
+        const url = this.getUrlByMarketType (type, isInverse);
         const payload: Str[] = [];
         let messageHash = '';
         if (this.isEmpty (symbols)) {

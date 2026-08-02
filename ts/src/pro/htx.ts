@@ -742,9 +742,6 @@ export default class htx extends htxRest {
         const prevSeqNum = this.safeInteger (tick, 'prevSeqNum');
         const event = this.safeString (tick, 'event');
         const version = this.safeInteger (tick, 'version');
-        if (version === undefined) {
-            return;
-        }
         const timestamp = this.safeInteger (message, 'ts');
         if (event === 'snapshot') {
             const snapshot = this.parseOrderBook (tick, symbol, timestamp);
@@ -758,7 +755,7 @@ export default class htx extends htxRest {
             }
         }
         const spotConditon = market['spot'] && (prevSeqNum === orderbook['nonce']);
-        const nonSpotCondition = market['contract'] && (version - 1 === orderbook['nonce']);
+        const nonSpotCondition = market['contract'] && (version !== undefined) && (version - 1 === orderbook['nonce']);
         if (spotConditon || nonSpotCondition) {
             const asks = this.safeValue (tick, 'asks', []);
             const bids = this.safeValue (tick, 'bids', []);
@@ -2218,7 +2215,7 @@ export default class htx extends htxRest {
             }
         }
         if ('unsubbed' in message) {
-            this.handleUnSubscription (client, subscription || {});
+            this.handleUnSubscription (client, subscription);
         }
     }
 
@@ -2230,7 +2227,7 @@ export default class htx extends htxRest {
             const subHash = subMessageHashes[i];
             this.cleanUnsubscription (client, subHash, unsubHash);
         }
-        this.cleanCache (subscription || {});
+        this.cleanCache (subscription);
     }
 
     handleSystemStatus (client: Client, message) {

@@ -945,12 +945,9 @@ export default class binance extends binanceRest {
             for (let i = 0; i < messages.length; i++) {
                 const messageItem = messages[i];
                 const U = this.safeInteger (messageItem, 'U');
-                if (U === undefined) {
-                    return;
-                }
                 const u = this.safeInteger (messageItem, 'u');
-                if (u === undefined) {
-                    return;
+                if ((U === undefined) || (u === undefined)) {
+                    continue;
                 }
                 const pu = this.safeInteger (messageItem, 'pu');
                 if (type === 'future') {
@@ -4686,7 +4683,11 @@ export default class binance extends binanceRest {
                                 const orderFee = fees[i];
                                 if (orderFee['currency'] === tradeFee['currency']) {
                                     const feeCost = this.sum (tradeFee['cost'], orderFee['cost']);
-                                    order['fees'][i]['cost'] = parseFloat (this.currencyToPrecision (tradeFee['currency'], feeCost) || '0');
+                                    let feeCostString = this.currencyToPrecision (tradeFee['currency'], feeCost);
+                                    if (feeCostString === undefined) {
+                                        feeCostString = '0';
+                                    }
+                                    order['fees'][i]['cost'] = parseFloat (feeCostString);
                                     insertNewFeeCurrency = false;
                                     break;
                                 }
@@ -4697,7 +4698,11 @@ export default class binance extends binanceRest {
                         } else if (fee !== undefined) {
                             if (fee['currency'] === tradeFee['currency']) {
                                 const feeCost = this.sum (fee['cost'], tradeFee['cost']);
-                                order['fee']['cost'] = parseFloat (this.currencyToPrecision (tradeFee['currency'], feeCost) || '0');
+                                let feeCostString = this.currencyToPrecision (tradeFee['currency'], feeCost);
+                                if (feeCostString === undefined) {
+                                    feeCostString = '0';
+                                }
+                                order['fee']['cost'] = parseFloat (feeCostString);
                             } else if (fee['currency'] === undefined) {
                                 order['fee'] = tradeFee;
                             } else {
