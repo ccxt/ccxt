@@ -799,8 +799,10 @@ class coinbase extends \ccxt\async\coinbase {
             if ($currentTrades === null) {
                 continue;
             }
-            for ($j = 0; $j < count($currentTrades); $j++) {
-                $item = $currentTrades[$j];
+            // coinbase sends $trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
+            $tradesLength = count($currentTrades);
+            for ($j = 0; $j < $tradesLength; $j++) {
+                $item = $currentTrades[$tradesLength - $j - 1];
                 $tradesArray->append($this->parse_trade($item));
             }
         }
