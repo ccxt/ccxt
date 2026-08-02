@@ -185,8 +185,14 @@ jobs:
           NEW_PORT=$([ "$CUR_PORT" = 3005 ] && echo 3006 || echo 3005)
           NEW_NAME="${CONTAINER}-${NEW_PORT}"
 
+          # Cap this container's Docker json stdout log, as deploy-playground.yml already
+          # does for its own. Uncapped, a chatty container can fill the box's disk — which
+          # deadlocks every future deploy, since the image prune that reclaims space only
+          # runs in this script's success path.
+          LOGOPTS="--log-opt max-size=10m --log-opt max-file=3"
+
           docker rm -f "$NEW_NAME" 2>/dev/null || true
-          docker run -d --restart=always -p 127.0.0.1:${NEW_PORT}:${PORT} $ENVFILE_ARG --name "$NEW_NAME" "$IMAGE:$SHA"
+          docker run -d --restart=always -p 127.0.0.1:${NEW_PORT}:${PORT} $ENVFILE_ARG $LOGOPTS --name "$NEW_NAME" "$IMAGE:$SHA"
           if smoke "$NEW_PORT"; then
             sed -i "s/127\.0\.0\.1:${CUR_PORT}/127.0.0.1:${NEW_PORT}/g" "$NGINX_CONF"
             if nginx -t 2>/dev/null; then
