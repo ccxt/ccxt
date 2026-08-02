@@ -311,6 +311,7 @@ public partial class xt : Exchange
                             { "future/user/v1/position/margin", 1 },
                             { "future/user/v1/user/collection/add", 1 },
                             { "future/user/v1/user/collection/cancel", 1 },
+                            { "future/user/v1/position/change-type", 1 },
                         } },
                     } },
                     { "user", new Dictionary<string, object>() {
@@ -623,7 +624,7 @@ public partial class xt : Exchange
                 { "default", new Dictionary<string, object>() {
                     { "sandbox", false },
                     { "createOrder", new Dictionary<string, object>() {
-                        { "marginMode", false },
+                        { "marginMode", true },
                         { "triggerPrice", false },
                         { "triggerDirection", false },
                         { "triggerPriceType", null },
@@ -704,6 +705,7 @@ public partial class xt : Exchange
                 { "forDerivatives", new Dictionary<string, object>() {
                     { "extends", "default" },
                     { "createOrder", new Dictionary<string, object>() {
+                        { "marginMode", false },
                         { "triggerPrice", true },
                         { "triggerPriceType", new Dictionary<string, object>() {
                             { "last", true },
@@ -1324,8 +1326,8 @@ public partial class xt : Exchange
             { "contract", contract },
             { "linear", linear },
             { "inverse", inverse },
-            { "taker", this.safeNumber(market, "takerFee") },
-            { "maker", this.safeNumber(market, "makerFee") },
+            { "taker", this.safeNumber2(market, "takerFee", "takerFeeRate") },
+            { "maker", this.safeNumber2(market, "makerFee", "makerFeeRate") },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "expiry", expiry },
             { "expiryDatetime", this.iso8601(expiry) },
@@ -1518,7 +1520,7 @@ public partial class xt : Exchange
      * @param {string} symbol unified market symbol to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} params extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -5391,16 +5393,25 @@ public partial class xt : Exchange
             marginMode = "ISOLATED";
         }
         object posSide = this.safeStringUpper(parameters, "positionSide");
-        if (isTrue(isEqual(posSide, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a positionSide parameter, either \"LONG\" or \"SHORT\"")) ;
-        }
+        this.checkRequiredArgument("setMarginMode", posSide, "positionSide", new List<object>() {"LONG", "SHORT"});
+        parameters = this.omit(parameters, "positionSide");
         object request = new Dictionary<string, object>() {
             { "positionType", marginMode },
             { "positionSide", posSide },
             { "symbol", getValue(market, "id") },
         };
-        object response = await this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, parameters));
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("setMarginMode", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(subType, "inverse")))
+        {
+            response = await ((Task<object>)callDynamically(this, "privateInversePostFutureUserV1PositionChangeType", new object[] { this.extend(request, parameters) }));
+        } else
+        {
+            response = await this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, parameters));
+        }
         //
         // {
         //     "error": {
