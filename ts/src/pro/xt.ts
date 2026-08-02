@@ -483,7 +483,7 @@ export default class xt extends xtRest {
      * @param {int} [limit] not used by xt watchOrderBook
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.levels] 5, 10, 20, or 50
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
@@ -1443,7 +1443,9 @@ export default class xt extends xtRest {
         account['free'] = this.safeString (data, 'availableBalance');
         account['used'] = this.safeString (data, 'f');
         account['total'] = this.safeString2 (data, 'b', 'walletBalance');
-        this.balance[code] = account;
+        if (code !== undefined) {
+            this.balance[code] = account;
+        }
         this.balance = this.safeBalance (this.balance);
         const tradeType = ('coin' in data) ? 'contract' : 'spot';
         client.resolve (this.balance, 'balance::' + tradeType);
