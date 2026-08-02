@@ -199,7 +199,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             object symbol = this.safeSymbol(marketId, null, "-");
             object messageHash = add("ohlcv:", symbol);
             object request = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
-            object timeframeId = this.safeNumber(request, "granularity");
+            object timeframeId = this.safeString(request, "granularity");
             object timeframe = this.findTimeframe(timeframeId);
             object ohlcv = this.safeValue(message, "price", new List<object>() {});
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});

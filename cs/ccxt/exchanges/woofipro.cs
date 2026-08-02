@@ -713,7 +713,7 @@ public partial class woofipro : Exchange
             object networkEntry = getValue(networks, j);
             object networkId = this.safeString(networkEntry, "chain_id");
             object networkRow = this.safeDict(indexedChains, networkId);
-            object networkName = this.safeString(networkRow, "name");
+            object networkName = this.safeString(networkRow, "name", networkId);
             object networkCode = this.networkIdToCode(networkName, code);
             ((IDictionary<string,object>)resultingNetworks)[(string)networkCode] = new Dictionary<string, object>() {
                 { "id", networkId },

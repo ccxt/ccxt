@@ -824,6 +824,7 @@ public partial class indodax : Exchange
         object price = this.safeString(order, "price");
         object amount = null;
         object remaining = null;
+        object filled = null;
         object marketId = this.safeString(order, "pair");
         market = this.safeMarket(marketId, market);
         if (isTrue(!isEqual(market, null)))
@@ -840,11 +841,11 @@ public partial class indodax : Exchange
                 baseId = "rp";
             }
             cost = this.safeString(order, add("order_", quoteId));
-            if (!isTrue(cost))
-            {
-                amount = this.safeString(order, add("order_", baseId));
-                remaining = this.safeString(order, add("remain_", baseId));
-            }
+            amount = this.safeString(order, add("order_", baseId));
+            remaining = this.safeString(order, add("remain_", baseId));
+            // filled buy orders on idr-quoted markets carry the executed base amount
+            // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
+            filled = this.safeString(order, add("receive_", baseId));
         }
         object timestamp = this.safeInteger(order, "submit_time");
         object fee = null;
@@ -866,7 +867,7 @@ public partial class indodax : Exchange
             { "cost", cost },
             { "average", null },
             { "amount", amount },
-            { "filled", null },
+            { "filled", filled },
             { "remaining", remaining },
             { "status", status },
             { "fee", fee },
