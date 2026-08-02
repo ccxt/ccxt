@@ -4850,7 +4850,7 @@ func (this *CoinexCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	if IsTrue(IsEqual(typeVar, "deposit")) {
 		feeCost = "0"
 	}
-	var feeCurrencyId any = this.SafeString(transaction, "fee_asset")
+	var feeCurrencyId any = this.SafeString2(transaction, "fee_asset", "fee_ccy") // https://github.com/ccxt/ccxt/issues/25153
 	var fee any = map[string]any{
 		"cost":     this.ParseNumber(feeCost),
 		"currency": this.SafeCurrencyCode(feeCurrencyId),

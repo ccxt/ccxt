@@ -1341,7 +1341,7 @@ func (this *ZebpayCore) OrderRequest(symbol any, typeVar any, amount any, reques
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var upperCaseType any = ToUpper(typeVar)
-	var triggerPrice any = this.SafeString(params, "stopLossPrice", nil)
+	var triggerPrice any = this.SafeString(params, "stopLossPrice")
 	var quoteOrderQty any = this.SafeString2(params, "quoteOrderQty", "cost", nil)
 	var timeInForce any = this.SafeString(params, "timeInForce", "GTC")
 	var clientOrderId any = this.SafeString(params, "clientOrderId", this.Uuid())
@@ -1675,7 +1675,7 @@ func (this *ZebpayCore) ParseOrder(order any, optionalArgs ...any) any {
 	var clientOrderId any = this.SafeString(order, "clientOrderId")
 	var timeInForce any = this.SafeString(order, "timeInForce")
 	var status any = this.SafeStringLower(order, "status")
-	var orderId any = this.SafeString(order, "orderId", nil)
+	var orderId any = this.SafeString(order, "orderId")
 	var parsedOrder any = this.SafeOrder(map[string]any{
 		"id":                  orderId,
 		"clientOrderId":       clientOrderId,

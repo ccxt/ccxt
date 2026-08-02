@@ -83,7 +83,7 @@ func (this *PacificaCore) SetupApiKeyHeaders(optionalArgs ...any) {
 	if ccxt.IsTrue(!ccxt.IsEqual(key, nil)) {
 		ccxt.AddElementToObject(headers, "PF-API-KEY", key)
 	} else {
-		if ccxt.IsTrue(!ccxt.IsEqual(this.HandleOption("setupApiKeyHeaders", "apiKey", nil), nil)) {
+		if ccxt.IsTrue(!ccxt.IsEqual(this.HandleOption("setupApiKeyHeaders", "apiKey"), nil)) {
 			ccxt.AddElementToObject(headers, "PF-API-KEY", ccxt.GetValue(this.Options, "apiKey"))
 		}
 	}
@@ -355,7 +355,7 @@ func (this *PacificaCore) CancelOrdersWs(ids any, optionalArgs ...any) <-chan an
 		var ordersToReturn any = []any{}
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(results)); i++ {
 			var order any = ccxt.GetValue(results, i)
-			var error any = this.SafeString(order, "error", nil)
+			var error any = this.SafeString(order, "error")
 			var success any = this.SafeBool(order, "success", false)
 			var marketId any = this.SafeString(order, "symbol")
 			var market any = this.SafeMarket(marketId)
@@ -1721,7 +1721,7 @@ func (this *PacificaCore) HandleMessage(client any, message any) {
 	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
 		return
 	}
-	var postType any = this.SafeString(message, "type", nil)
+	var postType any = this.SafeString(message, "type")
 	var topic any = this.SafeString(message, "channel", "")
 	var methods any = map[string]any{
 		"pong":                  this.HandlePong,

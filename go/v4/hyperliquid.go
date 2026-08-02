@@ -4202,7 +4202,7 @@ func (this *HyperliquidCore) ParseOrder(order any, optionalArgs ...any) any {
 		marketId = this.CoinToMarketId(coin)
 	}
 	if IsTrue(IsEqual(this.SafeString(entry, "id"), nil)) {
-		market = this.SafeMarket(marketId, nil)
+		market = this.SafeMarket(marketId)
 	} else {
 		market = this.SafeMarket(marketId, market)
 	}
@@ -4387,7 +4387,7 @@ func (this *HyperliquidCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var amount any = this.SafeString(trade, "sz")
 	var coin any = this.SafeString(trade, "coin")
 	var marketId any = this.CoinToMarketId(coin)
-	market = this.SafeMarket(marketId, nil)
+	market = this.SafeMarket(marketId)
 	var symbol any = GetValue(market, "symbol")
 	var id any = this.SafeString(trade, "tid")
 	var side any = this.SafeString(trade, "side")
@@ -4609,7 +4609,7 @@ func (this *HyperliquidCore) ParsePosition(position any, optionalArgs ...any) an
 	var entry any = this.SafeDict(position, "position", map[string]any{})
 	var coin any = this.SafeString(entry, "coin")
 	var marketId any = this.CoinToMarketId(coin)
-	market = this.SafeMarket(marketId, nil)
+	market = this.SafeMarket(marketId)
 	var symbol any = GetValue(market, "symbol")
 	var leverage any = this.SafeDict(entry, "leverage", map[string]any{})
 	var marginMode any = this.SafeString(leverage, "type")

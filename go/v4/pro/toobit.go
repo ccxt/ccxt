@@ -1393,7 +1393,7 @@ func (this *ToobitCore) ParseWsPosition(position any, optionalArgs ...any) any {
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
-		"symbol":                      this.SafeSymbol(marketId, nil),
+		"symbol":                      this.SafeSymbol(marketId),
 		"notional":                    this.OmitZero(this.SafeString(position, "pv")),
 		"marginMode":                  this.SafeStringLower(position, "mt"),
 		"liquidationPrice":            this.SafeString(position, "f"),

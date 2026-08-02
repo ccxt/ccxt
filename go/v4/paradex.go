@@ -2358,7 +2358,7 @@ func (this *ParadexCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		for i := 0; IsLessThan(i, GetArrayLength(results)); i++ {
 			var result any = GetValue(results, i)
 			var marketId any = this.SafeString(result, "market")
-			var market any = this.SafeMarket(marketId, nil)
+			var market any = this.SafeMarket(marketId)
 			var status any = this.SafeString(result, "status")
 			var orderStatus any = nil
 			if IsTrue(IsEqual(status, "QUEUED_FOR_CANCELLATION")) {

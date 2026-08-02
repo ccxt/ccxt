@@ -3089,6 +3089,17 @@ func (this *BybitCore) HandleErrorMessage(client any, message any) any {
 							if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), authenticatedHash)) {
 								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), authenticatedHash)
 							}
+							var op any = this.SafeString(message, "op")
+							if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(op, nil))) && ccxt.IsTrue((!ccxt.IsEqual(op, "auth")))) {
+								// an operation response that carries no reqId, e.g. bybit
+								// omits it on some permission rejections of trade ops,
+								// would leave the awaiting future pending forever, and
+								// since nothing on this client can proceed without
+								// authentication, reject everything pending, mirroring the
+								// behavior of unattributable non auth errors, see
+								// https://github.com/ccxt/ccxt/issues/29361
+								client.(ccxt.ClientInterface).Reject(error)
+							}
 						} else {
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 						}

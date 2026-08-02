@@ -992,7 +992,7 @@ func (this *HyperliquidCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	var amount any = this.SafeString(trade, "sz")
 	var coin any = this.SafeString(trade, "coin")
 	var marketId any = this.CoinToMarketId(coin)
-	market = this.SafeMarket(marketId, nil)
+	market = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var id any = this.SafeString(trade, "tid")
 	var side any = this.SafeString(trade, "side")

@@ -449,7 +449,7 @@ func (this *UpbitCore) HandleOHLCV(client any, message any) {
 	//     stream_type: 'REALTIME'
 	//   }
 	var marketId any = this.SafeString(message, "code")
-	var symbol any = this.SafeSymbol(marketId, nil)
+	var symbol any = this.SafeSymbol(marketId)
 	var messageHash any = ccxt.Add("candle.1s:", symbol)
 	var ohlcv any = this.ParseOHLCV(message)
 	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)

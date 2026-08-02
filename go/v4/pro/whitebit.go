@@ -396,7 +396,7 @@ func (this *WhitebitCore) HandleTicker(client any, message any) any {
 	//
 	var tickers any = this.SafeValue(message, "params", []any{})
 	var marketId any = this.SafeString(tickers, 0)
-	var market any = this.SafeMarket(marketId, nil)
+	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var rawTicker any = this.SafeValue(tickers, 1, map[string]any{})
 	var messageHash any = ccxt.Add(ccxt.Add("ticker", ":"), symbol)
