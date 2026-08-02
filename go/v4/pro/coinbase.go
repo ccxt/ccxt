@@ -1049,8 +1049,10 @@ func (this *CoinbaseCore) HandleTrade(client any, message any) {
 		if ccxt.IsTrue(ccxt.IsEqual(currentTrades, nil)) {
 			continue
 		}
-		for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(currentTrades)); j++ {
-			var item any = ccxt.GetValue(currentTrades, j)
+		// coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
+		var tradesLength any = ccxt.GetArrayLength(currentTrades)
+		for j := 0; ccxt.IsLessThan(j, tradesLength); j++ {
+			var item any = ccxt.GetValue(currentTrades, ccxt.Subtract(ccxt.Subtract(tradesLength, j), 1))
 			tradesArray.(ccxt.Appender).Append(this.ParseTrade(item))
 		}
 	}
