@@ -3699,7 +3699,7 @@
                 "method": "fetchTicker",
                 "url": "https://api.binance.com/sapi/v1/equity/market/quote?timestamp=1785378371612&symbol=AAPL&recvWindow=10000&signature=51be9e25b027a14a4b7117f16ff0876104607c74c6dd2c27d1b3fa0982c981e0",
                 "input": [
-                    "AAPL"
+                    "AAPL/USDC"
                 ]
             }
         ],

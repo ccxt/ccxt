@@ -7467,7 +7467,7 @@
                 "description": "tokenized stock fetch ticker",
                 "method": "fetchTicker",
                 "input": [
-                    "AAPL"
+                    "AAPL/USDC"
                 ],
                 "httpResponse": {
                     "symbol": "AAPL",
