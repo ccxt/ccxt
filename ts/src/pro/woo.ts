@@ -295,7 +295,7 @@ export default class woo extends wooRest {
                 const messageItem = messages[i];
                 const ts = this.safeInteger (messageItem, 'ts');
                 if (ts === undefined) {
-                    return;
+                    continue;
                 }
                 if (ts < orderbook['timestamp']) {
                     continue;
@@ -610,7 +610,7 @@ export default class woo extends wooRest {
         for (let i = 0; i < data.length; i++) {
             const ticker = this.safeDict (data, i);
             if (ticker === undefined) {
-                return;
+                continue;
             }
             ticker['ts'] = timestamp;
             const parsedTicker = this.parseWsBidAsk (ticker);

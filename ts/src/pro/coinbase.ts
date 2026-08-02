@@ -755,7 +755,7 @@ export default class coinbase extends coinbaseRest {
             const currentEvent = events[i];
             const currentTrades = this.safeList (currentEvent, 'trades');
             if (currentTrades === undefined) {
-                return;
+                continue;
             }
             for (let j = 0; j < currentTrades.length; j++) {
                 const item = currentTrades[j];
@@ -808,18 +808,17 @@ export default class coinbase extends coinbaseRest {
             const event = events[i];
             const responseOrders = this.safeList (event, 'orders');
             if (responseOrders === undefined) {
-                return;
+                continue;
             }
             for (let j = 0; j < responseOrders.length; j++) {
                 const responseOrder = responseOrders[j];
                 const parsed = this.parseWsOrder (responseOrder);
                 const cachedOrders = this.orders;
                 const marketId = this.safeString (responseOrder, 'product_id');
-                if (marketId === undefined) {
-                    return;
-                }
-                if (!(marketId in marketIds)) {
-                    marketIds.push (marketId);
+                if (marketId !== undefined) {
+                    if (!(marketId in marketIds)) {
+                        marketIds.push (marketId);
+                    }
                 }
                 cachedOrders.append (parsed);
             }

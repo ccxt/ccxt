@@ -947,7 +947,7 @@ export default class cex extends cexRest {
         const symbol = this.safeString (message, 'oid'); // symbol is set as requestId in watchOrders
         const rawOrders = this.safeValue (message, 'data', []);
         let myOrders = this.orders;
-        if (this.orders === undefined) {
+        if (myOrders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             myOrders = new ArrayCacheBySymbolById (limit);
         }
@@ -956,16 +956,10 @@ export default class cex extends cexRest {
             const market = this.safeMarket (symbol);
             const order = this.parseOrder (rawOrder, market);
             order['status'] = 'open';
-            if (myOrders === undefined) {
-                return;
-            }
             myOrders.append (order);
         }
         this.orders = myOrders;
         const messageHash = 'orders:' + symbol;
-        if (myOrders === undefined) {
-            return;
-        }
         const ordersLength = myOrders.length;
         if (ordersLength > 0) {
             client.resolve (myOrders, messageHash);
