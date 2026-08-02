@@ -595,6 +595,10 @@ func (this *XtCore) PrivateInversePostFutureUserV1UserCollectionCancel(args ...a
 	return this.callEndpointAsync("privateInversePostFutureUserV1UserCollectionCancel", args...)
 }
 
+func (this *XtCore) PrivateInversePostFutureUserV1PositionChangeType(args ...any) <-chan any {
+	return this.callEndpointAsync("privateInversePostFutureUserV1PositionChangeType", args...)
+}
+
 func (this *XtCore) PrivateUserGetUserAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUserGetUserAccount", args...)
 }

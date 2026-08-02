@@ -147,7 +147,7 @@ func (this *Xt) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV
  * @param {string} symbol unified market symbol to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} params extra parameters specific to the exchange API endpoint
- * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
  */
 func (this *Xt) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 

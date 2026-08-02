@@ -436,9 +436,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "kucoin":
 		itf := NewKucoin(options)
 		return itf
-	case "kucoineu":
-		itf := NewKucoineu(options)
-		return itf
 	case "kucoinfutures":
 		itf := NewKucoinfutures(options)
 		return itf
