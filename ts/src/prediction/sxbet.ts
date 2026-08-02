@@ -1,5 +1,7 @@
 import Exchange from '../abstract/prediction/sxbet.js';
-import type { Dict, Int, Market, PredictionEvent, Str, fetchEventsParams } from '../base/types.js';
+import { Precise } from '../base/Precise.js';
+import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
+import type { Dict, Int, Market, PredictionEvent, PredictionOrderBook, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -223,7 +225,10 @@ export default class sxbet extends Exchange {
         // variants) whose outcomeOneName text can coincide or nearly coincide, so a text-only
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,
         // letters+digits only so it survives shortenSlug as one atomic word)
-        const hashLength = marketHash.length;
+        // parseToInt-wrapped .length: the bare `const n = str.length;` statement is the php
+        // transpiler's ARRAY hint (count()), which breaks on a string — this form emits
+        // strlen()/len() correctly in both python and php
+        const hashLength = this.parseToInt (marketHash.length);
         const hashSuffix = marketHash.slice (hashLength - 6);
         const marketSlug = this.shortenSlug (outcomeOneName) + '_' + hashSuffix;
         const marketSymbol = this.slugToMarketSymbol (eventSlug, marketSlug);
@@ -500,6 +505,269 @@ export default class sxbet extends Exchange {
             'url': undefined,
             'info': rawMarkets,
         };
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#loadUsdcAddress
+     * @description resolves and caches the USDC token contract address for the current network from /metadata. sx.bet orders can be denominated in USDC or WSX per-order, but every sxbet market's quote/settle is fixed to 'USDC' (see parseSxbetMarket), so ticker/order-book construction only surfaces USDC-denominated liquidity
+     * @returns {string} the USDC token contract address
+     */
+    async loadUsdcAddress (): Promise<string> {
+        let usdcAddress = this.safeString (this.options, 'usdcAddress');
+        if (usdcAddress !== undefined) {
+            return usdcAddress;
+        }
+        const response = await this.sxbetPublicGetMetadata ();
+        const data = this.safeDict (response, 'data', {});
+        const addresses = this.safeDict (data, 'addresses', {});
+        const addressesKeys = Object.keys (addresses);
+        const addressesKeysLength = addressesKeys.length;
+        if (addressesKeysLength > 0) {
+            const chainAddresses = this.safeDict (addresses, addressesKeys[0], {});
+            usdcAddress = this.safeString (chainAddresses, 'USDC');
+        }
+        if (usdcAddress === undefined) {
+            throw new ExchangeError (this.id + ' could not resolve the USDC token address from /metadata');
+        }
+        this.options['usdcAddress'] = usdcAddress;
+        return usdcAddress;
+    }
+
+    /**
+     * @method
+     * @name sxbet#fetchTicker
+     * @description fetches the current best resting odds for a single sx.bet outcome. sx.bet is a peer-to-peer odds book (no matched-trade tape or candles), so bid/ask are the best (highest) percentageOdds resting on this outcome's own side and its mirror (1 - best percentageOdds resting on the opposite outcome)
+     * @see https://docs.sx.bet/api-reference/get-orders-odds-best
+     * @param {string} outcome unified outcome handle or outcomeId (marketHash or marketHash + '-2')
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
+     */
+    async fetchTicker (outcome: Str, params = {}): Promise<PredictionTicker> {
+        await this.loadOutcome (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const marketHash = this.safeString (outcomeObj['info'], 'marketHash');
+        const usdcAddress = await this.loadUsdcAddress ();
+        const request: Dict = { 'marketHashes': marketHash, 'baseToken': usdcAddress };
+        const response = await this.sxbetPublicGetOrdersOddsBest (this.extend (request, params));
+        const result = this.safeDict (response, 'data', {});
+        const bestOddsList = this.safeList (result, 'bestOdds', []);
+        const raw = this.safeDict (bestOddsList, 0, {});
+        return this.parseSxbetTicker (raw, outcomeObj as any);
+    }
+
+    /**
+     * @method
+     * @name sxbet#fetchTickers
+     * @description fetches the current best resting odds for multiple sx.bet outcomes, batching both outcomes of the same market into one /orders/odds/best request
+     * @see https://docs.sx.bet/api-reference/get-orders-odds-best
+     * @param {string[]} outcomes unified outcomes — required: sx.bet has thousands of markets and no endpoint returning all of them at once
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
+     */
+    async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
+        if (outcomes === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
+        }
+        await this.loadOutcomes (outcomes);
+        const outcomesByMarketHash: Dict = {};
+        const marketHashes: string[] = [];
+        const outcomesLength = outcomes.length;
+        for (let i = 0; i < outcomesLength; i++) {
+            const outcomeObj = this.outcome (outcomes[i]);
+            const marketHash = this.safeString (outcomeObj['info'], 'marketHash');
+            if (marketHash === undefined) {
+                continue;
+            }
+            if (!(marketHash in outcomesByMarketHash)) {
+                outcomesByMarketHash[marketHash] = [];
+                marketHashes.push (marketHash);
+            }
+            // reassign after push, plain mutation through a local is lost in transpiled php (arrays are value types there)
+            const grouped = outcomesByMarketHash[marketHash];
+            grouped.push (outcomeObj);
+            outcomesByMarketHash[marketHash] = grouped;
+        }
+        const usdcAddress = await this.loadUsdcAddress ();
+        const chunkSize = this.safeInteger (this.options, 'fetchTickersBatchSize', 30);
+        const result: PredictionTickers = {};
+        const marketHashesLength = marketHashes.length;
+        let startIndex = 0;
+        while (startIndex < marketHashesLength) {
+            let endIndex = this.sum (startIndex, chunkSize);
+            if (endIndex > marketHashesLength) {
+                endIndex = marketHashesLength;
+            }
+            const chunk: string[] = [];
+            for (let i = startIndex; i < endIndex; i++) {
+                chunk.push (marketHashes[i]);
+            }
+            const request: Dict = { 'marketHashes': chunk.join (','), 'baseToken': usdcAddress };
+            const response = await this.sxbetPublicGetOrdersOddsBest (this.extend (request, params));
+            const responseData = this.safeDict (response, 'data', {});
+            const bestOddsList = this.safeList (responseData, 'bestOdds', []);
+            const bestOddsListLength = bestOddsList.length;
+            for (let i = 0; i < bestOddsListLength; i++) {
+                const raw = bestOddsList[i];
+                const marketHash = this.safeString (raw, 'marketHash');
+                if ((marketHash === undefined) || !(marketHash in outcomesByMarketHash)) {
+                    continue;
+                }
+                const grouped = outcomesByMarketHash[marketHash] as any[];
+                const groupedLength = grouped.length;
+                for (let j = 0; j < groupedLength; j++) {
+                    const ticker = this.parseSxbetTicker (raw, grouped[j]);
+                    const symbolKey = this.safeString (ticker, 'outcome');
+                    if (symbolKey !== undefined) {
+                        result[symbolKey] = ticker;
+                    }
+                }
+            }
+            startIndex = this.sum (startIndex, chunkSize);
+        }
+        return result;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#parseSxbetTicker
+     * @description parses one /orders/odds/best entry into a unified ticker for one side of the market
+     * @param {object} raw one bestOdds entry ({ marketHash, baseToken, outcomeOne: { percentageOdds, updatedAt }, outcomeTwo: {...} })
+     * @param {object} [market] the outcome object the ticker belongs to
+     * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
+     */
+    parseSxbetTicker (raw: Dict, market: Market = undefined): PredictionTicker {
+        const marketAny = market as any;
+        const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
+        const outcomeId = this.safeString (outcomeObj, 'outcomeId');
+        const marketHash = this.safeString (raw, 'marketHash');
+        const isOutcomeOne = (outcomeId === marketHash);
+        const outcomeOneOdds = this.safeDict (raw, 'outcomeOne', {});
+        const outcomeTwoOdds = this.safeDict (raw, 'outcomeTwo', {});
+        const ownOdds = isOutcomeOne ? outcomeOneOdds : outcomeTwoOdds;
+        const oppositeOdds = isOutcomeOne ? outcomeTwoOdds : outcomeOneOdds;
+        // percentageOdds is the maker's own implied probability * 1e20 (sx.bet protocol format);
+        // the opposite side's best resting maker mirrors into this outcome's ask via 1 - p
+        const oneDenom = '100000000000000000000';
+        const ownPercentage = this.safeString (ownOdds, 'percentageOdds');
+        const oppositePercentage = this.safeString (oppositeOdds, 'percentageOdds');
+        const bid = (ownPercentage !== undefined) ? this.parseNumber (Precise.stringDiv (ownPercentage, oneDenom)) : undefined;
+        const ask = (oppositePercentage !== undefined) ? this.parseNumber (Precise.stringSub ('1', Precise.stringDiv (oppositePercentage, oneDenom))) : undefined;
+        const updatedAt = this.safeInteger (ownOdds, 'updatedAt');
+        const now = this.milliseconds ();
+        const timestamp = (updatedAt !== undefined) ? updatedAt : now;
+        let average = undefined;
+        if ((bid !== undefined) && (ask !== undefined)) {
+            average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (this.numberToString (bid), this.numberToString (ask)), '2'));
+        }
+        return this.safePredictionTicker ({
+            'outcome': this.safeString (outcomeObj, 'outcome'),
+            'outcomeId': outcomeId,
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': undefined,
+            'low': undefined,
+            'bid': bid,
+            'bidVolume': undefined,
+            'ask': ask,
+            'askVolume': undefined,
+            'open': undefined,
+            'close': bid,
+            'last': bid,
+            'change': undefined,
+            'percentage': undefined,
+            'average': average,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'info': raw,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name sxbet#fetchOrderBook
+     * @description fetches the resting maker order book for a single sx.bet outcome. bids are maker orders already betting on this outcome (priced at each maker's own implied probability, sized by their remaining stake); asks mirror the opposite outcome's maker orders (price = 1 - their implied probability, sized by how much a taker could bet against them, per sx.bet's remaining-taker-space formula) — the same YES/NO-style mirrored construction used across this codebase's other binary prediction venues
+     * @see https://docs.sx.bet/api-reference/get-orders
+     * @param {string} outcome unified outcome handle or outcomeId
+     * @param {int} [limit] the maximum number of bids/asks to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
+     */
+    async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+        await this.loadOutcome (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const marketHash = this.safeString (outcomeObj['info'], 'marketHash');
+        const outcomeId = this.safeString (outcomeObj, 'outcomeId');
+        const isOutcomeOne = (outcomeId === marketHash);
+        const usdcAddress = await this.loadUsdcAddress ();
+        const request: Dict = { 'marketHashes': marketHash };
+        const response = await this.sxbetPublicGetOrders (this.extend (request, params));
+        const rawOrders = this.safeList (response, 'data', []);
+        const oneDenom = '100000000000000000000';
+        const usdcDecimals = '1000000'; // sx.bet USDC has 6 decimals (confirmed via /metadata makerOrderMinimums)
+        const bids: any[] = [];
+        const asks: any[] = [];
+        const rawOrdersLength = rawOrders.length;
+        for (let i = 0; i < rawOrdersLength; i++) {
+            const order = rawOrders[i];
+            if (this.safeString (order, 'orderStatus') !== 'ACTIVE') {
+                continue;
+            }
+            if (this.safeStringLower (order, 'baseToken') !== usdcAddress.toLowerCase ()) {
+                continue;
+            }
+            const totalBetSize = this.safeString (order, 'totalBetSize');
+            const fillAmount = this.safeString (order, 'fillAmount', '0');
+            const pendingFillAmount = this.safeString (order, 'pendingFillAmount', '0');
+            const remainingMaker = Precise.stringSub (Precise.stringSub (totalBetSize, fillAmount), pendingFillAmount);
+            if (Precise.stringLe (remainingMaker, '0')) {
+                continue;
+            }
+            const percentageOdds = this.safeString (order, 'percentageOdds');
+            const makerBettingOne = this.safeBool (order, 'isMakerBettingOutcomeOne');
+            if (makerBettingOne === isOutcomeOne) {
+                const price = this.parseNumber (Precise.stringDiv (percentageOdds, oneDenom));
+                const amount = this.parseNumber (Precise.stringDiv (remainingMaker, usdcDecimals, 6));
+                bids.push ([ price, amount ]);
+            } else {
+                // remainingTakerSpace = remainingMaker * (1e20 / percentageOdds) - remainingMaker,
+                // per sx.bet's documented remaining-taker-space formula
+                const price = this.parseNumber (Precise.stringSub ('1', Precise.stringDiv (percentageOdds, oneDenom)));
+                const ratio = Precise.stringDiv (oneDenom, percentageOdds, 12);
+                const remainingTaker = Precise.stringSub (Precise.stringMul (remainingMaker, ratio), remainingMaker);
+                const amount = this.parseNumber (Precise.stringDiv (remainingTaker, usdcDecimals, 6));
+                asks.push ([ price, amount ]);
+            }
+        }
+        let sortedBids = this.sortBy (bids, 0, true);
+        let sortedAsks = this.sortBy (asks, 0);
+        if (limit !== undefined) {
+            const bidsLength = sortedBids.length;
+            let bidsEnd = limit;
+            if (bidsEnd > bidsLength) {
+                bidsEnd = bidsLength;
+            }
+            sortedBids = this.arraySlice (sortedBids, 0, bidsEnd);
+            const asksLength = sortedAsks.length;
+            let asksEnd = limit;
+            if (asksEnd > asksLength) {
+                asksEnd = asksLength;
+            }
+            sortedAsks = this.arraySlice (sortedAsks, 0, asksEnd);
+        }
+        const timestamp = this.milliseconds ();
+        return this.safePredictionOrderBook ({
+            'outcome': this.safeString (outcomeObj, 'outcome', outcome),
+            'bids': sortedBids,
+            'asks': sortedAsks,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'nonce': undefined,
+        } as unknown as PredictionOrderBook, outcomeObj);
     }
 
     /**
