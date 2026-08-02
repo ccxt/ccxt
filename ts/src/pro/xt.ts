@@ -2,9 +2,9 @@
 
 import xtRest from '../xt.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import { Balances, Bool, Dict, FundingRate, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
-import { NotSupported } from '../base/errors.js';
+import { BadSymbol, NotSupported } from '../base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -28,6 +28,8 @@ export default class xt extends xtRest {
                 'watchOrders': true,
                 'watchMyTrades': true,
                 'watchPositions': true,
+                'watchFundingRate': true,
+                'unWatchFundingRate': true,
             },
             'urls': {
                 'api': {
@@ -481,7 +483,7 @@ export default class xt extends xtRest {
      * @param {int} [limit] not used by xt watchOrderBook
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.levels] 5, 10, 20, or 50
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
@@ -630,6 +632,81 @@ export default class xt extends xtRest {
             return newPositions;
         }
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name xt#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://doc.xt.com/#futures_market_websocket_v2fundRate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+     */
+    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' watchFundingRate() supports swap contracts only');
+        }
+        const name = 'fund_rate@' + market['id'];
+        return await this.subscribe (name, 'public', 'watchFundingRate', market, undefined, params);
+    }
+
+    /**
+     * @method
+     * @name xt#unWatchFundingRate
+     * @description stops watching the funding rate
+     * @see https://doc.xt.com/#futures_market_websocket_v2fundRate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+     */
+    async unWatchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' unWatchFundingRate() supports swap contracts only');
+        }
+        const name = 'fund_rate@' + market['id'];
+        const messageHash = 'unsubscribe::' + name;
+        return await this.unSubscribe (messageHash, name, 'public', 'unWatchFundingRate', 'fund_rate', market, undefined, params);
+    }
+
+    handleFundingRate (client: Client, message: Dict) {
+        //
+        //     {
+        //         "topic": "fund_rate",
+        //         "event": "fund_rate@btc_usdt",
+        //         "data": {
+        //             "s": "btc_usdt",  // symbol
+        //             "r": "0.01",      // funding rate
+        //             "t": 123124124    // timestamp
+        //         }
+        //     }
+        //
+        const data = this.safeDict (message, 'data');
+        const marketId = this.safeString (data, 's');
+        if (marketId !== undefined) {
+            const raw: Dict = {
+                'symbol': marketId,
+                'fundingRate': this.safeString (data, 'r'),
+            };
+            const fundingRate = this.parseFundingRate (raw);
+            const timestamp = this.safeInteger (data, 't');
+            fundingRate['timestamp'] = timestamp;
+            fundingRate['datetime'] = this.iso8601 (timestamp);
+            const symbol = fundingRate['symbol'];
+            this.fundingRates[symbol] = fundingRate;
+            const event = this.safeString (message, 'event');
+            const messageHash = event + '::contract';
+            client.resolve (fundingRate, messageHash);
+        }
+        return message;
     }
 
     setPositionsCache (client: Client) {
@@ -943,7 +1020,7 @@ export default class xt extends xtRest {
             const symbol = market['symbol'];
             const parsed = this.parseOHLCV (data, market);
             this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
@@ -1366,9 +1443,7 @@ export default class xt extends xtRest {
         account['free'] = this.safeString (data, 'availableBalance');
         account['used'] = this.safeString (data, 'f');
         account['total'] = this.safeString2 (data, 'b', 'walletBalance');
-        if (code !== undefined) {
-            this.balance[code] = account;
-        }
+        this.balance[code] = account;
         this.balance = this.safeBalance (this.balance);
         const tradeType = ('coin' in data) ? 'contract' : 'spot';
         client.resolve (this.balance, 'balance::' + tradeType);
@@ -1444,6 +1519,7 @@ export default class xt extends xtRest {
                 'balance': this.handleBalance,
                 'order': this.handleOrder,
                 'position': this.handlePosition,
+                'fund_rate': this.handleFundingRate,
             };
             let method = (topic === undefined) ? undefined : this.safeValue (methods, topic);
             if (topic === 'trade') {
