@@ -616,9 +616,9 @@ public partial class nado
         var res = await this.cancelAllOrdersWs(symbol, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public async Task<Dictionary<string, object>> WatchExecuteRequest(string requestId, object request)
+    public async Task<Dictionary<string, object>> WatchExecuteRequest(string requestIdString, object request)
     {
-        var res = await this.watchExecuteRequest(requestId, request);
+        var res = await this.watchExecuteRequest(requestIdString, request);
         return ((Dictionary<string, object>)res);
     }
     public async Task<Dictionary<string, object>> WatchPublicMultiple(object streamType, object markets, List<string> messageHashes, Dictionary<string, object> parameters = null, object subscriptionParams = null)

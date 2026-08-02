@@ -284,7 +284,7 @@ public partial class hibachi : Exchange
         object settle = this.safeCurrencyCode(settleId);
         object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
         object created = this.safeIntegerProduct(market, "marketCreationTimestamp", 1000);
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "numericId", numericId },
             { "symbol", symbol },
@@ -333,7 +333,7 @@ public partial class hibachi : Exchange
             } },
             { "created", created },
             { "info", market },
-        };
+        });
     }
 
     /**
@@ -403,29 +403,32 @@ public partial class hibachi : Exchange
             { "info", new Dictionary<string, object>() {} },
         };
         object code = this.safeCurrencyCode("USDT");
-        ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-            { "id", "USDT" },
-            { "name", "USDT" },
-            { "type", "fiat" },
-            { "code", code },
-            { "precision", this.parseNumber("0.000001") },
-            { "active", true },
-            { "fee", null },
-            { "networks", networks },
-            { "deposit", true },
-            { "withdraw", true },
-            { "limits", new Dictionary<string, object>() {
-                { "deposit", new Dictionary<string, object>() {
-                    { "min", null },
-                    { "max", null },
+        if (isTrue(!isEqual(code, null)))
+        {
+            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                { "id", "USDT" },
+                { "name", "USDT" },
+                { "type", "fiat" },
+                { "code", code },
+                { "precision", this.parseNumber("0.000001") },
+                { "active", true },
+                { "fee", null },
+                { "networks", networks },
+                { "deposit", true },
+                { "withdraw", true },
+                { "limits", new Dictionary<string, object>() {
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
                 } },
-                { "withdraw", new Dictionary<string, object>() {
-                    { "min", null },
-                    { "max", null },
-                } },
-            } },
-            { "info", new Dictionary<string, object>() {} },
-        });
+                { "info", new Dictionary<string, object>() {} },
+            });
+        }
         return result;
     }
 
@@ -439,7 +442,10 @@ public partial class hibachi : Exchange
         object account = this.account();
         ((IDictionary<string,object>)account)["total"] = this.safeString(response, "balance");
         ((IDictionary<string,object>)account)["free"] = this.safeString(response, "maximalWithdraw");
-        ((IDictionary<string,object>)result)[(string)code] = account;
+        if (isTrue(!isEqual(code, null)))
+        {
+            ((IDictionary<string,object>)result)[(string)code] = account;
+        }
         return this.safeBalance(result);
     }
 
@@ -625,7 +631,12 @@ public partial class hibachi : Exchange
         // }
         //
         object trades = this.safeList(response, "trades", new List<object>() {});
-        return this.parseTrades(trades, market);
+        object tradesList = new List<object>() {};
+        if (isTrue(!isEqual(trades, null)))
+        {
+            tradesList = trades;
+        }
+        return this.parseTrades(tradesList, market);
     }
 
     /**
@@ -829,9 +840,10 @@ public partial class hibachi : Exchange
         object makerFeeRate = this.safeNumber(response, "tradeMakerFeeRate");
         object takerFeeRate = this.safeNumber(response, "tradeTakerFeeRate");
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -845,6 +857,14 @@ public partial class hibachi : Exchange
 
     public virtual object orderMessage(object market, object nonce, object feeRate, object type, object side, object amount, object price = null)
     {
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object sideInternal = 0;
         if (isTrue(isEqual(side, "sell")))
         {
@@ -900,8 +920,20 @@ public partial class hibachi : Exchange
     public virtual object createOrderRequest(object nonce, object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
-        object feeRate = mathMax(this.safeNumber(market, "taker", this.safeNumber(this.options, "defaultTakerFee", 0.00045)), this.safeNumber(market, "maker", this.safeNumber(this.options, "defaultMakerFee", 0.00015)));
+        object takerFee = this.safeNumber(market, "taker", this.safeNumber(this.options, "defaultTakerFee", 0.00045));
+        object makerFee = this.safeNumber(market, "maker", this.safeNumber(this.options, "defaultMakerFee", 0.00015));
+        object takerFeeValue = ((bool) isTrue((isEqual(takerFee, null)))) ? 0 : takerFee;
+        object makerFeeValue = ((bool) isTrue((isEqual(makerFee, null)))) ? 0 : makerFee;
+        object feeRate = mathMax(takerFeeValue, makerFeeValue);
         object sideInternal = "";
         if (isTrue(isEqual(side, "sell")))
         {
@@ -1040,8 +1072,20 @@ public partial class hibachi : Exchange
     public virtual object editOrderRequest(object nonce, object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
-        object feeRate = mathMax(this.safeNumber(market, "taker"), this.safeNumber(market, "maker"));
+        object takerFee = this.safeNumber(market, "taker", 0);
+        object makerFee = this.safeNumber(market, "maker", 0);
+        object takerFeeValue = ((bool) isTrue((isEqual(takerFee, null)))) ? 0 : takerFee;
+        object makerFeeValue = ((bool) isTrue((isEqual(makerFee, null)))) ? 0 : makerFee;
+        object feeRate = mathMax(takerFeeValue, makerFeeValue);
         object message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         object signature = this.signMessage(message, this.privateKey);
         object request = new Dictionary<string, object>() {
@@ -1507,7 +1551,12 @@ public partial class hibachi : Exchange
         // }
         //
         object trades = this.safeList(response, "trades");
-        return this.parseTrades(trades, market, since, limit, parameters);
+        object tradesList = new List<object>() {};
+        if (isTrue(!isEqual(trades, null)))
+        {
+            tradesList = trades;
+        }
+        return this.parseTrades(tradesList, market, since, limit, parameters);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1949,7 +1998,7 @@ public partial class hibachi : Exchange
             { "transfer-in", "transfer" },
             { "transfer-out", "transfer" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public virtual object parseTransactionStatus(object status)
@@ -2108,7 +2157,7 @@ public partial class hibachi : Exchange
         //     ]
         // }
         //
-        object rowsCapitalHistory = this.safeList(responseCapitalHistory, "transactions");
+        object rowsCapitalHistory = this.safeList(responseCapitalHistory, "transactions", new List<object>() {});
         object responseTradingHistory = getValue(promises, 1);
         //
         // {
@@ -2136,7 +2185,7 @@ public partial class hibachi : Exchange
         //     ]
         // }
         //
-        object rowsTradingHistory = this.safeList(responseTradingHistory, "tradingHistory");
+        object rowsTradingHistory = this.safeList(responseTradingHistory, "tradingHistory", new List<object>() {});
         object rows = this.arrayConcat(rowsCapitalHistory, rowsTradingHistory);
         return this.parseLedger(rows, currency, since, limit, parameters);
     }

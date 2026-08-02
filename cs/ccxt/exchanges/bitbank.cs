@@ -309,7 +309,7 @@ public partial class bitbank : Exchange
         object quoteId = this.safeString(entry, "quote_asset");
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", add(add(bs, "/"), quote) },
             { "base", bs },
@@ -359,7 +359,7 @@ public partial class bitbank : Exchange
             } },
             { "created", null },
             { "info", entry },
-        };
+        });
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -678,7 +678,10 @@ public partial class bitbank : Exchange
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "free_amount");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked_amount");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "onhand_amount");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -839,7 +842,7 @@ public partial class bitbank : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "order_id", id },
             { "pair", getValue(market, "id") },
@@ -889,7 +892,7 @@ public partial class bitbank : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "order_id", id },
             { "pair", getValue(market, "id") },
@@ -939,7 +942,7 @@ public partial class bitbank : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
@@ -1255,7 +1258,7 @@ public partial class bitbank : Exchange
                 { "70010", "We are temporarily raising the minimum order quantity as the system load is now rising." },
             };
             object code = this.safeString(data, "code");
-            object message = this.safeString(errorMessages, ((string)code), "Error");
+            object message = this.safeString(errorMessages, code, "Error");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, message);
             throw new ExchangeError ((string)add(add(this.id, " "), this.json(response))) ;
         }

@@ -1541,7 +1541,10 @@ public partial class grvt : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
             ((IDictionary<string,object>)account)["free"] = availableBalance; // todo: revise after API team clarification
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -3484,6 +3487,10 @@ public partial class grvt : Exchange
         {
             object amountMultiplier = this.convertToBigIntCustom("1000000");
             object amountInt = multiply(getValue(request, "num_tokens"), amountMultiplier);
+            if (isTrue(isEqual(currencyObj, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " createSignedRequest() missing currencyObj")) ;
+            }
             messageData = new Dictionary<string, object>() {
                 { "fromAccount", getValue(request, "from_account_id") },
                 { "fromSubAccount", getValue(request, "from_sub_account_id") },
@@ -3497,6 +3504,10 @@ public partial class grvt : Exchange
         } else if (isTrue(isEqual(structureType, "EIP712_WITHDRAWAL_TYPE")))
         {
             object amountMultiplier = this.convertToBigIntCustom("1000000");
+            if (isTrue(isEqual(currencyObj, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " createSignedRequest() missing currencyObj")) ;
+            }
             messageData = new Dictionary<string, object>() {
                 { "fromAccount", getValue(request, "from_account_id") },
                 { "toEthAddress", getValue(request, "to_eth_address") },

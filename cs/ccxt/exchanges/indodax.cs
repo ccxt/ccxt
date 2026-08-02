@@ -432,7 +432,10 @@ public partial class indodax : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(free, currencyId);
             ((IDictionary<string,object>)account)["used"] = this.safeString(used, currencyId);
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1504,27 +1507,46 @@ public partial class indodax : Exchange
                 if (isTrue(inOp(networks, marketId)))
                 {
                     object networkId = this.safeString(networks, marketId);
+                    if (isTrue(isEqual(networkId, null)))
+                    {
+                        throw new ExchangeError ((string)add(this.id, " fetchDepositAddresses() missing networkId")) ;
+                    }
                     if (isTrue(isGreaterThanOrEqual(getIndexOf(networkId, ","), 0)))
                     {
                         network = new List<object>() {};
+                        if (isTrue(isEqual(networkId, null)))
+                        {
+                            throw new ExchangeError ((string)add(this.id, " fetchDepositAddresses() missing networkId")) ;
+                        }
                         object networkIds = ((string)networkId).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
                         for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
                         {
-                            ((IList<object>)network).Add(((string)this.networkIdToCode(getValue(networkIds, j), code)).ToUpper());
+                            object _netIdTmp = this.networkIdToCode(getValue(networkIds, j), code);
+                            if (isTrue(!isEqual(_netIdTmp, null)))
+                            {
+                                ((IList<object>)network).Add(((string)_netIdTmp).ToUpper());
+                            }
                         }
                     } else
                     {
-                        network = ((string)this.networkIdToCode(networkId, code)).ToUpper();
+                        object _netIdTmp = this.networkIdToCode(networkId, code);
+                        if (isTrue(!isEqual(_netIdTmp, null)))
+                        {
+                            network = ((string)_netIdTmp).ToUpper();
+                        }
                     }
                 }
                 object finalNetwork = network; // java req
-                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                    { "info", new Dictionary<string, object>() {} },
-                    { "currency", code },
-                    { "network", finalNetwork },
-                    { "address", address },
-                    { "tag", null },
-                };
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                        { "info", new Dictionary<string, object>() {} },
+                        { "currency", code },
+                        { "network", finalNetwork },
+                        { "address", address },
+                        { "tag", null },
+                    };
+                }
             }
         }
         return result;

@@ -304,7 +304,7 @@ public partial class btcbox : Exchange
         object quoteId = this.safeString(market, "quote");
         object quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", this.safeString(market, "symbol") },
             { "uppercaseId", null },
             { "symbol", symbol },
@@ -353,7 +353,7 @@ public partial class btcbox : Exchange
             { "active", null },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     public override object parseBalance(object response)
@@ -418,7 +418,7 @@ public partial class btcbox : Exchange
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        object numSymbols = ((bool) isTrue((isEqual(this.symbols, null)))) ? 0 : getArrayLength(this.symbols);
+        object numSymbols = getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
@@ -473,7 +473,7 @@ public partial class btcbox : Exchange
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        object numSymbols = ((bool) isTrue((isEqual(this.symbols, null)))) ? 0 : getArrayLength(this.symbols);
+        object numSymbols = getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
@@ -558,7 +558,7 @@ public partial class btcbox : Exchange
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        object numSymbols = ((bool) isTrue((isEqual(this.symbols, null)))) ? 0 : getArrayLength(this.symbols);
+        object numSymbols = getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");

@@ -1055,7 +1055,7 @@ public partial class xt : ccxt.xt
             object symbol = getValue(market, "symbol");
             object parsed = this.parseOHLCV(data, market);
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+            object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1498,7 +1498,10 @@ public partial class xt : ccxt.xt
         ((IDictionary<string,object>)account)["free"] = this.safeString(data, "availableBalance");
         ((IDictionary<string,object>)account)["used"] = this.safeString(data, "f");
         ((IDictionary<string,object>)account)["total"] = this.safeString2(data, "b", "walletBalance");
-        ((IDictionary<string,object>)this.balance)[(string)code] = account;
+        if (isTrue(!isEqual(code, null)))
+        {
+            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+        }
         this.balance = this.safeBalance(this.balance);
         object tradeType = ((bool) isTrue((inOp(data, "coin")))) ? "contract" : "spot";
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, add("balance::", tradeType)});

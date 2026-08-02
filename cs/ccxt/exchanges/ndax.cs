@@ -460,9 +460,9 @@ public partial class ndax : Exchange
                 throw new AuthenticationError ((string)add(this.id, " signIn() requires exchange.twofa credentials")) ;
             }
             ((IDictionary<string,object>)this.options)["pending2faToken"] = pending2faToken;
-            request = ((object)new Dictionary<string, object>() {
+            request = new Dictionary<string, object>() {
                 { "Code", totp(this.twofa) },
-            });
+            };
             object responseInner = await this.publicGetAuthenticate2FA(this.extend(request, parameters));
             //
             //     {
@@ -629,7 +629,7 @@ public partial class ndax : Exchange
         object sessionStatus = this.safeString(market, "SessionStatus");
         object isDisable = this.safeValue(market, "IsDisable");
         object sessionRunning = (isEqual(sessionStatus, "Running"));
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", add(add(bs, "/"), quote) },
             { "base", bs },
@@ -677,7 +677,7 @@ public partial class ndax : Exchange
             } },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     public override object parseOrderBook(object orderbook, object symbol, object timestamp = null, object bidsKey = null, object asksKey = null, object priceKey = null, object amountKey = null, object countOrIdKey = null)
@@ -1301,13 +1301,16 @@ public partial class ndax : Exchange
         {
             object balance = getValue(response, i);
             object currencyId = this.safeString(balance, "ProductId");
-            if (isTrue(isTrue((!isEqual(currencyId, null))) && isTrue((inOp(this.currencies_by_id, currencyId)))))
+            if (isTrue(isTrue(isTrue((!isEqual(currencyId, null))) && isTrue((!isEqual(this.currencies_by_id, null)))) && isTrue((inOp(this.currencies_by_id, currencyId)))))
             {
                 object code = this.safeCurrencyCode(currencyId);
                 object account = this.account();
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "Amount");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "Hold");
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -1393,7 +1396,7 @@ public partial class ndax : Exchange
             { "MarginRelinquish", "trade" },
             { "MarginQuoteHold", "trade" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -1684,7 +1687,12 @@ public partial class ndax : Exchange
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (isTrue(!isEqual(price, null)))
         {
-            ((IDictionary<string,object>)request)["LimitPrice"] = parseFloat(this.priceToPrecision(symbol, price));
+            object limitPriceString = this.priceToPrecision(symbol, price);
+            if (isTrue(isEqual(limitPriceString, null)))
+            {
+                limitPriceString = "0";
+            }
+            ((IDictionary<string,object>)request)["LimitPrice"] = parseFloat(limitPriceString);
         }
         if (isTrue(!isEqual(clientOrderId, null)))
         {
@@ -1748,7 +1756,12 @@ public partial class ndax : Exchange
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (isTrue(!isEqual(price, null)))
         {
-            ((IDictionary<string,object>)request)["LimitPrice"] = parseFloat(this.priceToPrecision(symbol, price));
+            object limitPriceString = this.priceToPrecision(symbol, price);
+            if (isTrue(isEqual(limitPriceString, null)))
+            {
+                limitPriceString = "0";
+            }
+            ((IDictionary<string,object>)request)["LimitPrice"] = parseFloat(limitPriceString);
         }
         if (isTrue(!isEqual(clientOrderId, null)))
         {

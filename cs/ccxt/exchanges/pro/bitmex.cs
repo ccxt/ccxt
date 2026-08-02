@@ -793,7 +793,7 @@ public partial class bitmex : ccxt.bitmex
         await this.authenticate();
         object subscriptionHash = "position";
         object messageHash = "positions";
-        if (!isTrue(this.isEmpty((IList<string>)(symbols))))
+        if (!isTrue(this.isEmpty(symbols)))
         {
             messageHash = add("::", String.Join(",", ((IList<object>)(IList<string>)(symbols)).ToArray()));
         }
@@ -1219,7 +1219,7 @@ public partial class bitmex : ccxt.bitmex
             {
                 object currentOrder = getValue(data, i);
                 object orderId = this.safeString(currentOrder, "orderID");
-                object previousOrder = this.safeValue((stored as ArrayCache).hashmap, ((string)orderId));
+                object previousOrder = this.safeValue((stored as ArrayCache).hashmap, orderId);
                 object rawOrder = currentOrder;
                 if (isTrue(!isEqual(previousOrder, null)))
                 {
@@ -1591,7 +1591,7 @@ public partial class bitmex : ccxt.bitmex
         object table = this.safeString(message, "table");
         object interval = ((string)((string)table)).Replace((string)"tradeBin", (string)"");
         object timeframe = this.findTimeframe(interval);
-        object duration = this.parseTimeframe(((string)timeframe));
+        object duration = this.parseTimeframe(timeframe);
         object candles = this.safeValue(message, "data", new List<object>() {});
         object results = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(candles)); postFixIncrement(ref i))
@@ -1603,7 +1603,7 @@ public partial class bitmex : ccxt.bitmex
             object messageHash = add(add(table, ":"), getValue(market, "id"));
             object result = new List<object>() {subtract(this.parseToInt(this.parse8601(this.safeString(candle, "timestamp"))), multiply(duration, 1000)), null, this.safeFloat(candle, "high"), this.safeFloat(candle, "low"), this.safeFloat(candle, "close"), this.safeFloat(candle, "volume")};
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
+            object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1900,7 +1900,7 @@ public partial class bitmex : ccxt.bitmex
                 { "liquidation", this.handleLiquidation },
                 { "position", this.handlePositions },
             };
-            object method = this.safeValue(methods, ((string)table));
+            object method = this.safeValue(methods, table);
             if (isTrue(isEqual(method, null)))
             {
                 object request = this.safeValue(message, "request", new Dictionary<string, object>() {});

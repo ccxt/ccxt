@@ -176,7 +176,7 @@ public partial class lighter : ccxt.lighter
         // }
         //
         object data = this.safeDict(message, "order_book", new Dictionary<string, object>() {});
-        object channel = ((string)this.safeString(message, "channel", ""));
+        object channel = this.safeString(message, "channel", "");
         object parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object marketId = getValue(parts, 1);
         object market = this.safeMarket(marketId);
@@ -405,7 +405,7 @@ public partial class lighter : ccxt.lighter
         {
             symbolsLength = getArrayLength(symbols);
         }
-        if (isTrue(isEqual(symbolsLength, 0)))
+        if (isTrue(isTrue((isEqual(symbols, null))) || isTrue((isEqual(symbolsLength, 0)))))
         {
             ((IList<object>)messageHashes).Add(this.getMessageHash("ticker"));
         } else
@@ -607,7 +607,7 @@ public partial class lighter : ccxt.lighter
             this.handleLiquidation(client as WebSocketClient, message);
         }
         object data = this.safeList(message, "trades", new List<object>() {});
-        object channel = ((string)this.safeString(message, "channel", ""));
+        object channel = this.safeString(message, "channel", "");
         object parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object marketId = getValue(parts, 1);
         object market = this.safeMarket(marketId);
@@ -808,7 +808,7 @@ public partial class lighter : ccxt.lighter
         //         "type": "update/account_all_trades"
         //     }
         //
-        object channel = ((string)this.safeString(message, "channel", ""));
+        object channel = this.safeString(message, "channel", "");
         object parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object accountIndex = getValue(parts, 1);
         object data = this.safeDict(message, "trades", new Dictionary<string, object>() {});
@@ -958,6 +958,10 @@ public partial class lighter : ccxt.lighter
         object price = this.safeString(liquidation, "price");
         object baseValue = Precise.stringMul(contracts, contractSize);
         object quoteValue = Precise.stringMul(baseValue, price);
+        if (isTrue(isEqual(market, null)))
+        {
+            return null;
+        }
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
             { "symbol", getValue(market, "symbol") },
@@ -1011,7 +1015,7 @@ public partial class lighter : ccxt.lighter
         //     }
         //
         object data = this.safeList(message, "liquidation_trades", new List<object>() {});
-        object channel = ((string)this.safeString(message, "channel", ""));
+        object channel = this.safeString(message, "channel", "");
         object parts = ((string)channel).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object marketId = getValue(parts, 1);
         object market = this.safeMarket(marketId);
@@ -1154,7 +1158,7 @@ public partial class lighter : ccxt.lighter
         //        "type": "update/user_stats"
         //    }
         //
-        object channel = ((string)this.safeString(message, "channel", ""));
+        object channel = this.safeString(message, "channel", "");
         object type = "spot";
         if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "user_stats:"), 0)))
         {
@@ -1174,7 +1178,10 @@ public partial class lighter : ccxt.lighter
                 object account = this.account();
                 ((IDictionary<string,object>)account)["used"] = this.safeString(asset, "locked_balance");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(asset, "balance");
-                ((IDictionary<string,object>)balance)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)balance)[(string)code] = account;
+                }
             }
         } else
         {
@@ -1367,7 +1374,7 @@ public partial class lighter : ccxt.lighter
             this.handlePing(client as WebSocketClient, message);
             return;
         }
-        object channel = ((string)this.safeString(message, "channel", ""));
+        object channel = this.safeString(message, "channel", "");
         if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "order_book:"), 0)))
         {
             this.handleOrderBook(client as WebSocketClient, message);

@@ -248,7 +248,8 @@ public partial class bithumb : Exchange
 
     public override object amountToPrecision(object symbol, object amount)
     {
-        return this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(getValue(this.markets, symbol), "precision"), "amount"), DECIMAL_PLACES);
+        object market = this.market(symbol);
+        return this.decimalToPrecision(amount, TRUNCATE, getValue(getValue(market, "precision"), "amount"), DECIMAL_PLACES);
     }
 
     /**
@@ -848,7 +849,7 @@ public partial class bithumb : Exchange
             ((IDictionary<string,object>)request)["type"] = ((bool) isTrue((isEqual(side, "buy")))) ? "bid" : "ask";
         } else
         {
-            method = add("privatePostTradeMarket", this.capitalize(((string)side)));
+            method = add("privatePostTradeMarket", this.capitalize(side));
         }
         object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         object id = this.safeString(response, "order_id");

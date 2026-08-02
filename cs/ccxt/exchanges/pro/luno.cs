@@ -130,12 +130,13 @@ public partial class luno : ccxt.luno
         //       "order_id": "BXEEU4S2BWF5WRB"
         //     }
         //
+        object symbol = ((bool) isTrue((isEqual(market, null)))) ? null : getValue(market, "symbol");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", null },
             { "timestamp", null },
             { "datetime", null },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", symbol },
             { "order", null },
             { "type", null },
             { "side", null },

@@ -630,6 +630,10 @@ public partial class blockchaincom : Exchange
         object uppercaseOrderType = ((string)orderType).ToUpper();
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
         parameters = this.omit(parameters, new List<object>() {"ordType", "clientOrderId", "clOrdId"});
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "ordType", uppercaseOrderType },
             { "symbol", getValue(market, "id") },
@@ -760,9 +764,10 @@ public partial class blockchaincom : Exchange
         object makerFee = this.safeNumber(response, "makerRate");
         object takerFee = this.safeNumber(response, "takerRate");
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -1232,7 +1237,7 @@ public partial class blockchaincom : Exchange
         {
             await this.loadMarkets();
         }
-        object accountName = ((string)this.safeString(parameters, "account", "primary"));
+        object accountName = this.safeString(parameters, "account", "primary");
         parameters = this.omit(parameters, "account");
         object request = new Dictionary<string, object>() {
             { "account", accountName },

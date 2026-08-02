@@ -105,8 +105,11 @@ public partial class alpaca : ccxt.alpaca
         object ticker = this.parseTicker(message);
         object symbol = getValue(ticker, "symbol");
         object messageHash = add("ticker:", symbol);
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.tickers, symbol), messageHash});
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -585,6 +588,10 @@ public partial class alpaca : ccxt.alpaca
             myTrades = new ArrayCacheBySymbolById(limit);
         }
         object trade = this.parseMyTrade(rawOrder);
+        if (isTrue(isEqual(trade, null)))
+        {
+            return;
+        }
         callDynamically(myTrades, "append", new object[] {trade});
         object messageHash = add("myTrades:", getValue(trade, "symbol"));
         callDynamically(client as WebSocketClient, "resolve", new object[] {myTrades, messageHash});
@@ -634,6 +641,10 @@ public partial class alpaca : ccxt.alpaca
         object marketId = this.safeString(trade, "symbol");
         object datetime = this.safeString(trade, "filled_at");
         object type = this.safeString(trade, "type");
+        if (isTrue(isEqual(type, null)))
+        {
+            return null;
+        }
         if (isTrue(isGreaterThanOrEqual(getIndexOf(type, "limit"), 0)))
         {
             // might be limit or stop-limit

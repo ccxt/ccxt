@@ -1532,7 +1532,10 @@ public partial class extended : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "availableToWithdraw");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2606,7 +2609,7 @@ public partial class extended : Exchange
         roundUp ??= false;
         object resolutionString = this.numberToString(resolution);
         object precise = Precise.stringMul(amount, resolutionString);
-        object result = this.decimalToPrecision(((string)precise), TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
+        object result = this.decimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
         if (isTrue(isTrue(roundUp) && isTrue(Precise.stringGt(precise, result))))
         {
             result = ((string)Precise.stringAdd(result, "1"));
@@ -2748,6 +2751,14 @@ public partial class extended : Exchange
     public async virtual Task<object> createExtendedOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         await this.loadMarkets();
         object market = this.market(symbol);
         object uppercaseType = ((string)type).ToUpper();

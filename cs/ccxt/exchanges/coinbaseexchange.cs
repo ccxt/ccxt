@@ -402,24 +402,27 @@ public partial class coinbaseexchange : Exchange
             object network = getValue(supportedNetworks, j);
             object networkId = this.safeString(network, "id");
             object networkCode = this.networkIdToCode(networkId, code);
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "name", this.safeString(network, "name") },
-                { "network", networkCode },
-                { "active", isEqual(this.safeString(network, "status"), "online") },
-                { "withdraw", null },
-                { "deposit", null },
-                { "fee", null },
-                { "precision", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(network, "min_withdrawal_amount") },
-                        { "max", this.safeNumber(network, "max_withdrawal_amount") },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "name", this.safeString(network, "name") },
+                    { "network", networkCode },
+                    { "active", isEqual(this.safeString(network, "status"), "online") },
+                    { "withdraw", null },
+                    { "deposit", null },
+                    { "fee", null },
+                    { "precision", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(network, "min_withdrawal_amount") },
+                            { "max", this.safeNumber(network, "max_withdrawal_amount") },
+                        } },
                     } },
-                } },
-                { "contract", this.safeString(network, "contract_address") },
-                { "info", network },
-            };
+                    { "contract", this.safeString(network, "contract_address") },
+                    { "info", network },
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -647,7 +650,10 @@ public partial class coinbaseexchange : Exchange
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "hold");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1716,7 +1722,7 @@ public partial class coinbaseexchange : Exchange
             { "rebate", "rebate" },
             { "conversion", "trade" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -1935,7 +1941,7 @@ public partial class coinbaseexchange : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 object account_id = this.safeString(getValue(response, i), "account_id");
-                object account = this.safeValue(this.accountsById, ((string)account_id));
+                object account = this.safeValue(this.accountsById, account_id);
                 object codeInner = this.safeString(account, "code");
                 ((IDictionary<string,object>)getValue(response, i))["currency"] = codeInner;
             }

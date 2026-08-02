@@ -471,7 +471,7 @@ public partial class hyperliquid : PredictionExchange
             object market = this.parseOutcomeMarket(outcomeInfo, outcomeId, linkedQuestion);
             ((IList<object>)markets).Add(market);
             // Build outcomes dictionary from market outcomes
-            object marketOutcomes = this.safeList(((object)market), "outcomes", new List<object>() {});
+            object marketOutcomes = this.safeList(market, "outcomes", new List<object>() {});
             for (object oi = 0; isLessThan(oi, getArrayLength(marketOutcomes)); postFixIncrement(ref oi))
             {
                 object outcome = this.safeDict(marketOutcomes, oi, new Dictionary<string, object>() {});
@@ -822,7 +822,7 @@ public partial class hyperliquid : PredictionExchange
         // day volume lives on the parent market's ctx; resolve it from the outcome's parent market
         object parentSymbol = this.safeString(mkt, "market");
         object parentMarket = ((bool) isTrue((!isEqual(parentSymbol, null)))) ? this.safeMarket(parentSymbol) : null;
-        object ctx = ((bool) isTrue((!isEqual(parentMarket, null)))) ? this.safeDict(this.safeDict(((object)parentMarket), "info", new Dictionary<string, object>() {}), "ctx", new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
+        object ctx = ((bool) isTrue((!isEqual(parentMarket, null)))) ? this.safeDict(this.safeDict(parentMarket, "info", new Dictionary<string, object>() {}), "ctx", new Dictionary<string, object>() {}) : new Dictionary<string, object>() {};
         object dayVolume = this.safeNumber(ctx, "dayNtlVlm");
         return this.safePredictionTicker(new Dictionary<string, object>() {
             { "outcome", outcome },
@@ -935,6 +935,10 @@ public partial class hyperliquid : PredictionExchange
             object candleCount = ((bool) isTrue((!isEqual(limit, null)))) ? limit : 100;
             object startOffset = multiply(multiply(tf, candleCount), -1000);
             startTime = this.sum(until, startOffset);
+            if (isTrue(isEqual(startTime, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " fetchOHLCV() missing startTime")) ;
+            }
             if (isTrue(isLessThan(startTime, 0)))
             {
                 startTime = 0;
@@ -1041,7 +1045,10 @@ public partial class hyperliquid : PredictionExchange
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = total;
             ((IDictionary<string,object>)account)["used"] = used;
-            ((IDictionary<string,object>)result)[(string)coin] = account;
+            if (isTrue(!isEqual(coin, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)coin] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1198,7 +1205,7 @@ public partial class hyperliquid : PredictionExchange
 
     public virtual object findOutcomeInMarket(object market, object sideHint = null)
     {
-        object outcomesList = this.safeList(((object)market), "outcomes", new List<object>() {});
+        object outcomesList = this.safeList(market, "outcomes", new List<object>() {});
         object normalizedHint = ((bool) isTrue(sideHint)) ? ((string)sideHint).ToUpper() : null;
         if (isTrue(!isEqual(normalizedHint, null)))
         {
@@ -1302,7 +1309,7 @@ public partial class hyperliquid : PredictionExchange
                 return this.safeDict(this.outcomes_by_id, key, new Dictionary<string, object>() {});
             }
         }
-        if (isTrue(isTrue((inOp(this.markets, outcomeInput))) || isTrue((inOp(this.markets_by_id, outcomeInput)))))
+        if (isTrue(isTrue((isTrue((!isEqual(this.markets, null))) && isTrue((inOp(this.markets, outcomeInput))))) || isTrue((isTrue((!isEqual(this.markets_by_id, null))) && isTrue((inOp(this.markets_by_id, outcomeInput)))))))
         {
             object market = this.safeMarket(outcomeInput);
             object sideHintOrDefault = ((bool) isTrue((!isEqual(sideHint, null)))) ? sideHint : "YES";
@@ -1377,6 +1384,10 @@ public partial class hyperliquid : PredictionExchange
         } else
         {
             px = this.priceToPrecision(marketSymbol, price);
+        }
+        if (isTrue(isEqual(px, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() could not determine price")) ;
         }
         object sz = this.amountToPrecision(marketSymbol, amount);
         object orderType = new Dictionary<string, object>() {
@@ -1806,9 +1817,9 @@ public partial class hyperliquid : PredictionExchange
         object entry = this.safeDict(order, "order", order); // eslint-disable-line
         object status = this.parseOrderStatus(this.safeString2(order, "ccxtStatus", "status"));
         object coin = this.safeString(entry, "coin");
-        object outcomeObj = this.safeOutcome(coin, ((object)market));
+        object outcomeObj = this.safeOutcome(coin, market);
         object marketSymbol = this.safeString(outcomeObj, "outcome");
-        object resolvedMarket = ((bool) isTrue(marketSymbol)) ? this.safeMarket(marketSymbol, ((object)market)) : market;
+        object resolvedMarket = ((bool) isTrue(marketSymbol)) ? this.safeMarket(marketSymbol, market) : market;
         object sideRaw = this.safeString(entry, "side");
         object side = ((bool) isTrue((isEqual(sideRaw, "B")))) ? "buy" : "sell";
         object totalAmount = this.safeString(entry, "origSz");
@@ -1977,7 +1988,7 @@ public partial class hyperliquid : PredictionExchange
         object fills = ((bool) isTrue((response))) ? response : new List<object>() {};
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
-        object parsedTrades = this.parsePredictionTrades((IList<object>)(fills), null);
+        object parsedTrades = this.parsePredictionTrades(fills, null);
         return this.filterByOutcomeSinceLimit(parsedTrades, outcomeHandle, since, limit);
     }
 
@@ -2015,9 +2026,9 @@ public partial class hyperliquid : PredictionExchange
         object price = this.safeString(trade, "px");
         object amount = this.safeString(trade, "sz");
         object coin = this.safeString(trade, "coin");
-        object outcomeObj = this.safeOutcome(coin, ((object)market));
+        object outcomeObj = this.safeOutcome(coin, market);
         object marketSymbol = this.safeString(outcomeObj, "outcome");
-        object resolvedMarket = ((bool) isTrue(marketSymbol)) ? this.safeMarket(marketSymbol, ((object)market)) : market;
+        object resolvedMarket = ((bool) isTrue(marketSymbol)) ? this.safeMarket(marketSymbol, market) : market;
         object rawSide = this.safeString(trade, "side");
         object side = ((bool) isTrue((isEqual(rawSide, "B")))) ? "buy" : "sell";
         object fee = this.safeNumber(trade, "fee");
@@ -2078,6 +2089,10 @@ public partial class hyperliquid : PredictionExchange
         object marketValues = this.toArray(marketsDict);
         // Group markets by parentSymbol
         object groupMap = new Dictionary<string, object>() {};
+        if (isTrue(isEqual(queries, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchEvents() missing queries")) ;
+        }
         object lowerQueries = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(queries)); postFixIncrement(ref i))
         {
@@ -2088,12 +2103,12 @@ public partial class hyperliquid : PredictionExchange
         for (object i = 0; isLessThan(i, getArrayLength(marketValues)); postFixIncrement(ref i))
         {
             object mkt = getValue(marketValues, i);
-            if (!isTrue(this.safeBool(((object)mkt), "prediction", false)))
+            if (!isTrue(this.safeBool(mkt, "prediction", false)))
             {
                 continue;
             }
-            object info = this.safeDict(((object)mkt), "info", new Dictionary<string, object>() {});
-            object parentSymbol = this.safeString(info, "parentSymbol", this.safeString2(((object)mkt), "market", "symbol"));
+            object info = this.safeDict(mkt, "info", new Dictionary<string, object>() {});
+            object parentSymbol = this.safeString(info, "parentSymbol", this.safeString2(mkt, "market", "symbol"));
             // Apply query filter
             if (isTrue(isGreaterThan(lowerQueriesLength, 0)))
             {
@@ -2130,23 +2145,33 @@ public partial class hyperliquid : PredictionExchange
                     continue;
                 }
             }
+            if (isTrue(isEqual(parentSymbol, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " fetchEvents() missing parentSymbol")) ;
+            }
             if (!isTrue((inOp(groupMap, parentSymbol))))
             {
-                ((IDictionary<string,object>)groupMap)[(string)parentSymbol] = new List<object>() {};
+                if (isTrue(!isEqual(parentSymbol, null)))
+                {
+                    ((IDictionary<string,object>)groupMap)[(string)parentSymbol] = new List<object>() {};
+                }
             }
             // push through a local and write the slice back — the go transpiler's
             // AppendToArray reassigns only a local copy of a map-stored array, so a
             // direct push on groupMap[parentSymbol] loses the element in go
-            object parentMarkets = (IList<object>)(getValue(groupMap, parentSymbol));
+            object parentMarkets = this.safeValue(groupMap, parentSymbol);
             ((IList<object>)parentMarkets).Add(mkt);
-            ((IDictionary<string,object>)groupMap)[(string)parentSymbol] = parentMarkets;
+            if (isTrue(!isEqual(parentSymbol, null)))
+            {
+                ((IDictionary<string,object>)groupMap)[(string)parentSymbol] = parentMarkets;
+            }
         }
         object events = new List<object>() {};
         object groupKeys = new List<object>(((IDictionary<string,object>)groupMap).Keys);
         for (object gi = 0; isLessThan(gi, getArrayLength(groupKeys)); postFixIncrement(ref gi))
         {
             object key = getValue(groupKeys, gi);
-            object groupMarkets = (IList<object>)(getValue(groupMap, key));
+            object groupMarkets = getValue(groupMap, key);
             object eventVar = this.parseEvent(new Dictionary<string, object>() {
                 { "parentSymbol", key },
                 { "markets", groupMarkets },
@@ -2173,7 +2198,7 @@ public partial class hyperliquid : PredictionExchange
         // Extract info from first market
         object marketsLength = getArrayLength(markets);
         object firstMarket = ((bool) isTrue((isGreaterThan(marketsLength, 0)))) ? getValue(markets, 0) : new Dictionary<string, object>() {};
-        object firstInfo = this.safeDict(((object)firstMarket), "info", new Dictionary<string, object>() {});
+        object firstInfo = this.safeDict(firstMarket, "info", new Dictionary<string, object>() {});
         object desc = this.safeDict(firstInfo, "parsedDescription", new Dictionary<string, object>() {});
         object underlying = this.safeString(desc, "underlying");
         object targetPrice = this.safeString(desc, "targetPrice");
@@ -2193,7 +2218,7 @@ public partial class hyperliquid : PredictionExchange
                 expiryDatetime = isoStr;
             }
         }
-        object firstExpiry = this.safeInteger(((object)firstMarket), "expiry");
+        object firstExpiry = this.safeInteger(firstMarket, "expiry");
         object title = parentSymbol;
         if (isTrue(!isEqual(underlying, null)))
         {
@@ -2236,9 +2261,13 @@ public partial class hyperliquid : PredictionExchange
     public override object amountToPrecision(object outcome, object amount)
     {
         object market = this.market(outcome);
-        object prec = this.safeNumber(this.safeDict(((object)market), "precision", new Dictionary<string, object>() {}), "amount", 0.0001);
+        object prec = this.safeNumber(this.safeDict(market, "precision", new Dictionary<string, object>() {}), "amount", 0.0001);
         // Convert precision to decimal places
         object decimals = 4;
+        if (isTrue(isEqual(prec, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " amountToPrecision() missing prec")) ;
+        }
         if (isTrue(isGreaterThan(prec, 0)))
         {
             decimals = this.precisionFromString(this.numberToString(prec));
@@ -2249,8 +2278,12 @@ public partial class hyperliquid : PredictionExchange
     public override object priceToPrecision(object outcome, object price)
     {
         object market = this.market(outcome);
-        object prec = this.safeNumber(this.safeDict(((object)market), "precision", new Dictionary<string, object>() {}), "price", 0.0001);
+        object prec = this.safeNumber(this.safeDict(market, "precision", new Dictionary<string, object>() {}), "price", 0.0001);
         object decimals = 4;
+        if (isTrue(isEqual(prec, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " priceToPrecision() missing prec")) ;
+        }
         if (isTrue(isGreaterThan(prec, 0)))
         {
             decimals = this.precisionFromString(this.numberToString(prec));

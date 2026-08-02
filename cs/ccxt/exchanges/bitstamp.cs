@@ -832,23 +832,37 @@ public partial class bitstamp : Exchange
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object description = this.safeString(market, "description");
+        if (isTrue(isEqual(description, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseCurrency() missing description")) ;
+        }
         var baseDescriptionquoteDescriptionVariable = ((string)description).Split(new [] {((string)" / ")}, StringSplitOptions.None).ToList<object>();
         var baseDescription = ((IList<object>) baseDescriptionquoteDescriptionVariable)[0];
         var quoteDescription = ((IList<object>) baseDescriptionquoteDescriptionVariable)[1];
         object minimumOrder = this.safeString(market, "minimum_order_value");
+        if (isTrue(isEqual(minimumOrder, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseCurrency() missing minimumOrder")) ;
+        }
         object parts = ((string)minimumOrder).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
         object cost = getValue(parts, 0);
-        if (!isTrue((inOp(existing, bs))))
+        if (isTrue(isTrue((isEqual(bs, null))) || !isTrue((inOp(existing, bs)))))
         {
             object baseDecimals = this.safeInteger(market, "base_decimals");
-            ((IDictionary<string,object>)getValue(this.options, "_temp_currencies_result"))[(string)bs] = this.constructCurrencyObject(baseId, bs, baseDescription, baseDecimals, null, market);
+            if (isTrue(!isEqual(bs, null)))
+            {
+                ((IDictionary<string,object>)getValue(this.options, "_temp_currencies_result"))[(string)bs] = this.constructCurrencyObject(baseId, bs, baseDescription, baseDecimals, null, market);
+            }
         }
-        if (!isTrue((inOp(existing, quote))))
+        if (isTrue(isTrue((isEqual(quote, null))) || !isTrue((inOp(existing, quote)))))
         {
             object counterDecimals = this.safeInteger(market, "counter_decimals");
-            ((IDictionary<string,object>)getValue(this.options, "_temp_currencies_result"))[(string)quote] = this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market);
+            if (isTrue(!isEqual(quote, null)))
+            {
+                ((IDictionary<string,object>)getValue(this.options, "_temp_currencies_result"))[(string)quote] = this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market);
+            }
         }
-        return getValue(getValue(this.options, "_temp_currencies_result"), quote);
+        return this.safeValue(getValue(this.options, "_temp_currencies_result"), quote);
     }
 
     /**
@@ -890,6 +904,10 @@ public partial class bitstamp : Exchange
         //     }
         //
         object microtimestamp = this.safeInteger(response, "microtimestamp");
+        if (isTrue(isEqual(microtimestamp, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchOrderBook() missing microtimestamp")) ;
+        }
         object timestamp = this.parseToInt(divide(microtimestamp, 1000));
         object orderbook = this.parseOrderBook(response, getValue(market, "symbol"), timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = microtimestamp;
@@ -1069,12 +1087,12 @@ public partial class bitstamp : Exchange
         if (isTrue(isEqual(numCurrencyIds, 2)))
         {
             object marketId = add(getValue(currencyIds, 0), getValue(currencyIds, 1));
-            if (isTrue(inOp(this.markets_by_id, marketId)))
+            if (isTrue(isTrue((!isEqual(this.markets_by_id, null))) && isTrue((inOp(this.markets_by_id, marketId)))))
             {
                 return this.safeMarket(marketId);
             }
             marketId = add(getValue(currencyIds, 1), getValue(currencyIds, 0));
-            if (isTrue(inOp(this.markets_by_id, marketId)))
+            if (isTrue(isTrue((!isEqual(this.markets_by_id, null))) && isTrue((inOp(this.markets_by_id, marketId)))))
             {
                 return this.safeMarket(marketId);
             }
@@ -1395,7 +1413,10 @@ public partial class bitstamp : Exchange
             ((IDictionary<string,object>)account)["free"] = this.safeString(currencyBalance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(currencyBalance, "reserved");
             ((IDictionary<string,object>)account)["total"] = this.safeString(currencyBalance, "total");
-            ((IDictionary<string,object>)result)[(string)currencyCode] = account;
+            if (isTrue(!isEqual(currencyCode, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)currencyCode] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1467,6 +1488,10 @@ public partial class bitstamp : Exchange
         //
         object tradingFeesByMarketId = this.indexBy(response, "currency_pair");
         object tradingFee = this.safeDict(tradingFeesByMarketId, getValue(market, "id"));
+        if (isTrue(isEqual(tradingFee, null)))
+        {
+            tradingFee = new Dictionary<string, object>() {};
+        }
         return this.parseTradingFee(tradingFee, market);
     }
 
@@ -1493,7 +1518,10 @@ public partial class bitstamp : Exchange
         {
             object fee = this.parseTradingFee(getValue(fees, i));
             object symbol = getValue(fee, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = fee;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = fee;
+            }
         }
         return result;
     }
@@ -1576,11 +1604,14 @@ public partial class bitstamp : Exchange
             {
                 continue;
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "withdraw_fee", this.safeNumber(fees, "fee") },
-                { "deposit", new Dictionary<string, object>() {} },
-                { "info", this.safeDict(currencies, id) },
-            };
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                    { "withdraw_fee", this.safeNumber(fees, "fee") },
+                    { "deposit", new Dictionary<string, object>() {} },
+                    { "info", this.safeDict(currencies, id) },
+                };
+            }
         }
         return result;
     }
@@ -1630,16 +1661,19 @@ public partial class bitstamp : Exchange
                 { "fee", withdrawFee },
                 { "percentage", null },
             };
-            ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                { "withdraw", new Dictionary<string, object>() {
-                    { "fee", withdrawFee },
-                    { "percentage", null },
-                } },
-                { "deposit", new Dictionary<string, object>() {
-                    { "fee", null },
-                    { "percentage", null },
-                } },
-            };
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "fee", withdrawFee },
+                        { "percentage", null },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "fee", null },
+                        { "percentage", null },
+                    } },
+                };
+            }
         }
         return result;
     }
@@ -1711,7 +1745,8 @@ public partial class bitstamp : Exchange
                 response = await this.privatePostSellPair(this.extend(request, parameters));
             }
         }
-        object order = this.parseOrder(response, market);
+        object orderResponse = ((bool) isTrue((isEqual(response, null)))) ? new Dictionary<string, object>() {} : response;
+        object order = this.parseOrder(orderResponse, market);
         ((IDictionary<string,object>)order)["type"] = type;
         return order;
     }
@@ -2410,7 +2445,7 @@ public partial class bitstamp : Exchange
             { "2", "trade" },
             { "14", "transfer" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -2818,7 +2853,11 @@ public partial class bitstamp : Exchange
         //    { status: 'ok' }
         //
         object status = this.safeString(transfer, "status");
-        return new Dictionary<string, object>() {
+        if (isTrue(isEqual(currency, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseTransfer() could not resolve currency")) ;
+        }
+        object result = new Dictionary<string, object>() {
             { "info", transfer },
             { "id", null },
             { "timestamp", null },
@@ -2829,6 +2868,7 @@ public partial class bitstamp : Exchange
             { "toAccount", null },
             { "status", this.parseTransferStatus(status) },
         };
+        return result;
     }
 
     public virtual object parseTransferStatus(object status)

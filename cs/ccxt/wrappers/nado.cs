@@ -1205,7 +1205,7 @@ public partial class nado
         var res = this.createOrderAppendix(isTriggerOrder, parameters);
         return ((string)res);
     }
-    public string CreateSubaccount(string walletAddress, string subaccount = "default")
+    public string CreateSubaccount(string walletAddress, string subaccount = default)
     {
         var res = this.createSubaccount(walletAddress, subaccount);
         return ((string)res);

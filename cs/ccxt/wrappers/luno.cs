@@ -427,8 +427,9 @@ public partial class luno
         var res = await this.cancelOrder(id, symbol, parameters);
         return new Order(res);
     }
-    public async Task<List<LedgerEntry>> FetchLedgerByEntries(string code = null, object entry = null, object limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedgerByEntries(string code = null, object entry = null, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedgerByEntries(code, entry, limit, parameters);
         return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }

@@ -341,7 +341,7 @@ public partial class btcmarkets : Exchange
             { "Withdraw", "withdrawal" },
             { "Deposit", "deposit" },
         };
-        return this.safeString(statuses, type, type);
+        return this.safeString(statuses, ((string)type), type);
     }
 
     public override object parseTransaction(object transaction, object currency = null)
@@ -500,7 +500,7 @@ public partial class btcmarkets : Exchange
         {
             minPrice = pricePrecision;
         }
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
             { "base", bs },
@@ -550,7 +550,7 @@ public partial class btcmarkets : Exchange
             } },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     /**
@@ -586,7 +586,10 @@ public partial class btcmarkets : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1123,7 +1126,7 @@ public partial class btcmarkets : Exchange
         */
         takerOrMaker ??= "taker";
         parameters ??= new Dictionary<string, object>();
-        object market = getValue(this.markets, symbol);
+        object market = this.market(symbol);
         object currency = null;
         object cost = null;
         if (isTrue(isEqual(getValue(market, "quote"), "AUD")))
@@ -1140,11 +1143,16 @@ public partial class btcmarkets : Exchange
         }
         object rate = getValue(market, takerOrMaker);
         object rateCost = Precise.stringMul(this.numberToString(rate), cost);
+        object feeCost = this.feeToPrecision(symbol, rateCost);
+        if (isTrue(isEqual(feeCost, null)))
+        {
+            feeCost = "0";
+        }
         return new Dictionary<string, object>() {
             { "type", takerOrMaker },
             { "currency", currency },
             { "rate", rate },
-            { "cost", parseFloat(this.feeToPrecision(symbol, rateCost)) },
+            { "cost", parseFloat(feeCost) },
         };
     }
 

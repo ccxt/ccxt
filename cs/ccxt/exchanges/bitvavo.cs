@@ -630,22 +630,25 @@ public partial class bitvavo : Exchange
         {
             object networkId = getValue(networksArray, j);
             object networkCode = this.networkIdToCode(networkId, code);
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "info", rawCurrency },
-                { "id", networkId },
-                { "network", networkCode },
-                { "active", active },
-                { "deposit", deposit },
-                { "withdraw", withdrawal },
-                { "fee", withdrawFee },
-                { "precision", this.parseNumber(this.parsePrecision(precision)) },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", minWithdraw },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "info", rawCurrency },
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", active },
+                    { "deposit", deposit },
+                    { "withdraw", withdrawal },
+                    { "fee", withdrawFee },
+                    { "precision", this.parseNumber(this.parsePrecision(precision)) },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", minWithdraw },
+                            { "max", null },
+                        } },
                     } },
-                } },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", rawCurrency },
@@ -1131,7 +1134,7 @@ public partial class bitvavo : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
             { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
@@ -1182,7 +1185,7 @@ public partial class bitvavo : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -1218,7 +1221,10 @@ public partial class bitvavo : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "inOrder");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1563,7 +1569,15 @@ public partial class bitvavo : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object market = this.market(((string)symbol));
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
             { "side", side },
@@ -1596,13 +1610,13 @@ public partial class bitvavo : Exchange
                 ((IDictionary<string,object>)request)["amountQuote"] = this.decimalToPrecision(cost, TRUNCATE, precision, this.precisionMode);
             } else
             {
-                ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(((string)symbol), amount);
+                ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
             }
             parameters = this.omit(parameters, new List<object>() {"cost"});
         } else if (isTrue(isLimitOrder))
         {
-            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(((string)symbol), price);
-            ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(((string)symbol), amount);
+            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+            ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
         }
         object isTakeProfit = isTrue(isTrue((!isEqual(takeProfitPrice, null))) || isTrue((isEqual(type, "takeProfit")))) || isTrue((isEqual(type, "takeProfitLimit")));
         object isStopLoss = isTrue(isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue(isTrue((!isEqual(triggerPrice, null))) && isTrue((!isTrue(isTakeProfit))))) || isTrue((isEqual(type, "stopLoss")))) || isTrue((isEqual(type, "stopLossLimit")));
@@ -1623,7 +1637,7 @@ public partial class bitvavo : Exchange
         }
         if (isTrue(!isEqual(triggerPrice, null)))
         {
-            ((IDictionary<string,object>)request)["triggerAmount"] = this.priceToPrecision(((string)symbol), triggerPrice);
+            ((IDictionary<string,object>)request)["triggerAmount"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["triggerType"] = "price";
             ((IDictionary<string,object>)request)["triggerReference"] = "lastTrade"; // 'bestBid', 'bestAsk', 'midPrice'
         }
@@ -1694,7 +1708,7 @@ public partial class bitvavo : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = await this.privatePostOrder(request);
         //
@@ -1863,7 +1877,7 @@ public partial class bitvavo : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = this.cancelOrderRequest(id, symbol, parameters);
         object response = await this.privateDeleteOrder(request);
         //
@@ -2033,7 +2047,7 @@ public partial class bitvavo : Exchange
     public virtual object fetchOrdersRequest(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
@@ -2319,7 +2333,7 @@ public partial class bitvavo : Exchange
     public virtual object fetchMyTradesRequest(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
@@ -2520,10 +2534,10 @@ public partial class bitvavo : Exchange
     public virtual object withdrawRequest(object code, object amount, object address, object tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object currency = this.currency(((string)code));
+        object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(currency, "id") },
-            { "amount", this.currencyToPrecision(((string)code), amount) },
+            { "amount", this.currencyToPrecision(code, amount) },
             { "address", address },
         };
         if (isTrue(!isEqual(tag, null)))
@@ -2837,10 +2851,13 @@ public partial class bitvavo : Exchange
             networkId = currencyCode;
         }
         object networkCode = this.networkIdToCode(networkId, currencyCode);
-        ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-            { "deposit", getValue(result, "deposit") },
-            { "withdraw", getValue(result, "withdraw") },
-        };
+        if (isTrue(!isEqual(networkCode, null)))
+        {
+            ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                { "deposit", getValue(result, "deposit") },
+                { "withdraw", getValue(result, "withdraw") },
+            };
+        }
         return result;
     }
 

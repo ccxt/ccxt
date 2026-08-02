@@ -903,11 +903,19 @@ public partial class nado : ccxt.nado
             { "id", this.requestId() },
         }, parameters);
         object requestIdString = this.safeString(parameters, "id");
+        if (isTrue(isEqual(requestIdString, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " ws execute requires params.id")) ;
+        }
         object request = await this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object placeOrder = this.safeDict(request, "place_order", new Dictionary<string, object>() {});
         if (isTrue(inOp(placeOrder, "trigger")))
         {
             throw new NotSupported ((string)add(this.id, " createOrderWs() does not support trigger orders, use createOrder() instead")) ;
+        }
+        if (isTrue(isEqual(requestIdString, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires params.id")) ;
         }
         object response = await this.watchExecuteRequest(requestIdString, request);
         //
@@ -961,7 +969,15 @@ public partial class nado : ccxt.nado
             { "id", this.requestId() },
         }, parameters);
         object requestIdString = this.safeString(parameters, "id");
+        if (isTrue(isEqual(requestIdString, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " ws execute requires params.id")) ;
+        }
         object request = await this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+        if (isTrue(isEqual(requestIdString, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires params.id")) ;
+        }
         object response = await this.watchExecuteRequest(requestIdString, request);
         //
         //     {
@@ -1035,7 +1051,15 @@ public partial class nado : ccxt.nado
             { "id", this.requestId() },
         }, parameters);
         object requestIdString = this.safeString(parameters, "id");
+        if (isTrue(isEqual(requestIdString, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " ws execute requires params.id")) ;
+        }
         object request = await this.cancelOrdersRequest(ids, symbol, parameters);
+        if (isTrue(isEqual(requestIdString, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires params.id")) ;
+        }
         object response = await this.watchExecuteRequest(requestIdString, request);
         //
         //     {
@@ -1091,7 +1115,15 @@ public partial class nado : ccxt.nado
             { "id", this.requestId() },
         }, parameters);
         object requestIdString = this.safeString(parameters, "id");
+        if (isTrue(isEqual(requestIdString, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " ws execute requires params.id")) ;
+        }
         object request = await this.cancelAllOrdersRequest(symbol, parameters);
+        if (isTrue(isEqual(requestIdString, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires params.id")) ;
+        }
         object response = await this.watchExecuteRequest(requestIdString, request);
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object cancelledOrders = this.safeList(data, "cancelled_orders", new List<object>() {});
@@ -1105,13 +1137,17 @@ public partial class nado : ccxt.nado
         return result;
     }
 
-    public async virtual Task<object> watchExecuteRequest(object requestId, object request)
+    public async virtual Task<object> watchExecuteRequest(object requestIdString, object request)
     {
         // the v2 gateway dispatches requests concurrently, so responses arrive
         // in completion order, not send order — every execute carries a unique
         // request id and its response is correlated by the echoed id
+        if (isTrue(isEqual(requestIdString, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " watchExecuteRequest() requires requestIdString")) ;
+        }
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "gateway");
-        object messageHash = add("execute:", requestId);
+        object messageHash = add("execute:", requestIdString);
         return await this.watch(url, messageHash, request, messageHash);
     }
 
@@ -1535,6 +1571,10 @@ public partial class nado : ccxt.nado
         object symbol = getValue(market, "symbol");
         object granularity = this.safeInteger(message, "granularity");
         object timeframe = this.findTimeframe(granularity);
+        if (isTrue(isEqual(timeframe, null)))
+        {
+            return;
+        }
         if (!isTrue((inOp(this.ohlcvs, symbol))))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
@@ -1766,7 +1806,11 @@ public partial class nado : ccxt.nado
     public virtual void handleBidAsk(WebSocketClient client, object message)
     {
         object ticker = this.parseWsBidAsk(message);
-        object symbol = getValue(ticker, "symbol");
+        object symbol = this.safeString(ticker, "symbol");
+        if (isTrue(isEqual(symbol, null)))
+        {
+            return;
+        }
         ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         object tickers = new Dictionary<string, object>() {};
@@ -1934,8 +1978,11 @@ public partial class nado : ccxt.nado
             object messageHash = this.safeString(unsubscription, "messageHash");
             object unsubscribeHash = this.safeString(unsubscription, "unsubscribeHash");
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)add("unsubscription:", id));
-            this.cleanUnsubscription(client as WebSocketClient, messageHash, unsubscribeHash);
-            this.handleUnsubscriptionCache(messageHash);
+            if (isTrue(!isEqual(messageHash, null)))
+            {
+                this.cleanUnsubscription(client as WebSocketClient, messageHash, unsubscribeHash);
+                this.handleUnsubscriptionCache(messageHash);
+            }
             callDynamically(client as WebSocketClient, "resolve", new object[] {message, unsubscribeHash});
             return;
         }
@@ -1950,8 +1997,11 @@ public partial class nado : ccxt.nado
                 continue;
             }
             object messageHash = this.safeString(subscription, "messageHash");
-            this.cleanUnsubscription(client as WebSocketClient, messageHash, unsubscribeHash);
-            this.handleUnsubscriptionCache(messageHash);
+            if (isTrue(!isEqual(messageHash, null)))
+            {
+                this.cleanUnsubscription(client as WebSocketClient, messageHash, unsubscribeHash);
+                this.handleUnsubscriptionCache(messageHash);
+            }
             callDynamically(client as WebSocketClient, "resolve", new object[] {message, unsubscribeHash});
             return;
         }
@@ -1959,6 +2009,10 @@ public partial class nado : ccxt.nado
 
     public virtual void handleUnsubscriptionCache(object messageHash)
     {
+        if (isTrue(isEqual(messageHash, null)))
+        {
+            return;
+        }
         if (isTrue(isEqual(getIndexOf(messageHash, "trade:"), 0)))
         {
             object symbol = ((string)messageHash).Replace((string)"trade:", (string)"");
@@ -1978,7 +2032,7 @@ public partial class nado : ccxt.nado
             object parts = ((string)messageHash).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
             object timeframe = this.safeString(parts, 1);
             object symbol = this.safeString(parts, 2);
-            if (isTrue(isTrue((inOp(this.ohlcvs, symbol))) && isTrue((inOp(getValue(this.ohlcvs, symbol), timeframe)))))
+            if (isTrue(isTrue(isTrue(isTrue((!isEqual(symbol, null))) && isTrue((!isEqual(timeframe, null)))) && isTrue((inOp(this.ohlcvs, symbol)))) && isTrue((inOp(getValue(this.ohlcvs, symbol), timeframe)))))
             {
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove((string)timeframe);
             }

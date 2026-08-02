@@ -2041,36 +2041,48 @@ public partial class coinbase : Exchange
             object id = this.safeString2(currency, "id", "code");
             object code = this.safeCurrencyCode(id);
             object name = this.safeString(currency, "name");
-            ((IDictionary<string,object>)getValue(this.options, "networks"))[(string)code] = ((string)((string)name)).ToLower();
-            ((IDictionary<string,object>)getValue(this.options, "networksById"))[(string)code] = ((string)((string)name)).ToLower();
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)getValue(this.options, "networks"))[(string)code] = ((string)((string)name)).ToLower();
+            }
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)getValue(this.options, "networksById"))[(string)code] = ((string)((string)name)).ToLower();
+            }
             object type = ((bool) isTrue((!isEqual(assetId, null)))) ? "crypto" : "fiat";
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", currency },
-                { "id", id },
-                { "code", code },
-                { "type", type },
-                { "name", name },
-                { "active", true },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", null },
-                { "networks", new Dictionary<string, object>() {} },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(currency, "min_size") },
-                        { "max", null },
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "info", currency },
+                    { "id", id },
+                    { "code", code },
+                    { "type", type },
+                    { "name", name },
+                    { "active", true },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", null },
+                    { "precision", null },
+                    { "networks", new Dictionary<string, object>() {} },
+                    { "limits", new Dictionary<string, object>() {
+                        { "amount", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(currency, "min_size") },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-            });
+                });
+            }
             if (isTrue(!isEqual(assetId, null)))
             {
                 object lowerCaseName = ((string)((string)name)).ToLower();
-                ((IDictionary<string,object>)networks)[(string)code] = lowerCaseName;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)networks)[(string)code] = lowerCaseName;
+                }
                 ((IDictionary<string,object>)networksById)[(string)lowerCaseName] = code;
             }
         }
@@ -2079,15 +2091,18 @@ public partial class coinbase : Exchange
         {
             object currencyId = getValue(ratesIds, i);
             object code = this.safeCurrencyCode(currencyId);
-            if (!isTrue((inOp(result, code))))
+            if (isTrue(isTrue((isEqual(code, null))) || !isTrue((inOp(result, code)))))
             {
-                ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                    { "info", new Dictionary<string, object>() {} },
-                    { "id", currencyId },
-                    { "code", code },
-                    { "type", "crypto" },
-                    { "networks", new Dictionary<string, object>() {} },
-                });
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                        { "info", new Dictionary<string, object>() {} },
+                        { "id", currencyId },
+                        { "code", code },
+                        { "type", "crypto" },
+                        { "networks", new Dictionary<string, object>() {} },
+                    });
+                }
             }
         }
         ((IDictionary<string,object>)this.options)["networks"] = this.extend(networks, getValue(this.options, "networks"));
@@ -2515,7 +2530,10 @@ public partial class coinbase : Exchange
                         ((IDictionary<string,object>)account)["free"] = Precise.stringAdd(getValue(account, "free"), total);
                         ((IDictionary<string,object>)account)["total"] = Precise.stringAdd(getValue(account, "total"), total);
                     }
-                    ((IDictionary<string,object>)result)[(string)code] = account;
+                    if (isTrue(!isEqual(code, null)))
+                    {
+                        ((IDictionary<string,object>)result)[(string)code] = account;
+                    }
                 }
             } else if (isTrue(this.inArray(type, v3Accounts)))
             {
@@ -2541,7 +2559,10 @@ public partial class coinbase : Exchange
                         ((IDictionary<string,object>)account)["used"] = Precise.stringAdd(getValue(account, "used"), used);
                         ((IDictionary<string,object>)account)["total"] = Precise.stringAdd(getValue(account, "total"), total);
                     }
-                    ((IDictionary<string,object>)result)[(string)code] = account;
+                    if (isTrue(!isEqual(code, null)))
+                    {
+                        ((IDictionary<string,object>)result)[(string)code] = account;
+                    }
                 }
             }
         }
@@ -2743,7 +2764,7 @@ public partial class coinbase : Exchange
             { "pro_deposit", "transaction" },
             { "pro_withdrawal", "transaction" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)

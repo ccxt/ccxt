@@ -327,7 +327,7 @@ public partial class btcturk : Exchange
             }
         }
         object status = this.safeString(entry, "status");
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", add(add(bs, "/"), quote) },
             { "base", bs },
@@ -375,7 +375,7 @@ public partial class btcturk : Exchange
             } },
             { "created", null },
             { "info", entry },
-        };
+        });
     }
 
     public override object parseBalance(object response)
@@ -395,7 +395,10 @@ public partial class btcturk : Exchange
             ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "balance");
             ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "free");
             ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "locked");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -676,7 +679,12 @@ public partial class btcturk : Exchange
         //     }
         //
         object data = this.safeList(response, "data");
-        return this.parseTrades(data, market, since, limit);
+        object dataList = new List<object>() {};
+        if (isTrue(!isEqual(data, null)))
+        {
+            dataList = data;
+        }
+        return this.parseTrades(dataList, market, since, limit);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -852,7 +860,7 @@ public partial class btcturk : Exchange
             ((IDictionary<string,object>)request)["newClientOrderId"] = this.uuid();
         }
         object response = await this.privatePostOrder(this.extend(request, parameters));
-        object data = this.safeDict(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -1098,7 +1106,12 @@ public partial class btcturk : Exchange
         //     }
         //
         object data = this.safeList(response, "data");
-        return this.parseTrades(data, market, since, limit);
+        object dataList = new List<object>() {};
+        if (isTrue(!isEqual(data, null)))
+        {
+            dataList = data;
+        }
+        return this.parseTrades(dataList, market, since, limit);
     }
 
     public override object nonce()

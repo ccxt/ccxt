@@ -599,7 +599,7 @@ public partial class grvt
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}.</returns>
-    public async Task<MarginModes> FetchMarginModes(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<MarginModes> FetchMarginModes(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarginModes(symbols, parameters);
         return new MarginModes(res);
@@ -820,7 +820,7 @@ public partial class grvt
         var res = await this.cancelOrder(id, symbol, parameters);
         return new Order(res);
     }
-    public Dictionary<string, object> CreateSignedRequest(object request, string structureType, object currencyObj = null, string signerAddress = null)
+    public Dictionary<string, object> CreateSignedRequest(object request, string structureType, Dictionary<string, object> currencyObj = null, string signerAddress = null)
     {
         var res = this.createSignedRequest(request, structureType, currencyObj, signerAddress);
         return ((Dictionary<string, object>)res);

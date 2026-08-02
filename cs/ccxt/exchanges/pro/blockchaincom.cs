@@ -120,7 +120,10 @@ public partial class blockchaincom : ccxt.blockchaincom
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
             ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "balance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         object messageHash = "balance";
         this.balance = this.safeBalance(result);
@@ -203,7 +206,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             object timeframe = this.findTimeframe(timeframeId);
             object ohlcv = this.safeValue(message, "price", new List<object>() {});
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
+            object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -567,7 +570,8 @@ public partial class blockchaincom : ccxt.blockchaincom
         if (isTrue(isEqual(cachedOrders, null)))
         {
             object limit = this.safeInteger(this.options, "ordersLimit", 1000);
-            this.orders = new ArrayCacheBySymbolById(limit);
+            cachedOrders = new ArrayCacheBySymbolById(limit);
+            this.orders = cachedOrders;
         }
         if (isTrue(isEqual(eventVar, "subscribed")))
         {
@@ -812,7 +816,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             { "balances", this.handleBalance },
             { "trading", this.handleOrders },
         };
-        object handler = this.safeValue(handlers, ((string)channel));
+        object handler = this.safeValue(handlers, channel);
         if (isTrue(!isEqual(handler, null)))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});

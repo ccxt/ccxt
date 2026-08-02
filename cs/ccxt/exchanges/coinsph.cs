@@ -616,26 +616,29 @@ public partial class coinsph : Exchange
             object networkItem = getValue(networkList, j);
             object network = this.safeString(networkItem, "network");
             object networkCode = this.networkIdToCode(network, code);
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "info", networkItem },
-                { "id", network },
-                { "network", networkCode },
-                { "active", null },
-                { "deposit", this.safeBool(networkItem, "depositEnable") },
-                { "withdraw", this.safeBool(networkItem, "withdrawEnable") },
-                { "fee", this.safeNumber(networkItem, "withdrawFee") },
-                { "precision", this.safeNumber(networkItem, "withdrawIntegerMultiple") },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(networkItem, "withdrawMin") },
-                        { "max", this.safeNumber(networkItem, "withdrawMax") },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "info", networkItem },
+                    { "id", network },
+                    { "network", networkCode },
+                    { "active", null },
+                    { "deposit", this.safeBool(networkItem, "depositEnable") },
+                    { "withdraw", this.safeBool(networkItem, "withdrawEnable") },
+                    { "fee", this.safeNumber(networkItem, "withdrawFee") },
+                    { "precision", this.safeNumber(networkItem, "withdrawIntegerMultiple") },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkItem, "withdrawMin") },
+                            { "max", this.safeNumber(networkItem, "withdrawMax") },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -1425,7 +1428,10 @@ public partial class coinsph : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "free");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
