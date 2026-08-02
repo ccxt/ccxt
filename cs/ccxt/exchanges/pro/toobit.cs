@@ -1252,7 +1252,7 @@ public partial class toobit : ccxt.toobit
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
-            { "symbol", this.safeSymbol(marketId, null) },
+            { "symbol", this.safeSymbol(marketId) },
             { "notional", this.omitZero(this.safeString(position, "pv")) },
             { "marginMode", this.safeStringLower(position, "mt") },
             { "liquidationPrice", this.safeString(position, "f") },

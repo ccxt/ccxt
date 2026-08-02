@@ -2116,7 +2116,7 @@ public partial class paradex : Exchange
         {
             object result = getValue(results, i);
             object marketId = this.safeString(result, "market");
-            object market = this.safeMarket(marketId, null);
+            object market = this.safeMarket(marketId);
             object status = this.safeString(result, "status");
             object orderStatus = null;
             if (isTrue(isEqual(status, "QUEUED_FOR_CANCELLATION")))

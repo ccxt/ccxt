@@ -2746,6 +2746,18 @@ public partial class bybit : ccxt.bybit
                 {
                     ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)authenticatedHash);
                 }
+                object op = this.safeString(message, "op");
+                if (isTrue(isTrue((!isEqual(op, null))) && isTrue((!isEqual(op, "auth")))))
+                {
+                    // an operation response that carries no reqId, e.g. bybit
+                    // omits it on some permission rejections of trade ops,
+                    // would leave the awaiting future pending forever, and
+                    // since nothing on this client can proceed without
+                    // authentication, reject everything pending, mirroring the
+                    // behavior of unattributable non auth errors, see
+                    // https://github.com/ccxt/ccxt/issues/29361
+                    ((WebSocketClient)client).reject(error);
+                }
             } else
             {
                 ((WebSocketClient)client).reject(error, messageHash);

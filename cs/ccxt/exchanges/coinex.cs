@@ -4376,7 +4376,7 @@ public partial class coinex : Exchange
         {
             feeCost = "0";
         }
-        object feeCurrencyId = this.safeString(transaction, "fee_asset");
+        object feeCurrencyId = this.safeString2(transaction, "fee_asset", "fee_ccy"); // https://github.com/ccxt/ccxt/issues/25153
         object fee = new Dictionary<string, object>() {
             { "cost", this.parseNumber(feeCost) },
             { "currency", this.safeCurrencyCode(feeCurrencyId) },

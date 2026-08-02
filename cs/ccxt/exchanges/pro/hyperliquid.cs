@@ -813,7 +813,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object amount = this.safeString(trade, "sz");
         object coin = this.safeString(trade, "coin");
         object marketId = this.coinToMarketId(coin);
-        market = this.safeMarket(marketId, null);
+        market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object id = this.safeString(trade, "tid");
         object side = this.safeString(trade, "side");

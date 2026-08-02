@@ -364,7 +364,7 @@ public partial class upbit : ccxt.upbit
         //     stream_type: 'REALTIME'
         //   }
         object marketId = this.safeString(message, "code");
-        object symbol = this.safeSymbol(marketId, null);
+        object symbol = this.safeSymbol(marketId);
         object messageHash = add("candle.1s:", symbol);
         object ohlcv = this.parseOHLCV(message);
         callDynamically(client as WebSocketClient, "resolve", new object[] {ohlcv, messageHash});

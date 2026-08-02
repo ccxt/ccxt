@@ -3791,7 +3791,7 @@ public partial class hyperliquid : Exchange
         }
         if (isTrue(isEqual(this.safeString(entry, "id"), null)))
         {
-            market = this.safeMarket(marketId, null);
+            market = this.safeMarket(marketId);
         } else
         {
             market = this.safeMarket(marketId, market);
@@ -3972,7 +3972,7 @@ public partial class hyperliquid : Exchange
         object amount = this.safeString(trade, "sz");
         object coin = this.safeString(trade, "coin");
         object marketId = this.coinToMarketId(coin);
-        market = this.safeMarket(marketId, null);
+        market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object id = this.safeString(trade, "tid");
         object side = this.safeString(trade, "side");
@@ -4180,7 +4180,7 @@ public partial class hyperliquid : Exchange
         object entry = this.safeDict(position, "position", new Dictionary<string, object>() {});
         object coin = this.safeString(entry, "coin");
         object marketId = this.coinToMarketId(coin);
-        market = this.safeMarket(marketId, null);
+        market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object leverage = this.safeDict(entry, "leverage", new Dictionary<string, object>() {});
         object marginMode = this.safeString(leverage, "type");

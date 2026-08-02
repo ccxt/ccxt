@@ -348,7 +348,7 @@ public partial class whitebit : ccxt.whitebit
         //
         object tickers = this.safeValue(message, "params", new List<object>() {});
         object marketId = this.safeString(tickers, 0);
-        object market = this.safeMarket(marketId, null);
+        object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object rawTicker = this.safeValue(tickers, 1, new Dictionary<string, object>() {});
         object messageHash = add(add("ticker", ":"), symbol);

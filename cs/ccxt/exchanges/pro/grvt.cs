@@ -293,7 +293,7 @@ public partial class grvt : ccxt.grvt
         object selector = this.safeString(message, "selector", "");
         object parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 0);
-        object market = this.safeMarket(marketId, null);
+        object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object ticker = this.parseWsTicker(data, market);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -396,7 +396,7 @@ public partial class grvt : ccxt.grvt
         object selector = this.safeString(message, "selector", "");
         object parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 0);
-        object market = this.safeMarket(marketId, null);
+        object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         if (!isTrue((inOp(this.trades, symbol))))
         {
@@ -514,7 +514,7 @@ public partial class grvt : ccxt.grvt
         object selector = this.safeString(message, "selector", "");
         object parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 0);
-        object market = this.safeMarket(marketId, null);
+        object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object secondPart = this.safeString(parts, 1, "");
         object timeframeId = ((string)secondPart).Replace((string)"-TRADE", (string)"");
@@ -651,7 +651,7 @@ public partial class grvt : ccxt.grvt
         object selector = this.safeString(message, "selector", "");
         object parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 0);
-        object market = this.safeMarket(marketId, null);
+        object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object timestamp = this.safeIntegerProduct(data, "event_time", 0.000001);
         if (!isTrue((inOp(this.orderbooks, symbol))))
