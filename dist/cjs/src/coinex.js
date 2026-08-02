@@ -5179,7 +5179,7 @@ class coinex extends coinex$1["default"] {
         if (type === 'deposit') {
             feeCost = '0';
         }
-        const feeCurrencyId = this.safeString(transaction, 'fee_asset');
+        const feeCurrencyId = this.safeString2(transaction, 'fee_asset', 'fee_ccy'); // https://github.com/ccxt/ccxt/issues/25153
         const fee = {
             'cost': this.parseNumber(feeCost),
             'currency': this.safeCurrencyCode(feeCurrencyId),
