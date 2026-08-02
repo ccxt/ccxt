@@ -7230,14 +7230,16 @@ export default class binance extends Exchange {
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params, 'spot');
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrder', market, params);
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOrder', 'papi', 'portfolioMargin', false);
         const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
         const isOptionType = type === 'option';
-        const isLinearType = this.isLinear (type);
-        const isInverseType = this.isInverse (type);
+        const isLinearType = this.isLinear (type, subType);
+        const isInverseType = this.isInverse (type, subType);
         const isLinearSwapConditional = isLinearType && (market !== undefined) && market['swap'] && isConditional && !isPortfolioMargin;
         const clientOrderId = this.safeStringN (params, [ 'origClientOrderId', 'clientOrderId', 'clientAlgoId' ]);
         if (clientOrderId !== undefined) {
@@ -7339,14 +7341,16 @@ export default class binance extends Exchange {
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params, 'spot');
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params);
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrders', params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOrders', 'papi', 'portfolioMargin', false);
         const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
         const isOptionType = type === 'option';
-        const isLinearType = this.isLinear (type);
-        const isInverseType = this.isInverse (type);
+        const isLinearType = this.isLinear (type, subType);
+        const isInverseType = this.isInverse (type, subType);
         let until = this.safeIntegerN (params, [ 'until', 'till', 'endTime' ]);
         params = this.omit (params, [ 'stop', 'trigger', 'conditional', 'until', 'till', 'endTime' ]);
         if (since !== undefined) {
@@ -8104,14 +8108,16 @@ export default class binance extends Exchange {
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params, 'spot');
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('cancelOrder', market, params);
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'cancelOrder', 'papi', 'portfolioMargin', false);
         const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
         const isOptionType = type === 'option';
-        const isLinearType = this.isLinear (type);
-        const isInverseType = this.isInverse (type);
+        const isLinearType = this.isLinear (type, subType);
+        const isInverseType = this.isInverse (type, subType);
         const isSwapConditional = (market !== undefined) && market['swap'] && isConditional && !isPortfolioMargin;
         const clientOrderId = this.safeStringN (params, [ 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'clientAlgoId' ]);
         if (clientOrderId !== undefined) {
@@ -8230,9 +8236,11 @@ export default class binance extends Exchange {
         const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params, 'spot');
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
         const isOptionType = type === 'option';
-        const isLinearType = this.isLinear (type);
-        const isInverseType = this.isInverse (type);
+        const isLinearType = this.isLinear (type, subType);
+        const isInverseType = this.isInverse (type, subType);
         params = this.omit (params, [ 'stop', 'trigger', 'conditional' ]);
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
@@ -8540,14 +8548,11 @@ export default class binance extends Exchange {
             market = this.market (symbol);
             stock = market['stock'];
             request['symbol'] = market['id'];
-        } else if (!stock && (type !== 'option')) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
         }
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        if (!stock && (type !== 'option') && (symbol === undefined)) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         let endTime = this.safeInteger2 (params, 'until', 'endTime');
         if (since !== undefined) {
             const startTime = since;
