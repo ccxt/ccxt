@@ -496,26 +496,28 @@ class bitmex extends bitmex$1["default"] {
             if (isWithdrawEnabled) {
                 withdrawEnabled = true;
             }
-            networks[network] = {
-                'info': chain,
-                'id': networkId,
-                'network': network,
-                'active': active,
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'fee': withdrawalFee,
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+            if (network !== undefined) {
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': active,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
+                    'fee': withdrawalFee,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         const currencyEnabled = this.safeValue(currency, 'enabled');
         const currencyActive = currencyEnabled || (depositEnabled || withdrawEnabled);
@@ -872,7 +874,10 @@ class bitmex extends bitmex$1["default"] {
             isQuanto = undefined;
             linear = undefined;
         }
-        return {
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' parseMarket() requires a symbol');
+        }
+        return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -923,7 +928,7 @@ class bitmex extends bitmex$1["default"] {
             },
             'created': undefined, // 'listing' field is buggy, e.g. 2200-02-01T00:00:00.000Z
             'info': market,
-        };
+        });
     }
     parseBalance(response) {
         //
@@ -983,7 +988,9 @@ class bitmex extends bitmex$1["default"] {
             const total = this.safeString(balance, 'marginBalance');
             account['free'] = this.convertToRealAmount(code, free);
             account['total'] = this.convertToRealAmount(code, total);
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1974,7 +1981,7 @@ class bitmex extends bitmex$1["default"] {
             isInverse = (defaultSubType === 'inverse');
         }
         else {
-            isInverse = this.safeBool(market, 'inverse', false);
+            isInverse = this.safeBool(market, 'inverse', false) === true;
         }
         if (isInverse) {
             cost = this.convertFromRawQuantity(symbol, qty);
@@ -2402,6 +2409,9 @@ class bitmex extends bitmex$1["default"] {
     async cancelAllOrdersAfter(timeout, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
+        }
+        if (timeout === undefined) {
+            throw new errors.ExchangeError(this.id + ' cancelAllOrdersAfter() missing timeout');
         }
         const request = {
             'timeout': (timeout > 0) ? this.parseToInt(timeout / 1000) : 0,
@@ -2832,6 +2842,9 @@ class bitmex extends bitmex$1["default"] {
         }
         const request = {};
         let market = undefined;
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
         if (symbol in this.currencies) {
             const code = this.currency(symbol);
             request['symbol'] = code['id'];
@@ -3049,10 +3062,12 @@ class bitmex extends bitmex$1["default"] {
                 const networkCode = this.networkIdToCode(networkId, currencyCode);
                 const withdrawalFeeId = this.safeString(network, 'withdrawalFee');
                 const withdrawalFee = this.parseNumber(Precise["default"].stringMul(withdrawalFeeId, precision));
-                result['networks'][networkCode] = {
-                    'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': withdrawalFee, 'percentage': false },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'deposit': { 'fee': undefined, 'percentage': undefined },
+                        'withdraw': { 'fee': withdrawalFee, 'percentage': false },
+                    };
+                }
                 if (networksLength === 1) {
                     result['withdraw']['fee'] = withdrawalFee;
                     result['withdraw']['percentage'] = false;
@@ -3704,6 +3719,9 @@ class bitmex extends bitmex$1["default"] {
                 'api-key': this.apiKey,
             };
             expires = this.sum(this.seconds(), expires);
+            if (expires === undefined) {
+                throw new errors.ExchangeError(this.id + ' sign() missing expires');
+            }
             const stringExpires = expires.toString();
             auth += stringExpires;
             headers['api-expires'] = stringExpires;

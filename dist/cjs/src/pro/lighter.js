@@ -354,7 +354,7 @@ class lighter extends lighter$1["default"] {
         if (symbols !== undefined) {
             symbolsLength = symbols.length;
         }
-        if (symbolsLength === 0) {
+        if ((symbols === undefined) || (symbolsLength === 0)) {
             messageHashes.push(this.getMessageHash('ticker'));
         }
         else {
@@ -844,6 +844,9 @@ class lighter extends lighter$1["default"] {
         const price = this.safeString(liquidation, 'price');
         const baseValue = Precise["default"].stringMul(contracts, contractSize);
         const quoteValue = Precise["default"].stringMul(baseValue, price);
+        if (market === undefined) {
+            return undefined;
+        }
         return this.safeLiquidation({
             'info': liquidation,
             'symbol': market['symbol'],
@@ -1038,7 +1041,9 @@ class lighter extends lighter$1["default"] {
                 const account = this.account();
                 account['used'] = this.safeString(asset, 'locked_balance');
                 account['total'] = this.safeString(asset, 'balance');
-                balance[code] = account;
+                if (code !== undefined) {
+                    balance[code] = account;
+                }
             }
         }
         else {

@@ -442,6 +442,9 @@ class bittrade extends bittrade$1["default"] {
         if (symbols === undefined) {
             symbols = this.symbols;
         }
+        if (symbols === undefined) {
+            throw new errors.ExchangeError(this.id + ' markets not loaded');
+        }
         const result = {};
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -499,7 +502,7 @@ class bittrade extends bittrade$1["default"] {
         };
     }
     costToPrecision(symbol, cost) {
-        return this.decimalToPrecision(cost, number.TRUNCATE, this.markets[symbol]['precision']['cost'], this.precisionMode);
+        return this.decimalToPrecision(cost, number.TRUNCATE, this.market(symbol)['precision']['cost'], this.precisionMode);
     }
     /**
      * @method
@@ -560,6 +563,12 @@ class bittrade extends bittrade$1["default"] {
             const superLeverageRatio = this.safeString(market, 'super-margin-leverage-ratio', '1');
             const margin = Precise["default"].stringGt(leverageRatio, '1') || Precise["default"].stringGt(superLeverageRatio, '1');
             const fee = (base === 'OMG') ? this.parseNumber('0') : this.parseNumber('0.002');
+            if (baseId === undefined) {
+                throw new errors.ExchangeError(this.id + ' fetchMarkets() missing baseId');
+            }
+            if (quoteId === undefined) {
+                throw new errors.ExchangeError(this.id + ' fetchMarkets() missing quoteId');
+            }
             result.push({
                 'id': baseId + quoteId,
                 'symbol': base + '/' + quote,
@@ -1197,19 +1206,27 @@ class bittrade extends bittrade$1["default"] {
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             let account = undefined;
-            if (code in result) {
+            if ((code !== undefined) && (code in result)) {
                 account = result[code];
             }
             else {
                 account = this.account();
             }
+            if (account === undefined) {
+                throw new errors.ExchangeError(this.id + ' parseBalance() could not resolve account');
+            }
             if (balance['type'] === 'trade') {
                 account['free'] = this.safeString(balance, 'balance');
+            }
+            if (account === undefined) {
+                throw new errors.ExchangeError(this.id + ' parseBalance() could not resolve account');
             }
             if (balance['type'] === 'frozen') {
                 account['used'] = this.safeString(balance, 'balance');
             }
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1282,7 +1299,7 @@ class bittrade extends bittrade$1["default"] {
             'id': id,
         };
         const response = await this.privateGetOrderOrdersId(this.extend(request, params));
-        const order = this.safeDict(response, 'data');
+        const order = this.safeDict(response, 'data', {});
         return this.parseOrder(order);
     }
     /**

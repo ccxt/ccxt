@@ -637,26 +637,28 @@ export default class coinsph extends Exchange {
             const networkItem = networkList[j];
             const network = this.safeString(networkItem, 'network');
             const networkCode = this.networkIdToCode(network, code);
-            networks[networkCode] = {
-                'info': networkItem,
-                'id': network,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeBool(networkItem, 'depositEnable'),
-                'withdraw': this.safeBool(networkItem, 'withdrawEnable'),
-                'fee': this.safeNumber(networkItem, 'withdrawFee'),
-                'precision': this.safeNumber(networkItem, 'withdrawIntegerMultiple'),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(networkItem, 'withdrawMin'),
-                        'max': this.safeNumber(networkItem, 'withdrawMax'),
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': networkItem,
+                    'id': network,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeBool(networkItem, 'depositEnable'),
+                    'withdraw': this.safeBool(networkItem, 'withdrawEnable'),
+                    'fee': this.safeNumber(networkItem, 'withdrawFee'),
+                    'precision': this.safeNumber(networkItem, 'withdrawIntegerMultiple'),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(networkItem, 'withdrawMin'),
+                            'max': this.safeNumber(networkItem, 'withdrawMax'),
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -1377,7 +1379,9 @@ export default class coinsph extends Exchange {
             const account = this.account();
             account['free'] = this.safeString(balance, 'free');
             account['used'] = this.safeString(balance, 'locked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }

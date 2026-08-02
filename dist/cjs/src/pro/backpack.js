@@ -120,7 +120,7 @@ class backpack extends backpack$1["default"] {
                 const splitHashes = messageHash.split(':');
                 const symbol = this.safeString(splitHashes, 2);
                 const timeframe = this.safeString(splitHashes, 3);
-                if (symbol in this.ohlcvs) {
+                if ((symbol !== undefined) && (timeframe !== undefined) && (symbol in this.ohlcvs)) {
                     if (timeframe in this.ohlcvs[symbol]) {
                         delete this.ohlcvs[symbol][timeframe];
                     }
@@ -141,15 +141,17 @@ class backpack extends backpack$1["default"] {
             else if (messageHash.indexOf('orders') >= 0) {
                 if (messageHash === 'unsubscribe:orders') {
                     const cache = this.orders;
-                    const keys = Object.keys(cache);
-                    for (let j = 0; j < keys.length; j++) {
-                        const symbol = keys[j];
-                        delete this.orders[symbol];
+                    if (cache !== undefined) {
+                        const keys = Object.keys(cache);
+                        for (let j = 0; j < keys.length; j++) {
+                            const symbol = keys[j];
+                            delete cache[symbol];
+                        }
                     }
                 }
                 else {
                     const symbol = messageHash.replace('unsubscribe:orders:', '');
-                    if (symbol in this.orders) {
+                    if ((this.orders !== undefined) && (symbol in this.orders)) {
                         delete this.orders[symbol];
                     }
                 }
@@ -294,7 +296,7 @@ class backpack extends backpack$1["default"] {
         //         v: '5542.3911'
         //     }
         //
-        const microseconds = this.safeInteger(ticker, 'E');
+        const microseconds = this.safeInteger(ticker, 'E', 0);
         const timestamp = this.parseToInt(microseconds / 1000);
         const marketId = this.safeString(ticker, 's');
         market = this.safeMarket(marketId, market);
@@ -414,7 +416,7 @@ class backpack extends backpack$1["default"] {
         const marketId = this.safeString(ticker, 's');
         market = this.safeMarket(marketId, market);
         const symbol = this.safeString(market, 'symbol');
-        const microseconds = this.safeInteger(ticker, 'E');
+        const microseconds = this.safeInteger(ticker, 'E', 0);
         const timestamp = this.parseToInt(microseconds / 1000);
         const ask = this.safeString(ticker, 'a');
         const askVolume = this.safeString(ticker, 'A');
@@ -551,9 +553,9 @@ class backpack extends backpack$1["default"] {
         const marketId = this.safeString(data, 's');
         const market = this.market(marketId);
         const symbol = market['symbol'];
-        const stream = this.safeString(message, 'stream');
+        const stream = this.safeString(message, 'stream', '');
         const parts = stream.split('.');
-        const timeframe = this.safeString(parts, 1);
+        const timeframe = this.safeString(parts, 1, '');
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
@@ -734,7 +736,7 @@ class backpack extends backpack$1["default"] {
         //         t: 10782547
         //     }
         //
-        const microseconds = this.safeInteger(trade, 'E');
+        const microseconds = this.safeInteger(trade, 'E', 0);
         const timestamp = this.parseToInt(microseconds / 1000);
         const id = this.safeString(trade, 't');
         const marketId = this.safeString(trade, 's');
@@ -898,7 +900,7 @@ class backpack extends backpack$1["default"] {
             storedOrderBook.cache.push(data);
             return;
         }
-        else if (nonce > deltaNonce) {
+        else if ((deltaNonce !== undefined) && (nonce > deltaNonce)) {
             return;
         }
         this.handleDelta(storedOrderBook, data);
@@ -928,6 +930,12 @@ class backpack extends backpack$1["default"] {
         const firstDelta = this.safeDict(cache, 0);
         const nonce = this.safeInteger(orderbook, 'nonce');
         const firstDeltaStart = this.safeInteger(firstDelta, 'U');
+        if (nonce === undefined) {
+            return cache.length;
+        }
+        if (firstDeltaStart === undefined) {
+            return -1;
+        }
         if (nonce < firstDeltaStart - 1) {
             return -1;
         }
@@ -935,6 +943,9 @@ class backpack extends backpack$1["default"] {
             const delta = cache[i];
             const deltaStart = this.safeInteger(delta, 'U');
             const deltaEnd = this.safeInteger(delta, 'u');
+            if ((deltaStart === undefined) || (deltaEnd === undefined)) {
+                return cache.length;
+            }
             if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
                 return i;
             }
@@ -1070,7 +1081,7 @@ class backpack extends backpack$1["default"] {
         //
         const id = this.safeString(order, 'i');
         const clientOrderId = this.safeString(order, 'c');
-        const microseconds = this.safeInteger(order, 'E');
+        const microseconds = this.safeInteger(order, 'E', 0);
         const timestamp = this.parseToInt(microseconds / 1000);
         const status = this.parseWsOrderStatus(this.safeString(order, 'X'), market);
         const marketId = this.safeString(order, 's');
@@ -1230,7 +1241,7 @@ class backpack extends backpack$1["default"] {
         }
         const cache = this.positions;
         const parsedPosition = this.parseWsPosition(data);
-        const microseconds = this.safeInteger(data, 'E');
+        const microseconds = this.safeInteger(data, 'E', 0);
         const timestamp = this.parseToInt(microseconds / 1000);
         parsedPosition['timestamp'] = timestamp;
         parsedPosition['datetime'] = this.iso8601(timestamp);
@@ -1262,8 +1273,9 @@ class backpack extends backpack$1["default"] {
         //
         const id = this.safeString(position, 'i');
         const marketId = this.safeString(position, 's');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        market = marketResolved;
+        const symbol = marketResolved['symbol'];
         const notional = this.safeString(position, 'n');
         const liquidationPrice = this.safeString(position, 'l');
         const entryPrice = this.safeString(position, 'b');
@@ -1274,14 +1286,16 @@ class backpack extends backpack$1["default"] {
         const netQuantity = this.safeNumber(position, 'q');
         let hedged = false;
         let side = 'long';
-        if (netQuantity < 0) {
-            side = 'short';
+        if (netQuantity !== undefined) {
+            if (netQuantity < 0) {
+                side = 'short';
+            }
         }
-        if (netQuantity === undefined) {
+        else {
             hedged = undefined;
             side = undefined;
         }
-        const microseconds = this.safeInteger(position, 'E');
+        const microseconds = this.safeInteger(position, 'E', 0);
         const timestamp = this.parseToInt(microseconds / 1000);
         const maintenanceMarginPercentage = this.safeNumber(position, 'm');
         const initialMarginPercentage = this.safeNumber(position, 'f');

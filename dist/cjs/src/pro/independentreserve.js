@@ -175,6 +175,9 @@ class independentreserve extends independentreserve$1["default"] {
         //
         const event = this.safeString(message, 'Event');
         const channel = this.safeString(message, 'Channel');
+        if (channel === undefined) {
+            return;
+        }
         const parts = channel.split('/');
         const depth = this.safeString(parts, 1);
         const baseId = this.safeString(parts, 2);

@@ -24,7 +24,7 @@ async function testWatchOrderBook(exchange, skippedProperties, symbol) {
             // continue;
             success = false;
         }
-        if (success === true) {
+        if ((success === true) && (response !== undefined)) {
             now = exchange.milliseconds();
             testOrderBook(exchange, skippedProperties, method, response, symbol);
         }

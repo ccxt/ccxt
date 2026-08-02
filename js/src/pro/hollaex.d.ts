@@ -1,5 +1,5 @@
 import hollaexRest from '../hollaex.js';
-import type { Int, Str, OrderBook, Order, Trade, Balances, Bool } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Balances, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class hollaex extends hollaexRest {
     describe(): any;
@@ -40,7 +40,7 @@ export default class hollaex extends hollaexRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleMyTrades(client: Client, message: any, subscription?: any): void;
+    handleMyTrades(client: Client, message: any, subscription?: Dict | undefined): void;
     /**
      * @method
      * @name hollaex#watchOrders
@@ -53,7 +53,7 @@ export default class hollaex extends hollaexRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrder(client: Client, message: any, subscription?: any): void;
+    handleOrder(client: Client, message: any, subscription?: Dict | undefined): void;
     /**
      * @method
      * @name hollaex#watchBalance

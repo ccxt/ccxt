@@ -1,5 +1,5 @@
 import Exchange from './abstract/apex.js';
-import type { Account, Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, NullableDict } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, FundingRateHistory, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, NullableDict } from './base/types.js';
 /**
  * @class apex
  * @augments Exchange
@@ -14,7 +14,7 @@ export default class apex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    fetchTime(params?: {}): Promise<number>;
+    fetchTime(params?: {}): Promise<Int>;
     parseBalance(response: any): Balances;
     /**
      * @method
@@ -44,7 +44,7 @@ export default class apex extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(currency: Dict): Currency;
+    parseCurrency(currency: Dict): CurrencyInterface;
     /**
      * @method
      * @name apex#fetchMarkets
@@ -143,11 +143,11 @@ export default class apex extends Exchange {
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingRateHistory[]>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseTimeInForce(timeInForce: Str): string;
-    parseOrderStatus(status: Str): string;
-    parseOrderType(type: Str): string;
+    parseTimeInForce(timeInForce: Str): Str;
+    parseOrderStatus(status: Str): string | undefined;
+    parseOrderType(type: Str): Str;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
-    generateRandomClientIdOmni(_accountId: string): string;
+    generateRandomClientIdOmni(_accountId: Str): string;
     addHyphenBeforeUsdt(symbol: string): string;
     getSeeds(): string;
     getAccountId(): Promise<any>;
@@ -298,11 +298,11 @@ export default class apex extends Exchange {
         info: any;
         symbol: string;
         code: string;
-        timestamp: number;
-        datetime: string;
-        id: string;
-        amount: number;
-        rate: number;
+        timestamp: Int;
+        datetime: string | undefined;
+        id: Str;
+        amount: Num;
+        rate: Num;
     };
     /**
      * @method
@@ -329,8 +329,8 @@ export default class apex extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
+        body: Str;
         headers: Dict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

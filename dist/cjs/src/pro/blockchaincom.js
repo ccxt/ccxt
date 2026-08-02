@@ -112,7 +112,9 @@ class blockchaincom extends blockchaincom$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(entry, 'available');
             account['total'] = this.safeString(entry, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         const messageHash = 'balance';
         this.balance = this.safeBalance(result);
@@ -518,10 +520,11 @@ class blockchaincom extends blockchaincom$1["default"] {
         //
         const event = this.safeString(message, 'event');
         const messageHash = 'orders';
-        const cachedOrders = this.orders;
+        let cachedOrders = this.orders;
         if (cachedOrders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
-            this.orders = new Cache.ArrayCacheBySymbolById(limit);
+            cachedOrders = new Cache.ArrayCacheBySymbolById(limit);
+            this.orders = cachedOrders;
         }
         if (event === 'subscribed') {
             return;

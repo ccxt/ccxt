@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import { sha256 } from '@noble/hashes/sha2.js';
 import poloniexRest from '../poloniex.js';
-import { BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, AuthenticationError, ExchangeError, InvalidOrder } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
@@ -157,8 +157,12 @@ export default class poloniex extends poloniexRest {
             marketIds.push('all');
         }
         else {
+            if (symbols === undefined) {
+                throw new ArgumentsRequired(this.id + ' subscribe() symbols is required');
+            }
             messageHash = messageHash + '::' + symbols.join(',');
-            marketIds = this.marketIds(symbols);
+            const ids = this.marketIds(symbols);
+            marketIds = (ids === undefined) ? [] : ids;
         }
         if (name !== 'balances') {
             subscribe['symbols'] = marketIds;
@@ -213,6 +217,9 @@ export default class poloniex extends poloniexRest {
         await this.authenticate();
         const market = this.market(symbol);
         let uppercaseType = type.toUpperCase();
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrderWs() side is required');
+        }
         const uppercaseSide = side.toUpperCase();
         const isPostOnly = this.isPostOnly(uppercaseType === 'MARKET', uppercaseType === 'LIMIT_MAKER', params);
         if (isPostOnly) {
@@ -606,12 +613,14 @@ export default class poloniex extends poloniexRest {
         const messageHash = channel + '::' + symbol;
         const parsed = this.parseWsOHLCV(data, market);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = (timeframe === undefined) ? undefined : this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = (timeframe === undefined) ? undefined : this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (symbol !== undefined) {
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                if (symbol !== undefined && timeframe !== undefined) {
+                    this.ohlcvs[symbol][timeframe] = stored;
+                }
             }
             stored.append(parsed);
             client.resolve(stored, messageHash);
@@ -649,7 +658,9 @@ export default class poloniex extends poloniexRest {
                 if (tradesArray === undefined) {
                     const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
                     tradesArray = new ArrayCache(tradesLimit);
-                    this.trades[symbol] = tradesArray;
+                    if (symbol !== undefined) {
+                        this.trades[symbol] = tradesArray;
+                    }
                 }
                 tradesArray.append(trade);
                 client.resolve(tradesArray, messageHash);
@@ -1016,8 +1027,12 @@ export default class poloniex extends poloniexRest {
             if (marketId !== undefined) {
                 const ticker = this.parseTicker(item);
                 const symbol = ticker['symbol'];
-                this.tickers[symbol] = ticker;
-                newTickers[symbol] = ticker;
+                if (symbol !== undefined) {
+                    this.tickers[symbol] = ticker;
+                }
+                if (symbol !== undefined) {
+                    newTickers[symbol] = ticker;
+                }
             }
         }
         const messageHashes = this.findMessageHashes(client, 'ticker::');
@@ -1184,7 +1199,9 @@ export default class poloniex extends poloniexRest {
             const newAccount = this.account();
             newAccount['free'] = this.safeString(balance, 'available');
             newAccount['used'] = this.safeString(balance, 'hold');
-            result[code] = newAccount;
+            if (code !== undefined) {
+                result[code] = newAccount;
+            }
         }
         return this.safeBalance(result);
     }

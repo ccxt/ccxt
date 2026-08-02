@@ -444,7 +444,9 @@ export default class indodax extends Exchange {
             const account = this.account();
             account['free'] = this.safeString(free, currencyId);
             account['used'] = this.safeString(used, currencyId);
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1412,25 +1414,39 @@ export default class indodax extends Exchange {
                 let network = undefined;
                 if (marketId in networks) {
                     const networkId = this.safeString(networks, marketId);
+                    if (networkId === undefined) {
+                        throw new ExchangeError(this.id + ' fetchDepositAddresses() missing networkId');
+                    }
                     if (networkId.indexOf(',') >= 0) {
                         network = [];
+                        if (networkId === undefined) {
+                            throw new ExchangeError(this.id + ' fetchDepositAddresses() missing networkId');
+                        }
                         const networkIds = networkId.split(',');
                         for (let j = 0; j < networkIds.length; j++) {
-                            network.push(this.networkIdToCode(networkIds[j], code).toUpperCase());
+                            const _netIdTmp = this.networkIdToCode(networkIds[j], code);
+                            if (_netIdTmp !== undefined) {
+                                network.push(_netIdTmp.toUpperCase());
+                            }
                         }
                     }
                     else {
-                        network = this.networkIdToCode(networkId, code).toUpperCase();
+                        const _netIdTmp = this.networkIdToCode(networkId, code);
+                        if (_netIdTmp !== undefined) {
+                            network = _netIdTmp.toUpperCase();
+                        }
                     }
                 }
                 const finalNetwork = network; // java req
-                result[code] = {
-                    'info': {},
-                    'currency': code,
-                    'network': finalNetwork,
-                    'address': address,
-                    'tag': undefined,
-                };
+                if (code !== undefined) {
+                    result[code] = {
+                        'info': {},
+                        'currency': code,
+                        'network': finalNetwork,
+                        'address': address,
+                        'tag': undefined,
+                    };
+                }
             }
         }
         return result;

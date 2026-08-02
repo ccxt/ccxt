@@ -306,6 +306,9 @@ export default class mercado extends Exchange {
             const quoteId = 'BRL';
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const id = quote + base;
             result.push({
                 'id': id,
@@ -527,7 +530,9 @@ export default class mercado extends Exchange {
                 const account = this.account();
                 account['free'] = this.safeString(balance, 'available');
                 account['total'] = this.safeString(balance, 'total');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance(result);

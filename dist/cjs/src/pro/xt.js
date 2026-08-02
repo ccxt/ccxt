@@ -923,7 +923,7 @@ class xt extends xt$1["default"] {
             const symbol = market['symbol'];
             const parsed = this.parseOHLCV(data, market);
             this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
-            let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+            let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new Cache.ArrayCacheByTimestamp(limit);
@@ -1340,7 +1340,9 @@ class xt extends xt$1["default"] {
         account['free'] = this.safeString(data, 'availableBalance');
         account['used'] = this.safeString(data, 'f');
         account['total'] = this.safeString2(data, 'b', 'walletBalance');
-        this.balance[code] = account;
+        if (code !== undefined) {
+            this.balance[code] = account;
+        }
         this.balance = this.safeBalance(this.balance);
         const tradeType = ('coin' in data) ? 'contract' : 'spot';
         client.resolve(this.balance, 'balance::' + tradeType);

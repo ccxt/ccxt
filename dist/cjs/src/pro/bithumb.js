@@ -442,7 +442,9 @@ class bithumb extends bithumb$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(asset, 'balance');
             account['used'] = this.safeString(asset, 'locked');
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
         this.balance['info'] = message;
         const timestamp = this.safeInteger(message, 'timestamp');

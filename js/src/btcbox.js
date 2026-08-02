@@ -321,7 +321,7 @@ export default class btcbox extends Exchange {
         const quoteId = this.safeString(market, 'quote');
         const quote = this.safeCurrencyCode(quoteId);
         const symbol = base + '/' + quote;
-        return {
+        return this.safeMarketStructure({
             'id': this.safeString(market, 'symbol'),
             'uppercaseId': undefined,
             'symbol': symbol,
@@ -370,7 +370,7 @@ export default class btcbox extends Exchange {
             'active': undefined,
             'created': undefined,
             'info': market,
-        };
+        });
     }
     parseBalance(response) {
         const result = { 'info': response };
@@ -421,7 +421,7 @@ export default class btcbox extends Exchange {
         }
         const market = this.market(symbol);
         const request = {};
-        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
+        const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
@@ -469,7 +469,7 @@ export default class btcbox extends Exchange {
         }
         const market = this.market(symbol);
         const request = {};
-        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
+        const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
@@ -543,7 +543,7 @@ export default class btcbox extends Exchange {
         }
         const market = this.market(symbol);
         const request = {};
-        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
+        const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }

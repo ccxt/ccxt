@@ -1,5 +1,5 @@
 import nadoRest from '../nado.js';
-import type { Bool, Dict, Int, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class nado extends nadoRest {
     describe(): any;
@@ -362,31 +362,31 @@ export default class nado extends nadoRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrdersWs(symbol?: Str, params?: {}): Promise<Order[]>;
-    watchExecuteRequest(requestId: string, request: any): Promise<any>;
+    watchExecuteRequest(requestIdString: Str, request: any): Promise<any>;
     watchPublic(streamType: any, market: any, messageHash: string, params?: {}): Promise<any>;
     watchPrivate(streamType: any, stream: any, messageHash: string, params?: {}): Promise<any>;
     unWatchPrivate(stream: any, messageHash: string, params?: {}): Promise<any>;
     authenticate(params?: {}): Promise<any>;
     signStreamAuthentication(tx: any, chainId: any, endpointAddress: string): string;
-    createPublicSubscriptionRequest(method: string, streamType: any, market?: any, id?: Int, params?: {}): {
+    createPublicSubscriptionRequest(method: string, streamType: any, market?: undefined, id?: Int, params?: {}): {
         method: string;
         stream: any;
-        id: number;
+        id: Int;
     };
     watchPublicMultiple(streamType: any, markets: any, messageHashes: string[], params?: {}, subscriptionParams?: any): Promise<any>;
     unWatchPublic(streamType: any, market: any, messageHash: string, params?: {}): Promise<any>;
     unWatchPublicMultiple(streamType: any, markets: any, messageHashes: string[], params?: {}, subscriptionParams?: any): Promise<any[]>;
     parseWsTimestamp(message: Dict, key: string): Int;
-    parseWsTrade(trade: Dict, market?: any): Trade;
-    parseWsMyTrade(trade: Dict, market?: any): Trade;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
+    parseWsMyTrade(trade: Dict, market?: Market): Trade;
     handleTrade(client: Client, message: any): void;
     handleMyTrade(client: Client, message: any): void;
     handleOHLCV(client: Client, message: any): void;
-    parseWsOrder(order: Dict, market?: any): Order;
+    parseWsOrder(order: Dict, market?: Market): Order;
     handleOrder(client: Client, message: any): void;
-    parseWsPosition(position: Dict, market?: any): Position;
+    parseWsPosition(position: Dict, market?: Market): Position;
     handlePosition(client: Client, message: any): void;
-    parseWsBidAsk(bidask: Dict, market?: any): Ticker;
+    parseWsBidAsk(bidask: Dict, market?: Market): Ticker;
     handleBidAsk(client: Client, message: any): void;
     parseWsAllBidsAsks(message: Dict): Tickers;
     handleAllBidsAsks(client: Client, message: any): void;
@@ -396,12 +396,12 @@ export default class nado extends nadoRest {
     handleSubscription(client: Client, message: any): void;
     handleAuthentication(client: Client, message: any): void;
     handleUnsubscription(client: Client, message: any): void;
-    handleUnsubscriptionCache(messageHash: string): void;
+    handleUnsubscriptionCache(messageHash: Str): void;
     ping(client: Client): {
         method: string;
-        id: number;
+        id: Int;
         client_time: string;
-    };
+    } | undefined;
     handlePong(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;

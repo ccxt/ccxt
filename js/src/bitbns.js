@@ -522,7 +522,9 @@ export default class bitbns extends Exchange {
                     currencyId = 'INR';
                 }
                 const code = this.safeCurrencyCode(currencyId);
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -680,6 +682,9 @@ export default class bitbns extends Exchange {
         const targetRate = this.safeString(params, 'target_rate');
         const trailRate = this.safeString(params, 'trail_rate');
         params = this.omit(params, ['triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate']);
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const request = {
             'side': side.toUpperCase(),
             'symbol': market['uppercaseId'],
@@ -715,7 +720,8 @@ export default class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        return this.parseOrder(response, market);
+        const parsed = (response === undefined) ? {} : response;
+        return this.parseOrder(parsed, market);
     }
     /**
      * @method
@@ -749,7 +755,8 @@ export default class bitbns extends Exchange {
         quoteSide += tail;
         request['side'] = quoteSide;
         response = await this.v2PostCancel(this.extend(request, params));
-        return this.parseOrder(response, market);
+        const parsed = (response === undefined) ? {} : response;
+        return this.parseOrder(parsed, market);
     }
     /**
      * @method
@@ -804,7 +811,7 @@ export default class bitbns extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const first = this.safeDict(data, 0);
+        const first = this.safeDict(data, 0, {});
         return this.parseOrder(first, market);
     }
     /**

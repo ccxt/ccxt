@@ -1,5 +1,5 @@
 import onetradingRest from '../onetrading.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Bool } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class onetrading extends onetradingRest {
     describe(): any;
@@ -34,7 +34,7 @@ export default class onetrading extends onetradingRest {
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): void;
-    parseWSTicker(ticker: any, market?: any): Ticker;
+    parseWSTicker(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name onetrading#watchMyTrades
@@ -75,7 +75,7 @@ export default class onetrading extends onetradingRest {
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleTrading(client: Client, message: any): void;
-    parseTradingOrder(order: any, market?: any): Order;
+    parseTradingOrder(order: any, market?: Market): Order;
     parseTradingOrderStatus(status: any): string;
     handleOrders(client: Client, message: any): void;
     handleAccountUpdate(client: Client, message: any): void;
@@ -95,7 +95,7 @@ export default class onetrading extends onetradingRest {
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: any): void;
-    findTimeframe(timeframe: any, timeframes?: any): string;
+    findTimeframe(timeframe: any, timeframes?: any): string | undefined;
     handleSubscriptions(client: Client, message: any): any;
     handleHeartbeat(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): Bool;

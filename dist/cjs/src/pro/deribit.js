@@ -152,7 +152,9 @@ class deribit extends deribit$1["default"] {
         const currencyId = this.safeString(data, 'currency');
         const currencyCode = this.safeCurrencyCode(currencyId);
         const balance = this.parseBalance(data);
-        this.balance[currencyCode] = balance;
+        if (currencyCode !== undefined) {
+            this.balance[currencyCode] = balance;
+        }
         const messageHash = 'balance';
         client.resolve(this.balance, messageHash);
     }
@@ -897,7 +899,13 @@ class deribit extends deribit$1["default"] {
         const isOHLCV = (channelName === 'chart.trades');
         const symbols = isOHLCV ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
         this.marketSymbols(symbols, undefined, false);
+        if (symbolsArray === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' watchMultipleWrapper() symbolsArray is required');
+        }
         for (let i = 0; i < symbolsArray.length; i++) {
+            if (symbolsArray === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' watchMultipleWrapper() symbolsArray is required');
+            }
             const current = symbolsArray[i];
             let market = undefined;
             if (isOHLCV) {

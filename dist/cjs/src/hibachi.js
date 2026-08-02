@@ -291,7 +291,7 @@ class hibachi extends hibachi$1["default"] {
         const settle = this.safeCurrencyCode(settleId);
         const symbol = base + '/' + quote + ':' + settle;
         const created = this.safeIntegerProduct(market, 'marketCreationTimestamp', 1000);
-        return {
+        return this.safeMarketStructure({
             'id': marketId,
             'numericId': numericId,
             'symbol': symbol,
@@ -340,7 +340,7 @@ class hibachi extends hibachi$1["default"] {
             },
             'created': created,
             'info': market,
-        };
+        });
     }
     /**
      * @method
@@ -405,29 +405,31 @@ class hibachi extends hibachi$1["default"] {
             'info': {},
         };
         const code = this.safeCurrencyCode('USDT');
-        result[code] = this.safeCurrencyStructure({
-            'id': 'USDT',
-            'name': 'USDT',
-            'type': 'fiat',
-            'code': code,
-            'precision': this.parseNumber('0.000001'),
-            'active': true,
-            'fee': undefined,
-            'networks': networks,
-            'deposit': true,
-            'withdraw': true,
-            'limits': {
-                'deposit': {
-                    'min': undefined,
-                    'max': undefined,
+        if (code !== undefined) {
+            result[code] = this.safeCurrencyStructure({
+                'id': 'USDT',
+                'name': 'USDT',
+                'type': 'fiat',
+                'code': code,
+                'precision': this.parseNumber('0.000001'),
+                'active': true,
+                'fee': undefined,
+                'networks': networks,
+                'deposit': true,
+                'withdraw': true,
+                'limits': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                 },
-                'withdraw': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            },
-            'info': {},
-        });
+                'info': {},
+            });
+        }
         return result;
     }
     parseBalance(response) {
@@ -439,7 +441,9 @@ class hibachi extends hibachi$1["default"] {
         const account = this.account();
         account['total'] = this.safeString(response, 'balance');
         account['free'] = this.safeString(response, 'maximalWithdraw');
-        result[code] = account;
+        if (code !== undefined) {
+            result[code] = account;
+        }
         return this.safeBalance(result);
     }
     /**
@@ -609,7 +613,11 @@ class hibachi extends hibachi$1["default"] {
         // }
         //
         const trades = this.safeList(response, 'trades', []);
-        return this.parseTrades(trades, market);
+        let tradesList = [];
+        if (trades !== undefined) {
+            tradesList = trades;
+        }
+        return this.parseTrades(tradesList, market);
     }
     /**
      * @method
@@ -794,8 +802,9 @@ class hibachi extends hibachi$1["default"] {
         const makerFeeRate = this.safeNumber(response, 'tradeMakerFeeRate');
         const takerFeeRate = this.safeNumber(response, 'tradeTakerFeeRate');
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -807,6 +816,12 @@ class hibachi extends hibachi$1["default"] {
         return result;
     }
     orderMessage(market, nonce, feeRate, type, side, amount, price = undefined) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         let sideInternal = 0;
         if (side === 'sell') {
             sideInternal = 0;
@@ -857,8 +872,18 @@ class hibachi extends hibachi$1["default"] {
         return message;
     }
     createOrderRequest(nonce, symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
-        const feeRate = Math.max(this.safeNumber(market, 'taker', this.safeNumber(this.options, 'defaultTakerFee', 0.00045)), this.safeNumber(market, 'maker', this.safeNumber(this.options, 'defaultMakerFee', 0.00015)));
+        const takerFee = this.safeNumber(market, 'taker', this.safeNumber(this.options, 'defaultTakerFee', 0.00045));
+        const makerFee = this.safeNumber(market, 'maker', this.safeNumber(this.options, 'defaultMakerFee', 0.00015));
+        const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
+        const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
+        const feeRate = Math.max(takerFeeValue, makerFeeValue);
         let sideInternal = '';
         if (side === 'sell') {
             sideInternal = 'ASK';
@@ -980,8 +1005,18 @@ class hibachi extends hibachi$1["default"] {
         return ret;
     }
     editOrderRequest(nonce, id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
-        const feeRate = Math.max(this.safeNumber(market, 'taker'), this.safeNumber(market, 'maker'));
+        const takerFee = this.safeNumber(market, 'taker', 0);
+        const makerFee = this.safeNumber(market, 'maker', 0);
+        const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
+        const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
+        const feeRate = Math.max(takerFeeValue, makerFeeValue);
         const message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage(message, this.privateKey);
         const request = {
@@ -1400,7 +1435,11 @@ class hibachi extends hibachi$1["default"] {
         // }
         //
         const trades = this.safeList(response, 'trades');
-        return this.parseTrades(trades, market, since, limit, params);
+        let tradesList = [];
+        if (trades !== undefined) {
+            tradesList = trades;
+        }
+        return this.parseTrades(tradesList, market, since, limit, params);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -1934,7 +1973,7 @@ class hibachi extends hibachi$1["default"] {
         //     ]
         // }
         //
-        const rowsCapitalHistory = this.safeList(responseCapitalHistory, 'transactions');
+        const rowsCapitalHistory = this.safeList(responseCapitalHistory, 'transactions', []);
         const responseTradingHistory = promises[1];
         //
         // {
@@ -1962,7 +2001,7 @@ class hibachi extends hibachi$1["default"] {
         //     ]
         // }
         //
-        const rowsTradingHistory = this.safeList(responseTradingHistory, 'tradingHistory');
+        const rowsTradingHistory = this.safeList(responseTradingHistory, 'tradingHistory', []);
         const rows = this.arrayConcat(rowsCapitalHistory, rowsTradingHistory);
         return this.parseLedger(rows, currency, since, limit, params);
     }

@@ -38,7 +38,7 @@ export default class blockchaincom extends blockchaincomRest {
      */
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     handleTicker(client: Client, message: any): void;
-    parseWsUpdatedTicker(ticker: any, lastTicker?: any, market?: Market): Ticker;
+    parseWsUpdatedTicker(ticker: any, lastTicker?: undefined, market?: Market): Ticker;
     /**
      * @method
      * @name blockchaincom#watchTrades

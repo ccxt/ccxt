@@ -1487,7 +1487,9 @@ export default class extended extends Exchange {
             const account = this.account();
             account['free'] = this.safeString(balance, 'availableToWithdraw');
             account['total'] = this.safeString(balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2553,6 +2555,12 @@ export default class extended extends Exchange {
         return settlement;
     }
     async createExtendedOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         await this.loadMarkets();
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();

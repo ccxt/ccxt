@@ -464,7 +464,9 @@ class bitopro extends bitopro$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(balance, 'available');
             account['total'] = this.safeString(balance, 'amount');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         this.balance = this.safeBalance(result);
         client.resolve(this.balance, event);

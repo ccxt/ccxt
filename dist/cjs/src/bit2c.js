@@ -476,7 +476,11 @@ class bit2c extends bit2c$1["default"] {
         if (typeof response === 'string') {
             throw new errors.ExchangeError(response);
         }
-        return this.parseTrades(response, market, since, limit);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
     /**
      * @method
@@ -833,7 +837,11 @@ class bit2c extends bit2c$1["default"] {
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
     removeCommaFromValue(str) {
         let newString = '';
