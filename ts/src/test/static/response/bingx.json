@@ -3030,8 +3030,8 @@
                         "side": null,
                         "takerOrMaker": null,
                         "price": 65.2965,
-                        "amount": 1,
-                        "cost": 65.2965,
+                        "amount": 10,
+                        "cost": 652.965,
                         "fee": {
                             "cost": 0.0326,
                             "currency": "USDT"
@@ -3046,7 +3046,7 @@
                 ]
             },
             {
-                "description": "Swap trade amount is derived from notional / price, not volume * tradeMinQuantity (regression for issue #29476, 3x inflated amount)",
+                "description": "Swap trade amount is taken from volume directly, not volume * tradeMinQuantity (regression for issue #29476, 3x inflated amount)",
                 "method": "fetchMyTrades",
                 "input": [
                     "LTC/USDT:USDT",
@@ -3060,7 +3060,7 @@
                         "fill_orders": [
                             {
                                 "filledTm": "2026-07-28T10:00:00Z",
-                                "volume": "39",
+                                "volume": "1.3",
                                 "price": "8.281",
                                 "amount": "10.7653",
                                 "commission": "-0.0053824",
@@ -3081,7 +3081,7 @@
                         "id": null,
                         "info": {
                             "filledTm": "2026-07-28T10:00:00Z",
-                            "volume": "39",
+                            "volume": "1.3",
                             "price": "8.281",
                             "amount": "10.7653",
                             "commission": "-0.0053824",
