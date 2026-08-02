@@ -757,8 +757,10 @@ export default class coinbase extends coinbaseRest {
             if (currentTrades === undefined) {
                 continue;
             }
-            for (let j = 0; j < currentTrades.length; j++) {
-                const item = currentTrades[j];
+            // coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
+            const tradesLength = currentTrades.length;
+            for (let j = 0; j < tradesLength; j++) {
+                const item = currentTrades[tradesLength - j - 1];
                 tradesArray.append (this.parseTrade (item));
             }
         }
