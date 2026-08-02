@@ -692,7 +692,7 @@ export default class xt extends Exchange {
                 'default': {
                     'sandbox': false,
                     'createOrder': {
-                        'marginMode': false,
+                        'marginMode': true,
                         'triggerPrice': false,
                         'triggerDirection': false,
                         'triggerPriceType': undefined,
@@ -773,6 +773,7 @@ export default class xt extends Exchange {
                 'forDerivatives': {
                     'extends': 'default',
                     'createOrder': {
+                        'marginMode': false,
                         'triggerPrice': true,
                         // todo
                         'triggerPriceType': {
@@ -1357,8 +1358,8 @@ export default class xt extends Exchange {
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
-            'taker': this.safeNumber (market, 'takerFee'),
-            'maker': this.safeNumber (market, 'makerFee'),
+            'taker': this.safeNumber2 (market, 'takerFee', 'takerFeeRate'),
+            'maker': this.safeNumber2 (market, 'makerFee', 'makerFeeRate'),
             'contractSize': this.safeNumber (market, 'contractSize'),
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
