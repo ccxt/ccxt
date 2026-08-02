@@ -320,7 +320,7 @@ class btcbox extends btcbox$1["default"] {
         const quoteId = this.safeString(market, 'quote');
         const quote = this.safeCurrencyCode(quoteId);
         const symbol = base + '/' + quote;
-        return {
+        return this.safeMarketStructure({
             'id': this.safeString(market, 'symbol'),
             'uppercaseId': undefined,
             'symbol': symbol,
@@ -369,7 +369,7 @@ class btcbox extends btcbox$1["default"] {
             'active': undefined,
             'created': undefined,
             'info': market,
-        };
+        });
     }
     parseBalance(response) {
         const result = { 'info': response };
@@ -420,7 +420,7 @@ class btcbox extends btcbox$1["default"] {
         }
         const market = this.market(symbol);
         const request = {};
-        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
+        const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
@@ -468,7 +468,7 @@ class btcbox extends btcbox$1["default"] {
         }
         const market = this.market(symbol);
         const request = {};
-        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
+        const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
@@ -542,7 +542,7 @@ class btcbox extends btcbox$1["default"] {
         }
         const market = this.market(symbol);
         const request = {};
-        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
+        const numSymbols = this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }

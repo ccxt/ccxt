@@ -6,7 +6,7 @@ import { ExchangeError, BadRequest, PermissionDenied, BadSymbol, NotSupported, I
 import { TICK_SIZE } from './base/functions/number.js';
 import type{ Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Trade, int, Strings, Ticker, Tickers, Currency, DepositAddress, Transaction, Balances } from './base/types.js';
 
-//  ---------------------------------------------------------------------------xs
+//  ---------------------------------------------------------------------------
 /**
  * @class alpaca
  * @augments Exchange
@@ -438,9 +438,21 @@ export default class alpaca extends Exchange {
         //     }
         //
         const timestamp = this.safeString (response, 'timestamp');
+        if (timestamp === undefined) {
+            throw new ExchangeError (this.id + ' fetchTime() missing timestamp');
+        }
         const localTime = timestamp.slice (0, 23);
+        if (timestamp === undefined) {
+            throw new ExchangeError (this.id + ' fetchTime() missing timestamp');
+        }
         const jetlagStrStart = timestamp.length - 6;
+        if (timestamp === undefined) {
+            throw new ExchangeError (this.id + ' fetchTime() missing timestamp');
+        }
         const jetlagStrEnd = timestamp.length - 3;
+        if (timestamp === undefined) {
+            throw new ExchangeError (this.id + ' fetchTime() missing timestamp');
+        }
         const jetlag = timestamp.slice (jetlagStrStart, jetlagStrEnd);
         const iso = this.parseToInt (this.parse8601 (localTime)) - this.parseToNumeric (jetlag) * 3600 * 1000;
         return iso;
@@ -507,6 +519,9 @@ export default class alpaca extends Exchange {
         //     }
         //
         const marketId = this.safeString (asset, 'symbol');
+        if (marketId === undefined) {
+            throw new ExchangeError (this.id + ' parseMarket() missing marketId');
+        }
         const parts = marketId.split ('/');
         const assetClass = this.safeString (asset, 'class');
         const baseId = this.safeString (parts, 0);
@@ -524,7 +539,7 @@ export default class alpaca extends Exchange {
         const minAmount = this.safeNumber (asset, 'min_order_size');
         const amount = this.safeNumber (asset, 'min_trade_increment');
         const price = this.safeNumber (asset, 'price_increment');
-        return {
+        return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -572,7 +587,7 @@ export default class alpaca extends Exchange {
             },
             'created': undefined,
             'info': asset,
-        };
+        });
     }
 
     /**
@@ -602,7 +617,7 @@ export default class alpaca extends Exchange {
             'loc': loc,
         };
         params = this.omit (params, [ 'loc', 'method' ]);
-        let symbolTrades = undefined;
+        let symbolTrades: any = undefined;
         if (method === 'marketPublicGetV1beta3CryptoLocTrades') {
             if (since !== undefined) {
                 request['start'] = this.iso8601 (since);
@@ -650,7 +665,11 @@ export default class alpaca extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchTrades() does not support ' + method + ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported');
         }
-        return this.parseTrades (symbolTrades, market, since, limit);
+        let symbolTradesList: any[] = [];
+        if (symbolTrades !== undefined) {
+            symbolTradesList = symbolTrades;
+        }
+        return this.parseTrades (symbolTradesList, market, since, limit);
     }
 
     /**
@@ -747,7 +766,7 @@ export default class alpaca extends Exchange {
             'loc': loc,
         };
         params = this.omit (params, [ 'loc', 'method' ]);
-        let ohlcvs = undefined;
+        let ohlcvs: any = undefined;
         if (method === 'marketPublicGetV1beta3CryptoLocBars') {
             if (limit !== undefined) {
                 request['limit'] = limit;
@@ -937,7 +956,7 @@ export default class alpaca extends Exchange {
         //         }
         //     }
         //
-        const results = [];
+        const results: Ticker[] = [];
         const snapshots = this.safeDict (response, 'snapshots', {});
         const marketIds = Object.keys (snapshots);
         for (let i = 0; i < marketIds.length; i++) {
@@ -1094,7 +1113,7 @@ export default class alpaca extends Exchange {
         } else {
             request['qty'] = this.amountToPrecision (symbol, amount);
         }
-        let defaultTIF = undefined;
+        let defaultTIF: Str = undefined;
         [ defaultTIF, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce');
         request['time_in_force'] = defaultTIF;
         params = this.omit (params, [ 'timeInForce', 'triggerPrice' ]);
@@ -1727,7 +1746,7 @@ export default class alpaca extends Exchange {
         //         "fees": "0.1"
         //     }
         //
-        const results = [];
+        const results: Transaction[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const direction = this.safeString (entry, 'direction');
@@ -1851,7 +1870,7 @@ export default class alpaca extends Exchange {
             'INCOMING': 'deposit',
             'OUTGOING': 'withdrawal',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**
@@ -1925,7 +1944,9 @@ export default class alpaca extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         account['free'] = this.safeString (response, 'cash');
         account['total'] = this.safeString (response, 'equity');
-        result[code] = account;
+        if (code !== undefined) {
+            result[code] = account;
+        }
         return this.safeBalance (result);
     }
 

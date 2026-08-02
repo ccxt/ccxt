@@ -264,7 +264,8 @@ public class BithumbCore extends BithumbApi
 
     public Object amountToPrecision(Object symbol, Object amount)
     {
-        return this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.markets, symbol), "precision"), "amount"), DECIMAL_PLACES);
+        Object market = this.market(symbol);
+        return this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), DECIMAL_PLACES);
     }
 
     /**
@@ -924,7 +925,7 @@ public class BithumbCore extends BithumbApi
                 Helpers.addElementToObject(request, "type", ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "bid" : "ask");
             } else
             {
-                method = Helpers.add("privatePostTradeMarket", this.capitalize(((String)side)));
+                method = Helpers.add("privatePostTradeMarket", this.capitalize(side));
             }
             Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
             Object id = this.safeString(response, "order_id");

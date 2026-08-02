@@ -450,9 +450,12 @@ public class DigifinexCore extends DigifinexApi
             Object networkEntry = Helpers.GetValue(networkEntries, j);
             Object networkId = this.safeString2(networkEntry, "chain", "currency");
             Object networkCode = this.networkIdToCode(networkId, code);
-            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkCode = networkCode;
+                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
-    put( "network", networkCode );
+    put( "network", finalNetworkCode );
     put( "active", null );
     put( "deposit", Helpers.isEqual(DigifinexCore.this.safeInteger(networkEntry, "deposit_status"), 1) );
     put( "withdraw", Helpers.isEqual(DigifinexCore.this.safeInteger(networkEntry, "withdraw_status"), 1) );
@@ -470,6 +473,7 @@ public class DigifinexCore extends DigifinexApi
     }} );
     put( "info", networkEntry );
 }});
+            }
         }
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -715,14 +719,19 @@ public class DigifinexCore extends DigifinexApi
             {
                 Object market = Helpers.GetValue(markets, i);
                 Object id = this.safeString(market, "market");
+                if (Helpers.isTrue(Helpers.isEqual(id, null)))
+                {
+                    throw new ExchangeError((String)Helpers.add(this.id, " fetchMarketsV1() missing id")) ;
+                }
                 var baseIdquoteIdVariable = Helpers.split(id, "_");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
                 Object base = this.safeCurrencyCode(baseId);
                 Object quote = this.safeCurrencyCode(quoteId);
-    final Object finalBase = base;
+    final Object finalId = id;
+                final Object finalBase = base;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
-                    put( "id", id );
+                    put( "id", finalId );
                     put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
                     put( "base", finalBase );
                     put( "quote", quote );
@@ -815,7 +824,10 @@ public class DigifinexCore extends DigifinexApi
             Helpers.addElementToObject(account, "free", free);
             Helpers.addElementToObject(account, "used", Precise.stringSub(total, free));
             Helpers.addElementToObject(account, "total", total);
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -1099,7 +1111,10 @@ public class DigifinexCore extends DigifinexApi
                 }}, Helpers.GetValue(tickers, i));
                 Object ticker = this.parseTicker(rawTicker);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
-                Helpers.addElementToObject(result, symbol, ticker);
+                if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                {
+                    Helpers.addElementToObject(result, symbol, ticker);
+                }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         });
@@ -1196,6 +1211,10 @@ public class DigifinexCore extends DigifinexApi
                 result = this.extend(new java.util.HashMap<String, Object>() {{
                     put( "date", date );
                 }}, firstTicker);
+            }
+            if (Helpers.isTrue(Helpers.isEqual(result, null)))
+            {
+                throw new NullResponse((String)Helpers.add(this.id, " fetchTicker() returned empty response")) ;
             }
             return this.parseTicker(result, market);
         });
@@ -1394,6 +1413,10 @@ public class DigifinexCore extends DigifinexApi
             }
         } else
         {
+            if (Helpers.isTrue(Helpers.isEqual(side, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " parseTrade() returned no side")) ;
+            }
             Object parts = Helpers.split(side, "_");
             side = this.safeString(parts, 0);
             type = this.safeString(parts, 1);
@@ -1686,6 +1709,10 @@ public class DigifinexCore extends DigifinexApi
                             }
                         } else
                         {
+                            if (Helpers.isTrue(Helpers.isEqual(limit, null)))
+                            {
+                                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV() requires a limit argument")) ;
+                            }
                             Helpers.addElementToObject(request, "end_time", this.sum(startTime, Helpers.multiply(limit, duration)));
                         }
                     }
@@ -1797,6 +1824,10 @@ public class DigifinexCore extends DigifinexApi
             //         "data": "1590873693003714560"
             //     }
             //
+            if (Helpers.isTrue(Helpers.isEqual(response, null)))
+            {
+                throw new NullResponse((String)Helpers.add(this.id, " createOrder() returned empty response")) ;
+            }
             Object order = this.parseOrder(response, market);
             Helpers.addElementToObject(order, "symbol", Helpers.GetValue(market, "symbol"));
             Helpers.addElementToObject(order, "type", type);
@@ -1928,21 +1959,29 @@ public class DigifinexCore extends DigifinexApi
 
     public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
-        /**
-        * @method
-        * @ignore
-        * @name digifinex#createOrderRequest
-        * @description helper function to build request
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency, spot market orders use the quote currency, swap requires the number of contracts
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} request to be sent to the exchange
-        */
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name digifinex#createOrderRequest
+         * @description helper function to build request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency, spot market orders use the quote currency, swap requires the number of contracts
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} request to be sent to the exchange
+         */
         Object market = this.market(symbol);
         Object marketType = null;
         Object marginMode = null;
@@ -2965,7 +3004,7 @@ public class DigifinexCore extends DigifinexApi
     public Object parseLedgerEntryType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{}};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseLedgerEntry(Object item, Object... optionalArgs)
@@ -3548,6 +3587,10 @@ public class DigifinexCore extends DigifinexApi
                 //
                 response = (this.privateSpotPostTransfer(this.extend(request, parameters))).join();
             }
+            if (Helpers.isTrue(Helpers.isEqual(response, null)))
+            {
+                throw new NullResponse((String)Helpers.add(this.id, " transfer() returned empty response")) ;
+            }
             return this.parseTransfer(response, currency);
         });
 
@@ -3726,7 +3769,7 @@ public class DigifinexCore extends DigifinexApi
             //     }
             //
             Object data = this.safeValue(response, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = null;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -3823,7 +3866,10 @@ public class DigifinexCore extends DigifinexApi
             Object currency = this.safeString(item, codeKey);
             Object code = this.safeCurrencyCode(currency);
             Object borrowRate = this.parseBorrowRate(item);
-            Helpers.addElementToObject(result, code, borrowRate);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, borrowRate);
+            }
         }
         return result;
     }
@@ -4529,6 +4575,10 @@ public class DigifinexCore extends DigifinexApi
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 currency = this.safeCurrencyCode(code);
+                if (Helpers.isTrue(Helpers.isEqual(currency, null)))
+                {
+                    throw new ExchangeError((String)Helpers.add(this.id, " fetchTransfers() could not resolve currency")) ;
+                }
                 Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -4556,7 +4606,7 @@ public class DigifinexCore extends DigifinexApi
             //     }
             //
             Object transfers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            return this.parseTransfers(transfers, currency, since, limit);
+            return this.parseTransfers(transfers, ((Object)currency), since, limit);
         });
 
     }
@@ -4855,7 +4905,7 @@ final Object finalI = i;
             Object entry = Helpers.GetValue(response, i);
             Object currencyId = this.safeString(entry, "currency");
             Object code = this.safeCurrencyCode(currencyId);
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))))
             {
                 Object depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
                 if (Helpers.isTrue(Helpers.isEqual(depositWithdrawFee, null)))
@@ -4879,10 +4929,13 @@ final Object finalI = i;
                 if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
                 {
                     Object networkCode = this.networkIdToCode(networkId, code);
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "networks"), networkCode, new java.util.HashMap<String, Object>() {{
+                    if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+                    {
+                        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "withdraw", withdrawResult );
     put( "deposit", depositResult );
 }});
+                    }
                 } else
                 {
                     Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFees, code), "withdraw", withdrawResult);

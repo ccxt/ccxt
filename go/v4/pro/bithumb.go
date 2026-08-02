@@ -562,7 +562,9 @@ func (this *BithumbCore) HandleBalance(client any, message any) {
 		var account any = this.Account()
 		ccxt.AddElementToObject(account, "free", this.SafeString(asset, "balance"))
 		ccxt.AddElementToObject(account, "used", this.SafeString(asset, "locked"))
-		ccxt.AddElementToObject(this.Balance, code, account)
+		if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+			ccxt.AddElementToObject(this.Balance, code, account)
+		}
 	}
 	ccxt.AddElementToObject(this.Balance, "info", message)
 	var timestamp any = this.SafeInteger(message, "timestamp")
@@ -633,12 +635,12 @@ func (this *BithumbCore) WatchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes50612 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes50612)
+			retRes50812 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes50812)
 		}
 
-		retRes5088 := (<-this.Authenticate())
-		ccxt.PanicOnError(retRes5088)
+		retRes5108 := (<-this.Authenticate())
+		ccxt.PanicOnError(retRes5108)
 		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
 		var messageHash any = "myOrder"
 		var codes any = this.SafeList(params, "codes", []any{})

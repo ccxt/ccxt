@@ -7,8 +7,8 @@ export type Example = {
   id: string;
   label: string;
   description: string;
-  // Rich snippets exist for the interpreted trio (TypeScript, Python, PHP);
-  // Go/C# fall back to their language defaultCode.
+  // Rich snippets exist for the interpreted trio (TypeScript, Python, PHP) plus
+  // Java; Go/C# fall back to their language defaultCode.
   code: Partial<Record<RunnableLanguageId, string>>;
 };
 
@@ -34,6 +34,17 @@ print(ticker['symbol'], 'last=', ticker['last'], 'bid=', ticker['bid'], 'ask=', 
 $exchange = new \\ccxt\\binance();
 $ticker = $exchange->fetch_ticker('BTC/USDT');
 echo $ticker['symbol'] . '  last=' . $ticker['last'] . '  bid=' . $ticker['bid'] . '  ask=' . $ticker['ask'] . "\\n";
+`,
+      java: `import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.Ticker;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        Binance exchange = new Binance();
+        Ticker ticker = exchange.fetchTicker("BTC/USDT");
+        System.out.println(ticker.symbol + "  last=" + ticker.last + "  bid=" + ticker.bid + "  ask=" + ticker.ask);
+    }
+}
 `,
     },
   },
@@ -280,6 +291,24 @@ async def main():
     await exchange.close()
 
 asyncio.run(main())
+`,
+      java: `import io.github.ccxt.exchanges.pro.Binance;
+import io.github.ccxt.types.Ticker;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        // ccxt.pro = WebSockets. Netty ignores the JVM proxy flags, so wrap the
+        // exchange with Playground.proxy to tunnel watch* through the sandbox's
+        // egress proxy (a no-op outside the playground).
+        Binance exchange = Playground.proxy(new Binance());
+        // Stream a few live updates, then close the socket so the run finishes.
+        for (int i = 0; i < 5; i++) {
+            Ticker ticker = exchange.watchTicker("BTC/USDT");
+            System.out.println(ticker.datetime + "  " + ticker.symbol + "  last=" + ticker.last);
+        }
+        exchange.close();
+    }
+}
 `,
     },
   },

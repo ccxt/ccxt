@@ -31,10 +31,10 @@ public partial class deepcoin
         var res = await this.fetchMarketsByType(type, parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public Dictionary<string, object> SetMarkets(object markets, object currencies = null)
+    public Dictionary<string, Market> SetMarkets(object markets, object currencies = null)
     {
         var res = this.setMarkets(markets, currencies);
-        return ((Dictionary<string, object>)res);
+        return ((Dictionary<string, Market>)res);
     }
     /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data

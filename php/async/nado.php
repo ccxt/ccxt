@@ -1655,18 +1655,27 @@ class nado extends Exchange {
             $pairsById = array();
             for ($i = 0; $i < count($pairs); $i++) {
                 $rawPair = $pairs[$i];
-                $pairsById[$this->safe_string($rawPair, 'product_id')] = $rawPair;
+                $pairProductId = $this->safe_string($rawPair, 'product_id');
+                if ($pairProductId !== null) {
+                    $pairsById[$pairProductId] = $rawPair;
+                }
             }
             $assetsById = array();
             for ($i = 0; $i < count($assets); $i++) {
                 $rawAsset = $assets[$i];
-                $assetsById[$this->safe_string($rawAsset, 'product_id')] = $rawAsset;
+                $assetProductId = $this->safe_string($rawAsset, 'product_id');
+                if ($assetProductId !== null) {
+                    $assetsById[$assetProductId] = $rawAsset;
+                }
             }
             $assetsByCode = array();
             for ($i = 0; $i < count($assets); $i++) {
                 $rawAsset = $assets[$i];
                 $assetSymbol = $this->safe_string($rawAsset, 'symbol');
                 $assetCode = $this->safe_currency_code($this->remove_market_suffix($assetSymbol));
+                if ($assetCode === null) {
+                    continue;
+                }
                 $previous = $this->safe_dict($assetsByCode, $assetCode);
                 if ($previous === null) {
                     $assetsByCode[$assetCode] = $rawAsset;
@@ -1712,7 +1721,7 @@ class nado extends Exchange {
                 $priceIncrement = $this->parse_x18($this->safe_string($market, 'price_increment_x18'));
                 $amountIncrement = $this->parse_x18($this->safe_string($market, 'size_increment'));
                 $minCost = $this->parse_x18($this->safe_string($market, 'min_size'));
-                $markets[] = array(
+                $markets[] = $this->safe_market_structure(array(
                     'id' => $id,
                     'lowercaseId' => null,
                     'symbol' => $symbol,
@@ -1768,7 +1777,7 @@ class nado extends Exchange {
                         'v2Pair' => $pair,
                         'v2Asset' => $asset,
                     )),
-                );
+                ));
             }
             return $markets;
         })();
@@ -1790,6 +1799,9 @@ class nado extends Exchange {
                 $currency = $response[$i];
                 $parsed = $this->parse_currency($currency);
                 $code = $this->safe_string($parsed, 'code');
+                if ($code === null) {
+                    continue;
+                }
                 $previous = $this->safe_dict($result, $code);
                 $canDeposit = $this->safe_bool($currency, 'can_deposit', false);
                 $canWithdraw = $this->safe_bool($currency, 'can_withdraw', false);
@@ -1843,18 +1855,22 @@ class nado extends Exchange {
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
-             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              *
              * @see https://docs.nado.xyz/developer-resources/api/v2/tickers
              *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $tickers = Async\await($this->fetch_tickers(array( $symbol ), $params));
-            return $this->safe_ticker($this->safe_dict($tickers, $symbol), $market);
+            $ticker = $this->safe_dict($tickers, $symbol);
+            if ($ticker === null) {
+                throw new BadSymbol($this->id . ' fetchTicker() $ticker not found for ' . $symbol);
+            }
+            return $this->safe_ticker($ticker, $market);
         })();
     }
 
@@ -2587,7 +2603,9 @@ class nado extends Exchange {
             $account['total'] = $amount;
             // the subaccount $balance carries no locked/reserved breakdown, the whole $amount is spendable
             $account['free'] = $amount;
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -2945,7 +2963,10 @@ class nado extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function convert_to_x18(string $value) {
+    public function convert_to_x18(?string $value) {
+        if ($value === null) {
+            throw new ArgumentsRequired($this->id . ' convertToX18() requires a value');
+        }
         return Precise::string_div(Precise::string_mul($value, '1000000000000000000'), '1', 0);
     }
 
@@ -2998,9 +3019,12 @@ class nado extends Exchange {
         return $appendix;
     }
 
-    public function create_subaccount(string $walletAddress, $subaccount = 'default') {
+    public function create_subaccount(?string $walletAddress, ?string $subaccount = 'default') {
         if ($walletAddress === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires exchange.walletAddress');
+            throw new ArgumentsRequired($this->id . ' createSubaccount() requires walletAddress');
+        }
+        if ($subaccount === null) {
+            $subaccount = 'default';
         }
         $address = strtolower($this->remove0x_prefix($walletAddress));
         if (strlen($address) !== 40) {
@@ -3034,6 +3058,9 @@ class nado extends Exchange {
     }
 
     public function pad_hex(string $value, ?int $length, $left = true) {
+        if ($length === null) {
+            throw new ArgumentsRequired($this->id . ' padHex() requires length');
+        }
         $zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
         $padded = $left ? ($zeros . $value) : ($value . $zeros);
         if ($left) {
@@ -3122,7 +3149,10 @@ class nado extends Exchange {
         return $this->sign_hash($hash, $this->privateKey);
     }
 
-    public function sign_hash($hash, $privateKey) {
+    public function sign_hash(string $hash, ?string $privateKey) {
+        if ($privateKey === null) {
+            throw new ArgumentsRequired($this->id . ' signHash() requires privateKey');
+        }
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $s = $signature['s'];
@@ -3140,7 +3170,7 @@ class nado extends Exchange {
         return $marketId;
     }
 
-    public function sign($path, $api = array(), $method = 'GET', $params = array(), $headers = null, $body = null) {
+    public function sign($path, mixed $api = array(), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         $endpoint = $api[0];
         if (gettype($api) === 'string') {
             $endpoint = $api;

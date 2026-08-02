@@ -59,7 +59,7 @@ function readDerLength (bytes: Uint8Array, offset: number): [number, number] {
 
 // parse a DER buffer into a flat list of its top-level TLV elements
 function parseDerElements (bytes: Uint8Array): { tag: number, content: Uint8Array }[] {
-    const elements = [];
+    const elements: { tag: number; content: Uint8Array }[] = [];
     let offset = 0;
     while (offset < bytes.length) {
         const tag = bytes[offset];
@@ -76,7 +76,7 @@ function parseDerElements (bytes: Uint8Array): { tag: number, content: Uint8Arra
 
 // decode an OID's content bytes into a dotted-decimal string
 function decodeOid (bytes: Uint8Array): string {
-    const values = [];
+    const values: number[] = [];
     const first = bytes[0];
     values.push (Math.floor (first / 40));
     values.push (first % 40);
@@ -151,7 +151,7 @@ function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash | null
       format: 'recovered',
     }), 'recovered');
     const minimumSize = (BigInt(1) << (BigInt(8) * BigInt(31))) - BigInt(1);
-    const halfOrder = ((curve.Point as any).Fn.ORDER as bigint) / BigInt(2);
+    const halfOrder = (curve.Point as any).Fn.ORDER / BigInt(2);
     let counter = 0;
     while (fixedLength && (signature.r > halfOrder || signature.r <= minimumSize || signature.s <= minimumSize)) {
       signature = curve.Signature.fromBytes (curve.sign (messageBytes, secretBytes, {

@@ -860,7 +860,10 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             Object account = this.account();
             Helpers.addElementToObject(account, "free", available);
             Helpers.addElementToObject(account, "used", frozen);
-            Helpers.addElementToObject(this.balance, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(this.balance, code, account);
+            }
             this.balance = this.safeBalance(this.balance);
         }
         Object messageHash = this.safeString(message, "type");

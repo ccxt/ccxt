@@ -853,31 +853,34 @@ public partial class xt : Exchange
                 object rawNetwork = getValue(rawNetworks, j);
                 object networkId = this.safeString(rawNetwork, "chain");
                 object networkCode = this.networkIdToCode(networkId, code);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "info", rawNetwork },
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "name", null },
-                    { "active", null },
-                    { "fee", this.safeNumber(rawNetwork, "withdrawFeeAmount") },
-                    { "precision", null },
-                    { "deposit", this.safeBool(rawNetwork, "depositEnabled") },
-                    { "withdraw", this.safeBool(rawNetwork, "withdrawEnabled") },
-                    { "limits", new Dictionary<string, object>() {
-                        { "amount", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
+                if (isTrue(!isEqual(networkCode, null)))
+                {
+                    ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                        { "info", rawNetwork },
+                        { "id", networkId },
+                        { "network", networkCode },
+                        { "name", null },
+                        { "active", null },
+                        { "fee", this.safeNumber(rawNetwork, "withdrawFeeAmount") },
+                        { "precision", null },
+                        { "deposit", this.safeBool(rawNetwork, "depositEnabled") },
+                        { "withdraw", this.safeBool(rawNetwork, "withdrawEnabled") },
+                        { "limits", new Dictionary<string, object>() {
+                            { "amount", new Dictionary<string, object>() {
+                                { "min", null },
+                                { "max", null },
+                            } },
+                            { "withdraw", new Dictionary<string, object>() {
+                                { "min", this.safeNumber(rawNetwork, "withdrawMinAmount") },
+                                { "max", null },
+                            } },
+                            { "deposit", new Dictionary<string, object>() {
+                                { "min", null },
+                                { "max", null },
+                            } },
                         } },
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(rawNetwork, "withdrawMinAmount") },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                    } },
-                };
+                    };
+                }
             }
             object typeRaw = this.safeString(entry, "type");
             object type = null;
@@ -888,33 +891,36 @@ public partial class xt : Exchange
             {
                 type = "other";
             }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "info", entry },
-                { "id", currencyId },
-                { "code", code },
-                { "name", this.safeString(entry, "fullName") },
-                { "active", null },
-                { "fee", null },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(entry, "maxPrecision"))) },
-                { "deposit", isEqual(this.safeString(entry, "depositStatus"), "1") },
-                { "withdraw", isEqual(this.safeString(entry, "withdrawStatus"), "1") },
-                { "networks", networks },
-                { "type", type },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
+                    { "info", entry },
+                    { "id", currencyId },
+                    { "code", code },
+                    { "name", this.safeString(entry, "fullName") },
+                    { "active", null },
+                    { "fee", null },
+                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(entry, "maxPrecision"))) },
+                    { "deposit", isEqual(this.safeString(entry, "depositStatus"), "1") },
+                    { "withdraw", isEqual(this.safeString(entry, "withdrawStatus"), "1") },
+                    { "networks", networks },
+                    { "type", type },
+                    { "limits", new Dictionary<string, object>() {
+                        { "amount", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-            });
+                });
+            }
         }
         return result;
     }
@@ -1792,7 +1798,10 @@ public partial class xt : Exchange
         {
             object ticker = this.parseTicker(getValue(tickers, i), market);
             object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            }
         }
         return this.filterByArray(result, "symbol", symbols);
     }
@@ -2477,7 +2486,10 @@ public partial class xt : Exchange
             ((IDictionary<string,object>)account)["free"] = free;
             ((IDictionary<string,object>)account)["used"] = used;
             ((IDictionary<string,object>)account)["total"] = total;
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -3424,7 +3436,7 @@ public partial class xt : Exchange
             orders = this.safeList(resultDict, "items", new List<object>() {});
         } else
         {
-            orders = this.safeList(response, "result");
+            orders = this.safeList(response, "result", new List<object>() {});
         }
         return this.parseOrders(orders, market, since, limit);
     }
@@ -3694,7 +3706,7 @@ public partial class xt : Exchange
         //         "result": true
         //     }
         //
-        return new List<object> {this.safeOrder(response)};
+        return new List<object> {this.safeOrder(((object)response))};
     }
 
     /**
@@ -3741,7 +3753,7 @@ public partial class xt : Exchange
         //         "result": null
         //     }
         //
-        return new List<object> {this.safeOrder(response)};
+        return new List<object> {this.safeOrder(((object)response))};
     }
 
     public override object parseOrder(object order, object market = null)
@@ -4084,7 +4096,7 @@ public partial class xt : Exchange
             { "FEE", "fee" },
             { "ADL", "auto-deleveraging" },
         };
-        return this.safeString(ledgerType, type, type);
+        return this.safeString(ledgerType, ((string)type), type);
     }
 
     /**
@@ -5155,7 +5167,7 @@ public partial class xt : Exchange
                 return this.parsePosition(entry, marketInner);
             }
         }
-        return null;
+        throw new NullResponse ((string)add(add(this.id, " fetchPosition() could not find a position for "), symbol)) ;
     }
 
     /**
@@ -5600,9 +5612,17 @@ public partial class xt : Exchange
             if (isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(payload, "/v4/order"))) || isTrue((isEqual(payload, "/future/trade/v1/order/create")))) || isTrue((isEqual(payload, "/future/trade/v1/entrust/create-plan")))) || isTrue((isEqual(payload, "/future/trade/v1/entrust/create-profit")))) || isTrue((isEqual(payload, "/future/trade/v1/order/create-batch")))))
             {
                 object id = "CCXT";
+                if (isTrue(isEqual(body, null)))
+                {
+                    throw new NullResponse ((string)add(this.id, " sign() returned empty body")) ;
+                }
                 if (isTrue(isGreaterThan(getIndexOf(payload, "future"), -1)))
                 {
                     ((IDictionary<string,object>)body)["clientMedia"] = id;
+                    if (isTrue(isEqual(body, null)))
+                    {
+                        throw new NullResponse ((string)add(this.id, " sign() returned empty body")) ;
+                    }
                 } else
                 {
                     ((IDictionary<string,object>)body)["media"] = id;

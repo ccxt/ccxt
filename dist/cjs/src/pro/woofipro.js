@@ -343,7 +343,9 @@ class woofipro extends woofipro$1["default"] {
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsBidAsk(this.extend(data[i], { 'ts': timestamp }));
-            this.tickers[ticker['symbol']] = ticker;
+            if (ticker['symbol'] !== undefined) {
+                this.tickers[ticker['symbol']] = ticker;
+            }
             result.push(ticker);
         }
         client.resolve(result, topic);
@@ -433,15 +435,16 @@ class woofipro extends woofipro$1["default"] {
             this.safeNumber(data, 'volume'),
         ];
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            if ((symbol !== undefined) && (timeframe !== undefined)) {
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
         }
-        const ohlcvCache = this.ohlcvs[symbol][timeframe];
-        ohlcvCache.append(parsed);
-        client.resolve(ohlcvCache, topic);
+        stored.append(parsed);
+        client.resolve(stored, topic);
     }
     /**
      * @method
@@ -916,7 +919,7 @@ class woofipro extends woofipro$1["default"] {
                 if (fees !== undefined) {
                     parsed['fees'] = fees;
                 }
-                parsed['trades'] = this.safeList(order, 'trades');
+                parsed['trades'] = this.safeList(order, 'trades', []);
                 parsed['timestamp'] = this.safeInteger(order, 'timestamp');
                 parsed['datetime'] = this.safeString(order, 'datetime');
             }
@@ -989,7 +992,13 @@ class woofipro extends woofipro$1["default"] {
         const messageHashes = [];
         symbols = this.marketSymbols(symbols);
         if (!this.isEmpty(symbols)) {
+            if (symbols === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' watchPositions() symbols is required');
+            }
             for (let i = 0; i < symbols.length; i++) {
+                if (symbols === undefined) {
+                    throw new errors.ArgumentsRequired(this.id + ' watchPositions() symbols is required');
+                }
                 const symbol = symbols[i];
                 messageHashes.push('positions::' + symbol);
             }
@@ -1232,13 +1241,18 @@ class woofipro extends woofipro$1["default"] {
             const key = keys[i];
             const value = balances[key];
             const code = this.safeCurrencyCode(key);
-            const account = (code in this.balance) ? this.balance[code] : this.account();
+            let account = this.account();
+            if ((code !== undefined) && (code in this.balance)) {
+                account = this.balance[code];
+            }
             const total = this.safeString(value, 'holding');
             const used = this.safeString(value, 'frozen');
             account['total'] = total;
             account['used'] = used;
             account['free'] = Precise["default"].stringSub(total, used);
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, 'balance');
@@ -1313,6 +1327,9 @@ class woofipro extends woofipro$1["default"] {
             const splitLength = splitTopic.length;
             if (splitLength === 2) {
                 const name = this.safeString(splitTopic, 1);
+                if (name === undefined) {
+                    return;
+                }
                 method = this.safeValue(methods, name);
                 if (method !== undefined) {
                     method.call(this, client, message);

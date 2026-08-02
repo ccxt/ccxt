@@ -612,6 +612,9 @@ class bydfi extends bydfi$1["default"] {
         const limits = [5, 10, 20, 50, 100, 500, 1000];
         let result = 1000;
         for (let i = 0; i < limits.length; i++) {
+            if (limit === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' getClosestLimit() requires a limit argument');
+            }
             if (limit <= limits[i]) {
                 result = limits[i];
                 break;
@@ -848,6 +851,9 @@ class bydfi extends bydfi$1["default"] {
             until = now;
         }
         else if (until === undefined) {
+            if (startTime === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' fetchOHLCV() requires a since or until argument');
+            }
             until = startTime + timeDelta;
             if (until > now) {
                 until = now;
@@ -1213,7 +1219,16 @@ class bydfi extends bydfi$1["default"] {
         return this.parseOrder(data, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrderRequest() requires a side argument');
+        }
         const request = {
             'symbol': market['id'],
             'side': side.toUpperCase(),
@@ -2560,7 +2575,9 @@ class bydfi extends bydfi$1["default"] {
             const account = this.account();
             account['total'] = this.safeString2(balance, 'total', 'balance');
             account['free'] = this.safeString2(balance, 'available', 'availableBalance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }

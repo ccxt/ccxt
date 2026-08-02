@@ -389,7 +389,10 @@ public class CoinspotCore extends CoinspotApi
                     Object code = this.safeCurrencyCode(currencyId);
                     Object account = this.account();
                     Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
-                    Helpers.addElementToObject(result, code, account);
+                    if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                    {
+                        Helpers.addElementToObject(result, code, account);
+                    }
                 }
             }
         } else
@@ -401,7 +404,10 @@ public class CoinspotCore extends CoinspotApi
                 Object code = this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "total", this.safeString(balances, currencyId));
-                Helpers.addElementToObject(result, code, account);
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(result, code, account);
+                }
             }
         }
         return this.safeBalance(result);

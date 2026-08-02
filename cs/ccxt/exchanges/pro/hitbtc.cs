@@ -384,7 +384,10 @@ public partial class hitbtc : ccxt.hitbtc
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object marketId = this.marketId(getValue(symbols, i));
-                ((IList<object>)marketIds).Add(marketId);
+                if (isTrue(!isEqual(marketId, null)))
+                {
+                    ((IList<object>)marketIds).Add(marketId);
+                }
             }
         }
         object request = new Dictionary<string, object>() {
@@ -850,7 +853,7 @@ public partial class hitbtc : ccxt.hitbtc
             object market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+            object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1013,6 +1016,10 @@ public partial class hitbtc : ccxt.hitbtc
     public virtual void handleOrderHelper(WebSocketClient client, object message, object order)
     {
         object orders = this.orders;
+        if (isTrue(isEqual(orders, null)))
+        {
+            return;
+        }
         object marketId = this.safeStringLower2(order, "instrument", "symbol");
         object method = this.safeString(message, "method", "");
         object splitMethod = ((string)method).Split(new [] {((string)"_order")}, StringSplitOptions.None).ToList<object>();

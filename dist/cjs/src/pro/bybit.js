@@ -2335,10 +2335,14 @@ class bybit extends bybit$1["default"] {
             if (this.safeValue(this.balance, accountType) === undefined) {
                 this.balance[accountType] = {};
             }
-            this.balance[accountType][code] = account;
+            if ((accountType !== undefined) && (code !== undefined)) {
+                this.balance[accountType][code] = account;
+            }
         }
         else {
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
     }
     async watchTopics(url, messageHashes, topics, params = {}) {

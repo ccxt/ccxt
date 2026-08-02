@@ -445,7 +445,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         Object messageHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add(name, "@"), marketId), "_"), interval);
         Object candles = this.safeValue(message, "candle");
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
+        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1806,7 +1806,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         Object rejected = false;
         try
         {
-            this.handleErrors(code, ((String)error), client.url, "", new java.util.HashMap<String, Object>() {{}}, ((String)error), ((String)message), new java.util.HashMap<String, Object>() {{}}, new java.util.HashMap<String, Object>() {{}});
+            this.handleErrors(code, ((String)error), client.url, "", new java.util.HashMap<String, Object>() {{}}, ((String)error), message, new java.util.HashMap<String, Object>() {{}}, new java.util.HashMap<String, Object>() {{}});
         } catch(Exception e)
         {
             rejected = true;
@@ -1898,11 +1898,11 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             put( "getMarkets", "handleMarkets");
         }};
         Object eventVar = this.safeString(message, "event");
-        Object method = this.safeValue(methods, ((String)eventVar));
+        Object method = this.safeValue(methods, eventVar);
         if (Helpers.isTrue(Helpers.isEqual(method, null)))
         {
             Object action = this.safeString(message, "action");
-            method = this.safeValue(methods, ((String)action));
+            method = this.safeValue(methods, action);
             if (Helpers.isTrue(!Helpers.isEqual(method, null)))
             {
                 Helpers.callDynamically(this, method, new Object[] {client, message});

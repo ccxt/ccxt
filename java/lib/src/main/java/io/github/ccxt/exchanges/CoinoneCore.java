@@ -440,7 +440,10 @@ public class CoinoneCore extends CoinoneApi
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "avail"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -559,7 +562,7 @@ public class CoinoneCore extends CoinoneApi
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object first = this.safeString(symbols, 0);
-                market = this.market(((String)first));
+                market = this.market(first);
                 Helpers.addElementToObject(request, "quote_currency", Helpers.GetValue(market, "quote"));
                 Helpers.addElementToObject(request, "target_currency", Helpers.GetValue(market, "base"));
                 response = (this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.extend(request, parameters))).join();
@@ -1356,9 +1359,11 @@ public class CoinoneCore extends CoinoneApi
                 Object depositAddress = this.safeValue(result, code);
                 if (Helpers.isTrue(Helpers.isEqual(depositAddress, null)))
                 {
+                    final Object finalValue = value;
+                    final Object finalCode = code;
                     depositAddress = new java.util.HashMap<String, Object>() {{
-                        put( "info", value );
-                        put( "currency", code );
+                        put( "info", finalValue );
+                        put( "currency", finalCode );
                         put( "network", null );
                         put( "address", null );
                         put( "tag", null );
@@ -1373,7 +1378,10 @@ public class CoinoneCore extends CoinoneApi
                     Helpers.addElementToObject(depositAddress, "tag", value);
                     Helpers.addElementToObject(depositAddress, "info", new java.util.ArrayList<Object>(java.util.Arrays.asList(address, value)));
                 }
-                Helpers.addElementToObject(result, code, depositAddress);
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(result, code, depositAddress);
+                }
             }
             return result;
         });

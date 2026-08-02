@@ -209,8 +209,8 @@ func (this *GrvtCore) WatchTickers(optionalArgs ...any) <-chan any {
 		channelparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "channel", "v1.ticker.s")
 		channel = ccxt.GetValue(channelparamsVariable, 0)
 		params = ccxt.GetValue(channelparamsVariable, 1)
-		var interval any = nil
-		intervalparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "interval", 500)
+		var interval any = 500
+		intervalparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "interval", interval)
 		interval = ccxt.GetValue(intervalparamsVariable, 0)
 		params = ccxt.GetValue(intervalparamsVariable, 1)
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
@@ -703,8 +703,8 @@ func (this *GrvtCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any)
 			limit = ccxt.GetValue(limitparamsVariable, 0)
 			params = ccxt.GetValue(limitparamsVariable, 1)
 		}
-		var interval any = nil
-		intervalparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "interval", 500)
+		var interval any = 500
+		intervalparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "interval", interval)
 		interval = ccxt.GetValue(intervalparamsVariable, 0)
 		params = ccxt.GetValue(intervalparamsVariable, 1)
 		symbols = this.MarketSymbols(symbols)

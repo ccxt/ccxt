@@ -7,6 +7,7 @@ from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.kalshi import ImplicitAPI
 from ccxt.base.types import Any, Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionOpenInterest, PredictionSettlement
 from typing import List
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -338,6 +339,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 parsed = self.parse_market(rawMarket)
                 if self.markets is None:
                     self.markets = self.create_safe_dictionary()
+                if parsed is None:
+                    raise ExchangeError(self.id + ' fetchOutcome() could not resolve parsed')
                 self.markets[parsed['market']] = parsed
                 # index only the market just fetched, not a full O(markets x outcomes) rebuild of the
                 # whole cache — on-demand fetchOutcome(loadAllOutcomes False) is the hot path here
@@ -410,6 +413,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
             rawMarkets = self.safe_list(response, 'markets', [])
             for i in range(0, len(rawMarkets)):
                 parsed = self.parse_market(rawMarkets[i])
+                if parsed is None:
+                    raise ExchangeError(self.id + ' fetchOutcomes() could not resolve parsed')
                 self.markets[parsed['market']] = parsed
                 self.index_market_outcomes(parsed)
             startIndex = self.sum(startIndex, chunkSize)
@@ -1298,6 +1303,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
             # the ticker filter narrows to the market; a market has both legs, so the
             # wanted-leg filter below still drops the opposite-leg fills
             outcomeObj = self.outcome(outcome)
+            if outcomeObj is None:
+                raise ArgumentsRequired(self.id + ' requires a valid outcome')
             request['ticker'] = self.safe_string(outcomeObj['info'], 'ticker')
         if limit is not None:
             request['limit'] = limit
@@ -1437,6 +1444,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
         if outcomesLength == 0:
             return parsed
         wantedTickers = {}
+        if outcomes is None:
+            raise ExchangeError(self.id + ' fetchPositions() missing outcomes')
         for i in range(0, len(outcomes)):
             outcomeObj = self.outcome(outcomes[i])
             outcomeInfo = self.safe_dict(outcomeObj, 'info', {})
@@ -1606,6 +1615,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
         outcomeObj = None
         if outcome is not None:
             outcomeObj = self.outcome(outcome)
+            if outcomeObj is None:
+                raise ArgumentsRequired(self.id + ' requires a valid outcome')
             request['ticker'] = self.safe_string(outcomeObj['info'], 'ticker')
         response = await self.kalshiPrivateGetPortfolioOrders(self.extend(request, params))
         orders = self.safe_list(response, 'orders', [])
@@ -1630,6 +1641,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
         outcomeObj = None
         if outcome is not None:
             outcomeObj = self.outcome(outcome)
+            if outcomeObj is None:
+                raise ArgumentsRequired(self.id + ' requires a valid outcome')
             request['ticker'] = self.safe_string(outcomeObj['info'], 'ticker')
         response = await self.kalshiPrivateGetPortfolioOrders(self.extend(request, params))
         orders = self.safe_list(response, 'orders', [])
@@ -1950,6 +1963,8 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :returns dict[]: an array of event structures
         """
         queries = self.parse_search_queries(params)
+        if queries is None:
+            raise ExchangeError(self.id + ' fetchEvents() missing queries')
         queriesLength = len(queries)
         params = self.omit(params, ['query', 'queries'])
         userLimit = self.safe_integer(params, 'limit')

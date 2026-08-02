@@ -913,7 +913,9 @@ class bitfinex extends \ccxt\async\bitfinex {
             $balance = $this->parse_ws_balance($rawBalance);
             $balanceType = $this->safe_string($rawBalance, 0);
             $oldBalance = $this->safe_value($this->balance, $balanceType, array());
-            $oldBalance[$code] = $balance;
+            if ($code !== null) {
+                $oldBalance[$code] = $balance;
+            }
             $oldBalance['info'] = $message;
             $this->balance[$balanceType] = $this->safe_balance($oldBalance);
             $updatedTypes[$balanceType] = true;
@@ -1249,7 +1251,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $price = $this->safe_string($order, 16);
         $timestamp = $this->safe_integer_2($order, 5, 4);
         $average = $this->safe_string($order, 17);
-        $stopPrice = $this->omit_zero(($this->safe_string($order, 18)));
+        $stopPrice = $this->omit_zero($this->safe_string($order, 18));
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,

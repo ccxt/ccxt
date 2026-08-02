@@ -529,13 +529,15 @@ public class BitfinexCore extends BitfinexApi
         // The amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
         symbol = this.safeSymbol(symbol);
-        return this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.markets, symbol), "precision"), "amount"), DECIMAL_PLACES);
+        Object market = this.market(symbol);
+        return this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), DECIMAL_PLACES);
     }
 
     public Object priceToPrecision(Object symbol, Object price)
     {
         symbol = this.safeSymbol(symbol);
-        price = this.decimalToPrecision(price, ROUND, Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.markets, symbol), "precision"), "price"), this.precisionMode);
+        Object market = this.market(symbol);
+        price = this.decimalToPrecision(price, ROUND, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
@@ -635,8 +637,8 @@ public class BitfinexCore extends BitfinexApi
                 Object quote = this.safeCurrencyCode(quoteId);
                 Object splitBase = Helpers.split(((String)base), "F0");
                 Object splitQuote = Helpers.split(((String)quote), "F0");
-                base = ((String)this.safeString(splitBase, 0));
-                quote = ((String)this.safeString(splitQuote, 0));
+                base = this.safeString(splitBase, 0);
+                quote = this.safeString(splitQuote, 0);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 // baseId = 'f' + baseId;
                 // quoteId = 'f' + quoteId;
@@ -893,7 +895,9 @@ public class BitfinexCore extends BitfinexApi
             Object networkId = Helpers.GetValue(networkIds, j);
             Object network = this.networkIdToCode(networkId, code);
             Object dwStatuses = this.safeList(Helpers.GetValue(indexed, "statuses"), networkId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Helpers.addElementToObject(networks, network, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(network, null)))
+            {
+                Helpers.addElementToObject(networks, network, new java.util.HashMap<String, Object>() {{
     put( "info", networkId );
     put( "id", ((String)networkId).toLowerCase() );
     put( "network", networkId );
@@ -909,6 +913,7 @@ public class BitfinexCore extends BitfinexApi
         }} );
     }} );
 }});
+            }
         }
         final Object finalId = id;
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
@@ -991,7 +996,10 @@ public class BitfinexCore extends BitfinexApi
                     Object code = this.safeCurrencyCode(currencyId);
                     Helpers.addElementToObject(account, "total", this.safeString(balance, 2));
                     Helpers.addElementToObject(account, "free", this.safeString(balance, 4));
-                    Helpers.addElementToObject(result, code, account);
+                    if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                    {
+                        Helpers.addElementToObject(result, code, account);
+                    }
                 }
             }
             return this.safeBalance(result);
@@ -1194,7 +1202,7 @@ public class BitfinexCore extends BitfinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object precision = ((String)this.handleOption("fetchOrderBook", "precision", "R0"));
+            Object precision = this.handleOption("fetchOrderBook", "precision", "R0");
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1501,7 +1509,7 @@ public class BitfinexCore extends BitfinexApi
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(((String)amountString), 0), "-")))
         {
             side = "sell";
-            amountString = Precise.stringAbs(((String)amountString));
+            amountString = Precise.stringAbs(amountString);
         } else
         {
             side = "buy";
@@ -1844,30 +1852,38 @@ public class BitfinexCore extends BitfinexApi
 
     public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
-        /**
-        * @method
-        * @ignore
-        * @name bitfinex#createOrderRequest
-        * @description helper function to build an order request
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price of the order, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-        * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
-        * @param {bool} [params.postOnly]
-        * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
-        * @param {int} [params.flags] additional order parameters: 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
-        * @param {int} [params.lev] leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
-        * @param {string} [params.price_traling] The trailing price for a trailing stop order
-        * @param {string} [params.price_aux_limit] Order price for stop limit orders
-        * @param {string} [params.price_oco_stop] OCO stop price
-        * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
-        */
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name bitfinex#createOrderRequest
+         * @description helper function to build an order request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price of the order, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
+         * @param {bool} [params.postOnly]
+         * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {int} [params.flags] additional order parameters: 4096 (Post Only), 1024 (Reduce Only), 16384 (OCO), 64 (Hidden), 512 (Close), 524288 (No Var Rates)
+         * @param {int} [params.lev] leverage for a derivative order, supported by derivative symbol orders only. The value should be between 1 and 100 inclusive.
+         * @param {string} [params.price_traling] The trailing price for a trailing stop order
+         * @param {string} [params.price_aux_limit] Order price for stop limit orders
+         * @param {string} [params.price_oco_stop] OCO stop price
+         * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
+         */
         Object market = this.market(symbol);
         Object amountString = this.amountToPrecision(symbol, amount);
         amountString = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? amountString : ((String)Precise.stringNeg(amountString));
@@ -2083,7 +2099,7 @@ public class BitfinexCore extends BitfinexApi
                 Object amount = this.safeNumber(rawOrder, "amount");
                 Object price = this.safeNumber(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
-                Object orderRequest = this.createOrderRequest(((String)symbol), type, side, amount, price, orderParams);
+                Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
                 ((java.util.List<Object>)ordersRequests).add(new java.util.ArrayList<Object>(java.util.Arrays.asList("on", orderRequest)));
             }
             Object request = new java.util.HashMap<String, Object>() {{

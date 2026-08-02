@@ -6,7 +6,7 @@ import Exchange from './abstract/cex.js';
 import { ExchangeError, ArgumentsRequired, NullResponse, PermissionDenied, InsufficientFunds, BadRequest, AuthenticationError, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currency, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account, Balances, LedgerEntry, Transaction, TransferEntry, DepositAddress, NullableDict } from './base/types.js';
+import type { Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, TradingFeeInterface, int, Account, Balances, LedgerEntry, Transaction, TransferEntry, DepositAddress, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -318,7 +318,7 @@ export default class cex extends Exchange {
      * @returns {dict} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const promises = [];
+        const promises: Promise<Dict>[] = [];
         promises.push (this.publicPostGetCurrenciesInfo (params));
         //
         //    {
@@ -364,7 +364,7 @@ export default class cex extends Exchange {
         return this.parseCurrencies (this.toArray (data));
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (id);
         const type = this.safeBool (rawCurrency, 'fiat') ? 'fiat' : 'crypto';
@@ -378,27 +378,29 @@ export default class cex extends Exchange {
             const networkCode = this.networkIdToCode (networkId, code);
             const deposit = this.safeString (rawNetwork, 'deposit') === 'enabled';
             const withdraw = this.safeString (rawNetwork, 'withdrawal') === 'enabled';
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'margin': undefined,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'active': undefined,
-                'fee': this.safeNumber (rawNetwork, 'withdrawalFee'),
-                'precision': currencyPrecision,
-                'limits': {
-                    'deposit': {
-                        'min': this.safeNumber (rawNetwork, 'minDeposit'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'margin': undefined,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'active': undefined,
+                    'fee': this.safeNumber (rawNetwork, 'withdrawalFee'),
+                    'precision': currencyPrecision,
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber (rawNetwork, 'minDeposit'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber (rawNetwork, 'minWithdrawal'),
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': this.safeNumber (rawNetwork, 'minWithdrawal'),
-                        'max': undefined,
-                    },
-                },
-                'info': rawNetwork,
-            };
+                    'info': rawNetwork,
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -880,10 +882,13 @@ export default class cex extends Exchange {
                 market = this.safeMarket (key);
             }
             const parsed = this.parseTradingFee (response[key], market);
-            result[parsed['symbol']] = parsed;
+            if (parsed['symbol'] !== undefined) {
+                result[parsed['symbol']] = parsed;
+            }
         }
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             if (!(symbol in result)) {
                 const market = this.market (symbol);
                 result[symbol] = this.parseTradingFee (response, market);
@@ -958,7 +963,7 @@ export default class cex extends Exchange {
         [ accountName, params ] = this.handleParamString (params, 'account', ''); // default is empty string
         let method: Str = undefined;
         [ method, params ] = this.handleParamString (params, 'method', 'privatePostGetMyWalletBalance');
-        let accountBalance: Dict = undefined;
+        let accountBalance: NullableDict = undefined;
         if (method === 'privatePostGetMyAccountStatusV3') {
             const response = await this.privatePostGetMyAccountStatusV3 (params);
             //
@@ -1009,7 +1014,9 @@ export default class cex extends Exchange {
                 'used': this.safeString (balance, 'balanceOnHold'),
                 'total': this.safeString (balance, 'balance'),
             };
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1292,6 +1299,9 @@ export default class cex extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
         const request: Dict = {
             'clientOrderId': this.uuid (),
             'currency1': market['baseId'],
@@ -1363,7 +1373,7 @@ export default class cex extends Exchange {
         //             "rejectCode": 405,
         //             "rejectReason": "Either AmountCcy1 (OrderQty) or AmountCcy2 (CashOrderQty) should be specified for market order not both",
         //
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
     }
 
@@ -1420,7 +1430,7 @@ export default class cex extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const ids = this.safeList (data, 'clientOrderIds', []);
-        const orders = [];
+        const orders: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             orders.push ({ 'clientOrderId': id });
@@ -1521,7 +1531,7 @@ export default class cex extends Exchange {
             'withdraw': 'withdrawal',
             'commission': 'fee',
         };
-        return this.safeString (ledgerType, type, type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     /**
@@ -1634,7 +1644,7 @@ export default class cex extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        let transfer: Dict = undefined;
+        let transfer: NullableDict = undefined;
         if (toAccount !== '' && fromAccount !== '') {
             transfer = await this.transferBetweenSubAccounts (code, amount, fromAccount, toAccount, params);
         } else {
@@ -1662,7 +1672,7 @@ export default class cex extends Exchange {
             'accountId': targetAccount,
             'clientTxId': guid,
         };
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (fromMain) {
             response = await this.privatePostDoDepositFundsFromWallet (this.extend (request, params));
         } else {

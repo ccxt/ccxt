@@ -295,13 +295,13 @@ export default class p2b extends p2bRest {
         const symbol = this.safeString (market, 'symbol');
         const messageHash = channel + '::' + symbol;
         const parsed = this.parseOHLCV (data, market);
-        this.ohlcvs[symbol as string] = this.safeValue (this.ohlcvs, symbol as string, {});
-        let stored = this.safeValue (this.ohlcvs[symbol as string], timeframe as string);
+        this.ohlcvs[symbol as string] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol as string], timeframe);
         if (symbol !== undefined) {
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol as string][timeframe as string] = stored;
+                this.ohlcvs[symbol][timeframe as string] = stored;
             }
             stored.append (parsed);
             client.resolve (stored, messageHash);
@@ -334,7 +334,7 @@ export default class p2b extends p2bRest {
         const marketId = this.safeString (data, 0);
         const market = this.safeMarket (marketId);
         const symbol = this.safeString (market, 'symbol');
-        let tradesArray = this.safeValue (this.trades, symbol as string);
+        let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
             tradesArray = new ArrayCache (tradesLimit);
@@ -489,7 +489,7 @@ export default class p2b extends p2bRest {
             'state.update': this.handleTicker,
             'deals.update': this.handleTrade,
         };
-        const endpoint = this.safeValue (methods, method as string);
+        const endpoint = this.safeValue (methods, method);
         if (endpoint !== undefined) {
             endpoint.call (this, client, message);
         }

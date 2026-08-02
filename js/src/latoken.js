@@ -420,6 +420,9 @@ export default class latoken extends Exchange {
             if (baseCurrencyInfo !== undefined && quoteCurrencyInfo !== undefined) {
                 const base = this.safeCurrencyCode(this.safeString(baseCurrencyInfo, 'tag'));
                 const quote = this.safeCurrencyCode(this.safeString(quoteCurrencyInfo, 'tag'));
+                if ((base === undefined) || (quote === undefined)) {
+                    continue;
+                }
                 const lowercaseQuote = quote.toLowerCase();
                 const capitalizedQuote = this.capitalize(lowercaseQuote);
                 const status = this.safeString(market, 'status');
@@ -612,7 +615,9 @@ export default class latoken extends Exchange {
             const account = this.account();
             account['free'] = this.safeString(balance, 'available');
             account['used'] = this.safeString(balance, 'blocked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         result['timestamp'] = maxTimestamp;
         result['datetime'] = this.iso8601(maxTimestamp);
@@ -843,7 +848,7 @@ export default class latoken extends Exchange {
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         const symbol = base + '/' + quote;
-        if (symbol in this.markets) {
+        if ((this.markets !== undefined) && (symbol in this.markets)) {
             market = this.market(symbol);
         }
         const id = this.safeString(trade, 'id');
@@ -1118,7 +1123,7 @@ export default class latoken extends Exchange {
         let symbol = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
-            if (symbol in this.markets) {
+            if ((this.markets !== undefined) && (symbol in this.markets)) {
                 market = this.market(symbol);
             }
         }
@@ -1379,6 +1384,9 @@ export default class latoken extends Exchange {
         }
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const request = {
             'baseCurrency': market['baseId'],
             'quoteCurrency': market['quoteId'],

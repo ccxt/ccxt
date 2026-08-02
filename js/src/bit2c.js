@@ -10,6 +10,7 @@ import Exchange from './abstract/bit2c.js';
 import { ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported, OrderNotFound, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+;
 //  ---------------------------------------------------------------------------
 /**
  * @class bit2c
@@ -477,7 +478,11 @@ export default class bit2c extends Exchange {
         if (typeof response === 'string') {
             throw new ExchangeError(response);
         }
-        return this.parseTrades(response, market, since, limit);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
     /**
      * @method
@@ -834,7 +839,11 @@ export default class bit2c extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
     removeCommaFromValue(str) {
         let newString = '';

@@ -527,7 +527,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         }
         Object parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(data, "startTime"), this.safeNumber(data, "open"), this.safeNumber(data, "high"), this.safeNumber(data, "low"), this.safeNumber(data, "close"), this.safeNumber(data, "volume")));
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1490,13 +1490,20 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             Object key = Helpers.GetValue(keys, i);
             Object value = Helpers.GetValue(balances, key);
             Object code = this.safeCurrencyCode(key);
-            Object account = ((Helpers.isTrue((Helpers.inOp(this.balance, code))))) ? Helpers.GetValue(this.balance, code) : this.account();
+            Object account = this.account();
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(this.balance, code)))))
+            {
+                account = Helpers.GetValue(this.balance, code);
+            }
             Object total = this.safeString(value, "holding");
             Object used = this.safeString(value, "frozen");
             Helpers.addElementToObject(account, "total", total);
             Helpers.addElementToObject(account, "used", used);
             Helpers.addElementToObject(account, "free", Precise.stringSub(total, used));
-            Helpers.addElementToObject(this.balance, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(this.balance, code, account);
+            }
         }
         this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, "balance");

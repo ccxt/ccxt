@@ -801,7 +801,10 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             Helpers.addElementToObject(account, "total", this.safeString(data, "availableQuantity"));
             Helpers.addElementToObject(account, "used", this.safeString(data, "lockedQuantity"));
             Object code = this.safeCurrencyCode(assetId);
-            Helpers.addElementToObject(Helpers.GetValue(this.balance, tradingAccountId), code, account);
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(tradingAccountId, null))) && Helpers.isTrue((!Helpers.isEqual(code, null)))))
+            {
+                Helpers.addElementToObject(Helpers.GetValue(this.balance, tradingAccountId), code, account);
+            }
             Helpers.addElementToObject(Helpers.GetValue(this.balance, tradingAccountId), "info", message);
             Helpers.addElementToObject(this.balance, tradingAccountId, this.safeBalance(Helpers.GetValue(this.balance, tradingAccountId)));
         }

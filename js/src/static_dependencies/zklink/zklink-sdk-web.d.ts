@@ -197,9 +197,9 @@ export declare class AccountQuery {
 /**
  */
 export declare class AutoDeleveraging {
-    __wbg_ptr: number;
+    __wbg_ptr: number | undefined;
     static __wrap(ptr: any): any;
-    __destroy_into_raw(): number;
+    __destroy_into_raw(): number | undefined;
     free(): void;
     /**
      * @returns {any}
@@ -239,9 +239,9 @@ export declare class AutoDeleveragingBuilder {
 /**
  */
 export declare class ChangePubKey {
-    __wbg_ptr: number;
+    __wbg_ptr: number | undefined;
     static __wrap(ptr: any): any;
-    __destroy_into_raw(): number;
+    __destroy_into_raw(): number | undefined;
     free(): void;
     /**
      * @returns {any}
@@ -296,9 +296,9 @@ export declare class ChangePubKeyBuilder {
 /**
  */
 export declare class Contract {
-    __wbg_ptr: number;
+    __wbg_ptr: number | undefined;
     static __wrap(ptr: any): any;
-    __destroy_into_raw(): number;
+    __destroy_into_raw(): number | undefined;
     free(): void;
     /**
      * @returns {any}
@@ -356,9 +356,9 @@ export declare class ContractInfo {
 /**
  */
 export declare class ContractMatching {
-    __wbg_ptr: number;
+    __wbg_ptr: number | undefined;
     static __wrap(ptr: any): any;
-    __destroy_into_raw(): number;
+    __destroy_into_raw(): number | undefined;
     free(): void;
     /**
      * @returns {any}
@@ -453,9 +453,9 @@ export declare class EthTxOption {
 /**
  */
 export declare class ForcedExit {
-    __wbg_ptr: number;
+    __wbg_ptr: number | undefined;
     static __wrap(ptr: any): any;
-    __destroy_into_raw(): number;
+    __destroy_into_raw(): number | undefined;
     free(): void;
     /**
      * @returns {any}
@@ -495,9 +495,9 @@ export declare class ForcedExitBuilder {
 /**
  */
 export declare class Funding {
-    __wbg_ptr: number;
+    __wbg_ptr: number | undefined;
     static __wrap(ptr: any): any;
-    __destroy_into_raw(): number;
+    __destroy_into_raw(): number | undefined;
     free(): void;
     /**
      * @returns {any}
@@ -549,9 +549,9 @@ export declare class FundingInfo {
 /**
  */
 export declare class JsonRpcSigner {
-    __wbg_ptr: number;
+    __wbg_ptr: number | undefined;
     static __wrap(ptr: any): any;
-    __destroy_into_raw(): number;
+    __destroy_into_raw(): number | undefined;
     free(): void;
     /**
      * @param {string | undefined} [signature]
@@ -655,9 +655,9 @@ export declare class JsonRpcSigner {
 /**
  */
 export declare class Liquidation {
-    __wbg_ptr: number;
+    __wbg_ptr: number | undefined;
     static __wrap(ptr: any): any;
-    __destroy_into_raw(): number;
+    __destroy_into_raw(): number | undefined;
     free(): void;
     /**
      * @returns {any}
@@ -742,9 +742,9 @@ export declare class Order {
 /**
  */
 export declare class OrderMatching {
-    __wbg_ptr: number;
+    __wbg_ptr: number | undefined;
     static __wrap(ptr: any): any;
-    __destroy_into_raw(): number;
+    __destroy_into_raw(): number | undefined;
     free(): void;
     /**
      * @returns {any}
@@ -790,8 +790,8 @@ export declare class Parameter {
 /**
  */
 export declare class RequestArguments {
-    __wbg_ptr: number;
-    __destroy_into_raw(): number;
+    __wbg_ptr: number | undefined;
+    __destroy_into_raw(): number | undefined;
     free(): void;
 }
 /**
@@ -928,9 +928,9 @@ export declare class SpotPriceInfo {
 /**
  */
 export declare class Transfer {
-    __wbg_ptr: number;
+    __wbg_ptr: number | undefined;
     static __wrap(ptr: any): any;
-    __destroy_into_raw(): number;
+    __destroy_into_raw(): number | undefined;
     free(): void;
     /**
      * @returns {any}
@@ -1014,9 +1014,9 @@ export declare class TxZkLinkSignature {
 /**
  */
 export declare class UpdateGlobalVar {
-    __wbg_ptr: number;
+    __wbg_ptr: number | undefined;
     static __wrap(ptr: any): any;
-    __destroy_into_raw(): number;
+    __destroy_into_raw(): number | undefined;
     free(): void;
     /**
      * @returns {any}
@@ -1123,9 +1123,9 @@ export declare class Wallet {
 /**
  */
 export declare class Withdraw {
-    __wbg_ptr: number;
+    __wbg_ptr: number | undefined;
     static __wrap(ptr: any): any;
-    __destroy_into_raw(): number;
+    __destroy_into_raw(): number | undefined;
     free(): void;
     /**
      * @returns {any}
@@ -1172,9 +1172,9 @@ export declare class WithdrawBuilder {
 /**
  */
 export declare class ZkLinkSigner {
-    __wbg_ptr: number;
+    __wbg_ptr: number | undefined;
     static __wrap(ptr: any): any;
-    __destroy_into_raw(): number;
+    __destroy_into_raw(): number | undefined;
     free(): void;
     /**
      * @param {string} sig

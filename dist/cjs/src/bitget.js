@@ -2569,6 +2569,9 @@ class bitget extends bitget$1["default"] {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'chain');
             let network = this.networkIdToCode(networkId, code);
+            if (network === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' requires a network argument');
+            }
             network = network.toUpperCase();
             const withdrawable = (this.safeString(chain, 'withdrawable') === 'true');
             const rechargeable = (this.safeString(chain, 'rechargeable') === 'true');
@@ -4672,7 +4675,9 @@ class bitget extends bitget$1["default"] {
             account['used'] = this.safeString(entry, 'locked');
             account['free'] = this.safeString(entry, 'available');
             account['total'] = this.safeString(entry, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -4752,7 +4757,9 @@ class bitget extends bitget$1["default"] {
                     account['used'] = Precise["default"].stringAdd(frozen, locked);
                 }
             }
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -5264,6 +5271,12 @@ class bitget extends bitget$1["default"] {
         return this.parseOrder(data, market);
     }
     createUtaOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         let productType = undefined;
         [productType, params] = this.handleProductTypeAndParams(market, params);
@@ -5394,6 +5407,12 @@ class bitget extends bitget$1["default"] {
         return this.extend(request, params);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         let marketType = undefined;
         let marginMode = undefined;
@@ -9811,10 +9830,12 @@ class bitget extends bitget$1["default"] {
             const networkId = this.safeString(chain, 'chain');
             const currencyCode = this.safeString(currency, 'code');
             const networkCode = this.networkIdToCode(networkId, currencyCode);
-            result['networks'][networkCode] = {
-                'deposit': { 'fee': undefined, 'percentage': undefined },
-                'withdraw': { 'fee': this.safeNumber(chain, 'withdrawFee'), 'percentage': false },
-            };
+            if (networkCode !== undefined) {
+                result['networks'][networkCode] = {
+                    'deposit': { 'fee': undefined, 'percentage': undefined },
+                    'withdraw': { 'fee': this.safeNumber(chain, 'withdrawFee'), 'percentage': false },
+                };
+            }
             if (chainsLength === 1) {
                 result['withdraw']['fee'] = this.safeNumber(chain, 'withdrawFee');
                 result['withdraw']['percentage'] = false;
@@ -11183,34 +11204,36 @@ class bitget extends bitget$1["default"] {
             const entry = data[i];
             const id = this.safeString(entry, 'coin');
             const code = this.safeCurrencyCode(id);
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': undefined,
-                'type': undefined,
-                'name': undefined,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': this.safeNumber(entry, 'available'),
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber(entry, 'minAmount'),
-                        'max': this.safeNumber(entry, 'maxAmount'),
+            if (code !== undefined) {
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': undefined,
+                    'type': undefined,
+                    'name': undefined,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': this.safeNumber(entry, 'available'),
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'amount': {
+                            'min': this.safeNumber(entry, 'minAmount'),
+                            'max': this.safeNumber(entry, 'maxAmount'),
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-            };
+                    'created': undefined,
+                };
+            }
         }
         return result;
     }

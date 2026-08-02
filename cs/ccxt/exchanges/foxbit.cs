@@ -377,31 +377,34 @@ public partial class foxbit : Exchange
             object networkDepositInfo = this.safeDict(network, "deposit_info");
             object isWithdrawEnabled = isEqual(this.safeString(networkWithdrawInfo, "status"), "ENABLED");
             object isDepositEnabled = isEqual(this.safeString(networkDepositInfo, "status"), "ENABLED");
-            ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "info", rawCurrency },
-                { "id", networkId },
-                { "network", networkCode },
-                { "name", this.safeString(network, "name") },
-                { "deposit", isDepositEnabled },
-                { "withdraw", isWithdrawEnabled },
-                { "active", true },
-                { "precision", precision },
-                { "fee", this.safeNumber(networkWithdrawInfo, "fee") },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "info", rawCurrency },
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "name", this.safeString(network, "name") },
+                    { "deposit", isDepositEnabled },
+                    { "withdraw", isWithdrawEnabled },
+                    { "active", true },
+                    { "precision", precision },
+                    { "fee", this.safeNumber(networkWithdrawInfo, "fee") },
+                    { "limits", new Dictionary<string, object>() {
+                        { "amount", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(depositInfo, "min_amount") },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(withdrawInfo, "min_amount") },
+                            { "max", null },
+                        } },
                     } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(depositInfo, "min_amount") },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(withdrawInfo, "min_amount") },
-                        { "max", null },
-                    } },
-                } },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
@@ -874,7 +877,10 @@ public partial class foxbit : Exchange
                 { "used", used },
                 { "total", total },
             };
-            ((IDictionary<string,object>)result)[(string)currencyCode] = balanceObj;
+            if (isTrue(!isEqual(currencyCode, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)currencyCode] = balanceObj;
+            }
         }
         return this.safeBalance(result);
     }
@@ -985,6 +991,10 @@ public partial class foxbit : Exchange
         object timeInForce = this.safeStringUpper(parameters, "timeInForce");
         object postOnly = this.safeBool(parameters, "postOnly", false);
         object triggerPrice = this.safeNumber(parameters, "triggerPrice");
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "market_symbol", getValue(market, "id") },
             { "side", ((string)side).ToUpper() },
@@ -1648,6 +1658,10 @@ public partial class foxbit : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a side argument")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "mode", "ALLOW_FAILURE" },
             { "cancel", new Dictionary<string, object>() {
@@ -2106,7 +2120,7 @@ public partial class foxbit : Exchange
             { "INTERNAL_TRANSFERING", "transfer" },
             { "OTHERS", "transaction" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -2137,10 +2151,26 @@ public partial class foxbit : Exchange
             { "cost", this.safeNumber(item, "fee") },
             { "currency", currencySymbol },
         };
+        if (isTrue(isEqual(amount, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " parseLedgerEntry() requires a amount argument")) ;
+        }
         if (isTrue(isLessThan(amount, 0)))
         {
             direction = "out";
+            if (isTrue(isEqual(amount, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " parseLedgerEntry() requires a amount argument")) ;
+            }
             realAmount = multiply(amount, -1);
+        }
+        if (isTrue(isEqual(balance, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseLedgerEntry() missing balance")) ;
+        }
+        if (isTrue(isEqual(amount, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " parseLedgerEntry() requires a amount argument")) ;
         }
         return new Dictionary<string, object>() {
             { "id", id },

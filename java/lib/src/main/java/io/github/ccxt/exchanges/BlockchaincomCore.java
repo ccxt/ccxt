@@ -670,11 +670,11 @@ public class BlockchaincomCore extends BlockchaincomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side2, Object amount, Object... optionalArgs)
     {
-
+        final Object side3 = side2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+            Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -686,11 +686,16 @@ public class BlockchaincomCore extends BlockchaincomApi
             Object uppercaseOrderType = ((String)orderType).toUpperCase();
             Object clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("ordType", "clientOrderId", "clOrdId")));
+            if (Helpers.isTrue(Helpers.isEqual(side, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+            }
             final Object finalUppercaseOrderType = uppercaseOrderType;
+            final Object finalSide = side;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "ordType", finalUppercaseOrderType );
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "side", ((String)side).toUpperCase() );
+                put( "side", ((String)finalSide).toUpperCase() );
                 put( "orderQty", BlockchaincomCore.this.amountToPrecision(symbol, amount) );
                 put( "clOrdId", clientOrderId );
             }};
@@ -834,9 +839,10 @@ public class BlockchaincomCore extends BlockchaincomApi
             Object makerFee = this.safeNumber(response, "makerRate");
             Object takerFee = this.safeNumber(response, "takerRate");
             Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+            Object symbols = this.symbols;
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                Object symbol = Helpers.GetValue(this.symbols, i);
+                Object symbol = Helpers.GetValue(symbols, i);
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );
@@ -1400,7 +1406,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             {
                 (this.loadMarkets()).join();
             }
-            Object accountName = ((String)this.safeString(parameters, "account", "primary"));
+            Object accountName = this.safeString(parameters, "account", "primary");
             parameters = this.omit(parameters, "account");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "account", accountName );

@@ -394,10 +394,13 @@ public class FoxbitCore extends FoxbitApi
             Object networkDepositInfo = this.safeDict(network, "deposit_info");
             Object isWithdrawEnabled = Helpers.isEqual(this.safeString(networkWithdrawInfo, "status"), "ENABLED");
             Object isDepositEnabled = Helpers.isEqual(this.safeString(networkDepositInfo, "status"), "ENABLED");
-            Helpers.addElementToObject(parsedNetworks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkCode = networkCode;
+                Helpers.addElementToObject(parsedNetworks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "info", rawCurrency );
     put( "id", networkId );
-    put( "network", networkCode );
+    put( "network", finalNetworkCode );
     put( "name", FoxbitCore.this.safeString(network, "name") );
     put( "deposit", isDepositEnabled );
     put( "withdraw", isWithdrawEnabled );
@@ -419,6 +422,7 @@ public class FoxbitCore extends FoxbitApi
         }} );
     }} );
 }});
+            }
         }
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", currencyId );
@@ -936,7 +940,10 @@ public class FoxbitCore extends FoxbitApi
                     put( "used", used );
                     put( "total", total );
                 }};
-                Helpers.addElementToObject(result, currencyCode, balanceObj);
+                if (Helpers.isTrue(!Helpers.isEqual(currencyCode, null)))
+                {
+                    Helpers.addElementToObject(result, currencyCode, balanceObj);
+                }
             }
             return this.safeBalance(result);
         });
@@ -1065,11 +1072,13 @@ public class FoxbitCore extends FoxbitApi
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
+        final Object side3 = side2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object type = type3;
+            Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1085,10 +1094,15 @@ public class FoxbitCore extends FoxbitApi
             Object timeInForce = this.safeStringUpper(parameters, "timeInForce");
             Object postOnly = this.safeBool(parameters, "postOnly", false);
             Object triggerPrice = this.safeNumber(parameters, "triggerPrice");
+            if (Helpers.isTrue(Helpers.isEqual(side, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+            }
+            final Object finalSide = side;
             final Object finalType = type;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market_symbol", Helpers.GetValue(market, "id") );
-                put( "side", ((String)side).toUpperCase() );
+                put( "side", ((String)finalSide).toUpperCase() );
                 put( "type", finalType );
             }};
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "STOP_MARKET")) || Helpers.isTrue(Helpers.isEqual(type, "STOP_LIMIT"))))
@@ -1808,13 +1822,15 @@ public class FoxbitCore extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol2, Object type2, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol2, Object type2, Object side2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         final Object type3 = type2;
+        final Object side3 = side2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object type = type3;
+            Object side = side3;
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
@@ -1832,7 +1848,12 @@ public class FoxbitCore extends FoxbitApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
+            if (Helpers.isTrue(Helpers.isEqual(side, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a side argument")) ;
+            }
             final Object finalType = type;
+            final Object finalSide = side;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "mode", "ALLOW_FAILURE" );
                 put( "cancel", new java.util.HashMap<String, Object>() {{
@@ -1841,7 +1862,7 @@ public class FoxbitCore extends FoxbitApi
                 }} );
                 put( "create", new java.util.HashMap<String, Object>() {{
                     put( "type", finalType );
-                    put( "side", ((String)side).toUpperCase() );
+                    put( "side", ((String)finalSide).toUpperCase() );
                     put( "market_symbol", Helpers.GetValue(market, "id") );
                 }} );
             }};
@@ -2327,7 +2348,7 @@ public class FoxbitCore extends FoxbitApi
             put( "INTERNAL_TRANSFERING", "transfer" );
             put( "OTHERS", "transaction" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseLedgerEntry(Object item, Object... optionalArgs)
@@ -2359,10 +2380,26 @@ public class FoxbitCore extends FoxbitApi
             put( "cost", FoxbitCore.this.safeNumber(item, "fee") );
             put( "currency", currencySymbol );
         }};
+        if (Helpers.isTrue(Helpers.isEqual(amount, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " parseLedgerEntry() requires a amount argument")) ;
+        }
         if (Helpers.isTrue(Helpers.isLessThan(amount, 0)))
         {
             direction = "out";
+            if (Helpers.isTrue(Helpers.isEqual(amount, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " parseLedgerEntry() requires a amount argument")) ;
+            }
             realAmount = Helpers.multiply(amount, Helpers.opNeg(1));
+        }
+        if (Helpers.isTrue(Helpers.isEqual(balance, null)))
+        {
+            throw new ExchangeError((String)Helpers.add(this.id, " parseLedgerEntry() missing balance")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(amount, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " parseLedgerEntry() requires a amount argument")) ;
         }
         final Object finalDirection = direction;
         final Object finalRealAmount = realAmount;

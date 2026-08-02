@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/luno.js';
-import { ExchangeError, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountNotEnabled, BadRequest, BadSymbol, OperationRejected, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, DuplicateOrderId, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, RequestTimeout } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, AuthenticationError, PermissionDenied, AccountNotEnabled, BadRequest, BadSymbol, OperationRejected, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, DuplicateOrderId, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, RequestTimeout, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Currencies, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, OHLCV, Num, Account, TradingFeeInterface, Dict, int, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -439,7 +439,7 @@ export default class luno extends Exchange {
         return this.parseCurrencies (values);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency[0], 'native_currency'); // first item is guaranteed
         const code = this.safeCurrencyCode (id);
         const networks = {};
@@ -447,26 +447,28 @@ export default class luno extends Exchange {
             const networkEntry = rawCurrency[i];
             const networkId = this.safeString (networkEntry, 'name');
             const networkCode = this.networkIdToCode (networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': undefined,
-                'info': networkEntry,
-            };
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'info': networkEntry,
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -522,7 +524,7 @@ export default class luno extends Exchange {
         //         ]
         //     }
         //
-        const result = [];
+        const result: any[] = [];
         const markets = this.safeValue (response, 'markets', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -596,7 +598,7 @@ export default class luno extends Exchange {
     async fetchAccounts (params = {}): Promise<Account[]> {
         const response = await this.privateGetBalance (params);
         const wallets = this.safeValue (response, 'balance', []);
-        const result = [];
+        const result: Account[] = [];
         for (let i = 0; i < wallets.length; i++) {
             const account = wallets[i];
             const accountId = this.safeString (account, 'account_id');
@@ -605,7 +607,7 @@ export default class luno extends Exchange {
             result.push ({
                 'id': accountId,
                 'type': undefined,
-                'currency': code,
+                'code': code,
                 'info': account,
             });
         }
@@ -628,10 +630,10 @@ export default class luno extends Exchange {
             const balance = this.safeString (wallet, 'balance');
             const reservedUnconfirmed = Precise.stringAdd (reserved, unconfirmed);
             const balanceUnconfirmed = Precise.stringAdd (balance, unconfirmed);
-            if (code in result) {
+            if ((code !== undefined) && (code in result)) {
                 result[code]['used'] = Precise.stringAdd (result[code]['used'], reservedUnconfirmed);
                 result[code]['total'] = Precise.stringAdd (result[code]['total'], balanceUnconfirmed);
-            } else {
+            } else if (code !== undefined) {
                 const account = this.account ();
                 account['used'] = reservedUnconfirmed;
                 account['total'] = balanceUnconfirmed;
@@ -686,7 +688,7 @@ export default class luno extends Exchange {
         const request: Dict = {
             'pair': market['id'],
         };
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
         if (limit !== undefined && limit <= 100) {
             response = await this.publicGetOrderbookTop (this.extend (request, params));
         } else {
@@ -740,7 +742,7 @@ export default class luno extends Exchange {
         const baseFee = this.safeNumber (order, 'fee_base');
         const filled = this.safeString (order, 'base');
         const cost = this.safeString (order, 'counter');
-        let fee: Dict = undefined;
+        let fee: NullableDict = undefined;
         if (quoteFee !== undefined) {
             fee = {
                 'cost': quoteFee,
@@ -1267,7 +1269,10 @@ export default class luno extends Exchange {
         const request: Dict = {
             'pair': market['id'],
         };
-        let response: Dict = undefined;
+        let response: NullableDict = undefined;
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
         if (type === 'market') {
             request['type'] = side.toUpperCase ();
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
@@ -1282,6 +1287,9 @@ export default class luno extends Exchange {
             request['price'] = this.priceToPrecision (market['symbol'], price);
             request['type'] = (side === 'buy') ? 'BID' : 'ASK';
             response = await this.privatePostPostorder (this.extend (request, params));
+        }
+        if (response === undefined) {
+            throw new NullResponse (this.id + ' createOrder() returned empty response');
         }
         return this.safeOrder ({
             'info': response,
@@ -1317,7 +1325,7 @@ export default class luno extends Exchange {
         });
     }
 
-    async fetchLedgerByEntries (code: Str = undefined, entry = undefined, limit = undefined, params = {}) {
+    async fetchLedgerByEntries (code: Str = undefined, entry: any = undefined, limit: Int = undefined, params = {}) {
         // by default without entry number or limit number, return most recent entry
         if (entry === undefined) {
             entry = -1;
@@ -1436,7 +1444,7 @@ export default class luno extends Exchange {
         const after = this.safeString (entry, 'balance');
         const comment = this.safeString (entry, 'description');
         let before = after;
-        let amount = '0.0';
+        let amount: Str = '0.0';
         const result = this.parseLedgerComment (comment);
         const type = result['type'];
         const referenceId = result['referenceId'];

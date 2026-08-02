@@ -2744,7 +2744,9 @@ class kucoin extends kucoin$1["default"] {
         account['free'] = this.safeString2(data, 'available', 'availableBalance');
         account['used'] = used;
         account['total'] = this.safeString(data, 'total');
-        this.balance[uniformType][code] = account;
+        if ((uniformType !== undefined) && (code !== undefined)) {
+            this.balance[uniformType][code] = account;
+        }
         this.balance[uniformType] = this.safeBalance(this.balance[uniformType]);
         const messageHash = uniformType + ':balance';
         client.resolve(this.balance[uniformType], messageHash);
@@ -2780,7 +2782,9 @@ class kucoin extends kucoin$1["default"] {
         account['free'] = this.safeString(data, 'a');
         account['used'] = this.safeString(data, 'h');
         account['total'] = this.safeString(data, 'b');
-        this.balance[type][code] = account;
+        if ((code !== undefined)) {
+            this.balance[type][code] = account;
+        }
         this.balance[type] = this.safeBalance(this.balance[type]);
         const messageHash = type + ':balance';
         client.resolve(this.balance[type], messageHash);
@@ -3219,7 +3223,9 @@ class kucoin extends kucoin$1["default"] {
         const data = this.safeDict(message, 'd', {});
         const fundingRate = this.parseWsFundingRate(data);
         const symbol = fundingRate['symbol'];
-        this.fundingRates[symbol] = fundingRate;
+        if (symbol !== undefined) {
+            this.fundingRates[symbol] = fundingRate;
+        }
         const messageHash = 'fundingRate:' + symbol;
         client.resolve(fundingRate, messageHash);
     }

@@ -97,7 +97,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             Object wrapped = this.wrapAsPostAction(ordersRequest);
             Object request = this.safeDict(wrapped, "request", new java.util.HashMap<String, Object>() {{}});
             Object requestId = this.safeString(wrapped, "requestId");
-            Object response = (this.watch(url, ((String)requestId), request, requestId, null)).join();
+            Object response = (this.watch(url, requestId, request, requestId, null)).join();
             Object responseOjb = this.safeDict(response, "response", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeDict(responseOjb, "data", new java.util.HashMap<String, Object>() {{}});
             Object statuses = this.safeList(data, "statuses", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -190,11 +190,11 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             var orderglobalParamsVariable = this.parseCreateEditOrderArgs(id, symbol, type, side, amount, price, parameters);
             var order = ((java.util.List<Object>) orderglobalParamsVariable).get(0);
             var globalParams = ((java.util.List<Object>) orderglobalParamsVariable).get(1);
-            Object postRequest = this.editOrdersRequest(new java.util.ArrayList<Object>(java.util.Arrays.asList(((Object)order))), globalParams);
+            Object postRequest = this.editOrdersRequest(new java.util.ArrayList<Object>(java.util.Arrays.asList(order)), globalParams);
             Object wrapped = this.wrapAsPostAction(postRequest);
             Object request = this.safeDict(wrapped, "request", new java.util.HashMap<String, Object>() {{}});
             Object requestId = this.safeString(wrapped, "requestId");
-            Object response = (this.watch(url, ((String)requestId), request, requestId, null)).join();
+            Object response = (this.watch(url, requestId, request, requestId, null)).join();
             // response is the same as in this.editOrder
             Object responseObject = this.safeDict(response, "response", new java.util.HashMap<String, Object>() {{}});
             Object dataObject = this.safeDict(responseObject, "data", new java.util.HashMap<String, Object>() {{}});
@@ -235,7 +235,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             Object wrapped = this.wrapAsPostAction(request);
             Object wsRequest = this.safeDict(wrapped, "request", new java.util.HashMap<String, Object>() {{}});
             Object requestId = this.safeString(wrapped, "requestId");
-            Object response = (this.watch(url, ((String)requestId), wsRequest, requestId, null)).join();
+            Object response = (this.watch(url, requestId, wsRequest, requestId, null)).join();
             Object responseObj = this.safeDict(response, "response", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeDict(responseObj, "data", new java.util.HashMap<String, Object>() {{}});
             Object statuses = this.safeList(data, "statuses", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -386,7 +386,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         Object entry = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object coin = this.safeString(entry, "coin");
         Object marketId = this.coinToMarketId(coin);
-        Object market = this.market(((String)marketId));
+        Object market = this.market(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object rawData = this.safeList(entry, "levels", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object data = new java.util.HashMap<String, Object>() {{
@@ -853,7 +853,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         Object first = this.safeDict(entry, 0, new java.util.HashMap<String, Object>() {{}});
         Object coin = this.safeString(first, "coin");
         Object marketId = this.coinToMarketId(coin);
-        Object market = this.market(((String)marketId));
+        Object market = this.market(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
@@ -1289,7 +1289,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         {
             this.parseWsBalance(Helpers.GetValue(rawBalances, i), account);
         }
-        if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.balance, ((String)account)), null)))
+        if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.balance, account), null)))
         {
             Helpers.addElementToObject(this.balance, ((String)account), new java.util.HashMap<String, Object>() {{}});
         }
@@ -1354,10 +1354,16 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             {
                 Helpers.addElementToObject(this.balance, accountType, new java.util.HashMap<String, Object>() {{}});
             }
-            Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), code, account);
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(accountType, null))) && Helpers.isTrue((!Helpers.isEqual(code, null)))))
+            {
+                Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), code, account);
+            }
         } else
         {
-            Helpers.addElementToObject(this.balance, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(this.balance, code, account);
+            }
         }
     }
 

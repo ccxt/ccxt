@@ -1031,7 +1031,7 @@ public class PhemexCore extends PhemexApi
             //                     "symbol":"BTCUSDT",
             //                     "steps":"2000K",
             //                     "riskLimits":[
-            //                         {"limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"},,
+            //                         {"limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"},
             //                         {"limit":4000000,"initialMarginRr":"0.015","maintenanceMarginRr":"0.0075"},
             //                         {"limit":6000000,"initialMarginRr":"0.02","maintenanceMarginRr":"0.01"},
             //                     ]
@@ -1106,15 +1106,15 @@ public class PhemexCore extends PhemexApi
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "perpetual"))) || Helpers.isTrue((Helpers.isEqual(type, "perpetualv2")))) || Helpers.isTrue((Helpers.isEqual(type, "perpetualpilot")))))
                 {
                     Object id = this.safeString(market, "symbol");
-                    Object riskLimitValues = this.safeDict(riskLimitsById, ((String)id), new java.util.HashMap<String, Object>() {{}});
+                    Object riskLimitValues = this.safeDict(riskLimitsById, id, new java.util.HashMap<String, Object>() {{}});
                     market = this.extend(market, riskLimitValues);
-                    Object v1ProductsValues = this.safeDict(v1ProductsById, ((String)id), new java.util.HashMap<String, Object>() {{}});
+                    Object v1ProductsValues = this.safeDict(v1ProductsById, id, new java.util.HashMap<String, Object>() {{}});
                     market = this.extend(market, v1ProductsValues);
                     market = this.parseSwapMarket(market);
                 } else
                 {
                     Object baseCurrency = this.safeString(market, "baseCurrency");
-                    Object currencyValues = this.safeDict(currenciesByCode, ((String)baseCurrency), new java.util.HashMap<String, Object>() {{}});
+                    Object currencyValues = this.safeDict(currenciesByCode, baseCurrency, new java.util.HashMap<String, Object>() {{}});
                     Object valueScale = this.safeString(currencyValues, "valueScale", "8");
                     market = this.extend(market, new java.util.HashMap<String, Object>() {{
                         put( "valueScale", valueScale );
@@ -2087,7 +2087,7 @@ public class PhemexCore extends PhemexApi
                 priceString = this.safeString(trade, "execPriceRp");
                 amountString = this.safeString(trade, "execQtyRq");
                 costString = this.safeString(trade, "execValueRv");
-                feeCostString = this.omitZero(((String)this.safeString(trade, "execFeeRv")));
+                feeCostString = this.omitZero(this.safeString(trade, "execFeeRv"));
                 feeRateString = this.safeString(trade, "feeRateRr");
                 if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
                 {
@@ -2095,7 +2095,7 @@ public class PhemexCore extends PhemexApi
                     feeCurrencyCode = this.safeCurrencyCode(currencyId);
                 } else
                 {
-                    Object ptFeeRv = this.omitZero(((String)this.safeString(trade, "ptFeeRv")));
+                    Object ptFeeRv = this.omitZero(this.safeString(trade, "ptFeeRv"));
                     if (Helpers.isTrue(!Helpers.isEqual(ptFeeRv, null)))
                     {
                         feeCostString = ptFeeRv;
@@ -2115,7 +2115,7 @@ public class PhemexCore extends PhemexApi
                 amountString = this.fromEv(this.safeString(trade, "execBaseQtyEv"), market);
                 amountString = this.safeString(trade, "execQty", amountString);
                 costString = this.fromEr(this.safeString2(trade, "execQuoteQtyEv", "execValueEv"), market);
-                feeCostString = this.fromEr(this.omitZero(((String)this.safeString(trade, "execFeeEv"))), market);
+                feeCostString = this.fromEr(this.omitZero(this.safeString(trade, "execFeeEv")), market);
                 if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
                 {
                     feeRateString = this.fromEr(this.safeString(trade, "feeRateEr"), market);
@@ -2212,7 +2212,7 @@ public class PhemexCore extends PhemexApi
             Object balance = Helpers.GetValue(data, i);
             Object currencyId = this.safeString(balance, "currency");
             Object code = this.safeCurrencyCode(currencyId);
-            Object currency = this.safeValue(this.currencies, ((String)code), new java.util.HashMap<String, Object>() {{}});
+            Object currency = this.safeValue(this.currencies, code, new java.util.HashMap<String, Object>() {{}});
             Object scale = this.safeInteger(currency, "valueScale", 8);
             Object account = this.account();
             Object balanceEv = this.safeString(balance, "balanceEv");
@@ -2272,7 +2272,7 @@ public class PhemexCore extends PhemexApi
         Object balance = this.safeValue(data, "account", new java.util.HashMap<String, Object>() {{}});
         Object currencyId = this.safeString(balance, "currency");
         Object code = this.safeCurrencyCode(currencyId);
-        Object currency = this.currency(((String)code));
+        Object currency = this.currency(code);
         Object valueScale = this.safeInteger(currency, "valueScale", 8);
         Object account = this.account();
         Object accountBalanceEv = this.safeString2(balance, "accountBalanceEv", "accountBalanceRv");
@@ -2334,7 +2334,7 @@ public class PhemexCore extends PhemexApi
                     {
                         coin = settle;
                     }
-                    Object currency = this.currency(((String)coin));
+                    Object currency = this.currency(coin);
                     Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
                     if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(currency, "id"), "USDT")))
                     {
@@ -2801,7 +2801,7 @@ public class PhemexCore extends PhemexApi
             lastTradeTimestamp = null;
         }
         Object timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
-        Object triggerPrice = this.omitZero(((String)this.safeString2(order, "stopPx", "stopPxRp")));
+        Object triggerPrice = this.omitZero(this.safeString2(order, "stopPx", "stopPxRp"));
         Object postOnly = (Helpers.isEqual(timeInForce, "PO"));
         Object reduceOnly = this.safeValue(order, "reduceOnly");
         Object execInst = this.safeString(order, "execInst");
@@ -2811,8 +2811,8 @@ public class PhemexCore extends PhemexApi
         }
         Object takeProfit = this.safeString(order, "takeProfitRp");
         Object stopLoss = this.safeString(order, "stopLossRp");
-        Object feeValue = this.omitZero(((String)this.safeString(order, "execFeeRv")));
-        Object ptFeeRv = this.omitZero(((String)this.safeString(order, "ptFeeRv")));
+        Object feeValue = this.omitZero(this.safeString(order, "execFeeRv"));
+        Object ptFeeRv = this.omitZero(this.safeString(order, "ptFeeRv"));
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeValue, null)))
         {
@@ -2912,7 +2912,7 @@ public class PhemexCore extends PhemexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object requestSide = this.capitalize(((String)side));
+            Object requestSide = this.capitalize(side);
             type = this.capitalize(type);
             final Object finalType = type;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -3986,7 +3986,7 @@ public class PhemexCore extends PhemexApi
             Object defaultNetwork = this.safeStringUpper(defaultNetworks, code);
             Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
             Object network = this.safeStringUpper2(parameters, "network", "chainName", defaultNetwork);
-            network = this.safeString(networks, ((String)network), network);
+            network = this.safeString(networks, network, network);
             if (Helpers.isTrue(Helpers.isEqual(network, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() requires a network parameter")) ;
@@ -5286,7 +5286,7 @@ final Object finalI = i;
                 put( "currency", Helpers.GetValue(finalMarket, "settle") );
                 put( "minNotional", minNotionalResponse );
                 put( "maxNotional", maxNotional );
-                put( "maintenanceMarginRate", PhemexCore.this.safeString(tier, "maintenanceMargin") );
+                put( "maintenanceMarginRate", PhemexCore.this.safeNumber(tier, "maintenanceMargin") );
                 put( "maxLeverage", null );
                 put( "info", tier );
             }});

@@ -116,7 +116,7 @@ export default class backpack extends backpackRest {
      */
     unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
+    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
      * @name backpack#watchTrades
@@ -233,8 +233,8 @@ export default class backpack extends backpackRest {
     unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
     parseWsOrder(order: any, market?: Market): Order;
-    parseWsOrderStatus(status: any, market?: any): string;
-    parseWsOrderSide(side: Str): string;
+    parseWsOrderStatus(status: Str, market?: Market): Str;
+    parseWsOrderSide(side: Str): Str;
     /**
      * @method
      * @name backpack#watchPositions
@@ -258,7 +258,7 @@ export default class backpack extends backpackRest {
      */
     unWatchPositions(symbols?: Strings, params?: {}): Promise<any[]>;
     handlePositions(client: any, message: any): void;
-    parseWsPosition(position: any, market?: any): Position;
+    parseWsPosition(position: any, market?: Market): Position;
     handleMessage(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): Bool;
 }

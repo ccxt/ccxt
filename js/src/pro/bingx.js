@@ -1710,7 +1710,9 @@ export default class bingx extends bingxRest {
             account['info'] = balance;
             account['used'] = this.safeString(balance, 'lk');
             account['free'] = this.safeString(balance, 'wb');
-            this.balance[type][code] = account;
+            if ((type !== undefined) && (code !== undefined)) {
+                this.balance[type][code] = account;
+            }
         }
         this.balance[type] = this.safeBalance(this.balance[type]);
         client.resolve(this.balance[type], type + ':balance');

@@ -284,7 +284,7 @@ public partial class delta : Exchange
         object datetime = this.convertExpireDate(expiry);
         object timestamp = this.parse8601(datetime);
         object optionTypeUnified = ((bool) isTrue((isEqual(optionType, "C")))) ? "call" : "put";
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", add(add(add(add(add(add(optionType, "-"), bs), "-"), strike), "-"), expiry) },
             { "symbol", add(add(add(add(add(add(add(add(add(add(bs, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType) },
             { "base", bs },
@@ -327,13 +327,13 @@ public partial class delta : Exchange
                 } },
             } },
             { "info", null },
-        };
+        });
     }
 
     public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
         object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue(isTrue(isTrue((((string)marketId).EndsWith(((string)"-C")))) || isTrue((((string)marketId).EndsWith(((string)"-P"))))) || isTrue((((string)marketId).StartsWith(((string)"C-"))))) || isTrue((((string)marketId).StartsWith(((string)"P-"))))));
-        if (isTrue(isTrue(isOption) && !isTrue((inOp(this.markets_by_id, marketId)))))
+        if (isTrue(isTrue(isOption) && isTrue((isTrue((isEqual(this.markets_by_id, null))) || !isTrue((inOp(this.markets_by_id, marketId)))))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -510,26 +510,29 @@ public partial class delta : Exchange
             object chain = getValue(chains, j);
             object networkId = this.safeString(chain, "network");
             object networkCode = this.networkIdToCode(networkId, code);
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "name", this.safeString(chain, "name") },
-                { "info", chain },
-                { "active", isEqual(this.safeString(chain, "status"), "enabled") },
-                { "deposit", isEqual(this.safeString(chain, "deposit_status"), "enabled") },
-                { "withdraw", isEqual(this.safeString(chain, "withdrawal_status"), "enabled") },
-                { "fee", this.safeNumber(chain, "base_withdrawal_fee") },
-                { "limits", new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(chain, "min_deposit_amount") },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "name", this.safeString(chain, "name") },
+                    { "info", chain },
+                    { "active", isEqual(this.safeString(chain, "status"), "enabled") },
+                    { "deposit", isEqual(this.safeString(chain, "deposit_status"), "enabled") },
+                    { "withdraw", isEqual(this.safeString(chain, "withdrawal_status"), "enabled") },
+                    { "fee", this.safeNumber(chain, "base_withdrawal_fee") },
+                    { "limits", new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(chain, "min_deposit_amount") },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(chain, "min_withdrawal_amount") },
+                            { "max", null },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(chain, "min_withdrawal_amount") },
-                        { "max", null },
-                    } },
-                } },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -864,7 +867,7 @@ public partial class delta : Exchange
                 }
             }
             object state = this.safeString(market, "state");
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "numericId", numericId },
                 { "symbol", symbol },
@@ -915,7 +918,7 @@ public partial class delta : Exchange
                 } },
                 { "created", this.parse8601(this.safeString(market, "launch_time")) },
                 { "info", market },
-            });
+            }));
         }
         return result;
     }
@@ -1371,7 +1374,10 @@ public partial class delta : Exchange
             }
             object ticker = this.parseTicker(rawTicker);
             object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
@@ -1615,6 +1621,10 @@ public partial class delta : Exchange
         {
             object end = ((bool) isTrue(untilIsDefined)) ? until : this.seconds();
             ((IDictionary<string,object>)request)["end"] = end;
+            if (isTrue(isEqual(end, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " fetchOHLCV() missing end")) ;
+            }
             ((IDictionary<string,object>)request)["start"] = subtract(end, multiply(limit, duration));
         } else
         {
@@ -2097,7 +2107,12 @@ public partial class delta : Exchange
         };
         if (isTrue(!isEqual(amount, null)))
         {
-            ((IDictionary<string,object>)request)["size"] = parseInt(this.amountToPrecision(symbol, amount));
+            object sizeString = this.amountToPrecision(symbol, amount);
+            if (isTrue(isEqual(sizeString, null)))
+            {
+                sizeString = "0";
+            }
+            ((IDictionary<string,object>)request)["size"] = parseInt(sizeString);
         }
         if (isTrue(!isEqual(price, null)))
         {
@@ -2121,7 +2136,7 @@ public partial class delta : Exchange
         //         }
         //     }
         //
-        object result = this.safeDict(response, "result");
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseOrder(result, market);
     }
 
@@ -2185,7 +2200,7 @@ public partial class delta : Exchange
         //         "success":true
         //     }
         //
-        object result = this.safeDict(response, "result");
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseOrder(result, market);
     }
 
@@ -2515,7 +2530,7 @@ public partial class delta : Exchange
             { "referral_bonus", "referral" },
             { "commission_rebate", "rebate" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)

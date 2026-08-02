@@ -100,8 +100,10 @@ class alpaca extends alpaca$1["default"] {
         const ticker = this.parseTicker(message);
         const symbol = ticker['symbol'];
         const messageHash = 'ticker:' + symbol;
-        this.tickers[symbol] = ticker;
-        client.resolve(this.tickers[symbol], messageHash);
+        if (symbol !== undefined) {
+            this.tickers[symbol] = ticker;
+        }
+        client.resolve(ticker, messageHash);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -527,6 +529,9 @@ class alpaca extends alpaca$1["default"] {
             myTrades = new Cache.ArrayCacheBySymbolById(limit);
         }
         const trade = this.parseMyTrade(rawOrder);
+        if (trade === undefined) {
+            return;
+        }
         myTrades.append(trade);
         let messageHash = 'myTrades:' + trade['symbol'];
         client.resolve(myTrades, messageHash);
@@ -574,6 +579,9 @@ class alpaca extends alpaca$1["default"] {
         const marketId = this.safeString(trade, 'symbol');
         const datetime = this.safeString(trade, 'filled_at');
         let type = this.safeString(trade, 'type');
+        if (type === undefined) {
+            return undefined;
+        }
         if (type.indexOf('limit') >= 0) {
             // might be limit or stop-limit
             type = 'limit';

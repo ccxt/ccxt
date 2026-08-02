@@ -6,7 +6,7 @@ import Exchange from './abstract/hashkey.js';
 import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, NullableDict, NullableList, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, MarginModification, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, NullableDict, NullableList, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, MarginModification, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, SubType, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, LedgerEntry, FundingRate, FundingRates, DepositAddress, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -861,8 +861,8 @@ export default class hashkey extends Exchange {
         //         ]
         //     }
         //
-        const spotMarkets = this.safeList (response, 'symbols', []) as List;
-        const swapMarkets = this.safeList (response, 'contracts', []) as List;
+        const spotMarkets = this.safeList (response, 'symbols', []);
+        const swapMarkets = this.safeList (response, 'contracts', []);
         let markets = this.arrayConcat (spotMarkets, swapMarkets);
         if (this.isEmpty (markets)) {
             markets = [ response ]; // if user provides params.symbol the exchange returns a single object instead of list of objects
@@ -1051,12 +1051,12 @@ export default class hashkey extends Exchange {
                 subType = 'linear';
             }
         }
-        const filtersList = this.safeList (market, 'filters', []) as List;
+        const filtersList = this.safeList (market, 'filters', []);
         const filters = this.indexBy (filtersList, 'filterType');
         const priceFilter = this.safeDict (filters, 'PRICE_FILTER', {});
         const amountFilter = this.safeDict (filters, 'LOT_SIZE', {});
         const costFilter = this.safeDict (filters, 'MIN_NOTIONAL', {});
-        const minCostString = this.omitZero (this.safeString (costFilter, 'min_notional') as string);
+        const minCostString = this.omitZero (this.safeString (costFilter, 'min_notional'));
         const contractSizeString = this.safeString (market, 'contractMultiplier');
         let amountPrecisionString = this.safeString (amountFilter, 'stepSize');
         let amountMinLimitString = this.safeString (amountFilter, 'minQty');
@@ -1181,7 +1181,7 @@ export default class hashkey extends Exchange {
         return this.parseCurrencies (coins);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, 'coinId');
         const code = this.safeCurrencyCode (currencyId);
         const networks = this.safeList (rawCurrency, 'chainTypes') as List;
@@ -1189,27 +1189,29 @@ export default class hashkey extends Exchange {
         for (let j = 0; j < networks.length; j++) {
             const network = networks[j];
             const networkId = this.safeString (network, 'chainType');
-            const networkCode = this.networkCodeToId (networkId as string, code);
-            parsedNetworks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber (network, 'minWithdrawQuantity'),
-                        'max': this.parseNumber (this.omitZero (this.safeString (network, 'maxWithdrawQuantity') as string)),
+            const networkCode = this.networkCodeToId (networkId, code);
+            if (networkCode !== undefined) {
+                parsedNetworks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (network, 'minWithdrawQuantity'),
+                            'max': this.parseNumber (this.omitZero (this.safeString (network, 'maxWithdrawQuantity'))),
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (network, 'minDepositQuantity'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber (network, 'minDepositQuantity'),
-                        'max': undefined,
-                    },
-                },
-                'active': undefined,
-                'deposit': this.safeBool (network, 'allowDeposit'),
-                'withdraw': this.safeBool (network, 'allowWithdraw'),
-                'fee': this.safeNumber (network, 'withdrawFee'),
-                'precision': undefined,
-                'info': network,
-            };
+                    'active': undefined,
+                    'deposit': this.safeBool (network, 'allowDeposit'),
+                    'withdraw': this.safeBool (network, 'allowWithdraw'),
+                    'fee': this.safeNumber (network, 'withdrawFee'),
+                    'precision': undefined,
+                    'info': network,
+                };
+            }
         }
         const rawType = this.safeString (rawCurrency, 'tokenType');
         const type = (rawType === 'REAL_MONEY') ? 'fiat' : 'crypto';
@@ -1855,7 +1857,9 @@ export default class hashkey extends Exchange {
             account['total'] = this.safeString (balanceEntry, 'total');
             account['free'] = this.safeString (balanceEntry, 'free');
             account['used'] = this.safeString (balanceEntry, 'locked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -1881,7 +1885,9 @@ export default class hashkey extends Exchange {
         const result: Dict = {
             'info': balance,
         };
-        result[code] = account;
+        if (code !== undefined) {
+            result[code] = account;
+        }
         return this.safeBalance (result);
     }
 
@@ -1908,7 +1914,7 @@ export default class hashkey extends Exchange {
         if (networkCode === undefined) {
             networkCode = this.defaultNetworkCode (code);
         }
-        request['chainType'] = this.networkCodeToId (networkCode as string, code);
+        request['chainType'] = this.networkCodeToId (networkCode, code);
         const response = await this.privateGetApiV1AccountDepositAddress (this.extend (request, params));
         //
         //     {
@@ -2333,7 +2339,7 @@ export default class hashkey extends Exchange {
             '5': 'custody account',
             '6': 'fiat account',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     encodeAccountType (type) {
@@ -2342,7 +2348,7 @@ export default class hashkey extends Exchange {
             'swap': '3',
             'custody': '5',
         };
-        return this.safeInteger (types, type, type);
+        return this.safeInteger (types, (type as string), type);
     }
 
     encodeFlowType (type) {
@@ -2353,7 +2359,7 @@ export default class hashkey extends Exchange {
             'deposit': '900',
             'withdraw': '904',
         };
-        return this.safeInteger (types, type, type);
+        return this.safeInteger (types, (type as string), type);
     }
 
     /**
@@ -2383,7 +2389,7 @@ export default class hashkey extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const currency = this.currency (code as string);
+        const currency = this.currency (code);
         const request = {};
         request['startTime'] = since;
         if (limit !== undefined) {
@@ -2430,7 +2436,7 @@ export default class hashkey extends Exchange {
             '900': 'deposit',
             '904': 'withdraw',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -2576,7 +2582,7 @@ export default class hashkey extends Exchange {
         if ((!isMarketBuy) && (cost !== undefined)) {
             throw new NotSupported (this.id + ' createOrder() supports cost parameter for spot market buy orders only');
         }
-        const request: Dict = this.createSpotOrderRequest (symbol, type, side, amount, price, params);
+        const request = this.createSpotOrderRequest (symbol, type, side, amount, price, params);
         let response: Dict = {};
         const test = this.safeBool (params, 'test');
         if (test) {
@@ -2667,7 +2673,13 @@ export default class hashkey extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Dict {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const market = this.market (symbol);
         if (market['spot']) {
             return this.createSpotOrderRequest (symbol, type, side, amount, price, params);
@@ -2678,7 +2690,13 @@ export default class hashkey extends Exchange {
         }
     }
 
-    createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
+    createSpotOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Dict {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -2728,7 +2746,7 @@ export default class hashkey extends Exchange {
         return this.extend (request, params);
     }
 
-    createSwapOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
+    createSwapOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Dict {
         /**
          * @method
          * @ignore
@@ -2863,7 +2881,7 @@ export default class hashkey extends Exchange {
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (symbol as string, type as string, side, amount as number, price, orderParams);
+            const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
             const clientOrderId = this.safeString (orderRequest, 'clientOrderId');
             if (clientOrderId === undefined) {
                 orderRequest['clientOrderId'] = this.uuid (); // both spot and swap endpoints require clientOrderId
@@ -2872,11 +2890,11 @@ export default class hashkey extends Exchange {
         }
         const firstOrder = ordersRequests[0];
         const firstSymbol = this.safeString (firstOrder, 'symbol');
-        const market = this.market (firstSymbol as string);
+        const market = this.market (firstSymbol);
         const request: Dict = {
             'orders': ordersRequests,
         };
-        let response: NullableDict = undefined;
+        let response: any = undefined;
         if (market['spot']) {
             response = await this.privatePostApiV1SpotBatchOrders (this.extend (request, params));
             //
@@ -2988,7 +3006,7 @@ export default class hashkey extends Exchange {
         }
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
-        let response: NullableDict = undefined;
+        let response: any = undefined;
         if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotOrder (this.extend (request, params));
             //
@@ -3076,7 +3094,7 @@ export default class hashkey extends Exchange {
         if (side !== undefined) {
             request['side'] = side;
         }
-        let response: NullableDict = undefined;
+        let response: any = undefined;
         if (market['spot']) {
             response = await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, params));
             //
@@ -3090,7 +3108,7 @@ export default class hashkey extends Exchange {
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
         }
-        const order = this.safeOrder (response as Dict);
+        const order = this.safeOrder (response);
         order['info'] = response;
         return [ order ];
     }
@@ -3121,7 +3139,7 @@ export default class hashkey extends Exchange {
         }
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
-        let response: NullableDict = undefined;
+        let response: any = undefined;
         if (marketType === 'spot') {
             response = await this.privateDeleteApiV1SpotCancelOrderByIds (request);
             //
@@ -3135,7 +3153,7 @@ export default class hashkey extends Exchange {
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
-        const order = this.safeOrder (response as Dict);
+        const order = this.safeOrder (response);
         order['info'] = response;
         return [ order ];
     }
@@ -3174,7 +3192,7 @@ export default class hashkey extends Exchange {
         }
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
-        let response: NullableDict = undefined;
+        let response: any = undefined;
         if (marketType === 'spot') {
             if (clientOrderId !== undefined) {
                 request['origClientOrderId'] = clientOrderId;
@@ -3312,7 +3330,7 @@ export default class hashkey extends Exchange {
         [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
         let market: Market = undefined;
         const request: Dict = {};
-        let response: NullableDict = undefined;
+        let response: any = undefined;
         let accountId: Str = undefined;
         [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
         if (accountId !== undefined) {
@@ -3396,7 +3414,7 @@ export default class hashkey extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response: NullableDict = undefined;
+        let response: any = undefined;
         let accountId: Str = undefined;
         [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
         if (accountId !== undefined) {
@@ -3498,7 +3516,7 @@ export default class hashkey extends Exchange {
         }
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
-        let response: NullableDict = undefined;
+        let response: any = undefined;
         if (marketType === 'spot') {
             if (market !== undefined) {
                 request['symbol'] = market['id'];
@@ -3596,8 +3614,8 @@ export default class hashkey extends Exchange {
     }
 
     handleTriggerOptionAndParams (params: object, methodName: string, defaultValue: Bool = undefined): [Bool, object] {
-        let isTrigger: Bool = defaultValue;
-        [ isTrigger, params ] = this.handleOptionAndParams2 (params, methodName, 'stop', 'trigger', isTrigger as undefined);
+        let isTrigger = defaultValue;
+        [ isTrigger, params ] = this.handleOptionAndParams2 (params, methodName, 'stop', 'trigger', isTrigger);
         return [ isTrigger, params ];
     }
 
@@ -3720,7 +3738,7 @@ export default class hashkey extends Exchange {
         if (priceType === 'MARKET') {
             type = 'market';
         }
-        let price = this.omitZero (this.safeString (order, 'price') as string);
+        let price = this.omitZero (this.safeString (order, 'price'));
         if (type === 'STOP') {
             if (price === undefined) {
                 type = 'market';
@@ -3731,7 +3749,7 @@ export default class hashkey extends Exchange {
         let timeInForce = this.safeString (order, 'timeInForce');
         let postOnly: Bool = undefined;
         [ type, timeInForce, postOnly ] = this.parseOrderTypeTimeInForceAndPostOnly (type, timeInForce);
-        const average = this.omitZero (this.safeString (order, 'avgPrice') as string);
+        const average = this.omitZero (this.safeString (order, 'avgPrice'));
         if (price === undefined) {
             price = average;
         }
@@ -3823,7 +3841,7 @@ export default class hashkey extends Exchange {
             'LIMIT_MAKER': 'limit',
             'MARKET_OF_BASE': 'market',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     /**
@@ -4419,7 +4437,7 @@ export default class hashkey extends Exchange {
         }
         const market = this.market (symbol);
         const methodName = 'fetchTradingFee';
-        let response: NullableDict = undefined;
+        let response: TradingFees | undefined = undefined;
         if (market['spot']) {
             response = await this.fetchTradingFees (params);
             return this.safeDict (response, symbol) as TradingFeeInterface;
@@ -4477,7 +4495,7 @@ export default class hashkey extends Exchange {
         const data = this.safeList (response, 'data', []) as List;
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
-            const fee = this.safeDict (data, i, {}) as Dict;
+            const fee = this.safeDict (data, i, {});
             const parsedFee = this.parseTradingFee (fee);
             result[parsedFee['symbol'] as string] = parsedFee;
         }
@@ -4539,12 +4557,12 @@ export default class hashkey extends Exchange {
             if ((method === 'POST') && ((path === 'api/v1/spot/batchOrders') || (path === 'api/v1/futures/batchOrders'))) {
                 headers['Content-Type'] = 'application/json';
                 body = this.json (this.safeList (params, 'orders'));
-                signature = this.hmac (this.encode (this.customUrlencode (additionalParams) as string), this.encode (this.secret as string), sha256);
+                signature = this.hmac (this.encode (this.customUrlencode (additionalParams) as string), this.encode (this.secret), sha256);
                 query = this.customUrlencode (this.extend (additionalParams, { 'signature': signature }));
                 url += '?' + query;
             } else {
                 const totalParams = this.extend (additionalParams, params);
-                signature = this.hmac (this.encode (this.customUrlencode (totalParams) as string), this.encode (this.secret as string), sha256);
+                signature = this.hmac (this.encode (this.customUrlencode (totalParams) as string), this.encode (this.secret), sha256);
                 totalParams['signature'] = signature;
                 query = this.customUrlencode (totalParams);
                 if (method === 'GET') {

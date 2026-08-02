@@ -2471,7 +2471,9 @@ class bullish extends bullish$1["default"] {
             const account = this.account();
             account['total'] = this.safeString(balance, 'availableQuantity');
             account['used'] = this.safeString(balance, 'lockedQuantity');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }

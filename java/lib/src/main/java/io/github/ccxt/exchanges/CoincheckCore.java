@@ -632,8 +632,8 @@ public class CoincheckCore extends CoincheckApi
                 takerOrMaker = "maker";
             }
             Object funds = this.safeValue(trade, "funds", new java.util.HashMap<String, Object>() {{}});
-            amountString = this.safeString(funds, ((String)baseId));
-            costString = this.safeString(funds, ((String)quoteId));
+            amountString = this.safeString(funds, baseId);
+            costString = this.safeString(funds, quoteId);
             fee = new java.util.HashMap<String, Object>() {{
                 put( "currency", CoincheckCore.this.safeString(trade, "fee_currency") );
                 put( "cost", CoincheckCore.this.safeString(trade, "fee") );
@@ -692,7 +692,7 @@ public class CoincheckCore extends CoincheckApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(((String)symbol));
+            Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -824,7 +824,7 @@ public class CoincheckCore extends CoincheckApi
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Object market = this.market(symbol);
-                Object fee = this.safeValue(fees, ((String)Helpers.GetValue(market, "id")), new java.util.HashMap<String, Object>() {{}});
+                Object fee = this.safeValue(fees, Helpers.GetValue(market, "id"), new java.util.HashMap<String, Object>() {{}});
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", fee );
         put( "symbol", symbol );

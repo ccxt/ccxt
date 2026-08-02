@@ -313,7 +313,8 @@ class coinspot(Exchange, ImplicitAPI):
                     code = self.safe_currency_code(currencyId)
                     account = self.account()
                     account['total'] = self.safe_string(balance, 'balance')
-                    result[code] = account
+                    if code is not None:
+                        result[code] = account
         else:
             currencyIds = list(balances.keys())
             for i in range(0, len(currencyIds)):
@@ -321,7 +322,8 @@ class coinspot(Exchange, ImplicitAPI):
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['total'] = self.safe_string(balances, currencyId)
-                result[code] = account
+                if code is not None:
+                    result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:

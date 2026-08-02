@@ -566,7 +566,10 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "amount"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         this.balance = this.safeBalance(result);
         client.resolve(this.balance, eventVar);

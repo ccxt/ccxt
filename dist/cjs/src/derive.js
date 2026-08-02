@@ -2480,7 +2480,9 @@ class derive extends derive$1["default"] {
                     const amount = this.safeString(balance, 'amount');
                     account['total'] = Precise["default"].stringAdd(account['total'], amount);
                 }
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance(result);

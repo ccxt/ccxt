@@ -68,7 +68,7 @@ jobs:
           # All five runnable languages (TS/Python/PHP/C#/Go) are enabled. The Go
           # warm build (~5 GB peak) happens here on the GitHub-hosted runner, not
           # on the docs box; the box only needs headroom for warm `go run`s, which
-          # the 4 GB run cap below covers. To make a language install-only again
+          # the 12 GB run cap below covers. To make a language install-only again
           # (e.g. on a small box), add it back: PLAYGROUND_DISABLED=go
           build-args: |
             NEXT_BASE_PATH=${{ env.BASE_PATH }}
@@ -186,10 +186,14 @@ jobs:
             -e NO_PROXY=localhost,127.0.0.1 -e no_proxy=localhost,127.0.0.1"
 
           # Hardening flags so a user run can't reach the host or exhaust it.
-          # 4 GB (not 2): a warm `go run` only recompiles the user's main package,
-          # but an import outside the warmed dependency graph triggers a large
-          # rebuild that OOMs inside 2 GB.
-          RUNFLAGS="--init --memory 4g --memory-swap 4g --cpus 2 --pids-limit 512 --security-opt no-new-privileges:true --cap-drop ALL"
+          # 12g/6cpu: sized for the dedicated docs box (8 cores / 31 GB). A warm
+          # `go run` only recompiles the user's main package, but an import
+          # outside the warmed dependency graph triggers a cold rebuild of the
+          # ccxt graph — 12 GB gives that headroom, and 6 CPUs (Go >= 1.25
+          # derives GOMAXPROCS from the cgroup quota) makes it finish well
+          # inside COMPILE_TIMEOUT_MS instead of crawling on 2. Still capped so
+          # user code can't exhaust the host.
+          RUNFLAGS="--init --memory 12g --memory-swap 12g --cpus 6 --pids-limit 512 --security-opt no-new-privileges:true --cap-drop ALL"
 
           # Persistent submission log — only the promoted live app (not the throwaway
           # canary) writes to the durable host mount; the file is logrotated above.

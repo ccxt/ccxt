@@ -765,6 +765,9 @@ export default class whitebit extends whitebitRest {
         //   }
         //
         const method = this.safeString(message, 'method');
+        if (method === undefined) {
+            return;
+        }
         const data = this.safeValue(message, 'params');
         const balanceDict = this.safeValue(data, 0);
         this.balance['info'] = balanceDict;
@@ -775,7 +778,9 @@ export default class whitebit extends whitebitRest {
         const account = this.account();
         account['free'] = this.safeString(rawBalance, 'available');
         account['used'] = this.safeString(rawBalance, 'freeze');
-        this.balance[code] = account;
+        if (code !== undefined) {
+            this.balance[code] = account;
+        }
         this.balance = this.safeBalance(this.balance);
         let messageHash = 'wallet:';
         if (method.indexOf('Spot') >= 0) {
@@ -810,7 +815,9 @@ export default class whitebit extends whitebitRest {
             const subscription = {};
             const market = this.market(symbol);
             const marketId = market['id'];
-            subscription[marketId] = true;
+            if (marketId !== undefined) {
+                subscription[marketId] = true;
+            }
             marketIds = [marketId];
             if (isNested) {
                 marketIds = [marketIds];
@@ -830,7 +837,9 @@ export default class whitebit extends whitebitRest {
             const marketId = market['id'];
             const isSubscribed = this.safeBool(subscription, marketId, false);
             if (!isSubscribed) {
-                subscription[marketId] = true;
+                if (marketId !== undefined) {
+                    subscription[marketId] = true;
+                }
                 hasSymbolSubscription = false;
             }
             if (hasSymbolSubscription) {

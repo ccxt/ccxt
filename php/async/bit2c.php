@@ -490,7 +490,11 @@ class bit2c extends Exchange {
             if (gettype($response) === 'string') {
                 throw new ExchangeError($response);
             }
-            return $this->parse_trades($response, $market, $since, $limit);
+            $responseList = array();
+            if ($response !== null) {
+                $responseList = $response;
+            }
+            return $this->parse_trades($responseList, $market, $since, $limit);
         })();
     }
 
@@ -858,7 +862,11 @@ class bit2c extends Exchange {
             //         }
             //     )
             //
-            return $this->parse_trades($response, $market, $since, $limit);
+            $responseList = array();
+            if ($response !== null) {
+                $responseList = $response;
+            }
+            return $this->parse_trades($responseList, $market, $since, $limit);
         })();
     }
 

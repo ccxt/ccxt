@@ -517,26 +517,28 @@ class apex extends apex$1["default"] {
                 if (tokenName === currencyId) {
                     const networkId = this.safeString(chain, 'chainId');
                     const networkCode = this.networkIdToCode(networkId, code);
-                    networks[networkCode] = {
-                        'info': chain,
-                        'id': networkId,
-                        'network': networkCode,
-                        'active': undefined,
-                        'deposit': !this.safeBool(chain, 'depositDisable'),
-                        'withdraw': this.safeBool(token, 'withdrawEnable'),
-                        'fee': this.safeNumber(token, 'minFee'),
-                        'precision': this.parseNumber(this.parsePrecision(this.safeString(token, 'decimals'))),
-                        'limits': {
-                            'withdraw': {
-                                'min': this.safeNumber(token, 'minWithdraw'),
-                                'max': undefined,
+                    if (networkCode !== undefined) {
+                        networks[networkCode] = {
+                            'info': chain,
+                            'id': networkId,
+                            'network': networkCode,
+                            'active': undefined,
+                            'deposit': !this.safeBool(chain, 'depositDisable'),
+                            'withdraw': this.safeBool(token, 'withdrawEnable'),
+                            'fee': this.safeNumber(token, 'minFee'),
+                            'precision': this.parseNumber(this.parsePrecision(this.safeString(token, 'decimals'))),
+                            'limits': {
+                                'withdraw': {
+                                    'min': this.safeNumber(token, 'minWithdraw'),
+                                    'max': undefined,
+                                },
+                                'deposit': {
+                                    'min': this.safeNumber(chain, 'minDeposit'),
+                                    'max': undefined,
+                                },
                             },
-                            'deposit': {
-                                'min': this.safeNumber(chain, 'minDeposit'),
-                                'max': undefined,
-                            },
-                        },
-                    };
+                        };
+                    }
                 }
             }
         }
@@ -1259,20 +1261,22 @@ class apex extends apex$1["default"] {
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         if (market === undefined && marketId !== undefined) {
-            if (marketId in this.markets) {
-                market = this.markets[marketId];
+            const marketsMap = this.markets;
+            const marketsById = this.markets_by_id;
+            if ((marketsMap !== undefined) && (marketId in marketsMap)) {
+                market = marketsMap[marketId];
             }
-            else if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
+            else if ((marketsById !== undefined) && (marketId in marketsById)) {
+                market = marketsById[marketId];
             }
             else {
                 const newMarketId = this.addHyphenBeforeUsdt(marketId);
-                if (newMarketId in this.markets_by_id) {
-                    const markets = this.markets_by_id[newMarketId];
+                if ((marketsById !== undefined) && (newMarketId in marketsById)) {
+                    const markets = marketsById[newMarketId];
                     const numMarkets = markets.length;
                     if (numMarkets > 0) {
-                        if (this.markets_by_id[newMarketId][0]['id2'] === marketId) {
-                            market = this.markets_by_id[newMarketId][0];
+                        if (marketsById[newMarketId][0]['id2'] === marketId) {
+                            market = marketsById[newMarketId][0];
                         }
                     }
                 }
@@ -1334,6 +1338,9 @@ class apex extends apex$1["default"] {
         }
         const market = this.market(symbol);
         let orderType = type.toUpperCase();
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const orderSide = side.toUpperCase();
         const orderSize = this.amountToPrecision(symbol, amount);
         let orderPrice = '0';
@@ -1473,7 +1480,8 @@ class apex extends apex$1["default"] {
         }
         const tokenId = this.safeString(currency, 'tokenId', '');
         const decimalsNum = this.safeNumber(currency, 'decimals', 0);
-        const mathPowResult = (Math.pow(10, decimalsNum));
+        const decimalsNumber = (decimalsNum === undefined) ? 0 : decimalsNum;
+        const mathPowResult = (Math.pow(10, decimalsNumber));
         const amountNumber = this.parseToInt(amount * mathPowResult);
         const timestampSeconds = this.parseToInt(this.milliseconds() / 1000);
         let clientOrderId = this.safeStringN(params, ['clientId', 'clientOrderId', 'client_order_id']);

@@ -150,12 +150,13 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object symbol = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? null : Helpers.GetValue(market, "symbol");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", null );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "symbol", Helpers.GetValue(market, "symbol") );
+            put( "symbol", symbol );
             put( "order", null );
             put( "type", null );
             put( "side", null );

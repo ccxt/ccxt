@@ -1519,7 +1519,9 @@ class aster extends \ccxt\async\aster {
             $account['free'] = $this->safe_string($entry, 'f');
             $account['used'] = $this->safe_string($entry, 'l');
             $account['total'] = $this->safe_string($entry, $wallet);
-            $this->balance[$accountType][$code] = $account;
+            if (($accountType !== null) && ($code !== null)) {
+                $this->balance[$accountType][$code] = $account;
+            }
         }
         $timestamp = $this->safe_integer($message, 'E');
         $this->balance[$accountType]['timestamp'] = $timestamp;

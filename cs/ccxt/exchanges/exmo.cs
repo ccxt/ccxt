@@ -432,9 +432,10 @@ public partial class exmo : Exchange
         //     }
         //
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object fee = this.safeValue(response, getValue(market, "id"), new Dictionary<string, object>() {});
             object makerString = this.safeString(fee, "commission_maker_percent");
@@ -548,7 +549,10 @@ public partial class exmo : Exchange
                 object typeInner = this.safeString(provider, "type");
                 object commissionDesc = this.safeString(provider, "commission_desc");
                 object fee = this.parseFixedFloatValue(commissionDesc);
-                ((IDictionary<string,object>)getValue(result, code))[(string)typeInner] = fee;
+                if (isTrue(isTrue(!isEqual(code, null)) && isTrue(!isEqual(typeInner, null))))
+                {
+                    ((IDictionary<string,object>)getValue(result, code))[(string)typeInner] = fee;
+                }
             }
             ((IDictionary<string,object>)getValue(result, code))["info"] = providers;
         }
@@ -639,21 +643,27 @@ public partial class exmo : Exchange
             object network = this.safeValue(getValue(result, "networks"), networkCode);
             if (isTrue(isEqual(network, null)))
             {
-                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "fee", null },
-                        { "percentage", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "fee", null },
-                        { "percentage", null },
-                    } },
+                if (isTrue(!isEqual(networkCode, null)))
+                {
+                    ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "fee", null },
+                            { "percentage", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "fee", null },
+                            { "percentage", null },
+                        } },
+                    };
+                }
+            }
+            if (isTrue(isTrue((!isEqual(networkCode, null))) && isTrue((!isEqual(type, null)))))
+            {
+                ((IDictionary<string,object>)getValue(getValue(result, "networks"), networkCode))[(string)type] = new Dictionary<string, object>() {
+                    { "fee", this.parseFixedFloatValue(this.safeString(splitCommissionDesc, 0)) },
+                    { "percentage", percentage },
                 };
             }
-            ((IDictionary<string,object>)getValue(getValue(result, "networks"), networkCode))[(string)type] = new Dictionary<string, object>() {
-                { "fee", this.parseFixedFloatValue(this.safeString(splitCommissionDesc, 0)) },
-                { "percentage", percentage },
-            };
         }
         return this.assignDefaultDepositWithdrawFees(result);
     }
@@ -741,38 +751,45 @@ public partial class exmo : Exchange
                 object provider = getValue(providers, j);
                 object name = this.safeString(provider, "name");
                 // get network-id by removing extra things
+                if (isTrue(isEqual(name, null)))
+                {
+                    throw new ExchangeError ((string)add(this.id, " parseCurrency() missing name")) ;
+                }
                 object networkId = ((string)name).Replace((string)add(currencyId, " "), (string)"");
                 networkId = ((string)networkId).Replace((string)"(", (string)"");
                 object replaceChar = ")"; // transpiler trick
                 networkId = ((string)networkId).Replace((string)replaceChar, (string)"");
                 object networkCode = this.networkIdToCode(networkId, code);
-                if (!isTrue((inOp(networks, networkCode))))
+                if (isTrue(isTrue((isEqual(networkCode, null))) || !isTrue((inOp(networks, networkCode)))))
                 {
-                    ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                        { "id", networkId },
-                        { "network", networkCode },
-                        { "active", null },
-                        { "deposit", null },
-                        { "withdraw", null },
-                        { "fee", null },
-                        { "limits", new Dictionary<string, object>() {
-                            { "withdraw", new Dictionary<string, object>() {
-                                { "min", null },
-                                { "max", null },
+                    if (isTrue(!isEqual(networkCode, null)))
+                    {
+                        ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                            { "id", networkId },
+                            { "network", networkCode },
+                            { "active", null },
+                            { "deposit", null },
+                            { "withdraw", null },
+                            { "fee", null },
+                            { "limits", new Dictionary<string, object>() {
+                                { "withdraw", new Dictionary<string, object>() {
+                                    { "min", null },
+                                    { "max", null },
+                                } },
+                                { "deposit", new Dictionary<string, object>() {
+                                    { "min", null },
+                                    { "max", null },
+                                } },
                             } },
-                            { "deposit", new Dictionary<string, object>() {
-                                { "min", null },
-                                { "max", null },
-                            } },
-                        } },
-                        { "info", new List<object>() {} },
-                    };
+                            { "info", new List<object>() {} },
+                        };
+                    }
                 }
                 object typeInner = this.safeString(provider, "type");
                 object minValue = this.safeString(provider, "min");
                 object maxValue = this.safeString(provider, "max");
                 object activeProvider = this.safeBool(provider, "enabled");
-                object networkEntry = getValue(networks, networkCode);
+                object networkEntry = this.safeValue(networks, networkCode);
                 if (isTrue(isEqual(typeInner, "deposit")))
                 {
                     ((IDictionary<string,object>)networkEntry)["deposit"] = activeProvider;
@@ -787,7 +804,10 @@ public partial class exmo : Exchange
                 object info = this.safeList(networkEntry, "info", new List<object>() {});
                 ((IList<object>)info).Add(provider);
                 ((IDictionary<string,object>)networkEntry)["info"] = info;
-                ((IDictionary<string,object>)networks)[(string)networkCode] = networkEntry;
+                if (isTrue(!isEqual(networkCode, null)))
+                {
+                    ((IDictionary<string,object>)networks)[(string)networkCode] = networkEntry;
+                }
             }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
@@ -1042,7 +1062,10 @@ public partial class exmo : Exchange
                 ((IDictionary<string,object>)account)["used"] = this.safeString(item, "used");
                 ((IDictionary<string,object>)account)["free"] = this.safeString(item, "free");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(item, "balance");
-                ((IDictionary<string,object>)result)[(string)currency] = account;
+                if (isTrue(!isEqual(currency, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)currency] = account;
+                }
             }
         } else
         {
@@ -1062,7 +1085,10 @@ public partial class exmo : Exchange
                 {
                     ((IDictionary<string,object>)account)["used"] = this.safeString(used, currencyId);
                 }
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -1295,7 +1321,7 @@ public partial class exmo : Exchange
         }
         object response = await this.publicGetTicker(parameters);
         object market = this.market(symbol);
-        return this.parseTicker(getValue(response, getValue(market, "id")), market);
+        return this.parseTicker(this.safeValue(response, getValue(market, "id")), market);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1889,7 +1915,12 @@ public partial class exmo : Exchange
             response = await this.privatePostOrderTrades(this.extend(request, parameters));
         }
         object trades = this.safeList(response, "trades");
-        return this.parseTrades(trades, market, since, limit);
+        object tradesList = new List<object>() {};
+        if (isTrue(!isEqual(trades, null)))
+        {
+            tradesList = trades;
+        }
+        return this.parseTrades(tradesList, market, since, limit);
     }
 
     /**
@@ -2376,7 +2407,7 @@ public partial class exmo : Exchange
         object numSymbols = getArrayLength(symbols);
         if (isTrue(isEqual(numSymbols, 1)))
         {
-            return getValue(this.markets, getValue(symbols, 0));
+            return this.market(getValue(symbols, 0));
         }
         return null;
     }
@@ -2525,7 +2556,10 @@ public partial class exmo : Exchange
                 if (isTrue(isEqual(numParts, 2)))
                 {
                     address = this.safeString(parts, 1);
-                    address = ((string)address).Replace((string)" ", (string)"");
+                    if (isTrue(!isEqual(address, null)))
+                    {
+                        address = ((string)address).Replace((string)" ", (string)"");
+                    }
                 }
             }
         }
@@ -2975,6 +3009,10 @@ public partial class exmo : Exchange
             {
                 object code = null;
                 object message = this.safeString2(response, "error", "errmsg");
+                if (isTrue(isEqual(message, null)))
+                {
+                    throw new ExchangeError ((string)add(this.id, " handleErrors() missing message")) ;
+                }
                 object errorParts = ((string)message).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
                 object numParts = getArrayLength(errorParts);
                 if (isTrue(isGreaterThan(numParts, 1)))

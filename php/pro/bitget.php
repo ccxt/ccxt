@@ -685,7 +685,7 @@ class bitget extends \ccxt\async\bitget {
         if ($timeframe === null) {
             return;
         }
-        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
@@ -2469,7 +2469,10 @@ class bitget extends \ccxt\async\bitget {
                     $entry = $coins[$j];
                     $currencyId = $this->safe_string($entry, 'coin');
                     $code = $this->safe_currency_code($currencyId);
-                    $account = (is_array($this->balance) && array_key_exists($code ?? '', $this->balance)) ? $this->balance[$code] : $this->account();
+                    $account = $this->account();
+                    if (($code !== null) && (is_array($this->balance) && array_key_exists($code ?? '', $this->balance))) {
+                        $account = $this->balance[$code];
+                    }
                     $borrow = $this->safe_string($entry, 'borrow');
                     $debts = $this->safe_string($entry, 'debts');
                     if (($borrow !== null) || ($debts !== null)) {
@@ -2478,12 +2481,17 @@ class bitget extends \ccxt\async\bitget {
                     $account['free'] = $this->safe_string($entry, 'available');
                     $account['used'] = $this->safe_string($entry, 'locked');
                     $account['total'] = $this->safe_string($entry, 'balance');
-                    $this->balance[$code] = $account;
+                    if ($code !== null) {
+                        $this->balance[$code] = $account;
+                    }
                 }
             } else {
                 $currencyId = $this->safe_string_2($rawBalance, 'coin', 'marginCoin');
                 $code = $this->safe_currency_code($currencyId);
-                $account = (is_array($this->balance) && array_key_exists($code ?? '', $this->balance)) ? $this->balance[$code] : $this->account();
+                $account = $this->account();
+                if (($code !== null) && (is_array($this->balance) && array_key_exists($code ?? '', $this->balance))) {
+                    $account = $this->balance[$code];
+                }
                 $borrow = $this->safe_string($rawBalance, 'borrow');
                 if ($borrow !== null) {
                     $interest = $this->safe_string($rawBalance, 'interest');
@@ -2493,7 +2501,9 @@ class bitget extends \ccxt\async\bitget {
                 $account['free'] = $this->safe_string($rawBalance, $freeQuery);
                 $account['total'] = $this->safe_string($rawBalance, 'equity');
                 $account['used'] = $this->safe_string($rawBalance, 'frozen');
-                $this->balance[$code] = $account;
+                if ($code !== null) {
+                    $this->balance[$code] = $account;
+                }
             }
         }
         $this->balance = $this->safe_balance($this->balance);

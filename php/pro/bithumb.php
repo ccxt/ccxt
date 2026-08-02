@@ -467,7 +467,9 @@ class bithumb extends \ccxt\async\bithumb {
             $account = $this->account();
             $account['free'] = $this->safe_string($asset, 'balance');
             $account['used'] = $this->safe_string($asset, 'locked');
-            $this->balance[$code] = $account;
+            if ($code !== null) {
+                $this->balance[$code] = $account;
+            }
         }
         $this->balance['info'] = $message;
         $timestamp = $this->safe_integer($message, 'timestamp');

@@ -1381,6 +1381,9 @@ export default class paradex extends Exchange {
         const now = this.nonce();
         if (cachedToken !== undefined) {
             const cachedExpires = this.safeInteger(this.options, 'expires');
+            if (cachedExpires === undefined) {
+                throw new ExchangeError(this.id + ' authenticateRest() missing cachedExpires');
+            }
             if (now < cachedExpires) {
                 return cachedToken;
             }
@@ -1543,6 +1546,12 @@ export default class paradex extends Exchange {
         return Precise.stringMul(num, '100000000');
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         let reduceOnly = this.safeBool2(params, 'reduceOnly', 'reduce_only');
         const orderType = type.toUpperCase();
@@ -1635,6 +1644,9 @@ export default class paradex extends Exchange {
         const account = await this.retrieveAccount();
         const now = this.nonce();
         const orderType = this.safeString(request, 'type');
+        if (orderType === undefined) {
+            throw new ExchangeError(this.id + ' signOrderRequest() missing orderType');
+        }
         const isMarket = (orderType.indexOf('MARKET') >= 0);
         const orderReq = {
             'timestamp': now * 1000,
@@ -2240,7 +2252,9 @@ export default class paradex extends Exchange {
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             account['total'] = this.safeString(balance, 'size');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2844,8 +2858,8 @@ export default class paradex extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        let leverage = undefined;
-        [leverage, params] = this.handleOptionAndParams(params, 'setMarginMode', 'leverage', 1);
+        let leverage = 1;
+        [leverage, params] = this.handleOptionAndParams(params, 'setMarginMode', 'leverage', leverage);
         const request = {
             'market': market['id'],
             'leverage': leverage,

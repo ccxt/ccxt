@@ -641,6 +641,10 @@ public class BydfiCore extends BydfiApi
         Object result = 1000;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(limits)); i++)
         {
+            if (Helpers.isTrue(Helpers.isEqual(limit, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " getClosestLimit() requires a limit argument")) ;
+            }
             if (Helpers.isTrue(Helpers.isLessThanOrEqual(limit, Helpers.GetValue(limits, i))))
             {
                 result = Helpers.GetValue(limits, i);
@@ -880,7 +884,7 @@ public class BydfiCore extends BydfiApi
             put( "2", "market" );
             put( "3", "liquidation" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     /**
@@ -939,6 +943,10 @@ public class BydfiCore extends BydfiApi
                 until = now;
             } else if (Helpers.isTrue(Helpers.isEqual(until, null)))
             {
+                if (Helpers.isTrue(Helpers.isEqual(startTime, null)))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV() requires a since or until argument")) ;
+                }
                 until = Helpers.add(startTime, timeDelta);
                 if (Helpers.isTrue(Helpers.isGreaterThan(until, now)))
                 {
@@ -1379,7 +1387,19 @@ public class BydfiCore extends BydfiApi
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+        }
         Object market = this.market(symbol);
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrderRequest() requires a side argument")) ;
+        }
         final Object finalSide = side;
         Object request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
@@ -2203,7 +2223,7 @@ public class BydfiCore extends BydfiApi
             put( "TAKE_PROFIT_MARKET", "market" );
             put( "TRAILING_STOP_MARKET", "market" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseOrderTimeInForce(Object timeInForce)
@@ -3076,7 +3096,10 @@ public class BydfiCore extends BydfiApi
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString2(balance, "total", "balance"));
             Helpers.addElementToObject(account, "free", this.safeString2(balance, "available", "availableBalance"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }

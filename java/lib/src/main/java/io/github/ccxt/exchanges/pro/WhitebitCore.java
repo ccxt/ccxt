@@ -925,6 +925,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         //   }
         //
         Object method = this.safeString(message, "method");
+        if (Helpers.isTrue(Helpers.isEqual(method, null)))
+        {
+            return;
+        }
         Object data = this.safeValue(message, "params");
         Object balanceDict = this.safeValue(data, 0);
         Helpers.addElementToObject(this.balance, "info", balanceDict);
@@ -935,7 +939,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object account = this.account();
         Helpers.addElementToObject(account, "free", this.safeString(rawBalance, "available"));
         Helpers.addElementToObject(account, "used", this.safeString(rawBalance, "freeze"));
-        Helpers.addElementToObject(this.balance, code, account);
+        if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+        {
+            Helpers.addElementToObject(this.balance, code, account);
+        }
         this.balance = this.safeBalance(this.balance);
         Object messageHash = "wallet:";
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(method, "Spot"), 0)))
@@ -989,7 +996,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 Object subscription = new java.util.HashMap<String, Object>() {{}};
                 Object market = this.market(symbol);
                 Object marketId = Helpers.GetValue(market, "id");
-                Helpers.addElementToObject(subscription, marketId, true);
+                if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
+                {
+                    Helpers.addElementToObject(subscription, marketId, true);
+                }
                 marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList(marketId));
                 if (Helpers.isTrue(isNested))
                 {
@@ -1013,7 +1023,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 Object isSubscribed = this.safeBool(subscription, marketId, false);
                 if (!Helpers.isTrue(isSubscribed))
                 {
-                    Helpers.addElementToObject(subscription, marketId, true);
+                    if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
+                    {
+                        Helpers.addElementToObject(subscription, marketId, true);
+                    }
                     hasSymbolSubscription = false;
                 }
                 if (Helpers.isTrue(hasSymbolSubscription))
@@ -1209,7 +1222,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object values = Helpers.objectValues(subs);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(values)); i++)
         {
-            Object subscription = ((Object)Helpers.GetValue(values, i));
+            Object subscription = Helpers.GetValue(values, i);
             if (Helpers.isTrue(!Helpers.isEqual(subscription, true)))
             {
                 Object subId = this.safeInteger(subscription, "id");

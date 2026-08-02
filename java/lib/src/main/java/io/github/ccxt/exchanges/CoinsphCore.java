@@ -633,10 +633,13 @@ public class CoinsphCore extends CoinsphApi
             Object networkItem = Helpers.GetValue(networkList, j);
             Object network = this.safeString(networkItem, "network");
             Object networkCode = this.networkIdToCode(network, code);
-            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkCode = networkCode;
+                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "info", networkItem );
     put( "id", network );
-    put( "network", networkCode );
+    put( "network", finalNetworkCode );
     put( "active", null );
     put( "deposit", CoinsphCore.this.safeBool(networkItem, "depositEnable") );
     put( "withdraw", CoinsphCore.this.safeBool(networkItem, "withdrawEnable") );
@@ -653,6 +656,7 @@ public class CoinsphCore extends CoinsphApi
         }} );
     }} );
 }});
+            }
         }
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -1521,7 +1525,10 @@ public class CoinsphCore extends CoinsphApi
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "free"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }

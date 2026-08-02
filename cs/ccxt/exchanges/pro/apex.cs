@@ -561,7 +561,7 @@ public partial class apex : ccxt.apex
         {
             object data = getValue(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
-            object market = this.market(((string)symbolString));
+            object market = this.market(symbolString);
             symbolString = getValue(market, "id2");
             object unfiedTimeframe = this.safeString(data, 1, "1");
             object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -709,7 +709,7 @@ public partial class apex : ccxt.apex
             await this.loadMarkets();
         }
         object messageHash = "";
-        if (!isTrue(this.isEmpty((IList<object>)(symbols))))
+        if (!isTrue(this.isEmpty(symbols)))
         {
             symbols = this.marketSymbols(symbols);
             messageHash = add("::", String.Join(",", ((IList<object>)(IList<string>)(symbols)).ToArray()));

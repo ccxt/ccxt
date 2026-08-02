@@ -5,6 +5,7 @@ import {
   getDefaultModelId,
   isFreeModelId,
   buildSystemPrompt,
+  openRouterHeaders,
 } from "@/lib/ai/openrouter";
 import { clientIp, logEvent, truncate } from "@/lib/log";
 
@@ -71,12 +72,10 @@ export async function POST(request: Request) {
   for (const candidate of candidates) {
     const upstream = await fetch(OPENROUTER_URL, {
       method: "POST",
-      headers: {
+      headers: openRouterHeaders({
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://ccxt.com",
-        "X-Title": "CCXT Playground",
-      },
+      }),
       body: JSON.stringify({ model: candidate, stream: true, messages: payloadMessages }),
     });
 

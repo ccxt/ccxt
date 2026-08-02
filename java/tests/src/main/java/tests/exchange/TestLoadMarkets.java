@@ -21,6 +21,7 @@ public class TestLoadMarkets extends BaseTest {
         Assert(exchange.isDictionary(exchange.markets), ".markets is not a dict");
         Assert(Helpers.isArray(exchange.symbols), ".symbols is not an array");
         Object symbolsLength = Helpers.getArrayLength(exchange.symbols);
+        Assert(!Helpers.isEqual(exchange.markets, null), ".markets is undefined");
         Object marketKeys = Helpers.objectKeys(exchange.markets);
         Object marketKeysLength = Helpers.getArrayLength(marketKeys);
         Assert(Helpers.isGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)");

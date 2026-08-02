@@ -1,5 +1,5 @@
 import Exchange from './abstract/gemini.js';
-import type { Balances, Currencies, Currency, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, NullableDict } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, NullableDict } from './base/types.js';
 /**
  * @class gemini
  * @augments Exchange
@@ -23,7 +23,7 @@ export default class gemini extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrenciesFromWeb(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): Currency;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
      * @name gemini#fetchMarkets
@@ -34,7 +34,7 @@ export default class gemini extends Exchange {
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchMarketsFromWeb(params?: {}): Promise<List>;
-    parseMarketActive(status: any): boolean;
+    parseMarketActive(status: any): boolean | undefined;
     fetchUSDTMarkets(params?: {}): Promise<List>;
     fetchMarketsFromAPI(params?: {}): Promise<List>;
     parseMarket(response: any): Market;
@@ -195,12 +195,12 @@ export default class gemini extends Exchange {
      */
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): Str;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
-        currency: string;
-        network: any;
-        address: string;
-        tag: any;
+        currency: Str;
+        network: undefined;
+        address: Str;
+        tag: undefined;
         info: any;
     };
     /**
@@ -228,10 +228,10 @@ export default class gemini extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
-        headers: Dict;
+        body: Str;
+        headers: NullableDict;
     };
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     /**
      * @method
      * @name gemini#createDepositAddress

@@ -286,7 +286,8 @@ export default class bithumb extends Exchange {
     }
 
     amountToPrecision (symbol, amount) {
-        return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
+        const market = this.market (symbol);
+        return this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES);
     }
 
     /**
@@ -878,7 +879,7 @@ export default class bithumb extends Exchange {
             request['price'] = price;
             request['type'] = (side === 'buy') ? 'bid' : 'ask';
         } else {
-            method = 'privatePostTradeMarket' + this.capitalize ((side as string));
+            method = 'privatePostTradeMarket' + this.capitalize (side);
         }
         const response = await this[method] (this.extend (request, params));
         const id = this.safeString (response, 'order_id');

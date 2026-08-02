@@ -768,9 +768,12 @@ public class ToobitCore extends ToobitApi
             Object rawNetwork = Helpers.GetValue(rawNetworks, j);
             Object networkId = this.safeString(rawNetwork, "chainType");
             Object networkCode = this.networkIdToCode(networkId, code);
-            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkCode = networkCode;
+                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
-    put( "network", networkCode );
+    put( "network", finalNetworkCode );
     put( "margin", null );
     put( "deposit", ToobitCore.this.safeBool(rawNetwork, "allowDeposit") );
     put( "withdraw", ToobitCore.this.safeBool(rawNetwork, "allowWithdraw") );
@@ -789,6 +792,7 @@ public class ToobitCore extends ToobitApi
     }} );
     put( "info", rawNetwork );
 }});
+            }
         }
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -1805,7 +1809,10 @@ public class ToobitCore extends ToobitApi
             Helpers.addElementToObject(account, "free", this.safeString2(balance, "free", "availableBalance"));
             Helpers.addElementToObject(account, "total", this.safeString2(balance, "total", "balance"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -1883,6 +1890,10 @@ public class ToobitCore extends ToobitApi
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+        }
         Object market = this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
@@ -1933,6 +1944,14 @@ public class ToobitCore extends ToobitApi
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+        }
         Object market = this.market(symbol);
         Object request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
@@ -2817,7 +2836,7 @@ public class ToobitCore extends ToobitApi
             put( "USER_ACCOUNT_TRANSFER", "transfer" );
             put( "AIRDROP", "rebate" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     /**

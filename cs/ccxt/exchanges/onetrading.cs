@@ -503,7 +503,7 @@ public partial class onetrading : Exchange
         {
             symbol = add(add(symbol, ":"), quote);
         }
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
             { "base", bs },
@@ -551,7 +551,7 @@ public partial class onetrading : Exchange
             } },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     /**
@@ -645,9 +645,10 @@ public partial class onetrading : Exchange
         object firstSpotTier = this.safeDict(spotTiers, 0, new Dictionary<string, object>() {});
         object firstFuturesTier = this.safeDict(futuresTiers, 0, new Dictionary<string, object>() {});
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object tierObject = ((bool) isTrue((getValue(market, "spot")))) ? firstSpotTier : firstFuturesTier;
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -716,9 +717,10 @@ public partial class onetrading : Exchange
         futuresTakerFee = Precise.stringDiv(futuresTakerFee, "100");
         object result = new Dictionary<string, object>() {};
         // const tiers = this.parseFeeTiers (feeTiers);
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object makerFee = ((bool) isTrue((getValue(market, "spot")))) ? spotMakerFee : futuresMakerFee;
             object takerFee = ((bool) isTrue((getValue(market, "spot")))) ? spotTakerFee : futuresTakerFee;
@@ -895,7 +897,10 @@ public partial class onetrading : Exchange
         {
             object ticker = this.parseTicker(getValue(response, i));
             object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
@@ -1012,10 +1017,18 @@ public partial class onetrading : Exchange
             { "MONTHS", "M" },
         };
         object lowercaseUnit = this.safeString(units, unit);
+        if (isTrue(isTrue((isEqual(period, null))) || isTrue((isEqual(lowercaseUnit, null)))))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseOHLCV() missing period/unit")) ;
+        }
         object timeframe = add(period, lowercaseUnit);
         object durationInSeconds = this.parseTimeframe(timeframe);
         object duration = multiply(durationInSeconds, 1000);
         object timestamp = this.parse8601(this.safeString(ohlcv, "time"));
+        if (isTrue(isEqual(timestamp, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseOHLCV() missing timestamp")) ;
+        }
         object alignedTimestamp = multiply(duration, this.parseToInt(divide(timestamp, duration)));
         object options = this.safeValue(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         object volumeField = this.safeString(options, "volume", "total_amount");
@@ -1044,6 +1057,10 @@ public partial class onetrading : Exchange
         }
         object market = this.market(symbol);
         object periodUnit = this.safeString(this.timeframes, timeframe);
+        if (isTrue(isEqual(periodUnit, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchOHLCV() missing periodUnit")) ;
+        }
         var periodunitVariable = ((string)periodUnit).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         var period = ((IList<object>) periodunitVariable)[0];
         var unit = ((IList<object>) periodunitVariable)[1];
@@ -1179,7 +1196,10 @@ public partial class onetrading : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1349,7 +1369,7 @@ public partial class onetrading : Exchange
         object types = new Dictionary<string, object>() {
             { "booked", "limit" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public virtual object parseTimeInForce(object timeInForce)
@@ -1386,6 +1406,10 @@ public partial class onetrading : Exchange
         }
         object market = this.market(symbol);
         object uppercaseType = ((string)type).ToUpper();
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "instrument_code", getValue(market, "id") },
             { "type", uppercaseType },

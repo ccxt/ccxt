@@ -154,7 +154,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             await this.loadMarkets();
         }
         this.checkRequiredCredentials();
-        if (isTrue(this.isEmpty((IList<string>)(symbols))))
+        if (isTrue(this.isEmpty(symbols)))
         {
             symbols = this.symbols;
         } else
@@ -267,7 +267,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            object market = getValue(this.markets, symbol);
+            object market = this.market(symbol);
             if (isTrue(getValue(market, "active")))
             {
                 ((IList<object>)output).Add(symbol);
@@ -297,7 +297,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "channel", "LEVEL1");
         channel = ((IList<object>)channelparametersVariable)[0];
         parameters = ((IList<object>)channelparametersVariable)[1];
-        object ticker = await this.subscribe(((string)channel), symbols, parameters);
+        object ticker = await this.subscribe(channel, symbols, parameters);
         if (isTrue(this.newUpdates))
         {
             object result = new Dictionary<string, object>() {};
@@ -552,7 +552,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         object symbol = getValue(market, "symbol");
         object timeframe = this.findTimeframe(messageHash);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        if (isTrue(isEqual(this.safeValue(getValue(this.ohlcvs, symbol), ((string)timeframe)), null)))
+        if (isTrue(isEqual(this.safeValue(getValue(this.ohlcvs, symbol), timeframe), null)))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = new ArrayCacheByTimestamp(limit);

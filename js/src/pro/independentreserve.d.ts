@@ -1,5 +1,5 @@
 import independentreserveRest from '../independentreserve.js';
-import type { Int, OrderBook, Trade } from '../base/types.js';
+import type { Int, OrderBook, Trade, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class independentreserve extends independentreserveRest {
     describe(): any;
@@ -15,7 +15,7 @@ export default class independentreserve extends independentreserveRest {
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name independentreserve#watchOrderBook

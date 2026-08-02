@@ -2801,10 +2801,16 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             {
                 Helpers.addElementToObject(this.balance, accountType, new java.util.HashMap<String, Object>() {{}});
             }
-            Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), code, account);
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(accountType, null))) && Helpers.isTrue((!Helpers.isEqual(code, null)))))
+            {
+                Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), code, account);
+            }
         } else
         {
-            Helpers.addElementToObject(this.balance, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(this.balance, code, account);
+            }
         }
     }
 

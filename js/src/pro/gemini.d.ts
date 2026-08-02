@@ -1,5 +1,5 @@
 import geminiRest from '../gemini.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, OHLCV, Tickers, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class gemini extends geminiRest {
     describe(): any;
@@ -27,7 +27,7 @@ export default class gemini extends geminiRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     handleTrade(client: Client, message: any): void;
     handleTrades(client: Client, message: any): void;
     handleTradesForMultidata(client: Client, trades: any, timestamp: Int): void;
@@ -79,7 +79,7 @@ export default class gemini extends geminiRest {
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleBidsAsksForMultidata(client: Client, rawBidAskChanges: any, timestamp: Int, nonce: Int): void;
-    helperForWatchMultipleConstruct(itemHashName: string, symbols?: string[], params?: {}): Promise<any>;
+    helperForWatchMultipleConstruct(itemHashName: string, symbols?: Strings, params?: {}): Promise<any>;
     handleOrderBookForMultidata(client: Client, rawOrderBookChanges: any, timestamp: Int, nonce: Int): void;
     handleL2Updates(client: Client, message: any): void;
     /**
@@ -97,7 +97,7 @@ export default class gemini extends geminiRest {
     handleHeartbeat(client: Client, message: any): any;
     handleSubscription(client: Client, message: any): any;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrder(order: any, market?: Market): Order;
     parseWsOrderStatus(status: any): string;
     parseWsOrderType(type: any): string;
     handleError(client: Client, message: any): void;

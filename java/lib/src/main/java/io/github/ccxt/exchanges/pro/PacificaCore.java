@@ -957,7 +957,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object rawTrade = Helpers.GetValue(data, i);
             Object parsed = this.parseWsTrade(rawTrade);
             Object symbol = Helpers.GetValue(parsed, "symbol");
-            Helpers.addElementToObject(symbols, symbol, true);
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                Helpers.addElementToObject(symbols, symbol, true);
+            }
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
         Object keys = Helpers.objectKeys(symbols);
@@ -1090,7 +1093,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         Object trades = Helpers.GetValue(this.trades, symbol);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(entry)); i++)
         {
-            Object data = this.safeDict(entry, i);
+            Object data = this.safeDict(entry, i, new java.util.HashMap<String, Object>() {{}});
             Object trade = this.parseWsTrade(data);
             Helpers.callDynamically(trades, "append", new Object[]{trade});
         }
@@ -1308,17 +1311,22 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timeframe = this.safeString(data, "i");
+        if (Helpers.isTrue(Helpers.isEqual(timeframe, null)))
+        {
+            return;
+        }
         if (!Helpers.isTrue((Helpers.inOp(this.ohlcvs, symbol))))
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}});
         }
-        if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), timeframe))))
+        Object symbolOhlcvs = this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}});
+        Object ohlcv = this.safeValue(symbolOhlcvs, timeframe);
+        if (Helpers.isTrue(Helpers.isEqual(ohlcv, null)))
         {
             Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            var stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+            ohlcv = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
+            Helpers.addElementToObject(symbolOhlcvs, timeframe, ohlcv);
         }
-        Object ohlcv = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         Object parsed = this.parseOHLCV(data);
         Helpers.callDynamically(ohlcv, "append", new Object[]{parsed});
         Object messageHash = Helpers.add(Helpers.add(Helpers.add("candles:", timeframe), ":"), symbol);
@@ -1480,7 +1488,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object order = this.parseOrder(rawOrder);
             Helpers.callDynamically(stored, "append", new Object[]{order});
             Object symbol = this.safeString(order, "symbol");
-            Helpers.addElementToObject(marketSymbols, symbol, true);
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                Helpers.addElementToObject(marketSymbols, symbol, true);
+            }
         }
         Object keys = Helpers.objectKeys(marketSymbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -1564,12 +1575,16 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         Object symbol = Helpers.GetValue(market, "symbol");
         Object interval = this.safeString(subscription, "interval");
         Object timeframe = this.findTimeframe(interval);
+        if (Helpers.isTrue(Helpers.isEqual(timeframe, null)))
+        {
+            return;
+        }
         Object subMessageHash = Helpers.add(Helpers.add(Helpers.add("candles:", timeframe), ":"), symbol);
         Object messageHash = Helpers.add("unsubscribe:", subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        if (Helpers.isTrue(Helpers.inOp(this.ohlcvs, symbol)))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && Helpers.isTrue((Helpers.inOp(this.ohlcvs, symbol)))))
         {
-            if (Helpers.isTrue(Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), timeframe)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(timeframe, null))) && Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), timeframe)))))
             {
                 ((java.util.Map<String,Object>)Helpers.GetValue(this.ohlcvs, symbol)).remove((String)timeframe);
             }

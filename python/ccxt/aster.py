@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.aster import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Leverages, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -32,6 +32,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import BadResponse
+from ccxt.base.errors import NullResponse
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -823,7 +824,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(sapiRows)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(rawCurrency, 'asset')
         code = self.safe_currency_code(currencyId)
         return self.safe_currency_structure({
@@ -1693,6 +1694,8 @@ class aster(Exchange, ImplicitAPI):
         #         ...
         #     ]
         #
+        if response is None:
+            raise NullResponse(self.id + ' fetchLastPrices() returned empty response')
         results = []
         for i in range(0, len(response)):
             marketId = self.safe_string(response[i], 'symbol')
@@ -2018,7 +2021,8 @@ class aster(Exchange, ImplicitAPI):
             account['free'] = self.safe_string_2(balance, 'free', 'availableBalance')
             account['used'] = self.safe_string(balance, 'locked')
             account['total'] = self.safe_string(balance, 'balance')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
@@ -2638,7 +2642,11 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_orders(response)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         """
  @ignore
         helper function to build the request
@@ -3062,7 +3070,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_margin_modes(response, symbols, 'symbol', 'swap')
 
-    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         #
         #     {
         #         "symbol": "INJUSDT",
@@ -3414,7 +3422,7 @@ class aster(Exchange, ImplicitAPI):
         contracts = self.parse_number(contractsAbs)
         unrealizedPnlString = self.safe_string(position, 'unRealizedProfit')
         unrealizedPnl = self.parse_number(unrealizedPnlString)
-        liquidationPriceString = self.omit_zero((self.safe_string(position, 'liquidationPrice')))
+        liquidationPriceString = self.omit_zero(self.safe_string(position, 'liquidationPrice'))
         liquidationPrice = self.parse_number(liquidationPriceString)
         collateralString = None
         marginMode = self.safe_string(position, 'marginType')
@@ -3449,7 +3457,7 @@ class aster(Exchange, ImplicitAPI):
                         onePlusMaintenanceMarginPercentageString = Precise.string_add('-1', maintenanceMarginPercentageString)
                     inner = Precise.string_mul(liquidationPriceString, onePlusMaintenanceMarginPercentageString)
                     leftSide = Precise.string_add(inner, entryPriceSignString)
-                    quotePrecision = self.precision_from_string((self.safe_string_2(precision, 'quote', 'price')))
+                    quotePrecision = self.precision_from_string(self.safe_string_2(precision, 'quote', 'price'))
                     if quotePrecision is not None:
                         collateralString = Precise.string_div(Precise.string_mul(leftSide, contractsAbs), '1', quotePrecision)
                 else:
@@ -3463,14 +3471,14 @@ class aster(Exchange, ImplicitAPI):
                         entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
                     leftSide = Precise.string_mul(contractsAbs, contractSizeString)
                     rightSide = Precise.string_sub(Precise.string_div('1', entryPriceSignString), Precise.string_div(onePlusMaintenanceMarginPercentageString, liquidationPriceString))
-                    basePrecision = self.precision_from_string((self.safe_string(precision, 'base')))
+                    basePrecision = self.precision_from_string(self.safe_string(precision, 'base'))
                     if basePrecision is not None:
                         collateralString = Precise.string_div(Precise.string_mul(leftSide, rightSide), '1', basePrecision)
         else:
             collateralString = self.safe_string(position, 'isolatedMargin')
         collateralString = '0' if (collateralString is None) else collateralString
         collateral = self.parse_number(collateralString)
-        markPrice = self.parse_number(self.omit_zero((self.safe_string(position, 'markPrice'))))
+        markPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'markPrice')))
         timestamp = self.safe_integer(position, 'updateTime')
         if timestamp == 0:
             timestamp = None
@@ -3611,10 +3619,11 @@ class aster(Exchange, ImplicitAPI):
             code = self.safe_currency_code(currencyId)
             crossWalletBalance = self.safe_string(entry, 'crossWalletBalance')
             crossUnPnl = self.safe_string(entry, 'crossUnPnl')
-            balances[code] = {
-                'crossMargin': Precise.string_add(crossWalletBalance, crossUnPnl),
-                'crossWalletBalance': crossWalletBalance,
-            }
+            if code is not None:
+                balances[code] = {
+                    'crossMargin': Precise.string_add(crossWalletBalance, crossUnPnl),
+                    'crossWalletBalance': crossWalletBalance,
+                }
         result = []
         for i in range(0, len(positions)):
             position = positions[i]
@@ -3645,6 +3654,8 @@ class aster(Exchange, ImplicitAPI):
         initialMarginPercentageString = None
         if leverageString is not None:
             initialMarginPercentageString = Precise.string_div('1', leverageString, 8)
+            if leverage is None:
+                raise ExchangeError(self.id + ' parseAccountPosition() missing leverage')
             rational = self.is_round_number(1000 % leverage)
             if not rational:
                 initialMarginPercentageString = Precise.string_div(Precise.string_add(initialMarginPercentageString, '1e-8'), '1', 8)
@@ -3742,7 +3753,7 @@ class aster(Exchange, ImplicitAPI):
                 leftSide = Precise.string_mul(size, onePlusMaintenanceMarginPercentageString)
                 rightSide = Precise.string_sub(Precise.string_mul(Precise.string_div('1', entryPriceSignString), size), walletBalance)
                 liquidationPriceStringRaw = Precise.string_div(leftSide, rightSide)
-            pricePrecision = self.precision_from_string((self.safe_string(market['precision'], 'price')))
+            pricePrecision = self.precision_from_string(self.safe_string(market['precision'], 'price'))
             pricePrecisionPlusOne = pricePrecision + 1
             pricePrecisionPlusOneString = str(pricePrecisionPlusOne)
             # round half up
@@ -3750,6 +3761,8 @@ class aster(Exchange, ImplicitAPI):
             rounderString = str(rounder)
             liquidationPriceRoundedString = Precise.string_add(rounderString, liquidationPriceStringRaw)
             truncatedLiquidationPrice = Precise.string_div(liquidationPriceRoundedString, '1', pricePrecision)
+            if truncatedLiquidationPrice is None:
+                raise ExchangeError(self.id + ' method() missing truncatedLiquidationPrice')
             if truncatedLiquidationPrice[0] == '-':
                 # user cannot be liquidated
                 # since he has more collateral than the size of the position
@@ -4030,7 +4043,7 @@ class aster(Exchange, ImplicitAPI):
         binaryMessageLength = self.binary_length(binaryMessage)
         x19 = self.base16_to_binary('19')
         newline = self.base16_to_binary('0a')
-        prefix = self.binary_concat(x19, self.encode('Ethereum Signed Message:'), newline, self.encode((self.number_to_string(binaryMessageLength))))
+        prefix = self.binary_concat(x19, self.encode('Ethereum Signed Message:'), newline, self.encode(self.number_to_string(binaryMessageLength)))
         return '0x' + self.hash(self.binary_concat(prefix, binaryMessage), 'keccak', 'hex')
 
     def sign_hash(self, hash, privateKey):

@@ -475,7 +475,7 @@ class lighter extends Exchange {
         })();
     }
 
-    public function handle_api_key_index(array $params, string $methodName1, string $optionName1, string $optionName2, $defaultValue = null): array {
+    public function handle_api_key_index(array $params, string $methodName1, string $optionName1, string $optionName2, mixed $defaultValue = null): array {
         $apiKeyIndex = null;
         list($apiKeyIndex, $params) = $this->handle_option_and_params_2($params, $methodName1, $optionName1, $optionName2, $defaultValue);
         if (($apiKeyIndex === null) || ($apiKeyIndex < 4) || ($apiKeyIndex > 254)) {
@@ -486,7 +486,7 @@ class lighter extends Exchange {
         return array( $this->parse_to_int($apiKeyIndex), $params );
     }
 
-    public function handle_account_index(array $params, string $methodName1, string $optionName1, string $optionName2, $defaultValue = null): PromiseInterface {
+    public function handle_account_index(array $params, string $methodName1, string $optionName1, string $optionName2, mixed $defaultValue = null): PromiseInterface {
         return Async\async(function () use ($params, $methodName1, $optionName1, $optionName2, $defaultValue) {
             $accountIndex = null;
             list($accountIndex, $params) = $this->handle_option_and_params_2($params, $methodName1, $optionName1, $optionName2, $defaultValue);
@@ -730,7 +730,13 @@ class lighter extends Exchange {
         $this->options['chainId'] = $enable ? 300 : 304;
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         /**
          * @ignore
          * helper function to build the $request
@@ -1872,7 +1878,9 @@ class lighter extends Exchange {
                         $balance = $this->safe_dict($result, $code, $this->account());
                         $balance['total'] = Precise::string_add($balance['total'], $this->safe_string($asset, 'balance'));
                         $balance['used'] = Precise::string_add($balance['used'], $this->safe_string($asset, 'locked_balance'));
-                        $result[$code] = $balance;
+                        if ($code !== null) {
+                            $result[$code] = $balance;
+                        }
                     }
                 } else {
                     $perpBalance = $this->safe_dict($result, 'USDC', $this->account());
@@ -2373,7 +2381,7 @@ class lighter extends Exchange {
             $typeAsInteger = $this->safe_integer($order, 'order_type');
             $type = $this->parse_order_type_integer($typeAsInteger);
         }
-        $triggerPrice = $this->parse_number($this->omit_zero(($this->safe_string($order, 'trigger_price'))));
+        $triggerPrice = $this->parse_number($this->omit_zero($this->safe_string($order, 'trigger_price')));
         $stopLossPrice = null;
         $takeProfitPrice = null;
         if ($type !== null) {
@@ -3128,7 +3136,7 @@ class lighter extends Exchange {
                 throw new ArgumentsRequired($this->id . ' setMarginMode() requires an $marginMode parameter');
             }
             $leverage = null;
-            list($leverage, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'leverage', 'leverage');
+            list($leverage, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'leverage');
             if ($leverage === null) {
                 throw new ArgumentsRequired($this->id . ' setMarginMode() requires an $leverage parameter');
             }

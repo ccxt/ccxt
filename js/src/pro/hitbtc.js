@@ -359,7 +359,9 @@ export default class hitbtc extends hitbtcRest {
         else {
             for (let i = 0; i < symbols.length; i++) {
                 const marketId = this.marketId(symbols[i]);
-                marketIds.push(marketId);
+                if (marketId !== undefined) {
+                    marketIds.push(marketId);
+                }
             }
         }
         const request = {
@@ -778,7 +780,7 @@ export default class hitbtc extends hitbtcRest {
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
             this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-            let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+            let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp(limit);
@@ -929,6 +931,9 @@ export default class hitbtc extends hitbtcRest {
     }
     handleOrderHelper(client, message, order) {
         const orders = this.orders;
+        if (orders === undefined) {
+            return;
+        }
         const marketId = this.safeStringLower2(order, 'instrument', 'symbol');
         const method = this.safeString(message, 'method', '');
         const splitMethod = method.split('_order');

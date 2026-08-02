@@ -23,12 +23,11 @@ import { Int, Str } from '../types.js';
 // overwrites absolute volumes at price levels
 
 interface CustomOrderBookProp  {
-    cache: any[];
 }
 
 class OrderBook implements CustomOrderBookProp {
 
-    cache = [] // make prop visible so we use typed OrderBooks
+    cache: any[] = [] // make prop visible so we use typed OrderBooks
 
     asks: IOrderBookSide<any>;
 

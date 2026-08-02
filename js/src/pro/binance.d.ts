@@ -1,5 +1,5 @@
 import binanceRest from '../binance.js';
-import type { Balances, Dict, Int, Liquidation, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, Int, Liquidation, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class binance extends binanceRest {
     describe(): any;
@@ -207,7 +207,7 @@ export default class binance extends binanceRest {
      */
     watchLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     handleLiquidation(client: Client, message: any): void;
-    parseWsLiquidation(liquidation: any, market?: any): Liquidation;
+    parseWsLiquidation(liquidation: any, market?: Market): Liquidation;
     /**
      * @method
      * @name binance#watchMyLiquidations
@@ -381,7 +381,7 @@ export default class binance extends binanceRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     handleTrade(client: Client, message: any): void;
     /**
      * @method
@@ -586,7 +586,7 @@ export default class binance extends binanceRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
-    watchMultiTickerHelper(methodName: any, channelName: string, symbols?: Strings, params?: {}, isUnsubscribe?: boolean): Promise<any>;
+    watchMultiTickerHelper(methodName: any, channelName: Str, symbols?: Strings, params?: {}, isUnsubscribe?: boolean): Promise<any>;
     parseWsTicker(message: any, marketType: any): Ticker;
     handleTickerWs(client: Client, message: any): void;
     handleBidsAsks(client: Client, message: any): void;
@@ -808,7 +808,7 @@ export default class binance extends binanceRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrder(order: any, market?: Market): Order;
     handleOrderUpdate(client: Client, message: any): void;
     /**
      * @method
@@ -825,7 +825,7 @@ export default class binance extends binanceRest {
     setPositionsCache(client: Client, type: any, symbols?: Strings, isPortfolioMargin?: boolean): void;
     loadPositionsSnapshot(client: any, messageHash: any, type: any, isPortfolioMargin: any): Promise<void>;
     handlePositions(client: any, message: any): void;
-    parseWsPosition(position: any, market?: any): Position;
+    parseWsPosition(position: any, market?: Market): Position;
     /**
      * @method
      * @name binance#fetchMyTradesWs

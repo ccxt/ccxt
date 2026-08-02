@@ -910,31 +910,33 @@ class xt extends xt$1["default"] {
                 const rawNetwork = rawNetworks[j];
                 const networkId = this.safeString(rawNetwork, 'chain');
                 const networkCode = this.networkIdToCode(networkId, code);
-                networks[networkCode] = {
-                    'info': rawNetwork,
-                    'id': networkId,
-                    'network': networkCode,
-                    'name': undefined,
-                    'active': undefined,
-                    'fee': this.safeNumber(rawNetwork, 'withdrawFeeAmount'),
-                    'precision': undefined,
-                    'deposit': this.safeBool(rawNetwork, 'depositEnabled'),
-                    'withdraw': this.safeBool(rawNetwork, 'withdrawEnabled'),
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
+                if (networkCode !== undefined) {
+                    networks[networkCode] = {
+                        'info': rawNetwork,
+                        'id': networkId,
+                        'network': networkCode,
+                        'name': undefined,
+                        'active': undefined,
+                        'fee': this.safeNumber(rawNetwork, 'withdrawFeeAmount'),
+                        'precision': undefined,
+                        'deposit': this.safeBool(rawNetwork, 'depositEnabled'),
+                        'withdraw': this.safeBool(rawNetwork, 'withdrawEnabled'),
+                        'limits': {
+                            'amount': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                            'withdraw': {
+                                'min': this.safeNumber(rawNetwork, 'withdrawMinAmount'),
+                                'max': undefined,
+                            },
+                            'deposit': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
                         },
-                        'withdraw': {
-                            'min': this.safeNumber(rawNetwork, 'withdrawMinAmount'),
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
+                    };
+                }
             }
             const typeRaw = this.safeString(entry, 'type');
             let type = undefined;
@@ -944,33 +946,35 @@ class xt extends xt$1["default"] {
             else {
                 type = 'other';
             }
-            result[code] = this.safeCurrencyStructure({
-                'info': entry,
-                'id': currencyId,
-                'code': code,
-                'name': this.safeString(entry, 'fullName'),
-                'active': undefined,
-                'fee': undefined,
-                'precision': this.parseNumber(this.parsePrecision(this.safeString(entry, 'maxPrecision'))),
-                'deposit': this.safeString(entry, 'depositStatus') === '1',
-                'withdraw': this.safeString(entry, 'withdrawStatus') === '1',
-                'networks': networks,
-                'type': type,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (code !== undefined) {
+                result[code] = this.safeCurrencyStructure({
+                    'info': entry,
+                    'id': currencyId,
+                    'code': code,
+                    'name': this.safeString(entry, 'fullName'),
+                    'active': undefined,
+                    'fee': undefined,
+                    'precision': this.parseNumber(this.parsePrecision(this.safeString(entry, 'maxPrecision'))),
+                    'deposit': this.safeString(entry, 'depositStatus') === '1',
+                    'withdraw': this.safeString(entry, 'withdrawStatus') === '1',
+                    'networks': networks,
+                    'type': type,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            });
+                });
+            }
         }
         return result;
     }
@@ -1792,7 +1796,9 @@ class xt extends xt$1["default"] {
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker(tickers[i], market);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArray(result, 'symbol', symbols);
     }
@@ -2415,7 +2421,9 @@ class xt extends xt$1["default"] {
             account['free'] = free;
             account['used'] = used;
             account['total'] = total;
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -3271,7 +3279,7 @@ class xt extends xt$1["default"] {
             orders = this.safeList(resultDict, 'items', []);
         }
         else {
-            orders = this.safeList(response, 'result');
+            orders = this.safeList(response, 'result', []);
         }
         return this.parseOrders(orders, market, since, limit);
     }
@@ -4807,7 +4815,7 @@ class xt extends xt$1["default"] {
                 return this.parsePosition(entry, marketInner);
             }
         }
-        return undefined;
+        throw new errors.NullResponse(this.id + ' fetchPosition() could not find a position for ' + symbol);
     }
     /**
      * @method
@@ -5230,8 +5238,14 @@ class xt extends xt$1["default"] {
             body = query;
             if ((payload === '/v4/order') || (payload === '/future/trade/v1/order/create') || (payload === '/future/trade/v1/entrust/create-plan') || (payload === '/future/trade/v1/entrust/create-profit') || (payload === '/future/trade/v1/order/create-batch')) {
                 const id = 'CCXT';
+                if (body === undefined) {
+                    throw new errors.NullResponse(this.id + ' sign() returned empty body');
+                }
                 if (payload.indexOf('future') > -1) {
                     body['clientMedia'] = id;
+                    if (body === undefined) {
+                        throw new errors.NullResponse(this.id + ' sign() returned empty body');
+                    }
                 }
                 else {
                     body['media'] = id;

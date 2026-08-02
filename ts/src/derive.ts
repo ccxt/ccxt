@@ -5,7 +5,7 @@ import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/derive.js';
 import { Precise } from './base/Precise.js';
-import type { Dict, List, Currencies, Transaction, Currency, FundingHistory, Market, MarketType, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict } from './base/types.js';
+import type { Dict, List, Currencies, Transaction, Currency, CurrencyInterface, FundingHistory, Market, Bool, Str, Strings, Ticker, Int, int, Trade, OrderType, OrderSide, Num, FundingRateHistory, FundingRate, Balances, Order, Position, NullableDict } from './base/types.js';
 import { BadRequest, InvalidOrder, ExchangeError, OrderNotFound, ArgumentsRequired, InsufficientFunds, RateLimitExceeded, AuthenticationError } from './base/errors.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -508,7 +508,7 @@ export default class derive extends Exchange {
         return this.parseCurrencies (currencies);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         return this.safeCurrencyStructure ({
@@ -633,7 +633,7 @@ export default class derive extends Exchange {
 
     parseMarket (market: Dict): Market {
         const type = this.safeString (market, 'instrument_type');
-        let marketType: MarketType | undefined = undefined;
+        let marketType: Str = undefined;
         let spot = false;
         let margin = true;
         let swap = false;
@@ -1045,7 +1045,7 @@ export default class derive extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         const request: Dict = {
             'instrument_name': market['id'],
         };
@@ -1164,7 +1164,7 @@ export default class derive extends Exchange {
         const binaryMessageLength = this.binaryLength (binaryMessage);
         const x19 = this.base16ToBinary ('19');
         const newline = this.base16ToBinary ('0a');
-        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode ((this.numberToString (binaryMessageLength) as string)));
+        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode (this.numberToString (binaryMessageLength)));
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
     }
 
@@ -1227,14 +1227,14 @@ export default class derive extends Exchange {
         const ACTION_TYPEHASH = this.base16ToBinary ('4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17');
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const TRADE_MODULE_ADDRESS = (sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
-        const priceString = this.numberToString (price) as string;
+        const priceString = this.numberToString (price);
         let maxFee: Num = undefined;
         [ maxFee, params ] = this.handleOptionAndParams (params, 'createOrder', 'max_fee');
         if (maxFee === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder() requires a max_fee argument in params');
         }
-        const maxFeeString = this.numberToString (maxFee) as string;
-        const amountString = this.numberToString (amount) as string;
+        const maxFeeString = this.numberToString (maxFee);
+        const amountString = this.numberToString (amount);
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
@@ -1420,7 +1420,7 @@ export default class derive extends Exchange {
         const TRADE_MODULE_ADDRESS = (sandboxMode) ? '0x87F2863866D85E3192a35A73b388BD625D83f2be' : '0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b';
         const priceString = this.numberToString (price) as string;
         const maxFeeString = this.safeString (params, 'max_fee', '0');
-        const amountString = this.numberToString (amount) as string;
+        const amountString = this.numberToString (amount);
         const tradeModuleDataHash = this.hash (this.ethAbiEncode ([
             'address', 'uint', 'int', 'int', 'uint', 'uint', 'bool',
         ], [
@@ -2509,7 +2509,9 @@ export default class derive extends Exchange {
                     const amount = this.safeString (balance, 'amount');
                     account['total'] = Precise.stringAdd (account['total'], amount);
                 }
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance (result);
@@ -2663,8 +2665,8 @@ export default class derive extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    handleDeriveSubaccountId (methodName: string, params: Dict) {
-        let derivesubAccountId = undefined;
+    handleDeriveSubaccountId (methodName: string, params: Dict): [any, Dict] {
+        let derivesubAccountId: Str = undefined;
         [ derivesubAccountId, params ] = this.handleOptionAndParams (params, methodName, 'subaccount_id');
         if ((derivesubAccountId !== undefined) && (derivesubAccountId !== '')) {
             this.options['subaccount_id'] = derivesubAccountId; // saving in options

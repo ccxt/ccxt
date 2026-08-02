@@ -8,6 +8,7 @@ async function testLoadMarkets (exchange: Exchange, skippedProperties: object) {
     assert (exchange.isDictionary (exchange.markets), '.markets is not a dict');
     assert (Array.isArray (exchange.symbols), '.symbols is not an array');
     const symbolsLength = exchange.symbols.length;
+    assert (exchange.markets !== undefined, '.markets is undefined');
     const marketKeys = Object.keys (exchange.markets);
     const marketKeysLength = marketKeys.length;
     assert (symbolsLength > 0, '.symbols count <= 0 (less than or equal to zero)');

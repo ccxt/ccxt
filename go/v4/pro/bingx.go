@@ -2099,7 +2099,9 @@ func (this *BingxCore) HandleBalance(client any, message any) {
 		ccxt.AddElementToObject(account, "info", balance)
 		ccxt.AddElementToObject(account, "used", this.SafeString(balance, "lk"))
 		ccxt.AddElementToObject(account, "free", this.SafeString(balance, "wb"))
-		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(typeVar, nil))) && ccxt.IsTrue((!ccxt.IsEqual(code, nil)))) {
+			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, typeVar), code, account)
+		}
 	}
 	ccxt.AddElementToObject(this.Balance, typeVar, this.SafeBalance(ccxt.GetValue(this.Balance, typeVar)))
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":balance"))

@@ -30,7 +30,7 @@ public partial class testMainClass : BaseTest
                 // continue;
                 success = false;
             }
-            if (isTrue(isEqual(success, true)))
+            if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
             {
                 now = exchange.milliseconds();
                 testOrderBook(exchange, skippedProperties, method, response, symbol);

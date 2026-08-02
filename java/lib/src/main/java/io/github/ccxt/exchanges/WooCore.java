@@ -828,7 +828,7 @@ public class WooCore extends WooApi
         final Object finalLinear = linear;
         final Object finalInverse = inverse;
         final Object finalContractSize = contractSize;
-        return new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", marketId );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
@@ -876,7 +876,7 @@ public class WooCore extends WooApi
             }} );
             put( "created", null );
             put( "info", market );
-        }};
+        }});
     }
 
     /**
@@ -1281,7 +1281,10 @@ public class WooCore extends WooApi
                 }};
                 Object parsed = this.parseCurrency(customCurrency);
                 Object code = this.safeString(parsed, "code");
-                Helpers.addElementToObject(result, code, parsed);
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(result, code, parsed);
+                }
             }
             return result;
         });
@@ -1303,10 +1306,13 @@ public class WooCore extends WooApi
             Object networkEntry = this.safeDict(chainsByNetworkId, networkId, new java.util.HashMap<String, Object>() {{}});
             Object networkCode = this.networkIdToCode(networkId, code);
             Object specialNetworkId = this.safeString(tokenEntry, "token");
-            Helpers.addElementToObject(resultingNetworks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkCode = networkCode;
+                Helpers.addElementToObject(resultingNetworks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
     put( "currencyNetworkId", specialNetworkId );
-    put( "network", networkCode );
+    put( "network", finalNetworkCode );
     put( "active", null );
     put( "deposit", Helpers.isEqual(WooCore.this.safeString(networkEntry, "allow_deposit"), "1") );
     put( "withdraw", Helpers.isEqual(WooCore.this.safeString(networkEntry, "allow_withdraw"), "1") );
@@ -1327,6 +1333,7 @@ public class WooCore extends WooApi
         put( "token", tokenEntry );
     }} );
 }});
+            }
         }
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", currencyId );
@@ -2319,7 +2326,7 @@ public class WooCore extends WooApi
             timestamp = this.safeInteger(order, "timestamp");
         }
         Object orderId = this.safeString2(order, "orderId", "algoOrderId");
-        Object clientOrderId = this.omitZero(((String)this.safeString2(order, "clientOrderId", "clientAlgoOrderId"))); // Somehow, this always returns 0 for limit order
+        Object clientOrderId = this.omitZero(this.safeString2(order, "clientOrderId", "clientAlgoOrderId")); // Somehow, this always returns 0 for limit order
         Object marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -2330,7 +2337,7 @@ public class WooCore extends WooApi
         Object status = this.safeValue2(order, "status", "algoStatus");
         Object side = this.safeStringLower(order, "side");
         Object filled = this.omitZero(this.safeValue2(order, "executed", "totalExecutedQuantity"));
-        Object average = this.omitZero(((String)this.safeString(order, "averageExecutedPrice")));
+        Object average = this.omitZero(this.safeString(order, "averageExecutedPrice"));
         // const remaining = Precise.stringSub (cost, filled);
         Object fee = this.safeNumber(order, "totalFee");
         Object feeCurrency = this.safeString(order, "feeAsset");
@@ -2866,7 +2873,10 @@ public class WooCore extends WooApi
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "holding"));
             Helpers.addElementToObject(account, "free", this.safeString(balance, "availableBalance"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -2899,7 +2909,7 @@ public class WooCore extends WooApi
             final Object finalNetworkCode = networkCode;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "token", Helpers.GetValue(currency, "id") );
-                put( "network", WooCore.this.networkCodeToId(((String)finalNetworkCode), Helpers.GetValue(currency, "code")) );
+                put( "network", WooCore.this.networkCodeToId(finalNetworkCode, Helpers.GetValue(currency, "code")) );
             }};
             Object response = (this.v3PrivateGetAssetWalletDeposit(this.extend(request, parameters))).join();
             //
@@ -2925,7 +2935,7 @@ public class WooCore extends WooApi
         networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
         networkCode = this.networkIdToCode(networkCode, Helpers.GetValue(currency, "code"));
-        Object networkEntry = this.safeDict(Helpers.GetValue(currency, "networks"), networkCode);
+        Object networkEntry = ((Helpers.isTrue((Helpers.isEqual(networkCode, null))))) ? null : this.safeDict(Helpers.GetValue(currency, "networks"), networkCode);
         if (Helpers.isTrue(Helpers.isEqual(networkEntry, null)))
         {
             Object supportedNetworks = Helpers.objectKeys(Helpers.GetValue(currency, "networks"));
@@ -3119,7 +3129,7 @@ public class WooCore extends WooApi
             put( "BALANCE", "transaction" );
             put( "COLLATERAL", "transfer" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object getCurrencyFromChaincode(Object networkizedCode, Object currency)
@@ -3937,7 +3947,7 @@ public class WooCore extends WooApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = this.safeString(fundingRate, "symbol");
-        market = this.market(((String)symbol));
+        market = this.market(symbol);
         Object nextFundingTimestamp = this.safeInteger2(fundingRate, "nextFundingTime", "fundingTs");
         Object estFundingRateTimestamp = this.safeInteger(fundingRate, "estFundingRateTimestamp");
         Object lastFundingRateTimestamp = this.safeInteger(fundingRate, "lastFundingRateTimestamp");
@@ -4456,7 +4466,7 @@ public class WooCore extends WooApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(((String)symbol));
+            Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -4993,10 +5003,13 @@ public class WooCore extends WooApi
                 Object entry = Helpers.GetValue(data, i);
                 Object id = this.safeString(entry, "token");
                 Object code = this.safeCurrencyCode(id);
-                Helpers.addElementToObject(result, code, new java.util.HashMap<String, Object>() {{
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    final Object finalCode = code;
+                    Helpers.addElementToObject(result, code, new java.util.HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", id );
-        put( "code", code );
+        put( "code", finalCode );
         put( "networks", null );
         put( "type", null );
         put( "name", null );
@@ -5021,6 +5034,7 @@ public class WooCore extends WooApi
         }} );
         put( "created", WooCore.this.safeTimestamp(entry, "createdTime") );
     }});
+                }
             }
             return result;
         });

@@ -497,11 +497,14 @@ public class BitmexCore extends BitmexApi
             {
                 withdrawEnabled = true;
             }
-            final Object finalIsDepositEnabled = isDepositEnabled;
-            Helpers.addElementToObject(networks, network, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(network, null)))
+            {
+                final Object finalNetwork = network;
+                final Object finalIsDepositEnabled = isDepositEnabled;
+                Helpers.addElementToObject(networks, network, new java.util.HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
-    put( "network", network );
+    put( "network", finalNetwork );
     put( "active", active );
     put( "deposit", finalIsDepositEnabled );
     put( "withdraw", isWithdrawEnabled );
@@ -518,6 +521,7 @@ public class BitmexCore extends BitmexApi
         }} );
     }} );
 }});
+            }
         }
         Object currencyEnabled = this.safeValue(currency, "enabled");
         Object currencyActive = Helpers.isTrue(currencyEnabled) || Helpers.isTrue((Helpers.isTrue(depositEnabled) || Helpers.isTrue(withdrawEnabled)));
@@ -907,6 +911,10 @@ public class BitmexCore extends BitmexApi
             isQuanto = null;
             linear = null;
         }
+        if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " parseMarket() requires a symbol")) ;
+        }
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalBaseId = baseId;
@@ -921,7 +929,7 @@ public class BitmexCore extends BitmexApi
         final Object finalContractSize = contractSize;
         final Object finalExpiry = expiry;
         final Object finalExpiryDatetime = expiryDatetime;
-        return new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
@@ -972,7 +980,7 @@ public class BitmexCore extends BitmexApi
             }} );
             put( "created", null );
             put( "info", market );
-        }};
+        }});
     }
 
     public Object parseBalance(Object response)
@@ -1037,7 +1045,10 @@ public class BitmexCore extends BitmexApi
             Object total = this.safeString(balance, "marginBalance");
             Helpers.addElementToObject(account, "free", this.convertToRealAmount(code, free));
             Helpers.addElementToObject(account, "total", this.convertToRealAmount(code, total));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -1466,7 +1477,7 @@ public class BitmexCore extends BitmexApi
             put( "AffiliatePayout", "referral" );
             put( "SpotTrade", "trade" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseLedgerEntry(Object item, Object... optionalArgs)
@@ -2230,7 +2241,7 @@ public class BitmexCore extends BitmexApi
             isInverse = (Helpers.isEqual(defaultSubType, "inverse"));
         } else
         {
-            isInverse = this.safeBool(market, "inverse", false);
+            isInverse = Helpers.isEqual(this.safeBool(market, "inverse", false), true);
         }
         if (Helpers.isTrue(isInverse))
         {
@@ -2766,15 +2777,19 @@ public class BitmexCore extends BitmexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> cancelAllOrdersAfter(Object timeout2, Object... optionalArgs)
     {
-
+        final Object timeout3 = timeout2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+            Object timeout = timeout3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
+            }
+            if (Helpers.isTrue(Helpers.isEqual(timeout, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
             }
             final Object finalTimeout = timeout;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -3276,6 +3291,10 @@ public class BitmexCore extends BitmexApi
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
+            if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
+            }
             if (Helpers.isTrue(Helpers.inOp(this.currencies, symbol)))
             {
                 Object code = this.currency(symbol);
@@ -3549,7 +3568,9 @@ public class BitmexCore extends BitmexApi
                 Object networkCode = this.networkIdToCode(networkId, currencyCode);
                 Object withdrawalFeeId = this.safeString(network, "withdrawalFee");
                 Object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeId, precision));
-                Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new java.util.HashMap<String, Object>() {{
+                if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+                {
+                    Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "deposit", new java.util.HashMap<String, Object>() {{
         put( "fee", null );
         put( "percentage", null );
@@ -3559,6 +3580,7 @@ public class BitmexCore extends BitmexApi
         put( "percentage", false );
     }} );
 }});
+                }
                 if (Helpers.isTrue(Helpers.isEqual(networksLength, 1)))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", withdrawalFee);
@@ -4322,6 +4344,10 @@ public class BitmexCore extends BitmexApi
                 put( "api-key", BitmexCore.this.apiKey );
             }};
             expires = this.sum(this.seconds(), expires);
+            if (Helpers.isTrue(Helpers.isEqual(expires, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " sign() missing expires")) ;
+            }
             Object stringExpires = String.valueOf(expires);
             auth = Helpers.add(auth, stringExpires);
             Helpers.addElementToObject(headers, "api-expires", stringExpires);

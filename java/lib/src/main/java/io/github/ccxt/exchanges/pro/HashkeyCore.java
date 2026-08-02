@@ -986,7 +986,10 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         Object account = this.account();
         Helpers.addElementToObject(account, "free", this.safeString(balanceUpdate, "f"));
         Helpers.addElementToObject(account, "used", this.safeString(balanceUpdate, "l"));
-        Helpers.addElementToObject(Helpers.GetValue(this.balance, type), code, account);
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(type, null))) && Helpers.isTrue((!Helpers.isEqual(code, null)))))
+        {
+            Helpers.addElementToObject(Helpers.GetValue(this.balance, type), code, account);
+        }
         Helpers.addElementToObject(this.balance, type, this.safeBalance(Helpers.GetValue(this.balance, type)));
         Object messageHash = Helpers.add("balance:", type);
         client.resolve(Helpers.GetValue(this.balance, type), messageHash);

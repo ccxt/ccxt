@@ -294,7 +294,8 @@ class bithumb(Exchange, ImplicitAPI):
         return super(bithumb, self).safe_market(marketId, market, delimiter, 'spot')
 
     def amount_to_precision(self, symbol, amount):
-        return self.decimal_to_precision(amount, TRUNCATE, self.markets[symbol]['precision']['amount'], DECIMAL_PLACES)
+        market = self.market(symbol)
+        return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES)
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """

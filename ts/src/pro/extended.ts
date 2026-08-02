@@ -565,7 +565,7 @@ export default class extended extends extendedRest {
         client.resolve (fundingRate, messageHash);
     }
 
-    parseWsFundingRate (fundingRate, market: Market = undefined, message = undefined): FundingRate {
+    parseWsFundingRate (fundingRate, market: Market = undefined, message: any = undefined): FundingRate {
         const marketId = this.safeString (fundingRate, 'm');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (message, 'ts');
@@ -810,8 +810,8 @@ export default class extended extends extendedRest {
         const candleType = this.safeString (subscription, 'candleType');
         const cacheKey = (candleType === 'trades') ? timeframe : timeframe + ':' + candleType;
         const messageHash = this.safeString (subscription, 'messageHash');
-        this.ohlcvs[symbol as string] = this.safeValue (this.ohlcvs, symbol as string, {});
-        let stored = this.safeValue (this.ohlcvs[symbol as string], cacheKey as string);
+        this.ohlcvs[symbol as string] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol as string], cacheKey);
         if (stored === undefined) {
             const defaultLimit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);

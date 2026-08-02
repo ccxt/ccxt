@@ -778,22 +778,24 @@ class bitrue extends bitrue$1["default"] {
             const entry = networkDetails[j];
             const networkId = this.safeString(entry, 'chain');
             const network = this.networkIdToCode(networkId, code);
-            networks[network] = {
-                'info': entry,
-                'id': networkId,
-                'network': network,
-                'deposit': this.safeBool(entry, 'enableDeposit'),
-                'withdraw': this.safeBool(entry, 'enableWithdraw'),
-                'active': undefined,
-                'fee': this.safeNumber(entry, 'withdrawFee'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(entry, 'minWithdraw'),
-                        'max': this.safeNumber(entry, 'maxWithdraw'),
+            if (network !== undefined) {
+                networks[network] = {
+                    'info': entry,
+                    'id': networkId,
+                    'network': network,
+                    'deposit': this.safeBool(entry, 'enableDeposit'),
+                    'withdraw': this.safeBool(entry, 'enableWithdraw'),
+                    'active': undefined,
+                    'fee': this.safeNumber(entry, 'withdrawFee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(entry, 'minWithdraw'),
+                            'max': this.safeNumber(entry, 'maxWithdraw'),
+                        },
                     },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -986,7 +988,7 @@ class bitrue extends bitrue$1["default"] {
             minCost = this.safeNumber(market, 'minOrderMoney');
         }
         const isSpot = (type === 'spot');
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'lowercaseId': lowercaseId,
             'symbol': symbol,
@@ -1035,7 +1037,7 @@ class bitrue extends bitrue$1["default"] {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     parseBalance(response) {
         //
@@ -1096,7 +1098,9 @@ class bitrue extends bitrue$1["default"] {
             const account = this.account();
             account['free'] = this.safeString2(balance, 'free', 'accountNormal');
             account['used'] = this.safeString2(balance, 'locked', 'accountLock');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601(timestamp);
@@ -2998,10 +3002,12 @@ class bitrue extends bitrue$1["default"] {
                 const networkId = this.safeString(chainDetail, 'chain');
                 const currencyCode = this.safeString(currency, 'code');
                 const networkCode = this.networkIdToCode(networkId, currencyCode);
-                result['networks'][networkCode] = {
-                    'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': this.safeNumber(chainDetail, 'withdrawFee'), 'percentage': false },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'deposit': { 'fee': undefined, 'percentage': undefined },
+                        'withdraw': { 'fee': this.safeNumber(chainDetail, 'withdrawFee'), 'percentage': false },
+                    };
+                }
                 if (chainDetailLength === 1) {
                     result['withdraw']['fee'] = this.safeNumber(chainDetail, 'withdrawFee');
                     result['withdraw']['percentage'] = false;

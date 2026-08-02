@@ -441,7 +441,7 @@ public partial class bit2c : Exchange
         }
         object market = this.market(symbol);
         object optionValue = this.safeString(this.options, "fetchTradesMethod"); // kept here for backward compatibility #29154
-        object method = ((string)this.handleOption("fetchTrades", "method", optionValue)); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+        object method = this.handleOption("fetchTrades", "method", optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
@@ -472,7 +472,12 @@ public partial class bit2c : Exchange
         {
             throw new ExchangeError ((string)response) ;
         }
-        return this.parseTrades(response, market, since, limit);
+        object responseList = new List<object>() {};
+        if (isTrue(!isEqual(response, null)))
+        {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     /**
@@ -867,7 +872,12 @@ public partial class bit2c : Exchange
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        object responseList = new List<object>() {};
+        if (isTrue(!isEqual(response, null)))
+        {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     public virtual object removeCommaFromValue(object str)

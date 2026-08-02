@@ -385,7 +385,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             put( "Withdraw", "withdrawal" );
             put( "Deposit", "deposit" );
         }};
-        return this.safeString(statuses, type, type);
+        return this.safeString(statuses, ((String)type), type);
     }
 
     public Object parseTransaction(Object transaction, Object... optionalArgs)
@@ -558,7 +558,7 @@ public class BtcmarketsCore extends BtcmarketsApi
         final Object finalQuote = quote;
         final Object finalStatus = status;
         final Object finalMinPrice = minPrice;
-        return new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", symbol );
             put( "base", finalBase );
@@ -608,7 +608,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             }} );
             put( "created", null );
             put( "info", market );
-        }};
+        }});
     }
 
     /**
@@ -649,7 +649,10 @@ public class BtcmarketsCore extends BtcmarketsApi
             Object account = this.account();
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -1247,7 +1250,7 @@ public class BtcmarketsCore extends BtcmarketsApi
         */
         Object takerOrMaker = Helpers.getArg(optionalArgs, 0, "taker");
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-        Object market = Helpers.GetValue(this.markets, symbol);
+        Object market = this.market(symbol);
         Object currency = null;
         Object cost = null;
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "quote"), "AUD")))
@@ -1264,12 +1267,18 @@ public class BtcmarketsCore extends BtcmarketsApi
         }
         Object rate = Helpers.GetValue(market, takerOrMaker);
         Object rateCost = Precise.stringMul(this.numberToString(rate), cost);
+        Object feeCost = this.feeToPrecision(symbol, rateCost);
+        if (Helpers.isTrue(Helpers.isEqual(feeCost, null)))
+        {
+            feeCost = "0";
+        }
         final Object finalCurrency = currency;
+        final Object finalFeeCost = feeCost;
         return new java.util.HashMap<String, Object>() {{
             put( "type", takerOrMaker );
             put( "currency", finalCurrency );
             put( "rate", rate );
-            put( "cost", Helpers.parseFloat(BtcmarketsCore.this.feeToPrecision(symbol, rateCost)) );
+            put( "cost", Helpers.parseFloat(finalFeeCost) );
         }};
     }
 

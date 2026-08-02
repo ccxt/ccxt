@@ -4,15 +4,12 @@ An online IDE that runs [CCXT](https://github.com/ccxt/ccxt) against **live publ
 exchange endpoints** in multiple languages, with an AI assistant that writes the
 code for you.
 
-- **Languages:** TypeScript, Python, PHP, **Go** and **C#** all run
-  in the playground. **Java** appears as a tab marked **local** — its dependency
-  tree (guava/jackson/web3j/netty) can't be resolved in the sandbox without a
-  build tool, so it shows a one-line install + sample instead. The AI assistant
-  writes code for all six.
+- **Languages:** TypeScript, Python, PHP, **Go**, **C#** and **Java** all run
+  in the playground. The AI assistant writes code for all six.
   - TypeScript runs natively on Node (`--experimental-transform-types`, no tsc) — so
     `enum`/`namespace`/parameter properties work, but types are erased, not checked.
-  - Go (~2–3s/run) and C# (~3–4s/run) compile each run, but only the user's file
-    recompiles against a pre-warmed ccxt build, so they stay fast.
+  - Go (~2–3s/run), C# (~3–4s/run) and Java (~1s/run) compile each run, but only
+    the user's file recompiles against a pre-resolved ccxt, so they stay fast.
 - **Editor:** Monaco (the VS Code editor) with syntax highlighting per language,
   and **CCXT IntelliSense for TypeScript** — `exchange.` autocompletes every unified
   method with signatures and JSDoc. This uses Monaco's built-in TypeScript
@@ -23,7 +20,10 @@ code for you.
 - **Execution:** a backend executor spawns the real interpreter for each language
   using a pinned CCXT install, so you get real responses from real exchanges.
 - **AI assistant:** streams free models via [OpenRouter](https://openrouter.ai);
-  generated code can be inserted straight into the editor. The model list is
+  every code answer covers all six languages at once — the sidebar shows **only**
+  the language tab you have selected (Insert ready as soon as that block finishes
+  streaming). One Insert files that tab immediately; the other languages fill
+  their editor buffers silently in the background. The model list is
   fetched from OpenRouter at server startup (free slugs rotate constantly) and
   cached for the process lifetime.
 
@@ -129,11 +129,11 @@ Fumadocs site at `/`. (Publishing a host port doesn't work on a Docker
 container's fixed internal IP, and the container still has no route *out* except
 via the egress proxy.)
 
-**All five runnable languages (TypeScript/Python/PHP/C#/Go) run in production.**
+**All six runnable languages (TypeScript/Python/PHP/Go/C#/Java) run in production.**
 The Go warm build (~5 GB peak) happens on the GitHub-hosted build runner, not on
-the docs box; the run container's 4 GB cap covers warm `go run`s. On a small box,
-add `PLAYGROUND_DISABLED=go` back to the workflow's build-args to make Go
-install-only again.
+the docs box; the run container's 3 GB cap covers warm `go run`s plus concurrent
+Java JVMs (`-Xmx512m` each). On a small box, add `PLAYGROUND_DISABLED=go,java`
+to the workflow's build-args to make them install-only again.
 
 One-time box setup (already done on the current box):
 
@@ -156,11 +156,16 @@ installs the nightly-restart cron automatically.
   cache **pre-warmed** (cold build of ccxt is ~45s; warm runs ~2s). Needs Go 1.24+.
 - **C#** → `runtime/csharp/app` project (`dotnet add package ccxt`) restored and
   build-warmed. Needs the .NET SDK.
+- **Java** → `runtime/java/libs` (`io.github.ccxt:ccxt` + transitive jars resolved
+  from Maven Central; latest release unless `CCXT_JAVA_VERSION` is pinned) plus a
+  precompiled `Playground` proxy helper in `runtime/java/classes`. Needs JDK 21+
+  and Maven at provision time (Docker resolves the jars in a throwaway build
+  stage, so Maven never ships in the image).
 
 Python and PHP fall back to the surrounding monorepo's CCXT (`../../python` via
-`PYTHONPATH`, `../../ccxt.php`) if not provisioned. Go and C# show a "run
+`PYTHONPATH`, `../../ccxt.php`) if not provisioned. Go, C# and Java show a "run
 setup-runtimes" message until provisioned (no fallback — they need the warm
-cache/restore to be fast).
+cache/restore/resolved jars to be fast).
 
 ## Sandboxing & safety
 
@@ -187,16 +192,26 @@ recommended on top:
 3. For untrusted multi-tenant use where runs must not see each other, run each
    execution in its own throwaway container (or gVisor) rather than the shared one.
 
-## Why Java is install-only
+## How Java runs (and how it reaches exchanges)
 
-Go and C# are runnable (`lib/runners/{go,csharp}.ts`). Java isn't, for one
-concrete reason: the sandbox has no Maven/Gradle/coursier to resolve ccxt-java's
-dependency tree (guava, jackson-databind, web3j-crypto, netty…). Java 21's
-single-file launch (`java Main.java`) works, but only with the full classpath
-assembled. To make Java runnable: add a build tool to the environment, resolve
-the deps into `runtime/java/libs/`, then add a `java.ts` runner that calls
-`java -cp "runtime/java/libs/*" Main.java`, flip `available: true`, and add `java`
-to `RunnableLanguageId`.
+Java runs server-side like Go/C# (`lib/runners/java.ts`): each run is compiled
+in a throwaway dir (the snippet must be `public class Main`) and launched
+against the pre-resolved `runtime/java/libs/*` classpath. Runs go through a
+generated `Launcher` that calls `Main.main` and then forces JVM exit —
+ccxt-java's pro `close()` leaves Netty's shared event loop alive, so a `watch*`
+snippet's JVM would otherwise linger until the hard timeout after `main`
+returns.
+
+One wrinkle the other languages don't have: **ccxt-java ignores proxy env
+vars** (`System.getenv` never appears in `io/github/ccxt/**`), and its REST
+client (`java.net.http.HttpClient`) defaults to *no* proxy. The runner therefore
+parses `HTTPS_PROXY`/`HTTP_PROXY` into JVM flags
+(`-Dhttps.proxyHost/-Dhttps.proxyPort/-Dhttp.*`), which `HttpClient` honors.
+WebSockets are a separate path: ccxt's Netty `WsClient` ignores those flags and
+only reads the exchange's own `wssProxy` field, so `watch*` snippets construct
+exchanges via `Playground.proxy(new Binance())` — a tiny helper precompiled
+into `runtime/java/classes` that sets `httpsProxy` + `wssProxy` from the env
+(no-op outside the playground).
 
 ## Layout
 

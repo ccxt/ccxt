@@ -681,6 +681,10 @@ public partial class pacifica : Exchange
         object maxLeverage = null;
         object crossMargin = null;
         object isolatedMargin = null;
+        if (isTrue(isEqual(id, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseMarket() missing id")) ;
+        }
         if (isTrue(isSpot))
         {
             object idParts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
@@ -1617,31 +1621,39 @@ public partial class pacifica : Exchange
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name pacifica#createOrderRequest
-        * @description create a trade order
-        * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-limit-order
-        * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-market-order
-        * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-stop-order
-        * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-position-tp-sl
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, but can be used as limit_price of Trigger Order.
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-        * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at (optional provide stopLossCloid)
-        * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
-        * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
-        * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
-        * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
-        * @param {int} [params.expiryWindow] time to live in milliseconds
-        * @returns {object} an [order structure]
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name pacifica#createOrderRequest
+         * @description create a trade order
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-limit-order
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-market-order
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-stop-order
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-position-tp-sl
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, but can be used as limit_price of Trigger Order.
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+         * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at (optional provide stopLossCloid)
+         * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
+         * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
+         * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+         * @param {int} [params.expiryWindow] time to live in milliseconds
+         * @returns {object} an [order structure]
+         */
         object market = this.market(symbol);
         object sigPayload = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -2172,6 +2184,10 @@ public partial class pacifica : Exchange
     public virtual object editOrderRequest(object id, object symbol, object type, object side, object amount, object price, object market, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         if (isTrue(isEqual(amount, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires an amount!")) ;
@@ -2328,7 +2344,10 @@ public partial class pacifica : Exchange
             object info = getValue(data, i);
             object ticker = this.parseTicker(info);
             object symbol = this.safeString(ticker, "symbol");
-            ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
@@ -3382,7 +3401,7 @@ public partial class pacifica : Exchange
             { "airdrop", "airdrop" },
             { "payout", "payout" },
         };
-        return this.safeString(ledgerType, type, type);
+        return this.safeString(ledgerType, ((string)type), type);
     }
 
     /**

@@ -160,7 +160,7 @@ export default class lighter extends lighterRest {
         // }
         //
         const data = this.safeDict (message, 'order_book', {});
-        const channel = this.safeString (message, 'channel', '') as string;
+        const channel = this.safeString (message, 'channel', '');
         const parts = channel.split (':');
         const marketId = parts[1];
         const market = this.safeMarket (marketId);
@@ -361,12 +361,12 @@ export default class lighter extends lighterRest {
         const request: Dict = {
             'channel': 'market_stats/all',
         };
-        const messageHashes = [];
+        const messageHashes: string[] = [];
         let symbolsLength = 0;
         if (symbols !== undefined) {
             symbolsLength = symbols.length;
         }
-        if (symbolsLength === 0) {
+        if ((symbols === undefined) || (symbolsLength === 0)) {
             messageHashes.push (this.getMessageHash ('ticker'));
         } else {
             for (let i = 0; i < symbols.length; i++) {
@@ -550,7 +550,7 @@ export default class lighter extends lighterRest {
             this.handleLiquidation (client, message);
         }
         const data = this.safeList (message, 'trades', []);
-        const channel = this.safeString (message, 'channel', '') as string;
+        const channel = this.safeString (message, 'channel', '');
         const parts = channel.split (':');
         const marketId = parts[1];
         const market = this.safeMarket (marketId);
@@ -736,7 +736,7 @@ export default class lighter extends lighterRest {
         //         "type": "update/account_all_trades"
         //     }
         //
-        const channel = this.safeString (message, 'channel', '') as string;
+        const channel = this.safeString (message, 'channel', '');
         const parts = channel.split (':');
         const accountIndex = parts[1];
         const data = this.safeDict (message, 'trades', {});
@@ -868,6 +868,9 @@ export default class lighter extends lighterRest {
         const price = this.safeString (liquidation, 'price');
         const baseValue = Precise.stringMul (contracts, contractSize);
         const quoteValue = Precise.stringMul (baseValue, price);
+        if (market === undefined) {
+            return undefined;
+        }
         return this.safeLiquidation ({
             'info': liquidation,
             'symbol': market['symbol'],
@@ -920,7 +923,7 @@ export default class lighter extends lighterRest {
         //     }
         //
         const data = this.safeList (message, 'liquidation_trades', []);
-        const channel = this.safeString (message, 'channel', '') as string;
+        const channel = this.safeString (message, 'channel', '');
         const parts = channel.split (':');
         const marketId = parts[1];
         const market = this.safeMarket (marketId);
@@ -1048,7 +1051,7 @@ export default class lighter extends lighterRest {
         //        "type": "update/user_stats"
         //    }
         //
-        const channel = this.safeString (message, 'channel', '') as string;
+        const channel = this.safeString (message, 'channel', '');
         let type = 'spot';
         if (channel.indexOf ('user_stats:') >= 0) {
             type = 'swap';
@@ -1065,7 +1068,9 @@ export default class lighter extends lighterRest {
                 const account = this.account ();
                 account['used'] = this.safeString (asset, 'locked_balance');
                 account['total'] = this.safeString (asset, 'balance');
-                balance[code] = account;
+                if (code !== undefined) {
+                    balance[code] = account;
+                }
             }
         } else {
             const stats = this.safeDict (message, 'stats', {});
@@ -1228,7 +1233,7 @@ export default class lighter extends lighterRest {
             this.handlePing (client, message);
             return;
         }
-        const channel = this.safeString (message, 'channel', '') as string;
+        const channel = this.safeString (message, 'channel', '');
         if (channel.indexOf ('order_book:') >= 0) {
             this.handleOrderBook (client, message);
             return;

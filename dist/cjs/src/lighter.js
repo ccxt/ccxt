@@ -700,6 +700,12 @@ class lighter extends lighter$1["default"] {
         this.options['chainId'] = enable ? 300 : 304;
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -1821,7 +1827,9 @@ class lighter extends lighter$1["default"] {
                     const balance = this.safeDict(result, code, this.account());
                     balance['total'] = Precise["default"].stringAdd(balance['total'], this.safeString(asset, 'balance'));
                     balance['used'] = Precise["default"].stringAdd(balance['used'], this.safeString(asset, 'locked_balance'));
-                    result[code] = balance;
+                    if (code !== undefined) {
+                        result[code] = balance;
+                    }
                 }
             }
             else {
@@ -3042,7 +3050,7 @@ class lighter extends lighter$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires an marginMode parameter');
         }
         let leverage = undefined;
-        [leverage, params] = this.handleOptionAndParams(params, 'setMarginMode', 'leverage', 'leverage');
+        [leverage, params] = this.handleOptionAndParams(params, 'setMarginMode', 'leverage');
         if (leverage === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires an leverage parameter');
         }

@@ -1129,7 +1129,7 @@ public partial class coinmate : Exchange
         {
             await this.loadMarkets();
         }
-        object method = add("privatePost", this.capitalize(((string)side)));
+        object method = add("privatePost", this.capitalize(side));
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "currencyPair", getValue(market, "id") },

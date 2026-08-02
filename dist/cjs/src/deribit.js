@@ -523,6 +523,9 @@ class deribit extends deribit$1["default"] {
             settle = base;
         }
         let splitBase = base;
+        if (base === undefined) {
+            throw new errors.ExchangeError(this.id + ' createExpiredOptionMarket() missing base');
+        }
         if (base.indexOf('_') > -1) {
             const splitSymbol = base.split('_');
             splitBase = this.safeString(splitSymbol, 0);
@@ -580,7 +583,7 @@ class deribit extends deribit$1["default"] {
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const isOption = (marketId !== undefined) && ((marketId.endsWith('-C')) || (marketId.endsWith('-P')));
-        if (isOption && !(marketId in this.markets_by_id)) {
+        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
@@ -930,8 +933,17 @@ class deribit extends deribit$1["default"] {
                 const settle = this.safeCurrencyCode(settleId);
                 const settlementPeriod = this.safeValue(market, 'settlement_period');
                 const swap = (settlementPeriod === 'perpetual');
+                if (kind === undefined) {
+                    throw new errors.ExchangeError(this.id + ' method() missing kind');
+                }
                 const future = !swap && (kind.indexOf('future') >= 0);
+                if (kind === undefined) {
+                    throw new errors.ExchangeError(this.id + ' method() missing kind');
+                }
                 const option = (kind.indexOf('option') >= 0);
+                if (kind === undefined) {
+                    throw new errors.ExchangeError(this.id + ' method() missing kind');
+                }
                 const isComboMarket = kind.indexOf('combo') >= 0;
                 const expiry = this.safeInteger(market, 'expiration_timestamp');
                 let strike = undefined;
@@ -970,7 +982,9 @@ class deribit extends deribit$1["default"] {
                 if (parsedMarketValue) {
                     continue;
                 }
-                parsedMarkets[symbol] = true;
+                if (symbol !== undefined) {
+                    parsedMarkets[symbol] = true;
+                }
                 const minTradeAmount = this.safeNumber(market, 'min_trade_amount');
                 const tickSize = this.safeNumber(market, 'tick_size');
                 result.push({
@@ -1034,7 +1048,7 @@ class deribit extends deribit$1["default"] {
         };
         let summaries = [];
         if ('summaries' in balance) {
-            summaries = this.safeList(balance, 'summaries');
+            summaries = this.safeList(balance, 'summaries', []);
         }
         else {
             summaries = [balance];
@@ -1047,7 +1061,9 @@ class deribit extends deribit$1["default"] {
             account['free'] = this.safeString(data, 'available_funds');
             account['used'] = this.safeString(data, 'maintenance_margin');
             account['total'] = this.safeString(data, 'equity');
-            result[currencyCode] = account;
+            if (currencyCode !== undefined) {
+                result[currencyCode] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1424,7 +1440,9 @@ class deribit extends deribit$1["default"] {
         for (let i = 0; i < result.length; i++) {
             const ticker = this.parseTicker(result[i]);
             const symbol = ticker['symbol'];
-            tickers[symbol] = ticker;
+            if (symbol !== undefined) {
+                tickers[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(tickers, 'symbol', symbols);
     }
@@ -1761,8 +1779,9 @@ class deribit extends deribit$1["default"] {
             }
         }
         const parsedFees = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             const market = this.market(symbol);
             let fee = {
                 'info': market,
@@ -3284,6 +3303,9 @@ class deribit extends deribit$1["default"] {
         }
         if ('isDeribitPaginationCall' in params) {
             params = this.omit(params, 'isDeribitPaginationCall');
+            if (limit === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a limit argument');
+            }
             const maxUntil = this.sum(since, limit * duration);
             request['end_timestamp'] = Math.min(request['end_timestamp'], maxUntil);
         }

@@ -356,7 +356,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object trade = this.parseWsTrade(data);
         Object symbol = Helpers.GetValue(trade, "symbol");
-        Object stored = this.safeValue(this.trades, ((String)symbol));
+        Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Object limit = this.safeInteger(this.options, "tradesLimit", 1000);

@@ -489,6 +489,10 @@ public partial class dydx : Exchange
         //
         object quoteId = "USDC";
         object marketId = this.safeString(market, "ticker");
+        if (isTrue(isEqual(marketId, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseMarket() missing marketId")) ;
+        }
         object parts = ((string)marketId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         object baseName = this.safeString(parts, 0);
         object baseId = this.safeString(market, "baseId", baseName); // idk where 'baseId' comes from, but leaving as is
@@ -1370,9 +1374,21 @@ public partial class dydx : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         object orderType = ((string)type).ToUpper();
         object market = this.market(symbol);
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrderRequest() requires a side argument")) ;
+        }
         object orderSide = ((string)side).ToUpper();
         object subaccountId = 0;
         var subaccountIdparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "subAccountId", subaccountId);
@@ -1465,6 +1481,10 @@ public partial class dydx : Exchange
             if (isTrue(isEqual(goodTillBlock, null)))
             {
                 // short term order
+                if (isTrue(isEqual(latestBlockHeight, null)))
+                {
+                    throw new ExchangeError ((string)add(this.id, " method() missing latestBlockHeight")) ;
+                }
                 goodTillBlock = add(latestBlockHeight, 20);
             }
         } else
@@ -1507,7 +1527,13 @@ public partial class dydx : Exchange
             { "value", orderPayload },
         };
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId"});
-        object orderId = this.createOrderIdFromParts(this.getWalletAddress(), subaccountId, clientOrderId, orderFlag, getValue(marketInfo, "clobPairId"));
+        object walletAddress = this.getWalletAddress();
+        object clobPairId = this.safeInteger(marketInfo, "clobPairId", 0);
+        object subaccountIdValue = ((bool) isTrue((isEqual(subaccountId, null)))) ? 0 : subaccountId;
+        object clientOrderIdValue = ((bool) isTrue((isEqual(clientOrderId, null)))) ? 0 : clientOrderId;
+        object orderFlagValue = ((bool) isTrue((isEqual(orderFlag, null)))) ? 0 : orderFlag;
+        object clobPairIdValue = ((bool) isTrue((isEqual(clobPairId, null)))) ? 0 : clobPairId;
+        object orderId = this.createOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
         return new List<object>() {orderId, this.extend(signingPayload, parameters)};
     }
 
@@ -1540,7 +1566,12 @@ public partial class dydx : Exchange
         //
         object result = this.safeDict(response, "result");
         object info = this.safeDict(result, "response");
-        return this.safeInteger(info, "last_block_height");
+        object height = this.safeInteger(info, "last_block_height");
+        if (isTrue(isEqual(height, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchLatestBlockHeight() could not parse last_block_height")) ;
+        }
+        return height;
     }
 
     /**
@@ -1918,7 +1949,7 @@ public partial class dydx : Exchange
             { "DEPOSIT", "deposit" },
             { "WITHDRAWAL", "withdrawal" },
         };
-        return this.safeString(ledgerType, type, type);
+        return this.safeString(ledgerType, ((string)type), type);
     }
 
     /**
@@ -1993,6 +2024,10 @@ public partial class dydx : Exchange
         }
         object gasLimit = Math.Ceiling(Convert.ToDouble(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier))));
         object feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);
+        if (isTrue(isEqual(feeAmount, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " estimateTxFee() missing feeAmount")) ;
+        }
         if (isTrue(isGreaterThanOrEqual(getIndexOf(feeAmount, "."), 0)))
         {
             feeAmount = this.numberToString(Math.Ceiling(Convert.ToDouble(this.parseToNumeric(feeAmount))));

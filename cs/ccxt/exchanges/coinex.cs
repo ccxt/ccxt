@@ -756,7 +756,10 @@ public partial class coinex : Exchange
                 } },
                 { "info", chain },
             };
-            ((IDictionary<string,object>)networks)[(string)networkCode] = network;
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = network;
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
@@ -1658,7 +1661,10 @@ public partial class coinex : Exchange
             object baseDebt = this.safeString(loan, "base_ccy");
             object baseInterest = this.safeString(interest, "base_ccy");
             ((IDictionary<string,object>)baseAccount)["debt"] = Precise.stringAdd(baseDebt, baseInterest);
-            ((IDictionary<string,object>)result)[(string)baseCurrencyCode] = baseAccount;
+            if (isTrue(!isEqual(baseCurrencyCode, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)baseCurrencyCode] = baseAccount;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1696,7 +1702,10 @@ public partial class coinex : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "frozen");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1737,7 +1746,10 @@ public partial class coinex : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "frozen");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1775,7 +1787,10 @@ public partial class coinex : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "frozen");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2137,6 +2152,14 @@ public partial class coinex : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
         object swap = getValue(market, "swap");
         object clientOrderId = this.safeString2(parameters, "client_id", "clientOrderId");
@@ -2661,7 +2684,10 @@ public partial class coinex : Exchange
             object rawOrder = getValue(orders, i);
             object marketId = this.safeString(rawOrder, "symbol");
             object market = this.market(marketId);
-            ((IList<object>)orderSymbols).Add(marketId);
+            if (isTrue(!isEqual(marketId, null)))
+            {
+                ((IList<object>)orderSymbols).Add(marketId);
+            }
             object id = this.safeString(rawOrder, "id");
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
@@ -3746,7 +3772,7 @@ public partial class coinex : Exchange
         //         "message": "OK"
         //     }
         //
-        object data = this.safeDict(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object status = this.safeStringLower(response, "message");
         object type = ((bool) isTrue((isEqual(addOrReduce, "reduce")))) ? "reduce" : "add";
         return this.extend(this.parseMarginModification(data, market), new Dictionary<string, object>() {
@@ -5125,7 +5151,10 @@ public partial class coinex : Exchange
             object code = this.safeCurrencyCode(currencyId);
             if (isTrue(isTrue(isEqual(codes, null)) || isTrue(this.inArray(code, codes))))
             {
-                ((IDictionary<string,object>)result)[(string)code] = this.parseDepositWithdrawFee(item);
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = this.parseDepositWithdrawFee(item);
+                }
             }
         }
         return result;
@@ -5190,16 +5219,19 @@ public partial class coinex : Exchange
                     object currencyId = this.safeString(asset, "ccy");
                     object feeCode = this.safeCurrencyCode(currencyId, currency);
                     object networkCode = this.networkIdToCode(networkId, feeCode);
-                    ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "fee", this.safeNumber(entry, "withdrawal_fee") },
-                            { "percentage", false },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "fee", null },
-                            { "percentage", null },
-                        } },
-                    };
+                    if (isTrue(!isEqual(networkCode, null)))
+                    {
+                        ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                            { "withdraw", new Dictionary<string, object>() {
+                                { "fee", this.safeNumber(entry, "withdrawal_fee") },
+                                { "percentage", false },
+                            } },
+                            { "deposit", new Dictionary<string, object>() {
+                                { "fee", null },
+                                { "percentage", null },
+                            } },
+                        };
+                    }
                 }
             }
         }

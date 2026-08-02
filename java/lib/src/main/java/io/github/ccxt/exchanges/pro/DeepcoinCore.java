@@ -1470,7 +1470,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
     {
         Object subHash = this.safeString(subscription, "subHash");
         Object unsubHash = this.safeString(subscription, "unsubHash");
-        this.cleanUnsubscription(client, ((String)subHash), ((String)unsubHash));
+        this.cleanUnsubscription(client, subHash, unsubHash);
         this.cleanCache(subscription);
     }
 

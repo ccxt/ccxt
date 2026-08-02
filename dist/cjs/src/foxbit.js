@@ -387,31 +387,33 @@ class foxbit extends foxbit$1["default"] {
             const networkDepositInfo = this.safeDict(network, 'deposit_info');
             const isWithdrawEnabled = this.safeString(networkWithdrawInfo, 'status') === 'ENABLED';
             const isDepositEnabled = this.safeString(networkDepositInfo, 'status') === 'ENABLED';
-            parsedNetworks[networkCode] = {
-                'info': rawCurrency,
-                'id': networkId,
-                'network': networkCode,
-                'name': this.safeString(network, 'name'),
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'active': true,
-                'precision': precision,
-                'fee': this.safeNumber(networkWithdrawInfo, 'fee'),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                parsedNetworks[networkCode] = {
+                    'info': rawCurrency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'name': this.safeString(network, 'name'),
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
+                    'active': true,
+                    'precision': precision,
+                    'fee': this.safeNumber(networkWithdrawInfo, 'fee'),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(depositInfo, 'min_amount'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(withdrawInfo, 'min_amount'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber(depositInfo, 'min_amount'),
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': this.safeNumber(withdrawInfo, 'min_amount'),
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': currencyId,
@@ -845,7 +847,9 @@ class foxbit extends foxbit$1["default"] {
                 'used': used,
                 'total': total,
             };
-            result[currencyCode] = balanceObj;
+            if (currencyCode !== undefined) {
+                result[currencyCode] = balanceObj;
+            }
         }
         return this.safeBalance(result);
     }
@@ -934,6 +938,9 @@ class foxbit extends foxbit$1["default"] {
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         const postOnly = this.safeBool(params, 'postOnly', false);
         const triggerPrice = this.safeNumber(params, 'triggerPrice');
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const request = {
             'market_symbol': market['id'],
             'side': side.toUpperCase(),
@@ -1508,6 +1515,9 @@ class foxbit extends foxbit$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' editOrder() requires a side argument');
+        }
         const request = {
             'mode': 'ALLOW_FAILURE',
             'cancel': {
@@ -1954,9 +1964,21 @@ class foxbit extends foxbit$1["default"] {
             'cost': this.safeNumber(item, 'fee'),
             'currency': currencySymbol,
         };
+        if (amount === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' parseLedgerEntry() requires a amount argument');
+        }
         if (amount < 0) {
             direction = 'out';
+            if (amount === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' parseLedgerEntry() requires a amount argument');
+            }
             realAmount = amount * -1;
+        }
+        if (balance === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseLedgerEntry() missing balance');
+        }
+        if (amount === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' parseLedgerEntry() requires a amount argument');
         }
         return {
             'id': id,

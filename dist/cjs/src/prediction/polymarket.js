@@ -891,6 +891,9 @@ class polymarket extends polymarket$1["default"] {
                 const ccxtMarketsLength = ccxtMarkets.length;
                 for (let i = 0; i < ccxtMarketsLength; i++) {
                     const mkt = ccxtMarkets[i];
+                    if (mkt === undefined) {
+                        throw new errors.ExchangeError(this.id + ' fetchOutcome() could not resolve mkt');
+                    }
                     this.markets[mkt['market']] = mkt;
                 }
                 this.populateOutcomes();
@@ -947,6 +950,9 @@ class polymarket extends polymarket$1["default"] {
                 const ccxtMarkets = this.parseEventToMarkets({ 'markets': rawMarkets });
                 for (let i = 0; i < ccxtMarkets.length; i++) {
                     const mkt = ccxtMarkets[i];
+                    if (mkt === undefined) {
+                        throw new errors.ExchangeError(this.id + ' fetchOutcomes() could not resolve mkt');
+                    }
                     this.markets[mkt['market']] = mkt;
                 }
                 startIndex = this.sum(startIndex, chunkSize);
@@ -1692,6 +1698,9 @@ class polymarket extends polymarket$1["default"] {
             return parsed;
         }
         const wantedIds = {};
+        if (outcomes === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchPositions() missing outcomes');
+        }
         for (let i = 0; i < outcomes.length; i++) {
             const outcomeObj = this.outcome(outcomes[i]);
             wantedIds[outcomeObj['outcomeId']] = true;
@@ -1945,7 +1954,10 @@ class polymarket extends polymarket$1["default"] {
         const orderOutcomes = [];
         for (let i = 0; i < orders.length; i++) {
             const o = orders[i];
-            orderOutcomes.push(this.safeString(o, 'outcome'));
+            const __oc = this.safeString(o, 'outcome');
+            if (__oc !== undefined) {
+                orderOutcomes.push(__oc);
+            }
         }
         await this.loadOutcomes(orderOutcomes);
         const bodies = [];
@@ -1960,9 +1972,9 @@ class polymarket extends polymarket$1["default"] {
                 orderParams = this.extend(orderParams, { 'salt': this.numberToString(this.sum(batchSalt, i)) });
             }
             const built = this.buildClobOrderBody(this.safeString(o, 'outcome'), this.safeString(o, 'type'), this.safeString(o, 'side'), this.safeNumber(o, 'amount'), this.safeNumber(o, 'price'), orderParams);
-            bodies.push(this.safeDict(built, 'body'));
-            outcomes.push(this.safeDict(built, 'outcome'));
-            requests.push(this.safeDict(built, 'request'));
+            bodies.push(this.safeDict(built, 'body', {}));
+            outcomes.push(this.safeDict(built, 'outcome', {}));
+            requests.push(this.safeDict(built, 'request', {}));
         }
         const response = await this.clobPrivatePostOrders(bodies);
         const result = [];
@@ -2380,6 +2392,9 @@ class polymarket extends polymarket$1["default"] {
         const requestedSlug = this.safeString(params, 'slug');
         const queries = this.parseSearchQueries(params);
         const rest = this.omit(params, ['query', 'queries', 'eventId', 'slug']);
+        if (queries === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchEvents() missing queries');
+        }
         const queriesLength = queries.length;
         let rawEvents = [];
         if ((requestedEventId !== undefined) || (requestedSlug !== undefined)) {
@@ -2431,6 +2446,9 @@ class polymarket extends polymarket$1["default"] {
             }
             for (let mi = 0; mi < ccxtMarkets.length; mi++) {
                 const m = ccxtMarkets[mi];
+                if (m === undefined) {
+                    throw new errors.ExchangeError(this.id + ' fetchEvents() missing m');
+                }
                 this.markets[m['market']] = m;
             }
             const parsedEvent = this.parseEvent(eventForParsing);
@@ -2470,7 +2488,10 @@ class polymarket extends polymarket$1["default"] {
         else {
             response = await this.gammaPublicGetEventsId(this.extend({ 'id': id }, params));
         }
-        const eventForParsing = this.safeDict(response, 'event', response);
+        let eventForParsing = this.safeDict(response, 'event', response);
+        if (eventForParsing === undefined) {
+            eventForParsing = {};
+        }
         const event = this.parseEvent(eventForParsing);
         this.indexEventOutcomes(event);
         return event;
@@ -2846,6 +2867,9 @@ class polymarket extends polymarket$1["default"] {
         catch (e) {
             creds = await this.createApiKey(params);
         }
+        if (creds === undefined) {
+            throw new errors.ExchangeError(this.id + ' createOrDeriveApiKey() returned no credentials');
+        }
         return creds;
     }
     setApiCredentials(response) {
@@ -3092,9 +3116,14 @@ class polymarket extends polymarket$1["default"] {
         const messageHash = 'ticker::' + outcome;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [tokenId], 'type': 'market' };
+        if (outcome === undefined) {
+            throw new errors.ExchangeError(this.id + ' watchTicker() missing outcome');
+        }
         if (!(outcome in this.orderbooks)) {
             const seededBook = this.orderBook({});
-            this.orderbooks[outcome] = seededBook;
+            if (outcome !== undefined) {
+                this.orderbooks[outcome] = seededBook;
+            }
         }
         const url = this.urls['api']['ws'];
         const orderbook = await this.watch(url, messageHash, subscribeMsg, subscribeHash);

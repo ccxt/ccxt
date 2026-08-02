@@ -1080,6 +1080,12 @@ export default class krakenfutures extends Exchange {
         });
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         type = this.safeString(params, 'orderType', type);
@@ -2516,6 +2522,9 @@ export default class krakenfutures extends Exchange {
             const currencyId = currencyIds[i];
             const balance = balances[currencyId];
             const code = this.safeCurrencyCode(currencyId);
+            if (code === undefined) {
+                continue;
+            }
             const splitCode = code.split('_');
             const codeLength = splitCode.length;
             if (codeLength > 1) {
@@ -2535,7 +2544,9 @@ export default class krakenfutures extends Exchange {
                 account['free'] = this.safeString(auxiliary, 'af');
                 account['total'] = this.safeString(auxiliary, 'pv');
             }
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2959,7 +2970,7 @@ export default class krakenfutures extends Exchange {
         if (account in accountByType) {
             return accountByType[account];
         }
-        else if (account in this.markets) {
+        else if ((this.markets !== undefined) && (account in this.markets)) {
             const market = this.market(account);
             const marketId = market['id'];
             const splitId = marketId.split('_');
@@ -3054,9 +3065,13 @@ export default class krakenfutures extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
+        const marketIdUpper = this.marketId(symbol);
+        if (marketIdUpper === undefined) {
+            throw new ArgumentsRequired(this.id + ' marketId is required');
+        }
         const request = {
             'maxLeverage': leverage,
-            'symbol': this.marketId(symbol).toUpperCase(),
+            'symbol': marketIdUpper.toUpperCase(),
         };
         //
         // { result: "success", serverTime: "2023-08-01T09:40:32.345Z" }
@@ -3109,8 +3124,12 @@ export default class krakenfutures extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        const marketIdUpper = this.marketId(symbol);
+        if (marketIdUpper === undefined) {
+            throw new ArgumentsRequired(this.id + ' marketId is required');
+        }
         const request = {
-            'symbol': this.marketId(symbol).toUpperCase(),
+            'symbol': marketIdUpper.toUpperCase(),
         };
         const response = await this.privateGetLeveragepreferences(this.extend(request, params));
         //

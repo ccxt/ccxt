@@ -432,7 +432,10 @@ public partial class indodax : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(free, currencyId);
             ((IDictionary<string,object>)account)["used"] = this.safeString(used, currencyId);
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -824,6 +827,7 @@ public partial class indodax : Exchange
         object price = this.safeString(order, "price");
         object amount = null;
         object remaining = null;
+        object filled = null;
         object marketId = this.safeString(order, "pair");
         market = this.safeMarket(marketId, market);
         if (isTrue(!isEqual(market, null)))
@@ -840,11 +844,11 @@ public partial class indodax : Exchange
                 baseId = "rp";
             }
             cost = this.safeString(order, add("order_", quoteId));
-            if (!isTrue(cost))
-            {
-                amount = this.safeString(order, add("order_", baseId));
-                remaining = this.safeString(order, add("remain_", baseId));
-            }
+            amount = this.safeString(order, add("order_", baseId));
+            remaining = this.safeString(order, add("remain_", baseId));
+            // filled buy orders on idr-quoted markets carry the executed base amount
+            // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
+            filled = this.safeString(order, add("receive_", baseId));
         }
         object timestamp = this.safeInteger(order, "submit_time");
         object fee = null;
@@ -866,7 +870,7 @@ public partial class indodax : Exchange
             { "cost", cost },
             { "average", null },
             { "amount", amount },
-            { "filled", null },
+            { "filled", filled },
             { "remaining", remaining },
             { "status", status },
             { "fee", fee },
@@ -1503,27 +1507,46 @@ public partial class indodax : Exchange
                 if (isTrue(inOp(networks, marketId)))
                 {
                     object networkId = this.safeString(networks, marketId);
+                    if (isTrue(isEqual(networkId, null)))
+                    {
+                        throw new ExchangeError ((string)add(this.id, " fetchDepositAddresses() missing networkId")) ;
+                    }
                     if (isTrue(isGreaterThanOrEqual(getIndexOf(networkId, ","), 0)))
                     {
                         network = new List<object>() {};
+                        if (isTrue(isEqual(networkId, null)))
+                        {
+                            throw new ExchangeError ((string)add(this.id, " fetchDepositAddresses() missing networkId")) ;
+                        }
                         object networkIds = ((string)networkId).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
                         for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
                         {
-                            ((IList<object>)network).Add(((string)this.networkIdToCode(getValue(networkIds, j), code)).ToUpper());
+                            object _netIdTmp = this.networkIdToCode(getValue(networkIds, j), code);
+                            if (isTrue(!isEqual(_netIdTmp, null)))
+                            {
+                                ((IList<object>)network).Add(((string)_netIdTmp).ToUpper());
+                            }
                         }
                     } else
                     {
-                        network = ((string)this.networkIdToCode(networkId, code)).ToUpper();
+                        object _netIdTmp = this.networkIdToCode(networkId, code);
+                        if (isTrue(!isEqual(_netIdTmp, null)))
+                        {
+                            network = ((string)_netIdTmp).ToUpper();
+                        }
                     }
                 }
                 object finalNetwork = network; // java req
-                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                    { "info", new Dictionary<string, object>() {} },
-                    { "currency", code },
-                    { "network", finalNetwork },
-                    { "address", address },
-                    { "tag", null },
-                };
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                        { "info", new Dictionary<string, object>() {} },
+                        { "currency", code },
+                        { "network", finalNetwork },
+                        { "address", address },
+                        { "tag", null },
+                    };
+                }
             }
         }
         return result;

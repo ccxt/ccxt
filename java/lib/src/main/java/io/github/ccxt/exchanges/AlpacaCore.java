@@ -345,9 +345,25 @@ public class AlpacaCore extends AlpacaApi
             //     }
             //
             Object timestamp = this.safeString(response, "timestamp");
+            if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
+            }
             Object localTime = Helpers.slice(timestamp, 0, 23);
-            Object jetlagStrStart = Helpers.subtract(Helpers.getArrayLength(timestamp), 6);
-            Object jetlagStrEnd = Helpers.subtract(Helpers.getArrayLength(timestamp), 3);
+            if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
+            }
+            Object jetlagStrStart = Helpers.subtract(((String)timestamp).length(), 6);
+            if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
+            }
+            Object jetlagStrEnd = Helpers.subtract(((String)timestamp).length(), 3);
+            if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
+            }
             Object jetlag = Helpers.slice(timestamp, jetlagStrStart, jetlagStrEnd);
             Object iso = Helpers.subtract(this.parseToInt(this.parse8601(localTime)), Helpers.multiply(Helpers.multiply(this.parseToNumeric(jetlag), 3600), 1000));
             return iso;
@@ -424,6 +440,10 @@ public class AlpacaCore extends AlpacaApi
         //     }
         //
         Object marketId = this.safeString(asset, "symbol");
+        if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
+        {
+            throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
+        }
         Object parts = Helpers.split(marketId, "/");
         Object assetClass = this.safeString(asset, "class");
         Object baseId = this.safeString(parts, 0);
@@ -442,10 +462,11 @@ public class AlpacaCore extends AlpacaApi
         Object minAmount = this.safeNumber(asset, "min_order_size");
         Object amount = this.safeNumber(asset, "min_trade_increment");
         Object price = this.safeNumber(asset, "price_increment");
+        final Object finalMarketId = marketId;
         final Object finalBase = base;
         final Object finalQuote = quote;
-        return new java.util.HashMap<String, Object>() {{
-            put( "id", marketId );
+        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", finalMarketId );
             put( "symbol", symbol );
             put( "base", finalBase );
             put( "quote", finalQuote );
@@ -492,7 +513,7 @@ public class AlpacaCore extends AlpacaApi
             }} );
             put( "created", null );
             put( "info", asset );
-        }};
+        }});
     }
 
     /**
@@ -583,7 +604,12 @@ public class AlpacaCore extends AlpacaApi
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTrades() does not support "), method), ", marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported")) ;
             }
-            return this.parseTrades(symbolTrades, market, since, limit);
+            Object symbolTradesList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(!Helpers.isEqual(symbolTrades, null)))
+            {
+                symbolTradesList = symbolTrades;
+            }
+            return this.parseTrades(symbolTradesList, market, since, limit);
         });
 
     }
@@ -2051,7 +2077,7 @@ public class AlpacaCore extends AlpacaApi
             put( "INCOMING", "deposit" );
             put( "OUTGOING", "withdrawal" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     /**
@@ -2136,7 +2162,10 @@ public class AlpacaCore extends AlpacaApi
         Object code = this.safeCurrencyCode(currencyId);
         Helpers.addElementToObject(account, "free", this.safeString(response, "cash"));
         Helpers.addElementToObject(account, "total", this.safeString(response, "equity"));
-        Helpers.addElementToObject(result, code, account);
+        if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+        {
+            Helpers.addElementToObject(result, code, account);
+        }
         return this.safeBalance(result);
     }
 

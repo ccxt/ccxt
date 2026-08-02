@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1191,7 +1191,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'coin')
         code = self.safe_currency_code(id)
         networks = {}
@@ -1200,23 +1200,24 @@ class mexc(Exchange, ImplicitAPI):
             chain = chains[j]
             networkId = self.safe_string_2(chain, 'netWork', 'network')
             network = self.network_id_to_code(networkId, code)
-            networks[network] = {
-                'info': chain,
-                'id': networkId,
-                'network': network,
-                'active': None,
-                'deposit': self.safe_bool(chain, 'depositEnable', False),
-                'withdraw': self.safe_bool(chain, 'withdrawEnable', False),
-                'fee': self.safe_number(chain, 'withdrawFee'),
-                'precision': None,
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_string(chain, 'withdrawMin'),
-                        'max': self.safe_string(chain, 'withdrawMax'),
+            if network is not None:
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': None,
+                    'deposit': self.safe_bool(chain, 'depositEnable', False),
+                    'withdraw': self.safe_bool(chain, 'withdrawEnable', False),
+                    'fee': self.safe_number(chain, 'withdrawFee'),
+                    'precision': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_string(chain, 'withdrawMin'),
+                            'max': self.safe_string(chain, 'withdrawMax'),
+                        },
                     },
-                },
-                'contract': self.safe_string(chain, 'contract'),
-            }
+                    'contract': self.safe_string(chain, 'contract'),
+                }
         return self.safe_currency_structure({
             'info': rawCurrency,
             'id': id,
@@ -2470,10 +2471,13 @@ class mexc(Exchange, ImplicitAPI):
             type = 1
         elif type == 'market':
             type = 6
+        volString = self.amount_to_precision(symbol, amount)
+        if volString is None:
+            volString = '0'
         request = {
             'symbol': market['id'],
             # 'price': float(self.price_to_precision(symbol, price)),
-            'vol': float(self.amount_to_precision(symbol, amount)),
+            'vol': float(volString),
             # 'leverage': int,  # required for isolated margin
             # 'side': side,  # 1 open long, 2 close short, 3 open short, 4 close long
             #
@@ -2497,7 +2501,10 @@ class mexc(Exchange, ImplicitAPI):
             # 'orderType': 1,  # Required for trigger order 1: limit order,2:Post Only Maker,3: close or cancel instantly ,4: close or cancel completely,5: Market order
         }
         if (type != 5) and (type != 6) and (type != 'market'):
-            request['price'] = float(self.price_to_precision(symbol, price))
+            priceString = self.price_to_precision(symbol, price)
+            if priceString is None:
+                priceString = '0'
+            request['price'] = float(priceString)
         if openType == 1:
             leverage = self.safe_integer(params, 'leverage')
             if leverage is None:
@@ -3788,8 +3795,10 @@ class mexc(Exchange, ImplicitAPI):
                 baseCode = self.safe_currency_code(self.safe_string(base, 'asset'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'asset'))
                 subResult = {}
-                subResult[baseCode] = self.parse_balance_helper(base)
-                subResult[quoteCode] = self.parse_balance_helper(quote)
+                if baseCode is not None:
+                    subResult[baseCode] = self.parse_balance_helper(base)
+                if quoteCode is not None:
+                    subResult[quoteCode] = self.parse_balance_helper(quote)
                 result[symbol] = self.safe_balance(subResult)
             return result
         elif marketType == 'swap':
@@ -3800,7 +3809,8 @@ class mexc(Exchange, ImplicitAPI):
                 account = self.account()
                 account['free'] = self.safe_string(entry, 'availableBalance')
                 account['used'] = self.safe_string(entry, 'frozenBalance')
-                result[code] = account
+                if code is not None:
+                    result[code] = account
             return self.safe_balance(result)
         else:
             for i in range(0, len(wallet)):
@@ -3810,7 +3820,8 @@ class mexc(Exchange, ImplicitAPI):
                 account = self.account()
                 account['free'] = self.safe_string(entry, 'free')
                 account['used'] = self.safe_string(entry, 'locked')
-                result[code] = account
+                if code is not None:
+                    result[code] = account
             return self.safe_balance(result)
 
     def parse_balance_helper(self, entry):
@@ -4625,8 +4636,8 @@ class mexc(Exchange, ImplicitAPI):
             # createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
             networkUnified = self.network_id_to_code(networkCode, code)
             networks = self.safe_dict(currency, 'networks', {})
-            if networkUnified in networks:
-                network = self.safe_dict(networks, networkUnified, {})
+            if (networkUnified is not None) and (networkUnified in networks):
+                network = {} if (networkUnified is None) else self.safe_dict(networks, networkUnified, {})
                 networkInfo = self.safe_value(network, 'info', {})
                 networkId = self.safe_string(networkInfo, 'network')
             else:
@@ -4673,8 +4684,8 @@ class mexc(Exchange, ImplicitAPI):
         networkId = None
         networkUnified = self.network_id_to_code(networkCode, code)
         networks = self.safe_dict(currency, 'networks', {})
-        if networkUnified in networks:
-            network = self.safe_dict(networks, networkUnified, {})
+        if (networkUnified is not None) and (networkUnified in networks):
+            network = {} if (networkUnified is None) else self.safe_dict(networks, networkUnified, {})
             networkInfo = self.safe_value(network, 'info', {})
             networkId = self.safe_string(networkInfo, 'network')
         else:
@@ -4706,7 +4717,8 @@ class mexc(Exchange, ImplicitAPI):
         addressStructures = await self.fetch_deposit_addresses_by_network(code, params)
         result: NullableDict
         if network is not None:
-            result = self.safe_dict(addressStructures, self.network_id_to_code(network, code))
+            netCode = self.network_id_to_code(network, code)
+            result = None if (netCode is None) else self.safe_dict(addressStructures, netCode)
         else:
             options = self.safe_dict(self.options, 'defaultNetworks')
             defaultNetworkForCurrency = self.safe_string(options, code)
@@ -5193,7 +5205,7 @@ class mexc(Exchange, ImplicitAPI):
             return self.parse_transfer(data)
         elif marketType == 'swap':
             raise BadRequest(self.id + ' fetchTransfer() is not supported for ' + marketType)
-        return None
+        raise BadRequest(self.id + ' fetchTransfer() is not supported for ' + marketType)
 
     async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
@@ -5724,16 +5736,17 @@ class mexc(Exchange, ImplicitAPI):
             networkEntry = networkList[j]
             networkId = self.safe_string(networkEntry, 'network')
             networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
-            result['networks'][networkCode] = {
-                'withdraw': {
-                    'fee': self.safe_number(networkEntry, 'withdrawFee'),
-                    'percentage': None,
-                },
-                'deposit': {
-                    'fee': None,
-                    'percentage': None,
-                },
-            }
+            if networkCode is not None:
+                result['networks'][networkCode] = {
+                    'withdraw': {
+                        'fee': self.safe_number(networkEntry, 'withdrawFee'),
+                        'percentage': None,
+                    },
+                    'deposit': {
+                        'fee': None,
+                        'percentage': None,
+                    },
+                }
         return self.assign_default_deposit_withdraw_fees(result)
 
     async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
@@ -5807,7 +5820,7 @@ class mexc(Exchange, ImplicitAPI):
             'shortLeverage': shortLeverage,
         }
 
-    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None) -> list:
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue: Any = None) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'

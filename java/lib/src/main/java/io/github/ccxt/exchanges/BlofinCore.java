@@ -1397,6 +1397,14 @@ public class BlofinCore extends BlofinApi
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+        }
         Object market = this.market(symbol);
         final Object finalSide = side;
         final Object finalType = type;
@@ -1889,7 +1897,7 @@ public class BlofinCore extends BlofinApi
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 Object extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-                Object orderRequest = this.createOrderRequest(((String)marketId), type, side, amount, price, extendedParams);
+                Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
             Object response = (this.privatePostTradeBatchOrders(ordersRequests)).join();
@@ -2369,7 +2377,7 @@ public class BlofinCore extends BlofinApi
             put( "10", "trade" );
             put( "11", "trade" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseLedgerEntry(Object item, Object... optionalArgs)
@@ -2445,7 +2453,7 @@ public class BlofinCore extends BlofinApi
             }
             Object market = this.market(symbol);
             Object request = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object method = ((String)this.handleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders"));
+            Object method = this.handleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders");
             Object clientOrderIds = this.parseIds(this.safeValue(parameters, "clientOrderId"));
             Object tpslIds = this.parseIds(this.safeValue(parameters, "tpslId"));
             Object trigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger", "tpsl")));
@@ -2599,7 +2607,7 @@ public class BlofinCore extends BlofinApi
             Object position = this.safeDict(data, 0);
             if (Helpers.isTrue(Helpers.isEqual(position, null)))
             {
-                return null;
+                throw new NullResponse((String)Helpers.add(this.id, " fetchPosition() returned empty position")) ;
             }
             return this.parsePosition(position, market);
         });
@@ -2829,7 +2837,8 @@ public class BlofinCore extends BlofinApi
             initialMarginPercentage = this.parseNumber(Precise.stringDiv(initialMarginString, notionalString, 4));
         } else if (Helpers.isTrue(Helpers.isEqual(initialMarginString, null)))
         {
-            initialMarginString = Precise.stringMul(initialMarginPercentage, notionalString);
+            Object initialMarginPercentageString = this.numberToString(initialMarginPercentage);
+            initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
         }
         Object rounder = "0.00005"; // round to closest 0.01%
         Object maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));

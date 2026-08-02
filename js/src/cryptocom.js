@@ -631,22 +631,24 @@ export default class cryptocom extends Exchange {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'network_id');
             const network = this.networkIdToCode(networkId, code);
-            networks[network] = {
-                'info': chain,
-                'id': networkId,
-                'network': network,
-                'active': undefined,
-                'deposit': this.safeBool(chain, 'deposit_enabled', false),
-                'withdraw': this.safeBool(chain, 'withdraw_enabled', false),
-                'fee': this.safeNumber(chain, 'withdrawal_fee'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(chain, 'min_withdrawal_amount'),
-                        'max': undefined,
+            if (network !== undefined) {
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': undefined,
+                    'deposit': this.safeBool(chain, 'deposit_enabled', false),
+                    'withdraw': this.safeBool(chain, 'withdraw_enabled', false),
+                    'fee': this.safeNumber(chain, 'withdrawal_fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(chain, 'min_withdrawal_amount'),
+                            'max': undefined,
+                        },
                     },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'info': currency,
@@ -1220,7 +1222,9 @@ export default class cryptocom extends Exchange {
             const account = this.account();
             account['total'] = this.safeString(balance, 'quantity');
             account['used'] = this.safeString(balance, 'reserved_qty');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1341,6 +1345,12 @@ export default class cryptocom extends Exchange {
         return this.parseOrder(order, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
         const request = {
@@ -1574,6 +1584,12 @@ export default class cryptocom extends Exchange {
         return this.parseOrders(result);
     }
     createAdvancedOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         // differs slightly from createOrderRequest
         // since the advanced order endpoint requires a different set of parameters
         // namely here we don't support ref_price or spot_margin
@@ -2133,13 +2149,15 @@ export default class cryptocom extends Exchange {
             this.checkAddress(address);
             const networkId = this.safeString(value, 'network');
             const network = this.networkIdToCode(networkId, responseCode);
-            result[network] = {
-                'info': value,
-                'currency': responseCode,
-                'network': network,
-                'address': address,
-                'tag': tag,
-            };
+            if (network !== undefined) {
+                result[network] = {
+                    'info': value,
+                    'currency': responseCode,
+                    'network': network,
+                    'address': address,
+                    'tag': tag,
+                };
+            }
         }
         return result;
     }
@@ -2712,10 +2730,12 @@ export default class cryptocom extends Exchange {
                 const networkId = this.safeString(networkInfo, 'network_id');
                 const currencyCode = this.safeString(currency, 'code');
                 const networkCode = this.networkIdToCode(networkId, currencyCode);
-                result['networks'][networkCode] = {
-                    'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': this.safeNumber(networkInfo, 'withdrawal_fee'), 'percentage': false },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'deposit': { 'fee': undefined, 'percentage': undefined },
+                        'withdraw': { 'fee': this.safeNumber(networkInfo, 'withdrawal_fee'), 'percentage': false },
+                    };
+                }
                 if (networkListLength === 1) {
                     result['withdraw']['fee'] = this.safeNumber(networkInfo, 'withdrawal_fee');
                     result['withdraw']['percentage'] = false;

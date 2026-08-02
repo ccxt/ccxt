@@ -1462,7 +1462,9 @@ export default class aster extends asterRest {
             account['free'] = this.safeString (entry, 'f');
             account['used'] = this.safeString (entry, 'l');
             account['total'] = this.safeString (entry, wallet);
-            this.balance[accountType][code] = account;
+            if ((accountType !== undefined) && (code !== undefined)) {
+                this.balance[accountType][code] = account;
+            }
         }
         const timestamp = this.safeInteger (message, 'E');
         this.balance[accountType]['timestamp'] = timestamp;

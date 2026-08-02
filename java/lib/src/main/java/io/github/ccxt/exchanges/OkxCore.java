@@ -1422,7 +1422,7 @@ public class OkxCore extends OkxApi
     public Object convertToInstrumentType(Object type)
     {
         Object exchangeTypes = this.safeDict(this.options, "exchangeType", new java.util.HashMap<String, Object>() {{}});
-        return this.safeString(exchangeTypes, type, type);
+        return this.safeString(exchangeTypes, ((String)type), type);
     }
 
     public Object createExpiredOptionMarket(Object symbol)
@@ -1513,7 +1513,7 @@ public class OkxCore extends OkxApi
             // on the missing expiry.
             isOption = Helpers.isTrue((Helpers.isGreaterThan(partsLength, 3))) && Helpers.isTrue((Helpers.isTrue(((String)marketId).endsWith(((String)"-C"))) || Helpers.isTrue(((String)marketId).endsWith(((String)"-P")))));
         }
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isOption) && Helpers.isTrue((!Helpers.isEqual(marketId, null)))) && !Helpers.isTrue((Helpers.inOp(this.markets_by_id, marketId)))))
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isOption) && Helpers.isTrue((!Helpers.isEqual(marketId, null)))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(this.markets_by_id, null))) || !Helpers.isTrue((Helpers.inOp(this.markets_by_id, marketId)))))))
         {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
@@ -2137,10 +2137,13 @@ public class OkxCore extends OkxApi
             Object parts = this.arraySlice(idParts, 1);
             Object chainPart = String.join((String)"-", (java.util.List<String>)parts);
             Object networkCode = this.networkIdToCode(chainPart, code);
-            final Object finalNetworkId = networkId;
-            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkId = networkId;
+                final Object finalNetworkCode = networkCode;
+                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", finalNetworkId );
-    put( "network", networkCode );
+    put( "network", finalNetworkCode );
     put( "active", null );
     put( "deposit", OkxCore.this.safeBool(chain, "canDep") );
     put( "withdraw", OkxCore.this.safeBool(chain, "canWd") );
@@ -2154,6 +2157,7 @@ public class OkxCore extends OkxApi
     }} );
     put( "info", chain );
 }});
+            }
         }
         final Object finalType = type;
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
@@ -3059,7 +3063,10 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(account, "free", availEq);
             }
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         Helpers.addElementToObject(result, "timestamp", timestamp);
         Helpers.addElementToObject(result, "datetime", this.iso8601(timestamp));
@@ -3082,7 +3089,10 @@ public class OkxCore extends OkxApi
             Helpers.addElementToObject(account, "total", this.safeString(balance, "bal"));
             Helpers.addElementToObject(account, "free", this.safeString(balance, "availBal"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "frozenBal"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -3383,6 +3393,14 @@ public class OkxCore extends OkxApi
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+        }
         Object market = this.market(symbol);
         Object takeProfitPrice = this.safeValue2(parameters, "takeProfitPrice", "tpTriggerPx");
         Object stopLossPrice = this.safeValue2(parameters, "stopLossPrice", "slTriggerPx");
@@ -5812,7 +5830,7 @@ public class OkxCore extends OkxApi
             put( "10", "trade" );
             put( "11", "trade" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseLedgerEntry(Object item, Object... optionalArgs)
@@ -6068,7 +6086,7 @@ public class OkxCore extends OkxApi
             }
             Object rawNetwork = this.safeString(parameters, "network"); // some networks are like "Dora Vota Mainnet"
             parameters = this.omit(parameters, "network");
-            code = this.safeCurrencyCode(code);
+            code = ((String)this.safeCurrencyCode(code));
             Object network = this.networkIdToCode(rawNetwork, code);
             Object response = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
@@ -6081,7 +6099,7 @@ public class OkxCore extends OkxApi
                 return result;
             }
             Object codeNetwork = this.networkIdToCode(code, code);
-            if (Helpers.isTrue(Helpers.inOp(response, codeNetwork)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(codeNetwork, null))) && Helpers.isTrue((Helpers.inOp(response, codeNetwork)))))
             {
                 return Helpers.GetValue(response, codeNetwork);
             }
@@ -6145,7 +6163,8 @@ public class OkxCore extends OkxApi
             {
                 Object currencies = (this.fetchCurrenciesAsync()).join();
                 this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, currencies));
-                Object targetNetwork = this.safeDict(Helpers.GetValue(currency, "networks"), this.networkIdToCode(network, Helpers.GetValue(currency, "code")), new java.util.HashMap<String, Object>() {{}});
+                Object networkCodeResolved = this.networkIdToCode(network, Helpers.GetValue(currency, "code"));
+                Object targetNetwork = ((Helpers.isTrue((Helpers.isEqual(networkCodeResolved, null))))) ? new java.util.HashMap<String, Object>() {{}} : this.safeDict(Helpers.GetValue(currency, "networks"), networkCodeResolved, new java.util.HashMap<String, Object>() {{}});
                 fee = this.safeString(targetNetwork, "fee");
                 if (Helpers.isTrue(Helpers.isEqual(fee, null)))
                 {
@@ -6807,7 +6826,7 @@ public class OkxCore extends OkxApi
             Object position = this.safeDict(data, 0);
             if (Helpers.isTrue(Helpers.isEqual(position, null)))
             {
-                return null;
+                throw new NullResponse((String)Helpers.add(Helpers.add(this.id, " fetchPosition() could not find a position for "), symbol)) ;
             }
             return this.parsePosition(position, market);
         });
@@ -7087,7 +7106,8 @@ public class OkxCore extends OkxApi
         {
             if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
             {
-                initialMarginString = Precise.stringMul(initialMarginPercentage, notionalString);
+                Object initialMarginPercentageString = this.numberToString(initialMarginPercentage);
+                initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
             } else
             {
                 initialMarginString = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), entryPriceString), leverageString);
@@ -8223,7 +8243,7 @@ public class OkxCore extends OkxApi
         {
             Object item = Helpers.GetValue(response, i);
             Object code = this.safeCurrencyCode(this.safeString(item, "ccy"));
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(codes, null)) || Helpers.isTrue(this.inArray(code, codes))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(codes, null)) || Helpers.isTrue(this.inArray(code, codes))))))
             {
                 if (!Helpers.isTrue((Helpers.inOp(borrowRateHistories, code))))
                 {
@@ -9056,7 +9076,7 @@ public class OkxCore extends OkxApi
             // handle unified currency code or symbol
             Object currencyId = null;
             Object market = null;
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(this.markets, symbol))) || Helpers.isTrue((Helpers.inOp(this.markets_by_id, symbol)))))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(this.markets, null))) && Helpers.isTrue((Helpers.inOp(this.markets, symbol))))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(this.markets_by_id, null))) && Helpers.isTrue((Helpers.inOp(this.markets_by_id, symbol)))))))
             {
                 market = this.market(symbol);
                 currencyId = Helpers.GetValue(market, "baseId");
@@ -9299,7 +9319,7 @@ public class OkxCore extends OkxApi
             Object feeInfo = Helpers.GetValue(response, i);
             Object currencyId = this.safeString(feeInfo, "ccy");
             Object code = this.safeCurrencyCode(currencyId);
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))))
             {
                 Object depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
                 if (Helpers.isTrue(Helpers.isEqual(depositWithdrawFee, null)))
@@ -9328,10 +9348,13 @@ public class OkxCore extends OkxApi
                     put( "percentage", null );
                 }};
                 Object networkCode = this.networkIdToCode(networkId, code);
-                Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "networks"), networkCode, new java.util.HashMap<String, Object>() {{
+                if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+                {
+                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "withdraw", withdrawResult );
     put( "deposit", depositResult );
 }});
+                }
             }
         }
         Object depositWithdrawCodes = Helpers.objectKeys(depositWithdrawFees);
@@ -10370,10 +10393,13 @@ public class OkxCore extends OkxApi
                 Object entry = Helpers.GetValue(data, i);
                 Object id = this.safeString(entry, "ccy");
                 Object code = this.safeCurrencyCode(id);
-                Helpers.addElementToObject(result, code, new java.util.HashMap<String, Object>() {{
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    final Object finalCode = code;
+                    Helpers.addElementToObject(result, code, new java.util.HashMap<String, Object>() {{
         put( "info", entry );
         put( "id", id );
-        put( "code", code );
+        put( "code", finalCode );
         put( "networks", null );
         put( "type", null );
         put( "name", null );
@@ -10398,6 +10424,7 @@ public class OkxCore extends OkxApi
         }} );
         put( "created", null );
     }});
+                }
             }
             return result;
         });

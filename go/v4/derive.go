@@ -2803,7 +2803,9 @@ func (this *DeriveCore) ParseBalance(response any) any {
 				var amount any = this.SafeString(balance, "amount")
 				AddElementToObject(account, "total", Precise.StringAdd(GetValue(account, "total"), amount))
 			}
-			AddElementToObject(result, code, account)
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(result, code, account)
+			}
 		}
 	}
 	return this.SafeBalance(result)
@@ -2836,8 +2838,8 @@ func (this *DeriveCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes253112 := (<-this.LoadMarkets())
-			PanicOnError(retRes253112)
+			retRes253312 := (<-this.LoadMarkets())
+			PanicOnError(retRes253312)
 		}
 		var subaccountId any = nil
 		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchDeposits", params)
@@ -2908,8 +2910,8 @@ func (this *DeriveCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes258012 := (<-this.LoadMarkets())
-			PanicOnError(retRes258012)
+			retRes258212 := (<-this.LoadMarkets())
+			PanicOnError(retRes258212)
 		}
 		var subaccountId any = nil
 		subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchWithdrawals", params)

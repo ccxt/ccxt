@@ -22,6 +22,7 @@ from ccxt.base.errors import NetworkError
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import NullResponse
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -923,23 +924,58 @@ class xt(Exchange, ImplicitAPI):
                 rawNetwork = rawNetworks[j]
                 networkId = self.safe_string(rawNetwork, 'chain')
                 networkCode = self.network_id_to_code(networkId, code)
-                networks[networkCode] = {
-                    'info': rawNetwork,
-                    'id': networkId,
-                    'network': networkCode,
-                    'name': None,
+                if networkCode is not None:
+                    networks[networkCode] = {
+                        'info': rawNetwork,
+                        'id': networkId,
+                        'network': networkCode,
+                        'name': None,
+                        'active': None,
+                        'fee': self.safe_number(rawNetwork, 'withdrawFeeAmount'),
+                        'precision': None,
+                        'deposit': self.safe_bool(rawNetwork, 'depositEnabled'),
+                        'withdraw': self.safe_bool(rawNetwork, 'withdrawEnabled'),
+                        'limits': {
+                            'amount': {
+                                'min': None,
+                                'max': None,
+                            },
+                            'withdraw': {
+                                'min': self.safe_number(rawNetwork, 'withdrawMinAmount'),
+                                'max': None,
+                            },
+                            'deposit': {
+                                'min': None,
+                                'max': None,
+                            },
+                        },
+                    }
+            typeRaw = self.safe_string(entry, 'type')
+            type = None
+            if typeRaw == 'FT':
+                type = 'crypto'
+            else:
+                type = 'other'
+            if code is not None:
+                result[code] = self.safe_currency_structure({
+                    'info': entry,
+                    'id': currencyId,
+                    'code': code,
+                    'name': self.safe_string(entry, 'fullName'),
                     'active': None,
-                    'fee': self.safe_number(rawNetwork, 'withdrawFeeAmount'),
-                    'precision': None,
-                    'deposit': self.safe_bool(rawNetwork, 'depositEnabled'),
-                    'withdraw': self.safe_bool(rawNetwork, 'withdrawEnabled'),
+                    'fee': None,
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(entry, 'maxPrecision'))),
+                    'deposit': self.safe_string(entry, 'depositStatus') == '1',
+                    'withdraw': self.safe_string(entry, 'withdrawStatus') == '1',
+                    'networks': networks,
+                    'type': type,
                     'limits': {
                         'amount': {
                             'min': None,
                             'max': None,
                         },
                         'withdraw': {
-                            'min': self.safe_number(rawNetwork, 'withdrawMinAmount'),
+                            'min': None,
                             'max': None,
                         },
                         'deposit': {
@@ -947,40 +983,7 @@ class xt(Exchange, ImplicitAPI):
                             'max': None,
                         },
                     },
-                }
-            typeRaw = self.safe_string(entry, 'type')
-            type = None
-            if typeRaw == 'FT':
-                type = 'crypto'
-            else:
-                type = 'other'
-            result[code] = self.safe_currency_structure({
-                'info': entry,
-                'id': currencyId,
-                'code': code,
-                'name': self.safe_string(entry, 'fullName'),
-                'active': None,
-                'fee': None,
-                'precision': self.parse_number(self.parse_precision(self.safe_string(entry, 'maxPrecision'))),
-                'deposit': self.safe_string(entry, 'depositStatus') == '1',
-                'withdraw': self.safe_string(entry, 'withdrawStatus') == '1',
-                'networks': networks,
-                'type': type,
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-            })
+                })
         return result
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -1756,7 +1759,8 @@ class xt(Exchange, ImplicitAPI):
         for i in range(0, len(tickers)):
             ticker = self.parse_ticker(tickers[i], market)
             symbol = ticker['symbol']
-            result[symbol] = ticker
+            if symbol is not None:
+                result[symbol] = ticker
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_bids_asks(self, symbols: Strings = None, params={}):
@@ -2337,7 +2341,8 @@ class xt(Exchange, ImplicitAPI):
             account['free'] = free
             account['used'] = used
             account['total'] = total
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
@@ -2391,7 +2396,7 @@ class xt(Exchange, ImplicitAPI):
         else:
             return await self.create_contract_order(symbol, type, side, amount, price, params)
 
-    async def create_spot_order(self, symbol: str, type, side, amount, price=None, params={}):
+    async def create_spot_order(self, symbol: str, type, side, amount, price: Num = None, params={}):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -2446,7 +2451,7 @@ class xt(Exchange, ImplicitAPI):
         order = self.safe_value(response, 'result', {})
         return self.parse_order(order, market)
 
-    async def create_contract_order(self, symbol: str, type, side, amount, price=None, params={}):
+    async def create_contract_order(self, symbol: str, type, side, amount, price: Num = None, params={}):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -3103,7 +3108,7 @@ class xt(Exchange, ImplicitAPI):
         if resultDict is not None:
             orders = self.safe_list(resultDict, 'items', [])
         else:
-            orders = self.safe_list(response, 'result')
+            orders = self.safe_list(response, 'result', [])
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -4118,7 +4123,7 @@ class xt(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None) -> LeverageTiers:
+    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey: Str = None) -> LeverageTiers:
         #
         #     {
         #         "symbol": "rad_usdt",
@@ -4486,7 +4491,7 @@ class xt(Exchange, ImplicitAPI):
             'amount': self.safe_number(contract, 'cast'),
         }
 
-    async def fetch_position(self, symbol: str, params={}):
+    async def fetch_position(self, symbol: str, params={}) -> Position:
         """
         fetch data on a single open contract trade position
 
@@ -4542,7 +4547,7 @@ class xt(Exchange, ImplicitAPI):
             positionSize = self.safe_string(entry, 'positionSize')
             if positionSize != '0':
                 return self.parse_position(entry, marketInner)
-        return None
+        raise NullResponse(self.id + ' fetchPosition() could not find a position for ' + symbol)
 
     async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
         """
@@ -4933,8 +4938,12 @@ class xt(Exchange, ImplicitAPI):
             body = query
             if (payload == '/v4/order') or (payload == '/future/trade/v1/order/create') or (payload == '/future/trade/v1/entrust/create-plan') or (payload == '/future/trade/v1/entrust/create-profit') or (payload == '/future/trade/v1/order/create-batch'):
                 id = 'CCXT'
+                if body is None:
+                    raise NullResponse(self.id + ' sign() returned empty body')
                 if payload.find('future') > -1:
                     body['clientMedia'] = id
+                    if body is None:
+                        raise NullResponse(self.id + ' sign() returned empty body')
                 else:
                     body['media'] = id
             isUndefinedBody = ((method == 'GET') or (path == 'order/{orderId}') or (path == 'ws-token'))

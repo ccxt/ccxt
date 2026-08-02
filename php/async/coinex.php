@@ -779,7 +779,9 @@ class coinex extends Exchange {
                 ),
                 'info' => $chain,
             );
-            $networks[$networkCode] = $network;
+            if ($networkCode !== null) {
+                $networks[$networkCode] = $network;
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $currencyId,
@@ -1775,7 +1777,9 @@ class coinex extends Exchange {
                 $baseDebt = $this->safe_string($loan, 'base_ccy');
                 $baseInterest = $this->safe_string($interest, 'base_ccy');
                 $baseAccount['debt'] = Precise::string_add($baseDebt, $baseInterest);
-                $result[$baseCurrencyCode] = $baseAccount;
+                if ($baseCurrencyCode !== null) {
+                    $result[$baseCurrencyCode] = $baseAccount;
+                }
             }
             return $this->safe_balance($result);
         })();
@@ -1809,7 +1813,9 @@ class coinex extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($entry, 'available');
                 $account['used'] = $this->safe_string($entry, 'frozen');
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             }
             return $this->safe_balance($result);
         })();
@@ -1846,7 +1852,9 @@ class coinex extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($entry, 'available');
                 $account['used'] = $this->safe_string($entry, 'frozen');
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             }
             return $this->safe_balance($result);
         })();
@@ -1880,7 +1888,9 @@ class coinex extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($entry, 'available');
                 $account['used'] = $this->safe_string($entry, 'frozen');
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             }
             return $this->safe_balance($result);
         })();
@@ -2222,7 +2232,13 @@ class coinex extends Exchange {
         })();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $swap = $market['swap'];
         $clientOrderId = $this->safe_string_2($params, 'client_id', 'clientOrderId');
@@ -3130,7 +3146,9 @@ class coinex extends Exchange {
                 $rawOrder = $orders[$i];
                 $marketId = $this->safe_string($rawOrder, 'symbol');
                 $market = $this->market($marketId);
-                $orderSymbols[] = $marketId;
+                if ($marketId !== null) {
+                    $orderSymbols[] = $marketId;
+                }
                 $id = $this->safe_string($rawOrder, 'id');
                 $amount = $this->safe_value($rawOrder, 'amount');
                 $price = $this->safe_value($rawOrder, 'price');
@@ -4669,7 +4687,7 @@ class coinex extends Exchange {
             //         "message" => "OK"
             //     }
             //
-            $data = $this->safe_dict($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
             $status = $this->safe_string_lower($response, 'message');
             $type = ($addOrReduce === 'reduce') ? 'reduce' : 'add';
             return $this->extend($this->parse_margin_modification($data, $market), array(
@@ -5967,7 +5985,9 @@ class coinex extends Exchange {
                 }
                 $code = $this->safe_currency_code($currencyId);
                 if ($codes === null || $this->in_array($code, $codes)) {
-                    $result[$code] = $this->parse_deposit_withdraw_fee($item);
+                    if ($code !== null) {
+                        $result[$code] = $this->parse_deposit_withdraw_fee($item);
+                    }
                 }
             }
             return $result;
@@ -6029,16 +6049,18 @@ class coinex extends Exchange {
                     $currencyId = $this->safe_string($asset, 'ccy');
                     $feeCode = $this->safe_currency_code($currencyId, $currency);
                     $networkCode = $this->network_id_to_code($networkId, $feeCode);
-                    $result['networks'][$networkCode] = array(
-                        'withdraw' => array(
-                            'fee' => $this->safe_number($entry, 'withdrawal_fee'),
-                            'percentage' => false,
-                        ),
-                        'deposit' => array(
-                            'fee' => null,
-                            'percentage' => null,
-                        ),
-                    );
+                    if ($networkCode !== null) {
+                        $result['networks'][$networkCode] = array(
+                            'withdraw' => array(
+                                'fee' => $this->safe_number($entry, 'withdrawal_fee'),
+                                'percentage' => false,
+                            ),
+                            'deposit' => array(
+                                'fee' => null,
+                                'percentage' => null,
+                            ),
+                        );
+                    }
                 }
             }
         }

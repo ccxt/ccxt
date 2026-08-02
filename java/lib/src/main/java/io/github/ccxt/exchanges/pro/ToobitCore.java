@@ -440,12 +440,16 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}});
         }
-        if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), timeframe))))
+        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Object limit = this.safeInteger(Helpers.GetValue(this.options, "ws"), "OHLCVLimit", 1000);
-            Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
+            stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
+            if (Helpers.isTrue(!Helpers.isEqual(timeframe, null)))
+            {
+                Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
+            }
         }
-        Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
@@ -593,14 +597,24 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         //    }
         //
         Object data = this.safeList(message, "data");
+        if (Helpers.isTrue(Helpers.isEqual(data, null)))
+        {
+            return;
+        }
         Object newTickers = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object ticker = Helpers.GetValue(data, i);
             Object parsed = this.parseWsTicker(ticker);
             Object symbol = Helpers.GetValue(parsed, "symbol");
-            Helpers.addElementToObject(this.tickers, symbol, parsed);
-            Helpers.addElementToObject(newTickers, symbol, parsed);
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                Helpers.addElementToObject(this.tickers, symbol, parsed);
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                Helpers.addElementToObject(newTickers, symbol, parsed);
+            }
             Object messageHash = Helpers.add("ticker::", symbol);
             client.resolve(parsed, messageHash);
         }
@@ -837,6 +851,10 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object swapMessageHash = "contract:balance";
             Object messageHash = ((Helpers.isTrue(isSpot))) ? spotMessageHash : swapMessageHash;
             Object subscriptionHash = ((Helpers.isTrue(isSpot))) ? spotSubHash : swapSubHash;
+            if (Helpers.isTrue(Helpers.isEqual(subscriptionHash, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " watchBalance() requires a subscription hash")) ;
+            }
             Object url = this.getUserStreamUrl();
             Client client = this.client(url);
             this.setBalanceCache(client, marketType, subscriptionHash, parameters);
@@ -850,7 +868,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
     {
         Object subscriptionHash = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-        if (Helpers.isTrue(Helpers.inOp(client.subscriptions, subscriptionHash)))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(subscriptionHash, null))) || Helpers.isTrue((Helpers.inOp(client.subscriptions, subscriptionHash)))))
         {
             return;
         }
@@ -918,7 +936,10 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Helpers.addElementToObject(account, "info", balance);
             Helpers.addElementToObject(account, "used", this.safeString(balance, "l"));
             Helpers.addElementToObject(account, "free", this.safeString(balance, "f"));
-            Helpers.addElementToObject(Helpers.GetValue(this.balance, type), code, account);
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(type, null))) && Helpers.isTrue((!Helpers.isEqual(code, null)))))
+            {
+                Helpers.addElementToObject(Helpers.GetValue(this.balance, type), code, account);
+            }
         }
         Helpers.addElementToObject(this.balance, type, this.safeBalance(Helpers.GetValue(this.balance, type)));
         client.resolve(Helpers.GetValue(this.balance, type), Helpers.add(type, ":balance"));
@@ -1223,6 +1244,10 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             if (!Helpers.isTrue(this.isEmpty(symbols)))
             {
                 symbols = this.marketSymbols(symbols);
+                if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
+                {
+                    throw new ArgumentsRequired((String)Helpers.add(this.id, " watchPositions() symbols is required")) ;
+                }
                 messageHash = Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols));
             }
             Object url = this.getUserStreamUrl();
@@ -1500,7 +1525,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         {
             Object desc = this.safeString(message, "desc");
             Object msg = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " code: "), code), " message: "), desc);
-            var exception = new ExchangeError(            ((String)msg)); // c# fix
+            var exception = new ExchangeError(((String)msg)); // c# fix
             client.reject(exception);
             return true;
         }

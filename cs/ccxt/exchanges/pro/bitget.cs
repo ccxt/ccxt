@@ -737,7 +737,7 @@ public partial class bitget : ccxt.bitget
         {
             return;
         }
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+        object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (isTrue(isEqual(stored, null)))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -2707,7 +2707,11 @@ public partial class bitget : ccxt.bitget
                     object entry = getValue(coins, j);
                     object currencyId = this.safeString(entry, "coin");
                     object code = this.safeCurrencyCode(currencyId);
-                    object account = ((bool) isTrue((inOp(this.balance, code)))) ? getValue(this.balance, code) : this.account();
+                    object account = this.account();
+                    if (isTrue(isTrue((!isEqual(code, null))) && isTrue((inOp(this.balance, code)))))
+                    {
+                        account = getValue(this.balance, code);
+                    }
                     object borrow = this.safeString(entry, "borrow");
                     object debts = this.safeString(entry, "debts");
                     if (isTrue(isTrue((!isEqual(borrow, null))) || isTrue((!isEqual(debts, null)))))
@@ -2717,13 +2721,20 @@ public partial class bitget : ccxt.bitget
                     ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
                     ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "locked");
                     ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "balance");
-                    ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                    if (isTrue(!isEqual(code, null)))
+                    {
+                        ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                    }
                 }
             } else
             {
                 object currencyId = this.safeString2(rawBalance, "coin", "marginCoin");
                 object code = this.safeCurrencyCode(currencyId);
-                object account = ((bool) isTrue((inOp(this.balance, code)))) ? getValue(this.balance, code) : this.account();
+                object account = this.account();
+                if (isTrue(isTrue((!isEqual(code, null))) && isTrue((inOp(this.balance, code)))))
+                {
+                    account = getValue(this.balance, code);
+                }
                 object borrow = this.safeString(rawBalance, "borrow");
                 if (isTrue(!isEqual(borrow, null)))
                 {
@@ -2734,7 +2745,10 @@ public partial class bitget : ccxt.bitget
                 ((IDictionary<string,object>)account)["free"] = this.safeString(rawBalance, freeQuery);
                 ((IDictionary<string,object>)account)["total"] = this.safeString(rawBalance, "equity");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(rawBalance, "frozen");
-                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                }
             }
         }
         this.balance = this.safeBalance(this.balance);

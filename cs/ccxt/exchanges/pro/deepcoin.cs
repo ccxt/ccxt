@@ -1356,7 +1356,7 @@ public partial class deepcoin : ccxt.deepcoin
     {
         object subHash = this.safeString(subscription, "subHash");
         object unsubHash = this.safeString(subscription, "unsubHash");
-        this.cleanUnsubscription(client as WebSocketClient, ((string)subHash), ((string)unsubHash));
+        this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash);
         this.cleanCache(subscription);
     }
 

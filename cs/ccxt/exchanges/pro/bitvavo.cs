@@ -391,7 +391,7 @@ public partial class bitvavo : ccxt.bitvavo
         object messageHash = add(add(add(add(name, "@"), marketId), "_"), interval);
         object candles = this.safeValue(message, "candle");
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
+        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
         if (isTrue(isEqual(stored, null)))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1608,7 +1608,7 @@ public partial class bitvavo : ccxt.bitvavo
         object rejected = false;
         try
         {
-            this.handleErrors(code, ((string)error), client.url, "", new Dictionary<string, object>() {}, ((string)error), ((string)message), new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+            this.handleErrors(code, ((string)error), client.url, "", new Dictionary<string, object>() {}, ((string)error), message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
         } catch(Exception e)
         {
             rejected = true;
@@ -1700,11 +1700,11 @@ public partial class bitvavo : ccxt.bitvavo
             { "getMarkets", this.handleMarkets },
         };
         object eventVar = this.safeString(message, "event");
-        object method = this.safeValue(methods, ((string)eventVar));
+        object method = this.safeValue(methods, eventVar);
         if (isTrue(isEqual(method, null)))
         {
             object action = this.safeString(message, "action");
-            method = this.safeValue(methods, ((string)action));
+            method = this.safeValue(methods, action);
             if (isTrue(!isEqual(method, null)))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

@@ -185,7 +185,9 @@ class bitrue extends \ccxt\async\bitrue {
                 if ($updateUsed) {
                     $account['used'] = $used;
                 }
-                $this->balance[$code] = $account;
+                if ($code !== null) {
+                    $this->balance[$code] = $account;
+                }
             }
         }
         $this->balance = $this->safe_balance($this->balance);
@@ -263,7 +265,7 @@ class bitrue extends \ccxt\async\bitrue {
         $client->resolve($this->orders, $messageHash);
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         //    {
         //        "e" => "ORDER",
@@ -427,9 +429,13 @@ class bitrue extends \ccxt\async\bitrue {
     }
 
     public function find_swap_market_by_ws_base_quote(string $wsBaseQuote) {
-        $symbols = is_array($this->markets) ? array_keys($this->markets) : array();
+        $markets = $this->markets;
+        if ($markets === null) {
+            return null;
+        }
+        $symbols = is_array($markets) ? array_keys($markets) : array();
         for ($i = 0; $i < count($symbols); $i++) {
-            $candidate = $this->markets[$symbols[$i]];
+            $candidate = $markets[$symbols[$i]];
             if (!$candidate['swap']) {
                 continue;
             }

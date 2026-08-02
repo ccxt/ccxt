@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.latoken import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -430,6 +430,8 @@ class latoken(Exchange, ImplicitAPI):
             if baseCurrencyInfo is not None and quoteCurrencyInfo is not None:
                 base = self.safe_currency_code(self.safe_string(baseCurrencyInfo, 'tag'))
                 quote = self.safe_currency_code(self.safe_string(quoteCurrencyInfo, 'tag'))
+                if (base is None) or (quote is None):
+                    continue
                 lowercaseQuote = quote.lower()
                 capitalizedQuote = self.capitalize(lowercaseQuote)
                 status = self.safe_string(market, 'status')
@@ -525,7 +527,7 @@ class latoken(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, currency: dict) -> Currency:
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
         id = self.safe_string(currency, 'id')
         tag = self.safe_string(currency, 'tag')
         code = self.safe_currency_code(tag)
@@ -614,7 +616,8 @@ class latoken(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string(balance, 'available')
             account['used'] = self.safe_string(balance, 'blocked')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         result['timestamp'] = maxTimestamp
         result['datetime'] = self.iso8601(maxTimestamp)
         return self.safe_balance(result)
@@ -836,7 +839,7 @@ class latoken(Exchange, ImplicitAPI):
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
-        if symbol in self.markets:
+        if (self.markets is not None) and (symbol in self.markets):
             market = self.market(symbol)
         id = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'order')
@@ -1098,7 +1101,7 @@ class latoken(Exchange, ImplicitAPI):
         symbol = None
         if (base is not None) and (quote is not None):
             symbol = base + '/' + quote
-            if symbol in self.markets:
+            if (self.markets is not None) and (symbol in self.markets):
                 market = self.market(symbol)
         orderSide = self.safe_string(order, 'side')
         side = None
@@ -1337,6 +1340,8 @@ class latoken(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         uppercaseType = type.upper()
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         request = {
             'baseCurrency': market['baseId'],
             'quoteCurrency': market['quoteId'],
@@ -1760,7 +1765,7 @@ class latoken(Exchange, ImplicitAPI):
             if method == 'POST':
                 headers['Content-Type'] = 'application/json'
                 body = self.json(query)
-        url = (self.urls['api'])['rest'] + requestString
+        url = self.urls['api']['rest'] + requestString
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):

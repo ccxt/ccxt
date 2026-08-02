@@ -8,7 +8,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 
 // ----------------------------------------------------------------------------
-//  ---------------------------------------------------------------------------xs
+//  ---------------------------------------------------------------------------
 /**
  * @class alpaca
  * @augments Exchange
@@ -438,9 +438,21 @@ class alpaca extends alpaca$1["default"] {
         //     }
         //
         const timestamp = this.safeString(response, 'timestamp');
+        if (timestamp === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchTime() missing timestamp');
+        }
         const localTime = timestamp.slice(0, 23);
+        if (timestamp === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchTime() missing timestamp');
+        }
         const jetlagStrStart = timestamp.length - 6;
+        if (timestamp === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchTime() missing timestamp');
+        }
         const jetlagStrEnd = timestamp.length - 3;
+        if (timestamp === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchTime() missing timestamp');
+        }
         const jetlag = timestamp.slice(jetlagStrStart, jetlagStrEnd);
         const iso = this.parseToInt(this.parse8601(localTime)) - this.parseToNumeric(jetlag) * 3600 * 1000;
         return iso;
@@ -505,6 +517,9 @@ class alpaca extends alpaca$1["default"] {
         //     }
         //
         const marketId = this.safeString(asset, 'symbol');
+        if (marketId === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseMarket() missing marketId');
+        }
         const parts = marketId.split('/');
         const assetClass = this.safeString(asset, 'class');
         const baseId = this.safeString(parts, 0);
@@ -522,7 +537,7 @@ class alpaca extends alpaca$1["default"] {
         const minAmount = this.safeNumber(asset, 'min_order_size');
         const amount = this.safeNumber(asset, 'min_trade_increment');
         const price = this.safeNumber(asset, 'price_increment');
-        return {
+        return this.safeMarketStructure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -570,7 +585,7 @@ class alpaca extends alpaca$1["default"] {
             },
             'created': undefined,
             'info': asset,
-        };
+        });
     }
     /**
      * @method
@@ -649,7 +664,11 @@ class alpaca extends alpaca$1["default"] {
         else {
             throw new errors.NotSupported(this.id + ' fetchTrades() does not support ' + method + ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported');
         }
-        return this.parseTrades(symbolTrades, market, since, limit);
+        let symbolTradesList = [];
+        if (symbolTrades !== undefined) {
+            symbolTradesList = symbolTrades;
+        }
+        return this.parseTrades(symbolTradesList, market, since, limit);
     }
     /**
      * @method
@@ -1897,7 +1916,9 @@ class alpaca extends alpaca$1["default"] {
         const code = this.safeCurrencyCode(currencyId);
         account['free'] = this.safeString(response, 'cash');
         account['total'] = this.safeString(response, 'equity');
-        result[code] = account;
+        if (code !== undefined) {
+            result[code] = account;
+        }
         return this.safeBalance(result);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

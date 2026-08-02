@@ -442,6 +442,10 @@ public class BitoproCore extends BitoproApi
     {
         Object active = !Helpers.isTrue(this.safeBool(market, "maintain"));
         Object id = this.safeString(market, "pair");
+        if (Helpers.isTrue(Helpers.isEqual(id, null)))
+        {
+            throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing id")) ;
+        }
         Object uppercaseId = ((String)id).toUpperCase();
         Object baseId = this.safeString(market, "base");
         Object quoteId = this.safeString(market, "quote");
@@ -466,9 +470,10 @@ public class BitoproCore extends BitoproApi
                 put( "max", null );
             }} );
         }};
+        final Object finalId = id;
         final Object finalBase = base;
-        return new java.util.HashMap<String, Object>() {{
-            put( "id", id );
+        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+            put( "id", finalId );
             put( "uppercaseId", uppercaseId );
             put( "symbol", symbol );
             put( "base", finalBase );
@@ -499,7 +504,7 @@ public class BitoproCore extends BitoproApi
             put( "active", active );
             put( "created", null );
             put( "info", market );
-        }};
+        }});
     }
 
     public Object parseTicker(Object ticker, Object... optionalArgs)
@@ -920,9 +925,10 @@ public class BitoproCore extends BitoproApi
             Object result = new java.util.HashMap<String, Object>() {{}};
             Object maker = this.safeNumber(first, "makerFee");
             Object taker = this.safeNumber(first, "takerFee");
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+            Object symbols = this.symbols;
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                Object symbol = Helpers.GetValue(this.symbols, i);
+                Object symbol = Helpers.GetValue(symbols, i);
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", first );
         put( "symbol", symbol );
@@ -1089,7 +1095,10 @@ public class BitoproCore extends BitoproApi
                 put( "free", available );
                 put( "total", amount );
             }};
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -1186,6 +1195,10 @@ public class BitoproCore extends BitoproApi
         Object id = this.safeString2(order, "id", "orderId");
         Object timestamp = this.safeInteger2(order, "timestamp", "createdTimestamp");
         Object side = this.safeString(order, "action");
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ExchangeError((String)Helpers.add(this.id, " parseOrder() returned no side")) ;
+        }
         side = ((String)side).toLowerCase();
         Object amount = this.safeString2(order, "amount", "originalAmount");
         Object price = this.safeString(order, "price");
@@ -1417,7 +1430,10 @@ final Object finalJ = j;
             Object market = this.market(symbol);
             Object id = Helpers.GetValue(market, "uppercaseId");
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Helpers.addElementToObject(request, id, ids);
+            if (Helpers.isTrue(!Helpers.isEqual(id, null)))
+            {
+                Helpers.addElementToObject(request, id, ids);
+            }
             Object response = (this.privatePutOrders(this.extend(request, parameters))).join();
             //
             //     {

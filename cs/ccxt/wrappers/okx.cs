@@ -1796,7 +1796,7 @@ public partial class okx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol.</returns>
-    public async Task<Dictionary<string, object>> FetchBorrowRateHistories(object codes = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchBorrowRateHistories(List<String> codes = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;

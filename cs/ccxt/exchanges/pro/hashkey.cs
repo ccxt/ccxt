@@ -891,7 +891,10 @@ public partial class hashkey : ccxt.hashkey
         object account = this.account();
         ((IDictionary<string,object>)account)["free"] = this.safeString(balanceUpdate, "f");
         ((IDictionary<string,object>)account)["used"] = this.safeString(balanceUpdate, "l");
-        ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
+        if (isTrue(isTrue((!isEqual(type, null))) && isTrue((!isEqual(code, null)))))
+        {
+            ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
+        }
         ((IDictionary<string,object>)this.balance)[(string)type] = this.safeBalance(getValue(this.balance, type));
         object messageHash = add("balance:", type);
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), messageHash});

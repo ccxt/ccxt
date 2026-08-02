@@ -833,10 +833,13 @@ public class WeexCore extends WeexApi
             Object chain = this.safeDict(chains, j);
             Object networkId = this.safeString(chain, "network");
             Object networkCode = this.networkIdToCode(networkId, code);
-            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkCode = networkCode;
+                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
-    put( "network", networkCode );
+    put( "network", finalNetworkCode );
     put( "active", null );
     put( "deposit", WeexCore.this.safeBool(chain, "depositEnable") );
     put( "withdraw", WeexCore.this.safeBool(chain, "withdrawEnable") );
@@ -854,6 +857,7 @@ public class WeexCore extends WeexApi
         }} );
     }} );
 }});
+            }
         }
         Object networkKeys = Helpers.objectKeys(networks);
         Object networksLength = Helpers.getArrayLength(networkKeys);
@@ -1004,7 +1008,7 @@ public class WeexCore extends WeexApi
             }
         } else
         {
-            active = this.safeBool(market, "enableTrade");
+            active = Helpers.isEqual(this.safeBool(market, "enableTrade", false), true);
         }
         Object amountPrecision = this.safeNumber(market, "stepSize");
         Object pricePrecision = this.safeNumber(market, "tickSize");
@@ -1016,6 +1020,11 @@ public class WeexCore extends WeexApi
             pricePrecision = this.parseNumber(pricePrecisionString);
         }
         Object fees = this.safeDict(this.fees, ((Helpers.isTrue(isSpot))) ? "spot" : "contract", new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(id, null)))
+        {
+            throw new ExchangeError((String)Helpers.add(this.id, " method() missing id")) ;
+        }
+        final Object finalId = id;
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalSettle = settle;
@@ -1026,8 +1035,8 @@ public class WeexCore extends WeexApi
         final Object finalAmountPrecision = amountPrecision;
         final Object finalPricePrecision = pricePrecision;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
-            put( "id", id );
-            put( "lowercaseId", ((String)id).toLowerCase() );
+            put( "id", finalId );
+            put( "lowercaseId", ((String)finalId).toLowerCase() );
             put( "numericId", WeexCore.this.safeInteger(market, "contractId") );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
@@ -1524,6 +1533,10 @@ public class WeexCore extends WeexApi
                         startTime = Helpers.subtract(now, timeDelta);
                     } else if (Helpers.isTrue(Helpers.isEqual(since, null)))
                     {
+                        if (Helpers.isTrue(Helpers.isEqual(until, null)))
+                        {
+                            throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV() requires a since or until argument")) ;
+                        }
                         startTime = Helpers.subtract(until, timeDelta);
                     } else
                     {
@@ -1614,7 +1627,12 @@ public class WeexCore extends WeexApi
             //         }
             //     ]
             //
-            return this.parseTrades(response, market, since, limit);
+            Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(!Helpers.isEqual(response, null)))
+            {
+                responseList = response;
+            }
+            return this.parseTrades(responseList, market, since, limit);
         });
 
     }
@@ -2042,7 +2060,10 @@ public class WeexCore extends WeexApi
             Helpers.addElementToObject(account, "free", this.safeString2(entry, "availableBalance", "free"));
             Helpers.addElementToObject(account, "used", this.safeString2(entry, "frozen", "locked"));
             Helpers.addElementToObject(account, "total", this.safeString(entry, "balance"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -2223,6 +2244,10 @@ public class WeexCore extends WeexApi
             //         "transactTime": 1775608924724
             //     }
             //
+            if (Helpers.isTrue(Helpers.isEqual(response, null)))
+            {
+                throw new NullResponse((String)Helpers.add(this.id, " parseOrder() returned empty response")) ;
+            }
             return this.parseOrder(response, market);
         });
 
@@ -2232,11 +2257,24 @@ public class WeexCore extends WeexApi
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+        }
         Object market = this.market(symbol);
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " createSpotOrderRequest() requires a side argument")) ;
+        }
+        final Object finalSide = side;
         final Object finalType = type;
         Object request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
-            put( "side", ((String)side).toUpperCase() );
+            put( "side", ((String)finalSide).toUpperCase() );
             put( "type", ((String)finalType).toUpperCase() );
             put( "quantity", WeexCore.this.amountToPrecision(symbol, amount) );
         }};
@@ -2305,6 +2343,10 @@ public class WeexCore extends WeexApi
             {
                 response = (this.contractPrivatePostCapiV3Order(request)).join();
             }
+            if (Helpers.isTrue(Helpers.isEqual(response, null)))
+            {
+                throw new NullResponse((String)Helpers.add(this.id, " createOrder() returned empty response")) ;
+            }
             return this.parseOrder(response, market);
         });
 
@@ -2314,7 +2356,19 @@ public class WeexCore extends WeexApi
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+        }
         Object market = this.market(symbol);
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " createContractOrderRequest() requires a side argument")) ;
+        }
         final Object finalSide = side;
         final Object finalType = type;
         Object request = new java.util.HashMap<String, Object>() {{
@@ -2537,6 +2591,10 @@ public class WeexCore extends WeexApi
             {
                 response = (this.contractPrivateDeleteCapiV3Order(this.extend(request, parameters))).join();
             }
+            if (Helpers.isTrue(Helpers.isEqual(response, null)))
+            {
+                throw new NullResponse((String)Helpers.add(this.id, " parseOrder() returned empty response")) ;
+            }
             Object order = this.parseOrder(response, market);
             Helpers.addElementToObject(order, "status", "canceled");
             return order;
@@ -2756,6 +2814,10 @@ public class WeexCore extends WeexApi
             } else
             {
                 response = (this.contractPrivateGetCapiV3Order(this.extend(request, parameters))).join();
+            }
+            if (Helpers.isTrue(Helpers.isEqual(response, null)))
+            {
+                throw new NullResponse((String)Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.parseOrder(response, market);
         });
@@ -3401,7 +3463,7 @@ public class WeexCore extends WeexApi
             put( "TAKE_PROFIT_MARKET", "market" );
             put( "STOP_MARKET", "market" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public void handleOrderOrPositionError(Object errorCode, Object errorMessage, Object order)
@@ -3570,7 +3632,12 @@ public class WeexCore extends WeexApi
                 //
                 response = (this.contractPrivateGetCapiV3UserTrades(this.extend(request, parameters))).join();
             }
-            return this.parseTrades(response, market, since, limit);
+            Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(!Helpers.isEqual(response, null)))
+            {
+                responseList = response;
+            }
+            return this.parseTrades(responseList, market, since, limit);
         });
 
     }
@@ -3628,6 +3695,10 @@ public class WeexCore extends WeexApi
             }
             if (Helpers.isTrue(Helpers.isEqual(accountType, "contract")))
             {
+                if (Helpers.isTrue(Helpers.isEqual(currency, null)))
+                {
+                    throw new ExchangeError((String)Helpers.add(this.id, " fetchLedger() could not resolve currency")) ;
+                }
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
                     Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
@@ -3734,6 +3805,10 @@ public class WeexCore extends WeexApi
         Object before = Precise.stringSub(after, amountRaw);
         Object amount = this.parseNumber(Precise.stringAbs(amountRaw));
         Object direction = "in";
+        if (Helpers.isTrue(Helpers.isEqual(amountRaw, null)))
+        {
+            throw new ExchangeError((String)Helpers.add(this.id, " parseLedgerEntry() missing amountRaw")) ;
+        }
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(amountRaw, "-"), 0)))
         {
             direction = "out";
@@ -3786,7 +3861,7 @@ public class WeexCore extends WeexApi
             put( "position_close_long", "trade" );
             put( "position_close_short", "trade" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     /**

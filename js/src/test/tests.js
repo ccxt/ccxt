@@ -1769,7 +1769,9 @@ class testMainClass {
             options['secret'] = "";
         }
         const exchange = initExchange(exchangeName, options);
-        exchange.currencies = currencies;
+        if (currencies !== undefined) {
+            exchange.currencies = currencies;
+        }
         // rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
         // outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
         if (predictionEvents !== undefined) {
@@ -2249,7 +2251,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['Referer'] === id, 'bybit - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -2274,7 +2276,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         let id = 'ccxt';
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for spot orders.');
@@ -2282,7 +2284,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000, { 'uta': true });
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for spot uta orders.');
         id = 'ccxtfutures';
@@ -2290,14 +2292,14 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for swap orders.');
         try {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'uta': true });
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers for swap uta orders.');
         if (!isSync()) {
@@ -2318,7 +2320,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers.');
         try {
@@ -2326,7 +2328,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers for uta orders.');
         if (!isSync()) {
@@ -2343,7 +2345,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['X-CHANNEL-API-CODE'] === id, 'bitget - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -2361,7 +2363,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USDT', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['source'] === id, 'mexc - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -2465,7 +2467,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['X-SOURCE-KEY'] === id, 'bingx - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -2512,7 +2514,7 @@ class testMainClass {
     // async testHyperliquid () {
     //     const exchange = this.initOfflineExchange ('hyperliquid');
     //     const id = '1';
-    //     let request = undefined;
+    //     let request: NullableDict = undefined;
     //     try {
     //         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
     //     } catch (e) {
@@ -2628,7 +2630,7 @@ class testMainClass {
             await exchange.createOrder('BTC/USD:USDC', 'limit', 'buy', 1, 20000);
         }
         catch (e) {
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['PARADEX-PARTNER'] === id, 'paradex - id: ' + id + ' not in headers');
         if (!isSync()) {
@@ -2645,7 +2647,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['INPUT-SOURCE'] === id, 'hashkey - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -2729,7 +2731,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['X-Broker-Id'] === id, 'backpack - id: ' + id + ' not in headers.');
         if (!isSync()) {
@@ -2746,7 +2748,7 @@ class testMainClass {
         }
         catch (e) {
             // we expect an error here, we're only interested in the headers
-            reqHeaders = exchange.last_request_headers;
+            reqHeaders = exchange.last_request_headers ? exchange.last_request_headers : {};
         }
         assert(reqHeaders['X-BB-API-PLATFORM'] === id, 'toobit - id: ' + id + ' not in headers.');
         if (!isSync()) {

@@ -46,7 +46,7 @@ func TestWatchOrderBookForSymbols(exchange ccxt.ICoreExchange, skippedProperties
 				}()
 
 			}
-			if IsTrue(IsEqual(succeeded, true)) {
+			if IsTrue(IsTrue((IsEqual(succeeded, true))) && IsTrue((!IsEqual(response, nil)))) {
 				TestOrderBook(exchange, skippedProperties, method, response, nil)
 				AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols)
 				var symbol any = GetValue(response, "symbol")

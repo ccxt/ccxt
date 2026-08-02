@@ -392,9 +392,11 @@ class coinex(ccxt.async_support.coinex):
         if accountType is not None:
             if self.safe_value(self.balance, accountType) is None:
                 self.balance[accountType] = {}
-            self.balance[accountType][code] = account
+            if (accountType is not None) and (code is not None):
+                self.balance[accountType][code] = account
         else:
-            self.balance[code] = account
+            if code is not None:
+                self.balance[code] = account
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -583,7 +585,7 @@ class coinex(ccxt.async_support.coinex):
         marketId = self.safe_string(trade, 'market')
         market = self.safe_market(marketId, market, None, defaultType)
         fee = {}
-        feeCost = self.omit_zero((self.safe_string(trade, 'fee')))
+        feeCost = self.omit_zero(self.safe_string(trade, 'fee'))
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_ccy', market['quote'])
             fee = {
@@ -1139,7 +1141,7 @@ class coinex(ccxt.async_support.coinex):
         defaultType = 'spot' if isSpot else 'swap'
         market = self.safe_market(marketId, market, None, defaultType)
         fee = None
-        feeCost = self.omit_zero((self.safe_string_2(order, 'fee', 'quote_ccy_fee')))
+        feeCost = self.omit_zero(self.safe_string_2(order, 'fee', 'quote_ccy_fee'))
         if feeCost is not None:
             feeCurrencyId = self.safe_string(order, 'fee_ccy', market['quote'])
             fee = {

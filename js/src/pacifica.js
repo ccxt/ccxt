@@ -683,6 +683,9 @@ export default class pacifica extends Exchange {
         let maxLeverage = undefined;
         let crossMargin = undefined;
         let isolatedMargin = undefined;
+        if (id === undefined) {
+            throw new ExchangeError(this.id + ' parseMarket() missing id');
+        }
         if (isSpot) {
             const idParts = id.split('-');
             quoteId = this.safeString(idParts, 1, quoteId);
@@ -1518,6 +1521,12 @@ export default class pacifica extends Exchange {
         return this.safeOrder({ 'id': orderId, 'status': status, 'info': response, 'symbol': symbol });
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -1993,6 +2002,9 @@ export default class pacifica extends Exchange {
         return this.safeOrder({ 'id': orderId, 'info': response, 'symbol': symbol });
     }
     editOrderRequest(id, symbol, type, side, amount, price, market, params = {}) {
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         if (amount === undefined) {
             throw new ArgumentsRequired(this.id + ' editOrder() requires an amount!');
         }
@@ -2130,7 +2142,9 @@ export default class pacifica extends Exchange {
             const info = data[i];
             const ticker = this.parseTicker(info);
             const symbol = this.safeString(ticker, 'symbol');
-            result[symbol] = ticker;
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
     }

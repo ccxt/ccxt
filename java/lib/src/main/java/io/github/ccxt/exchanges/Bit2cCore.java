@@ -475,7 +475,7 @@ public class Bit2cCore extends Bit2cApi
             }
             Object market = this.market(symbol);
             Object optionValue = this.safeString(this.options, "fetchTradesMethod"); // kept here for backward compatibility #29154
-            Object method = ((String)this.handleOption("fetchTrades", "method", optionValue)); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
+            Object method = this.handleOption("fetchTrades", "method", optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -506,7 +506,12 @@ public class Bit2cCore extends Bit2cApi
             {
                 throw new ExchangeError((String)response) ;
             }
-            return this.parseTrades(response, market, since, limit);
+            Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(!Helpers.isEqual(response, null)))
+            {
+                responseList = response;
+            }
+            return this.parseTrades(responseList, market, since, limit);
         });
 
     }
@@ -948,7 +953,12 @@ public class Bit2cCore extends Bit2cApi
             //         }
             //     ]
             //
-            return this.parseTrades(response, market, since, limit);
+            Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(!Helpers.isEqual(response, null)))
+            {
+                responseList = response;
+            }
+            return this.parseTrades(responseList, market, since, limit);
         });
 
     }

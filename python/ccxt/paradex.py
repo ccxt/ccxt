@@ -1357,6 +1357,8 @@ class paradex(Exchange, ImplicitAPI):
         now = self.nonce()
         if cachedToken is not None:
             cachedExpires = self.safe_integer(self.options, 'expires')
+            if cachedExpires is None:
+                raise ExchangeError(self.id + ' authenticateRest() missing cachedExpires')
             if now < cachedExpires:
                 return cachedToken
         account = self.retrieve_account()
@@ -1427,7 +1429,7 @@ class paradex(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(order, 'created_at')
         orderId = self.safe_string(order, 'id')
-        clientOrderId = self.omit_zero((self.safe_string(order, 'client_id')))
+        clientOrderId = self.omit_zero(self.safe_string(order, 'client_id'))
         marketId = self.safe_string(order, 'market')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -1442,8 +1444,8 @@ class paradex(Exchange, ImplicitAPI):
             else:
                 status = 'canceled'
         side = self.safe_string_lower(order, 'side')
-        average = self.omit_zero((self.safe_string(order, 'avg_fill_price')))
-        remaining = self.omit_zero((self.safe_string(order, 'remaining_size')))
+        average = self.omit_zero(self.safe_string(order, 'avg_fill_price'))
+        remaining = self.omit_zero(self.safe_string(order, 'remaining_size'))
         lastUpdateTimestamp = self.safe_integer(order, 'last_updated_at')
         flags = self.safe_list(order, 'flags', [])
         reduceOnly = None
@@ -1511,7 +1513,11 @@ class paradex(Exchange, ImplicitAPI):
     def scale_number(self, num: str):
         return Precise.string_mul(num, '100000000')
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
         orderType = type.upper()
@@ -1587,6 +1593,8 @@ class paradex(Exchange, ImplicitAPI):
         account = self.retrieve_account()
         now = self.nonce()
         orderType = self.safe_string(request, 'type')
+        if orderType is None:
+            raise ExchangeError(self.id + ' signOrderRequest() missing orderType')
         isMarket = (orderType.find('MARKET') >= 0)
         orderReq = {
             'timestamp': now * 1000,
@@ -2158,7 +2166,8 @@ class paradex(Exchange, ImplicitAPI):
             code = self.safe_currency_code(currencyId)
             account = self.account()
             account['total'] = self.safe_string(balance, 'size')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -2700,7 +2709,7 @@ class paradex(Exchange, ImplicitAPI):
         configs = self.safe_list(response, 'configs')
         return self.parse_margin_mode(self.safe_dict(configs, 0), market)
 
-    def parse_margin_mode(self, rawMarginMode: dict, market=None) -> MarginMode:
+    def parse_margin_mode(self, rawMarginMode: dict, market: Market = None) -> MarginMode:
         marketId = self.safe_string(rawMarginMode, 'market')
         market = self.safe_market(marketId, market)
         marginMode = self.safe_string_lower(rawMarginMode, 'margin_type')
@@ -2727,8 +2736,8 @@ class paradex(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        leverage = None
-        leverage, params = self.handle_option_and_params(params, 'setMarginMode', 'leverage', 1)
+        leverage = 1
+        leverage, params = self.handle_option_and_params(params, 'setMarginMode', 'leverage', leverage)
         request = {
             'market': market['id'],
             'leverage': leverage,

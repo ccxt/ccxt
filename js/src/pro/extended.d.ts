@@ -120,7 +120,7 @@ export default class extended extends extendedRest {
      */
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleOHLCV(client: Client, message: any): void;
-    findSubscription(client: Client, name: string): import("../base/types.js").Dictionary<any>;
+    findSubscription(client: Client, name: string): import("../base/types.js").Dictionary<any> | undefined;
     handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
 }

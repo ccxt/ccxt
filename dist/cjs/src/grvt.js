@@ -1371,7 +1371,9 @@ class grvt extends grvt$1["default"] {
             const account = this.account();
             account['total'] = this.safeString(balance, 'balance');
             account['free'] = availableBalance; // todo: revise after API team clarification
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -3135,6 +3137,9 @@ class grvt extends grvt$1["default"] {
         if (structureType === 'EIP712_TRANSFER_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom('1000000');
             const amountInt = request['num_tokens'] * amountMultiplier;
+            if (currencyObj === undefined) {
+                throw new errors.ExchangeError(this.id + ' createSignedRequest() missing currencyObj');
+            }
             messageData = {
                 'fromAccount': request['from_account_id'],
                 'fromSubAccount': request['from_sub_account_id'],
@@ -3148,6 +3153,9 @@ class grvt extends grvt$1["default"] {
         }
         else if (structureType === 'EIP712_WITHDRAWAL_TYPE') {
             const amountMultiplier = this.convertToBigIntCustom('1000000');
+            if (currencyObj === undefined) {
+                throw new errors.ExchangeError(this.id + ' createSignedRequest() missing currencyObj');
+            }
             messageData = {
                 'fromAccount': request['from_account_id'],
                 'toEthAddress': request['to_eth_address'],

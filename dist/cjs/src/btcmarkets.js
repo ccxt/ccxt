@@ -520,7 +520,7 @@ class btcmarkets extends btcmarkets$1["default"] {
         if (quote === 'AUD') {
             minPrice = pricePrecision;
         }
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -570,7 +570,7 @@ class btcmarkets extends btcmarkets$1["default"] {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     /**
      * @method
@@ -598,7 +598,9 @@ class btcmarkets extends btcmarkets$1["default"] {
             const account = this.account();
             account['used'] = this.safeString(balance, 'locked');
             account['total'] = this.safeString(balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1101,7 +1103,7 @@ class btcmarkets extends btcmarkets$1["default"] {
          * @param {object} params
          * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
          */
-        const market = this.markets[symbol];
+        const market = this.market(symbol);
         let currency = undefined;
         let cost = undefined;
         if (market['quote'] === 'AUD') {
@@ -1117,11 +1119,15 @@ class btcmarkets extends btcmarkets$1["default"] {
         }
         const rate = market[takerOrMaker];
         const rateCost = Precise["default"].stringMul(this.numberToString(rate), cost);
+        let feeCost = this.feeToPrecision(symbol, rateCost);
+        if (feeCost === undefined) {
+            feeCost = '0';
+        }
         return {
             'type': takerOrMaker,
             'currency': currency,
             'rate': rate,
-            'cost': parseFloat(this.feeToPrecision(symbol, rateCost)),
+            'cost': parseFloat(feeCost),
         };
     }
     parseOrderStatus(status) {

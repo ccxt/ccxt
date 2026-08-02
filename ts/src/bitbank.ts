@@ -314,7 +314,7 @@ export default class bitbank extends Exchange {
         const quoteId = this.safeString (entry, 'quote_asset');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -364,7 +364,7 @@ export default class bitbank extends Exchange {
             },
             'created': undefined,
             'info': entry,
-        };
+        });
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -665,7 +665,9 @@ export default class bitbank extends Exchange {
             account['free'] = this.safeString (balance, 'free_amount');
             account['used'] = this.safeString (balance, 'locked_amount');
             account['total'] = this.safeString (balance, 'onhand_amount');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -814,7 +816,7 @@ export default class bitbank extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol as string);
+        const market = this.market (symbol);
         const request: Dict = {
             'order_id': id,
             'pair': market['id'],
@@ -861,7 +863,7 @@ export default class bitbank extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol as string);
+        const market = this.market (symbol);
         const request: Dict = {
             'order_id': id,
             'pair': market['id'],
@@ -908,7 +910,7 @@ export default class bitbank extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol as string);
+        const market = this.market (symbol);
         const request: Dict = {
             'pair': market['id'],
         };
@@ -1187,7 +1189,7 @@ export default class bitbank extends Exchange {
                 '70010': 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             };
             const code = this.safeString (data, 'code');
-            const message = this.safeString (errorMessages, code as string, 'Error');
+            const message = this.safeString (errorMessages, code, 'Error');
             this.throwExactlyMatchedException (this.exceptions['exact'], code, message);
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }

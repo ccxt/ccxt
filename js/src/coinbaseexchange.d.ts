@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbaseexchange.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, Num, Account, Currencies, TradingFees, Dict, int, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, CurrencyInterface, Num, Account, Currencies, TradingFees, Dict, int, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
 /**
  * @class coinbaseexchange
  * @augments Exchange
@@ -15,7 +15,7 @@ export default class coinbaseexchange extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: any): Currency;
+    parseCurrency(rawCurrency: any): CurrencyInterface;
     /**
      * @method
      * @name coinbaseexchange#fetchMarkets
@@ -35,9 +35,9 @@ export default class coinbaseexchange extends Exchange {
      */
     fetchAccounts(params?: {}): Promise<Account[]>;
     parseAccount(account: any): {
-        id: string;
-        type: any;
-        code: string;
+        id: Str;
+        type: undefined;
+        code: Str;
         info: any;
     };
     parseBalance(response: any): Balances;
@@ -142,7 +142,7 @@ export default class coinbaseexchange extends Exchange {
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     fetchTime(params?: {}): Promise<Int>;
-    parseOrderStatus(status: Str): string;
+    parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -327,9 +327,9 @@ export default class coinbaseexchange extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
-        headers: Dict;
+        body: Str;
+        headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     request(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any, config?: {}): Promise<any>;
 }
