@@ -7,7 +7,7 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, Order
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { totp } from './base/functions/totp.js';
-import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
+import type { IndexType, Balances, Currency, CurrencyInterface, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 /**
@@ -469,7 +469,7 @@ export default class ndax extends Exchange {
             this.options['pending2faToken'] = pending2faToken;
             request = {
                 'Code': totp (this.twofa),
-            } as any;
+            };
             const responseInner = await this.publicGetAuthenticate2FA (this.extend (request, params));
             //
             //     {
@@ -521,7 +521,7 @@ export default class ndax extends Exchange {
         return this.parseCurrencies (response);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'ProductId');
         const code = this.safeCurrencyCode (this.safeString (rawCurrency, 'Product'));
         const ProductType = this.safeString (rawCurrency, 'ProductType');
@@ -629,7 +629,7 @@ export default class ndax extends Exchange {
         const sessionStatus = this.safeString (market, 'SessionStatus');
         const isDisable = this.safeValue (market, 'IsDisable');
         const sessionRunning = (sessionStatus === 'Running');
-        return {
+        return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -677,7 +677,7 @@ export default class ndax extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     parseOrderBook (orderbook, symbol, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey:IndexType = 6, amountKey:IndexType = 8, countOrIdKey: IndexType = 2) {
@@ -1260,12 +1260,14 @@ export default class ndax extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'ProductId');
-            if ((currencyId !== undefined) && (currencyId in this.currencies_by_id)) {
+            if ((currencyId !== undefined) && (this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id)) {
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
                 account['total'] = this.safeString (balance, 'Amount');
                 account['used'] = this.safeString (balance, 'Hold');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance (result);
@@ -1346,7 +1348,7 @@ export default class ndax extends Exchange {
             'MarginRelinquish': 'trade',
             'MarginQuoteHold': 'trade',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -1626,7 +1628,11 @@ export default class ndax extends Exchange {
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price !== undefined) {
-            request['LimitPrice'] = parseFloat (this.priceToPrecision (symbol, price));
+            let limitPriceString = this.priceToPrecision (symbol, price);
+            if (limitPriceString === undefined) {
+                limitPriceString = '0';
+            }
+            request['LimitPrice'] = parseFloat (limitPriceString);
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
@@ -1693,7 +1699,11 @@ export default class ndax extends Exchange {
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price !== undefined) {
-            request['LimitPrice'] = parseFloat (this.priceToPrecision (symbol, price));
+            let limitPriceString = this.priceToPrecision (symbol, price);
+            if (limitPriceString === undefined) {
+                limitPriceString = '0';
+            }
+            request['LimitPrice'] = parseFloat (limitPriceString);
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;

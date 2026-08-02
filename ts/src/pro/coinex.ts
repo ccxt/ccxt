@@ -403,9 +403,13 @@ export default class coinex extends coinexRest {
             if (this.safeValue (this.balance, accountType) === undefined) {
                 this.balance[accountType] = {};
             }
-            this.balance[accountType][code] = account;
+            if ((accountType !== undefined) && (code !== undefined)) {
+                this.balance[accountType][code] = account;
+            }
         } else {
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
     }
 
@@ -607,7 +611,7 @@ export default class coinex extends coinexRest {
         const marketId = this.safeString (trade, 'market');
         market = this.safeMarket (marketId, market, undefined, defaultType);
         let fee: Dict = {};
-        const feeCost = this.omitZero ((this.safeString (trade, 'fee') as string));
+        const feeCost = this.omitZero (this.safeString (trade, 'fee'));
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_ccy', market['quote']);
             fee = {
@@ -1092,7 +1096,7 @@ export default class coinex extends coinexRest {
         const order = this.extend ({ 'status': this.safeString (data, 'event') }, this.safeDict2 (data, 'order', 'stop', {}));
         const parsedOrder = this.parseWsOrder (order);
         const symbol = parsedOrder['symbol'];
-        const market = this.market ((symbol as string));
+        const market = this.market (symbol);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -1202,7 +1206,7 @@ export default class coinex extends coinexRest {
         const defaultType = isSpot ? 'spot' : 'swap';
         market = this.safeMarket (marketId, market, undefined, defaultType);
         let fee: NullableDict = undefined;
-        const feeCost = this.omitZero ((this.safeString2 (order, 'fee', 'quote_ccy_fee') as string));
+        const feeCost = this.omitZero (this.safeString2 (order, 'fee', 'quote_ccy_fee'));
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (order, 'fee_ccy', market['quote']);
             fee = {
@@ -1358,7 +1362,7 @@ export default class coinex extends coinexRest {
             'stop.update': this.handleOrders,
             'bbo.update': this.handleBidAsk,
         };
-        const handler = this.safeValue (handlers, (method as string));
+        const handler = this.safeValue (handlers, method);
         if (handler !== undefined) {
             handler.call (this, client, message);
             return;
@@ -1423,10 +1427,10 @@ export default class coinex extends coinexRest {
 
     handleSubscriptionStatus (client: Client, message) {
         const id = this.safeInteger (message, 'id');
-        const subscription = this.safeValue (client.subscriptions, (id as number));
+        const subscription = this.safeValue (client.subscriptions, id);
         if (subscription !== undefined) {
             const futureIndex = this.safeString (subscription, 'future');
-            const future = this.safeValue (client.futures, (futureIndex as string));
+            const future = this.safeValue (client.futures, futureIndex);
             if (future !== undefined) {
                 future.resolve (true);
             }

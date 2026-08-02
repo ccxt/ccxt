@@ -622,7 +622,7 @@ export default class kraken extends krakenRest {
         const interval = this.safeInteger(first, 'interval');
         const timeframe = this.findTimeframe(interval);
         const messageHash = this.getMessageHash('ohlcv', undefined, symbol);
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -825,7 +825,7 @@ export default class kraken extends krakenRest {
             if (symbols !== undefined) {
                 for (let i = 0; i < symbols.length; i++) {
                     const symbol = symbols[i];
-                    const market = this.markets[symbol];
+                    const market = this.market(symbol);
                     const info = this.safeValue(market, 'info', {});
                     const wsName = this.safeString(info, 'wsname');
                     marketsByWsName[wsName] = market;

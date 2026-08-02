@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Any, IndexType, Int, OrderBook, Trade
+from ccxt.base.types import Any, IndexType, Int, Market, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
@@ -105,7 +105,7 @@ class luno(ccxt.async_support.luno):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         #
         # watchTrades(public)
         #
@@ -117,12 +117,13 @@ class luno(ccxt.async_support.luno):
         #       "order_id": "BXEEU4S2BWF5WRB"
         #     }
         #
+        symbol = None if (market is None) else market['symbol']
         return self.safe_trade({
             'info': trade,
             'id': None,
             'timestamp': None,
             'datetime': None,
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': None,
             'type': None,
             'side': None,
@@ -215,7 +216,7 @@ class luno(ccxt.async_support.luno):
         orderbook['nonce'] = nonce
         client.resolve(orderbook, messageHash)
 
-    def custom_parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2):
+    def custom_parse_order_book(self, orderbook, symbol, timestamp: Int = None, bidsKey='bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2):
         bids = self.parse_order_book_bids_asks(self.safe_value(orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey)
         asks = self.parse_order_book_bids_asks(self.safe_value(orderbook, asksKey, []), priceKey, amountKey, countOrIdKey)
         return {

@@ -976,22 +976,24 @@ class hitbtc extends hitbtc$1["default"] {
             const networkId = this.safeString2(rawNetwork, 'protocol', 'network');
             let networkCode = this.networkIdToCode(networkId, code);
             networkCode = (networkCode !== undefined) ? networkCode.toUpperCase() : code; // as hitbtc is white label, ensure we safeguard from possible bugs
-            networks[networkCode] = {
-                'info': rawNetwork,
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'fee': this.safeNumber(rawNetwork, 'payout_fee'),
-                'deposit': this.safeBool(rawNetwork, 'payin_enabled'),
-                'withdraw': this.safeBool(rawNetwork, 'payout_enabled'),
-                'precision': this.safeNumber(rawNetwork, 'precision_payout'),
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': rawNetwork,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'fee': this.safeNumber(rawNetwork, 'payout_fee'),
+                    'deposit': this.safeBool(rawNetwork, 'payin_enabled'),
+                    'withdraw': this.safeBool(rawNetwork, 'payout_enabled'),
+                    'precision': this.safeNumber(rawNetwork, 'precision_payout'),
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'info': entry,
@@ -1104,7 +1106,9 @@ class hitbtc extends hitbtc$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(entry, 'available');
             account['used'] = this.safeString(entry, 'reserved');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }

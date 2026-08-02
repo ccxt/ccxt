@@ -453,9 +453,12 @@ public class LunoCore extends LunoApi
             Object networkEntry = Helpers.GetValue(rawCurrency, i);
             Object networkId = this.safeString(networkEntry, "name");
             Object networkCode = this.networkIdToCode(networkId, code);
-            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkCode = networkCode;
+                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
-    put( "network", networkCode );
+    put( "network", finalNetworkCode );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
             put( "min", null );
@@ -473,6 +476,7 @@ public class LunoCore extends LunoApi
     put( "precision", null );
     put( "info", networkEntry );
 }});
+            }
         }
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -627,7 +631,7 @@ public class LunoCore extends LunoApi
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", accountId );
                     put( "type", null );
-                    put( "currency", code );
+                    put( "code", code );
                     put( "info", account );
                 }});
             }
@@ -654,11 +658,11 @@ public class LunoCore extends LunoApi
             Object balance = this.safeString(wallet, "balance");
             Object reservedUnconfirmed = Precise.stringAdd(reserved, unconfirmed);
             Object balanceUnconfirmed = Precise.stringAdd(balance, unconfirmed);
-            if (Helpers.isTrue(Helpers.inOp(result, code)))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(result, code)))))
             {
                 Helpers.addElementToObject(Helpers.GetValue(result, code), "used", Precise.stringAdd(Helpers.GetValue(Helpers.GetValue(result, code), "used"), reservedUnconfirmed));
                 Helpers.addElementToObject(Helpers.GetValue(result, code), "total", Precise.stringAdd(Helpers.GetValue(Helpers.GetValue(result, code), "total"), balanceUnconfirmed));
-            } else
+            } else if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 Object account = this.account();
                 Helpers.addElementToObject(account, "used", reservedUnconfirmed);
@@ -1468,6 +1472,10 @@ public class LunoCore extends LunoApi
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(side, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+            }
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
                 Helpers.addElementToObject(request, "type", ((String)side).toUpperCase());
@@ -1486,6 +1494,10 @@ public class LunoCore extends LunoApi
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(Helpers.GetValue(market, "symbol"), price));
                 Helpers.addElementToObject(request, "type", ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "BID" : "ASK");
                 response = (this.privatePostPostorder(this.extend(request, parameters))).join();
+            }
+            if (Helpers.isTrue(Helpers.isEqual(response, null)))
+            {
+                throw new NullResponse((String)Helpers.add(this.id, " createOrder() returned empty response")) ;
             }
             final Object finalResponse = response;
             return this.safeOrder(new java.util.HashMap<String, Object>() {{

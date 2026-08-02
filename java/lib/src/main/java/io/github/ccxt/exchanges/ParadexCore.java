@@ -1567,6 +1567,10 @@ public class ParadexCore extends ParadexApi
             if (Helpers.isTrue(!Helpers.isEqual(cachedToken, null)))
             {
                 Object cachedExpires = this.safeInteger(this.options, "expires");
+                if (Helpers.isTrue(Helpers.isEqual(cachedExpires, null)))
+                {
+                    throw new ExchangeError((String)Helpers.add(this.id, " authenticateRest() missing cachedExpires")) ;
+                }
                 if (Helpers.isTrue(Helpers.isLessThan(now, cachedExpires)))
                 {
                     return cachedToken;
@@ -1655,7 +1659,7 @@ public class ParadexCore extends ParadexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(order, "created_at");
         Object orderId = this.safeString(order, "id");
-        Object clientOrderId = this.omitZero(((String)this.safeString(order, "client_id")));
+        Object clientOrderId = this.omitZero(this.safeString(order, "client_id"));
         Object marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -1675,8 +1679,8 @@ public class ParadexCore extends ParadexApi
             }
         }
         Object side = this.safeStringLower(order, "side");
-        Object average = this.omitZero(((String)this.safeString(order, "avg_fill_price")));
-        Object remaining = this.omitZero(((String)this.safeString(order, "remaining_size")));
+        Object average = this.omitZero(this.safeString(order, "avg_fill_price"));
+        Object remaining = this.omitZero(this.safeString(order, "remaining_size"));
         Object lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
         Object flags = this.safeList(order, "flags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object reduceOnly = null;
@@ -1751,7 +1755,7 @@ public class ParadexCore extends ParadexApi
             put( "STOP_LIMIT", "limit" );
             put( "STOP_MARKET", "market" );
         }};
-        return this.safeStringLower(types, ((String)type), type);
+        return this.safeStringLower(types, type, type);
     }
 
     public Object scaleNumber(Object num)
@@ -1763,6 +1767,14 @@ public class ParadexCore extends ParadexApi
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+        }
         Object market = this.market(symbol);
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         Object orderType = ((String)type).toUpperCase();
@@ -1870,6 +1882,10 @@ public class ParadexCore extends ParadexApi
             Object account = (this.retrieveAccount()).join();
             Object now = this.nonce();
             Object orderType = this.safeString(request, "type");
+            if (Helpers.isTrue(Helpers.isEqual(orderType, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " signOrderRequest() missing orderType")) ;
+            }
             Object isMarket = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "MARKET"), 0));
             final Object finalNow = now;
             Object orderReq = new java.util.HashMap<String, Object>() {{
@@ -2111,7 +2127,7 @@ public class ParadexCore extends ParadexApi
                 Object price = this.safeNumber(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 Object extendedParams = this.extend(parameters, orderParams);
-                Object orderRequest = this.createOrderRequest(((String)symbol), ((String)type), side, amount, price, extendedParams);
+                Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
                 orderRequest = (this.signOrderRequest(orderRequest)).join();
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
@@ -2626,7 +2642,10 @@ public class ParadexCore extends ParadexApi
             Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "size"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -3389,9 +3408,9 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(((String)symbol));
-            Object leverage = null;
-            var leverageparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "leverage", 1);
+            Object market = this.market(symbol);
+            Object leverage = 1;
+            var leverageparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "leverage", leverage);
             leverage = ((java.util.List<Object>) leverageparametersVariable).get(0);
             parameters = ((java.util.List<Object>) leverageparametersVariable).get(1);
             final Object finalLeverage = leverage;
@@ -3497,7 +3516,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(((String)symbol));
+            Object market = this.market(symbol);
             Object marginMode = null;
             var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);

@@ -1023,7 +1023,7 @@ public partial class hashkey : Exchange
         object priceFilter = this.safeDict(filters, "PRICE_FILTER", new Dictionary<string, object>() {});
         object amountFilter = this.safeDict(filters, "LOT_SIZE", new Dictionary<string, object>() {});
         object costFilter = this.safeDict(filters, "MIN_NOTIONAL", new Dictionary<string, object>() {});
-        object minCostString = this.omitZero(((string)this.safeString(costFilter, "min_notional")));
+        object minCostString = this.omitZero(this.safeString(costFilter, "min_notional"));
         object contractSizeString = this.safeString(market, "contractMultiplier");
         object amountPrecisionString = this.safeString(amountFilter, "stepSize");
         object amountMinLimitString = this.safeString(amountFilter, "minQty");
@@ -1165,27 +1165,30 @@ public partial class hashkey : Exchange
         {
             object network = getValue(networks, j);
             object networkId = this.safeString(network, "chainType");
-            object networkCode = this.networkCodeToId(((string)networkId), code);
-            ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(network, "minWithdrawQuantity") },
-                        { "max", this.parseNumber(this.omitZero(((string)this.safeString(network, "maxWithdrawQuantity")))) },
+            object networkCode = this.networkCodeToId(networkId, code);
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(network, "minWithdrawQuantity") },
+                            { "max", this.parseNumber(this.omitZero(this.safeString(network, "maxWithdrawQuantity"))) },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(network, "minDepositQuantity") },
+                            { "max", null },
+                        } },
                     } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(network, "minDepositQuantity") },
-                        { "max", null },
-                    } },
-                } },
-                { "active", null },
-                { "deposit", this.safeBool(network, "allowDeposit") },
-                { "withdraw", this.safeBool(network, "allowWithdraw") },
-                { "fee", this.safeNumber(network, "withdrawFee") },
-                { "precision", null },
-                { "info", network },
-            };
+                    { "active", null },
+                    { "deposit", this.safeBool(network, "allowDeposit") },
+                    { "withdraw", this.safeBool(network, "allowWithdraw") },
+                    { "fee", this.safeNumber(network, "withdrawFee") },
+                    { "precision", null },
+                    { "info", network },
+                };
+            }
         }
         object rawType = this.safeString(rawCurrency, "tokenType");
         object type = ((bool) isTrue((isEqual(rawType, "REAL_MONEY")))) ? "fiat" : "crypto";
@@ -1846,7 +1849,10 @@ public partial class hashkey : Exchange
             ((IDictionary<string,object>)account)["total"] = this.safeString(balanceEntry, "total");
             ((IDictionary<string,object>)account)["free"] = this.safeString(balanceEntry, "free");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balanceEntry, "locked");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1873,7 +1879,10 @@ public partial class hashkey : Exchange
         object result = new Dictionary<string, object>() {
             { "info", balance },
         };
-        ((IDictionary<string,object>)result)[(string)code] = account;
+        if (isTrue(!isEqual(code, null)))
+        {
+            ((IDictionary<string,object>)result)[(string)code] = account;
+        }
         return this.safeBalance(result);
     }
 
@@ -1906,7 +1915,7 @@ public partial class hashkey : Exchange
         {
             networkCode = this.defaultNetworkCode(code);
         }
-        ((IDictionary<string,object>)request)["chainType"] = this.networkCodeToId(((string)networkCode), code);
+        ((IDictionary<string,object>)request)["chainType"] = this.networkCodeToId(networkCode, code);
         object response = await this.privateGetApiV1AccountDepositAddress(this.extend(request, parameters));
         //
         //     {
@@ -2383,7 +2392,7 @@ public partial class hashkey : Exchange
             { "5", "custody account" },
             { "6", "fiat account" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public virtual object encodeAccountType(object type)
@@ -2393,7 +2402,7 @@ public partial class hashkey : Exchange
             { "swap", "3" },
             { "custody", "5" },
         };
-        return this.safeInteger(types, type, type);
+        return this.safeInteger(types, ((string)type), type);
     }
 
     public virtual object encodeFlowType(object type)
@@ -2405,7 +2414,7 @@ public partial class hashkey : Exchange
             { "deposit", "900" },
             { "withdraw", "904" },
         };
-        return this.safeInteger(types, type, type);
+        return this.safeInteger(types, ((string)type), type);
     }
 
     /**
@@ -2442,7 +2451,7 @@ public partial class hashkey : Exchange
         {
             await this.loadMarkets();
         }
-        object currency = this.currency(((string)code));
+        object currency = this.currency(code);
         object request = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)request)["startTime"] = since;
         if (isTrue(!isEqual(limit, null)))
@@ -2497,7 +2506,7 @@ public partial class hashkey : Exchange
             { "900", "deposit" },
             { "904", "withdraw" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -2680,6 +2689,14 @@ public partial class hashkey : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
         if (isTrue(getValue(market, "spot")))
         {
@@ -2695,24 +2712,32 @@ public partial class hashkey : Exchange
 
     public virtual object createSpotOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name hashkey#createSpotOrderRequest
-        * @description helper function to build request
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit' or 'LIMIT_MAKER'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
-        * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
-        * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
-        * @param {string} [params.clientOrderId] a unique id for the order
-        * @returns {object} request to be sent to the exchange
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name hashkey#createSpotOrderRequest
+         * @description helper function to build request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit' or 'LIMIT_MAKER'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
+         * @param {string} [params.clientOrderId] a unique id for the order
+         * @returns {object} request to be sent to the exchange
+         */
         object market = this.market(symbol);
         type = ((string)type).ToUpper();
         object request = new Dictionary<string, object>() {
@@ -2913,7 +2938,7 @@ public partial class hashkey : Exchange
             object amount = this.safeNumber(rawOrder, "amount");
             object price = this.safeNumber(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object orderRequest = this.createOrderRequest(((string)symbol), ((string)type), side, amount, price, orderParams);
+            object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
             object clientOrderId = this.safeString(orderRequest, "clientOrderId");
             if (isTrue(isEqual(clientOrderId, null)))
             {
@@ -2923,7 +2948,7 @@ public partial class hashkey : Exchange
         }
         object firstOrder = getValue(ordersRequests, 0);
         object firstSymbol = this.safeString(firstOrder, "symbol");
-        object market = this.market(((string)firstSymbol));
+        object market = this.market(firstSymbol);
         object request = new Dictionary<string, object>() {
             { "orders", ordersRequests },
         };
@@ -3601,7 +3626,7 @@ public partial class hashkey : Exchange
         {
             type = "market";
         }
-        object price = this.omitZero(((string)this.safeString(order, "price")));
+        object price = this.omitZero(this.safeString(order, "price"));
         if (isTrue(isEqual(type, "STOP")))
         {
             if (isTrue(isEqual(price, null)))
@@ -3618,7 +3643,7 @@ public partial class hashkey : Exchange
         type = ((IList<object>)typetimeInForcepostOnlyVariable)[0];
         timeInForce = ((IList<object>)typetimeInForcepostOnlyVariable)[1];
         postOnly = ((IList<object>)typetimeInForcepostOnlyVariable)[2];
-        object average = this.omitZero(((string)this.safeString(order, "avgPrice")));
+        object average = this.omitZero(this.safeString(order, "avgPrice"));
         if (isTrue(isEqual(price, null)))
         {
             price = average;
@@ -3723,7 +3748,7 @@ public partial class hashkey : Exchange
             { "LIMIT_MAKER", "limit" },
             { "MARKET_OF_BASE", "market" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     /**
@@ -4513,7 +4538,7 @@ public partial class hashkey : Exchange
             {
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
                 body = this.json(this.safeList(parameters, "orders"));
-                signature = this.hmac(this.encode(((string)this.customUrlencode(additionalParams))), this.encode(((string)this.secret)), sha256);
+                signature = this.hmac(this.encode(((string)this.customUrlencode(additionalParams))), this.encode(this.secret), sha256);
                 query = this.customUrlencode(this.extend(additionalParams, new Dictionary<string, object>() {
                     { "signature", signature },
                 }));
@@ -4521,7 +4546,7 @@ public partial class hashkey : Exchange
             } else
             {
                 object totalParams = this.extend(additionalParams, parameters);
-                signature = this.hmac(this.encode(((string)this.customUrlencode(totalParams))), this.encode(((string)this.secret)), sha256);
+                signature = this.hmac(this.encode(((string)this.customUrlencode(totalParams))), this.encode(this.secret), sha256);
                 ((IDictionary<string,object>)totalParams)["signature"] = signature;
                 query = this.customUrlencode(totalParams);
                 if (isTrue(isEqual(method, "GET")))

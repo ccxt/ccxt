@@ -326,7 +326,7 @@ public partial class coinone : ccxt.coinone
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         object trade = this.parseWsTrade(data);
         object symbol = getValue(trade, "symbol");
-        object stored = this.safeValue(this.trades, ((string)symbol));
+        object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
             object limit = this.safeInteger(this.options, "tradesLimit", 1000);

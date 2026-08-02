@@ -407,7 +407,7 @@ public partial class dydx : ccxt.dydx
         //     }
         // }
         //
-        object id = this.safeString(message, "id");
+        object id = this.safeString(message, "id", "");
         object part = ((string)id).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object interval = this.safeString(part, 1);
         object timeframe = this.findTimeframe(interval);
@@ -420,7 +420,7 @@ public partial class dydx : ccxt.dydx
         object ohlcv = this.safeDict(candles, 0, content);
         object parsed = this.parseOHLCV(ohlcv, market);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
+        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
         if (isTrue(isEqual(stored, null)))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -460,7 +460,7 @@ public partial class dydx : ccxt.dydx
                 { "v4_orderbook", this.handleOrderBook },
                 { "v4_candles", this.handleOHLCV },
             };
-            object method = this.safeValue(methods, ((string)topic));
+            object method = this.safeValue(methods, topic);
             if (isTrue(!isEqual(method, null)))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

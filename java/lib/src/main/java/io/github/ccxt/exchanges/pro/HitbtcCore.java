@@ -432,7 +432,10 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
                     Object marketId = this.marketId(Helpers.GetValue(symbols, i));
-                    ((java.util.List<Object>)marketIds).add(marketId);
+                    if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
+                    {
+                        ((java.util.List<Object>)marketIds).add(marketId);
+                    }
                 }
             }
             Object request = new java.util.HashMap<String, Object>() {{
@@ -926,7 +929,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             Object market = this.safeMarket(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-            Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+            Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
                 Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1098,6 +1101,10 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
     public void handleOrderHelper(Client client, Object message, Object order)
     {
         Object orders = this.orders;
+        if (Helpers.isTrue(Helpers.isEqual(orders, null)))
+        {
+            return;
+        }
         Object marketId = this.safeStringLower2(order, "instrument", "symbol");
         Object method = this.safeString(message, "method", "");
         Object splitMethod = Helpers.split(method, "_order");

@@ -185,7 +185,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object parsedTrade = this.parseTrade(data);
         Object symbol = Helpers.GetValue(parsedTrade, "symbol");
         Object messageHash = this.safeString(parameters, "channel");
-        Object stored = this.safeValue(this.trades, ((String)symbol));
+        Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             stored = new ArrayCache(((Number)this.safeInteger(this.options, "tradesLimit", 1000)).intValue());
@@ -795,7 +795,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
                 put( "orders", "handleOrder");
                 put( "funding_data", "handleFundingRate");
             }};
-            Object method = this.safeValue(methods, ((String)name));
+            Object method = this.safeValue(methods, name);
             if (Helpers.isTrue(!Helpers.isEqual(method, null)))
             {
                 Helpers.callDynamically(this, method, new Object[] {client, message});

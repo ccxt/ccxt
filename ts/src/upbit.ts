@@ -393,7 +393,7 @@ export default class upbit extends Exchange {
         return await this.fetchMarketById (market['id'], params);
     }
 
-    async fetchMarketById (id: string, params = {}) {
+    async fetchMarketById (id: Str, params = {}) {
         // this method is for retrieving trading fees and limits per market
         // it requires private access and API keys properly set up
         const request: Dict = {
@@ -522,6 +522,9 @@ export default class upbit extends Exchange {
 
     parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'market');
+        if (id === undefined) {
+            throw new ExchangeError (this.id + ' parseMarket() missing id');
+        }
         const [ quoteId, baseId ] = id.split ('-');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
@@ -591,7 +594,9 @@ export default class upbit extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (balance, 'balance');
             account['used'] = this.safeString (balance, 'locked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -832,7 +837,10 @@ export default class upbit extends Exchange {
         return this.parseTickers (concated, symbols);
     }
 
-    idsQueryStrings (ids: string[], maxQueryLength: number) {
+    idsQueryStrings (ids: Strings, maxQueryLength: number) {
+        if (ids === undefined) {
+            return [];
+        }
         let idsString = '';
         const queries: List = [];
         for (let i = 0; i < ids.length; i++) {
@@ -1079,7 +1087,10 @@ export default class upbit extends Exchange {
             element['percentage'] = true;
             element['tierBased'] = false;
             element['info'] = fetchMarketResponse[i];
-            response[this.safeString (fetchMarketResponse[i], 'symbol')] = element;
+            const feeSymbol = this.safeString (fetchMarketResponse[i], 'symbol');
+            if (feeSymbol !== undefined) {
+                response[feeSymbol] = element;
+            }
         }
         return response;
     }
@@ -1183,7 +1194,7 @@ export default class upbit extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    calcOrderPrice (symbol: string, amount: number, price: Num = undefined, params = {}): string {
+    calcOrderPrice (symbol: string, amount: Num, price: Num = undefined, params = {}): Str {
         let quoteAmount: Str = undefined;
         const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice');
         const cost = this.safeString (params, 'cost');
@@ -1202,6 +1213,9 @@ export default class upbit extends Exchange {
                 throw new ArgumentsRequired (this.id + ' When createMarketBuyOrderRequiresPrice is false, "amount" is required and should be the total quote amount to spend.');
             }
             quoteAmount = this.costToPrecision (symbol, amount);
+        }
+        if (quoteAmount === undefined) {
+            throw new ArgumentsRequired (this.id + ' calcOrderPrice() could not determine quote amount');
         }
         return quoteAmount;
     }
@@ -1864,7 +1878,7 @@ export default class upbit extends Exchange {
         let type = this.safeString (order, 'ord_type');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
-        let lastTradeTimestamp = undefined;
+        let lastTradeTimestamp: Int = undefined;
         let price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'volume');
         const remaining = this.safeString (order, 'remaining_volume');
@@ -2377,7 +2391,7 @@ export default class upbit extends Exchange {
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
-        let url = this.implodeParams (this.urls['api'][api], {
+        let url: Str = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         });
         url += '/' + this.version + '/' + this.implodeParams (path, params);

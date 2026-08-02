@@ -1,5 +1,5 @@
 import Exchange from './abstract/exmo.js';
-import type { Dict, NullableDict, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees, int, DepositAddress, OrderBooks } from './base/types.js';
+import type { Dict, NullableDict, Int, Order, OrderSide, OrderType, Trade, OrderBook, OHLCV, Balances, Str, Transaction, Ticker, Tickers, Strings, Market, Currency, Num, MarginModification, Currencies, TradingFees, int, DepositAddress, OrderBooks, CurrencyInterface } from './base/types.js';
 /**
  * @class exmo
  * @augments Exchange
@@ -42,7 +42,7 @@ export default class exmo extends Exchange {
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     fetchPrivateTradingFees(params?: {}): Promise<Dict>;
     fetchPublicTradingFees(params?: {}): Promise<Dict>;
-    parseFixedFloatValue(input: any): number;
+    parseFixedFloatValue(input: any): number | undefined;
     /**
      * @method
      * @name exmo#fetchTransactionFees
@@ -75,7 +75,7 @@ export default class exmo extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): Currency;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
      * @name exmo#fetchMarkets
@@ -293,7 +293,7 @@ export default class exmo extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    parseStatus(status: any): string;
+    parseStatus(status: any): string | undefined;
     parseSide(orderType: any): string;
     parseOrder(order: Dict, market?: Market): Order;
     /**
@@ -342,7 +342,7 @@ export default class exmo extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
-    getMarketFromTrades(trades: any): any;
+    getMarketFromTrades(trades: any): import("./base/types.js").MarketInterface | undefined;
     /**
      * @method
      * @name exmo#withdraw
@@ -356,7 +356,7 @@ export default class exmo extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -419,9 +419,9 @@ export default class exmo extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
-        headers: Dict;
+        body: Str;
+        headers: NullableDict;
     };
     nonce(): number;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

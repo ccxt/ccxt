@@ -117,6 +117,9 @@ class exmo extends exmo$1["default"] {
         //     }
         //
         const topic = this.safeString(message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split('/');
         const type = this.safeString(parts, 0);
         if (type === 'spot') {
@@ -156,7 +159,9 @@ class exmo extends exmo$1["default"] {
                 const account = this.account();
                 account['free'] = this.safeString(balances, currencyId);
                 account['used'] = this.safeString(reserved, currencyId);
-                this.balance[code] = account;
+                if (code !== undefined) {
+                    this.balance[code] = account;
+                }
             }
         }
         else if (event === 'update') {
@@ -165,7 +170,9 @@ class exmo extends exmo$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(data, 'balance');
             account['used'] = this.safeString(data, 'reserved');
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
         this.balance = this.safeBalance(this.balance);
     }
@@ -195,7 +202,9 @@ class exmo extends exmo$1["default"] {
             account['free'] = this.safeString(wallet, 'free');
             account['used'] = this.safeString(wallet, 'used');
             account['total'] = this.safeString(wallet, 'balance');
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
             this.balance = this.safeBalance(this.balance);
         }
     }
@@ -278,6 +287,9 @@ class exmo extends exmo$1["default"] {
         //      }
         //
         const topic = this.safeString(message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const topicParts = topic.split(':');
         const marketId = this.safeString(topicParts, 1);
         const symbol = this.safeSymbol(marketId);
@@ -334,6 +346,9 @@ class exmo extends exmo$1["default"] {
         //      }
         //
         const topic = this.safeString(message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split(':');
         const marketId = this.safeString(parts, 1);
         const symbol = this.safeSymbol(marketId);
@@ -450,6 +465,9 @@ class exmo extends exmo$1["default"] {
         //     }
         //
         const topic = this.safeString(message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split('/');
         const type = this.safeString(parts, 0);
         const messageHash = 'myTrades:' + type;
@@ -476,7 +494,9 @@ class exmo extends exmo$1["default"] {
         for (let j = 0; j < trades.length; j++) {
             const trade = trades[j];
             myTrades.append(trade);
-            symbols[trade['symbol']] = true;
+            if (trade['symbol'] !== undefined) {
+                symbols[trade['symbol']] = true;
+            }
         }
         const symbolKeys = Object.keys(symbols);
         for (let i = 0; i < symbolKeys.length; i++) {
@@ -550,6 +570,9 @@ class exmo extends exmo$1["default"] {
         //     }
         //
         const topic = this.safeString(message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split(':');
         const marketId = this.safeString(parts, 1);
         const symbol = this.safeSymbol(marketId);
@@ -680,6 +703,9 @@ class exmo extends exmo$1["default"] {
         // }
         //
         const topic = this.safeString(message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split('/');
         const type = this.safeString(parts, 0);
         const messageHash = 'orders:' + type;
@@ -701,7 +727,9 @@ class exmo extends exmo$1["default"] {
         for (let j = 0; j < rawOrders.length; j++) {
             const order = this.parseWsOrder(rawOrders[j]);
             cachedOrders.append(order);
-            symbols[order['symbol']] = true;
+            if (order['symbol'] !== undefined) {
+                symbols[order['symbol']] = true;
+            }
         }
         const symbolKeys = Object.keys(symbols);
         for (let i = 0; i < symbolKeys.length; i++) {

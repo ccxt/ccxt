@@ -264,11 +264,14 @@ export default class zaif extends Exchange {
     parseMarket(market) {
         const id = this.safeString(market, 'currency_pair');
         const name = this.safeString(market, 'name');
+        if (name === undefined) {
+            throw new ExchangeError(this.id + ' parseMarket() missing name');
+        }
         const [baseId, quoteId] = name.split('/');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         const symbol = base + '/' + quote;
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -316,7 +319,7 @@ export default class zaif extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     parseBalance(response) {
         const balances = this.safeValue(response, 'return', {});
@@ -340,7 +343,9 @@ export default class zaif extends Exchange {
                     account['total'] = this.safeString(deposit, currencyId);
                 }
             }
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -591,7 +596,7 @@ export default class zaif extends Exchange {
         //        }
         //    }
         //
-        const data = this.safeDict(response, 'return');
+        const data = this.safeDict(response, 'return', {});
         return this.parseOrder(data);
     }
     parseOrder(order, market = undefined) {
@@ -758,7 +763,7 @@ export default class zaif extends Exchange {
         //         }
         //     }
         //
-        const returnData = this.safeDict(result, 'return');
+        const returnData = this.safeDict(result, 'return', {});
         return this.parseTransaction(returnData, currency);
     }
     parseTransaction(transaction, currency = undefined) {

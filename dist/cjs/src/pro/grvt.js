@@ -157,8 +157,8 @@ class grvt extends grvt$1["default"] {
         }
         let channel = undefined;
         [channel, params] = this.handleOptionAndParams(params, 'watchTickers', 'channel', 'v1.ticker.s');
-        let interval = undefined;
-        [interval, params] = this.handleOptionAndParams(params, 'watchTickers', 'interval', 500);
+        let interval = 500;
+        [interval, params] = this.handleOptionAndParams(params, 'watchTickers', 'interval', interval);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -518,8 +518,8 @@ class grvt extends grvt$1["default"] {
         if (limit === undefined) {
             [limit, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'limit', 100);
         }
-        let interval = undefined;
-        [interval, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'interval', 500);
+        let interval = 500;
+        [interval, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'interval', interval);
         symbols = this.marketSymbols(symbols);
         const extraPart = isSnapshot ? (interval.toString() + '-' + limit.toString()) : interval.toString();
         const rawHashes = [];

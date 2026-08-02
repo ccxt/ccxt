@@ -35,8 +35,8 @@ public class CoinbaseCore extends CoinbaseApi
                 put( "CORS", true );
                 put( "spot", true );
                 put( "margin", false );
-                put( "swap", false );
-                put( "future", false );
+                put( "swap", true );
+                put( "future", true );
                 put( "option", false );
                 put( "addMargin", false );
                 put( "borrowCrossMargin", false );
@@ -2177,13 +2177,22 @@ public class CoinbaseCore extends CoinbaseApi
                 Object id = this.safeString2(currency, "id", "code");
                 Object code = this.safeCurrencyCode(id);
                 Object name = this.safeString(currency, "name");
-                Helpers.addElementToObject(Helpers.GetValue(this.options, "networks"), code, ((String)((String)name)).toLowerCase());
-                Helpers.addElementToObject(Helpers.GetValue(this.options, "networksById"), code, ((String)((String)name)).toLowerCase());
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(Helpers.GetValue(this.options, "networks"), code, ((String)((String)name)).toLowerCase());
+                }
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(Helpers.GetValue(this.options, "networksById"), code, ((String)((String)name)).toLowerCase());
+                }
                 Object type = ((Helpers.isTrue((!Helpers.isEqual(assetId, null))))) ? "crypto" : "fiat";
-                Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    final Object finalCode = code;
+                    Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
         put( "info", currency );
         put( "id", id );
-        put( "code", code );
+        put( "code", finalCode );
         put( "type", type );
         put( "name", name );
         put( "active", true );
@@ -2203,10 +2212,14 @@ public class CoinbaseCore extends CoinbaseApi
             }} );
         }} );
     }}));
+                }
                 if (Helpers.isTrue(!Helpers.isEqual(assetId, null)))
                 {
                     Object lowerCaseName = ((String)((String)name)).toLowerCase();
-                    Helpers.addElementToObject(networks, code, lowerCaseName);
+                    if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                    {
+                        Helpers.addElementToObject(networks, code, lowerCaseName);
+                    }
                     Helpers.addElementToObject(networksById, lowerCaseName, code);
                 }
             }
@@ -2215,16 +2228,19 @@ public class CoinbaseCore extends CoinbaseApi
             {
                 Object currencyId = Helpers.GetValue(ratesIds, i);
                 Object code = this.safeCurrencyCode(currencyId);
-                if (!Helpers.isTrue((Helpers.inOp(result, code))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(code, null))) || !Helpers.isTrue((Helpers.inOp(result, code)))))
                 {
-                    final Object finalCode = code;
-                    Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+                    if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                    {
+                        final Object finalCode = code;
+                        Helpers.addElementToObject(result, code, this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
         put( "info", new java.util.HashMap<String, Object>() {{}} );
         put( "id", currencyId );
         put( "code", finalCode );
         put( "type", "crypto" );
         put( "networks", new java.util.HashMap<String, Object>() {{}} );
     }}));
+                    }
                 }
             }
             Helpers.addElementToObject(this.options, "networks", this.extend(networks, Helpers.GetValue(this.options, "networks")));
@@ -2693,7 +2709,10 @@ public class CoinbaseCore extends CoinbaseApi
                         Helpers.addElementToObject(account, "free", Precise.stringAdd(Helpers.GetValue(account, "free"), total));
                         Helpers.addElementToObject(account, "total", Precise.stringAdd(Helpers.GetValue(account, "total"), total));
                     }
-                    Helpers.addElementToObject(result, code, account);
+                    if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                    {
+                        Helpers.addElementToObject(result, code, account);
+                    }
                 }
             } else if (Helpers.isTrue(this.inArray(type, v3Accounts)))
             {
@@ -2719,7 +2738,10 @@ public class CoinbaseCore extends CoinbaseApi
                         Helpers.addElementToObject(account, "used", Precise.stringAdd(Helpers.GetValue(account, "used"), used));
                         Helpers.addElementToObject(account, "total", Precise.stringAdd(Helpers.GetValue(account, "total"), total));
                     }
-                    Helpers.addElementToObject(result, code, account);
+                    if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                    {
+                        Helpers.addElementToObject(result, code, account);
+                    }
                 }
             }
         }
@@ -2934,7 +2956,7 @@ public class CoinbaseCore extends CoinbaseApi
             put( "pro_deposit", "transaction" );
             put( "pro_withdrawal", "transaction" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseLedgerEntry(Object item, Object... optionalArgs)

@@ -690,7 +690,7 @@ public class BitteamCore extends BitteamApi
         Object maxWithdraw = this.safeString(txLimits, "maxWithdraw");
         Object minDeposit = this.safeString(txLimits, "minDeposit");
         Object fee = null;
-        Object withdrawCommissionFixed = ((Object)this.safeValue(txLimits, "withdrawCommissionFixed", new java.util.HashMap<String, Object>() {{}}));
+        Object withdrawCommissionFixed = this.safeValue(txLimits, "withdrawCommissionFixed", new java.util.HashMap<String, Object>() {{}});
         Object feesByNetworkId = new java.util.HashMap<String, Object>() {{}};
         Object blockChain = this.safeString(currency, "blockChain");
         // if only one blockChain
@@ -714,9 +714,12 @@ public class BitteamCore extends BitteamApi
             Object networkId = Helpers.GetValue(networkIds, j);
             Object networkCode = this.networkIdToCode(networkId, code);
             Object networkFee = this.safeNumber(feesByNetworkId, networkId);
-            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkCode = networkCode;
+                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
-    put( "network", networkCode );
+    put( "network", finalNetworkCode );
     put( "deposit", deposit );
     put( "withdraw", withdraw );
     put( "active", active );
@@ -738,6 +741,7 @@ public class BitteamCore extends BitteamApi
     }} );
     put( "info", currency );
 }});
+            }
         }
         final Object finalFee = fee;
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
@@ -2402,11 +2406,14 @@ public class BitteamCore extends BitteamApi
             Object used = this.safeString(currencyBalance, "used");
             Object total = this.safeString(currencyBalance, "total");
             Object currencyCode = this.safeCurrencyCode(((String)rawCurrencyId).toLowerCase());
-            Helpers.addElementToObject(balance, currencyCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(currencyCode, null)))
+            {
+                Helpers.addElementToObject(balance, currencyCode, new java.util.HashMap<String, Object>() {{
     put( "free", free );
     put( "used", used );
     put( "total", total );
 }});
+            }
         }
         return this.safeBalance(balance);
     }
@@ -2643,7 +2650,7 @@ public class BitteamCore extends BitteamApi
             put( "deposit", "deposit" );
             put( "withdraw", "withdrawal" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseTransactionStatus(Object status)

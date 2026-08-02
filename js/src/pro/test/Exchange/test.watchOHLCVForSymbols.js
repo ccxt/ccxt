@@ -26,6 +26,9 @@ async function testWatchOHLCVForSymbols(exchange, skippedProperties, symbol) {
         let success = true;
         try {
             response = await exchange.watchOHLCVForSymbols([[symbol, chosenTimeframeKey]], since, limit);
+            if (response === undefined) {
+                throw new Error(exchange.id + ' watch returned undefined response');
+            }
         }
         catch (e) {
             if (!testSharedMethods.isTemporaryFailure(e)) {
@@ -36,6 +39,9 @@ async function testWatchOHLCVForSymbols(exchange, skippedProperties, symbol) {
             success = false;
         }
         if (success === true) {
+            if (response === undefined) {
+                throw new Error(exchange.id + ' watch returned undefined response');
+            }
             const assertionMessage = exchange.id + ' ' + method + ' ' + symbol + ' ' + chosenTimeframeKey + ' | ' + exchange.json(response);
             assert(exchange.isDictionary(response), 'Response must be a dictionary. ' + assertionMessage);
             assert(symbol in response, 'Response should contain the symbol as key. ' + assertionMessage);

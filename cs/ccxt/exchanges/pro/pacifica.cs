@@ -862,7 +862,10 @@ public partial class pacifica : ccxt.pacifica
             object rawTrade = getValue(data, i);
             object parsed = this.parseWsTrade(rawTrade);
             object symbol = getValue(parsed, "symbol");
-            ((IDictionary<string,object>)symbols)[(string)symbol] = true;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)symbols)[(string)symbol] = true;
+            }
             callDynamically(trades, "append", new object[] {parsed});
         }
         object keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
@@ -983,7 +986,7 @@ public partial class pacifica : ccxt.pacifica
         object trades = getValue(this.trades, symbol);
         for (object i = 0; isLessThan(i, getArrayLength(entry)); postFixIncrement(ref i))
         {
-            object data = this.safeDict(entry, i);
+            object data = this.safeDict(entry, i, new Dictionary<string, object>() {});
             object trade = this.parseWsTrade(data);
             callDynamically(trades, "append", new object[] {trade});
         }
@@ -1186,17 +1189,22 @@ public partial class pacifica : ccxt.pacifica
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object timeframe = this.safeString(data, "i");
+        if (isTrue(isEqual(timeframe, null)))
+        {
+            return;
+        }
         if (!isTrue((inOp(this.ohlcvs, symbol))))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (!isTrue((inOp(getValue(this.ohlcvs, symbol), timeframe))))
+        object symbolOhlcvs = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        object ohlcv = this.safeValue(symbolOhlcvs, timeframe);
+        if (isTrue(isEqual(ohlcv, null)))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            var stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
+            ohlcv = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)symbolOhlcvs)[(string)timeframe] = ohlcv;
         }
-        object ohlcv = getValue(getValue(this.ohlcvs, symbol), timeframe);
         object parsed = this.parseOHLCV(data);
         callDynamically(ohlcv, "append", new object[] {parsed});
         object messageHash = add(add(add("candles:", timeframe), ":"), symbol);
@@ -1342,7 +1350,10 @@ public partial class pacifica : ccxt.pacifica
             object order = this.parseOrder(rawOrder);
             callDynamically(stored, "append", new object[] {order});
             object symbol = this.safeString(order, "symbol");
-            ((IDictionary<string,object>)marketSymbols)[(string)symbol] = true;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)marketSymbols)[(string)symbol] = true;
+            }
         }
         object keys = new List<object>(((IDictionary<string,object>)marketSymbols).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -1426,12 +1437,16 @@ public partial class pacifica : ccxt.pacifica
         object symbol = getValue(market, "symbol");
         object interval = this.safeString(subscription, "interval");
         object timeframe = this.findTimeframe(interval);
+        if (isTrue(isEqual(timeframe, null)))
+        {
+            return;
+        }
         object subMessageHash = add(add(add("candles:", timeframe), ":"), symbol);
         object messageHash = add("unsubscribe:", subMessageHash);
         this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
-        if (isTrue(inOp(this.ohlcvs, symbol)))
+        if (isTrue(isTrue((!isEqual(symbol, null))) && isTrue((inOp(this.ohlcvs, symbol)))))
         {
-            if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
+            if (isTrue(isTrue((!isEqual(timeframe, null))) && isTrue((inOp(getValue(this.ohlcvs, symbol), timeframe)))))
             {
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol)).Remove((string)timeframe);
             }

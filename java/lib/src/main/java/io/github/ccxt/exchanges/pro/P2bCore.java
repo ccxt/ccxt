@@ -373,15 +373,15 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
         Object symbol = this.safeString(market, "symbol");
         Object messageHash = Helpers.add(Helpers.add(channel, "::"), symbol);
         Object parsed = this.parseOHLCV(data, market);
-        Helpers.addElementToObject(this.ohlcvs, ((String)symbol), this.safeValue(this.ohlcvs, ((String)symbol), new java.util.HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, ((String)symbol)), ((String)timeframe));
+        Helpers.addElementToObject(this.ohlcvs, ((String)symbol), this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
+        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, ((String)symbol)), timeframe);
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
                 Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-                Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, ((String)symbol)), ((String)timeframe), stored);
+                Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             client.resolve(stored, messageHash);
@@ -415,7 +415,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
         Object marketId = this.safeString(data, 0);
         Object market = this.safeMarket(marketId);
         Object symbol = this.safeString(market, "symbol");
-        Object tradesArray = this.safeValue(this.trades, ((String)symbol));
+        Object tradesArray = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
         {
             Object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -585,7 +585,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             put( "state.update", "handleTicker");
             put( "deals.update", "handleTrade");
         }};
-        Object endpoint = this.safeValue(methods, ((String)method));
+        Object endpoint = this.safeValue(methods, method);
         if (Helpers.isTrue(!Helpers.isEqual(endpoint, null)))
         {
             Helpers.callDynamically(this, endpoint, new Object[] {client, message});

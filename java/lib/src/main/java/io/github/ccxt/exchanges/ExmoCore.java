@@ -473,9 +473,10 @@ public class ExmoCore extends ExmoApi
             //     }
             //
             Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+            Object symbols = this.symbols;
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                Object symbol = Helpers.GetValue(this.symbols, i);
+                Object symbol = Helpers.GetValue(symbols, i);
                 Object market = this.market(symbol);
                 Object fee = this.safeValue(response, Helpers.GetValue(market, "id"), new java.util.HashMap<String, Object>() {{}});
                 Object makerString = this.safeString(fee, "commission_maker_percent");
@@ -596,7 +597,10 @@ public class ExmoCore extends ExmoApi
                     Object typeInner = this.safeString(provider, "type");
                     Object commissionDesc = this.safeString(provider, "commission_desc");
                     Object fee = this.parseFixedFloatValue(commissionDesc);
-                    Helpers.addElementToObject(Helpers.GetValue(result, code), typeInner, fee);
+                    if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(code, null)) && Helpers.isTrue(!Helpers.isEqual(typeInner, null))))
+                    {
+                        Helpers.addElementToObject(Helpers.GetValue(result, code), typeInner, fee);
+                    }
                 }
                 Helpers.addElementToObject(Helpers.GetValue(result, code), "info", providers);
             }
@@ -696,7 +700,9 @@ public class ExmoCore extends ExmoApi
             Object network = this.safeValue(Helpers.GetValue(result, "networks"), networkCode);
             if (Helpers.isTrue(Helpers.isEqual(network, null)))
             {
-                Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new java.util.HashMap<String, Object>() {{
+                if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+                {
+                    Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "withdraw", new java.util.HashMap<String, Object>() {{
         put( "fee", null );
         put( "percentage", null );
@@ -706,13 +712,17 @@ public class ExmoCore extends ExmoApi
         put( "percentage", null );
     }} );
 }});
+                }
             }
-            final Object finalSplitCommissionDesc = splitCommissionDesc;
-            final Object finalPercentage = percentage;
-            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(result, "networks"), networkCode), type, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(networkCode, null))) && Helpers.isTrue((!Helpers.isEqual(type, null)))))
+            {
+                final Object finalSplitCommissionDesc = splitCommissionDesc;
+                final Object finalPercentage = percentage;
+                Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(result, "networks"), networkCode), type, new java.util.HashMap<String, Object>() {{
     put( "fee", ExmoCore.this.parseFixedFloatValue(ExmoCore.this.safeString(finalSplitCommissionDesc, 0)) );
     put( "percentage", finalPercentage );
 }});
+            }
         }
         return this.assignDefaultDepositWithdrawFees(result);
     }
@@ -805,16 +815,22 @@ public class ExmoCore extends ExmoApi
                 Object provider = Helpers.GetValue(providers, j);
                 Object name = this.safeString(provider, "name");
                 // get network-id by removing extra things
+                if (Helpers.isTrue(Helpers.isEqual(name, null)))
+                {
+                    throw new ExchangeError((String)Helpers.add(this.id, " parseCurrency() missing name")) ;
+                }
                 Object networkId = Helpers.replace((String)name, (String)Helpers.add(currencyId, " "), (String)"");
                 networkId = Helpers.replace((String)networkId, (String)"(", (String)"");
                 Object replaceChar = ")"; // transpiler trick
                 networkId = Helpers.replace((String)networkId, (String)replaceChar, (String)"");
                 Object networkCode = this.networkIdToCode(networkId, code);
-                if (!Helpers.isTrue((Helpers.inOp(networks, networkCode))))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(networkCode, null))) || !Helpers.isTrue((Helpers.inOp(networks, networkCode)))))
                 {
-                    final Object finalNetworkId = networkId;
-                    final Object finalNetworkCode = networkCode;
-                    Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+                    if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+                    {
+                        final Object finalNetworkId = networkId;
+                        final Object finalNetworkCode = networkCode;
+                        Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", finalNetworkId );
     put( "network", finalNetworkCode );
     put( "active", null );
@@ -833,12 +849,13 @@ public class ExmoCore extends ExmoApi
     }} );
     put( "info", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
 }});
+                    }
                 }
                 Object typeInner = this.safeString(provider, "type");
                 Object minValue = this.safeString(provider, "min");
                 Object maxValue = this.safeString(provider, "max");
                 Object activeProvider = this.safeBool(provider, "enabled");
-                Object networkEntry = Helpers.GetValue(networks, networkCode);
+                Object networkEntry = this.safeValue(networks, networkCode);
                 if (Helpers.isTrue(Helpers.isEqual(typeInner, "deposit")))
                 {
                     Helpers.addElementToObject(networkEntry, "deposit", activeProvider);
@@ -853,7 +870,10 @@ public class ExmoCore extends ExmoApi
                 Object info = this.safeList(networkEntry, "info", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 ((java.util.List<Object>)info).add(provider);
                 Helpers.addElementToObject(networkEntry, "info", info);
-                Helpers.addElementToObject(networks, networkCode, networkEntry);
+                if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+                {
+                    Helpers.addElementToObject(networks, networkCode, networkEntry);
+                }
             }
         }
         final Object finalCurrencyId = currencyId;
@@ -1125,7 +1145,10 @@ public class ExmoCore extends ExmoApi
                 Helpers.addElementToObject(account, "used", this.safeString(item, "used"));
                 Helpers.addElementToObject(account, "free", this.safeString(item, "free"));
                 Helpers.addElementToObject(account, "total", this.safeString(item, "balance"));
-                Helpers.addElementToObject(result, currency, account);
+                if (Helpers.isTrue(!Helpers.isEqual(currency, null)))
+                {
+                    Helpers.addElementToObject(result, currency, account);
+                }
             }
         } else
         {
@@ -1145,7 +1168,10 @@ public class ExmoCore extends ExmoApi
                 {
                     Helpers.addElementToObject(account, "used", this.safeString(used, currencyId));
                 }
-                Helpers.addElementToObject(result, code, account);
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(result, code, account);
+                }
             }
         }
         return this.safeBalance(result);
@@ -1408,7 +1434,7 @@ public class ExmoCore extends ExmoApi
             }
             Object response = (this.publicGetTicker(parameters)).join();
             Object market = this.market(symbol);
-            return this.parseTicker(Helpers.GetValue(response, Helpers.GetValue(market, "id")), market);
+            return this.parseTicker(this.safeValue(response, Helpers.GetValue(market, "id")), market);
         });
 
     }
@@ -2062,7 +2088,12 @@ public class ExmoCore extends ExmoApi
                 response = (this.privatePostOrderTrades(this.extend(request, parameters))).join();
             }
             Object trades = this.safeList(response, "trades");
-            return this.parseTrades(trades, market, since, limit);
+            Object tradesList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(!Helpers.isEqual(trades, null)))
+            {
+                tradesList = trades;
+            }
+            return this.parseTrades(tradesList, market, since, limit);
         });
 
     }
@@ -2587,7 +2618,7 @@ public class ExmoCore extends ExmoApi
         Object numSymbols = Helpers.getArrayLength(symbols);
         if (Helpers.isTrue(Helpers.isEqual(numSymbols, 1)))
         {
-            return Helpers.GetValue(this.markets, Helpers.GetValue(symbols, 0));
+            return this.market(Helpers.GetValue(symbols, 0));
         }
         return null;
     }
@@ -2743,7 +2774,10 @@ public class ExmoCore extends ExmoApi
                 if (Helpers.isTrue(Helpers.isEqual(numParts, 2)))
                 {
                     address = this.safeString(parts, 1);
-                    address = Helpers.replace((String)address, (String)" ", (String)"");
+                    if (Helpers.isTrue(!Helpers.isEqual(address, null)))
+                    {
+                        address = Helpers.replace((String)address, (String)" ", (String)"");
+                    }
                 }
             }
         }
@@ -3240,6 +3274,10 @@ public class ExmoCore extends ExmoApi
             {
                 Object code = null;
                 Object message = this.safeString2(response, "error", "errmsg");
+                if (Helpers.isTrue(Helpers.isEqual(message, null)))
+                {
+                    throw new ExchangeError((String)Helpers.add(this.id, " handleErrors() missing message")) ;
+                }
                 Object errorParts = Helpers.split(message, ":");
                 Object numParts = Helpers.getArrayLength(errorParts);
                 if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 1)))

@@ -289,7 +289,7 @@ public partial class bitso : Exchange
             { "trade", "trade" },
             { "fee", "fee" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -495,7 +495,7 @@ public partial class bitso : Exchange
             };
             ((IDictionary<string,object>)fee)["tiers"] = tiers;
             object baseCurrency = this.safeDict(currencies, bs);
-            ((IList<object>)result).Add(this.extend(new Dictionary<string, object>() {
+            ((IList<object>)result).Add(this.safeMarketStructure(this.extend(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
                 { "base", bs },
@@ -545,7 +545,7 @@ public partial class bitso : Exchange
                 } },
                 { "created", null },
                 { "info", market },
-            }, fee));
+            }, fee)));
         }
         return result;
     }
@@ -642,7 +642,10 @@ public partial class bitso : Exchange
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "total");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1127,7 +1130,7 @@ public partial class bitso : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1384,7 +1387,7 @@ public partial class bitso : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1463,7 +1466,7 @@ public partial class bitso : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "oid", id },
         };
@@ -1682,14 +1685,17 @@ public partial class bitso : Exchange
             {
                 continue;
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "deposit", this.safeNumber(depositFee, "fee") },
-                { "withdraw", null },
-                { "info", new Dictionary<string, object>() {
-                    { "deposit", depositFee },
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                    { "deposit", this.safeNumber(depositFee, "fee") },
                     { "withdraw", null },
-                } },
-            };
+                    { "info", new Dictionary<string, object>() {
+                        { "deposit", depositFee },
+                        { "withdraw", null },
+                    } },
+                };
+            }
         }
         object withdrawalFees = this.safeValue(payload, "withdrawal_fees", new List<object>() {});
         object currencyIds = new List<object>(((IDictionary<string,object>)withdrawalFees).Keys);
@@ -1701,14 +1707,17 @@ public partial class bitso : Exchange
             {
                 continue;
             }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "deposit", this.safeValue(getValue(result, code), "deposit") },
-                { "withdraw", this.safeNumber(withdrawalFees, currencyId) },
-                { "info", new Dictionary<string, object>() {
-                    { "deposit", this.safeValue(getValue(getValue(result, code), "info"), "deposit") },
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                    { "deposit", this.safeValue(this.safeValue(result, code), "deposit") },
                     { "withdraw", this.safeNumber(withdrawalFees, currencyId) },
-                } },
-            };
+                    { "info", new Dictionary<string, object>() {
+                        { "deposit", this.safeValue(this.safeValue(this.safeValue(result, code), "info"), "deposit") },
+                        { "withdraw", this.safeNumber(withdrawalFees, currencyId) },
+                    } },
+                };
+            }
         }
         return result;
     }
@@ -1827,20 +1836,23 @@ public partial class bitso : Exchange
             object entry = getValue(depositResponse, i);
             object currencyId = this.safeString(entry, "currency");
             object code = this.safeCurrencyCode(currencyId);
-            if (isTrue(isTrue((isEqual(codes, null))) || isTrue((inOp(codes, code)))))
+            if (isTrue(isTrue((isEqual(codes, null))) || isTrue((isTrue((!isEqual(code, null))) && isTrue((inOp(codes, code)))))))
             {
-                ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "fee", this.safeNumber(entry, "fee") },
-                        { "percentage", !isTrue(this.safeValue(entry, "is_fixed")) },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "fee", null },
-                        { "percentage", null },
-                    } },
-                    { "networks", new Dictionary<string, object>() {} },
-                    { "info", entry },
-                };
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "fee", this.safeNumber(entry, "fee") },
+                            { "percentage", !isTrue(this.safeValue(entry, "is_fixed")) },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "fee", null },
+                            { "percentage", null },
+                        } },
+                        { "networks", new Dictionary<string, object>() {} },
+                        { "info", entry },
+                    };
+                }
             }
         }
         object withdrawalKeys = new List<object>(((IDictionary<string,object>)withdrawalResponse).Keys);
@@ -1848,7 +1860,7 @@ public partial class bitso : Exchange
         {
             object currencyId = getValue(withdrawalKeys, i);
             object code = this.safeCurrencyCode(currencyId);
-            if (isTrue(isTrue((isEqual(codes, null))) || isTrue((inOp(codes, code)))))
+            if (isTrue(isTrue((!isEqual(code, null))) && isTrue((isTrue((isEqual(codes, null))) || isTrue((inOp(codes, code)))))))
             {
                 object withdrawFee = this.parseNumber(getValue(withdrawalResponse, currencyId));
                 object resultValue = this.safeValue(result, code);

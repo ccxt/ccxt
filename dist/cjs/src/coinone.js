@@ -483,7 +483,9 @@ class coinone extends coinone$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(balance, 'avail');
             account['total'] = this.safeString(balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1248,7 +1250,9 @@ class coinone extends coinone$1["default"] {
                 depositAddress['tag'] = value;
                 depositAddress['info'] = [address, value];
             }
-            result[code] = depositAddress;
+            if (code !== undefined) {
+                result[code] = depositAddress;
+            }
         }
         return result;
     }

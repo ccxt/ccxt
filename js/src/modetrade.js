@@ -522,7 +522,7 @@ export default class modetrade extends Exchange {
         const settleId = this.safeString(parts, 2);
         const settle = this.safeCurrencyCode(settleId);
         const symbol = base + '/' + quote + ':' + settle;
-        return {
+        return this.safeMarketStructure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -570,7 +570,7 @@ export default class modetrade extends Exchange {
             },
             'created': this.safeInteger(market, 'created_time'),
             'info': market,
-        };
+        });
     }
     /**
      * @method
@@ -1460,6 +1460,12 @@ export default class modetrade extends Exchange {
         return this.safeStringLower(types, type, type);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
         /**
          * @method
          * @ignore
@@ -2309,7 +2315,9 @@ export default class modetrade extends Exchange {
             const account = this.account();
             account['total'] = this.safeString(balance, 'holding');
             account['used'] = this.safeString(balance, 'frozen');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }

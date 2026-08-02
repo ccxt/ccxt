@@ -1276,7 +1276,12 @@ public class TokocryptoCore extends TokocryptoApi
             //         }
             //     ]
             //
-            return this.parseTrades(response, market, since, limit);
+            Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(!Helpers.isEqual(response, null)))
+            {
+                responseList = response;
+            }
+            return this.parseTrades(responseList, market, since, limit);
         });
 
     }
@@ -1661,7 +1666,10 @@ public class TokocryptoCore extends TokocryptoApi
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "free"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }

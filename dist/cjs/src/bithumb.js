@@ -284,7 +284,8 @@ class bithumb extends bithumb$1["default"] {
         return super.safeMarket(marketId, market, delimiter, 'spot');
     }
     amountToPrecision(symbol, amount) {
-        return this.decimalToPrecision(amount, number.TRUNCATE, this.markets[symbol]['precision']['amount'], number.DECIMAL_PLACES);
+        const market = this.market(symbol);
+        return this.decimalToPrecision(amount, number.TRUNCATE, market['precision']['amount'], number.DECIMAL_PLACES);
     }
     /**
      * @method

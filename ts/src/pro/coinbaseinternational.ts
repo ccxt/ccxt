@@ -145,7 +145,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             await this.loadMarkets ();
         }
         this.checkRequiredCredentials ();
-        if (this.isEmpty (symbols as string[])) {
+        if (this.isEmpty (symbols)) {
             symbols = this.symbols;
         } else {
             symbols = this.marketSymbols (symbols);
@@ -240,7 +240,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const output: any[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const market = this.markets[symbol];
+            const market = this.market (symbol);
             if (market['active']) {
                 output.push (symbol);
             }
@@ -264,7 +264,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'LEVEL1');
-        const ticker = await this.subscribe ((channel as string), symbols, params);
+        const ticker = await this.subscribe (channel, symbols, params);
         if (this.newUpdates) {
             const result: Dict = {};
             result[ticker['symbol']] = ticker;
@@ -305,7 +305,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         client.resolve (ticker, channel + '::' + ticker['symbol']);
     }
 
-    parseWsInstrument (ticker: Dict, market = undefined) {
+    parseWsInstrument (ticker: Dict, market: Market = undefined) {
         //
         //    {
         //        "sequence": 1,
@@ -508,7 +508,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const symbol = market['symbol'];
         const timeframe = this.findTimeframe (messageHash);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        if (this.safeValue (this.ohlcvs[symbol], (timeframe as string)) === undefined) {
+        if (this.safeValue (this.ohlcvs[symbol], timeframe) === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][(timeframe as string)] = new ArrayCacheByTimestamp (limit);
         }
@@ -591,7 +591,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return message;
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         //    {
         //       "sequence": 0,

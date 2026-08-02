@@ -6,7 +6,7 @@ import Exchange from './abstract/delta.js';
 import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, OrderNotFound, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currency, Greeks, Int, Market, MarketInterface, MarketType, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL } from './base/types.js';
+import type{ Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -369,7 +369,7 @@ export default class delta extends Exchange {
         const datetime = this.convertExpireDate (expiry);
         const timestamp = this.parse8601 (datetime);
         const optionTypeUnified = (optionType === 'C') ? 'call' : 'put';
-        return {
+        return this.safeMarketStructure ({
             'id': optionType + '-' + base + '-' + strike + '-' + expiry,
             'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
             'base': base,
@@ -412,12 +412,12 @@ export default class delta extends Exchange {
                 },
             },
             'info': undefined,
-        } as MarketInterface;
+        }) as MarketInterface;
     }
 
     safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         const isOption = (marketId !== undefined) && ((marketId.endsWith ('-C')) || (marketId.endsWith ('-P')) || (marketId.startsWith ('C-')) || (marketId.startsWith ('P-')));
-        if (isOption && !(marketId in this.markets_by_id)) {
+        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket (marketId);
         }
@@ -575,7 +575,7 @@ export default class delta extends Exchange {
         return this.parseCurrencies (currencies);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'symbol');
         const numericId = this.safeInteger (rawCurrency, 'id');
         const code = this.safeCurrencyCode (id);
@@ -585,26 +585,28 @@ export default class delta extends Exchange {
             const chain = chains[j];
             const networkId = this.safeString (chain, 'network');
             const networkCode = this.networkIdToCode (networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'name': this.safeString (chain, 'name'),
-                'info': chain,
-                'active': this.safeString (chain, 'status') === 'enabled',
-                'deposit': this.safeString (chain, 'deposit_status') === 'enabled',
-                'withdraw': this.safeString (chain, 'withdrawal_status') === 'enabled',
-                'fee': this.safeNumber (chain, 'base_withdrawal_fee'),
-                'limits': {
-                    'deposit': {
-                        'min': this.safeNumber (chain, 'min_deposit_amount'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'name': this.safeString (chain, 'name'),
+                    'info': chain,
+                    'active': this.safeString (chain, 'status') === 'enabled',
+                    'deposit': this.safeString (chain, 'deposit_status') === 'enabled',
+                    'withdraw': this.safeString (chain, 'withdrawal_status') === 'enabled',
+                    'fee': this.safeNumber (chain, 'base_withdrawal_fee'),
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber (chain, 'min_deposit_amount'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'min_withdrawal_amount'),
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': this.safeNumber (chain, 'min_withdrawal_amount'),
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -916,7 +918,7 @@ export default class delta extends Exchange {
                 }
             }
             const state = this.safeString (market, 'state');
-            result.push ({
+            result.push (this.safeMarketStructure ({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
@@ -926,7 +928,7 @@ export default class delta extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': type as MarketType,
+                'type': type,
                 'spot': spot,
                 'margin': false,
                 'swap': swap,
@@ -967,7 +969,7 @@ export default class delta extends Exchange {
                 },
                 'created': this.parse8601 (this.safeString (market, 'launch_time')),
                 'info': market,
-            });
+            }));
         }
         return result;
     }
@@ -1417,7 +1419,9 @@ export default class delta extends Exchange {
             }
             const ticker = this.parseTicker (rawTicker);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
     }
@@ -1651,6 +1655,9 @@ export default class delta extends Exchange {
         if (since === undefined) {
             const end = untilIsDefined ? until : this.seconds ();
             request['end'] = end;
+            if (end === undefined) {
+                throw new ExchangeError (this.id + ' fetchOHLCV() missing end');
+            }
             request['start'] = end - limit * duration;
         } else {
             const start = this.parseToInt (since / 1000);
@@ -2106,7 +2113,11 @@ export default class delta extends Exchange {
             // "size": this.amountToPrecision (symbol, amount),
         };
         if (amount !== undefined) {
-            request['size'] = parseInt (this.amountToPrecision (symbol, amount));
+            let sizeString = this.amountToPrecision (symbol, amount);
+            if (sizeString === undefined) {
+                sizeString = '0';
+            }
+            request['size'] = parseInt (sizeString);
         }
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision (symbol, price);
@@ -2129,7 +2140,7 @@ export default class delta extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeDict (response, 'result');
+        const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
     }
 
@@ -2190,7 +2201,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const result = this.safeDict (response, 'result');
+        const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result, market);
     }
 
@@ -2249,7 +2260,7 @@ export default class delta extends Exchange {
         const clientOrderId = this.safeStringN (params, [ 'clientOrderId', 'client_oid', 'clientOid' ]);
         params = this.omit (params, [ 'clientOrderId', 'client_oid', 'clientOid' ]);
         const request: Dict = {};
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (clientOrderId !== undefined) {
             request['client_oid'] = clientOrderId;
             response = await this.privateGetOrdersClientOrderIdClientOid (this.extend (request, params));
@@ -2338,7 +2349,7 @@ export default class delta extends Exchange {
         if (limit !== undefined) {
             request['page_size'] = limit;
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (method === 'privateGetOrders') {
             response = await this.privateGetOrders (this.extend (request, params));
         } else if (method === 'privateGetOrdersHistory') {
@@ -2521,7 +2532,7 @@ export default class delta extends Exchange {
             'commission_rebate': 'rebate',
             // 'promo_credit': 'promo_credit',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -3332,7 +3343,7 @@ export default class delta extends Exchange {
     }
 
     parseSettlements (settlements, market) {
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));
         }

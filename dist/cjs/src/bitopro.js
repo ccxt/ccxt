@@ -437,6 +437,9 @@ class bitopro extends bitopro$1["default"] {
     parseMarket(market) {
         const active = !this.safeBool(market, 'maintain');
         const id = this.safeString(market, 'pair');
+        if (id === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseMarket() missing id');
+        }
         const uppercaseId = id.toUpperCase();
         const baseId = this.safeString(market, 'base');
         const quoteId = this.safeString(market, 'quote');
@@ -461,7 +464,7 @@ class bitopro extends bitopro$1["default"] {
                 'max': undefined,
             },
         };
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'uppercaseId': uppercaseId,
             'symbol': symbol,
@@ -493,7 +496,7 @@ class bitopro extends bitopro$1["default"] {
             'active': active,
             'created': undefined,
             'info': market,
-        };
+        });
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -846,8 +849,9 @@ class bitopro extends bitopro$1["default"] {
         const result = {};
         const maker = this.safeNumber(first, 'makerFee');
         const taker = this.safeNumber(first, 'takerFee');
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': first,
                 'symbol': symbol,
@@ -993,7 +997,9 @@ class bitopro extends bitopro$1["default"] {
                 'free': available,
                 'total': amount,
             };
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1076,6 +1082,9 @@ class bitopro extends bitopro$1["default"] {
         const id = this.safeString2(order, 'id', 'orderId');
         const timestamp = this.safeInteger2(order, 'timestamp', 'createdTimestamp');
         let side = this.safeString(order, 'action');
+        if (side === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseOrder() returned no side');
+        }
         side = side.toLowerCase();
         const amount = this.safeString2(order, 'amount', 'originalAmount');
         const price = this.safeString(order, 'price');
@@ -1261,7 +1270,9 @@ class bitopro extends bitopro$1["default"] {
         const market = this.market(symbol);
         const id = market['uppercaseId'];
         const request = {};
-        request[id] = ids;
+        if (id !== undefined) {
+            request[id] = ids;
+        }
         const response = await this.privatePutOrders(this.extend(request, params));
         //
         //     {

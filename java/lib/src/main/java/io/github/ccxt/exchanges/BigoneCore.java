@@ -475,9 +475,12 @@ public class BigoneCore extends BigoneApi
             Object minWithdrawalAmount = this.safeString(chain, "min_withdrawal_amount");
             Object withdrawalFee = this.safeString(chain, "withdrawal_fee");
             Object precision = this.parsePrecision(this.safeString2(chain, "withdrawal_scale", "scale"));
-            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkCode = networkCode;
+                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
-    put( "network", networkCode );
+    put( "network", finalNetworkCode );
     put( "margin", null );
     put( "deposit", deposit );
     put( "withdraw", withdraw );
@@ -496,6 +499,7 @@ public class BigoneCore extends BigoneApi
     }} );
     put( "info", chain );
 }});
+            }
         }
         Object chainLength = Helpers.getArrayLength(chains);
         Object type = null;
@@ -982,6 +986,10 @@ public class BigoneCore extends BigoneApi
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object timestamp = this.safeInteger(data, "Timestamp");
+            if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
+            }
             return this.parseToInt(Helpers.divide(timestamp, 1000000));
         });
 
@@ -1464,7 +1472,10 @@ public class BigoneCore extends BigoneApi
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked_balance"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -1521,7 +1532,7 @@ public class BigoneCore extends BigoneApi
             put( "LIMIT", "limit" );
             put( "MARKET", "market" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -1684,7 +1695,7 @@ public class BigoneCore extends BigoneApi
             Object isLimit = Helpers.isEqual(uppercaseType, "LIMIT");
             Object exchangeSpecificParam = this.safeBool(parameters, "post_only", false);
             Object postOnly = null;
-            var postOnlyparametersVariable = this.handlePostOnly((Helpers.isEqual(uppercaseType, "MARKET")), exchangeSpecificParam, parameters);
+            var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(uppercaseType, "MARKET"), Helpers.isEqual(exchangeSpecificParam, true), parameters);
             postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
             parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
             Object triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
@@ -1775,7 +1786,7 @@ public class BigoneCore extends BigoneApi
             //        "updated_at":"2019-01-29T06:05:56Z"
             //    }
             //
-            Object order = this.safeDict(response, "data");
+            Object order = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         });
 
@@ -1818,7 +1829,7 @@ public class BigoneCore extends BigoneApi
             //        "created_at":"2019-01-29T06:05:56Z",
             //        "updated_at":"2019-01-29T06:05:56Z"
             //    }
-            Object order = this.safeDict(response, "data");
+            Object order = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(order);
         });
 

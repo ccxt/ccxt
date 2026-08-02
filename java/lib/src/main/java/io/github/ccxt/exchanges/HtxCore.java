@@ -1603,6 +1603,10 @@ public class HtxCore extends HtxApi
             {
                 symbols = this.symbols;
             }
+            if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
+            }
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
@@ -1686,7 +1690,7 @@ public class HtxCore extends HtxApi
 
     public Object costToPrecision(Object symbol, Object cost)
     {
-        return this.decimalToPrecision(cost, TRUNCATE, Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.markets, symbol), "precision"), "cost"), this.precisionMode);
+        return this.decimalToPrecision(cost, TRUNCATE, Helpers.GetValue(Helpers.GetValue(this.market(symbol), "precision"), "cost"), this.precisionMode);
     }
 
     /**
@@ -1901,6 +1905,10 @@ public class HtxCore extends HtxApi
                 if (Helpers.isTrue(contract))
                 {
                     id = this.safeString(market, "contract_code");
+                    if (Helpers.isTrue(Helpers.isEqual(id, null)))
+                    {
+                        throw new ExchangeError((String)Helpers.add(this.id, " method() missing id")) ;
+                    }
                     lowercaseId = ((String)id).toLowerCase();
                     Object delivery_date = this.safeString(market, "delivery_date");
                     Object business_type = this.safeString(market, "business_type");
@@ -1911,6 +1919,10 @@ public class HtxCore extends HtxApi
                     if (Helpers.isTrue(swap))
                     {
                         type = "swap";
+                        if (Helpers.isTrue(Helpers.isEqual(id, null)))
+                        {
+                            throw new ExchangeError((String)Helpers.add(this.id, " method() missing id")) ;
+                        }
                         Object parts = Helpers.split(id, "-");
                         baseId = this.safeStringLower(market, "symbol");
                         quoteId = this.safeStringLower(parts, 1);
@@ -1926,6 +1938,10 @@ public class HtxCore extends HtxApi
                         } else
                         {
                             Object pair = this.safeString(market, "pair");
+                            if (Helpers.isTrue(Helpers.isEqual(pair, null)))
+                            {
+                                throw new ExchangeError((String)Helpers.add(this.id, " method() missing pair")) ;
+                            }
                             Object parts = Helpers.split(pair, "-");
                             quoteId = this.safeStringLower(parts, 1);
                             settleId = quoteId;
@@ -1936,6 +1952,14 @@ public class HtxCore extends HtxApi
                     type = "spot";
                     baseId = this.safeString(market, "base-currency");
                     quoteId = this.safeString(market, "quote-currency");
+                    if (Helpers.isTrue(Helpers.isEqual(quoteId, null)))
+                    {
+                        throw new ExchangeError((String)Helpers.add(this.id, " method() missing quoteId")) ;
+                    }
+                    if (Helpers.isTrue(Helpers.isEqual(baseId, null)))
+                    {
+                        throw new ExchangeError((String)Helpers.add(this.id, " method() missing baseId")) ;
+                    }
                     id = Helpers.add(baseId, quoteId);
                     lowercaseId = ((String)id).toLowerCase();
                 }
@@ -2103,7 +2127,7 @@ public class HtxCore extends HtxApi
 
     public Object tryGetSymbolFromFutureMarkets(Object symbolOrMarketId)
     {
-        if (Helpers.isTrue(Helpers.inOp(this.markets, symbolOrMarketId)))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.markets, null))) && Helpers.isTrue((Helpers.inOp(this.markets, symbolOrMarketId)))))
         {
             return symbolOrMarketId;
         }
@@ -2132,7 +2156,7 @@ public class HtxCore extends HtxApi
             Object market = Helpers.GetValue(futureMarkets, i);
             Object info = this.safeValue(market, "info", new java.util.HashMap<String, Object>() {{}});
             Object contractType = this.safeString(info, "contract_type");
-            Object contractSuffix = Helpers.GetValue(futuresCharsMaps, contractType);
+            Object contractSuffix = this.safeValue(futuresCharsMaps, contractType);
             // see comment on formats a bit above
             Object constructedId = ((Helpers.isTrue(Helpers.GetValue(market, "linear")))) ? Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "base"), "-"), Helpers.GetValue(market, "quote")), "-"), contractSuffix) : Helpers.add(Helpers.add(Helpers.GetValue(market, "base"), "_"), contractSuffix);
             if (Helpers.isTrue(Helpers.isEqual(constructedId, symbolOrMarketId)))
@@ -2660,6 +2684,10 @@ public class HtxCore extends HtxApi
             //         }
             //     }
             //
+            if (Helpers.isTrue(Helpers.isEqual(response, null)))
+            {
+                throw new NullResponse((String)Helpers.add(this.id, " fetchOrderBook() returned empty response")) ;
+            }
             if (Helpers.isTrue(Helpers.inOp(response, "tick")))
             {
                 if (!Helpers.isTrue(Helpers.GetValue(response, "tick")))
@@ -3661,7 +3689,10 @@ public class HtxCore extends HtxApi
         Object code = this.safeCurrencyCode(currencyId);
         Object assetType = this.safeString(rawCurrency, "assetType");
         Object type = ((Helpers.isTrue((Helpers.isEqual(assetType, "1"))))) ? "crypto" : "fiat";
-        Helpers.addElementToObject(Helpers.GetValue(this.options, "networkChainIdsByNames"), code, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+        {
+            Helpers.addElementToObject(Helpers.GetValue(this.options, "networkChainIdsByNames"), code, new java.util.HashMap<String, Object>() {{}});
+        }
         Object chains = this.safeList(rawCurrency, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object networks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
@@ -3669,13 +3700,23 @@ public class HtxCore extends HtxApi
             Object chainEntry = Helpers.GetValue(chains, j);
             Object uniqueChainId = this.safeString(chainEntry, "chain"); // i.e. usdterc20, trc20usdt ...
             Object title = this.safeString2(chainEntry, "baseChain", "displayName"); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
-            Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(this.options, "networkChainIdsByNames"), code), title, uniqueChainId);
-            Helpers.addElementToObject(Helpers.GetValue(this.options, "networkNamesByChainIds"), uniqueChainId, title);
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(code, null)) && Helpers.isTrue(!Helpers.isEqual(title, null))))
+            {
+                Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(this.options, "networkChainIdsByNames"), code), title, uniqueChainId);
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(uniqueChainId, null)))
+            {
+                Helpers.addElementToObject(Helpers.GetValue(this.options, "networkNamesByChainIds"), uniqueChainId, title);
+            }
             Object networkCode = this.networkIdToCode(uniqueChainId, code);
-            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalUniqueChainId = uniqueChainId;
+                final Object finalNetworkCode = networkCode;
+                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "info", chainEntry );
-    put( "id", uniqueChainId );
-    put( "network", networkCode );
+    put( "id", finalUniqueChainId );
+    put( "network", finalNetworkCode );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "deposit", new java.util.HashMap<String, Object>() {{
             put( "min", HtxCore.this.safeNumber(chainEntry, "minDepositAmt") );
@@ -3692,10 +3733,12 @@ public class HtxCore extends HtxApi
     put( "fee", HtxCore.this.safeNumber(chainEntry, "transactFeeWithdraw") );
     put( "precision", HtxCore.this.parseNumber(HtxCore.this.parsePrecision(HtxCore.this.safeString(chainEntry, "withdrawPrecision"))) );
 }});
+            }
         }
+        final Object finalCode = code;
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "info", rawCurrency );
-            put( "code", code );
+            put( "code", finalCode );
             put( "id", currencyId );
             put( "active", Helpers.isEqual(HtxCore.this.safeString(rawCurrency, "instStatus"), "normal") );
             put( "deposit", null );
@@ -3804,9 +3847,13 @@ public class HtxCore extends HtxApi
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object subType = null;
             Object isMultiAssetMode = null;
-            var subTypeparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "defaultSubType", "subType", "linear");
+            var subTypeparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "defaultSubType", "subType");
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
+            if (Helpers.isTrue(Helpers.isEqual(subType, null)))
+            {
+                subType = "linear";
+            }
             var isMultiAssetModeparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "multiAssetMode", false);
             isMultiAssetMode = ((java.util.List<Object>) isMultiAssetModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isMultiAssetModeparametersVariable).get(1);
@@ -4012,7 +4059,10 @@ public class HtxCore extends HtxApi
                     Object account = this.account();
                     Helpers.addElementToObject(account, "free", this.safeString(balance, "available_margin"));
                     Helpers.addElementToObject(account, "total", this.safeString(balance, "equity"));
-                    Helpers.addElementToObject(result, code, account);
+                    if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                    {
+                        Helpers.addElementToObject(result, code, account);
+                    }
                 }
                 result = this.safeBalance(result);
             } else if (Helpers.isTrue(Helpers.isTrue(spot) || Helpers.isTrue(margin)))
@@ -4030,7 +4080,10 @@ public class HtxCore extends HtxApi
                             Object balance = Helpers.GetValue(balances, j);
                             Object currencyId = this.safeString(balance, "currency");
                             Object code = this.safeCurrencyCode(currencyId);
-                            Helpers.addElementToObject(subResult, code, this.parseMarginBalanceHelper(balance, code, subResult));
+                            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                            {
+                                Helpers.addElementToObject(subResult, code, this.parseMarginBalanceHelper(balance, code, subResult));
+                            }
                         }
                         Helpers.addElementToObject(result, symbol, this.safeBalance(subResult));
                     }
@@ -4042,7 +4095,10 @@ public class HtxCore extends HtxApi
                         Object balance = Helpers.GetValue(balances, i);
                         Object currencyId = this.safeString(balance, "currency");
                         Object code = this.safeCurrencyCode(currencyId);
-                        Helpers.addElementToObject(result, code, this.parseMarginBalanceHelper(balance, code, result));
+                        if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                        {
+                            Helpers.addElementToObject(result, code, this.parseMarginBalanceHelper(balance, code, result));
+                        }
                     }
                     result = this.safeBalance(result);
                 }
@@ -4056,7 +4112,10 @@ public class HtxCore extends HtxApi
                     Object account = this.account();
                     Helpers.addElementToObject(account, "free", this.safeString(balance, "margin_available"));
                     Helpers.addElementToObject(account, "used", this.safeString(balance, "margin_frozen"));
-                    Helpers.addElementToObject(result, code, account);
+                    if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                    {
+                        Helpers.addElementToObject(result, code, account);
+                    }
                 }
                 result = this.safeBalance(result);
             }
@@ -4321,9 +4380,17 @@ public class HtxCore extends HtxApi
         {
             account = this.account();
         }
+        if (Helpers.isTrue(Helpers.isEqual(account, null)))
+        {
+            throw new ExchangeError((String)Helpers.add(this.id, " parseMarginBalanceHelper() could not resolve account")) ;
+        }
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(balance, "type"), "trade")))
         {
             Helpers.addElementToObject(account, "free", this.safeString(balance, "balance"));
+        }
+        if (Helpers.isTrue(Helpers.isEqual(account, null)))
+        {
+            throw new ExchangeError((String)Helpers.add(this.id, " parseMarginBalanceHelper() could not resolve account")) ;
         }
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(balance, "type"), "frozen")))
         {
@@ -5680,13 +5747,23 @@ public class HtxCore extends HtxApi
      * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
      * @returns {object} request to be sent to the exchange
      */
-    public java.util.concurrent.CompletableFuture<Object> createSpotOrderRequest(Object symbol, Object type, Object side2, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createSpotOrderRequest(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
+        final Object type3 = type2;
         final Object side3 = side2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+            Object type = type3;
             Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(type, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            }
+            if (Helpers.isTrue(Helpers.isEqual(side, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -5815,32 +5892,40 @@ public class HtxCore extends HtxApi
 
     public Object createContractOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
-        /**
-        * @method
-        * @ignore
-        * @name htx#createContractOrderRequest
-        * @description helper function to build request
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
-        * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
-        * @param {float} [params.trailingTriggerPrice] *contract only* the price to trigger a trailing order, default uses the price argument
-        * @param {object} [params.takeProfit] *takeProfit object in params, linear swap only* containing the triggerPrice at which the attached take profit order will be triggered
-        * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
-        * @param {float} [params.takeProfit.price] take profit order price take profit orders
-        * @param {string} [params.takeProfit.type] market is the default, limit, optimal_5, optimal_10, optimal_20
-        * @param {object} [params.stopLoss] *stopLoss object in params, linear swap only* containing the triggerPrice at which the attached stop loss order will be triggered
-        * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-        * @param {float} [params.stopLoss.price] stop loss order price for stop loss orders
-        * @param {string} [params.stopLoss.type] market is the default, limit, optimal_5, optimal_10, optimal_20
-        * @returns {object} request to be sent to the exchange
-        */
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name htx#createContractOrderRequest
+         * @description helper function to build request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
+         * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
+         * @param {float} [params.trailingTriggerPrice] *contract only* the price to trigger a trailing order, default uses the price argument
+         * @param {object} [params.takeProfit] *takeProfit object in params, linear swap only* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+         * @param {float} [params.takeProfit.price] take profit order price take profit orders
+         * @param {string} [params.takeProfit.type] market is the default, limit, optimal_5, optimal_10, optimal_20
+         * @param {object} [params.stopLoss] *stopLoss object in params, linear swap only* containing the triggerPrice at which the attached stop loss order will be triggered
+         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+         * @param {float} [params.stopLoss.price] stop loss order price for stop loss orders
+         * @param {string} [params.stopLoss.type] market is the default, limit, optimal_5, optimal_10, optimal_20
+         * @returns {object} request to be sent to the exchange
+         */
         Object market = this.market(symbol);
         Object request = new java.util.HashMap<String, Object>() {{
             put( "contract_code", Helpers.GetValue(market, "id") );
@@ -6273,6 +6358,10 @@ public class HtxCore extends HtxApi
                 {
                     result = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 }
+                if (Helpers.isTrue(Helpers.isEqual(result, null)))
+                {
+                    throw new NullResponse((String)Helpers.add(this.id, " parseOrder() returned empty response")) ;
+                }
                 return this.extend(this.parseOrder(result, market), new java.util.HashMap<String, Object>() {{
                     put( "type", type );
                     put( "side", side );
@@ -6290,6 +6379,10 @@ public class HtxCore extends HtxApi
             } else
             {
                 result = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
+            }
+            if (Helpers.isTrue(Helpers.isEqual(result, null)))
+            {
+                throw new NullResponse((String)Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.parseOrder(result, market);
         });
@@ -6684,6 +6777,10 @@ public class HtxCore extends HtxApi
             } else
             {
                 result = response;
+            }
+            if (Helpers.isTrue(Helpers.isEqual(result, null)))
+            {
+                throw new NullResponse((String)Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.extend(this.parseOrder(result, market), new java.util.HashMap<String, Object>() {{
                 put( "id", id );
@@ -7148,15 +7245,19 @@ public class HtxCore extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrdersAfter(Object timeout, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> cancelAllOrdersAfter(Object timeout2, Object... optionalArgs)
     {
-
+        final Object timeout3 = timeout2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+            Object timeout = timeout3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
+            }
+            if (Helpers.isTrue(Helpers.isEqual(timeout, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
             }
             final Object finalTimeout = timeout;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -7276,7 +7377,7 @@ public class HtxCore extends HtxApi
             var paramsOmited = ((java.util.List<Object>) networkCodeparamsOmitedVariable).get(1);
             Object indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
             Object selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks(Helpers.GetValue(currency, "code"), networkCode, indexedAddresses);
-            return Helpers.GetValue(indexedAddresses, selectedNetworkCode);
+            return this.safeValue(indexedAddresses, selectedNetworkCode);
         });
 
     }
@@ -7551,6 +7652,10 @@ public class HtxCore extends HtxApi
         }
         Object networkId = this.safeString(transaction, "chain");
         Object txHash = this.safeString(transaction, "tx-hash");
+        if (Helpers.isTrue(Helpers.isEqual(txHash, null)))
+        {
+            throw new ExchangeError((String)Helpers.add(this.id, " parseTransaction() missing txHash")) ;
+        }
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(networkId, "ETH")) && Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(txHash, "0x"), 0))))
         {
             txHash = Helpers.add("0x", txHash);
@@ -7656,7 +7761,12 @@ public class HtxCore extends HtxApi
             {
                 Helpers.addElementToObject(request, "chain", this.networkCodeToId(networkCode, code));
             }
-            amount = Helpers.parseFloat(this.currencyToPrecision(code, amount, networkCode));
+            Object amountPrecision = this.currencyToPrecision(code, amount, networkCode);
+            if (Helpers.isTrue(Helpers.isEqual(amountPrecision, null)))
+            {
+                amountPrecision = "0";
+            }
+            amount = Helpers.parseFloat(amountPrecision);
             Object withdrawOptions = this.safeValue(this.options, "withdraw", new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(this.safeBool(withdrawOptions, "includeFee", false)))
             {
@@ -7677,9 +7787,24 @@ public class HtxCore extends HtxApi
                 parameters = this.omit(parameters, "fee");
                 Object amountString = this.numberToString(amount);
                 Object amountSubtractedString = Precise.stringSub(amountString, feeString);
-                Object amountSubtracted = Helpers.parseFloat(amountSubtractedString);
-                Helpers.addElementToObject(request, "fee", Helpers.parseFloat(feeString));
-                amount = Helpers.parseFloat(this.currencyToPrecision(code, amountSubtracted, networkCode));
+                Object amountSubtractedParsed = amountSubtractedString;
+                if (Helpers.isTrue(Helpers.isEqual(amountSubtractedParsed, null)))
+                {
+                    amountSubtractedParsed = "0";
+                }
+                Object amountSubtracted = Helpers.parseFloat(amountSubtractedParsed);
+                Object feeParsed = feeString;
+                if (Helpers.isTrue(Helpers.isEqual(feeParsed, null)))
+                {
+                    feeParsed = "0";
+                }
+                Helpers.addElementToObject(request, "fee", Helpers.parseFloat(feeParsed));
+                Object amountAfterFee = this.currencyToPrecision(code, amountSubtracted, networkCode);
+                if (Helpers.isTrue(Helpers.isEqual(amountAfterFee, null)))
+                {
+                    amountAfterFee = "0";
+                }
+                amount = Helpers.parseFloat(amountAfterFee);
             }
             Helpers.addElementToObject(request, "amount", amount);
             Object response = (this.spotPrivatePostV1DwWithdrawApiCreate(this.extend(request, parameters))).join();
@@ -7787,9 +7912,15 @@ public class HtxCore extends HtxApi
                 (this.loadMarkets()).join();
             }
             Object currency = this.currency(code);
+            Object transferAmount = this.currencyToPrecision(code, amount);
+            if (Helpers.isTrue(Helpers.isEqual(transferAmount, null)))
+            {
+                transferAmount = "0";
+            }
+            final Object finalTransferAmount = transferAmount;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
-                put( "amount", Helpers.parseFloat(HtxCore.this.currencyToPrecision(code, amount)) );
+                put( "amount", Helpers.parseFloat(finalTransferAmount) );
             }};
             Object subType = null;
             var subTypeparametersVariable = this.handleSubTypeAndParams("transfer", null, parameters);
@@ -7799,8 +7930,8 @@ public class HtxCore extends HtxApi
             Object toAccountId = this.convertTypeToAccount(toAccount);
             Object toCross = Helpers.isEqual(toAccountId, "cross");
             Object fromCross = Helpers.isEqual(fromAccountId, "cross");
-            Object toIsolated = this.inArray(toAccountId, this.ids);
-            Object fromIsolated = this.inArray(fromAccountId, this.ids);
+            Object toIsolated = (Helpers.isTrue((!Helpers.isEqual(this.ids, null))) && Helpers.isTrue(this.inArray(toAccountId, this.ids)));
+            Object fromIsolated = (Helpers.isTrue((!Helpers.isEqual(this.ids, null))) && Helpers.isTrue(this.inArray(fromAccountId, this.ids)));
             Object fromSpot = Helpers.isEqual(fromAccountId, "pro");
             Object toSpot = Helpers.isEqual(toAccountId, "pro");
             if (Helpers.isTrue(Helpers.isTrue(fromSpot) && Helpers.isTrue(toSpot)))
@@ -7865,6 +7996,10 @@ public class HtxCore extends HtxApi
             //        "print-log": true
             //    }
             //
+            if (Helpers.isTrue(Helpers.isEqual(response, null)))
+            {
+                throw new NullResponse((String)Helpers.add(this.id, " parseTransfer() returned empty response")) ;
+            }
             return this.parseTransfer(response, currency);
         });
 
@@ -8303,7 +8438,7 @@ public class HtxCore extends HtxApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object defaultSubType = this.safeString(this.options, "defaultSubType", "linear");
+            Object defaultSubType = "linear";
             Object subType = null;
             var subTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRates", "subType", defaultSubType);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
@@ -8581,7 +8716,7 @@ public class HtxCore extends HtxApi
                 }
             } else
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(query, null))) && Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query)))))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
                 }
@@ -8611,7 +8746,7 @@ public class HtxCore extends HtxApi
             url = Helpers.add(url, this.implodeParams(path, parameters));
             if (Helpers.isTrue(Helpers.isEqual(access, "public")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(query, null))) && Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query)))))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
                 }
@@ -8651,10 +8786,10 @@ public class HtxCore extends HtxApi
                     put( "Timestamp", timestamp );
                 }};
                 // sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
-                request = ((Object)this.keysort(request));
+                request = this.keysort(request);
                 if (Helpers.isTrue(!Helpers.isEqual(method, "POST")))
                 {
-                    Object sortedQuery = ((Object)this.keysort(query));
+                    Object sortedQuery = this.keysort(query);
                     request = this.extend(request, sortedQuery);
                 }
                 Object auth = Helpers.replace((String)this.urlencode(request, true), (String)"%2c", (String)"%2C"); // in c# it manually needs to be uppercased
@@ -8692,7 +8827,7 @@ public class HtxCore extends HtxApi
                 }
             }
             Object finalHostname = hostname; // java req
-            url = Helpers.add(this.implodeParams(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), type), new java.util.HashMap<String, Object>() {{
+            url = Helpers.add(this.implodeParams(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), ((String)type)), new java.util.HashMap<String, Object>() {{
     put( "hostname", finalHostname );
 }}), url);
         }
@@ -8918,6 +9053,10 @@ public class HtxCore extends HtxApi
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " setLeverage() not support this market type")) ;
                 }
+            }
+            if (Helpers.isTrue(Helpers.isEqual(response, null)))
+            {
+                throw new NullResponse((String)Helpers.add(this.id, " setLeverage() returned empty response")) ;
             }
             return response;
         });
@@ -9315,7 +9454,7 @@ public class HtxCore extends HtxApi
             put( "other-types", "transfer" );
             put( "rebate", "rebate" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseLedgerEntry(Object item, Object... optionalArgs)
@@ -10425,14 +10564,17 @@ public class HtxCore extends HtxApi
                     put( "percentage", true );
                 }};
             }
-            final Object finalWithdrawResult = withdrawResult;
-            Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalWithdrawResult = withdrawResult;
+                Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "withdraw", finalWithdrawResult );
     put( "deposit", new java.util.HashMap<String, Object>() {{
         put( "fee", null );
         put( "percentage", null );
     }} );
 }});
+            }
             result = this.assignDefaultDepositWithdrawFees(result, currency);
         }
         return result;
@@ -10784,6 +10926,10 @@ public class HtxCore extends HtxApi
             {
                 Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 return this.parseOrder(data, market);
+            }
+            if (Helpers.isTrue(Helpers.isEqual(response, null)))
+            {
+                throw new NullResponse((String)Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
             return this.parseOrder(response, market);
         });

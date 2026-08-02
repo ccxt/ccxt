@@ -419,10 +419,13 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Object network = Helpers.GetValue(supportedNetworks, j);
             Object networkId = this.safeString(network, "id");
             Object networkCode = this.networkIdToCode(networkId, code);
-            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkCode = networkCode;
+                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
     put( "name", CoinbaseexchangeCore.this.safeString(network, "name") );
-    put( "network", networkCode );
+    put( "network", finalNetworkCode );
     put( "active", Helpers.isEqual(CoinbaseexchangeCore.this.safeString(network, "status"), "online") );
     put( "withdraw", null );
     put( "deposit", null );
@@ -437,6 +440,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
     put( "contract", CoinbaseexchangeCore.this.safeString(network, "contract_address") );
     put( "info", network );
 }});
+            }
         }
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -676,7 +680,10 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "hold"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -1892,7 +1899,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             put( "rebate", "rebate" );
             put( "conversion", "trade" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseLedgerEntry(Object item, Object... optionalArgs)
@@ -2132,7 +2139,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
                     Object account_id = this.safeString(Helpers.GetValue(response, i), "account_id");
-                    Object account = this.safeValue(this.accountsById, ((String)account_id));
+                    Object account = this.safeValue(this.accountsById, account_id);
                     Object codeInner = this.safeString(account, "code");
                     Helpers.addElementToObject(Helpers.GetValue(response, i), "currency", codeInner);
                 }

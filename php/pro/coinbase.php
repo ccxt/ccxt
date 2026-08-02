@@ -59,7 +59,7 @@ class coinbase extends \ccxt\async\coinbase {
         ));
     }
 
-    public function subscribe(string $name, bool $isPrivate, $symbol = null, $params = array()) {
+    public function subscribe(string $name, bool $isPrivate, mixed $symbol = null, $params = array()) {
         return Async\async(function () use ($name, $isPrivate, $symbol, $params) {
             /**
              * @ignore
@@ -82,8 +82,12 @@ class coinbase extends \ccxt\async\coinbase {
             if ((gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol)))) {
                 $symbols = $this->market_symbols($symbol);
                 $marketIds = $this->market_ids($symbols);
-                $productIds = $marketIds;
-                $messageHash = $messageHash . '::' . implode(',', $symbol);
+                if ($marketIds === null) {
+                    $productIds = array();
+                } else {
+                    $productIds = $marketIds;
+                }
+                $messageHash = $messageHash . '::' . implode(',', $symbols);
             } elseif ($symbol !== null) {
                 $market = $this->market($symbol);
                 $messageHash = $name . '::' . $symbol;
@@ -105,7 +109,7 @@ class coinbase extends \ccxt\async\coinbase {
         })();
     }
 
-    public function un_subscribe(string $topic, string $name, bool $isPrivate, $symbol = null) {
+    public function un_subscribe(string $topic, string $name, bool $isPrivate, mixed $symbol = null) {
         return Async\async(function () use ($topic, $name, $isPrivate, $symbol) {
             /**
              * @ignore
@@ -133,9 +137,13 @@ class coinbase extends \ccxt\async\coinbase {
             if ((gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol)))) {
                 $symbols = $this->market_symbols($symbol);
                 $marketIds = $this->market_ids($symbols);
-                $productIds = $marketIds;
-                $watchMessageHash = $watchMessageHash . '::' . implode(',', $symbol);
-                $unWatchMessageHash = $unWatchMessageHash . '::' . implode(',', $symbol);
+                if ($marketIds === null) {
+                    $productIds = array();
+                } else {
+                    $productIds = $marketIds;
+                }
+                $watchMessageHash = $watchMessageHash . '::' . implode(',', $symbols);
+                $unWatchMessageHash = $unWatchMessageHash . '::' . implode(',', $symbols);
             } elseif ($symbol !== null) {
                 $market = $this->market($symbol);
                 $watchMessageHash = $name . '::' . $symbol;
@@ -489,7 +497,9 @@ class coinbase extends \ccxt\async\coinbase {
                 $result['timestamp'] = $timestamp;
                 $result['datetime'] = $datetime;
                 $symbol = $result['symbol'];
-                $this->tickers[$symbol] = $result;
+                if ($symbol !== null) {
+                    $this->tickers[$symbol] = $result;
+                }
                 $newTickers[] = $result;
                 $messageHash = $channel . '::' . $symbol;
                 $client->resolve($result, $messageHash);
@@ -498,7 +508,7 @@ class coinbase extends \ccxt\async\coinbase {
         }
     }
 
-    public function parse_ws_ticker($ticker, $market = null) {
+    public function parse_ws_ticker($ticker, ?array $market = null) {
         //
         //     {
         //         "type" => "ticker",
@@ -768,6 +778,9 @@ class coinbase extends \ccxt\async\coinbase {
         //    }
         //
         $events = $this->safe_list($message, 'events');
+        if ($events === null) {
+            return;
+        }
         $event = $this->safe_value($events, 0);
         $trades = $this->safe_list($event, 'trades');
         $trade = $this->safe_dict($trades, 0);
@@ -783,8 +796,13 @@ class coinbase extends \ccxt\async\coinbase {
         for ($i = 0; $i < count($events); $i++) {
             $currentEvent = $events[$i];
             $currentTrades = $this->safe_list($currentEvent, 'trades');
-            for ($j = 0; $j < count($currentTrades); $j++) {
-                $item = $currentTrades[$j];
+            if ($currentTrades === null) {
+                continue;
+            }
+            // coinbase sends $trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
+            $tradesLength = count($currentTrades);
+            for ($j = 0; $j < $tradesLength; $j++) {
+                $item = $currentTrades[$tradesLength - $j - 1];
                 $tradesArray->append($this->parse_trade($item));
             }
         }
@@ -822,6 +840,9 @@ class coinbase extends \ccxt\async\coinbase {
         //    }
         //
         $events = $this->safe_list($message, 'events');
+        if ($events === null) {
+            return;
+        }
         $marketIds = array();
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -830,13 +851,18 @@ class coinbase extends \ccxt\async\coinbase {
         for ($i = 0; $i < count($events); $i++) {
             $event = $events[$i];
             $responseOrders = $this->safe_list($event, 'orders');
+            if ($responseOrders === null) {
+                continue;
+            }
             for ($j = 0; $j < count($responseOrders); $j++) {
                 $responseOrder = $responseOrders[$j];
                 $parsed = $this->parse_ws_order($responseOrder);
                 $cachedOrders = $this->orders;
                 $marketId = $this->safe_string($responseOrder, 'product_id');
-                if (!(is_array($marketIds) && array_key_exists($marketId ?? '', $marketIds))) {
-                    $marketIds[] = $marketId;
+                if ($marketId !== null) {
+                    if (!(is_array($marketIds) && array_key_exists($marketId ?? '', $marketIds))) {
+                        $marketIds[] = $marketId;
+                    }
                 }
                 $cachedOrders->append($parsed);
             }
@@ -851,7 +877,7 @@ class coinbase extends \ccxt\async\coinbase {
         $client->resolve($this->orders, 'user');
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         //    {
         //        "order_id" => "XXX",
@@ -909,7 +935,7 @@ class coinbase extends \ccxt\async\coinbase {
             $side = $this->safe_string($this->options['sides'], $sideId);
             $price = $this->safe_number($trade, 'price_level');
             $amount = $this->safe_number($trade, 'new_quantity');
-            $orderbookSide = $orderbook[$side];
+            $orderbookSide = $this->safe_value($orderbook, $side);
             $orderbookSide->store($price, $amount);
         }
     }
@@ -944,6 +970,9 @@ class coinbase extends \ccxt\async\coinbase {
         //    }
         //
         $events = $this->safe_list($message, 'events');
+        if ($events === null) {
+            return;
+        }
         $datetime = $this->safe_string($message, 'timestamp');
         for ($i = 0; $i < count($events); $i++) {
             $event = $events[$i];
@@ -1053,7 +1082,9 @@ class coinbase extends \ccxt\async\coinbase {
         $type = $this->safe_string($message, 'type');
         if ($type === 'error') {
             $errorMessage = $this->safe_string($message, 'message');
-            throw new ExchangeError($errorMessage);
+            // ternary (not ||) so the ast-transpiler emits a value-typed conditional, not a boolean
+            $errorMessageValue = ($errorMessage !== null) ? $errorMessage : 'unknown error';
+            throw new ExchangeError($errorMessageValue);
         }
         $method = $this->safe_value($methods, $channel);
         if ($method) {

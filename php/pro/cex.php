@@ -123,7 +123,9 @@ class cex extends \ccxt\async\cex {
             $account['free'] = $this->safe_string($freeBalance, $currencyId);
             $account['used'] = $this->safe_string($usedBalance, $currencyId);
             $code = $this->safe_currency_code($currencyId);
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         $this->balance = $this->safe_balance($result);
         $messageHash = $this->safe_string($message, 'oid');
@@ -195,7 +197,7 @@ class cex extends \ccxt\async\cex {
         $this->handle_trades_inner($client, $message);
     }
 
-    public function parse_ws_old_trade($trade, $market = null) {
+    public function parse_ws_old_trade($trade, ?array $market = null) {
         //
         //  snapshot $trade
         //    "sell:1665467367741:3888551:19058.8:14541219"
@@ -243,6 +245,9 @@ class cex extends \ccxt\async\cex {
     public function handle_trades_inner(Client $client, $message) {
         $data = $this->safe_list($message, 'data', array());
         $symbol = $this->safe_string($this->options['watchTrades'], 'symbol');
+        if ($symbol === null) {
+            return;
+        }
         if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->trades[$symbol] = new ArrayCache($limit);
@@ -397,7 +402,7 @@ class cex extends \ccxt\async\cex {
         }
     }
 
-    public function parse_ws_ticker($ticker, $market = null) {
+    public function parse_ws_ticker($ticker, ?array $market = null) {
         //
         //  public
         //    {
@@ -634,7 +639,7 @@ class cex extends \ccxt\async\cex {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         //     {
         //         "d" => "order:59091012956:a:BTC",
@@ -817,7 +822,7 @@ class cex extends \ccxt\async\cex {
         $client->resolve($storedOrders, $messageHash);
     }
 
-    public function parse_ws_order_update($order, $market = null) {
+    public function parse_ws_order_update($order, ?array $market = null) {
         //
         //      {
         //          "id" => "150714937",
@@ -858,10 +863,16 @@ class cex extends \ccxt\async\cex {
         $remainsPrecision = $this->safe_string($order, 'remains');
         $remaining = null;
         if ($remainsPrecision !== null) {
+            if ($market === null) {
+                return null;
+            }
             $remaining = $this->currency_from_precision($market['base'], $remainsPrecision);
         }
         $amount = $this->safe_string($order, 'amount');
         if (!$isTransaction) {
+            if ($market === null) {
+                return null;
+            }
             $this->currency_from_precision($market['base'], $amount);
         }
         $baseId = $this->safe_string($order, 'symbol');
@@ -958,7 +969,7 @@ class cex extends \ccxt\async\cex {
         $symbol = $this->safe_string($message, 'oid'); // $symbol is set in watchOrders
         $rawOrders = $this->safe_value($message, 'data', array());
         $myOrders = $this->orders;
-        if ($this->orders === null) {
+        if ($myOrders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $myOrders = new ArrayCacheBySymbolById($limit);
         }
@@ -1169,6 +1180,9 @@ class cex extends \ccxt\async\cex {
         //     }
         //
         $pair = $this->safe_string($message, 'pair');
+        if ($pair === null) {
+            return;
+        }
         $parts = explode(':', $pair);
         $baseId = $this->safe_string($parts, 0);
         $quoteId = $this->safe_string($parts, 1);

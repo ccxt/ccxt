@@ -877,7 +877,9 @@ func (this *UpbitCore) HandleBalance(client any, message any) {
 		var account any = this.Account()
 		ccxt.AddElementToObject(account, "free", available)
 		ccxt.AddElementToObject(account, "used", frozen)
-		ccxt.AddElementToObject(this.Balance, code, account)
+		if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+			ccxt.AddElementToObject(this.Balance, code, account)
+		}
 		this.Balance = this.SafeBalance(this.Balance)
 	}
 	var messageHash any = this.SafeString(message, "type")

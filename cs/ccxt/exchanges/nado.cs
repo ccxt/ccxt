@@ -1692,13 +1692,21 @@ public partial class nado : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(pairs)); postFixIncrement(ref i))
         {
             object rawPair = getValue(pairs, i);
-            ((IDictionary<string,object>)pairsById)[(string)this.safeString(rawPair, "product_id")] = rawPair;
+            object pairProductId = this.safeString(rawPair, "product_id");
+            if (isTrue(!isEqual(pairProductId, null)))
+            {
+                ((IDictionary<string,object>)pairsById)[(string)pairProductId] = rawPair;
+            }
         }
         object assetsById = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
         {
             object rawAsset = getValue(assets, i);
-            ((IDictionary<string,object>)assetsById)[(string)this.safeString(rawAsset, "product_id")] = rawAsset;
+            object assetProductId = this.safeString(rawAsset, "product_id");
+            if (isTrue(!isEqual(assetProductId, null)))
+            {
+                ((IDictionary<string,object>)assetsById)[(string)assetProductId] = rawAsset;
+            }
         }
         object assetsByCode = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
@@ -1706,6 +1714,10 @@ public partial class nado : Exchange
             object rawAsset = getValue(assets, i);
             object assetSymbol = this.safeString(rawAsset, "symbol");
             object assetCode = this.safeCurrencyCode(this.removeMarketSuffix(assetSymbol));
+            if (isTrue(isEqual(assetCode, null)))
+            {
+                continue;
+            }
             object previous = this.safeDict(assetsByCode, assetCode);
             if (isTrue(isEqual(previous, null)))
             {
@@ -1757,7 +1769,7 @@ public partial class nado : Exchange
             object priceIncrement = this.parseX18(this.safeString(market, "price_increment_x18"));
             object amountIncrement = this.parseX18(this.safeString(market, "size_increment"));
             object minCost = this.parseX18(this.safeString(market, "min_size"));
-            ((IList<object>)markets).Add(new Dictionary<string, object>() {
+            ((IList<object>)markets).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "lowercaseId", null },
                 { "symbol", symbol },
@@ -1813,7 +1825,7 @@ public partial class nado : Exchange
                     { "v2Pair", pair },
                     { "v2Asset", asset },
                 }) },
-            });
+            }));
         }
         return markets;
     }
@@ -1836,6 +1848,10 @@ public partial class nado : Exchange
             object currency = getValue(response, i);
             object parsed = this.parseCurrency(currency);
             object code = this.safeString(parsed, "code");
+            if (isTrue(isEqual(code, null)))
+            {
+                continue;
+            }
             object previous = this.safeDict(result, code);
             object canDeposit = this.safeBool(currency, "can_deposit", false);
             object canWithdraw = this.safeBool(currency, "can_withdraw", false);
@@ -1903,7 +1919,12 @@ public partial class nado : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object tickers = await this.fetchTickers(new List<object>() {symbol}, parameters);
-        return this.safeTicker(this.safeDict(tickers, symbol), market);
+        object ticker = this.safeDict(tickers, symbol);
+        if (isTrue(isEqual(ticker, null)))
+        {
+            throw new BadSymbol ((string)add(add(this.id, " fetchTicker() ticker not found for "), symbol)) ;
+        }
+        return this.safeTicker(ticker, market);
     }
 
     /**
@@ -2668,7 +2689,10 @@ public partial class nado : Exchange
             ((IDictionary<string,object>)account)["total"] = amount;
             // the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
             ((IDictionary<string,object>)account)["free"] = amount;
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -3057,6 +3081,10 @@ public partial class nado : Exchange
 
     public virtual object convertToX18(object value)
     {
+        if (isTrue(isEqual(value, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " convertToX18() requires a value")) ;
+        }
         return Precise.stringDiv(Precise.stringMul(value, "1000000000000000000"), "1", 0);
     }
 
@@ -3127,7 +3155,11 @@ public partial class nado : Exchange
         subaccount ??= "default";
         if (isTrue(isEqual(walletAddress, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires exchange.walletAddress")) ;
+            throw new ArgumentsRequired ((string)add(this.id, " createSubaccount() requires walletAddress")) ;
+        }
+        if (isTrue(isEqual(subaccount, null)))
+        {
+            subaccount = "default";
         }
         object address = ((string)this.remove0xPrefix(walletAddress)).ToLower();
         if (isTrue(!isEqual(getArrayLength(address), 40)))
@@ -3167,6 +3199,10 @@ public partial class nado : Exchange
     public virtual object padHex(object value, object length, object left = null)
     {
         left ??= true;
+        if (isTrue(isEqual(length, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " padHex() requires length")) ;
+        }
         object zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
         object padded = ((bool) isTrue(left)) ? (add(zeros, value)) : (add(value, zeros));
         if (isTrue(left))
@@ -3288,6 +3324,10 @@ public partial class nado : Exchange
 
     public virtual object signHash(object hash, object privateKey)
     {
+        if (isTrue(isEqual(privateKey, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " signHash() requires privateKey")) ;
+        }
         object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         object r = getValue(signature, "r");
         object s = getValue(signature, "s");

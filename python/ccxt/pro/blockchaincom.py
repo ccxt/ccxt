@@ -119,7 +119,8 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             account = self.account()
             account['free'] = self.safe_string(entry, 'available')
             account['total'] = self.safe_string(entry, 'balance')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         messageHash = 'balance'
         self.balance = self.safe_balance(result)
         client.resolve(self.balance, messageHash)
@@ -185,7 +186,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
             symbol = self.safe_symbol(marketId, None, '-')
             messageHash = 'ohlcv:' + symbol
             request = self.safe_value(client.subscriptions, messageHash)
-            timeframeId = self.safe_number(request, 'granularity')
+            timeframeId = self.safe_string(request, 'granularity')
             timeframe = self.find_timeframe(timeframeId)
             ohlcv = self.safe_value(message, 'price', [])
             self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
@@ -511,7 +512,8 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         cachedOrders = self.orders
         if cachedOrders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-            self.orders = ArrayCacheBySymbolById(limit)
+            cachedOrders = ArrayCacheBySymbolById(limit)
+            self.orders = cachedOrders
         if event == 'subscribed':
             return
         elif event == 'rejected':

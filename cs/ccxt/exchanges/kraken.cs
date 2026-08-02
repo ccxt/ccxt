@@ -534,7 +534,7 @@ public partial class kraken : Exchange
 
     public override object feeToPrecision(object symbol, object fee)
     {
-        return this.decimalToPrecision(fee, TRUNCATE, getValue(getValue(getValue(this.markets, symbol), "precision"), "amount"), this.precisionMode);
+        return this.decimalToPrecision(fee, TRUNCATE, getValue(getValue(this.market(symbol), "precision"), "amount"), this.precisionMode);
     }
 
     /**
@@ -644,11 +644,19 @@ public partial class kraken : Exchange
             object precisionAmount = this.parseNumber(this.parsePrecision(this.safeString(market, "lot_decimals")));
             object spot = true;
             // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
+            if (isTrue(isEqual(bs, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " method() missing base")) ;
+            }
             if (isTrue(isTrue(spot) && isTrue((inOp(cachedCurrencies, bs)))))
             {
-                object currency = getValue(cachedCurrencies, bs);
+                object currency = this.safeValue(cachedCurrencies, bs);
                 object currencyPrecision = this.safeNumber(currency, "precision");
                 // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
+                if (isTrue(isEqual(currencyPrecision, null)))
+                {
+                    throw new ExchangeError ((string)add(this.id, " method() missing currencyPrecision")) ;
+                }
                 if (isTrue(isGreaterThan(currencyPrecision, precisionAmount)))
                 {
                     precisionAmount = currencyPrecision;
@@ -829,6 +837,10 @@ public partial class kraken : Exchange
         object id = this.safeString(rawCurrency, "_coin_id");
         object code = this.safeCurrencyCode(id);
         // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
+        if (isTrue(isEqual(id, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseCurrency() missing id")) ;
+        }
         if (isTrue(isLessThan(getIndexOf(id, "."), 0)))
         {
             object altName = this.safeString(rawCurrency, "altname");
@@ -838,15 +850,26 @@ public partial class kraken : Exchange
             // ---------------
             // XXBT  |  XBT
             // ZUSD  |  USD
+            if (isTrue(isEqual(id, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " parseCurrency() missing id")) ;
+            }
             if (isTrue(isTrue(!isEqual(id, altName)) && isTrue((isTrue(((string)id).StartsWith(((string)"X"))) || isTrue(((string)id).StartsWith(((string)"Z")))))))
             {
                 code = this.safeCurrencyCode(altName);
                 // also, add map in commonCurrencies:
-                ((IDictionary<string,object>)this.commonCurrencies)[(string)id] = code;
+                if (isTrue(isTrue((!isEqual(id, null))) && isTrue((!isEqual(code, null)))))
+                {
+                    ((IDictionary<string,object>)this.commonCurrencies)[(string)id] = code;
+                }
             } else
             {
                 code = this.safeCurrencyCode(id);
             }
+        }
+        if (isTrue(isEqual(code, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseCurrency() missing code")) ;
         }
         object isFiat = isGreaterThanOrEqual(getIndexOf(code, ".HOLD"), 0);
         rawCurrency = this.omit(rawCurrency, "_coin_id");
@@ -1107,7 +1130,7 @@ public partial class kraken : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
-                object market = getValue(this.markets, symbol);
+                object market = this.market(symbol);
                 if (isTrue(getValue(market, "active")))
                 {
                     ((IList<object>)marketIds).Add(getValue(market, "id"));
@@ -1151,7 +1174,7 @@ public partial class kraken : Exchange
             { "pair", getValue(market, "id") },
         };
         object response = await this.publicGetTicker(this.extend(request, parameters));
-        object ticker = getValue(getValue(response, "result"), getValue(market, "id"));
+        object ticker = this.safeValue(getValue(response, "result"), getValue(market, "id"));
         return this.parseTicker(ticker, market);
     }
 
@@ -1216,6 +1239,10 @@ public partial class kraken : Exchange
         if (isTrue(!isEqual(since, null)))
         {
             object scaledSince = this.parseToInt(divide(since, 1000));
+            if (isTrue(isEqual(parsedTimeframe, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " fetchOHLCV() missing parsedTimeframe")) ;
+            }
             object timeFrameInSeconds = multiply(parsedTimeframe, 60);
             ((IDictionary<string,object>)request)["since"] = this.numberToString(subtract(scaledSince, timeFrameInSeconds)); // expected to be in seconds
         }
@@ -1247,7 +1274,7 @@ public partial class kraken : Exchange
             { "transfer", "transfer" },
             { "margin", "margin" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseLedgerEntry(object item, object currency = null)
@@ -1624,7 +1651,7 @@ public partial class kraken : Exchange
         //     }
         //
         object result = getValue(response, "result");
-        object trades = getValue(result, id);
+        object trades = this.safeValue(result, id);
         // trades is a sorted array: last (most recent trade) goes last
         object length = getArrayLength(trades);
         if (isTrue(isLessThanOrEqual(length, 0)))
@@ -1655,7 +1682,10 @@ public partial class kraken : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "hold_trade");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2276,7 +2306,7 @@ public partial class kraken : Exchange
         object trailingLimitPercent = this.safeString(parameters, "trailingLimitPercent");
         object isTrailingAmountOrder = !isEqual(trailingAmount, null);
         object isTrailingPercentOrder = !isEqual(trailingPercent, null);
-        object isLimitOrder = ((string)type).EndsWith(((string)"limit")); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        object isLimitOrder = isTrue((!isEqual(type, null))) && isTrue(((string)type).EndsWith(((string)"limit"))); // supporting limit, stop-loss-limit, take-profit-limit, etc
         object isMarketOrder = isEqual(type, "market");
         object cost = this.safeString(parameters, "cost");
         object flags = this.safeString(parameters, "oflags");
@@ -2908,6 +2938,10 @@ public partial class kraken : Exchange
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(timeout, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+        }
         if (isTrue(isGreaterThan(timeout, 86400000)))
         {
             throw new BadRequest ((string)add(this.id, " cancelAllOrdersAfter timeout should be less than 86400000 milliseconds")) ;
@@ -2915,6 +2949,10 @@ public partial class kraken : Exchange
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
+        }
+        if (isTrue(isEqual(timeout, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
         }
         object request = new Dictionary<string, object>() {
             { "timeout", ((bool) isTrue((isGreaterThan(timeout, 0)))) ? (this.parseToInt(divide(timeout, 1000))) : 0 },
@@ -3574,6 +3612,10 @@ public partial class kraken : Exchange
                 for (object i = 0; isLessThan(i, getArrayLength(depositMethods)); postFixIncrement(ref i))
                 {
                     object entry = this.safeString(getValue(depositMethods, i), "method");
+                    if (isTrue(isEqual(entry, null)))
+                    {
+                        throw new ExchangeError ((string)add(this.id, " fetchDepositAddress() missing entry")) ;
+                    }
                     if (isTrue(isGreaterThanOrEqual(getIndexOf(entry, network), 0)))
                     {
                         depositMethod = entry;

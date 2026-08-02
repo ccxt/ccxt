@@ -85,7 +85,10 @@ const truncate_to_string = (num: number | string, precision = 0) => {
 };
 const truncate = (num: number | string, precision = 0): number => parseFloat (truncate_to_string (num, precision));
 
-function precisionFromString (str: string) {
+function precisionFromString (str: string | undefined): number {
+    if (str === undefined) {
+        return 0;
+    }
     // support string formats like '1e-4'
     if (str.indexOf ('e') > -1 || str.indexOf ('E') > -1) {
         const numStr = str.replace (/\d\.?\d*[eE]/, '')
@@ -103,7 +106,7 @@ function precisionFromString (str: string) {
 /*  ------------------------------------------------------------------------ */
 
 const decimalToPrecision = (
-    x: string,
+    x: string | number | undefined,
     roundingMode: number,
     numPrecisionDigits: any,
     countingMode: number = DECIMAL_PLACES,

@@ -31,8 +31,8 @@ class coinbase extends Exchange {
                 'CORS' => true,
                 'spot' => true,
                 'margin' => false,
-                'swap' => false,
-                'future' => false,
+                'swap' => true,
+                'future' => true,
                 'option' => false,
                 'addMargin' => false,
                 'borrowCrossMargin' => false,
@@ -1985,35 +1985,43 @@ class coinbase extends Exchange {
             $id = $this->safe_string_2($currency, 'id', 'code');
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'name');
-            $this->options['networks'][$code] = strtolower($name);
-            $this->options['networksById'][$code] = strtolower($name);
+            if ($code !== null) {
+                $this->options['networks'][$code] = strtolower($name);
+            }
+            if ($code !== null) {
+                $this->options['networksById'][$code] = strtolower($name);
+            }
             $type = ($assetId !== null) ? 'crypto' : 'fiat';
-            $result[$code] = $this->safe_currency_structure(array(
-                'info' => $currency,
-                'id' => $id,
-                'code' => $code,
-                'type' => $type,
-                'name' => $name,
-                'active' => true,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
-                'precision' => null,
-                'networks' => array(), // todo
-                'limits' => array(
-                    'amount' => array(
-                        'min' => $this->safe_number($currency, 'min_size'),
-                        'max' => null,
+            if ($code !== null) {
+                $result[$code] = $this->safe_currency_structure(array(
+                    'info' => $currency,
+                    'id' => $id,
+                    'code' => $code,
+                    'type' => $type,
+                    'name' => $name,
+                    'active' => true,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'precision' => null,
+                    'networks' => array(), // todo
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => $this->safe_number($currency, 'min_size'),
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-            ));
+                ));
+            }
             if ($assetId !== null) {
                 $lowerCaseName = strtolower($name);
-                $networks[$code] = $lowerCaseName;
+                if ($code !== null) {
+                    $networks[$code] = $lowerCaseName;
+                }
                 $networksById[$lowerCaseName] = $code;
             }
         }
@@ -2021,14 +2029,16 @@ class coinbase extends Exchange {
         for ($i = 0; $i < count($ratesIds); $i++) {
             $currencyId = $ratesIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            if (!(is_array($result) && array_key_exists($code ?? '', $result))) {
-                $result[$code] = $this->safe_currency_structure(array(
-                    'info' => array(),
-                    'id' => $currencyId,
-                    'code' => $code,
-                    'type' => 'crypto',
-                    'networks' => array(), // todo
-                ));
+            if (($code === null) || !(is_array($result) && array_key_exists($code ?? '', $result))) {
+                if ($code !== null) {
+                    $result[$code] = $this->safe_currency_structure(array(
+                        'info' => array(),
+                        'id' => $currencyId,
+                        'code' => $code,
+                        'type' => 'crypto',
+                        'networks' => array(), // todo
+                    ));
+                }
             }
         }
         $this->options['networks'] = $this->extend($networks, $this->options['networks']);
@@ -2415,7 +2425,9 @@ class coinbase extends Exchange {
                         $account['free'] = Precise::string_add($account['free'], $total);
                         $account['total'] = Precise::string_add($account['total'], $total);
                     }
-                    $result[$code] = $account;
+                    if ($code !== null) {
+                        $result[$code] = $account;
+                    }
                 }
             } elseif ($this->in_array($type, $v3Accounts)) {
                 $available = $this->safe_dict($balance, 'available_balance');
@@ -2437,7 +2449,9 @@ class coinbase extends Exchange {
                         $account['used'] = Precise::string_add($account['used'], $used);
                         $account['total'] = Precise::string_add($account['total'], $total);
                     }
-                    $result[$code] = $account;
+                    if ($code !== null) {
+                        $result[$code] = $account;
+                    }
                 }
             }
         }

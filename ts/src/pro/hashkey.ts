@@ -367,7 +367,7 @@ export default class hashkey extends hashkeyRest {
         const data = this.safeList (message, 'data', []);
         const dataEntry = this.safeDict (data, 0);
         const timestamp = this.safeInteger (dataEntry, 't');
-        const snapshot = this.parseOrderBook ((dataEntry as Dict), symbol, timestamp, 'b', 'a');
+        const snapshot = this.parseOrderBook (dataEntry, symbol, timestamp, 'b', 'a');
         orderbook.reset (snapshot);
         orderbook['nonce'] = this.safeInteger (message, 'id');
         this.orderbooks[symbol] = orderbook;
@@ -813,7 +813,9 @@ export default class hashkey extends hashkeyRest {
         const account = this.account ();
         account['free'] = this.safeString (balanceUpdate, 'f');
         account['used'] = this.safeString (balanceUpdate, 'l');
-        this.balance[type][code] = account;
+        if ((type !== undefined) && (code !== undefined)) {
+            this.balance[type][code] = account;
+        }
         this.balance[type] = this.safeBalance (this.balance[type]);
         const messageHash = 'balance:' + type;
         client.resolve (this.balance[type], messageHash);

@@ -29,7 +29,7 @@ function test_watch_order_book($exchange, $skipped_properties, $symbol) {
                 // continue;
                 $success = false;
             }
-            if ($success === true) {
+            if (($success === true) && ($response !== null)) {
                 $now = $exchange->milliseconds();
                 test_order_book($exchange, $skipped_properties, $method, $response, $symbol);
             }

@@ -137,7 +137,7 @@ function exitScript (code = 0) {
     process.exit (code);
 }
 
-function getExchangeProp (exchange, prop, defaultValue = undefined) {
+function getExchangeProp (exchange, prop, defaultValue: any = undefined) {
     return (prop in exchange) ? exchange[prop] : defaultValue;
 }
 
@@ -147,7 +147,7 @@ function setExchangeProp (exchange, prop, value) {
 }
 
 function initExchange (exchangeId, args, isWs = false): Exchange {
-    const prediction = (ccxt as any).prediction;
+    const prediction = ccxt.prediction;
     const hasPrediction = (prediction !== undefined) && (exchangeId in prediction);
     // regular ccxt ids win for ids present in both (e.g. hyperliquid); --prediction forces the
     // prediction-markets namespace for those, and prediction is the fallback for prediction-only ids.
@@ -198,7 +198,7 @@ async function getTestFiles (properties, ws = false) {
 }
 
 function setFetchResponse (exchange: Exchange, mockResponse) {
-    exchange.fetch = async (url, method = 'GET', headers = undefined, body = undefined) => mockResponse;
+    exchange.fetch = async (url, method = 'GET', headers: any = undefined, body: any = undefined) => mockResponse;
     return exchange;
 }
 

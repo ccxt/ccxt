@@ -741,7 +741,10 @@ public partial class bullish : ccxt.bullish
             ((IDictionary<string,object>)account)["total"] = this.safeString(data, "availableQuantity");
             ((IDictionary<string,object>)account)["used"] = this.safeString(data, "lockedQuantity");
             object code = this.safeCurrencyCode(assetId);
-            ((IDictionary<string,object>)getValue(this.balance, tradingAccountId))[(string)code] = account;
+            if (isTrue(isTrue((!isEqual(tradingAccountId, null))) && isTrue((!isEqual(code, null)))))
+            {
+                ((IDictionary<string,object>)getValue(this.balance, tradingAccountId))[(string)code] = account;
+            }
             ((IDictionary<string,object>)getValue(this.balance, tradingAccountId))["info"] = message;
             ((IDictionary<string,object>)this.balance)[(string)tradingAccountId] = this.safeBalance(getValue(this.balance, tradingAccountId));
         }

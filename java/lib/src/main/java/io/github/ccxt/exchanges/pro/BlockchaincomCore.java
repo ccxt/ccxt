@@ -136,7 +136,10 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
             Helpers.addElementToObject(account, "total", this.safeString(entry, "balance"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         Object messageHash = "balance";
         this.balance = this.safeBalance(result);
@@ -222,11 +225,11 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
             Object symbol = this.safeSymbol(marketId, null, "-");
             Object messageHash = Helpers.add("ohlcv:", symbol);
             Object request = this.safeValue(client.subscriptions, messageHash);
-            Object timeframeId = this.safeNumber(request, "granularity");
+            Object timeframeId = this.safeString(request, "granularity");
             Object timeframe = this.findTimeframe(timeframeId);
             Object ohlcv = this.safeValue(message, "price", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-            Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
+            Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
                 Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -613,7 +616,8 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
         if (Helpers.isTrue(Helpers.isEqual(cachedOrders, null)))
         {
             Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
-            this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
+            cachedOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
+            this.orders = cachedOrders;
         }
         if (Helpers.isTrue(Helpers.isEqual(eventVar, "subscribed")))
         {
@@ -867,7 +871,7 @@ final Object finalTradeId = tradeId;
             put( "balances", "handleBalance");
             put( "trading", "handleOrders");
         }};
-        Object handler = this.safeValue(handlers, ((String)channel));
+        Object handler = this.safeValue(handlers, channel);
         if (Helpers.isTrue(!Helpers.isEqual(handler, null)))
         {
             Helpers.callDynamically(this, handler, new Object[] {client, message});

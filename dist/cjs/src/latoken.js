@@ -419,6 +419,9 @@ class latoken extends latoken$1["default"] {
             if (baseCurrencyInfo !== undefined && quoteCurrencyInfo !== undefined) {
                 const base = this.safeCurrencyCode(this.safeString(baseCurrencyInfo, 'tag'));
                 const quote = this.safeCurrencyCode(this.safeString(quoteCurrencyInfo, 'tag'));
+                if ((base === undefined) || (quote === undefined)) {
+                    continue;
+                }
                 const lowercaseQuote = quote.toLowerCase();
                 const capitalizedQuote = this.capitalize(lowercaseQuote);
                 const status = this.safeString(market, 'status');
@@ -611,7 +614,9 @@ class latoken extends latoken$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(balance, 'available');
             account['used'] = this.safeString(balance, 'blocked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         result['timestamp'] = maxTimestamp;
         result['datetime'] = this.iso8601(maxTimestamp);
@@ -842,7 +847,7 @@ class latoken extends latoken$1["default"] {
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         const symbol = base + '/' + quote;
-        if (symbol in this.markets) {
+        if ((this.markets !== undefined) && (symbol in this.markets)) {
             market = this.market(symbol);
         }
         const id = this.safeString(trade, 'id');
@@ -1117,7 +1122,7 @@ class latoken extends latoken$1["default"] {
         let symbol = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
-            if (symbol in this.markets) {
+            if ((this.markets !== undefined) && (symbol in this.markets)) {
                 market = this.market(symbol);
             }
         }
@@ -1378,6 +1383,9 @@ class latoken extends latoken$1["default"] {
         }
         const market = this.market(symbol);
         const uppercaseType = type.toUpperCase();
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const request = {
             'baseCurrency': market['baseId'],
             'quoteCurrency': market['quoteId'],

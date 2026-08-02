@@ -504,22 +504,24 @@ class hollaex extends Exchange {
             $networkId = $networkIds[$j];
             $networkEntry = $this->safe_dict($rawNetworks, $networkId);
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networks[$networkCode] = array(
-                'id' => $networkId,
-                'network' => $networkCode,
-                'active' => $this->safe_bool($networkEntry, 'active'),
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => $this->safe_number($networkEntry, 'value'),
-                'precision' => null,
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'active' => $this->safe_bool($networkEntry, 'active'),
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => $this->safe_number($networkEntry, 'value'),
+                    'precision' => null,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                ),
-                'info' => $networkEntry,
-            );
+                    'info' => $networkEntry,
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -997,14 +999,20 @@ class hollaex extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         );
-        $currencyIds = is_array($this->currencies_by_id) ? array_keys($this->currencies_by_id) : array();
+        $currenciesById = $this->currencies_by_id;
+        if ($currenciesById === null) {
+            throw new ExchangeError($this->id . ' currencies not loaded');
+        }
+        $currencyIds = is_array($currenciesById) ? array_keys($currenciesById) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
             $account['free'] = $this->safe_string($response, $currencyId . '_available');
             $account['total'] = $this->safe_string($response, $currencyId . '_balance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1988,6 +1996,9 @@ class hollaex extends Exchange {
                 $currencyId = $this->safe_string($value, 'symbol');
                 $currencyCode = $this->safe_currency_code($currencyId);
                 $networkCode = $this->network_id_to_code($key, $currencyCode);
+                if ($networkCode === null) {
+                    throw new ArgumentsRequired($this->id . ' requires a $networkCode argument');
+                }
                 $networkCodeUpper = strtoupper($networkCode); // default to the upper case network code
                 $withdrawalFee = $this->safe_number($value, 'value');
                 $result['networks'][$networkCodeUpper] = array(

@@ -416,7 +416,10 @@ public partial class coinone : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "avail");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -520,7 +523,7 @@ public partial class coinone : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object first = this.safeString(symbols, 0);
-            market = this.market(((string)first));
+            market = this.market(first);
             ((IDictionary<string,object>)request)["quote_currency"] = getValue(market, "quote");
             ((IDictionary<string,object>)request)["target_currency"] = getValue(market, "base");
             response = await this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.extend(request, parameters));
@@ -1259,7 +1262,10 @@ public partial class coinone : Exchange
                 ((IDictionary<string,object>)depositAddress)["tag"] = value;
                 ((IDictionary<string,object>)depositAddress)["info"] = new List<object>() {address, value};
             }
-            ((IDictionary<string,object>)result)[(string)code] = depositAddress;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = depositAddress;
+            }
         }
         return result;
     }

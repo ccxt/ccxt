@@ -436,6 +436,9 @@ class bitopro extends Exchange {
     public function parse_market(array $market): array {
         $active = !$this->safe_bool($market, 'maintain');
         $id = $this->safe_string($market, 'pair');
+        if ($id === null) {
+            throw new ExchangeError($this->id . ' parseMarket() missing id');
+        }
         $uppercaseId = strtoupper($id);
         $baseId = $this->safe_string($market, 'base');
         $quoteId = $this->safe_string($market, 'quote');
@@ -460,7 +463,7 @@ class bitopro extends Exchange {
                 'max' => null,
             ),
         );
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'uppercaseId' => $uppercaseId,
             'symbol' => $symbol,
@@ -492,7 +495,7 @@ class bitopro extends Exchange {
             'active' => $active,
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -777,7 +780,7 @@ class bitopro extends Exchange {
          * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/public/get_limitations_and_fees.md
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -849,8 +852,9 @@ class bitopro extends Exchange {
         $result = array();
         $maker = $this->safe_number($first, 'makerFee');
         $taker = $this->safe_number($first, 'takerFee');
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->symbols;
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $result[$symbol] = array(
                 'info' => $first,
                 'symbol' => $symbol,
@@ -996,7 +1000,9 @@ class bitopro extends Exchange {
                 'free' => $available,
                 'total' => $amount,
             );
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1082,6 +1088,9 @@ class bitopro extends Exchange {
         $id = $this->safe_string_2($order, 'id', 'orderId');
         $timestamp = $this->safe_integer_2($order, 'timestamp', 'createdTimestamp');
         $side = $this->safe_string($order, 'action');
+        if ($side === null) {
+            throw new ExchangeError($this->id . ' parseOrder() returned no side');
+        }
         $side = strtolower($side);
         $amount = $this->safe_string_2($order, 'amount', 'originalAmount');
         $price = $this->safe_string($order, 'price');
@@ -1269,7 +1278,9 @@ class bitopro extends Exchange {
         $market = $this->market($symbol);
         $id = $market['uppercaseId'];
         $request = array();
-        $request[$id] = $ids;
+        if ($id !== null) {
+            $request[$id] = $ids;
+        }
         $response = $this->privatePutOrders($this->extend($request, $params));
         //
         //     {

@@ -791,7 +791,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         {
             return;
         }
-        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -2863,7 +2863,11 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                     Object entry = Helpers.GetValue(coins, j);
                     Object currencyId = this.safeString(entry, "coin");
                     Object code = this.safeCurrencyCode(currencyId);
-                    Object account = ((Helpers.isTrue((Helpers.inOp(this.balance, code))))) ? Helpers.GetValue(this.balance, code) : this.account();
+                    Object account = this.account();
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(this.balance, code)))))
+                    {
+                        account = Helpers.GetValue(this.balance, code);
+                    }
                     Object borrow = this.safeString(entry, "borrow");
                     Object debts = this.safeString(entry, "debts");
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(borrow, null))) || Helpers.isTrue((!Helpers.isEqual(debts, null)))))
@@ -2873,13 +2877,20 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                     Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
                     Helpers.addElementToObject(account, "used", this.safeString(entry, "locked"));
                     Helpers.addElementToObject(account, "total", this.safeString(entry, "balance"));
-                    Helpers.addElementToObject(this.balance, code, account);
+                    if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                    {
+                        Helpers.addElementToObject(this.balance, code, account);
+                    }
                 }
             } else
             {
                 Object currencyId = this.safeString2(rawBalance, "coin", "marginCoin");
                 Object code = this.safeCurrencyCode(currencyId);
-                Object account = ((Helpers.isTrue((Helpers.inOp(this.balance, code))))) ? Helpers.GetValue(this.balance, code) : this.account();
+                Object account = this.account();
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(this.balance, code)))))
+                {
+                    account = Helpers.GetValue(this.balance, code);
+                }
                 Object borrow = this.safeString(rawBalance, "borrow");
                 if (Helpers.isTrue(!Helpers.isEqual(borrow, null)))
                 {
@@ -2890,7 +2901,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 Helpers.addElementToObject(account, "free", this.safeString(rawBalance, freeQuery));
                 Helpers.addElementToObject(account, "total", this.safeString(rawBalance, "equity"));
                 Helpers.addElementToObject(account, "used", this.safeString(rawBalance, "frozen"));
-                Helpers.addElementToObject(this.balance, code, account);
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(this.balance, code, account);
+                }
             }
         }
         this.balance = this.safeBalance(this.balance);

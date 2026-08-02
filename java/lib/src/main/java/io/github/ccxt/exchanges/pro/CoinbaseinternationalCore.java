@@ -177,7 +177,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets()).join();
             }
             this.checkRequiredCredentials();
-            if (Helpers.isTrue(this.isEmpty((java.util.List<String>)(symbols))))
+            if (Helpers.isTrue(this.isEmpty(symbols)))
             {
                 symbols = this.symbols;
             } else
@@ -310,7 +310,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);
-            Object market = Helpers.GetValue(this.markets, symbol);
+            Object market = this.market(symbol);
             if (Helpers.isTrue(Helpers.GetValue(market, "active")))
             {
                 ((java.util.List<Object>)output).add(symbol);
@@ -344,7 +344,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "channel", "LEVEL1");
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelparametersVariable).get(1);
-            Object ticker = (this.subscribe(((String)channel), symbols, parameters)).join();
+            Object ticker = (this.subscribe(channel, symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
                 Object result = new java.util.HashMap<String, Object>() {{}};
@@ -610,7 +610,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timeframe = this.findTimeframe(messageHash);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-        if (Helpers.isTrue(Helpers.isEqual(this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe)), null)))
+        if (Helpers.isTrue(Helpers.isEqual(this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe), null)))
         {
             Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));

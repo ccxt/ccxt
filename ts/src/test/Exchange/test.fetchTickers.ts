@@ -57,6 +57,9 @@ function fetchTickersAmountsTest (exchange: Exchange, skippedProperties: object,
         // ensure tickers length is less than markets length
         //
         const allMarkets = exchange.markets;
+        if (allMarkets === undefined) {
+            return;
+        }
         const allMarketsLength = Object.keys (allMarkets).length;
         assert (obtainedTickersLength <= allMarketsLength, exchange.id + ' ' + 'fetchTickers' + ' must return <= than all markets, but returned: ' + obtainedTickersLength.toString () + ' tickers, ' + allMarketsLength.toString () + ' markets');
     }

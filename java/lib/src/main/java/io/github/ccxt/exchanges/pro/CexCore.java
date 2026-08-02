@@ -132,7 +132,10 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             Helpers.addElementToObject(account, "free", this.safeString(freeBalance, currencyId));
             Helpers.addElementToObject(account, "used", this.safeString(usedBalance, currencyId));
             Object code = this.safeCurrencyCode(currencyId);
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         this.balance = this.safeBalance(result);
         Object messageHash = this.safeString(message, "oid");
@@ -272,13 +275,17 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
     {
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object symbol = this.safeString(Helpers.GetValue(this.options, "watchTrades"), "symbol");
+        if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
+        {
+            return;
+        }
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
             Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
-            Helpers.addElementToObject(this.trades, ((String)symbol), new ArrayCache(((Number)limit).intValue()));
+            Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
-        Object stored = Helpers.GetValue(this.trades, ((String)symbol));
-        Object market = this.market(((String)symbol));
+        Object stored = Helpers.GetValue(this.trades, symbol);
+        Object market = this.market(symbol);
         Object dataLength = Helpers.getArrayLength(data);
         for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
         {
@@ -288,8 +295,8 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         Object messageHash = "trades";
-        Helpers.addElementToObject(this.trades, ((String)symbol), stored);
-        client.resolve(Helpers.GetValue(this.trades, ((String)symbol)), messageHash);
+        Helpers.addElementToObject(this.trades, symbol, stored);
+        client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
 
     /**
@@ -882,7 +889,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         }
         Object storedOrders = this.orders;
         Object ordersBySymbol = this.safeValue(((io.github.ccxt.ws.ArrayCache)storedOrders).hashmap, symbol, new java.util.HashMap<String, Object>() {{}});
-        Object order = this.safeValue(ordersBySymbol, ((String)orderId));
+        Object order = this.safeValue(ordersBySymbol, orderId);
         if (Helpers.isTrue(Helpers.isEqual(order, null)))
         {
             order = this.parseWsOrderUpdate(data, market);
@@ -960,11 +967,19 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         Object remaining = null;
         if (Helpers.isTrue(!Helpers.isEqual(remainsPrecision, null)))
         {
+            if (Helpers.isTrue(Helpers.isEqual(market, null)))
+            {
+                return null;
+            }
             remaining = this.currencyFromPrecision(Helpers.GetValue(market, "base"), remainsPrecision);
         }
         Object amount = this.safeString(order, "amount");
         if (!Helpers.isTrue(isTransaction))
         {
+            if (Helpers.isTrue(Helpers.isEqual(market, null)))
+            {
+                return null;
+            }
             this.currencyFromPrecision(Helpers.GetValue(market, "base"), amount);
         }
         Object baseId = this.safeString(order, "symbol");
@@ -1076,7 +1091,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         Object symbol = this.safeString(message, "oid"); // symbol is set as requestId in watchOrders
         Object rawOrders = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object myOrders = this.orders;
-        if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
+        if (Helpers.isTrue(Helpers.isEqual(myOrders, null)))
         {
             Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
             myOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
@@ -1310,6 +1325,10 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         //     }
         //
         Object pair = this.safeString(message, "pair");
+        if (Helpers.isTrue(Helpers.isEqual(pair, null)))
+        {
+            return;
+        }
         Object parts = Helpers.split(pair, ":");
         Object baseId = this.safeString(parts, 0);
         Object quoteId = this.safeString(parts, 1);
@@ -1744,7 +1763,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         } catch(Exception error)
         {
             Object messageHash = this.safeString(message, "oid");
-            Object future = this.safeValue(Helpers.GetValue(client, "futures"), ((String)messageHash));
+            Object future = this.safeValue(Helpers.GetValue(client, "futures"), messageHash);
             if (Helpers.isTrue(!Helpers.isEqual(future, null)))
             {
                 client.reject(error, messageHash);
@@ -1788,7 +1807,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             put( "mass-cancel-place-orders", "resolveData");
             put( "get-order", "resolveData");
         }};
-        Object handler = this.safeValue(handlers, ((String)eventVar));
+        Object handler = this.safeValue(handlers, eventVar);
         if (Helpers.isTrue(!Helpers.isEqual(handler, null)))
         {
             Helpers.callDynamically(this, handler, new Object[] {client, message});

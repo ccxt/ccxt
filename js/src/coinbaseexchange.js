@@ -532,24 +532,26 @@ export default class coinbaseexchange extends Exchange {
             const network = supportedNetworks[j];
             const networkId = this.safeString(network, 'id');
             const networkCode = this.networkIdToCode(networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'name': this.safeString(network, 'name'),
-                'network': networkCode,
-                'active': this.safeString(network, 'status') === 'online',
-                'withdraw': undefined,
-                'deposit': undefined,
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(network, 'min_withdrawal_amount'),
-                        'max': this.safeNumber(network, 'max_withdrawal_amount'),
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'name': this.safeString(network, 'name'),
+                    'network': networkCode,
+                    'active': this.safeString(network, 'status') === 'online',
+                    'withdraw': undefined,
+                    'deposit': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(network, 'min_withdrawal_amount'),
+                            'max': this.safeNumber(network, 'max_withdrawal_amount'),
+                        },
                     },
-                },
-                'contract': this.safeString(network, 'contract_address'),
-                'info': network,
-            };
+                    'contract': this.safeString(network, 'contract_address'),
+                    'info': network,
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -760,7 +762,9 @@ export default class coinbaseexchange extends Exchange {
             account['free'] = this.safeString(balance, 'available');
             account['used'] = this.safeString(balance, 'hold');
             account['total'] = this.safeString(balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }

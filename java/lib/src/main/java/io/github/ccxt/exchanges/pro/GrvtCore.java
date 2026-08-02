@@ -117,7 +117,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             return;
         }
         Object channel = this.safeString(message, "stream");
-        Object method = this.safeValue(methods, ((String)channel));
+        Object method = this.safeValue(methods, channel);
         if (Helpers.isTrue(!Helpers.isEqual(method, null)))
         {
             Helpers.callDynamically(this, method, new Object[] {client, message});
@@ -205,8 +205,8 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelparametersVariable).get(1);
-            Object interval = null;
-            var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "interval", 500);
+            Object interval = 500;
+            var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "interval", interval);
             interval = ((java.util.List<Object>) intervalparametersVariable).get(0);
             parameters = ((java.util.List<Object>) intervalparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -221,7 +221,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 Object symbol = Helpers.GetValue(symbols, i);
                 Object market = this.market(symbol);
                 Object marketId = Helpers.GetValue(market, "id");
-                ((java.util.List<Object>)rawHashes).add(Helpers.add(Helpers.add(marketId, "@"), String.valueOf(((String)interval))));
+                ((java.util.List<Object>)rawHashes).add(Helpers.add(Helpers.add(marketId, "@"), String.valueOf(interval)));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("ticker::", Helpers.GetValue(market, "symbol")));
             }
             final Object finalChannel = channel;
@@ -523,7 +523,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             {
                 Object data = Helpers.GetValue(symbolsAndTimeframes, i);
                 Object symbolString = this.safeString(data, 0);
-                Object market = this.market(((String)symbolString));
+                Object market = this.market(symbolString);
                 Object marketId = Helpers.GetValue(market, "id");
                 Object unfiedTimeframe = this.safeString(data, 1, "1");
                 Object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -666,12 +666,12 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 limit = ((java.util.List<Object>) limitparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) limitparametersVariable).get(1);
             }
-            Object interval = null;
-            var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", 500);
+            Object interval = 500;
+            var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", interval);
             interval = ((java.util.List<Object>) intervalparametersVariable).get(0);
             parameters = ((java.util.List<Object>) intervalparametersVariable).get(1);
             symbols = this.marketSymbols(symbols);
-            Object extraPart = ((Helpers.isTrue(isSnapshot))) ? (Helpers.add(Helpers.add(String.valueOf(((String)interval)), "-"), String.valueOf(limit))) : String.valueOf(((String)interval));
+            Object extraPart = ((Helpers.isTrue(isSnapshot))) ? (Helpers.add(Helpers.add(String.valueOf(interval), "-"), String.valueOf(limit))) : String.valueOf(interval);
             Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)

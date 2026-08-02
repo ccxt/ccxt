@@ -24,7 +24,7 @@ async function testWatchOrderBookForSymbols (exchange: Exchange, skippedProperti
             currentTime = exchange.milliseconds ();
             succeeded = false;
         }
-        if (succeeded === true) {
+        if ((succeeded === true) && (response !== undefined)) {
             testOrderBook (exchange, skippedProperties, method, response, undefined);
             testSharedMethods.assertInArray (exchange, skippedProperties, method, response, 'symbol', symbols);
             const symbol = response['symbol'];

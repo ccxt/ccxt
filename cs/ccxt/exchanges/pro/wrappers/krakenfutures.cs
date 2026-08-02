@@ -317,7 +317,7 @@ public partial class krakenfutures
         var res = await this.watchBalance(parameters);
         return new Balances(res);
     }
-    public async Task<Dictionary<string, object>> WatchMultiHelper(string unifiedName, string channelName, List<String> symbols = null, object subscriptionArgs = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> WatchMultiHelper(string unifiedName, string channelName, object symbols = null, object subscriptionArgs = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchMultiHelper(unifiedName, channelName, symbols, subscriptionArgs, parameters);
         return ((Dictionary<string, object>)res);

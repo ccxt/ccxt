@@ -424,7 +424,7 @@ public class WhitebitCore extends WhitebitApi
         final Object finalContract = contract;
         final Object finalLinear = linear;
         final Object finalInverse = inverse;
-        return new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
@@ -474,7 +474,7 @@ public class WhitebitCore extends WhitebitApi
             }} );
             put( "created", null );
             put( "info", market );
-        }};
+        }});
     }
 
     /**
@@ -583,9 +583,12 @@ public class WhitebitCore extends WhitebitApi
             Object networkCode = this.networkIdToCode(networkId, code);
             Object networkDepositLimits = this.safeDict(depositLimits, networkId, new java.util.HashMap<String, Object>() {{}});
             Object networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, new java.util.HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkCode = networkCode;
+                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
-    put( "network", networkCode );
+    put( "network", finalNetworkCode );
     put( "active", null );
     put( "deposit", WhitebitCore.this.inArray(networkId, depositsNetworks) );
     put( "withdraw", WhitebitCore.this.inArray(networkId, withdrawsNetworks) );
@@ -602,6 +605,7 @@ public class WhitebitCore extends WhitebitApi
         }} );
     }} );
 }});
+            }
         }
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -689,9 +693,15 @@ public class WhitebitCore extends WhitebitApi
                 Object data = Helpers.GetValue(response, currency);
                 Object code = this.safeCurrencyCode(currency);
                 Object withdraw = this.safeValue(data, "withdraw", new java.util.HashMap<String, Object>() {{}});
-                Helpers.addElementToObject(withdrawFees, code, this.safeString(withdraw, "fixed"));
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(withdrawFees, code, this.safeString(withdraw, "fixed"));
+                }
                 Object deposit = this.safeValue(data, "deposit", new java.util.HashMap<String, Object>() {{}});
-                Helpers.addElementToObject(depositFees, code, this.safeString(deposit, "fixed"));
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(depositFees, code, this.safeString(deposit, "fixed"));
+                }
             }
             return new java.util.HashMap<String, Object>() {{
                 put( "withdraw", withdrawFees );
@@ -826,7 +836,7 @@ public class WhitebitCore extends WhitebitApi
             Object currencyId = Helpers.GetValue(splitEntry, 0);
             Object feeInfo = Helpers.GetValue(response, entry);
             Object code = this.safeCurrencyCode(currencyId);
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))))
             {
                 Object depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
                 if (Helpers.isTrue(Helpers.isEqual(depositWithdrawFee, null)))
@@ -854,10 +864,13 @@ public class WhitebitCore extends WhitebitApi
                     Object networkLength = ((String)networkId).length();
                     networkId = Helpers.slice(networkId, 1, Helpers.subtract(networkLength, 1));
                     Object networkCode = this.networkIdToCode(networkId, code);
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "networks"), networkCode, new java.util.HashMap<String, Object>() {{
+                    if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+                    {
+                        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(depositWithdrawFees, code), "networks"), networkCode, new java.util.HashMap<String, Object>() {{
     put( "withdraw", withdrawResult );
     put( "deposit", depositResult );
 }});
+                    }
                 } else
                 {
                     Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFees, code), "withdraw", withdrawResult);
@@ -912,9 +925,10 @@ public class WhitebitCore extends WhitebitApi
             //      }
             //
             Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+            Object symbols = this.symbols;
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                Object symbol = Helpers.GetValue(this.symbols, i);
+                Object symbol = Helpers.GetValue(symbols, i);
                 Object market = this.market(symbol);
                 Object fee = this.safeValue(response, Helpers.GetValue(market, "baseId"), new java.util.HashMap<String, Object>() {{}});
                 Object makerFee = this.safeString(fee, "maker_fee");
@@ -1003,11 +1017,16 @@ public class WhitebitCore extends WhitebitApi
             //
             Object result = new java.util.HashMap<String, Object>() {{}};
             // Process all markets from the loaded markets cache
-            Object marketIds = Helpers.objectKeys(this.markets);
+            Object markets = this.markets;
+            if (Helpers.isTrue(Helpers.isEqual(markets, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
+            }
+            Object marketIds = Helpers.objectKeys(markets);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                Object market = Helpers.GetValue(this.markets, marketId);
+                Object market = Helpers.GetValue(markets, marketId);
                 if (Helpers.isTrue(!Helpers.isTrue(market) || !Helpers.isTrue(Helpers.GetValue(market, "symbol"))))
                 {
                     continue;
@@ -2527,10 +2546,18 @@ public class WhitebitCore extends WhitebitApi
             }
             Object market = this.market(symbol);
             parameters = this.omit(parameters, "symbol");
+            if (Helpers.isTrue(Helpers.isEqual(timeout, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+            }
             Object isBiggerThanZero = (Helpers.isGreaterThan(timeout, 0));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
+            if (Helpers.isTrue(Helpers.isEqual(timeout, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
+            }
             if (Helpers.isTrue(isBiggerThanZero))
             {
                 Helpers.addElementToObject(request, "timeout", this.numberToString(Helpers.divide(timeout, 1000)));
@@ -2567,12 +2594,18 @@ public class WhitebitCore extends WhitebitApi
                 Helpers.addElementToObject(account, "free", this.safeString2(balance, "available", "main_balance"));
                 Helpers.addElementToObject(account, "used", this.safeString(balance, "freeze"));
                 Helpers.addElementToObject(account, "total", this.safeString(balance, "main_balance"));
-                Helpers.addElementToObject(result, code, account);
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(result, code, account);
+                }
             } else
             {
                 Object account = this.account();
                 Helpers.addElementToObject(account, "total", balance);
-                Helpers.addElementToObject(result, code, account);
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(result, code, account);
+                }
             }
         }
         return this.safeBalance(result);
@@ -3751,7 +3784,12 @@ public class WhitebitCore extends WhitebitApi
             //     }
             //
             Object records = this.safeList(response, "records", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            return this.parseTransactions(records, currency, since, limit);
+            Object recordsList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(!Helpers.isEqual(records, null)))
+            {
+                recordsList = records;
+            }
+            return this.parseTransactions(recordsList, currency, since, limit);
         });
 
     }
@@ -4209,7 +4247,12 @@ public class WhitebitCore extends WhitebitApi
             //    }
             //
             Object records = this.safeList(response, "records");
-            return this.parseTransactions(records, currency, since, limit);
+            Object recordsList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(!Helpers.isEqual(records, null)))
+            {
+                recordsList = records;
+            }
+            return this.parseTransactions(recordsList, currency, since, limit);
         });
 
     }
@@ -4844,8 +4887,8 @@ public class WhitebitCore extends WhitebitApi
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object query = this.omit(parameters, this.extractParams(path));
-        Object version = this.safeValue(((Object)api), 0);
-        Object accessibility = this.safeValue(((Object)api), 1);
+        Object version = this.safeValue(api, 0);
+        Object accessibility = this.safeValue(api, 1);
         if (Helpers.isTrue(Helpers.isEqual(headers, null)))
         {
             headers = new java.util.HashMap<String, Object>() {{}};

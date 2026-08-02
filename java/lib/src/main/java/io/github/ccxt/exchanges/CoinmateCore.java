@@ -1240,7 +1240,7 @@ public class CoinmateCore extends CoinmateApi
             {
                 (this.loadMarkets()).join();
             }
-            Object method = Helpers.add("privatePost", this.capitalize(((String)side)));
+            Object method = Helpers.add("privatePost", this.capitalize(side));
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currencyPair", Helpers.GetValue(market, "id") );

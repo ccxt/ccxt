@@ -83,7 +83,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object wrapped = this.wrapAsPostAction(ordersRequest);
         object request = this.safeDict(wrapped, "request", new Dictionary<string, object>() {});
         object requestId = this.safeString(wrapped, "requestId");
-        object response = await this.watch(url, ((string)requestId), request, requestId);
+        object response = await this.watch(url, requestId, request, requestId);
         object responseOjb = this.safeDict(response, "response", new Dictionary<string, object>() {});
         object data = this.safeDict(responseOjb, "data", new Dictionary<string, object>() {});
         object statuses = this.safeList(data, "statuses", new List<object>() {});
@@ -163,11 +163,11 @@ public partial class hyperliquid : ccxt.hyperliquid
         var orderglobalParamsVariable = this.parseCreateEditOrderArgs(id, symbol, type, side, amount, price, parameters);
         var order = ((IList<object>) orderglobalParamsVariable)[0];
         var globalParams = ((IList<object>) orderglobalParamsVariable)[1];
-        object postRequest = this.editOrdersRequest(new List<object>() {((object)order)}, globalParams);
+        object postRequest = this.editOrdersRequest(new List<object>() {order}, globalParams);
         object wrapped = this.wrapAsPostAction(postRequest);
         object request = this.safeDict(wrapped, "request", new Dictionary<string, object>() {});
         object requestId = this.safeString(wrapped, "requestId");
-        object response = await this.watch(url, ((string)requestId), request, requestId);
+        object response = await this.watch(url, requestId, request, requestId);
         // response is the same as in this.editOrder
         object responseObject = this.safeDict(response, "response", new Dictionary<string, object>() {});
         object dataObject = this.safeDict(responseObject, "data", new Dictionary<string, object>() {});
@@ -202,7 +202,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object wrapped = this.wrapAsPostAction(request);
         object wsRequest = this.safeDict(wrapped, "request", new Dictionary<string, object>() {});
         object requestId = this.safeString(wrapped, "requestId");
-        object response = await this.watch(url, ((string)requestId), wsRequest, requestId);
+        object response = await this.watch(url, requestId, wsRequest, requestId);
         object responseObj = this.safeDict(response, "response", new Dictionary<string, object>() {});
         object data = this.safeDict(responseObj, "data", new Dictionary<string, object>() {});
         object statuses = this.safeList(data, "statuses", new List<object>() {});
@@ -334,7 +334,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object entry = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object coin = this.safeString(entry, "coin");
         object marketId = this.coinToMarketId(coin);
-        object market = this.market(((string)marketId));
+        object market = this.market(marketId);
         object symbol = getValue(market, "symbol");
         object rawData = this.safeList(entry, "levels", new List<object>() {});
         object data = new Dictionary<string, object>() {
@@ -754,7 +754,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object first = this.safeDict(entry, 0, new Dictionary<string, object>() {});
         object coin = this.safeString(first, "coin");
         object marketId = this.coinToMarketId(coin);
-        object market = this.market(((string)marketId));
+        object market = this.market(marketId);
         object symbol = getValue(market, "symbol");
         if (!isTrue((inOp(this.trades, symbol))))
         {
@@ -1163,7 +1163,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             this.parseWsBalance(getValue(rawBalances, i), account);
         }
-        if (isTrue(isEqual(this.safeValue(this.balance, ((string)account)), null)))
+        if (isTrue(isEqual(this.safeValue(this.balance, account), null)))
         {
             ((IDictionary<string,object>)this.balance)[(string)((string)account)] = new Dictionary<string, object>() {};
         }
@@ -1227,10 +1227,16 @@ public partial class hyperliquid : ccxt.hyperliquid
             {
                 ((IDictionary<string,object>)this.balance)[(string)accountType] = new Dictionary<string, object>() {};
             }
-            ((IDictionary<string,object>)getValue(this.balance, accountType))[(string)code] = account;
+            if (isTrue(isTrue((!isEqual(accountType, null))) && isTrue((!isEqual(code, null)))))
+            {
+                ((IDictionary<string,object>)getValue(this.balance, accountType))[(string)code] = account;
+            }
         } else
         {
-            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            }
         }
     }
 

@@ -452,14 +452,17 @@ public class ZebpayCore extends ZebpayApi
             {
                 minDepositString = ((Helpers.isTrue((Helpers.isEqual(minDepositString, null))))) ? minNetworkDepositString : Precise.stringMin(minNetworkDepositString, minDepositString);
             }
-            final Object finalDepositAllowed = depositAllowed;
-            final Object finalWithdrawFeeString = withdrawFeeString;
-            final Object finalMinNetworkWithdrawString = minNetworkWithdrawString;
-            final Object finalMinNetworkDepositString = minNetworkDepositString;
-            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkCode = networkCode;
+                final Object finalDepositAllowed = depositAllowed;
+                final Object finalWithdrawFeeString = withdrawFeeString;
+                final Object finalMinNetworkWithdrawString = minNetworkWithdrawString;
+                final Object finalMinNetworkDepositString = minNetworkDepositString;
+                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "info", chain );
     put( "id", networkId );
-    put( "network", networkCode );
+    put( "network", finalNetworkCode );
     put( "active", Helpers.isTrue(finalDepositAllowed) && Helpers.isTrue(withdrawAllowed) );
     put( "deposit", finalDepositAllowed );
     put( "withdraw", withdrawAllowed );
@@ -476,6 +479,7 @@ public class ZebpayCore extends ZebpayApi
         }} );
     }} );
 }});
+            }
         }
         final Object finalDeposit = deposit;
         final Object finalWithdraw = withdraw;
@@ -625,7 +629,10 @@ public class ZebpayCore extends ZebpayApi
             {
                 Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
                 Object symbol = Helpers.GetValue(fee, "symbol");
-                Helpers.addElementToObject(result, symbol, fee);
+                if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                {
+                    Helpers.addElementToObject(result, symbol, fee);
+                }
             }
             return result;
         });
@@ -1195,11 +1202,13 @@ public class ZebpayCore extends ZebpayApi
      * @param {string} [params.positionId] PositionId of the order.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
+        final Object side3 = side2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object type = type3;
+            Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1211,9 +1220,14 @@ public class ZebpayCore extends ZebpayApi
             Object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
             Object stopLossPrice = this.safeString(parameters, "stopLossPrice");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginAsset", "takeProfitPrice", "takeProfitPrice")));
+            if (Helpers.isTrue(Helpers.isEqual(side, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+            }
+            final Object finalSide = side;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
-                put( "side", ((String)side).toUpperCase() );
+                put( "side", ((String)finalSide).toUpperCase() );
             }};
             Object response = null;
             if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
@@ -1350,7 +1364,7 @@ public class ZebpayCore extends ZebpayApi
             //        },
             //    }
             //
-            return this.parseOrder(this.safeDict(response, "data"));
+            return this.parseOrder(this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}}));
         });
 
     }
@@ -2093,7 +2107,10 @@ public class ZebpayCore extends ZebpayApi
             Helpers.addElementToObject(account, "used", this.safeString(entry, "used"));
             Object currencyId = this.safeString(entry, "currency");
             Object code = this.safeCurrencyCode(currencyId);
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }

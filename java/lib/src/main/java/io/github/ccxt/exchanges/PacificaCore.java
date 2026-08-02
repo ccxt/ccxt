@@ -713,6 +713,10 @@ public class PacificaCore extends PacificaApi
         Object maxLeverage = null;
         Object crossMargin = null;
         Object isolatedMargin = null;
+        if (Helpers.isTrue(Helpers.isEqual(id, null)))
+        {
+            throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing id")) ;
+        }
         if (Helpers.isTrue(isSpot))
         {
             Object idParts = Helpers.split(id, "-");
@@ -745,6 +749,7 @@ public class PacificaCore extends PacificaApi
         Object amountPrecision = this.safeNumber(market, "lot_size");
         Object pricePrecision = this.safeNumber(market, "tick_size");
         Object active = true; // there is no non-active markets comes from endpoint market info
+        final Object finalId = id;
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalQuoteId = quoteId;
@@ -758,7 +763,7 @@ public class PacificaCore extends PacificaApi
         final Object finalCrossMargin = crossMargin;
         final Object finalIsolatedMargin = isolatedMargin;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
-            put( "id", id );
+            put( "id", finalId );
             put( "symbol", finalSymbol );
             put( "base", finalBase );
             put( "quote", quote );
@@ -1741,36 +1746,45 @@ public class PacificaCore extends PacificaApi
 
     public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
-        /**
-        * @method
-        * @ignore
-        * @name pacifica#createOrderRequest
-        * @description create a trade order
-        * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-limit-order
-        * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-market-order
-        * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-stop-order
-        * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-position-tp-sl
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, but can be used as limit_price of Trigger Order.
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {float} [params.triggerPrice] The price a trigger order is triggered at
-        * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at (optional provide stopLossCloid)
-        * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
-        * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
-        * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
-        * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
-        * @param {int} [params.expiryWindow] time to live in milliseconds
-        * @returns {object} an [order structure]
-        */
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name pacifica#createOrderRequest
+         * @description create a trade order
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-limit-order
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-market-order
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-stop-order
+         * @see https://docs.pacifica.fi/api-documentation/api/rest-api/orders/create-position-tp-sl
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, but can be used as limit_price of Trigger Order.
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+         * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at (optional provide stopLossCloid)
+         * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
+         * @param {string} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
+         * @param {boolean} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+         * @param {int} [params.expiryWindow] time to live in milliseconds
+         * @returns {object} an [order structure]
+         */
         Object market = this.market(symbol);
+        final Object finalSide = side;
         Object sigPayload = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
-            put( "side", PacificaCore.this.mapSide(side) );
+            put( "side", PacificaCore.this.mapSide(finalSide) );
         }};
         Object operationType = null;
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
@@ -2338,6 +2352,10 @@ public class PacificaCore extends PacificaApi
     public Object editOrderRequest(Object id, Object symbol, Object type, Object side, Object amount, Object price, Object market, Object... optionalArgs)
     {
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+        }
         if (Helpers.isTrue(Helpers.isEqual(amount, null)))
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an amount!")) ;
@@ -2506,7 +2524,10 @@ public class PacificaCore extends PacificaApi
                 Object info = Helpers.GetValue(data, i);
                 Object ticker = this.parseTicker(info);
                 Object symbol = this.safeString(ticker, "symbol");
-                Helpers.addElementToObject(result, symbol, ticker);
+                if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                {
+                    Helpers.addElementToObject(result, symbol, ticker);
+                }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
         });
@@ -3680,7 +3701,7 @@ public class PacificaCore extends PacificaApi
             put( "airdrop", "airdrop" );
             put( "payout", "payout" );
         }};
-        return this.safeString(ledgerType, type, type);
+        return this.safeString(ledgerType, ((String)type), type);
     }
 
     /**

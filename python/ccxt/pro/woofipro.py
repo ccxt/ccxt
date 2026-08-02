@@ -9,6 +9,7 @@ from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, 
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
 from ccxt.base.precise import Precise
 
@@ -339,7 +340,8 @@ class woofipro(ccxt.async_support.woofipro):
         result = []
         for i in range(0, len(data)):
             ticker = self.parse_ws_bid_ask(self.extend(data[i], {'ts': timestamp}))
-            self.tickers[ticker['symbol']] = ticker
+            if ticker['symbol'] is not None:
+                self.tickers[ticker['symbol']] = ticker
             result.append(ticker)
         client.resolve(result, topic)
 
@@ -425,14 +427,14 @@ class woofipro(ccxt.async_support.woofipro):
             self.safe_number(data, 'volume'),
         ]
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
-            self.ohlcvs[symbol][timeframe] = stored
-        ohlcvCache = self.ohlcvs[symbol][timeframe]
-        ohlcvCache.append(parsed)
-        client.resolve(ohlcvCache, topic)
+            if (symbol is not None) and (timeframe is not None):
+                self.ohlcvs[symbol][timeframe] = stored
+        stored.append(parsed)
+        client.resolve(stored, topic)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -881,7 +883,7 @@ class woofipro(ccxt.async_support.woofipro):
                 fees = self.safe_list(order, 'fees')
                 if fees is not None:
                     parsed['fees'] = fees
-                parsed['trades'] = self.safe_list(order, 'trades')
+                parsed['trades'] = self.safe_list(order, 'trades', [])
                 parsed['timestamp'] = self.safe_integer(order, 'timestamp')
                 parsed['datetime'] = self.safe_string(order, 'datetime')
             cachedOrders.append(parsed)
@@ -950,7 +952,11 @@ class woofipro(ccxt.async_support.woofipro):
         messageHashes = []
         symbols = self.market_symbols(symbols)
         if not self.is_empty(symbols):
+            if symbols is None:
+                raise ArgumentsRequired(self.id + ' watchPositions() symbols is required')
             for i in range(0, len(symbols)):
+                if symbols is None:
+                    raise ArgumentsRequired(self.id + ' watchPositions() symbols is required')
                 symbol = symbols[i]
                 messageHashes.append('positions::' + symbol)
         else:
@@ -1177,13 +1183,16 @@ class woofipro(ccxt.async_support.woofipro):
             key = keys[i]
             value = balances[key]
             code = self.safe_currency_code(key)
-            account = self.balance[code] if (code in self.balance) else self.account()
+            account = self.account()
+            if (code is not None) and (code in self.balance):
+                account = self.balance[code]
             total = self.safe_string(value, 'holding')
             used = self.safe_string(value, 'frozen')
             account['total'] = total
             account['used'] = used
             account['free'] = Precise.string_sub(total, used)
-            self.balance[code] = account
+            if code is not None:
+                self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 
@@ -1246,6 +1255,8 @@ class woofipro(ccxt.async_support.woofipro):
             splitLength = len(splitTopic)
             if splitLength == 2:
                 name = self.safe_string(splitTopic, 1)
+                if name is None:
+                    return
                 method = self.safe_value(methods, name)
                 if method is not None:
                     method(client, message)

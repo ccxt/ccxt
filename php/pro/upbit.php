@@ -705,7 +705,9 @@ class upbit extends \ccxt\async\upbit {
             $account = $this->account();
             $account['free'] = $available;
             $account['used'] = $frozen;
-            $this->balance[$code] = $account;
+            if ($code !== null) {
+                $this->balance[$code] = $account;
+            }
             $this->balance = $this->safe_balance($this->balance);
         }
         $messageHash = $this->safe_string($message, 'type');

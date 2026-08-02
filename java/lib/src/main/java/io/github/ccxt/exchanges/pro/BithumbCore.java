@@ -534,7 +534,10 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(asset, "balance"));
             Helpers.addElementToObject(account, "used", this.safeString(asset, "locked"));
-            Helpers.addElementToObject(this.balance, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(this.balance, code, account);
+            }
         }
         Helpers.addElementToObject(this.balance, "info", message);
         Object timestamp = this.safeInteger(message, "timestamp");

@@ -569,14 +569,19 @@ public class UpbitCore extends UpbitApi
     public Object parseMarket(Object market)
     {
         Object id = this.safeString(market, "market");
+        if (Helpers.isTrue(Helpers.isEqual(id, null)))
+        {
+            throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing id")) ;
+        }
         var quoteIdbaseIdVariable = Helpers.split(id, "-");
         var quoteId = ((java.util.List<Object>) quoteIdbaseIdVariable).get(0);
         var baseId = ((java.util.List<Object>) quoteIdbaseIdVariable).get(1);
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
+        final Object finalId = id;
         final Object finalBase = base;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
-            put( "id", id );
+            put( "id", finalId );
             put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
             put( "base", finalBase );
             put( "quote", quote );
@@ -643,7 +648,10 @@ public class UpbitCore extends UpbitApi
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "balance"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -932,6 +940,10 @@ public class UpbitCore extends UpbitApi
 
     public Object idsQueryStrings(Object ids, Object maxQueryLength)
     {
+        if (Helpers.isTrue(Helpers.isEqual(ids, null)))
+        {
+            return new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        }
         Object idsString = "";
         Object queries = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
@@ -1228,7 +1240,11 @@ public class UpbitCore extends UpbitApi
                 Helpers.addElementToObject(element, "percentage", true);
                 Helpers.addElementToObject(element, "tierBased", false);
                 Helpers.addElementToObject(element, "info", Helpers.GetValue(fetchMarketResponse, i));
-                Helpers.addElementToObject(response, this.safeString(Helpers.GetValue(fetchMarketResponse, i), "symbol"), element);
+                Object feeSymbol = this.safeString(Helpers.GetValue(fetchMarketResponse, i), "symbol");
+                if (Helpers.isTrue(!Helpers.isEqual(feeSymbol, null)))
+                {
+                    Helpers.addElementToObject(response, feeSymbol, element);
+                }
             }
             return response;
         });
@@ -1373,6 +1389,10 @@ public class UpbitCore extends UpbitApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " When createMarketBuyOrderRequiresPrice is false, \"amount\" is required and should be the total quote amount to spend.")) ;
             }
             quoteAmount = this.costToPrecision(symbol, amount);
+        }
+        if (Helpers.isTrue(Helpers.isEqual(quoteAmount, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " calcOrderPrice() could not determine quote amount")) ;
         }
         return quoteAmount;
     }

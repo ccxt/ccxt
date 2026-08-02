@@ -1185,7 +1185,7 @@ class derive extends Exchange {
         $binaryMessageLength = $this->binary_length($binaryMessage);
         $x19 = $this->base16_to_binary('19');
         $newline = $this->base16_to_binary('0a');
-        $prefix = $this->binary_concat($x19, $this->encode('Ethereum Signed Message:'), $newline, $this->encode(($this->number_to_string($binaryMessageLength))));
+        $prefix = $this->binary_concat($x19, $this->encode('Ethereum Signed Message:'), $newline, $this->encode($this->number_to_string($binaryMessageLength)));
         return '0x' . $this->hash($this->binary_concat($prefix, $binaryMessage), 'keccak', 'hex');
     }
 
@@ -2553,7 +2553,9 @@ class derive extends Exchange {
                     $amount = $this->safe_string($balance, 'amount');
                     $account['total'] = Precise::string_add($account['total'], $amount);
                 }
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             }
         }
         return $this->safe_balance($result);
@@ -2711,7 +2713,7 @@ class derive extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function handle_derive_subaccount_id(string $methodName, array $params) {
+    public function handle_derive_subaccount_id(string $methodName, array $params): array {
         $derivesubAccountId = null;
         list($derivesubAccountId, $params) = $this->handle_option_and_params($params, $methodName, 'subaccount_id');
         if (($derivesubAccountId !== null) && ($derivesubAccountId !== '')) {

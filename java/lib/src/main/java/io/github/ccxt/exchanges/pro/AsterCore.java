@@ -1810,7 +1810,10 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Helpers.addElementToObject(account, "free", this.safeString(entry, "f"));
             Helpers.addElementToObject(account, "used", this.safeString(entry, "l"));
             Helpers.addElementToObject(account, "total", this.safeString(entry, wallet));
-            Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), code, account);
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(accountType, null))) && Helpers.isTrue((!Helpers.isEqual(code, null)))))
+            {
+                Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), code, account);
+            }
         }
         Object timestamp = this.safeInteger(message, "E");
         Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), "timestamp", timestamp);

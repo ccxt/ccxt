@@ -1008,7 +1008,7 @@ func (this *PhemexCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		//                     "symbol":"BTCUSDT",
 		//                     "steps":"2000K",
 		//                     "riskLimits":[
-		//                         {"limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"},,
+		//                         {"limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"},
 		//                         {"limit":4000000,"initialMarginRr":"0.015","maintenanceMarginRr":"0.0075"},
 		//                         {"limit":6000000,"initialMarginRr":"0.02","maintenanceMarginRr":"0.01"},
 		//                     ]
@@ -5247,7 +5247,7 @@ func (this *PhemexCore) ParseMarketLeverageTiers(info any, optionalArgs ...any) 
 			"currency":              GetValue(market, "settle"),
 			"minNotional":           minNotionalResponse,
 			"maxNotional":           maxNotional,
-			"maintenanceMarginRate": this.SafeString(tier, "maintenanceMargin"),
+			"maintenanceMarginRate": this.SafeNumber(tier, "maintenanceMargin"),
 			"maxLeverage":           nil,
 			"info":                  tier,
 		})

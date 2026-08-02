@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Bool, Int, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -733,10 +733,14 @@ class nado(ccxt.async_support.nado):
         market = self.market(symbol)
         params = self.extend({'id': self.request_id()}, params)
         requestIdString = self.safe_string(params, 'id')
+        if requestIdString is None:
+            raise ArgumentsRequired(self.id + ' ws execute requires params.id')
         request = await self.create_order_request(symbol, type, side, amount, price, params)
         placeOrder = self.safe_dict(request, 'place_order', {})
         if 'trigger' in placeOrder:
             raise NotSupported(self.id + ' createOrderWs() does not support trigger orders, use createOrder() instead')
+        if requestIdString is None:
+            raise ArgumentsRequired(self.id + ' requires params.id')
         response = await self.watch_execute_request(requestIdString, request)
         #
         #     {
@@ -782,7 +786,11 @@ class nado(ccxt.async_support.nado):
         # for cancel_and_place the request id is echoed from the nested place_order object
         params = self.extend({'id': self.request_id()}, params)
         requestIdString = self.safe_string(params, 'id')
+        if requestIdString is None:
+            raise ArgumentsRequired(self.id + ' ws execute requires params.id')
         request = await self.edit_order_request(id, symbol, type, side, amount, price, params)
+        if requestIdString is None:
+            raise ArgumentsRequired(self.id + ' requires params.id')
         response = await self.watch_execute_request(requestIdString, request)
         #
         #     {
@@ -842,7 +850,11 @@ class nado(ccxt.async_support.nado):
             raise NotSupported(self.id + ' cancelOrdersWs() does not support trigger orders, use cancelOrders() instead')
         params = self.extend({'id': self.request_id()}, params)
         requestIdString = self.safe_string(params, 'id')
+        if requestIdString is None:
+            raise ArgumentsRequired(self.id + ' ws execute requires params.id')
         request = await self.cancelOrdersRequest(ids, symbol, params)
+        if requestIdString is None:
+            raise ArgumentsRequired(self.id + ' requires params.id')
         response = await self.watch_execute_request(requestIdString, request)
         #
         #     {
@@ -885,7 +897,11 @@ class nado(ccxt.async_support.nado):
             raise NotSupported(self.id + ' cancelAllOrdersWs() does not support trigger orders, use cancelAllOrders() instead')
         params = self.extend({'id': self.request_id()}, params)
         requestIdString = self.safe_string(params, 'id')
+        if requestIdString is None:
+            raise ArgumentsRequired(self.id + ' ws execute requires params.id')
         request = await self.cancelAllOrdersRequest(symbol, params)
+        if requestIdString is None:
+            raise ArgumentsRequired(self.id + ' requires params.id')
         response = await self.watch_execute_request(requestIdString, request)
         data = self.safe_dict(response, 'data', {})
         cancelledOrders = self.safe_list(data, 'cancelled_orders', [])
@@ -894,12 +910,14 @@ class nado(ccxt.async_support.nado):
             result.append(self.parse_order(self.extend({'status': 'canceled'}, cancelledOrders[i]), market))
         return result
 
-    async def watch_execute_request(self, requestId: str, request):
+    async def watch_execute_request(self, requestIdString: Str, request: Any):
         # the v2 gateway dispatches requests concurrently, so responses arrive
         # in completion order, not send order — every execute carries a unique
         # request id and its response is correlated by the echoed id
+        if requestIdString is None:
+            raise ArgumentsRequired(self.id + ' watchExecuteRequest() requires requestIdString')
         url = self.urls['api']['ws']['gateway']
-        messageHash = 'execute:' + requestId
+        messageHash = 'execute:' + requestIdString
         return await self.watch(url, messageHash, request, messageHash)
 
     async def watch_public(self, streamType, market, messageHash: str, params={}):
@@ -1037,7 +1055,7 @@ class nado(ccxt.async_support.nado):
             'id': id,
         }
 
-    async def watch_public_multiple(self, streamType, markets, messageHashes: List[str], params={}, subscriptionParams=None):
+    async def watch_public_multiple(self, streamType, markets, messageHashes: List[str], params={}, subscriptionParams: Any = None):
         url = self.urls['api']['ws']['subscriptions']
         client = self.client(url)
         for i in range(0, len(messageHashes)):
@@ -1077,7 +1095,7 @@ class nado(ccxt.async_support.nado):
         }
         return await self.watch(url, unsubscribeHash, request, unsubscribeHash, subscription)
 
-    async def un_watch_public_multiple(self, streamType, markets, messageHashes: List[str], params={}, subscriptionParams=None):
+    async def un_watch_public_multiple(self, streamType, markets, messageHashes: List[str], params={}, subscriptionParams: Any = None):
         url = self.urls['api']['ws']['subscriptions']
         client = self.client(url)
         results = []
@@ -1107,7 +1125,7 @@ class nado(ccxt.async_support.nado):
             return self.parse_to_int(value[0:length - 6])
         return self.safe_integer(message, key)
 
-    def parse_ws_trade(self, trade: dict, market=None) -> Trade:
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     {
         #         "type": "trade",
@@ -1142,7 +1160,7 @@ class nado(ccxt.async_support.nado):
             'fee': None,
         }, market)
 
-    def parse_ws_my_trade(self, trade: dict, market=None) -> Trade:
+    def parse_ws_my_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     {
         #         "type": "fill",
@@ -1242,6 +1260,8 @@ class nado(ccxt.async_support.nado):
         symbol = market['symbol']
         granularity = self.safe_integer(message, 'granularity')
         timeframe = self.find_timeframe(granularity)
+        if timeframe is None:
+            return
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
         stored = self.safe_value(self.ohlcvs[symbol], timeframe)
@@ -1254,7 +1274,7 @@ class nado(ccxt.async_support.nado):
         messageHash = 'ohlcv:' + timeframe + ':' + symbol
         client.resolve([symbol, timeframe, stored], messageHash)
 
-    def parse_ws_order(self, order: dict, market=None) -> Order:
+    def parse_ws_order(self, order: dict, market: Market = None) -> Order:
         #
         #     {
         #         "type": "order_update",
@@ -1325,7 +1345,7 @@ class nado(ccxt.async_support.nado):
         client.resolve(orders, 'orders')
         client.resolve(orders, 'orders:' + symbol)
 
-    def parse_ws_position(self, position: dict, market=None) -> Position:
+    def parse_ws_position(self, position: dict, market: Market = None) -> Position:
         #
         #     {
         #         "type": "position_change",
@@ -1405,7 +1425,7 @@ class nado(ccxt.async_support.nado):
         client.resolve(positions, 'positions')
         client.resolve(positions, 'positions:' + symbol)
 
-    def parse_ws_bid_ask(self, bidask: dict, market=None) -> Ticker:
+    def parse_ws_bid_ask(self, bidask: dict, market: Market = None) -> Ticker:
         #
         #     {
         #         "type": "best_bid_offer",
@@ -1433,7 +1453,9 @@ class nado(ccxt.async_support.nado):
 
     def handle_bid_ask(self, client: Client, message):
         ticker = self.parse_ws_bid_ask(message)
-        symbol = ticker['symbol']
+        symbol = self.safe_string(ticker, 'symbol')
+        if symbol is None:
+            return
         self.bidsasks[symbol] = ticker
         self.tickers[symbol] = ticker
         tickers = {}
@@ -1571,8 +1593,9 @@ class nado(ccxt.async_support.nado):
             messageHash = self.safe_string(unsubscription, 'messageHash')
             unsubscribeHash = self.safe_string(unsubscription, 'unsubscribeHash')
             del client.subscriptions['unsubscription:' + id]
-            self.clean_unsubscription(client, messageHash, unsubscribeHash)
-            self.handle_unsubscription_cache(messageHash)
+            if messageHash is not None:
+                self.clean_unsubscription(client, messageHash, unsubscribeHash)
+                self.handle_unsubscription_cache(messageHash)
             client.resolve(message, unsubscribeHash)
             return
         subscriptions = list(client.subscriptions.keys())
@@ -1583,12 +1606,15 @@ class nado(ccxt.async_support.nado):
             if subscriptionId != id:
                 continue
             messageHash = self.safe_string(subscription, 'messageHash')
-            self.clean_unsubscription(client, messageHash, unsubscribeHash)
-            self.handle_unsubscription_cache(messageHash)
+            if messageHash is not None:
+                self.clean_unsubscription(client, messageHash, unsubscribeHash)
+                self.handle_unsubscription_cache(messageHash)
             client.resolve(message, unsubscribeHash)
             return
 
-    def handle_unsubscription_cache(self, messageHash: str):
+    def handle_unsubscription_cache(self, messageHash: Str):
+        if messageHash is None:
+            return
         if messageHash.find('trade:') == 0:
             symbol = messageHash.replace('trade:', '')
             if symbol in self.trades:
@@ -1601,7 +1627,7 @@ class nado(ccxt.async_support.nado):
             parts = messageHash.split(':')
             timeframe = self.safe_string(parts, 1)
             symbol = self.safe_string(parts, 2)
-            if (symbol in self.ohlcvs) and (timeframe in self.ohlcvs[symbol]):
+            if (symbol is not None) and (timeframe is not None) and (symbol in self.ohlcvs) and (timeframe in self.ohlcvs[symbol]):
                 del self.ohlcvs[symbol][timeframe]
         elif messageHash.find('ticker:') == 0:
             symbol = messageHash.replace('ticker:', '')

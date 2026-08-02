@@ -542,27 +542,29 @@ class bigone extends bigone$1["default"] {
             const minWithdrawalAmount = this.safeString(chain, 'min_withdrawal_amount');
             const withdrawalFee = this.safeString(chain, 'withdrawal_fee');
             const precision = this.parsePrecision(this.safeString2(chain, 'withdrawal_scale', 'scale'));
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'margin': undefined,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'active': undefined,
-                'fee': this.parseNumber(withdrawalFee),
-                'precision': this.parseNumber(precision),
-                'limits': {
-                    'deposit': {
-                        'min': minDepositAmount,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'margin': undefined,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'active': undefined,
+                    'fee': this.parseNumber(withdrawalFee),
+                    'precision': this.parseNumber(precision),
+                    'limits': {
+                        'deposit': {
+                            'min': minDepositAmount,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': minWithdrawalAmount,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': minWithdrawalAmount,
-                        'max': undefined,
-                    },
-                },
-                'info': chain,
-            };
+                    'info': chain,
+                };
+            }
         }
         const chainLength = chains.length;
         let type = undefined;
@@ -1023,6 +1025,9 @@ class bigone extends bigone$1["default"] {
         //
         const data = this.safeDict(response, 'data', {});
         const timestamp = this.safeInteger(data, 'Timestamp');
+        if (timestamp === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchTime() missing timestamp');
+        }
         return this.parseToInt(timestamp / 1000000);
     }
     /**
@@ -1428,7 +1433,9 @@ class bigone extends bigone$1["default"] {
             const account = this.account();
             account['total'] = this.safeString(balance, 'balance');
             account['used'] = this.safeString(balance, 'locked_balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1604,7 +1611,7 @@ class bigone extends bigone$1["default"] {
         const isLimit = uppercaseType === 'LIMIT';
         const exchangeSpecificParam = this.safeBool(params, 'post_only', false);
         let postOnly = undefined;
-        [postOnly, params] = this.handlePostOnly((uppercaseType === 'MARKET'), exchangeSpecificParam, params);
+        [postOnly, params] = this.handlePostOnly(uppercaseType === 'MARKET', exchangeSpecificParam === true, params);
         const triggerPrice = this.safeStringN(params, ['triggerPrice', 'stopPrice', 'stop_price']);
         const request = {
             'asset_pair_name': market['id'], // asset pair name BTC-USDT, required
@@ -1685,7 +1692,7 @@ class bigone extends bigone$1["default"] {
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
         //
-        const order = this.safeDict(response, 'data');
+        const order = this.safeDict(response, 'data', {});
         return this.parseOrder(order, market);
     }
     /**
@@ -1716,7 +1723,7 @@ class bigone extends bigone$1["default"] {
         //        "created_at":"2019-01-29T06:05:56Z",
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
-        const order = this.safeDict(response, 'data');
+        const order = this.safeDict(response, 'data', {});
         return this.parseOrder(order);
     }
     /**

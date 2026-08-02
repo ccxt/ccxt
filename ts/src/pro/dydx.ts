@@ -3,7 +3,7 @@
 
 import dydxRest from '../dydx.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Trade, Dict, OrderBook, OHLCV } from '../base/types.js';
+import type { Int, Trade, Dict, OrderBook, OHLCV , Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
 
@@ -132,7 +132,7 @@ export default class dydx extends dydxRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined) {
         //
         // {
         //     "id": "02b6148d0000000200000003",
@@ -377,7 +377,7 @@ export default class dydx extends dydxRest {
         //     }
         // }
         //
-        const id = this.safeString (message, 'id');
+        const id = this.safeString (message, 'id', '');
         const part = id.split ('/');
         const interval = this.safeString (part, 1);
         const timeframe = this.findTimeframe (interval);
@@ -390,7 +390,7 @@ export default class dydx extends dydxRest {
         const ohlcv = this.safeDict (candles, 0, content);
         const parsed = this.parseOHLCV (ohlcv, market);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -431,7 +431,7 @@ export default class dydx extends dydxRest {
                 'v4_orderbook': this.handleOrderBook,
                 'v4_candles': this.handleOHLCV,
             };
-            const method = this.safeValue (methods, (topic as string));
+            const method = this.safeValue (methods, topic);
             if (method !== undefined) {
                 method.call (this, client, message);
             }

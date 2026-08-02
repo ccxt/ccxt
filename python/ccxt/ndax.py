@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.ndax import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -518,7 +518,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'ProductId')
         code = self.safe_currency_code(self.safe_string(rawCurrency, 'Product'))
         ProductType = self.safe_string(rawCurrency, 'ProductType')
@@ -623,7 +623,7 @@ class ndax(Exchange, ImplicitAPI):
         sessionStatus = self.safe_string(market, 'SessionStatus')
         isDisable = self.safe_value(market, 'IsDisable')
         sessionRunning = (sessionStatus == 'Running')
-        return {
+        return self.safe_market_structure({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -671,7 +671,7 @@ class ndax(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': market,
-        }
+        })
 
     def parse_order_book(self, orderbook, symbol, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 6, amountKey: IndexType = 8, countOrIdKey: IndexType = 2):
         nonce = None
@@ -1222,12 +1222,13 @@ class ndax(Exchange, ImplicitAPI):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'ProductId')
-            if (currencyId is not None) and (currencyId in self.currencies_by_id):
+            if (currencyId is not None) and (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id):
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['total'] = self.safe_string(balance, 'Amount')
                 account['used'] = self.safe_string(balance, 'Hold')
-                result[code] = account
+                if code is not None:
+                    result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -1568,7 +1569,10 @@ class ndax(Exchange, ImplicitAPI):
         }
         # If OrderType=1(Market), Side=0(Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if price is not None:
-            request['LimitPrice'] = float(self.price_to_precision(symbol, price))
+            limitPriceString = self.price_to_precision(symbol, price)
+            if limitPriceString is None:
+                limitPriceString = '0'
+            request['LimitPrice'] = float(limitPriceString)
         if clientOrderId is not None:
             request['ClientOrderId'] = clientOrderId
         if triggerPrice is not None:
@@ -1630,7 +1634,10 @@ class ndax(Exchange, ImplicitAPI):
         }
         # If OrderType=1(Market), Side=0(Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if price is not None:
-            request['LimitPrice'] = float(self.price_to_precision(symbol, price))
+            limitPriceString = self.price_to_precision(symbol, price)
+            if limitPriceString is None:
+                limitPriceString = '0'
+            request['LimitPrice'] = float(limitPriceString)
         if clientOrderId is not None:
             request['ClientOrderId'] = clientOrderId
         response = self.privatePostCancelReplaceOrder(self.extend(request, params))

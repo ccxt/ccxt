@@ -3,6 +3,7 @@ import assert from 'assert';
 import testOHLCV from '../../../test/Exchange/base/test.ohlcv.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { Exchange } from '../../../../ccxt.js';
+import type { OHLCV } from '../../../base/types.js';
 
 async function testWatchOHLCV (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchOHLCV';
@@ -19,10 +20,13 @@ async function testWatchOHLCV (exchange: Exchange, skippedProperties: object, sy
     const duration = exchange.parseTimeframe (chosenTimeframeKey);
     const since = exchange.milliseconds () - duration * limit * 1000 - 1000;
     while (now < ends) {
-        let response = undefined;
+        let response: any = undefined;
         let success = true;
         try {
             response = await exchange.watchOHLCV (symbol, chosenTimeframeKey, since, limit);
+            if (response === undefined) {
+                throw new Error (exchange.id + ' watch returned undefined response');
+            }
         } catch (e) {
             if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
@@ -32,6 +36,9 @@ async function testWatchOHLCV (exchange: Exchange, skippedProperties: object, sy
             success = false;
         }
         if (success === true) {
+            if (response === undefined) {
+                throw new Error (exchange.id + ' watch returned undefined response');
+            }
             testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response, symbol);
             now = exchange.milliseconds ();
             for (let i = 0; i < response.length; i++) {

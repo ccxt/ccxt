@@ -1181,7 +1181,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object symbol = Helpers.GetValue(market, "symbol");
             Object parsed = this.parseOHLCV(data, market);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-            Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+            Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
                 Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1628,7 +1628,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         Helpers.addElementToObject(account, "free", this.safeString(data, "availableBalance"));
         Helpers.addElementToObject(account, "used", this.safeString(data, "f"));
         Helpers.addElementToObject(account, "total", this.safeString2(data, "b", "walletBalance"));
-        Helpers.addElementToObject(this.balance, code, account);
+        if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+        {
+            Helpers.addElementToObject(this.balance, code, account);
+        }
         this.balance = this.safeBalance(this.balance);
         Object tradeType = ((Helpers.isTrue((Helpers.inOp(data, "coin"))))) ? "contract" : "spot";
         client.resolve(this.balance, Helpers.add("balance::", tradeType));

@@ -252,13 +252,17 @@ public partial class zaif : Exchange
     {
         object id = this.safeString(market, "currency_pair");
         object name = this.safeString(market, "name");
+        if (isTrue(isEqual(name, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseMarket() missing name")) ;
+        }
         var baseIdquoteIdVariable = ((string)name).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
         var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
             { "base", bs },
@@ -306,7 +310,7 @@ public partial class zaif : Exchange
             } },
             { "created", null },
             { "info", market },
-        };
+        });
     }
 
     public override object parseBalance(object response)
@@ -335,7 +339,10 @@ public partial class zaif : Exchange
                     ((IDictionary<string,object>)account)["total"] = this.safeString(deposit, currencyId);
                 }
             }
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -616,7 +623,7 @@ public partial class zaif : Exchange
         //        }
         //    }
         //
-        object data = this.safeDict(response, "return");
+        object data = this.safeDict(response, "return", new Dictionary<string, object>() {});
         return this.parseOrder(data);
     }
 
@@ -789,7 +796,7 @@ public partial class zaif : Exchange
         //         }
         //     }
         //
-        object returnData = this.safeDict(result, "return");
+        object returnData = this.safeDict(result, "return", new Dictionary<string, object>() {});
         return this.parseTransaction(returnData, currency);
     }
 

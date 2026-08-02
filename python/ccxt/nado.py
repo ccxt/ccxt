@@ -1536,16 +1536,22 @@ class nado(Exchange, ImplicitAPI):
         pairsById = {}
         for i in range(0, len(pairs)):
             rawPair = pairs[i]
-            pairsById[self.safe_string(rawPair, 'product_id')] = rawPair
+            pairProductId = self.safe_string(rawPair, 'product_id')
+            if pairProductId is not None:
+                pairsById[pairProductId] = rawPair
         assetsById = {}
         for i in range(0, len(assets)):
             rawAsset = assets[i]
-            assetsById[self.safe_string(rawAsset, 'product_id')] = rawAsset
+            assetProductId = self.safe_string(rawAsset, 'product_id')
+            if assetProductId is not None:
+                assetsById[assetProductId] = rawAsset
         assetsByCode = {}
         for i in range(0, len(assets)):
             rawAsset = assets[i]
             assetSymbol = self.safe_string(rawAsset, 'symbol')
             assetCode = self.safe_currency_code(self.remove_market_suffix(assetSymbol))
+            if assetCode is None:
+                continue
             previous = self.safe_dict(assetsByCode, assetCode)
             if previous is None:
                 assetsByCode[assetCode] = rawAsset
@@ -1586,7 +1592,7 @@ class nado(Exchange, ImplicitAPI):
             priceIncrement = self.parse_x18(self.safe_string(market, 'price_increment_x18'))
             amountIncrement = self.parse_x18(self.safe_string(market, 'size_increment'))
             minCost = self.parse_x18(self.safe_string(market, 'min_size'))
-            markets.append({
+            markets.append(self.safe_market_structure({
                 'id': id,
                 'lowercaseId': None,
                 'symbol': symbol,
@@ -1642,7 +1648,7 @@ class nado(Exchange, ImplicitAPI):
                     'v2Pair': pair,
                     'v2Asset': asset,
                 }),
-            })
+            }))
         return markets
 
     def fetch_currencies(self, params={}) -> Currencies:
@@ -1660,6 +1666,8 @@ class nado(Exchange, ImplicitAPI):
             currency = response[i]
             parsed = self.parse_currency(currency)
             code = self.safe_string(parsed, 'code')
+            if code is None:
+                continue
             previous = self.safe_dict(result, code)
             canDeposit = self.safe_bool(currency, 'can_deposit', False)
             canWithdraw = self.safe_bool(currency, 'can_withdraw', False)
@@ -1715,7 +1723,10 @@ class nado(Exchange, ImplicitAPI):
         self.load_markets()
         market = self.market(symbol)
         tickers = self.fetch_tickers([symbol], params)
-        return self.safe_ticker(self.safe_dict(tickers, symbol), market)
+        ticker = self.safe_dict(tickers, symbol)
+        if ticker is None:
+            raise BadSymbol(self.id + ' fetchTicker() ticker not found for ' + symbol)
+        return self.safe_ticker(ticker, market)
 
     def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
@@ -2391,7 +2402,8 @@ class nado(Exchange, ImplicitAPI):
             account['total'] = amount
             # the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
             account['free'] = amount
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
@@ -2723,7 +2735,9 @@ class nado(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def convert_to_x18(self, value: str):
+    def convert_to_x18(self, value: Str):
+        if value is None:
+            raise ArgumentsRequired(self.id + ' convertToX18() requires a value')
         return Precise.string_div(Precise.string_mul(value, '1000000000000000000'), '1', 0)
 
     def parse_x18(self, value):
@@ -2766,9 +2780,11 @@ class nado(Exchange, ImplicitAPI):
             appendix = Precise.string_add(appendix, '4096')
         return appendix
 
-    def create_subaccount(self, walletAddress: str, subaccount='default'):
+    def create_subaccount(self, walletAddress: Str, subaccount: Str = 'default'):
         if walletAddress is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires exchange.walletAddress')
+            raise ArgumentsRequired(self.id + ' createSubaccount() requires walletAddress')
+        if subaccount is None:
+            subaccount = 'default'
         address = self.remove0x_prefix(walletAddress).lower()
         if len(address) != 40:
             raise BadRequest(self.id + ' createOrder() requires a 20-byte walletAddress')
@@ -2793,6 +2809,8 @@ class nado(Exchange, ImplicitAPI):
         return '0x' + self.pad_hex(self.int_to_base16(productId), 40)
 
     def pad_hex(self, value: str, length: Int, left=True):
+        if length is None:
+            raise ArgumentsRequired(self.id + ' padHex() requires length')
         zeros = '00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
         padded = (zeros + value) if left else (value + zeros)
         if left:
@@ -2875,7 +2893,9 @@ class nado(Exchange, ImplicitAPI):
         hash = '0x' + self.hash(encoded, 'keccak', 'hex')
         return self.sign_hash(hash, self.privateKey)
 
-    def sign_hash(self, hash, privateKey):
+    def sign_hash(self, hash: str, privateKey: Str):
+        if privateKey is None:
+            raise ArgumentsRequired(self.id + ' signHash() requires privateKey')
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
@@ -2889,7 +2909,7 @@ class nado(Exchange, ImplicitAPI):
             return marketId[0:-5]
         return marketId
 
-    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = [], method='GET', params={}, headers: Any = None, body: Any = None):
         endpoint = api[0]
         if isinstance(api, str):
             endpoint = api

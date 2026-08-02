@@ -130,8 +130,8 @@ export default class htx extends htxRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    getOrderChannelAndMessageHash(type: any, subType: any, market?: any, params?: {}): string[];
-    getV5LinearChannelAndMessageHash(topic: any, market?: any, params?: {}): any[];
+    getOrderChannelAndMessageHash(type: any, subType: any, market?: Market, params?: {}): string[];
+    getV5LinearChannelAndMessageHash(topic: any, market?: Market, params?: {}): any[];
     /**
      * @method
      * @name htx#watchOrders
@@ -146,8 +146,8 @@ export default class htx extends htxRest {
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
-    parseOrderTrade(trade: any, market?: any): Trade;
+    parseWsOrder(order: any, market?: Market): Order;
+    parseOrderTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name htx#watchPositions
@@ -176,7 +176,7 @@ export default class htx extends htxRest {
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): void;
-    handleUnSubscription(client: Client, subscription: Dict): void;
+    handleUnSubscription(client: Client, subscription: Dict | undefined): void;
     handleSystemStatus(client: Client, message: any): any;
     handleSubject(client: Client, message: any): void;
     pong(client: any, message: any): Promise<void>;
@@ -185,8 +185,8 @@ export default class htx extends htxRest {
     handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
     handleMyTrade(client: Client, message: any, extendParams?: {}): void;
-    parseWsTrade(trade: any, market?: any): Trade;
-    getUrlByMarketType(type: any, isLinear?: boolean, isPrivate?: boolean, isFeed?: boolean, isV5?: boolean): string;
+    parseWsTrade(trade: any, market?: Market): Trade;
+    getUrlByMarketType(type: any, isLinear?: boolean, isPrivate?: boolean, isFeed?: boolean, isV5?: boolean): Str;
     subscribePublic(url: any, symbol: any, messageHash: any, method?: any, params?: {}): Promise<any>;
     unsubscribePublic(market: Market, subMessageHash: string, topic: string, params?: {}): Promise<any>;
     subscribePrivate(channel: any, messageHash: any, type: any, subtype: any, params?: {}, subscriptionParams?: {}): Promise<any>;

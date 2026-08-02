@@ -491,7 +491,10 @@ public partial class bithumb : ccxt.bithumb
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(asset, "balance");
             ((IDictionary<string,object>)account)["used"] = this.safeString(asset, "locked");
-            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            }
         }
         ((IDictionary<string,object>)this.balance)["info"] = message;
         object timestamp = this.safeInteger(message, "timestamp");

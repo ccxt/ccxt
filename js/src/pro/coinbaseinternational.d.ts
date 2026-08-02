@@ -69,7 +69,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleInstrument(client: Client, message: any): void;
-    parseWsInstrument(ticker: Dict, market?: any): Ticker;
+    parseWsInstrument(ticker: Dict, market?: Market): Ticker;
     handleTicker(client: Client, message: any): void;
     parseWsTicker(ticker: object, market?: Market): Ticker;
     /**
@@ -110,7 +110,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      */
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrade(client: any, message: any): any;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name coinbaseinternational#watchOrderBook

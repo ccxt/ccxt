@@ -266,7 +266,7 @@ public partial class bydfi : ccxt.bydfi
                     {
                         continue;
                     }
-                    object marketId = this.marketId(((string)symbol));
+                    object marketId = this.marketId(symbol);
                     ((IList<object>)channels).Add(add(marketId, channel));
                 }
             }
@@ -392,10 +392,10 @@ public partial class bydfi : ccxt.bydfi
         {
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
             object marketId = this.safeString(symbolAndTimeframe, 0);
-            object market = this.market(((string)marketId));
+            object market = this.market(marketId);
             object tf = this.safeString(symbolAndTimeframe, 1);
             object timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
-            object interval = this.safeString(timeframes, ((string)tf), tf);
+            object interval = this.safeString(timeframes, tf, tf);
             ((IList<object>)channels).Add(add(add(getValue(market, "id"), "@kline_"), interval));
             ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", getValue(market, "symbol")), "::"), interval));
         }
@@ -435,9 +435,9 @@ public partial class bydfi : ccxt.bydfi
         {
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
             object marketId = this.safeString(symbolAndTimeframe, 0);
-            object market = this.market(((string)marketId));
+            object market = this.market(marketId);
             object tf = this.safeString(symbolAndTimeframe, 1);
-            object interval = this.safeString(this.timeframes, ((string)tf), tf);
+            object interval = this.safeString(this.timeframes, tf, tf);
             ((IList<object>)channels).Add(add(add(getValue(market, "id"), "@kline_"), interval));
             ((IList<object>)messageHashes).Add(add(add(add("unsubscribe::ohlcv::", getValue(market, "symbol")), "::"), interval));
         }
@@ -1108,7 +1108,10 @@ public partial class bydfi : ccxt.bydfi
                 object account = this.account();
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "wb");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "tfm");
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
             object parsedBalance = this.safeBalance(result);
             this.balance = this.extend(this.balance, parsedBalance);
@@ -1126,7 +1129,7 @@ public partial class bydfi : ccxt.bydfi
         //
         object id = this.safeString(message, "id");
         object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
-        object subscription = this.safeDict(subscriptionsById, ((string)id), new Dictionary<string, object>() {});
+        object subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
         object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
         if (isTrue(isUnSubMessage))
         {

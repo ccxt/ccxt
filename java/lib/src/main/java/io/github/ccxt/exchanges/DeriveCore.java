@@ -1030,7 +1030,7 @@ public class DeriveCore extends DeriveApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(((String)symbol));
+            Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
             }};
@@ -1164,7 +1164,7 @@ public class DeriveCore extends DeriveApi
         Object binaryMessageLength = this.binaryLength(binaryMessage);
         Object x19 = this.base16ToBinary("19");
         Object newline = this.base16ToBinary("0a");
-        Object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(((String)this.numberToString(binaryMessageLength))));
+        Object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
         return Helpers.add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
     }
 
@@ -1241,7 +1241,7 @@ public class DeriveCore extends DeriveApi
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
             Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
             Object TRADE_MODULE_ADDRESS = ((Helpers.isTrue((sandboxMode)))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
-            Object priceString = ((String)this.numberToString(price));
+            Object priceString = this.numberToString(price);
             Object maxFee = null;
             var maxFeeparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "max_fee");
             maxFee = ((java.util.List<Object>) maxFeeparametersVariable).get(0);
@@ -1250,8 +1250,8 @@ public class DeriveCore extends DeriveApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a max_fee argument in params")) ;
             }
-            Object maxFeeString = ((String)this.numberToString(maxFee));
-            Object amountString = ((String)this.numberToString(amount));
+            Object maxFeeString = this.numberToString(maxFee);
+            Object amountString = this.numberToString(amount);
             Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((String)this.parseUnits(priceString))), this.convertToBigInt(((String)this.parseUnits(((String)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((String)this.parseUnits(maxFeeString))), subaccountId, Helpers.isEqual(orderSide, "buy")))), keccak(), "binary");
             Object deriveWalletAddress = null;
             var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("createOrder", parameters);
@@ -1444,7 +1444,7 @@ public class DeriveCore extends DeriveApi
             Object TRADE_MODULE_ADDRESS = ((Helpers.isTrue((sandboxMode)))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
             Object priceString = ((String)this.numberToString(price));
             Object maxFeeString = this.safeString(parameters, "max_fee", "0");
-            Object amountString = ((String)this.numberToString(amount));
+            Object amountString = this.numberToString(amount);
             Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((String)this.parseUnits(priceString))), this.convertToBigInt(((String)this.parseUnits(((String)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((String)this.parseUnits(maxFeeString))), subaccountId, Helpers.isEqual(orderSide, "buy")))), keccak(), "binary");
             Object deriveWalletAddress = null;
             var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("editOrder", parameters);
@@ -2742,7 +2742,10 @@ public class DeriveCore extends DeriveApi
                     Object amount = this.safeString(balance, "amount");
                     Helpers.addElementToObject(account, "total", Precise.stringAdd(Helpers.GetValue(account, "total"), amount));
                 }
-                Helpers.addElementToObject(result, code, account);
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(result, code, account);
+                }
             }
         }
         return this.safeBalance(result);

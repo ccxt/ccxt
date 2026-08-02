@@ -895,7 +895,9 @@ export default class bitfinex extends bitfinexRest {
             const balance = this.parseWsBalance(rawBalance);
             const balanceType = this.safeString(rawBalance, 0);
             const oldBalance = this.safeValue(this.balance, balanceType, {});
-            oldBalance[code] = balance;
+            if (code !== undefined) {
+                oldBalance[code] = balance;
+            }
             oldBalance['info'] = message;
             this.balance[balanceType] = this.safeBalance(oldBalance);
             updatedTypes[balanceType] = true;

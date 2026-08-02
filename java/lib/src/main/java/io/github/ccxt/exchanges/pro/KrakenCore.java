@@ -175,11 +175,11 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         Object isTrailingPercentOrder = !Helpers.isEqual(trailingPercent, null);
         Object isTrailingLimitAmountOrder = !Helpers.isEqual(trailingLimitAmount, null);
         Object isTrailingLimitPercentOrder = !Helpers.isEqual(trailingLimitPercent, null);
-        Object offset = ((String)this.safeString(parameters, "offset", "")); // can set this to - for minus
-        Object trailingAmountString = ((Helpers.isTrue((!Helpers.isEqual(trailingAmount, null))))) ? Helpers.add(offset, ((String)this.numberToString(trailingAmount))) : null;
-        Object trailingPercentString = ((Helpers.isTrue((!Helpers.isEqual(trailingPercent, null))))) ? Helpers.add(offset, ((String)this.numberToString(trailingPercent))) : null;
-        Object trailingLimitAmountString = ((Helpers.isTrue((!Helpers.isEqual(trailingLimitAmount, null))))) ? Helpers.add(offset, ((String)this.numberToString(trailingLimitAmount))) : null;
-        Object trailingLimitPercentString = ((Helpers.isTrue((!Helpers.isEqual(trailingLimitPercent, null))))) ? Helpers.add(offset, ((String)this.numberToString(trailingLimitPercent))) : null;
+        Object offset = this.safeString(parameters, "offset", ""); // can set this to - for minus
+        Object trailingAmountString = ((Helpers.isTrue((!Helpers.isEqual(trailingAmount, null))))) ? Helpers.add(offset, this.numberToString(trailingAmount)) : null;
+        Object trailingPercentString = ((Helpers.isTrue((!Helpers.isEqual(trailingPercent, null))))) ? Helpers.add(offset, this.numberToString(trailingPercent)) : null;
+        Object trailingLimitAmountString = ((Helpers.isTrue((!Helpers.isEqual(trailingLimitAmount, null))))) ? Helpers.add(offset, this.numberToString(trailingLimitAmount)) : null;
+        Object trailingLimitPercentString = ((Helpers.isTrue((!Helpers.isEqual(trailingLimitPercent, null))))) ? Helpers.add(offset, this.numberToString(trailingLimitPercent)) : null;
         Object priceType = ((Helpers.isTrue((Helpers.isTrue(isTrailingPercentOrder) || Helpers.isTrue(isTrailingLimitPercentOrder))))) ? "pct" : "quote";
         if (Helpers.isTrue(Helpers.isEqual(method, "createOrderWs")))
         {
@@ -727,7 +727,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         Object interval = this.safeInteger(first, "interval");
         Object timeframe = ((String)this.findTimeframe(interval));
         Object messageHash = this.getMessageHash("ohlcv", null, symbol);
-        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
@@ -1023,7 +1023,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                     {
                         Object symbol = Helpers.GetValue(symbols, i);
-                        Object market = Helpers.GetValue(this.markets, symbol);
+                        Object market = this.market(symbol);
                         Object info = this.safeValue(market, "info", new java.util.HashMap<String, Object>() {{}});
                         Object wsName = ((String)this.safeString(info, "wsname"));
                         Helpers.addElementToObject(marketsByWsName, wsName, market);
@@ -1237,8 +1237,8 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
     public Object formatNumber(Object data)
     {
         Object parts = Helpers.split(data, ".");
-        Object integer = ((String)this.safeString(parts, 0));
-        Object decimals = ((String)this.safeString(parts, 1, ""));
+        Object integer = this.safeString(parts, 0);
+        Object decimals = this.safeString(parts, 1, "");
         Object joinedResult = Helpers.add(integer, decimals);
         Object i = 0;
         while (Helpers.isEqual(Helpers.GetValue(joinedResult, i), "0"))
@@ -1588,8 +1588,8 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                 Object id = this.safeString(order, "order_id");
                 Object parsed = this.parseWsOrder(order);
                 Object symbol = this.safeString(order, "symbol");
-                Object previousOrders = this.safeValue(((io.github.ccxt.ws.ArrayCache)stored).hashmap, ((String)symbol));
-                Object previousOrder = this.safeValue(previousOrders, ((String)id));
+                Object previousOrders = this.safeValue(((io.github.ccxt.ws.ArrayCache)stored).hashmap, symbol);
+                Object previousOrder = this.safeValue(previousOrders, id);
                 Object newOrder = parsed;
                 if (Helpers.isTrue(!Helpers.isEqual(previousOrder, null)))
                 {
@@ -1956,7 +1956,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                 put( "cancel_all", "handleCancelAllOrders");
                 put( "pong", "handlePong");
             }};
-            Object method = this.safeValue(methods, ((String)eventVar));
+            Object method = this.safeValue(methods, eventVar);
             if (Helpers.isTrue(!Helpers.isEqual(method, null)))
             {
                 Helpers.callDynamically(this, method, new Object[] {client, message});

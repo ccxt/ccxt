@@ -6,7 +6,7 @@ import Exchange from './abstract/coinone.js';
 import { BadSymbol, BadRequest, ExchangeError, ArgumentsRequired, OrderNotFound, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
+import type { Balances, Currencies, CurrencyInterface, DepositAddress, Dict, Int, Market, NullableDict, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -332,7 +332,7 @@ export default class coinone extends Exchange {
         return this.parseCurrencies (currencies);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'symbol');
         const code = this.safeCurrencyCode (id);
         const isWithdrawEnabled = this.safeString (rawCurrency, 'withdraw_status', '') === 'normal';
@@ -487,7 +487,9 @@ export default class coinone extends Exchange {
             const account = this.account ();
             account['free'] = this.safeString (balance, 'avail');
             account['total'] = this.safeString (balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -577,10 +579,10 @@ export default class coinone extends Exchange {
             'quote_currency': 'KRW',
         };
         let market: Market = undefined;
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (symbols !== undefined) {
             const first = this.safeString (symbols, 0);
-            market = this.market ((first as string));
+            market = this.market (first);
             request['quote_currency'] = market['quote'];
             request['target_currency'] = market['base'];
             response = await this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency (this.extend (request, params));
@@ -1255,7 +1257,7 @@ export default class coinone extends Exchange {
                     'network': undefined,
                     'address': undefined,
                     'tag': undefined,
-                } as DepositAddress;
+                };
             }
             const address = this.safeString (depositAddress, 'address', value);
             this.checkAddress (address);
@@ -1265,7 +1267,9 @@ export default class coinone extends Exchange {
                 depositAddress['tag'] = value;
                 depositAddress['info'] = [ address, value ];
             }
-            result[code] = depositAddress;
+            if (code !== undefined) {
+                result[code] = depositAddress;
+            }
         }
         return result as DepositAddress[];
     }
@@ -1291,7 +1295,7 @@ export default class coinone extends Exchange {
             this.checkRequiredCredentials ();
             url += request;
             // the v2.1 api requires a uuid nonce, the older apis use a numeric one
-            let nonce = undefined;
+            let nonce: Str = undefined;
             if (api === 'v2_1Private') {
                 nonce = this.uuid ();
             } else {

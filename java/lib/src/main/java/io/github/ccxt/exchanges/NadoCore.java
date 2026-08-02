@@ -1882,13 +1882,21 @@ public class NadoCore extends NadoApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(pairs)); i++)
             {
                 Object rawPair = Helpers.GetValue(pairs, i);
-                Helpers.addElementToObject(pairsById, this.safeString(rawPair, "product_id"), rawPair);
+                Object pairProductId = this.safeString(rawPair, "product_id");
+                if (Helpers.isTrue(!Helpers.isEqual(pairProductId, null)))
+                {
+                    Helpers.addElementToObject(pairsById, pairProductId, rawPair);
+                }
             }
             Object assetsById = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
             {
                 Object rawAsset = Helpers.GetValue(assets, i);
-                Helpers.addElementToObject(assetsById, this.safeString(rawAsset, "product_id"), rawAsset);
+                Object assetProductId = this.safeString(rawAsset, "product_id");
+                if (Helpers.isTrue(!Helpers.isEqual(assetProductId, null)))
+                {
+                    Helpers.addElementToObject(assetsById, assetProductId, rawAsset);
+                }
             }
             Object assetsByCode = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
@@ -1896,6 +1904,10 @@ public class NadoCore extends NadoApi
                 Object rawAsset = Helpers.GetValue(assets, i);
                 Object assetSymbol = this.safeString(rawAsset, "symbol");
                 Object assetCode = this.safeCurrencyCode(this.removeMarketSuffix(assetSymbol));
+                if (Helpers.isTrue(Helpers.isEqual(assetCode, null)))
+                {
+                    continue;
+                }
                 Object previous = this.safeDict(assetsByCode, assetCode);
                 if (Helpers.isTrue(Helpers.isEqual(previous, null)))
                 {
@@ -1951,7 +1963,7 @@ public class NadoCore extends NadoApi
                 final Object finalBase = base;
                 final Object finalType = type;
                 final Object finalTickerId = tickerId;
-                            ((java.util.List<Object>)markets).add(new java.util.HashMap<String, Object>() {{
+                            ((java.util.List<Object>)markets).add(this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                     put( "lowercaseId", null );
                     put( "symbol", finalSymbol );
@@ -2007,7 +2019,7 @@ public class NadoCore extends NadoApi
                         put( "v2Pair", pair );
                         put( "v2Asset", asset );
                     }}) );
-                }});
+                }}));
             }
             return markets;
         });
@@ -2035,6 +2047,10 @@ public class NadoCore extends NadoApi
                 Object currency = Helpers.GetValue(response, i);
                 Object parsed = this.parseCurrency(currency);
                 Object code = this.safeString(parsed, "code");
+                if (Helpers.isTrue(Helpers.isEqual(code, null)))
+                {
+                    continue;
+                }
                 Object previous = this.safeDict(result, code);
                 Object canDeposit = this.safeBool(currency, "can_deposit", false);
                 Object canWithdraw = this.safeBool(currency, "can_withdraw", false);
@@ -2113,7 +2129,12 @@ public class NadoCore extends NadoApi
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
             Object tickers = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
-            return this.safeTicker(this.safeDict(tickers, symbol), market);
+            Object ticker = this.safeDict(tickers, symbol);
+            if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
+            {
+                throw new BadSymbol((String)Helpers.add(Helpers.add(this.id, " fetchTicker() ticker not found for "), symbol)) ;
+            }
+            return this.safeTicker(ticker, market);
         });
 
     }
@@ -2952,7 +2973,10 @@ public class NadoCore extends NadoApi
             Helpers.addElementToObject(account, "total", amount);
             // the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
             Helpers.addElementToObject(account, "free", amount);
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -3368,6 +3392,10 @@ public class NadoCore extends NadoApi
 
     public Object convertToX18(Object value)
     {
+        if (Helpers.isTrue(Helpers.isEqual(value, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " convertToX18() requires a value")) ;
+        }
         return Precise.stringDiv(Precise.stringMul(value, "1000000000000000000"), "1", 0);
     }
 
@@ -3438,7 +3466,11 @@ public class NadoCore extends NadoApi
         Object subaccount = Helpers.getArg(optionalArgs, 0, "default");
         if (Helpers.isTrue(Helpers.isEqual(walletAddress, null)))
         {
-            throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires exchange.walletAddress")) ;
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " createSubaccount() requires walletAddress")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(subaccount, null)))
+        {
+            subaccount = "default";
         }
         Object address = ((String)this.remove0xPrefix(walletAddress)).toLowerCase();
         if (Helpers.isTrue(!Helpers.isEqual(Helpers.getArrayLength(address), 40)))
@@ -3483,6 +3515,10 @@ public class NadoCore extends NadoApi
     public Object padHex(Object value, Object length, Object... optionalArgs)
     {
         Object left = Helpers.getArg(optionalArgs, 0, true);
+        if (Helpers.isTrue(Helpers.isEqual(length, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " padHex() requires length")) ;
+        }
         Object zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
         Object padded = ((Helpers.isTrue(left))) ? (Helpers.add(zeros, value)) : (Helpers.add(value, zeros));
         if (Helpers.isTrue(left))
@@ -3604,6 +3640,10 @@ public class NadoCore extends NadoApi
 
     public Object signHash(Object hash, Object privateKey)
     {
+        if (Helpers.isTrue(Helpers.isEqual(privateKey, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " signHash() requires privateKey")) ;
+        }
         Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");

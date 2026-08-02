@@ -1666,7 +1666,10 @@ public class ExtendedCore extends ExtendedApi
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "availableToWithdraw"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -2873,7 +2876,7 @@ public class ExtendedCore extends ExtendedApi
         Object roundUp = Helpers.getArg(optionalArgs, 0, false);
         Object resolutionString = this.numberToString(resolution);
         Object precise = Precise.stringMul(amount, resolutionString);
-        Object result = this.decimalToPrecision(((String)precise), TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
+        Object result = this.decimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
         if (Helpers.isTrue(Helpers.isTrue(roundUp) && Helpers.isTrue(Precise.stringGt(precise, result))))
         {
             result = ((String)Precise.stringAdd(result, "1"));
@@ -3024,13 +3027,23 @@ public class ExtendedCore extends ExtendedApi
         return settlement;
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createExtendedOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createExtendedOrderRequest(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
-
+        final Object type3 = type2;
+        final Object side3 = side2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+            Object type = type3;
+            Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(type, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+            }
+            if (Helpers.isTrue(Helpers.isEqual(side, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+            }
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
             Object uppercaseType = ((String)type).toUpperCase();

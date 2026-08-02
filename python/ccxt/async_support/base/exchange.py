@@ -24,7 +24,7 @@ from ccxt.async_support.base.throttler import Throttler
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.errors import BadSymbol, BadRequest, BadResponse, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidAddress, RateLimitExceeded, OperationFailed
+from ccxt.base.errors import BadSymbol, BadRequest, BadResponse, ExchangeClosedByUser, ExchangeError, ExchangeNotAvailable, RequestTimeout, NotSupported, NullResponse, InvalidAddress, RateLimitExceeded, OperationFailed
 from ccxt.base.types import ConstructorArgs, OrderType, OrderSide, OrderRequest, CancellationRequest, Order
 
 # -----------------------------------------------------------------------------
@@ -68,6 +68,7 @@ class BaseExchange(SyncExchange):
     newUpdates = True
     clients = {}
     timeout_on_exit = 250  # needed for: https://github.com/ccxt/ccxt/pull/23470
+    closed_by_user = False
 
     def __init__(self, config: ConstructorArgs = {}):
         if 'asyncio_loop' in config:
@@ -108,7 +109,12 @@ class BaseExchange(SyncExchange):
         async def __aexit__(self, exc_type, exc, tb):
             await self.close()
 
-    def open(self):
+    def open(self, lazy=False):
+        # a request orphaned by a failing gathered sibling can resume after close() and
+        # lazily recreate a session that nobody will ever close, see issue #27418
+        if lazy and self.closed_by_user:
+            raise ExchangeClosedByUser(self.id + ' instance was closed by the user')
+        self.closed_by_user = False
         if self.asyncio_loop is None:
             if sys.version_info >= (3, 7):
                 self.asyncio_loop = asyncio.get_running_loop()
@@ -133,6 +139,8 @@ class BaseExchange(SyncExchange):
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.tcp_connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self, clean_instance_data=False):
+        # set before the first await, a lazy open() during close() would leak a session
+        self.closed_by_user = True
         # ##### language-specific cleanup of WS & REST resources #####
         # [WS]
         await self.close_ws_clients()
@@ -178,6 +186,7 @@ class BaseExchange(SyncExchange):
         final_proxy = None  # set default
         proxy_session = None
         httpProxy, httpsProxy, socksProxy = self.check_proxy_settings(url, method, headers, body)
+        self.open(True)
         if httpProxy:
             final_proxy = httpProxy
         elif httpsProxy:
@@ -186,9 +195,6 @@ class BaseExchange(SyncExchange):
             # override session
             if (self.socks_proxy_sessions is None):
                 self.socks_proxy_sessions = {}
-            if (socksProxy not in self.socks_proxy_sessions):
-                # Create our SSL context object with our CA cert file
-                self.open()  # ensure `asyncio_loop` is set
             proxy_session = self.get_socks_proxy_session(socksProxy)
         # add aiohttp_proxy for python as exclusion
         elif self.aiohttp_proxy:
@@ -230,7 +236,6 @@ class BaseExchange(SyncExchange):
         else:
             # asyncio would handle it for multipart/form-data
             del request_headers[content_type_key]
-        self.open()
         final_session = proxy_session if proxy_session is not None else self.session
         session_method = getattr(final_session, method.lower())
 
@@ -906,7 +911,7 @@ class BaseExchange(SyncExchange):
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOHLCV() is not supported yet')
 
-    async def fetch_web_endpoint(self, method, endpointMethod, returnAsJson, startRegex=None, endRegex=None):
+    async def fetch_web_endpoint(self, method, endpointMethod, returnAsJson, startRegex: Str = None, endRegex: Str = None):
         errorMessage = ''
         options = self.safe_value(self.options, method, {})
         muteOnFailure = self.safe_bool(options, 'webApiMuteFailure', True)
@@ -930,9 +935,13 @@ class BaseExchange(SyncExchange):
                 if shouldBreak:
                     break  # self is needed because of GO
             content = response
+            if content is None:
+                raise NullResponse(self.id + ' fetchWebEndpoint() returned empty content')
             if startRegex is not None:
                 splitted_by_start = content.split(startRegex)
                 content = splitted_by_start[1]  # we need second part after start
+            if content is None:
+                raise NullResponse(self.id + ' fetchWebEndpoint() returned empty content')
             if endRegex is not None:
                 splitted_by_end = content.split(endRegex)
                 content = splitted_by_end[0]  # we need first part after start
@@ -955,9 +964,13 @@ class BaseExchange(SyncExchange):
         if self.has['fetchTradingLimits']:
             if reload or not ('limitsLoaded' in self.options):
                 response = await self.fetch_trading_limits(symbols)
-                for i in range(0, len(symbols)):
-                    symbol = symbols[i]
-                    self.markets[symbol] = self.deep_extend(self.markets[symbol], response[symbol])
+                symbolsArray = self.require_value(symbols, 'loadTradingLimits() requires a symbols argument')
+                markets = self.markets
+                if markets is None:
+                    raise ExchangeError(self.id + ' markets not loaded')
+                for i in range(0, len(symbolsArray)):
+                    symbol = symbolsArray[i]
+                    markets[symbol] = self.deep_extend(markets[symbol], response[symbol])
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
 
@@ -965,10 +978,10 @@ class BaseExchange(SyncExchange):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
             await self.throttle(cost)
-        retries = None
-        retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
-        retryDelay = None
-        retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
+        retries = 0
+        retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', retries)
+        retryDelay = 0
+        retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', retryDelay)
         fetchData = None
         fetchDataCacheEnabled = self.fetchHistoryCacheSize > 0
         for i in range(0, retries + 1):
@@ -977,16 +990,16 @@ class BaseExchange(SyncExchange):
             try:
                 self.set_last_rest_request_timestamp()
                 request = self.sign(path, api, method, params, headers, body)
-                if fetchDataCacheEnabled:
+                if fetchDataCacheEnabled and (fetchData is not None):
                     fetchData['request'] = request
                 self.set_last_request(request)
                 response = await self.fetch(request['url'], request['method'], request['headers'], request['body'])
-                if fetchDataCacheEnabled:
+                if fetchDataCacheEnabled and (fetchData is not None):
                     fetchData['response']['body'] = response
                     self.add_fetch_cache(fetchData)
                 return response
             except Exception as e:
-                if fetchDataCacheEnabled:
+                if fetchDataCacheEnabled and (fetchData is not None):
                     fetchData['error'] = e
                     self.add_fetch_cache(fetchData)
                 if isinstance(e, OperationFailed):
@@ -1238,6 +1251,8 @@ class BaseExchange(SyncExchange):
     async def load_time_difference(self, params={}):
         serverTime = await self.fetch_time(params)
         after = self.milliseconds()
+        if serverTime is None:
+            raise ExchangeError(self.id + ' loadTimeDifference() missing serverTime')
         self.options['timeDifference'] = after - serverTime
         return self.options['timeDifference']
 
@@ -1368,10 +1383,10 @@ class BaseExchange(SyncExchange):
             raise NotSupported(self.id + ' fetchTransactions() is not supported yet')
 
     async def fetch_paginated_call_dynamic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}, maxEntriesPerRequest: Int = None, removeRepeated=True):
-        maxCalls = None
-        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
-        maxRetries = None
-        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', 3)
+        maxCalls = 10
+        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', maxCalls)
+        maxRetries = 3
+        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', maxRetries)
         paginationDirection = None
         paginationDirection, params = self.handle_option_and_params(params, method, 'paginationDirection', 'backward')
         paginationTimestamp = None
@@ -1407,6 +1422,8 @@ class BaseExchange(SyncExchange):
                     result = self.array_concat(result, response)
                     firstElement = self.safe_value(response, 0)
                     paginationTimestamp = self.safe_integer_2(firstElement, 'timestamp', 0)
+                    if paginationTimestamp is None:
+                        break
                     if (since is not None) and (paginationTimestamp <= since):
                         break
                 else:
@@ -1423,8 +1440,12 @@ class BaseExchange(SyncExchange):
                     errors = 0
                     result = self.array_concat(result, response)
                     last = self.safe_value(response, responseLength - 1)
-                    paginationTimestamp = self.safe_integer(last, 'timestamp', 0) + 1
-                    if (until is not None) and (paginationTimestamp >= until):
+                    lastTimestamp = self.safe_integer(last, 'timestamp', 0)
+                    if lastTimestamp is None:
+                        break
+                    nextPaginationTimestamp = lastTimestamp + 1
+                    paginationTimestamp = nextPaginationTimestamp
+                    if (until is not None) and (nextPaginationTimestamp >= until):
                         break
             except Exception as e:
                 errors += 1
@@ -1438,8 +1459,8 @@ class BaseExchange(SyncExchange):
         return self.filter_by_since_limit(sortedRes, since, limit, key)
 
     async def safe_deterministic_call(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}):
-        maxRetries = None
-        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', 3)
+        maxRetries = 3
+        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', maxRetries)
         errors = 0
         while(errors <= maxRetries):
             try:
@@ -1456,8 +1477,8 @@ class BaseExchange(SyncExchange):
         return []
 
     async def fetch_paginated_call_deterministic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}, maxEntriesPerRequest: Int = None):
-        maxCalls = None
-        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
+        maxCalls = 10
+        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', maxCalls)
         maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         # paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
         # pagination always walks forward internally, so strip it here to avoid leaking an
@@ -1466,6 +1487,7 @@ class BaseExchange(SyncExchange):
         current = self.milliseconds()
         tasks = []
         time = self.parse_timeframe(timeframe) * 1000
+        maxEntriesPerRequest = self.require_value(maxEntriesPerRequest, 'fetchPaginatedCallDeterministic() maxEntriesPerRequest is required')
         step = time * maxEntriesPerRequest
         currentSince = current - (maxCalls * step) - 1
         if since is not None:
@@ -1474,6 +1496,8 @@ class BaseExchange(SyncExchange):
             currentSince = max(currentSince, 1241440531000)  # avoid timestamps older than 2009
         until = self.safe_integer_2(params, 'until', 'till')  # do not omit it here
         if until is not None:
+            if since is None:
+                raise ArgumentsRequired(self.id + ' fetchPaginatedCallDeterministic() requires a since argument when until is set')
             requiredCalls = int(math.ceil((until - since)) / step)
             if requiredCalls > maxCalls:
                 raise BadRequest(self.id + ' the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ' + str(maxCalls) + ' required calls is ' + str(requiredCalls))
@@ -1493,10 +1517,10 @@ class BaseExchange(SyncExchange):
         return self.filter_by_since_limit(uniqueResults, since, limit, key)
 
     async def fetch_paginated_call_cursor(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}, cursorReceived: Str = None, cursorSent: Str = None, cursorIncrement: Int = None, maxEntriesPerRequest: Int = None):
-        maxCalls = None
-        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
-        maxRetries = None
-        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', 3)
+        maxCalls = 10
+        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', maxCalls)
+        maxRetries = 3
+        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', maxRetries)
         maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         cursorValue = None
         i = 0
@@ -1516,10 +1540,16 @@ class BaseExchange(SyncExchange):
                 elif method == 'getLeverageTiersPaginated' or method == 'fetchPositions':
                     response = await getattr(self, method)(symbol, params)
                 elif method == 'fetchOpenInterestHistory':
+                    if symbol is None:
+                        raise ArgumentsRequired(self.id + ' fetchPaginatedCallCursor() requires a symbol argument')
+                    if timeframe is None:
+                        raise ArgumentsRequired(self.id + ' fetchPaginatedCallCursor() requires a timeframe argument')
                     response = await getattr(self, method)(symbol, timeframe, since, maxEntriesPerRequest, params)
                 else:
                     response = await getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
                 errors = 0
+                if response is None:
+                    raise NullResponse(self.id + ' fetchPaginatedCallCursor() returned empty response')
                 responseLength = len(response)
                 if self.verbose:
                     cursorString = '' if (cursorValue is None) else cursorValue
@@ -1528,7 +1558,8 @@ class BaseExchange(SyncExchange):
                     self.log(cursorMessage)
                 if responseLength == 0:
                     break
-                result = self.array_concat(result, response)
+                if response is not None:
+                    result = self.array_concat(result, response)
                 last = self.safe_dict(response, responseLength - 1)
                 # cursorValue = self.safe_value(last['info'], cursorReceived)
                 cursorValue = None  # search for the cursor
@@ -1543,6 +1574,8 @@ class BaseExchange(SyncExchange):
                 if cursorValue is None:
                     break
                 lastTimestamp = self.safe_integer(last, 'timestamp')
+                if since is None:
+                    raise ArgumentsRequired(self.id + ' fetchPaginatedCallCursor() requires a since argument')
                 if lastTimestamp is not None and lastTimestamp < since:
                     break
             except Exception as e:
@@ -1555,10 +1588,10 @@ class BaseExchange(SyncExchange):
         return self.filter_by_since_limit(sorted, since, limit, key)
 
     async def fetch_paginated_call_incremental(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}, pageKey: Str = None, maxEntriesPerRequest: Int = None):
-        maxCalls = None
-        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
-        maxRetries = None
-        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', 3)
+        maxCalls = 10
+        maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', maxCalls)
+        maxRetries = 3
+        maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', maxRetries)
         maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
         i = 0
         errors = 0

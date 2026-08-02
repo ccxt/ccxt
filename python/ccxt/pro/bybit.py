@@ -2198,9 +2198,11 @@ class bybit(ccxt.async_support.bybit):
         if accountType is not None:
             if self.safe_value(self.balance, accountType) is None:
                 self.balance[accountType] = {}
-            self.balance[accountType][code] = account
+            if (accountType is not None) and (code is not None):
+                self.balance[accountType][code] = account
         else:
-            self.balance[code] = account
+            if code is not None:
+                self.balance[code] = account
 
     async def watch_topics(self, url, messageHashes, topics, params={}):
         request = {

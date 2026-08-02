@@ -4,7 +4,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bullish.js';
 import { AuthenticationError, ArgumentsRequired, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InvalidAddress, InvalidNonce, InvalidOrder, InsufficientFunds, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { Account, Balances, Bool, Currencies, Currency, DepositAddress, Dict, Fee, FeeInterface, Int, int, FundingRateHistory, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest, NullableDict } from './base/types.js';
+import { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Fee, FeeInterface, Int, int, FundingRateHistory, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -517,7 +517,7 @@ export default class bullish extends Exchange {
         return this.parseCurrencies (response);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'symbol');
         const code = this.safeCurrencyCode (id);
         const name = this.safeString (rawCurrency, 'name');
@@ -1304,7 +1304,7 @@ export default class bullish extends Exchange {
         params = this.omit (params, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
-        while (errors <= (maxRetries as number)) {
+        while (errors <= maxRetries) {
             try {
                 if (timeframe && method !== 'fetchFundingRateHistory') {
                     return await this[method] (symbol, timeframe, since, limit, params);
@@ -1316,7 +1316,7 @@ export default class bullish extends Exchange {
                     throw e; // if we are rate limited, we should not retry and fail fast
                 }
                 errors += 1;
-                if (errors > (maxRetries as number)) {
+                if (errors > maxRetries) {
                     throw e;
                 }
             }
@@ -2499,7 +2499,9 @@ export default class bullish extends Exchange {
             const account = this.account ();
             account['total'] = this.safeString (balance, 'availableQuantity');
             account['used'] = this.safeString (balance, 'lockedQuantity');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance (result);
     }

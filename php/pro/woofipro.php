@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
@@ -369,7 +370,9 @@ class woofipro extends \ccxt\async\woofipro {
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $this->parse_ws_bid_ask($this->extend($data[$i], array( 'ts' => $timestamp )));
-            $this->tickers[$ticker['symbol']] = $ticker;
+            if ($ticker['symbol'] !== null) {
+                $this->tickers[$ticker['symbol']] = $ticker;
+            }
             $result[] = $ticker;
         }
         $client->resolve($result, $topic);
@@ -464,15 +467,16 @@ class woofipro extends \ccxt\async\woofipro {
             $this->safe_number($data, 'volume'),
         );
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
-            $this->ohlcvs[$symbol][$timeframe] = $stored;
+            if (($symbol !== null) && ($timeframe !== null)) {
+                $this->ohlcvs[$symbol][$timeframe] = $stored;
+            }
         }
-        $ohlcvCache = $this->ohlcvs[$symbol][$timeframe];
-        $ohlcvCache->append($parsed);
-        $client->resolve($ohlcvCache, $topic);
+        $stored->append($parsed);
+        $client->resolve($stored, $topic);
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -969,7 +973,7 @@ class woofipro extends \ccxt\async\woofipro {
                 if ($fees !== null) {
                     $parsed['fees'] = $fees;
                 }
-                $parsed['trades'] = $this->safe_list($order, 'trades');
+                $parsed['trades'] = $this->safe_list($order, 'trades', array());
                 $parsed['timestamp'] = $this->safe_integer($order, 'timestamp');
                 $parsed['datetime'] = $this->safe_string($order, 'datetime');
             }
@@ -1045,7 +1049,13 @@ class woofipro extends \ccxt\async\woofipro {
             $messageHashes = array();
             $symbols = $this->market_symbols($symbols);
             if (!$this->is_empty($symbols)) {
+                if ($symbols === null) {
+                    throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
+                }
                 for ($i = 0; $i < count($symbols); $i++) {
+                    if ($symbols === null) {
+                        throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
+                    }
                     $symbol = $symbols[$i];
                     $messageHashes[] = 'positions::' . $symbol;
                 }
@@ -1296,13 +1306,18 @@ class woofipro extends \ccxt\async\woofipro {
             $key = $keys[$i];
             $value = $balances[$key];
             $code = $this->safe_currency_code($key);
-            $account = (is_array($this->balance) && array_key_exists($code ?? '', $this->balance)) ? $this->balance[$code] : $this->account();
+            $account = $this->account();
+            if (($code !== null) && (is_array($this->balance) && array_key_exists($code ?? '', $this->balance))) {
+                $account = $this->balance[$code];
+            }
             $total = $this->safe_string($value, 'holding');
             $used = $this->safe_string($value, 'frozen');
             $account['total'] = $total;
             $account['used'] = $used;
             $account['free'] = Precise::string_sub($total, $used);
-            $this->balance[$code] = $account;
+            if ($code !== null) {
+                $this->balance[$code] = $account;
+            }
         }
         $this->balance = $this->safe_balance($this->balance);
         $client->resolve($this->balance, 'balance');
@@ -1377,6 +1392,9 @@ class woofipro extends \ccxt\async\woofipro {
             $splitLength = count($splitTopic);
             if ($splitLength === 2) {
                 $name = $this->safe_string($splitTopic, 1);
+                if ($name === null) {
+                    return;
+                }
                 $method = $this->safe_value($methods, $name);
                 if ($method !== null) {
                     $method($client, $message);

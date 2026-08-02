@@ -50,11 +50,17 @@ func TestWatchOHLCVForSymbols(exchange ccxt.ICoreExchange, skippedProperties any
 
 					response = (UnWrapType(<-exchange.WatchOHLCVForSymbols([]any{[]any{symbol, chosenTimeframeKey}}, since, limit)))
 					PanicOnError(response)
+					if IsTrue(IsEqual(response, nil)) {
+						panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
+					}
 					return nil
 				}()
 
 			}
 			if IsTrue(IsEqual(success, true)) {
+				if IsTrue(IsEqual(response, nil)) {
+					panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
+				}
 				var AssertionMessage any = Add(Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " "), chosenTimeframeKey), " | "), exchange.Json(response))
 				Assert(exchange.IsDictionary(response), Add("Response must be a dictionary. ", AssertionMessage))
 				Assert(InOp(response, symbol), Add("Response should contain the symbol as key. ", AssertionMessage))

@@ -444,7 +444,8 @@ class bitopro(ccxt.async_support.bitopro):
             account = self.account()
             account['free'] = self.safe_string(balance, 'available')
             account['total'] = self.safe_string(balance, 'amount')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         self.balance = self.safe_balance(result)
         client.resolve(self.balance, event)
 

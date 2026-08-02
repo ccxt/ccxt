@@ -307,6 +307,10 @@ public partial class cryptomus : Exchange
         //     }
         //
         object marketId = this.safeString(market, "symbol");
+        if (isTrue(isEqual(marketId, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " parseMarket() missing marketId")) ;
+        }
         object parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object baseId = getValue(parts, 0);
         object quoteId = getValue(parts, 1);
@@ -423,26 +427,29 @@ public partial class cryptomus : Exchange
             }
             object networkId = this.safeString(networkEntry, "network_code");
             object networkCode = this.networkIdToCode(networkId, code);
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(networkEntry, "min_withdraw") },
-                        { "max", this.safeNumber(networkEntry, "max_withdraw") },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkEntry, "min_withdraw") },
+                            { "max", this.safeNumber(networkEntry, "max_withdraw") },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(networkEntry, "min_deposit") },
+                            { "max", this.safeNumber(networkEntry, "max_deposit") },
+                        } },
                     } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(networkEntry, "min_deposit") },
-                        { "max", this.safeNumber(networkEntry, "max_deposit") },
-                    } },
-                } },
-                { "active", null },
-                { "deposit", this.safeBool(networkEntry, "can_deposit") },
-                { "withdraw", this.safeBool(networkEntry, "can_withdraw") },
-                { "fee", null },
-                { "precision", null },
-                { "info", networkEntry },
-            };
+                    { "active", null },
+                    { "deposit", this.safeBool(networkEntry, "can_deposit") },
+                    { "withdraw", this.safeBool(networkEntry, "can_withdraw") },
+                    { "fee", null },
+                    { "precision", null },
+                    { "info", networkEntry },
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -614,7 +621,12 @@ public partial class cryptomus : Exchange
         //     }
         //
         object data = this.safeList(response, "data");
-        return this.parseTrades(data, market, since, limit);
+        object dataList = new List<object>() {};
+        if (isTrue(!isEqual(data, null)))
+        {
+            dataList = data;
+        }
+        return this.parseTrades(dataList, market, since, limit);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -702,7 +714,10 @@ public partial class cryptomus : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balanceEntry, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balanceEntry, "held");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }

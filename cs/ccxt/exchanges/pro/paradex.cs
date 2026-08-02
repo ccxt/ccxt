@@ -161,7 +161,7 @@ public partial class paradex : ccxt.paradex
         object parsedTrade = this.parseTrade(data);
         object symbol = getValue(parsedTrade, "symbol");
         object messageHash = this.safeString(parameters, "channel");
-        object stored = this.safeValue(this.trades, ((string)symbol));
+        object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
             stored = new ArrayCache(this.safeInteger(this.options, "tradesLimit", 1000));
@@ -728,7 +728,7 @@ public partial class paradex : ccxt.paradex
                 { "orders", this.handleOrder },
                 { "funding_data", this.handleFundingRate },
             };
-            object method = this.safeValue(methods, ((string)name));
+            object method = this.safeValue(methods, name);
             if (isTrue(!isEqual(method, null)))
             {
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});

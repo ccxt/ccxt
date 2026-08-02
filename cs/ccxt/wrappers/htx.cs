@@ -1340,7 +1340,7 @@ public partial class htx
         var res = await this.fetchDepositAddress(code, parameters);
         return new DepositAddress(res);
     }
-    public async Task<List<Dictionary<string, object>>> FetchWithdrawAddresses(string code, object note = null, object networkCode = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchWithdrawAddresses(string code, string note = null, string networkCode = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchWithdrawAddresses(code, note, networkCode, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();

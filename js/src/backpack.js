@@ -544,26 +544,28 @@ export default class backpack extends Exchange {
             const networkId = this.safeString(network, 'blockchain');
             const networkIdLowerCase = this.safeStringLower(network, 'blockchain');
             const networkCode = this.networkIdToCode(networkIdLowerCase, code);
-            parsedNetworks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(network, 'minimumWithdrawal'),
-                        'max': this.parseNumber(this.omitZero(this.safeString(network, 'maximumWithdrawal'))),
+            if (networkCode !== undefined) {
+                parsedNetworks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(network, 'minimumWithdrawal'),
+                            'max': this.parseNumber(this.omitZero(this.safeString(network, 'maximumWithdrawal'))),
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(network, 'minimumDeposit'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber(network, 'minimumDeposit'),
-                        'max': undefined,
-                    },
-                },
-                'active': undefined,
-                'deposit': this.safeBool(network, 'depositEnabled'),
-                'withdraw': this.safeBool(network, 'withdrawEnabled'),
-                'fee': this.safeNumber(network, 'withdrawalFee'),
-                'precision': undefined,
-                'info': network,
-            };
+                    'active': undefined,
+                    'deposit': this.safeBool(network, 'depositEnabled'),
+                    'withdraw': this.safeBool(network, 'withdrawEnabled'),
+                    'fee': this.safeNumber(network, 'withdrawalFee'),
+                    'precision': undefined,
+                    'info': network,
+                };
+            }
         }
         let active = undefined;
         let deposit = undefined;
@@ -931,6 +933,9 @@ export default class backpack extends Exchange {
         //     }
         //
         const microseconds = this.safeInteger(response, 'timestamp');
+        if (microseconds === undefined) {
+            throw new ExchangeError(this.id + ' fetchOrderBook() missing microseconds');
+        }
         const timestamp = this.parseToInt(microseconds / 1000);
         const orderbook = this.parseOrderBook(response, symbol, timestamp);
         orderbook['nonce'] = this.safeInteger(response, 'lastUpdateId');
@@ -1197,7 +1202,11 @@ export default class backpack extends Exchange {
         else {
             response = await this.publicGetApiV1Trades(this.extend(request, params));
         }
-        return this.parseTrades(response, market, since, limit);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
     /**
      * @method
@@ -1238,7 +1247,11 @@ export default class backpack extends Exchange {
             request['fillType'] = 'User'; // default
         }
         const response = await this.privateGetWapiV1HistoryFills(this.extend(request, params));
-        return this.parseTrades(response, market, since, limit);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1334,6 +1347,9 @@ export default class backpack extends Exchange {
         //     }
         //
         const status = this.safeString(response, 'status');
+        if (status === undefined) {
+            throw new ExchangeError(this.id + ' fetchStatus() missing status');
+        }
         return {
             'status': status.toLowerCase(),
             'updated': undefined,
@@ -1394,7 +1410,9 @@ export default class backpack extends Exchange {
             const used = Precise.stringAdd(locked, staked);
             account['free'] = this.safeString(balance, 'available');
             account['used'] = used;
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1745,6 +1763,12 @@ export default class backpack extends Exchange {
         return this.parseOrders(response);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],

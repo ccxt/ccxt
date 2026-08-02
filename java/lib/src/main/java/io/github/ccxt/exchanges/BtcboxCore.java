@@ -324,7 +324,7 @@ public class BtcboxCore extends BtcboxApi
         Object quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         final Object finalBase = base;
-        return new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", BtcboxCore.this.safeString(market, "symbol") );
             put( "uppercaseId", null );
             put( "symbol", symbol );
@@ -373,7 +373,7 @@ public class BtcboxCore extends BtcboxApi
             put( "active", null );
             put( "created", null );
             put( "info", market );
-        }};
+        }});
     }
 
     public Object parseBalance(Object response)
@@ -447,7 +447,7 @@ public class BtcboxCore extends BtcboxApi
             }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object numSymbols = ((Helpers.isTrue((Helpers.isEqual(this.symbols, null))))) ? 0 : Helpers.getArrayLength(this.symbols);
+            Object numSymbols = Helpers.getArrayLength(this.symbols);
             if (Helpers.isTrue(Helpers.isGreaterThan(numSymbols, 1)))
             {
                 Helpers.addElementToObject(request, "coin", Helpers.GetValue(market, "baseId"));
@@ -508,7 +508,7 @@ public class BtcboxCore extends BtcboxApi
             }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object numSymbols = ((Helpers.isTrue((Helpers.isEqual(this.symbols, null))))) ? 0 : Helpers.getArrayLength(this.symbols);
+            Object numSymbols = Helpers.getArrayLength(this.symbols);
             if (Helpers.isTrue(Helpers.isGreaterThan(numSymbols, 1)))
             {
                 Helpers.addElementToObject(request, "coin", Helpers.GetValue(market, "baseId"));
@@ -608,7 +608,7 @@ public class BtcboxCore extends BtcboxApi
             }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object numSymbols = ((Helpers.isTrue((Helpers.isEqual(this.symbols, null))))) ? 0 : Helpers.getArrayLength(this.symbols);
+            Object numSymbols = Helpers.getArrayLength(this.symbols);
             if (Helpers.isTrue(Helpers.isGreaterThan(numSymbols, 1)))
             {
                 Helpers.addElementToObject(request, "coin", Helpers.GetValue(market, "baseId"));

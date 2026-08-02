@@ -6,7 +6,7 @@
 
 // ---------------------------------------------------------------------------
 import Exchange from './abstract/mudrex.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, OrderNotFound, RateLimitExceeded } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, OrderNotFound, RateLimitExceeded, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 // ---------------------------------------------------------------------------
 /**
@@ -185,17 +185,20 @@ export default class mudrex extends Exchange {
         }
         let url = base + '/' + this.implodeParams(path, params);
         let query = this.omit(params, this.extractParams(path));
-        headers = (headers !== undefined) ? this.extend({}, headers) : {};
+        let requestHeaders = {};
+        if (headers !== undefined) {
+            requestHeaders = this.extend({}, headers);
+        }
         const brokerId = this.safeString(this.options, 'broker');
         if (brokerId !== undefined) {
-            headers['Partner-Id'] = brokerId;
+            requestHeaders['Partner-Id'] = brokerId;
         }
         const methodUpper = method.toUpperCase();
         if (api === 'private') {
             this.checkRequiredCredentials();
-            headers['X-Authentication'] = this.secret;
+            requestHeaders['X-Authentication'] = this.secret;
             if (methodUpper === 'POST' || methodUpper === 'PATCH' || methodUpper === 'DELETE') {
-                headers['Content-Type'] = 'application/json';
+                requestHeaders['Content-Type'] = 'application/json';
                 // is_symbol is a query-string flag even on write requests
                 const isSymbol = this.safeString(query, 'is_symbol');
                 if (isSymbol !== undefined) {
@@ -203,16 +206,16 @@ export default class mudrex extends Exchange {
                     url += '?' + this.urlencode({ 'is_symbol': isSymbol });
                 }
                 if ((methodUpper === 'DELETE') && this.isEmpty(query)) {
-                    return { 'url': url, 'method': methodUpper, 'body': undefined, 'headers': headers };
+                    return { 'url': url, 'method': methodUpper, 'body': undefined, 'headers': requestHeaders };
                 }
                 const bodyStr = this.json(query);
-                return { 'url': url, 'method': methodUpper, 'body': bodyStr, 'headers': headers };
+                return { 'url': url, 'method': methodUpper, 'body': bodyStr, 'headers': requestHeaders };
             }
         }
         if (Object.keys(query).length) {
             url += '?' + this.urlencode(query);
         }
-        return { 'url': url, 'method': methodUpper, 'body': undefined, 'headers': headers };
+        return { 'url': url, 'method': methodUpper, 'body': undefined, 'headers': requestHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined || typeof response !== 'object') {
@@ -299,6 +302,9 @@ export default class mudrex extends Exchange {
         }
         else {
             startTime = now - duration * requestLimit;
+        }
+        if (startTime === undefined) {
+            throw new ExchangeError(this.id + ' fetchOHLCV() missing startTime');
         }
         let endTime = startTime + duration * requestLimit;
         const until = this.safeInteger(params, 'until');
@@ -496,7 +502,7 @@ export default class mudrex extends Exchange {
         }
         const priceStep = this.safeString(asset, 'price_step', '0.01');
         const qtyStep = this.safeString(asset, 'quantity_step', '0.001');
-        return {
+        return this.safeMarketStructure({
             'id': ms,
             'lowercaseId': undefined,
             'symbol': symbol,
@@ -543,7 +549,7 @@ export default class mudrex extends Exchange {
             },
             'info': asset,
             'created': undefined,
-        };
+        });
     }
     /**
      * @method
@@ -580,6 +586,9 @@ export default class mudrex extends Exchange {
         let currency = requested;
         if (currency === undefined) {
             currency = 'USDT';
+        }
+        if (response === undefined) {
+            throw new NullResponse(this.id + ' fetchBalance() returned empty response');
         }
         response['currency'] = currency;
         return this.parseBalance(response);

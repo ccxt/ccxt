@@ -176,7 +176,9 @@ export default class bitrue extends bitrueRest {
                 if (updateUsed) {
                     account['used'] = used;
                 }
-                this.balance[code] = account;
+                if (code !== undefined) {
+                    this.balance[code] = account;
+                }
             }
         }
         this.balance = this.safeBalance(this.balance);
@@ -410,9 +412,13 @@ export default class bitrue extends bitrueRest {
         client.resolve(orderbook, messageHash);
     }
     findSwapMarketByWsBaseQuote(wsBaseQuote) {
-        const symbols = Object.keys(this.markets);
+        const markets = this.markets;
+        if (markets === undefined) {
+            return undefined;
+        }
+        const symbols = Object.keys(markets);
         for (let i = 0; i < symbols.length; i++) {
-            const candidate = this.markets[symbols[i]];
+            const candidate = markets[symbols[i]];
             if (!candidate['swap']) {
                 continue;
             }

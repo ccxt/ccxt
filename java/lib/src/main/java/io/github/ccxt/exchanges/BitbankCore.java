@@ -327,7 +327,7 @@ public class BitbankCore extends BitbankApi
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
         final Object finalBase = base;
-        return new java.util.HashMap<String, Object>() {{
+        return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), quote) );
             put( "base", finalBase );
@@ -377,7 +377,7 @@ public class BitbankCore extends BitbankApi
             }} );
             put( "created", null );
             put( "info", entry );
-        }};
+        }});
     }
 
     public Object parseTicker(Object ticker, Object... optionalArgs)
@@ -734,7 +734,10 @@ public class BitbankCore extends BitbankApi
             Helpers.addElementToObject(account, "free", this.safeString(balance, "free_amount"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked_amount"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "onhand_amount"));
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -913,7 +916,7 @@ public class BitbankCore extends BitbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(((String)symbol));
+            Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -969,7 +972,7 @@ public class BitbankCore extends BitbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(((String)symbol));
+            Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -1027,7 +1030,7 @@ public class BitbankCore extends BitbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(((String)symbol));
+            Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -1373,7 +1376,7 @@ public class BitbankCore extends BitbankApi
                 put( "70010", "We are temporarily raising the minimum order quantity as the system load is now rising." );
             }};
             Object code = this.safeString(data, "code");
-            Object message = this.safeString(errorMessages, ((String)code), "Error");
+            Object message = this.safeString(errorMessages, code, "Error");
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), code, message);
             throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), this.json(response))) ;
         }

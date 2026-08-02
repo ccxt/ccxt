@@ -104,6 +104,9 @@ export default class bittrade extends bittradeRest {
         //
         const tick = this.safeValue (message, 'tick', {});
         const ch = this.safeString (message, 'ch');
+        if (ch === undefined) {
+            return message;
+        }
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
@@ -180,6 +183,9 @@ export default class bittrade extends bittradeRest {
         const tick = this.safeValue (message, 'tick', {});
         const data = this.safeValue (tick, 'data', {});
         const ch = this.safeString (message, 'ch');
+        if (ch === undefined) {
+            return message;
+        }
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
@@ -257,6 +263,9 @@ export default class bittrade extends bittradeRest {
         //     }
         //
         const ch = this.safeString (message, 'ch');
+        if (ch === undefined) {
+            return;
+        }
         const parts = ch.split ('.');
         const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId);
@@ -264,7 +273,7 @@ export default class bittrade extends bittradeRest {
         const interval = this.safeString (parts, 3);
         const timeframe = this.findTimeframe (interval);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -344,7 +353,7 @@ export default class bittrade extends bittradeRest {
         const timestamp = this.safeInteger (message, 'ts');
         const orderbook = this.orderbooks[(symbol as string)];
         const data = this.safeValue (message, 'data');
-        const snapshot = this.parseOrderBook (data, (symbol as string));
+        const snapshot = this.parseOrderBook (data, symbol);
         snapshot['nonce'] = this.safeInteger (data, 'seqNum');
         snapshot['timestamp'] = timestamp;
         snapshot['datetime'] = this.iso8601 (timestamp);
@@ -427,6 +436,9 @@ export default class bittrade extends bittradeRest {
         const tick = this.safeValue (message, 'tick', {});
         const seqNum = this.safeInteger (tick, 'seqNum');
         const prevSeqNum = this.safeInteger (tick, 'prevSeqNum');
+        if ((prevSeqNum === undefined) || (seqNum === undefined)) {
+            return orderbook;
+        }
         if ((prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
             const asks = this.safeValue (tick, 'asks', []);
             const bids = this.safeValue (tick, 'bids', []);
@@ -479,11 +491,14 @@ export default class bittrade extends bittradeRest {
 
     handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
+        if (symbol === undefined) {
+            return;
+        }
         const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
-            delete this.orderbooks[(symbol as string)];
+            delete this.orderbooks[symbol];
         }
-        this.orderbooks[(symbol as string)] = this.orderBook ({}, limit);
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
         // watch the snapshot in a separate async call
         this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
     }
@@ -498,8 +513,11 @@ export default class bittrade extends bittradeRest {
         //     }
         //
         const id = this.safeString (message, 'id');
+        if (id === undefined) {
+            return message;
+        }
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, (id as string));
+        const subscription = this.safeValue (subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue (subscription, 'method');
             if (method !== undefined) {
@@ -507,7 +525,7 @@ export default class bittrade extends bittradeRest {
             }
             // clean up
             if (id in client.subscriptions) {
-                delete client.subscriptions[(id as string)];
+                delete client.subscriptions[id];
             }
         }
         return message;
@@ -560,7 +578,7 @@ export default class bittrade extends bittradeRest {
                 'kline': this.handleOHLCV,
                 // ...
             };
-            const method = this.safeValue (methods, (methodName as string));
+            const method = this.safeValue (methods, methodName);
             if (method !== undefined) {
                 method.call (this, client, message);
             }
@@ -591,8 +609,11 @@ export default class bittrade extends bittradeRest {
         const status = this.safeString (message, 'status');
         if (status === 'error') {
             const id = this.safeString (message, 'id');
+            if (id === undefined) {
+                return false;
+            }
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-            const subscription = this.safeValue (subscriptionsById, (id as string));
+            const subscription = this.safeValue (subscriptionsById, id);
             if (subscription !== undefined) {
                 const errorCode = this.safeString (message, 'err-code');
                 try {
@@ -602,7 +623,7 @@ export default class bittrade extends bittradeRest {
                     client.reject (e, messageHash);
                     client.reject (e, id);
                     if (id in client.subscriptions) {
-                        delete client.subscriptions[(id as string)];
+                        delete client.subscriptions[id];
                     }
                 }
             }

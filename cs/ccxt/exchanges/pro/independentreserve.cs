@@ -190,6 +190,10 @@ public partial class independentreserve : ccxt.independentreserve
         //
         object eventVar = this.safeString(message, "Event");
         object channel = this.safeString(message, "Channel");
+        if (isTrue(isEqual(channel, null)))
+        {
+            return;
+        }
         object parts = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object depth = this.safeString(parts, 1);
         object baseId = this.safeString(parts, 2);

@@ -383,9 +383,12 @@ public class CexCore extends CexApi
             Object networkCode = this.networkIdToCode(networkId, code);
             Object deposit = Helpers.isEqual(this.safeString(rawNetwork, "deposit"), "enabled");
             Object withdraw = Helpers.isEqual(this.safeString(rawNetwork, "withdrawal"), "enabled");
-            Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkCode = networkCode;
+                Helpers.addElementToObject(networks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
-    put( "network", networkCode );
+    put( "network", finalNetworkCode );
     put( "margin", null );
     put( "deposit", deposit );
     put( "withdraw", withdraw );
@@ -404,6 +407,7 @@ public class CexCore extends CexApi
     }} );
     put( "info", rawNetwork );
 }});
+            }
         }
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -977,11 +981,15 @@ public class CexCore extends CexApi
                 market = this.safeMarket(key);
             }
             Object parsed = this.parseTradingFee(Helpers.GetValue(response, key), market);
-            Helpers.addElementToObject(result, Helpers.GetValue(parsed, "symbol"), parsed);
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(parsed, "symbol"), null)))
+            {
+                Helpers.addElementToObject(result, Helpers.GetValue(parsed, "symbol"), parsed);
+            }
         }
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
+        Object symbols = this.symbols;
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
-            Object symbol = Helpers.GetValue(this.symbols, i);
+            Object symbol = Helpers.GetValue(symbols, i);
             if (!Helpers.isTrue((Helpers.inOp(result, symbol))))
             {
                 Object market = this.market(symbol);
@@ -1134,7 +1142,10 @@ public class CexCore extends CexApi
                 put( "used", CexCore.this.safeString(balance, "balanceOnHold") );
                 put( "total", CexCore.this.safeString(balance, "balance") );
             }};
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -1469,11 +1480,13 @@ public class CexCore extends CexApi
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
+        final Object side3 = side2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object type = type3;
+            Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object accountId = null;
@@ -1489,15 +1502,20 @@ public class CexCore extends CexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
+            if (Helpers.isTrue(Helpers.isEqual(side, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+            }
             final Object finalAccountId = accountId;
             final Object finalType = type;
+            final Object finalSide = side;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "clientOrderId", CexCore.this.uuid() );
                 put( "currency1", Helpers.GetValue(market, "baseId") );
                 put( "currency2", Helpers.GetValue(market, "quoteId") );
                 put( "accountId", finalAccountId );
                 put( "orderType", CexCore.this.capitalize(((String)finalType).toLowerCase()) );
-                put( "side", ((String)side).toUpperCase() );
+                put( "side", ((String)finalSide).toUpperCase() );
                 put( "timestamp", CexCore.this.milliseconds() );
                 put( "amountCcy1", CexCore.this.amountToPrecision(symbol, amount) );
             }};
@@ -1568,7 +1586,7 @@ public class CexCore extends CexApi
             //             "rejectCode": 405,
             //             "rejectReason": "Either AmountCcy1 (OrderQty) or AmountCcy2 (CashOrderQty) should be specified for market order not both",
             //
-            Object data = this.safeDict(response, "data");
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         });
 
@@ -1773,7 +1791,7 @@ public class CexCore extends CexApi
             put( "withdraw", "withdrawal" );
             put( "commission", "fee" );
         }};
-        return this.safeString(ledgerType, type, type);
+        return this.safeString(ledgerType, ((String)type), type);
     }
 
     /**

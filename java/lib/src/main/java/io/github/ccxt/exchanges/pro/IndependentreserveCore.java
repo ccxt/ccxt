@@ -215,6 +215,10 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         //
         Object eventVar = this.safeString(message, "Event");
         Object channel = this.safeString(message, "Channel");
+        if (Helpers.isTrue(Helpers.isEqual(channel, null)))
+        {
+            return;
+        }
         Object parts = Helpers.split(channel, "/");
         Object depth = this.safeString(parts, 1);
         Object baseId = this.safeString(parts, 2);

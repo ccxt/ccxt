@@ -454,7 +454,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         //     }
         // }
         //
-        Object id = this.safeString(message, "id");
+        Object id = this.safeString(message, "id", "");
         Object part = Helpers.split(id, "/");
         Object interval = this.safeString(part, 1);
         Object timeframe = this.findTimeframe(interval);
@@ -467,7 +467,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         Object ohlcv = this.safeDict(candles, 0, content);
         Object parsed = this.parseOHLCV(ohlcv, market);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
+        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -507,7 +507,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
                 put( "v4_orderbook", "handleOrderBook");
                 put( "v4_candles", "handleOHLCV");
             }};
-            Object method = this.safeValue(methods, ((String)topic));
+            Object method = this.safeValue(methods, topic);
             if (Helpers.isTrue(!Helpers.isEqual(method, null)))
             {
                 Helpers.callDynamically(this, method, new Object[] {client, message});

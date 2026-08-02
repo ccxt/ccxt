@@ -475,7 +475,11 @@ class bit2c extends Exchange {
         if (gettype($response) === 'string') {
             throw new ExchangeError($response);
         }
-        return $this->parse_trades($response, $market, $since, $limit);
+        $responseList = array();
+        if ($response !== null) {
+            $responseList = $response;
+        }
+        return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
     public function fetch_trading_fees($params = array()): array {
@@ -831,7 +835,11 @@ class bit2c extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_trades($response, $market, $since, $limit);
+        $responseList = array();
+        if ($response !== null) {
+            $responseList = $response;
+        }
+        return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
     public function remove_comma_from_value($str) {

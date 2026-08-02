@@ -329,13 +329,15 @@ public partial class xt
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateSpotOrder(string symbol, object type, object side, object amount, object price = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateSpotOrder(string symbol, object type, object side, object amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.createSpotOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateContractOrder(string symbol, object type, object side, object amount, object price = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateContractOrder(string symbol, object type, object side, object amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
+        var price = price2 == 0 ? null : (object)price2;
         var res = await this.createContractOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }

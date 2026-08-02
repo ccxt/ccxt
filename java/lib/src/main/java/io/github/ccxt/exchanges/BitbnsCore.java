@@ -530,7 +530,10 @@ public class BitbnsCore extends BitbnsApi
                     currencyId = "INR";
                 }
                 Object code = this.safeCurrencyCode(currencyId);
-                Helpers.addElementToObject(result, code, account);
+                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                {
+                    Helpers.addElementToObject(result, code, account);
+                }
             }
         }
         return this.safeBalance(result);
@@ -692,11 +695,13 @@ public class BitbnsCore extends BitbnsApi
      * @param {float} [params.trail_rate] *requires params.target_rate when set, type must be 'limit'* a bracket order is placed when set
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
+        final Object side3 = side2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object type = type3;
+            Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -708,8 +713,13 @@ public class BitbnsCore extends BitbnsApi
             Object targetRate = this.safeString(parameters, "target_rate");
             Object trailRate = this.safeString(parameters, "trail_rate");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate")));
+            if (Helpers.isTrue(Helpers.isEqual(side, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+            }
+            final Object finalSide = side;
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "side", ((String)side).toUpperCase() );
+                put( "side", ((String)finalSide).toUpperCase() );
                 put( "symbol", Helpers.GetValue(market, "uppercaseId") );
                 put( "quantity", BitbnsCore.this.amountToPrecision(symbol, amount) );
             }};
@@ -744,7 +754,8 @@ public class BitbnsCore extends BitbnsApi
             //         "code":200
             //     }
             //
-            return this.parseOrder(response, market);
+            Object parsed = ((Helpers.isTrue((Helpers.isEqual(response, null))))) ? new java.util.HashMap<String, Object>() {{}} : response;
+            return this.parseOrder(parsed, market);
         });
 
     }
@@ -789,7 +800,8 @@ public class BitbnsCore extends BitbnsApi
             quoteSide = Helpers.add(quoteSide, tail);
             Helpers.addElementToObject(request, "side", quoteSide);
             response = (this.v2PostCancel(this.extend(request, parameters))).join();
-            return this.parseOrder(response, market);
+            Object parsed = ((Helpers.isTrue((Helpers.isEqual(response, null))))) ? new java.util.HashMap<String, Object>() {{}} : response;
+            return this.parseOrder(parsed, market);
         });
 
     }
@@ -856,7 +868,7 @@ public class BitbnsCore extends BitbnsApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object first = this.safeDict(data, 0);
+            Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(first, market);
         });
 

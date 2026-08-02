@@ -477,7 +477,7 @@ public class LighterCore extends LighterApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " requires accountIndex or account_index")) ;
             }
-            Object strAccountIndex = ((String)this.numberToString(accountIndex));
+            Object strAccountIndex = this.numberToString(accountIndex);
             Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             this.initAuthObject(strAccountIndex, strApiKeyIndex);
             Object signer = this.safeDict(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), strAccountIndex), strApiKeyIndex), "signer");
@@ -631,8 +631,8 @@ public class LighterCore extends LighterApi
             accountIndex = this.safeString(res, 0);
         }
         Object auths = this.safeDict(this.options, "auths");
-        Object accountAuths = this.safeDict(auths, ((String)accountIndex));
-        Object cachedAuth = this.safeDict(accountAuths, ((String)apiKeyIndex));
+        Object accountAuths = this.safeDict(auths, accountIndex);
+        Object cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
         Object cachedDeadline = this.safeInteger(cachedAuth, "deadline");
         if (Helpers.isTrue(!Helpers.isEqual(cachedDeadline, null)))
         {
@@ -685,7 +685,7 @@ public class LighterCore extends LighterApi
         Object binaryMessageLength = this.binaryLength(binaryMessage);
         Object x19 = this.base16ToBinary("19");
         Object newline = this.base16ToBinary("0a");
-        Object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(((String)this.numberToString(binaryMessageLength))));
+        Object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
         return Helpers.add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak(), "hex"));
     }
 
@@ -745,8 +745,8 @@ public class LighterCore extends LighterApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object strAccountIndex = ((String)this.numberToString(accountIndex));
-            Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
+            Object strAccountIndex = this.numberToString(accountIndex);
+            Object strApiKeyIndex = this.numberToString(apiKeyIndex);
             Object signer = (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "skipNonce", false );
@@ -836,25 +836,33 @@ public class LighterCore extends LighterApi
 
     public Object createOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
-        /**
-        * @method
-        * @ignore
-        * @name lighter#createOrderRequest
-        * @description helper function to build the request
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.nonce] nonce for the account
-        * @param {int} [params.apiKeyIndex] apiKeyIndex
-        * @param {int} [params.accountIndex] accountIndex
-        * @param {int} [params.orderExpiry] orderExpiry
-        * @returns {any[]} request to be sent to the exchange
-        */
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name lighter#createOrderRequest
+         * @description helper function to build the request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.nonce] nonce for the account
+         * @param {int} [params.apiKeyIndex] apiKeyIndex
+         * @param {int} [params.accountIndex] accountIndex
+         * @param {int} [params.orderExpiry] orderExpiry
+         * @returns {any[]} request to be sent to the exchange
+         */
         if (Helpers.isTrue(Helpers.isEqual(price, null)))
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument")) ;
@@ -2183,7 +2191,10 @@ public class LighterCore extends LighterApi
                         Object balance = this.safeDict(result, code, this.account());
                         Helpers.addElementToObject(balance, "total", Precise.stringAdd(Helpers.GetValue(balance, "total"), this.safeString(asset, "balance")));
                         Helpers.addElementToObject(balance, "used", Precise.stringAdd(Helpers.GetValue(balance, "used"), this.safeString(asset, "locked_balance")));
-                        Helpers.addElementToObject(result, code, balance);
+                        if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+                        {
+                            Helpers.addElementToObject(result, code, balance);
+                        }
                     }
                 } else
                 {
@@ -2763,7 +2774,7 @@ public class LighterCore extends LighterApi
             Object typeAsInteger = this.safeInteger(order, "order_type");
             type = this.parseOrderTypeInteger(typeAsInteger);
         }
-        Object triggerPrice = this.parseNumber(this.omitZero(((String)this.safeString(order, "trigger_price"))));
+        Object triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, "trigger_price")));
         Object stopLossPrice = null;
         Object takeProfitPrice = null;
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
@@ -2869,7 +2880,7 @@ public class LighterCore extends LighterApi
             put( "twap-sub", "twap" );
             put( "liquidation", "market" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     public Object parseOrderTypeInteger(Object typeInteger)
@@ -3709,7 +3720,7 @@ public class LighterCore extends LighterApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires an marginMode parameter")) ;
             }
             Object leverage = null;
-            var leverageparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "leverage", "leverage");
+            var leverageparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "leverage");
             leverage = ((java.util.List<Object>) leverageparametersVariable).get(0);
             parameters = ((java.util.List<Object>) leverageparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(leverage, null)))

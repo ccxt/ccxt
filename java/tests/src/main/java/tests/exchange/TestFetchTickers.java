@@ -81,6 +81,10 @@ public class TestFetchTickers extends BaseTest {
             // ensure tickers length is less than markets length
             //
             Object allMarkets = exchange.markets;
+            if (Helpers.isTrue(Helpers.isEqual(allMarkets, null)))
+            {
+                return;
+            }
             Object allMarketsLength = Helpers.getArrayLength(Helpers.objectKeys(allMarkets));
             Assert(Helpers.isLessThanOrEqual(obtainedTickersLength, allMarketsLength), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), "fetchTickers"), " must return <= than all markets, but returned: "), String.valueOf(obtainedTickersLength)), " tickers, "), String.valueOf(allMarketsLength)), " markets"));
         }

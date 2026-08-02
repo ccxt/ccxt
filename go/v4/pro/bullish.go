@@ -813,7 +813,9 @@ func (this *BullishCore) HandleBalance(client any, message any) {
 		ccxt.AddElementToObject(account, "total", this.SafeString(data, "availableQuantity"))
 		ccxt.AddElementToObject(account, "used", this.SafeString(data, "lockedQuantity"))
 		var code any = this.SafeCurrencyCode(assetId)
-		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, tradingAccountId), code, account)
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(tradingAccountId, nil))) && ccxt.IsTrue((!ccxt.IsEqual(code, nil)))) {
+			ccxt.AddElementToObject(ccxt.GetValue(this.Balance, tradingAccountId), code, account)
+		}
 		ccxt.AddElementToObject(ccxt.GetValue(this.Balance, tradingAccountId), "info", message)
 		ccxt.AddElementToObject(this.Balance, tradingAccountId, this.SafeBalance(ccxt.GetValue(this.Balance, tradingAccountId)))
 	}
@@ -849,8 +851,8 @@ func (this *BullishCore) WatchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes70112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes70112)
+			retRes70312 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes70312)
 		}
 		var subscribeHash any = "positions"
 		var messageHash any = subscribeHash

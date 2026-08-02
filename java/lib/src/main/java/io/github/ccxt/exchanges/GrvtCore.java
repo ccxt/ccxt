@@ -1634,7 +1634,10 @@ public class GrvtCore extends GrvtApi
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
             Helpers.addElementToObject(account, "free", availableBalance); // todo: revise after API team clarification
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -3739,12 +3742,17 @@ public class GrvtCore extends GrvtApi
         {
             Object amountMultiplier = this.convertToBigIntCustom("1000000");
             Object amountInt = Helpers.multiply(Helpers.GetValue(request, "num_tokens"), amountMultiplier);
+            if (Helpers.isTrue(Helpers.isEqual(currencyObj, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " createSignedRequest() missing currencyObj")) ;
+            }
+            final Object finalCurrencyObj = currencyObj;
             messageData = new java.util.HashMap<String, Object>() {{
                 put( "fromAccount", Helpers.GetValue(request, "from_account_id") );
                 put( "fromSubAccount", Helpers.GetValue(request, "from_sub_account_id") );
                 put( "toAccount", Helpers.GetValue(request, "to_account_id") );
                 put( "toSubAccount", Helpers.GetValue(request, "to_sub_account_id") );
-                put( "tokenCurrency", Helpers.GetValue(currencyObj, "numericId") );
+                put( "tokenCurrency", Helpers.GetValue(finalCurrencyObj, "numericId") );
                 put( "numTokens", GrvtCore.this.parseToInt(amountInt) );
                 put( "nonce", Helpers.GetValue(Helpers.GetValue(request, "signature"), "nonce") );
                 put( "expiration", Helpers.GetValue(Helpers.GetValue(request, "signature"), "expiration") );
@@ -3752,10 +3760,15 @@ public class GrvtCore extends GrvtApi
         } else if (Helpers.isTrue(Helpers.isEqual(structureType, "EIP712_WITHDRAWAL_TYPE")))
         {
             Object amountMultiplier = this.convertToBigIntCustom("1000000");
+            if (Helpers.isTrue(Helpers.isEqual(currencyObj, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " createSignedRequest() missing currencyObj")) ;
+            }
+            final Object finalCurrencyObj_2 = currencyObj;
             messageData = new java.util.HashMap<String, Object>() {{
                 put( "fromAccount", Helpers.GetValue(request, "from_account_id") );
                 put( "toEthAddress", Helpers.GetValue(request, "to_eth_address") );
-                put( "tokenCurrency", Helpers.GetValue(currencyObj, "numericId") );
+                put( "tokenCurrency", Helpers.GetValue(finalCurrencyObj_2, "numericId") );
                 put( "numTokens", GrvtCore.this.parseToInt(Helpers.multiply(Helpers.GetValue(request, "num_tokens"), amountMultiplier)) );
                 put( "nonce", Helpers.GetValue(Helpers.GetValue(request, "signature"), "nonce") );
                 put( "expiration", Helpers.GetValue(Helpers.GetValue(request, "signature"), "expiration") );

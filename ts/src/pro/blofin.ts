@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import blofinRest from '../blofin.js';
 import { NotSupported, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order, Position, FundingRate, List, IndexType, Dict } from '../base/types.js';
+import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order, Position, FundingRate, List, IndexType } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -143,7 +143,7 @@ export default class blofin extends blofinRest {
             const rawTrade = data[i];
             const trade = this.parseWsTrade (rawTrade);
             const symbol = trade['symbol'];
-            let stored = this.safeValue (this.trades, symbol as IndexType);
+            let stored = this.safeValue (this.trades, symbol);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
                 stored = new ArrayCache (limit);
@@ -191,7 +191,7 @@ export default class blofin extends blofinRest {
         }
         let callerMethodName: Str = undefined;
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
-        let channelName = undefined;
+        let channelName: Str = undefined;
         [ channelName, params ] = this.handleOptionAndParams (params, callerMethodName, 'channel', 'books');
         // due to some problem, temporarily disable other channels
         if (channelName !== 'books') {
@@ -232,7 +232,7 @@ export default class blofin extends blofinRest {
         const timestamp = this.safeInteger (data, 'ts');
         const action = this.safeString (message, 'action');
         if (action === 'snapshot') {
-            const orderBookSnapshot = this.parseOrderBook (data as Dict, symbol, timestamp);
+            const orderBookSnapshot = this.parseOrderBook (data, symbol, timestamp);
             orderBookSnapshot['nonce'] = this.safeInteger (data, 'seqId');
             orderbook.reset (orderBookSnapshot);
         } else {
@@ -450,13 +450,13 @@ export default class blofin extends blofinRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const interval = (channelName as string).replace ('candle', '');
-        const unifiedTimeframe = this.findTimeframe (interval) as Str;
-        this.ohlcvs[symbol as IndexType] = this.safeDict (this.ohlcvs, symbol as IndexType, {});
-        let stored = this.safeValue (this.ohlcvs[symbol as IndexType], unifiedTimeframe as IndexType);
+        const unifiedTimeframe = this.findTimeframe (interval);
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], unifiedTimeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol as IndexType][unifiedTimeframe as IndexType] = stored;
+            this.ohlcvs[symbol][unifiedTimeframe as IndexType] = stored;
         }
         for (let i = 0; i < data.length; i++) {
             const candle = data[i];
@@ -814,7 +814,7 @@ export default class blofin extends blofinRest {
             }
             const arg = this.safeDict (message, 'arg');
             const channelName = this.safeString (arg, 'channel');
-            method = this.safeValue (methods, channelName as IndexType);
+            method = this.safeValue (methods, channelName);
             if (!method && (channelName as string).indexOf ('candle') >= 0) {
                 method = methods['candle'];
             }

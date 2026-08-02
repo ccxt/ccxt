@@ -554,9 +554,12 @@ public class BackpackCore extends BackpackApi
             Object networkId = this.safeString(network, "blockchain");
             Object networkIdLowerCase = this.safeStringLower(network, "blockchain");
             Object networkCode = this.networkIdToCode(networkIdLowerCase, code);
-            Helpers.addElementToObject(parsedNetworks, networkCode, new java.util.HashMap<String, Object>() {{
+            if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
+            {
+                final Object finalNetworkCode = networkCode;
+                Helpers.addElementToObject(parsedNetworks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
-    put( "network", networkCode );
+    put( "network", finalNetworkCode );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
             put( "min", BackpackCore.this.safeNumber(network, "minimumWithdrawal") );
@@ -574,6 +577,7 @@ public class BackpackCore extends BackpackApi
     put( "precision", null );
     put( "info", network );
 }});
+            }
         }
         Object active = null;
         Object deposit = null;
@@ -830,7 +834,7 @@ public class BackpackCore extends BackpackApi
             put( "SPOT", "spot" );
             put( "PERP", "swap" );
         }};
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((String)type), type);
     }
 
     /**
@@ -995,6 +999,10 @@ public class BackpackCore extends BackpackApi
             //     }
             //
             Object microseconds = this.safeInteger(response, "timestamp");
+            if (Helpers.isTrue(Helpers.isEqual(microseconds, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " fetchOrderBook() missing microseconds")) ;
+            }
             Object timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "lastUpdateId"));
@@ -1329,7 +1337,12 @@ public class BackpackCore extends BackpackApi
             {
                 response = (this.publicGetApiV1Trades(this.extend(request, parameters))).join();
             }
-            return this.parseTrades(response, market, since, limit);
+            Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(!Helpers.isEqual(response, null)))
+            {
+                responseList = response;
+            }
+            return this.parseTrades(responseList, market, since, limit);
         });
 
     }
@@ -1387,7 +1400,12 @@ public class BackpackCore extends BackpackApi
                 Helpers.addElementToObject(request, "fillType", "User"); // default
             }
             Object response = (this.privateGetWapiV1HistoryFills(this.extend(request, parameters))).join();
-            return this.parseTrades(response, market, since, limit);
+            Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            if (Helpers.isTrue(!Helpers.isEqual(response, null)))
+            {
+                responseList = response;
+            }
+            return this.parseTrades(responseList, market, since, limit);
         });
 
     }
@@ -1503,8 +1521,13 @@ public class BackpackCore extends BackpackApi
             //     }
             //
             Object status = this.safeString(response, "status");
+            if (Helpers.isTrue(Helpers.isEqual(status, null)))
+            {
+                throw new ExchangeError((String)Helpers.add(this.id, " fetchStatus() missing status")) ;
+            }
+            final Object finalStatus = status;
             return new java.util.HashMap<String, Object>() {{
-                put( "status", ((String)status).toLowerCase() );
+                put( "status", ((String)finalStatus).toLowerCase() );
                 put( "updated", null );
                 put( "eta", null );
                 put( "url", null );
@@ -1585,7 +1608,10 @@ public class BackpackCore extends BackpackApi
             Object used = Precise.stringAdd(locked, staked);
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
             Helpers.addElementToObject(account, "used", used);
-            Helpers.addElementToObject(result, code, account);
+            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
+            {
+                Helpers.addElementToObject(result, code, account);
+            }
         }
         return this.safeBalance(result);
     }
@@ -2035,11 +2061,20 @@ public class BackpackCore extends BackpackApi
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isEqual(type, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a type argument")) ;
+        }
+        if (Helpers.isTrue(Helpers.isEqual(side, null)))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
+        }
         Object market = this.market(symbol);
+        final Object finalSide = side;
         final Object finalType = type;
         Object request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
-            put( "side", BackpackCore.this.encodeOrderSide(side) );
+            put( "side", BackpackCore.this.encodeOrderSide(finalSide) );
             put( "orderType", BackpackCore.this.capitalize(finalType) );
         }};
         Object triggerPrice = this.safeString(parameters, "triggerPrice");

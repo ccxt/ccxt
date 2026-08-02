@@ -191,9 +191,12 @@ public partial class mexc : ccxt.mexc
             ticker = this.parseWsTicker(rawTicker, market);
             ((IDictionary<string,object>)ticker)["timestamp"] = timestamp;
             ((IDictionary<string,object>)ticker)["datetime"] = this.iso8601(timestamp);
-        } else
+        } else if (isTrue(!isEqual(rawTicker, null)))
         {
             ticker = this.parseTicker(rawTicker, market);
+        } else
+        {
+            return;
         }
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         object messageHash = add("ticker:", symbol);
@@ -312,7 +315,7 @@ public partial class mexc : ccxt.mexc
         //         "s": "BTCUSDT"
         //     }
         //
-        object data = this.safeList2(message, "data", "d");
+        object data = this.safeList2(message, "data", "d", new List<object>() {});
         object channel = this.safeString(message, "c", "");
         object marketId = this.safeString(message, "s");
         object market = this.safeMarket(marketId);
@@ -335,7 +338,10 @@ public partial class mexc : ccxt.mexc
                 ticker = this.parseTicker(entry);
             }
             object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            }
             ((IList<object>)result).Add(ticker);
             object messageHash = add("ticker:", symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
@@ -426,7 +432,7 @@ public partial class mexc : ccxt.mexc
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchBidsAsks required symbols argument")) ;
         }
-        object markets = this.marketsForSymbols(symbols);
+        object markets = this.requireValue(this.marketsForSymbols(symbols), "watchBidsAsks() markets is required");
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBidsAsks", getValue(markets, 0), parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
@@ -606,6 +612,7 @@ public partial class mexc : ccxt.mexc
             };
             ohlcv = await this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         }
+        ohlcv = this.requireValue(ohlcv, "watchOHLCV() ohlcv is required");
         if (isTrue(this.newUpdates))
         {
             limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
@@ -702,13 +709,17 @@ public partial class mexc : ccxt.mexc
             parsed = this.parseWsOHLCV(rawOhlcv, market);
         }
         object messageHash = add(add(add("candles:", symbol), ":"), timeframe);
-        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+        object symbolOhlcvs = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
+        ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = symbolOhlcvs;
+        object stored = this.safeValue(symbolOhlcvs, timeframe);
         if (isTrue(isEqual(stored, null)))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
+            if (isTrue(!isEqual(timeframe, null)))
+            {
+                ((IDictionary<string,object>)symbolOhlcvs)[(string)timeframe] = stored;
+            }
         }
         callDynamically(stored, "append", new object[] {parsed});
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
@@ -808,6 +819,7 @@ public partial class mexc : ccxt.mexc
             };
             orderbook = await this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         }
+        orderbook = this.requireValue(orderbook, "watchOrderBook() orderbook is required");
         return (orderbook as IOrderBook).limit();
     }
 
@@ -816,7 +828,7 @@ public partial class mexc : ccxt.mexc
         // spot
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
-        object msg = this.safeString(message, "msg");
+        object msg = this.safeString(message, "msg", "");
         object parts = ((string)msg).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 2);
         object symbol = this.safeSymbol(marketId);
@@ -829,6 +841,10 @@ public partial class mexc : ccxt.mexc
         object nonce = this.safeInteger(orderbook, "nonce");
         object firstDelta = this.safeValue(cache, 0);
         object firstDeltaNonce = this.safeIntegerN(firstDelta, new List<object>() {"r", "version", "fromVersion"});
+        if (isTrue(isTrue((isEqual(nonce, null))) || isTrue((isEqual(firstDeltaNonce, null)))))
+        {
+            return -1;
+        }
         if (isTrue(isLessThan(nonce, subtract(firstDeltaNonce, 1))))
         {
             return -1;
@@ -837,6 +853,10 @@ public partial class mexc : ccxt.mexc
         {
             object delta = getValue(cache, i);
             object deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});
+            if (isTrue(isEqual(deltaNonce, null)))
+            {
+                continue;
+            }
             if (isTrue(isGreaterThanOrEqual(deltaNonce, nonce)))
             {
                 return i;
@@ -984,7 +1004,7 @@ public partial class mexc : ccxt.mexc
     {
         object existingNonce = this.safeInteger(orderbook, "nonce");
         object deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});
-        if (isTrue(isLessThan(deltaNonce, existingNonce)))
+        if (isTrue(isTrue(isTrue((!isEqual(deltaNonce, null))) && isTrue((!isEqual(existingNonce, null)))) && isTrue((isLessThan(deltaNonce, existingNonce)))))
         {
             // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
             // so, we just skip old updates
@@ -1034,6 +1054,7 @@ public partial class mexc : ccxt.mexc
             };
             trades = await this.watchSwapPublic(channel, messageHash, requestParams, parameters);
         }
+        trades = this.requireValue(trades, "watchTrades() trades is required");
         if (isTrue(this.newUpdates))
         {
             limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
@@ -1165,6 +1186,7 @@ public partial class mexc : ccxt.mexc
         {
             trades = await this.watchSwapPrivate(messageHash, parameters);
         }
+        trades = this.requireValue(trades, "watchMyTrades() trades is required");
         if (isTrue(this.newUpdates))
         {
             limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
@@ -1218,9 +1240,12 @@ public partial class mexc : ccxt.mexc
         if (isTrue(getValue(market, "spot")))
         {
             trade = this.parseWsTrade(data, market);
-        } else
+        } else if (isTrue(!isEqual(data, null)))
         {
             trade = this.parseTrade(data, market);
+        } else
+        {
+            return;
         }
         object trades = this.myTrades;
         if (isTrue(isEqual(trades, null)))
@@ -1361,6 +1386,7 @@ public partial class mexc : ccxt.mexc
         {
             orders = await this.watchSwapPrivate(messageHash, parameters);
         }
+        orders = this.requireValue(orders, "watchOrders() orders is required");
         if (isTrue(this.newUpdates))
         {
             limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
@@ -1457,9 +1483,12 @@ public partial class mexc : ccxt.mexc
             {
                 ((IDictionary<string,object>)parsed)["lastTradeTimestamp"] = sendTime;
             }
-        } else
+        } else if (isTrue(!isEqual(data, null)))
         {
             parsed = this.parseOrder(data, market);
+        } else
+        {
+            return;
         }
         object orders = this.orders;
         if (isTrue(isEqual(orders, null)))
@@ -1713,7 +1742,10 @@ public partial class mexc : ccxt.mexc
         object account = this.account();
         ((IDictionary<string,object>)account)["free"] = this.safeString2(data, "balanceAmount", "availableBalance");
         ((IDictionary<string,object>)account)["used"] = this.safeString2(data, "frozenBalance", "frozenAmount");
-        ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
+        if (isTrue(!isEqual(code, null)))
+        {
+            ((IDictionary<string,object>)getValue(this.balance, type))[(string)code] = account;
+        }
         ((IDictionary<string,object>)this.balance)[(string)type] = this.safeBalance(getValue(this.balance, type));
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), messageHash});
     }
@@ -1790,7 +1822,10 @@ public partial class mexc : ccxt.mexc
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object fundingRate = this.parseFundingRate(data);
         object symbol = getValue(fundingRate, "symbol");
-        ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+        }
         object messageHash = add("fundingRate:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, messageHash});
     }
@@ -1900,7 +1935,7 @@ public partial class mexc : ccxt.mexc
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchBidsAsks required symbols argument")) ;
         }
-        object markets = this.marketsForSymbols(symbols);
+        object markets = this.requireValue(this.marketsForSymbols(symbols), "unWatchBidsAsks() markets is required");
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBidsAsks", getValue(markets, 0), parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
@@ -2097,7 +2132,7 @@ public partial class mexc : ccxt.mexc
                 {
                     symbol = add(symbol, add(":", this.safeString(splitHashes, 3)));
                 }
-                if (isTrue(inOp(this.ohlcvs, symbol)))
+                if (isTrue(isTrue((!isEqual(symbol, null))) && isTrue((inOp(this.ohlcvs, symbol)))))
                 {
                     ((IDictionary<string,object>)this.ohlcvs).Remove((string)symbol);
                 }
@@ -2253,7 +2288,7 @@ public partial class mexc : ccxt.mexc
         //       "windowEnd":"1754737980"
         //    }
         // }
-        object channel = this.safeString(message, "channel");
+        object channel = this.safeString(message, "channel", "");
         object channelParts = ((string)channel).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object channelId = this.safeString(channelParts, 1);
         if (isTrue(isEqual(channelId, "public.kline.v3.api.pb")))
@@ -2311,7 +2346,7 @@ public partial class mexc : ccxt.mexc
         } else
         {
             object parts = ((string)c).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
-            channel = this.safeString(parts, 1);
+            channel = this.safeString(parts, 1, "");
         }
         object methods = new Dictionary<string, object>() {
             { "public.deals.v3.api", this.handleTrades },
@@ -2334,7 +2369,7 @@ public partial class mexc : ccxt.mexc
             { "pong", this.handlePong },
             { "push.funding.rate", this.handleFundingRate },
         };
-        if (isTrue(inOp(methods, channel)))
+        if (isTrue(isTrue((!isEqual(channel, null))) && isTrue((inOp(methods, channel)))))
         {
             object method = getValue(methods, channel);
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});

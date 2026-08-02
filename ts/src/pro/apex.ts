@@ -448,7 +448,7 @@ export default class apex extends apexRest {
         const updateType = this.safeString (message, 'type', '');
         const data = this.safeDict (message, 'data', {});
         let symbol: Str = undefined;
-        let parsed: Ticker = this.parseTicker (data);
+        let parsed = this.parseTicker (data);
         if ((updateType === 'snapshot')) {
             parsed = this.parseTicker (data);
             symbol = parsed['symbol'];
@@ -510,7 +510,7 @@ export default class apex extends apexRest {
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const data = symbolsAndTimeframes[i];
             let symbolString = this.safeString (data, 0);
-            const market = this.market (symbolString as string);
+            const market = this.market (symbolString);
             symbolString = market['id2'];
             const unfiedTimeframe = this.safeString (data, 1, '1');
             const timeframeId = this.safeString (this.timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -576,7 +576,7 @@ export default class apex extends apexRest {
         client.resolve (resolveData, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market = undefined): OHLCV {
+    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "start": 1670363160000,
@@ -648,7 +648,7 @@ export default class apex extends apexRest {
             await this.loadMarkets ();
         }
         let messageHash = '';
-        if (!this.isEmpty (symbols as any[])) {
+        if (!this.isEmpty (symbols)) {
             symbols = this.marketSymbols (symbols);
             messageHash = '::' + (symbols as string[]).join (',');
         }
@@ -726,7 +726,7 @@ export default class apex extends apexRest {
         const symbols: Dict = {};
         for (let i = 0; i < lists.length; i++) {
             const rawTrade = lists[i];
-            const parsed: Trade = this.parseWsTrade (rawTrade);
+            const parsed = this.parseWsTrade (rawTrade);
             const symbol = parsed['symbol'];
             symbols[symbol as string] = true;
             trades.append (parsed);
@@ -778,7 +778,7 @@ export default class apex extends apexRest {
         const orders = this.orders;
         const symbols: Dict = {};
         for (let i = 0; i < lists.length; i++) {
-            const parsed: Order = this.parseOrder (lists[i]);
+            const parsed = this.parseOrder (lists[i]);
             const symbol = parsed['symbol'];
             symbols[symbol as string] = true;
             orders.append (parsed);

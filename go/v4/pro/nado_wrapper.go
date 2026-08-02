@@ -1070,8 +1070,8 @@ func (this *Nado) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions) ([
 	}
 	return ccxt.NewOrderArray(res), nil
 }
-func (this *Nado) WatchExecuteRequest(requestId string, request any) (map[string]any, error) {
-	res := <-this.Core.WatchExecuteRequest(requestId, request)
+func (this *Nado) WatchExecuteRequest(requestIdString string, request any) (map[string]any, error) {
+	res := <-this.Core.WatchExecuteRequest(requestIdString, request)
 	if ccxt.IsError(res) {
 		return map[string]any{}, ccxt.CreateReturnError(res)
 	}

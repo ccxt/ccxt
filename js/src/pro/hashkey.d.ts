@@ -115,7 +115,7 @@ export default class hashkey extends hashkeyRest {
     setBalanceCache(client: Client, type: any, subscribeHash: any): void;
     loadBalanceSnapshot(client: any, messageHash: any, type: any): Promise<void>;
     handleBalance(client: Client, message: any): void;
-    authenticate(params?: {}): Promise<string>;
+    authenticate(params?: {}): Promise<Str>;
     keepAliveListenKey(listenKey: any, params?: {}): Promise<void>;
     handleMessage(client: Client, message: any): void;
 }

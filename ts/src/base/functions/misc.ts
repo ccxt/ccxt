@@ -6,8 +6,10 @@ import { Dictionary, Num } from '../types.js'
 
 //-------------------------------------------------------------------------
 // converts timeframe to seconds
-const parseTimeframe = (timeframe: string): number => {
-
+const parseTimeframe = (timeframe: string | undefined): number => {
+    if (timeframe === undefined) {
+        throw new NotSupported ('timeframe is required');
+    }
     const amount = asFloat (timeframe.slice (0, -1));
     const unit = timeframe.slice (-1);
     let scale: Num = undefined;
@@ -57,7 +59,10 @@ const extractParams = (string: string): string[] => {
     return matches;
 };
 
-const implodeParams = (string: string, params: Dictionary<any> | any[]): string => {
+const implodeParams = (string: string | undefined, params: Dictionary<any> | any[]): string => {
+    if (string === undefined) {
+        return '';
+    }
     if (!Array.isArray (params)) {
         const keys = Object.keys (params);
         for (let i = 0; i < keys.length; i++) {
