@@ -4989,9 +4989,8 @@ export default class xt extends Exchange {
             marginMode = 'ISOLATED';
         }
         const posSide = this.safeStringUpper (params, 'positionSide');
-        if (posSide === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a positionSide parameter, either "LONG" or "SHORT"');
-        }
+        this.checkRequiredArgument ('setMarginMode', posSide, 'positionSide', [ 'LONG', 'SHORT' ]);
+        params = this.omit (params, 'positionSide');
         const request: Dict = {
             'positionType': marginMode,
             'positionSide': posSide,
