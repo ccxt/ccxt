@@ -1,10 +1,8 @@
 // Per-language metadata for the playground.
-// Runnable languages execute in the backend sandbox (lib/runners/). Java is shown
-// as a tab so users know CCXT supports it — with a one-line local install instead
-// of in-browser execution (its dependency tree can't be resolved in the sandbox).
+// Runnable languages execute in the backend sandbox (lib/runners/).
 
-export type RunnableLanguageId = "ts" | "python" | "php" | "go" | "csharp";
-export type LanguageId = RunnableLanguageId | "java";
+export type RunnableLanguageId = "ts" | "python" | "php" | "go" | "csharp" | "java";
+export type LanguageId = RunnableLanguageId;
 
 export type Install = {
   via: string; // heading for the command block, e.g. "Terminal" or "build.gradle.kts"
@@ -146,23 +144,35 @@ Console.WriteLine($"{ticker.symbol}  last={ticker.last}  bid={ticker.bid}  ask={
     label: "Java",
     monaco: "java",
     ext: "java",
-    hint: "compiled — run it locally (Java 21+)",
-    available: false,
+    hint: "compiled — OpenJDK 21, runs server-side",
+    available: enabled("java", true),
     install: {
       via: "build.gradle.kts",
-      command: 'implementation("io.github.ccxt:ccxt:4.5.56")',
+      command: 'implementation("io.github.ccxt:ccxt:4.5.70")',
       docs: "https://central.sonatype.com/artifact/io.github.ccxt/ccxt",
       note: "Maven Central · requires Java 21+",
     },
     sample: `import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.Ticker;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         Binance exchange = new Binance();
-        Object ticker = exchange.fetchTicker("BTC/USDT").join();
+        Ticker ticker = exchange.fetchTicker("BTC/USDT");
         System.out.println(ticker);
     }
 }`,
+    defaultCode: `import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.Ticker;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+        Binance exchange = new Binance();
+        Ticker ticker = exchange.fetchTicker("BTC/USDT");
+        System.out.println(ticker.symbol + "  last=" + ticker.last + "  bid=" + ticker.bid + "  ask=" + ticker.ask);
+    }
+}
+`,
   },
 ];
 

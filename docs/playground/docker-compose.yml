@@ -22,6 +22,7 @@ services:
       args:
         NEXT_BASE_PATH: ${NEXT_BASE_PATH:-}
         PLAYGROUND_DISABLED: ${PLAYGROUND_DISABLED:-}
+        CCXT_JAVA_VERSION: ${CCXT_JAVA_VERSION:-}
     image: ccxt-playground
     container_name: ccxt-playground
     ports:
@@ -31,9 +32,12 @@ services:
       RUN_TIMEOUT_MS: ${RUN_TIMEOUT_MS:-15000}
       COMPILE_TIMEOUT_MS: ${COMPILE_TIMEOUT_MS:-90000}
       # Force all child-process egress through the allowlist proxy. Upper- and
-      # lower-case both set: Python(requests)/PHP(libcurl)/Go(net/http)/C#(HttpClient)
+      # lower-case both set: Python(requests)/PHP(libcurl)/Go(net-http)/C#(HttpClient)
       # honor these automatically; the TypeScript runner preloads a module that sets
-      # ccxt's own httpsProxy/wssProxy to the same proxy.
+      # ccxt's own httpsProxy/wssProxy to the same proxy. ccxt-java ignores proxy
+      # env vars entirely — its runner passes -Dhttps.proxyHost/-Dhttps.proxyPort
+      # (REST) and watch* snippets set exchange.wssProxy via Playground.proxy
+      # (Netty WebSockets never honor JVM proxy flags).
       PLAYGROUND_EGRESS_PROXY: http://egress-proxy:3128
       HTTP_PROXY: http://egress-proxy:3128
       HTTPS_PROXY: http://egress-proxy:3128
@@ -45,8 +49,10 @@ services:
       - internal
     depends_on:
       - egress-proxy
-    mem_limit: 2g
-    memswap_limit: 2g
+    # 3g: measured 8 concurrent Java runs (source-launch JVMs, -Xmx512m each)
+    # peak at ~1.7 GB on their own; the app + dotnet/go warm caches need the rest.
+    mem_limit: 3g
+    memswap_limit: 3g
     cpus: 2.0
     pids_limit: 512
     init: true              # reap orphaned/double-forked processes

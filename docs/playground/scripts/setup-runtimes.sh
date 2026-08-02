@@ -23,7 +23,9 @@ DISABLED="${PLAYGROUND_DISABLED:-}"
 is_disabled() { case ",$DISABLED," in *",$1,"*) return 0 ;; *) return 1 ;; esac; }
 
 echo "==> Python runtime (runtime/python/.venv)"
-if command -v python3 >/dev/null 2>&1; then
+if is_disabled python; then
+  echo "    python disabled (PLAYGROUND_DISABLED) — install-only, skipping venv"
+elif command -v python3 >/dev/null 2>&1; then
   mkdir -p runtime/python
   python3 -m venv runtime/python/.venv
   # shellcheck disable=SC1091
@@ -42,7 +44,9 @@ else
 fi
 
 echo "==> PHP runtime (runtime/php/vendor)"
-if command -v composer >/dev/null 2>&1; then
+if is_disabled php; then
+  echo "    php disabled (PLAYGROUND_DISABLED) — install-only, skipping composer install"
+elif command -v composer >/dev/null 2>&1; then
   mkdir -p runtime/php
   cat > runtime/php/composer.json <<'JSON'
 {
@@ -67,6 +71,7 @@ fi
 # a DNS error. Move this back to a normal release pin once the next tag is cut.
 CCXT_GO_VERSION="${CCXT_GO_VERSION:-v4.5.71-0.20260730115723-6654bd39a17c}"
 CCXT_NUGET_VERSION="${CCXT_NUGET_VERSION:-}" # empty = latest
+CCXT_JAVA_VERSION="${CCXT_JAVA_VERSION:-}" # empty = latest (Maven Central)
 
 echo "==> Go runtime (runtime/go) — warms the ccxt build cache (~45s cold)"
 if is_disabled go; then
@@ -148,6 +153,61 @@ CS
   fi
 else
   echo "    dotnet not found — the C# tab will show a 'provision' message until the .NET SDK is installed"
+fi
+
+echo "==> Java runtime (runtime/java/libs) — resolves ccxt jars (~47 MB) via Maven"
+if is_disabled java; then
+  echo "    java disabled (PLAYGROUND_DISABLED) — install-only, skipping jar resolve"
+elif [ -z "$CCXT_JAVA_VERSION" ] && [ -d runtime/java/libs ] && [ -f runtime/java/classes/Playground.class ]; then
+  # The Docker image pre-provisions these from the java-libs build stage. For
+  # local re-runs this also keeps a Go/C# re-warm from re-resolving 47 MB of
+  # jars; `rm -rf runtime/java` (or pin CCXT_JAVA_VERSION) to force a re-resolve.
+  echo "    already provisioned — skipping (rm -rf runtime/java to re-resolve)"
+elif command -v javac >/dev/null 2>&1 && command -v mvn >/dev/null 2>&1; then
+  JAVA_ROOT="$PWD/runtime/java"
+  rm -rf "$JAVA_ROOT"
+  mkdir -p "$JAVA_ROOT/libs" "$JAVA_ROOT/classes"
+  JV="$CCXT_JAVA_VERSION"
+  if [ -z "$JV" ]; then JV="[0,)"; fi # Maven version range = latest release
+  cat > "$JAVA_ROOT/pom.xml" <<POM
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>ccxt.playground</groupId>
+  <artifactId>java-runtime</artifactId>
+  <version>0</version>
+  <packaging>jar</packaging>
+  <dependencies>
+    <dependency>
+      <groupId>io.github.ccxt</groupId>
+      <artifactId>ccxt</artifactId>
+      <version>${JV}</version>
+    </dependency>
+  </dependencies>
+</project>
+POM
+  mkdir -p "$JAVA_ROOT/smoke"
+  cat > "$JAVA_ROOT/smoke/Main.java" <<'SMOKE'
+import io.github.ccxt.exchanges.Binance;
+
+public class Main {
+    public static void main(String[] args) {
+        Binance exchange = Playground.proxy(new Binance());
+        System.out.println(exchange.id);
+    }
+}
+SMOKE
+  if mvn -q -B -f "$JAVA_ROOT/pom.xml" dependency:copy-dependencies -DoutputDirectory="$JAVA_ROOT/libs" \
+     && javac -cp "$JAVA_ROOT/libs/*" -d "$JAVA_ROOT/classes" lib/runners/java/Playground.java \
+     && javac -cp "$JAVA_ROOT/libs/*:$JAVA_ROOT/classes" -d "$JAVA_ROOT/smoke" "$JAVA_ROOT/smoke/Main.java"; then
+    JRESOLVED="$(ls "$JAVA_ROOT/libs" | sed -n 's/^ccxt-\(.*\)\.jar$/\1/p' | head -1)"
+    echo "    java ccxt ${JRESOLVED:-unknown} resolved ($(ls "$JAVA_ROOT/libs" | wc -l | tr -d ' ') jars) + Playground helper compiled"
+  else
+    echo "    warning: java resolve/compile failed (Java tab will show the provision message)"
+    rm -rf "$JAVA_ROOT/libs" "$JAVA_ROOT/classes"
+  fi
+  rm -rf "$JAVA_ROOT/pom.xml" "$JAVA_ROOT/smoke"
+else
+  echo "    javac or mvn not found — the Java tab will show a 'provision' message until JDK 21+ and Maven are installed"
 fi
 
 echo "==> Done."

@@ -5,6 +5,7 @@ import { runPython } from "./python";
 import { runPhp } from "./php";
 import { runGo } from "./go";
 import { runCsharp } from "./csharp";
+import { runJava } from "./java";
 
 const runners: Record<
   RunnableLanguageId,
@@ -15,6 +16,7 @@ const runners: Record<
   php: runPhp,
   go: runGo,
   csharp: runCsharp,
+  java: runJava,
 };
 
 export function runCode(
