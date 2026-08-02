@@ -6567,6 +6567,22 @@ export class BaseExchange {
         return this.market (symbol);
     }
 
+    cleanPemSecret () {
+        // secrets that traveled through env vars or json config often carry literal
+        // backslash-n sequences instead of real newlines, which breaks every language's
+        // PEM loader - normalize once here so all runtimes receive a clean key
+        // https://github.com/ccxt/ccxt/issues/22256
+        const secret = this.secret;
+        if (secret !== undefined) {
+            if (secret.indexOf ('-----BEGIN') >= 0) {
+                const backslashN = '\\n'; // a literal backslash followed by n, not a newline
+                if (secret.indexOf (backslashN) >= 0) {
+                    this.secret = secret.split (backslashN).join ('\n');
+                }
+            }
+        }
+    }
+
     checkRequiredCredentials (error = true) {
         /**
          * @ignore
@@ -6574,6 +6590,7 @@ export class BaseExchange {
          * @param {boolean} error throw an error that a credential is required if true
          * @returns {boolean} true if all required credentials have been set, otherwise false or an error is thrown is param error=true
          */
+        this.cleanPemSecret ();
         const keys = Object.keys (this.requiredCredentials);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
