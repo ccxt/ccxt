@@ -151,9 +151,7 @@ export default function AssistantPanel({
       <div className="ai-msgs" ref={scrollRef}>
         {messages.length === 0 ? (
           <div className="ai-empty">
-            Ask for CCXT code and it lands in your editor — Insert the first language as soon
-            as it streams in; the rest fill their tabs as each finishes. Free models via
-            OpenRouter.
+            Ask for CCXT code and it lands in your editor. Free models via OpenRouter.
             <div className="chips">
               {SUGGESTIONS.map((s) => (
                 <button key={s} className="chip" onClick={() => send(s)}>
@@ -255,7 +253,6 @@ function Message({
     primary.length > 0
       ? blocks.filter((b) => b.kind === "text" || b.lang === null || b.lang === language)
       : blocks;
-  const primaryReady = primary.some((b) => b.complete);
 
   // After Insert, file each newly completed background language on a macrotask so
   // the primary click stays snappy and later fences don't block the stream UI.
@@ -292,25 +289,6 @@ function Message({
     }
   };
 
-  const primaryLabel = getLanguage(language)?.label;
-  const filledBg = completeBackground.filter((b) => filledSet.has(b.lang));
-  const pendingBg = completeBackground.filter((b) => !filledSet.has(b.lang));
-  const note = !primaryReady
-    ? null
-    : fillArmed
-      ? streaming || pendingBg.length > 0
-        ? "Filling other language tabs as each finishes…"
-        : filledBg.length > 0
-          ? `Filled ${filledBg.map((b) => getLanguage(b.lang)?.label).join(", ")} tabs.`
-          : null
-      : streaming
-        ? `Insert ${primaryLabel} now — other languages fill their tabs as each finishes.`
-        : completeBackground.length > 0
-          ? `Insert ${primaryLabel} also fills the ${completeBackground
-              .map((b) => getLanguage(b.lang)?.label)
-              .join(", ")} tabs.`
-          : null;
-
   return (
     <div className={"msg " + msg.role}>
       <div className="who">{msg.role === "user" ? "You" : "Assistant"}</div>
@@ -333,7 +311,6 @@ function Message({
           </button>
         </div>
       )}
-      {note && <div className="code-note">{note}</div>}
       {streaming && msg.content === "" && <span className="ai-empty dots" />}
     </div>
   );
