@@ -4,6 +4,22 @@
 # limits in docker-compose.yml, nothing on the host is reachable. (Code from
 # different users CAN see each other inside the container — acceptable per design.)
 
+# --- Java: resolve the ccxt jar set in a THROWAWAY stage so Maven and its
+# ~/.m2 cache never ship in the final image (runtime needs only the JDK) ---
+FROM node:24-bookworm AS java-libs
+# empty = latest release on Maven Central; pin with --build-arg CCXT_JAVA_VERSION=4.5.70
+ARG CCXT_JAVA_VERSION=""
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      openjdk-21-jdk-headless maven \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /pg
+COPY scripts/setup-runtimes.sh scripts/setup-runtimes.sh
+COPY lib/runners/java/Playground.java lib/runners/java/Playground.java
+RUN PLAYGROUND_DISABLED="python,php,go,csharp" CCXT_JAVA_VERSION="$CCXT_JAVA_VERSION" \
+      bash scripts/setup-runtimes.sh \
+    && test -f runtime/java/classes/Playground.class \
+    && ls runtime/java/libs | grep -q '^ccxt-'
+
 FROM node:24-bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -36,6 +52,12 @@ ENV PATH="/usr/share/dotnet:${PATH}" \
     DOTNET_ROOT=/usr/share/dotnet \
     NUGET_PACKAGES=/app/.nuget/packages
 
+# --- OpenJDK 21 (for the Java runner) — JDK, not JRE: runs use single-file
+# source launch (java Main.java), which needs the in-JVM compiler. The ccxt jar
+# set is resolved in the java-libs stage above; Maven never enters this image.
+RUN apt-get update && apt-get install -y --no-install-recommends openjdk-21-jdk-headless \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Create the unprivileged user BEFORE the heavy steps and build as that user,
@@ -53,6 +75,10 @@ RUN npm ci
 
 # App source
 COPY --chown=playground:playground . .
+
+# Java runtime jars + precompiled Playground proxy helper from the throwaway
+# resolve stage (setup-runtimes.sh detects them and skips re-resolving).
+COPY --from=java-libs --chown=playground:playground /pg/runtime/java ./runtime/java
 
 # Sub-path the app is served under (e.g. /playground behind nginx). Baked into
 # the build; empty = served at root.
