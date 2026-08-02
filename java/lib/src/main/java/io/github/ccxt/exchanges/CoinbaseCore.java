@@ -35,8 +35,8 @@ public class CoinbaseCore extends CoinbaseApi
                 put( "CORS", true );
                 put( "spot", true );
                 put( "margin", false );
-                put( "swap", false );
-                put( "future", false );
+                put( "swap", true );
+                put( "future", true );
                 put( "option", false );
                 put( "addMargin", false );
                 put( "borrowCrossMargin", false );
