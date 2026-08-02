@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official xt API documentation:** [doc.xt.com](https://doc.xt.com/) · [github.com](https://github.com/xtpub/api-doc)
 
-> 153 implicit endpoints across 2 access groups.
+> 154 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -213,6 +213,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateInversePostFutureUserV1PositionMargin` | POST | `future/user/v1/position/margin` | 1 |
 | `privateInversePostFutureUserV1UserCollectionAdd` | POST | `future/user/v1/user/collection/add` | 1 |
 | `privateInversePostFutureUserV1UserCollectionCancel` | POST | `future/user/v1/user/collection/cancel` | 1 |
+| `privateInversePostFutureUserV1PositionChangeType` | POST | `future/user/v1/position/change-type` | 1 |
 | `privateUserGetUserAccount` | GET | `user/account` | 1 |
 | `privateUserGetUserAccountApiKey` | GET | `user/account/api-key` | 1 |
 | `privateUserPostUserAccount` | POST | `user/account` | 1 |

@@ -146,7 +146,7 @@ xt.fetchOHLCV (symbol, timeframe, since?, limit?, params)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>xt</code>](#xt)  
-**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/en/latest/manual.html#order-book-structure)
 
 **See**
 

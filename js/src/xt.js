@@ -328,6 +328,7 @@ export default class xt extends Exchange {
                             'future/user/v1/position/margin': 1,
                             'future/user/v1/user/collection/add': 1,
                             'future/user/v1/user/collection/cancel': 1,
+                            'future/user/v1/position/change-type': 1,
                         },
                     },
                     'user': {
@@ -692,7 +693,7 @@ export default class xt extends Exchange {
                 'default': {
                     'sandbox': false,
                     'createOrder': {
-                        'marginMode': false,
+                        'marginMode': true,
                         'triggerPrice': false,
                         'triggerDirection': false,
                         'triggerPriceType': undefined,
@@ -773,6 +774,7 @@ export default class xt extends Exchange {
                 'forDerivatives': {
                     'extends': 'default',
                     'createOrder': {
+                        'marginMode': false,
                         'triggerPrice': true,
                         // todo
                         'triggerPriceType': {
@@ -1357,8 +1359,8 @@ export default class xt extends Exchange {
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
-            'taker': this.safeNumber(market, 'takerFee'),
-            'maker': this.safeNumber(market, 'makerFee'),
+            'taker': this.safeNumber2(market, 'takerFee', 'takerFeeRate'),
+            'maker': this.safeNumber2(market, 'makerFee', 'makerFeeRate'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'expiry': expiry,
             'expiryDatetime': this.iso8601(expiry),
@@ -1542,7 +1544,7 @@ export default class xt extends Exchange {
      * @param {string} symbol unified market symbol to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} params extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -5016,15 +5018,22 @@ export default class xt extends Exchange {
             marginMode = 'ISOLATED';
         }
         const posSide = this.safeStringUpper(params, 'positionSide');
-        if (posSide === undefined) {
-            throw new ArgumentsRequired(this.id + ' setMarginMode() requires a positionSide parameter, either "LONG" or "SHORT"');
-        }
+        this.checkRequiredArgument('setMarginMode', posSide, 'positionSide', ['LONG', 'SHORT']);
+        params = this.omit(params, 'positionSide');
         const request = {
             'positionType': marginMode,
             'positionSide': posSide,
             'symbol': market['id'],
         };
-        const response = await this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, params));
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('setMarginMode', market, params);
+        let response;
+        if (subType === 'inverse') {
+            response = await this.privateInversePostFutureUserV1PositionChangeType(this.extend(request, params));
+        }
+        else {
+            response = await this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, params));
+        }
         //
         // {
         //     "error": {
