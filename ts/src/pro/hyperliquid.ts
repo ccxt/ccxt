@@ -83,7 +83,7 @@ export default class hyperliquid extends hyperliquidRest {
         const wrapped = this.wrapAsPostAction (ordersRequest);
         const request = this.safeDict (wrapped, 'request', {});
         const requestId = this.safeString (wrapped, 'requestId');
-        const response = await this.watch (url, (requestId as string), request, requestId);
+        const response = await this.watch (url, requestId, request, requestId);
         const responseOjb = this.safeDict (response, 'response', {});
         const data = this.safeDict (responseOjb, 'data', {});
         const statuses = this.safeList (data, 'statuses', []);
@@ -152,11 +152,11 @@ export default class hyperliquid extends hyperliquidRest {
         const market = this.market (symbol);
         const url = this.urls['api']['ws']['public'];
         const [ order, globalParams ] = this.parseCreateEditOrderArgs (id, symbol, type, side, (amount as number), price, params);
-        const postRequest = this.editOrdersRequest ([ order as any ], globalParams);
+        const postRequest = this.editOrdersRequest ([ order ], globalParams);
         const wrapped = this.wrapAsPostAction (postRequest);
         const request = this.safeDict (wrapped, 'request', {});
         const requestId = this.safeString (wrapped, 'requestId');
-        const response = await this.watch (url, (requestId as string), request, requestId);
+        const response = await this.watch (url, requestId, request, requestId);
         // response is the same as in this.editOrder
         const responseObject = this.safeDict (response, 'response', {});
         const dataObject = this.safeDict (responseObject, 'data', {});
@@ -188,7 +188,7 @@ export default class hyperliquid extends hyperliquidRest {
         const wrapped = this.wrapAsPostAction (request);
         const wsRequest = this.safeDict (wrapped, 'request', {});
         const requestId = this.safeString (wrapped, 'requestId');
-        const response = await this.watch (url, (requestId as string), wsRequest, requestId);
+        const response = await this.watch (url, requestId, wsRequest, requestId);
         const responseObj = this.safeDict (response, 'response', {});
         const data = this.safeDict (responseObj, 'data', {});
         const statuses = this.safeList (data, 'statuses', []);
@@ -310,7 +310,7 @@ export default class hyperliquid extends hyperliquidRest {
         const entry = this.safeDict (message, 'data', {});
         const coin = this.safeString (entry, 'coin');
         const marketId = this.coinToMarketId (coin);
-        const market = this.market ((marketId as string));
+        const market = this.market (marketId);
         const symbol = market['symbol'];
         const rawData = this.safeList (entry, 'levels', []);
         const data: Dict = {
@@ -686,7 +686,7 @@ export default class hyperliquid extends hyperliquidRest {
         const first = this.safeDict (entry, 0, {});
         const coin = this.safeString (first, 'coin');
         const marketId = this.coinToMarketId (coin);
-        const market = this.market ((marketId as string));
+        const market = this.market (marketId);
         const symbol = market['symbol'];
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1056,7 +1056,7 @@ export default class hyperliquid extends hyperliquidRest {
         for (let i = 0; i < rawBalances.length; i++) {
             this.parseWsBalance (rawBalances[i], account);
         }
-        if (this.safeValue (this.balance, (account as string)) === undefined) {
+        if (this.safeValue (this.balance, account) === undefined) {
             this.balance[(account as string)] = {};
         }
         this.balance[(account as string)]['info'] = info;
@@ -1114,9 +1114,13 @@ export default class hyperliquid extends hyperliquidRest {
             if (this.safeValue (this.balance, accountType) === undefined) {
                 this.balance[accountType] = {};
             }
-            this.balance[accountType][code] = account;
+            if ((accountType !== undefined) && (code !== undefined)) {
+                this.balance[accountType][code] = account;
+            }
         } else {
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
     }
 

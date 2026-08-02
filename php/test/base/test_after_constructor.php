@@ -307,7 +307,7 @@ function helper_test_properties() {
     // common props
     //
     assert($exchange->markets === null, 'markets should be undefined');
-    assert($exchange->symbols === null, 'symbols should be undefined');
+    assert(is_array($exchange->symbols) && count($exchange->symbols) === 0, 'symbols should be an empty array');
     assert($exchange->markets_by_id === null, 'markets_by_id should be undefined');
     assert($exchange->ids === null, 'ids should be undefined');
     assert_deep_equal($exchange, array(), 'currencies', $exchange->currencies, array());

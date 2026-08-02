@@ -344,7 +344,7 @@ export default class upbit extends upbitRest {
 
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
-        const wsOptions: Dict = this.safeDict (this.options, 'ws', {});
+        const wsOptions = this.safeDict (this.options, 'ws', {});
         const authenticated = this.safeString (wsOptions, 'token');
         if (authenticated === undefined) {
             const auth: Dict = {
@@ -686,7 +686,9 @@ export default class upbit extends upbitRest {
             const account = this.account ();
             account['free'] = available;
             account['used'] = frozen;
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
             this.balance = this.safeBalance (this.balance);
         }
         const messageHash = this.safeString (message, 'type');

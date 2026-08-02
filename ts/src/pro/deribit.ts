@@ -157,7 +157,9 @@ export default class deribit extends deribitRest {
         const currencyId = this.safeString (data, 'currency');
         const currencyCode = this.safeCurrencyCode (currencyId);
         const balance = this.parseBalance (data);
-        this.balance[currencyCode] = balance;
+        if (currencyCode !== undefined) {
+            this.balance[currencyCode] = balance;
+        }
         const messageHash = 'balance';
         client.resolve (this.balance, messageHash);
     }
@@ -585,7 +587,7 @@ export default class deribit extends deribitRest {
             [ group, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'group', 'none');
             descriptor = group + '.' + depth + '.' + interval;
         } else {
-            descriptor = interval as string;
+            descriptor = interval;
         }
         const orderbook = await this.watchMultipleWrapper ('book', descriptor, symbols, params);
         return orderbook.limit ();
@@ -877,7 +879,7 @@ export default class deribit extends deribitRest {
         const timeframes = this.safeDict (wsOptions, 'timeframes', {});
         const unifiedTimeframe = this.findTimeframe (rawTimeframe, timeframes);
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
-        if (this.safeValue (this.ohlcvs[symbol], unifiedTimeframe as string) === undefined) {
+        if (this.safeValue (this.ohlcvs[symbol], unifiedTimeframe) === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][unifiedTimeframe as string] = new ArrayCacheByTimestamp (limit);
         }
@@ -914,7 +916,7 @@ export default class deribit extends deribitRest {
         ];
     }
 
-    async watchMultipleWrapper (channelName: string, channelDescriptor: Str, symbolsArray = undefined, params = {}) {
+    async watchMultipleWrapper (channelName: string, channelDescriptor: Str, symbolsArray: any = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -924,7 +926,13 @@ export default class deribit extends deribitRest {
         const isOHLCV = (channelName === 'chart.trades');
         const symbols = isOHLCV ? this.getListFromObjectValues (symbolsArray, 0) : symbolsArray;
         this.marketSymbols (symbols, undefined, false);
+        if (symbolsArray === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchMultipleWrapper() symbolsArray is required');
+        }
         for (let i = 0; i < symbolsArray.length; i++) {
+            if (symbolsArray === undefined) {
+                throw new ArgumentsRequired (this.id + ' watchMultipleWrapper() symbolsArray is required');
+            }
             const current = symbolsArray[i];
             let market: Market = undefined;
             if (isOHLCV) {
@@ -1036,9 +1044,9 @@ export default class deribit extends deribitRest {
                 'book': this.handleOrderBook,
                 'trades': this.handleTrades,
                 'chart': this.handleOHLCV,
-                'user': this.safeValue (userHandlers, this.safeString (parts, 1) as string),
+                'user': this.safeValue (userHandlers, this.safeString (parts, 1)),
             };
-            const handler = this.safeValue (handlers, channelId as string);
+            const handler = this.safeValue (handlers, channelId);
             if (handler !== undefined) {
                 handler.call (this, client, message);
                 return;

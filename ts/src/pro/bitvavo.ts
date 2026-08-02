@@ -369,7 +369,7 @@ export default class bitvavo extends bitvavoRest {
         const messageHash = name + '@' + marketId + '_' + interval;
         const candles = this.safeValue (message, 'candle');
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe as string);
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -781,7 +781,7 @@ export default class bitvavo extends bitvavoRest {
         const response = this.safeList (message, 'response');
         // const firstRawOrder = this.safeValue (response, 0, {});
         // const marketId = this.safeString (firstRawOrder, 'market');
-        const orders = this.parseOrders (response as object[]);
+        const orders = this.parseOrders (response);
         // let messageHash = this.buildMessageHash (action, { 'market': marketId });
         // client.resolve (orders, messageHash);
         // messageHash = this.buildMessageHash (action, message);
@@ -1462,7 +1462,7 @@ export default class bitvavo extends bitvavoRest {
         const messageHash = this.safeString (message, 'requestId', buildMessage);
         let rejected = false;
         try {
-            this.handleErrors (code as number, error as string, client.url, '', {}, error as string, message as string, {}, {});
+            this.handleErrors (code as number, error as string, client.url, '', {}, error as string, message, {}, {});
         } catch (e) {
             rejected = true;
             client.reject (e, messageHash);
@@ -1550,10 +1550,10 @@ export default class bitvavo extends bitvavoRest {
             'getMarkets': this.handleMarkets,
         };
         const event = this.safeString (message, 'event');
-        let method = this.safeValue (methods, event as string);
+        let method = this.safeValue (methods, event);
         if (method === undefined) {
             const action = this.safeString (message, 'action');
-            method = this.safeValue (methods, action as string);
+            method = this.safeValue (methods, action);
             if (method !== undefined) {
                 method.call (this, client, message);
             }

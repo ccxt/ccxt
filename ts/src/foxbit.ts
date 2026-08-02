@@ -5,7 +5,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/foxbit.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OnMaintenance, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -370,7 +370,7 @@ export default class foxbit extends Exchange {
         return this.parseCurrencies (data);
     }
 
-    parseCurrency (rawCurrency: Dict): Currency {
+    parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const precision = this.safeInteger (rawCurrency, 'precision');
         const currencyId = this.safeString (rawCurrency, 'symbol');
         const name = this.safeString (rawCurrency, 'name');
@@ -388,31 +388,33 @@ export default class foxbit extends Exchange {
             const networkDepositInfo = this.safeDict (network, 'deposit_info');
             const isWithdrawEnabled = this.safeString (networkWithdrawInfo, 'status') === 'ENABLED';
             const isDepositEnabled = this.safeString (networkDepositInfo, 'status') === 'ENABLED';
-            parsedNetworks[networkCode] = {
-                'info': rawCurrency,
-                'id': networkId,
-                'network': networkCode,
-                'name': this.safeString (network, 'name'),
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'active': true,
-                'precision': precision,
-                'fee': this.safeNumber (networkWithdrawInfo, 'fee'),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                parsedNetworks[networkCode] = {
+                    'info': rawCurrency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'name': this.safeString (network, 'name'),
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
+                    'active': true,
+                    'precision': precision,
+                    'fee': this.safeNumber (networkWithdrawInfo, 'fee'),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (depositInfo, 'min_amount'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber (withdrawInfo, 'min_amount'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber (depositInfo, 'min_amount'),
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': this.safeNumber (withdrawInfo, 'min_amount'),
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': currencyId,
@@ -854,7 +856,9 @@ export default class foxbit extends Exchange {
                 'used': used,
                 'total': total,
             };
-            result[currencyCode] = balanceObj;
+            if (currencyCode !== undefined) {
+                result[currencyCode] = balanceObj;
+            }
         }
         return this.safeBalance (result);
     }
@@ -948,6 +952,9 @@ export default class foxbit extends Exchange {
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         const postOnly = this.safeBool (params, 'postOnly', false);
         const triggerPrice = this.safeNumber (params, 'triggerPrice');
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
         const request: Dict = {
             'market_symbol': market['id'],
             'side': side.toUpperCase (),
@@ -1006,7 +1013,7 @@ export default class foxbit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const ordersRequests = [];
+        const ordersRequests: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
             const order = this.safeDict (orders, i);
             const symbol = this.safeString (order, 'symbol');
@@ -1530,6 +1537,9 @@ export default class foxbit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder() requires a side argument');
+        }
         const request: Dict = {
             'mode': 'ALLOW_FAILURE',
             'cancel': {
@@ -1766,7 +1776,7 @@ export default class foxbit extends Exchange {
         ];
     }
 
-    parseTrade (trade, market = undefined): Trade {
+    parseTrade (trade, market: Market = undefined): Trade {
         const timestamp = this.parseDate (this.safeString (trade, 'created_at'));
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'volume', this.safeString (trade, 'quantity'));
@@ -1807,7 +1817,7 @@ export default class foxbit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market = undefined): Order {
+    parseOrder (order, market: Market = undefined): Order {
         let symbol = this.safeString (order, 'market_symbol');
         if (market === undefined && symbol !== undefined) {
             market = this.market (symbol);
@@ -1960,7 +1970,7 @@ export default class foxbit extends Exchange {
             'INTERNAL_TRANSFERING': 'transfer',
             'OTHERS': 'transaction',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined) {
@@ -1990,9 +2000,21 @@ export default class foxbit extends Exchange {
             'cost': this.safeNumber (item, 'fee'),
             'currency': currencySymbol,
         };
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' parseLedgerEntry() requires a amount argument');
+        }
         if (amount < 0) {
             direction = 'out';
+            if (amount === undefined) {
+                throw new ArgumentsRequired (this.id + ' parseLedgerEntry() requires a amount argument');
+            }
             realAmount = amount * -1;
+        }
+        if (balance === undefined) {
+            throw new ExchangeError (this.id + ' parseLedgerEntry() missing balance');
+        }
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' parseLedgerEntry() requires a amount argument');
         }
         return {
             'id': id,

@@ -3,7 +3,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/apex.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { Account, Balances, Currencies, Currency, Dict, FundingRateHistory, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, NullableDict } from './base/types.js';
+import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, FundingRateHistory, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, NullableDict } from './base/types.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
@@ -507,7 +507,7 @@ export default class apex extends Exchange {
         return result;
     }
 
-    parseCurrency (currency: Dict): Currency {
+    parseCurrency (currency: Dict): CurrencyInterface {
         const currencyId = this.safeString (currency, 'token');
         const code = this.safeCurrencyCode (currencyId);
         const name = this.safeString (currency, 'displayName');
@@ -522,26 +522,28 @@ export default class apex extends Exchange {
                 if (tokenName === currencyId) {
                     const networkId = this.safeString (chain, 'chainId');
                     const networkCode = this.networkIdToCode (networkId, code);
-                    networks[networkCode] = {
-                        'info': chain,
-                        'id': networkId,
-                        'network': networkCode,
-                        'active': undefined,
-                        'deposit': !this.safeBool (chain, 'depositDisable'),
-                        'withdraw': this.safeBool (token, 'withdrawEnable'),
-                        'fee': this.safeNumber (token, 'minFee'),
-                        'precision': this.parseNumber (this.parsePrecision (this.safeString (token, 'decimals'))),
-                        'limits': {
-                            'withdraw': {
-                                'min': this.safeNumber (token, 'minWithdraw'),
-                                'max': undefined,
+                    if (networkCode !== undefined) {
+                        networks[networkCode] = {
+                            'info': chain,
+                            'id': networkId,
+                            'network': networkCode,
+                            'active': undefined,
+                            'deposit': !this.safeBool (chain, 'depositDisable'),
+                            'withdraw': this.safeBool (token, 'withdrawEnable'),
+                            'fee': this.safeNumber (token, 'minFee'),
+                            'precision': this.parseNumber (this.parsePrecision (this.safeString (token, 'decimals'))),
+                            'limits': {
+                                'withdraw': {
+                                    'min': this.safeNumber (token, 'minWithdraw'),
+                                    'max': undefined,
+                                },
+                                'deposit': {
+                                    'min': this.safeNumber (chain, 'minDeposit'),
+                                    'max': undefined,
+                                },
                             },
-                            'deposit': {
-                                'min': this.safeNumber (chain, 'minDeposit'),
-                                'max': undefined,
-                            },
-                        },
-                    };
+                        };
+                    }
                 }
             }
         }
@@ -1085,7 +1087,7 @@ export default class apex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -1124,7 +1126,7 @@ export default class apex extends Exchange {
         //     "totalSize": 11
         // }
         //
-        const rates = [];
+        const rates: FundingRateHistory[] = [];
         const data = this.safeDict (response, 'data', {});
         const resultList = this.safeList (data, 'historyFunds', []);
         for (let i = 0; i < resultList.length; i++) {
@@ -1278,23 +1280,25 @@ export default class apex extends Exchange {
             'TAKE_PROFIT_LIMIT': 'limit',
             'TAKE_PROFIT_MARKET': 'market',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         if (market === undefined && marketId !== undefined) {
-            if (marketId in this.markets) {
-                market = this.markets[marketId];
-            } else if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
+            const marketsMap = this.markets;
+            const marketsById = this.markets_by_id;
+            if ((marketsMap !== undefined) && (marketId in marketsMap)) {
+                market = marketsMap[marketId];
+            } else if ((marketsById !== undefined) && (marketId in marketsById)) {
+                market = marketsById[marketId];
             } else {
                 const newMarketId = this.addHyphenBeforeUsdt (marketId);
-                if (newMarketId in this.markets_by_id) {
-                    const markets = this.markets_by_id[newMarketId];
+                if ((marketsById !== undefined) && (newMarketId in marketsById)) {
+                    const markets = marketsById[newMarketId];
                     const numMarkets = markets.length;
                     if (numMarkets > 0) {
-                        if (this.markets_by_id[newMarketId][0]['id2'] === marketId) {
-                            market = this.markets_by_id[newMarketId][0];
+                        if (marketsById[newMarketId][0]['id2'] === marketId) {
+                            market = marketsById[newMarketId][0];
                         }
                     }
                 }
@@ -1303,7 +1307,7 @@ export default class apex extends Exchange {
         return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
-    generateRandomClientIdOmni (_accountId: string) {
+    generateRandomClientIdOmni (_accountId: Str) {
         const accountId = _accountId || this.randNumber (12).toString ();
         return 'apexomni-' + accountId + '-' + this.milliseconds ().toString () + '-' + this.randNumber (6).toString ();
     }
@@ -1361,9 +1365,12 @@ export default class apex extends Exchange {
         }
         const market = this.market (symbol);
         let orderType = type.toUpperCase ();
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
         const orderSide = side.toUpperCase ();
         const orderSize = this.amountToPrecision (symbol, amount);
-        let orderPrice = '0';
+        let orderPrice: Str = '0';
         if (price !== undefined) {
             orderPrice = this.priceToPrecision (symbol, price);
         }
@@ -1485,7 +1492,7 @@ export default class apex extends Exchange {
         const ethAddress = this.safeString (accountData, 'ethereumAddress', '');
         const accountId = this.safeString (accountData, 'id', '');
         let currency = {};
-        let assets = [];
+        let assets: Dict[] = [];
         if (fromAccount !== undefined && fromAccount.toLowerCase () === 'contract') {
             assets = contractAssets;
         } else {
@@ -1498,7 +1505,8 @@ export default class apex extends Exchange {
         }
         const tokenId = this.safeString (currency, 'tokenId', '');
         const decimalsNum = this.safeNumber (currency, 'decimals', 0);
-        const mathPowResult = (Math.pow (10, decimalsNum));
+        const decimalsNumber = (decimalsNum === undefined) ? 0 : decimalsNum;
+        const mathPowResult = (Math.pow (10, decimalsNumber));
         const amountNumber = this.parseToInt (amount * mathPowResult);
         const timestampSeconds = this.parseToInt (this.milliseconds () / 1000);
         let clientOrderId = this.safeStringN (params, [ 'clientId', 'clientOrderId', 'client_order_id' ]);

@@ -456,7 +456,9 @@ export default class bithumb extends bithumbRest {
             const account = this.account ();
             account['free'] = this.safeString (asset, 'balance');
             account['used'] = this.safeString (asset, 'locked');
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
         this.balance['info'] = message;
         const timestamp = this.safeInteger (message, 'timestamp');
@@ -468,7 +470,7 @@ export default class bithumb extends bithumbRest {
 
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
-        const wsOptions: Dict = this.safeDict (this.options, 'ws', {});
+        const wsOptions = this.safeDict (this.options, 'ws', {});
         const authenticated = this.safeString (wsOptions, 'token');
         if (authenticated === undefined) {
             const payload: Dict = {

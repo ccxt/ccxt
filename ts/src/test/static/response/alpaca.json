@@ -66,6 +66,7 @@
                 "parsedResponse": [
                     {
                         "id": "DOGE/USDC",
+                        "lowercaseId": null,
                         "symbol": "DOGE/USDC",
                         "base": "DOGE",
                         "quote": "USDC",
@@ -79,10 +80,14 @@
                         "swap": false,
                         "future": false,
                         "option": false,
+                        "index": false,
                         "active": true,
                         "contract": false,
                         "linear": null,
                         "inverse": null,
+                        "subType": null,
+                        "taker": null,
+                        "maker": null,
                         "contractSize": null,
                         "expiry": null,
                         "expiryDatetime": null,
@@ -110,6 +115,10 @@
                                 "max": null
                             }
                         },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
                         "created": null,
                         "info": {
                             "id": "ff2ec3b7-b581-4a5f-8f75-a98a68ed8332",
@@ -134,6 +143,7 @@
                     },
                     {
                         "id": "AAVE/USD",
+                        "lowercaseId": null,
                         "symbol": "AAVE/USD",
                         "base": "AAVE",
                         "quote": "USD",
@@ -147,10 +157,14 @@
                         "swap": false,
                         "future": false,
                         "option": false,
+                        "index": false,
                         "active": true,
                         "contract": false,
                         "linear": null,
                         "inverse": null,
+                        "subType": null,
+                        "taker": null,
+                        "maker": null,
                         "contractSize": null,
                         "expiry": null,
                         "expiryDatetime": null,
@@ -177,6 +191,10 @@
                                 "min": null,
                                 "max": null
                             }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
                         },
                         "created": null,
                         "info": {

@@ -208,7 +208,7 @@ export default class lbank extends lbankRest {
             const timeframeId = this.safeString (message, 'kbar');
             const timeframe = this.findTimeframe (timeframeId, timeframes);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe as string);
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
@@ -231,7 +231,7 @@ export default class lbank extends lbankRest {
             ];
             const timeframe = this.findTimeframe (timeframeId, timeframes);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe as string);
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
@@ -597,6 +597,9 @@ export default class lbank extends lbankRest {
             myOrders = new ArrayCacheBySymbolById (limit);
         }
         const order = this.parseWsOrder (message);
+        if (myOrders === undefined) {
+            return;
+        }
         myOrders.append (order);
         this.orders = myOrders;
         client.resolve (myOrders, 'orders');
@@ -604,7 +607,7 @@ export default class lbank extends lbankRest {
         client.resolve (myOrders, messageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         //     {
         //         "orderUpdate":{
@@ -751,7 +754,9 @@ export default class lbank extends lbankRest {
         account['free'] = this.safeString (data, 'free');
         account['used'] = this.safeString (data, 'freeze');
         account['total'] = this.safeString (data, 'asset');
-        this.balance[code] = account;
+        if (code !== undefined) {
+            this.balance[code] = account;
+        }
         this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, 'balance');
     }
@@ -942,7 +947,7 @@ export default class lbank extends lbankRest {
             'orderUpdate': this.handleOrders,
             'assetUpdate': this.handleBalance,
         };
-        const handler = this.safeValue (handlers, type as string);
+        const handler = this.safeValue (handlers, type);
         if (handler !== undefined) {
             handler.call (this, client, message);
         }

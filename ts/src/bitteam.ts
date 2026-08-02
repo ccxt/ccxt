@@ -5,7 +5,7 @@ import Exchange from './abstract/bitteam.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Currencies, Currency, Dict, NullableDict, int, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, int, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -469,7 +469,7 @@ export default class bitteam extends Exchange {
         const timeStart = this.safeString (market, 'timeStart');
         const created = this.parse8601 (timeStart);
         let minCost: Num = undefined;
-        const currenciesValuedInUsd = this.handleOption ('fetchMarkets', 'currenciesValuedInUsd', {}) as Dict;
+        const currenciesValuedInUsd = this.handleOption ('fetchMarkets', 'currenciesValuedInUsd', {});
         const quoteInUsd = this.safeBool (currenciesValuedInUsd, quote, false);
         if (quoteInUsd) {
             const settings = this.safeValue (market, 'settings', {});
@@ -658,7 +658,7 @@ export default class bitteam extends Exchange {
         return result;
     }
 
-    parseCurrency (currency: Dict): Currency {
+    parseCurrency (currency: Dict): CurrencyInterface {
         const statusesResponse = this.safeValue (this.options, '_temp_currencies_statuses', {});
         const id = this.safeString (currency, 'symbol');
         const numericId = this.safeInteger (currency, 'id');
@@ -670,7 +670,7 @@ export default class bitteam extends Exchange {
         const maxWithdraw = this.safeString (txLimits, 'maxWithdraw');
         const minDeposit = this.safeString (txLimits, 'minDeposit');
         let fee: Num = undefined;
-        const withdrawCommissionFixed = this.safeValue (txLimits, 'withdrawCommissionFixed', {}) as any;
+        const withdrawCommissionFixed = this.safeValue (txLimits, 'withdrawCommissionFixed', {});
         let feesByNetworkId: Dict = {};
         const blockChain = this.safeString (currency, 'blockChain');
         // if only one blockChain
@@ -680,7 +680,7 @@ export default class bitteam extends Exchange {
         } else {
             feesByNetworkId = withdrawCommissionFixed;
         }
-        const statuses = this.safeValue (statusesResponse, numericId as number, {});
+        const statuses = this.safeValue (statusesResponse, numericId, {});
         const deposit = this.safeValue (statuses, 'depositStatus');
         const withdraw = this.safeValue (statuses, 'withdrawStatus');
         const networkIds = Object.keys (feesByNetworkId);
@@ -691,30 +691,32 @@ export default class bitteam extends Exchange {
             const networkId = networkIds[j];
             const networkCode = this.networkIdToCode (networkId, code);
             const networkFee = this.safeNumber (feesByNetworkId, networkId);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'active': active,
-                'fee': networkFee,
-                'precision': networkPrecision,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'active': active,
+                    'fee': networkFee,
+                    'precision': networkPrecision,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.parseNumber (minWithdraw),
+                            'max': this.parseNumber (maxWithdraw),
+                        },
+                        'deposit': {
+                            'min': this.parseNumber (minDeposit),
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': this.parseNumber (minWithdraw),
-                        'max': this.parseNumber (maxWithdraw),
-                    },
-                    'deposit': {
-                        'min': this.parseNumber (minDeposit),
-                        'max': undefined,
-                    },
-                },
-                'info': currency,
-            };
+                    'info': currency,
+                };
+            }
         }
         return this.safeCurrencyStructure ({
             'id': id,
@@ -796,7 +798,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data: List = this.safeList (result, 'data', []) as List;
+        const data = this.safeList (result, 'data', []) as List;
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -984,7 +986,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const orders: List = this.safeList (result, 'orders', []) as List;
+        const orders = this.safeList (result, 'orders', []) as List;
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1047,7 +1049,7 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
+        const result = this.safeDict (response, 'result', {}) as Dict;
         return this.parseOrder (result, market);
     }
 
@@ -1169,7 +1171,7 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const order: Dict = this.safeDict (response, 'result', {}) as Dict;
+        const order = this.safeDict (response, 'result', {}) as Dict;
         return this.parseOrder (order, market);
     }
 
@@ -1199,7 +1201,7 @@ export default class bitteam extends Exchange {
         //         }
         //     }
         //
-        const result: Dict = this.safeDict (response, 'result', {}) as Dict;
+        const result = this.safeDict (response, 'result', {}) as Dict;
         return this.parseOrder (result);
     }
 
@@ -1671,7 +1673,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const pair: Dict = this.safeDict (result, 'pair', {}) as Dict;
+        const pair = this.safeDict (result, 'pair', {}) as Dict;
         return this.parseTicker (pair, market);
     }
 
@@ -2006,7 +2008,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const trades: List = this.safeList (result, 'trades', []) as List;
+        const trades = this.safeList (result, 'trades', []) as List;
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2191,11 +2193,13 @@ export default class bitteam extends Exchange {
             const used = this.safeString (currencyBalance, 'used');
             const total = this.safeString (currencyBalance, 'total');
             const currencyCode = this.safeCurrencyCode (rawCurrencyId.toLowerCase ());
-            balance[currencyCode] = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            if (currencyCode !== undefined) {
+                balance[currencyCode] = {
+                    'free': free,
+                    'used': used,
+                    'total': total,
+                };
+            }
         }
         return this.safeBalance (balance);
     }
@@ -2314,7 +2318,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const transactions: List = this.safeList (result, 'transactions', []) as List;
+        const transactions = this.safeList (result, 'transactions', []) as List;
         return this.parseTransactions (transactions, currency, since, limit);
     }
 
@@ -2414,7 +2418,7 @@ export default class bitteam extends Exchange {
             'deposit': 'deposit',
             'withdraw': 'withdrawal',
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseTransactionStatus (status: Str) {

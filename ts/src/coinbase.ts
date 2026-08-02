@@ -7,7 +7,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict, NullableDict, List, NullableList, int, TradingFees, LedgerEntry, DepositAddress, Position, Bool } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, Conversion, Dict, NullableDict, List, NullableList, int, TradingFees, LedgerEntry, DepositAddress, Position, Bool } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1592,7 +1592,7 @@ export default class coinbase extends Exchange {
         return newMarkets;
     }
 
-    parseSpotMarket (market, feeTier): MarketInterface {
+    parseSpotMarket (market, feeTier): Market {
         //
         //         {
         //             "product_id": "TONE-USD",
@@ -1689,7 +1689,7 @@ export default class coinbase extends Exchange {
         });
     }
 
-    parseContractMarket (market, feeTier): MarketInterface {
+    parseContractMarket (market, feeTier): Market {
         // expiring
         //
         //        {
@@ -1992,35 +1992,43 @@ export default class coinbase extends Exchange {
             const id = this.safeString2 (currency, 'id', 'code');
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
-            this.options['networks'][code] = (name as string).toLowerCase ();
-            this.options['networksById'][code] = (name as string).toLowerCase ();
+            if (code !== undefined) {
+                this.options['networks'][code] = (name as string).toLowerCase ();
+            }
+            if (code !== undefined) {
+                this.options['networksById'][code] = (name as string).toLowerCase ();
+            }
             const type = (assetId !== undefined) ? 'crypto' : 'fiat';
-            result[code] = this.safeCurrencyStructure ({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'type': type,
-                'name': name,
-                'active': true,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': undefined,
-                'networks': {}, // todo
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber (currency, 'min_size'),
-                        'max': undefined,
+            if (code !== undefined) {
+                result[code] = this.safeCurrencyStructure ({
+                    'info': currency,
+                    'id': id,
+                    'code': code,
+                    'type': type,
+                    'name': name,
+                    'active': true,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'networks': {}, // todo
+                    'limits': {
+                        'amount': {
+                            'min': this.safeNumber (currency, 'min_size'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            });
+                });
+            }
             if (assetId !== undefined) {
                 const lowerCaseName = (name as string).toLowerCase ();
-                networks[code] = lowerCaseName;
+                if (code !== undefined) {
+                    networks[code] = lowerCaseName;
+                }
                 networksById[lowerCaseName] = code;
             }
         }
@@ -2028,14 +2036,16 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < ratesIds.length; i++) {
             const currencyId = ratesIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            if (!(code in result)) {
-                result[code] = this.safeCurrencyStructure ({
-                    'info': {},
-                    'id': currencyId,
-                    'code': code,
-                    'type': 'crypto',
-                    'networks': {}, // todo
-                });
+            if ((code === undefined) || !(code in result)) {
+                if (code !== undefined) {
+                    result[code] = this.safeCurrencyStructure ({
+                        'info': {},
+                        'id': currencyId,
+                        'code': code,
+                        'type': 'crypto',
+                        'networks': {}, // todo
+                    });
+                }
             }
         }
         this.options['networks'] = this.extend (networks, this.options['networks']);
@@ -2114,7 +2124,7 @@ export default class coinbase extends Exchange {
         if (marketType !== undefined && marketType !== 'default') {
             request['product_type'] = (marketType === 'swap') ? 'FUTURE' : 'SPOT';
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         let usePrivate = false;
         [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'usePrivate', false);
         if (usePrivate) {
@@ -2233,7 +2243,7 @@ export default class coinbase extends Exchange {
         };
         let usePrivate = false;
         [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchTicker', 'usePrivate', false);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (usePrivate) {
             response = await this.v3PrivateGetBrokerageProductsProductIdTicker (this.extend (request, params));
         } else {
@@ -2422,7 +2432,9 @@ export default class coinbase extends Exchange {
                         account['free'] = Precise.stringAdd (account['free'], total);
                         account['total'] = Precise.stringAdd (account['total'], total);
                     }
-                    result[code] = account;
+                    if (code !== undefined) {
+                        result[code] = account;
+                    }
                 }
             } else if (this.inArray (type, v3Accounts)) {
                 const available = this.safeDict (balance, 'available_balance');
@@ -2444,7 +2456,9 @@ export default class coinbase extends Exchange {
                         account['used'] = Precise.stringAdd (account['used'], used);
                         account['total'] = Precise.stringAdd (account['total'], total);
                     }
-                    result[code] = account;
+                    if (code !== undefined) {
+                        result[code] = account;
+                    }
                 }
             }
         }
@@ -2469,7 +2483,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        let response: NullableDict = undefined;
+        let response = undefined;
         const isV3 = this.safeBool (params, 'v3', false);
         params = this.omit (params, [ 'v3' ]);
         let marketType: Str = undefined;
@@ -2625,7 +2639,7 @@ export default class coinbase extends Exchange {
             'pro_deposit': 'transaction', // crypto withdrawal (from coinbase to coinbasepro)
             'pro_withdrawal': 'transaction', // crypto deposit (to coinbase from coinbasepro)
         };
-        return this.safeString (types, type, type);
+        return this.safeString (types, (type as string), type);
     }
 
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
@@ -3198,7 +3212,7 @@ export default class coinbase extends Exchange {
         }
         params = this.omit (params, [ 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopPrice', 'stop_price', 'stopDirection', 'stop_direction', 'clientOrderId', 'postOnly', 'post_only', 'end_time', 'marginMode' ]);
         const preview = this.safeBool2 (params, 'preview', 'test', false);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (preview) {
             params = this.omit (params, [ 'preview', 'test' ]);
             request = this.omit (request, 'client_order_id');
@@ -3893,7 +3907,7 @@ export default class coinbase extends Exchange {
             // 300 candles max
             request['end'] = Precise.stringAdd (sinceString, requestedDuration.toString ());
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         let usePrivate = false;
         [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'usePrivate', false);
         if (usePrivate) {
@@ -3976,7 +3990,7 @@ export default class coinbase extends Exchange {
         } else if (since !== undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTrades() requires a `until` parameter when you use `since` argument');
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         let usePrivate = false;
         [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'usePrivate', false);
         if (usePrivate) {
@@ -4102,7 +4116,7 @@ export default class coinbase extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response: NullableDict = undefined;
+        let response = undefined;
         let usePrivate = false;
         [ usePrivate, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'usePrivate', false);
         if (usePrivate) {
@@ -4841,7 +4855,7 @@ export default class coinbase extends Exchange {
         }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (type === 'future') {
             response = await this.v3PrivateGetBrokerageCfmPositions (params);
         } else {
@@ -4876,7 +4890,7 @@ export default class coinbase extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let response: NullableDict = undefined;
+        let response = undefined;
         if (market['future']) {
             const productId = this.safeString (market, 'product_id');
             if (productId === undefined) {
