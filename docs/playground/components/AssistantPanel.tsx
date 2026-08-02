@@ -229,8 +229,9 @@ function Message({
     msg.role === "assistant" && isRunnable(language)
       ? blocks.filter((b): b is TaggedCode => b.kind === "code" && b.lang === language)
       : [];
+  // Stash every other runnable language for silent fill — never render them.
   const background =
-    primary.length > 0
+    msg.role === "assistant"
       ? blocks.filter(
           (b): b is TaggedCode =>
             b.kind === "code" && b.lang !== null && b.lang !== language && isRunnable(b.lang),
@@ -240,17 +241,10 @@ function Message({
   const completeBgKey = completeBackground.map((b) => `${b.lang}:${b.text.length}:${hashText(b.text)}`).join("|");
   const completeBgRef = useRef(completeBackground);
   completeBgRef.current = completeBackground;
-  // Degraded mode: the model dropped the active language (or it is disabled) —
-  // show every tagged block rather than hide code, with Insert-all as the bulk path.
-  const targeted =
-    msg.role === "assistant" && primary.length === 0
-      ? blocks.filter(
-          (b): b is TaggedCode =>
-            b.kind === "code" && b.lang !== null && isRunnable(b.lang) && b.complete,
-        )
-      : [];
+  // Sidebar: prose + untagged dumps + the *currently selected* language only.
+  // Other playground-language fences are never shown, even if the model dropped the active one.
   const visible =
-    primary.length > 0
+    msg.role === "assistant"
       ? blocks.filter((b) => b.kind === "text" || b.lang === null || b.lang === language)
       : blocks;
 
@@ -299,17 +293,6 @@ function Message({
           // Primary Insert appears as soon as that fence closes — do not wait for the other five.
           requireCompleteForPrimary: true,
         })
-      )}
-      {!streaming && targeted.length > 1 && (
-        <div className="code-actions">
-          <button
-            className="btn btn-outline btn-sm"
-            onClick={() => targeted.forEach((b) => onInsert(b.text, b.lang))}
-            title="Put each block in its own language tab"
-          >
-            Insert all {targeted.length} languages →
-          </button>
-        </div>
       )}
       {streaming && msg.content === "" && <span className="ai-empty dots" />}
     </div>

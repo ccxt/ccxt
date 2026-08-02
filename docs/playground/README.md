@@ -20,10 +20,10 @@ code for you.
 - **Execution:** a backend executor spawns the real interpreter for each language
   using a pinned CCXT install, so you get real responses from real exchanges.
 - **AI assistant:** streams free models via [OpenRouter](https://openrouter.ai);
-  every code answer covers all six languages at once — the sidebar shows the
-  active tab's language (Insert ready as soon as that block finishes streaming).
-  One Insert files the active tab immediately; the other languages fill their
-  editor buffers silently in the background as each completes. The model list is
+  every code answer covers all six languages at once — the sidebar shows **only**
+  the language tab you have selected (Insert ready as soon as that block finishes
+  streaming). One Insert files that tab immediately; the other languages fill
+  their editor buffers silently in the background. The model list is
   fetched from OpenRouter at server startup (free slugs rotate constantly) and
   cached for the process lifetime.
 
