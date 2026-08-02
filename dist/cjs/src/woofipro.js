@@ -705,7 +705,7 @@ class woofipro extends woofipro$1["default"] {
             const networkEntry = networks[j];
             const networkId = this.safeString(networkEntry, 'chain_id');
             const networkRow = this.safeDict(indexedChains, networkId);
-            const networkName = this.safeString(networkRow, 'name');
+            const networkName = this.safeString(networkRow, 'name', networkId);
             const networkCode = this.networkIdToCode(networkName, code);
             resultingNetworks[networkCode] = {
                 'id': networkId,

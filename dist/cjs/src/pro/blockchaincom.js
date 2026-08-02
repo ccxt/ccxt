@@ -182,7 +182,7 @@ class blockchaincom extends blockchaincom$1["default"] {
             const symbol = this.safeSymbol(marketId, undefined, '-');
             const messageHash = 'ohlcv:' + symbol;
             const request = this.safeValue(client.subscriptions, messageHash);
-            const timeframeId = this.safeNumber(request, 'granularity');
+            const timeframeId = this.safeString(request, 'granularity');
             const timeframe = this.findTimeframe(timeframeId);
             const ohlcv = this.safeValue(message, 'price', []);
             this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
