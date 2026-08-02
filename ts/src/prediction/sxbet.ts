@@ -1,7 +1,7 @@
 import Exchange from '../abstract/prediction/sxbet.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
-import type { Dict, Int, Market, PredictionEvent, PredictionOrderBook, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { Dict, Int, Market, Num, PredictionEvent, PredictionOrderBook, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -215,7 +215,7 @@ export default class sxbet extends Exchange {
         //     "mainLine": true,
         //     "isQuarterLineMarket": false
         // }
-        const marketHash = this.safeString (raw, 'marketHash');
+        const marketHash = this.safeString (raw, 'marketHash', '');
         const teamOneName = this.safeString (raw, 'teamOneName');
         const teamTwoName = this.safeString (raw, 'teamTwoName');
         const outcomeOneName = this.safeString (raw, 'outcomeOneName');
@@ -347,7 +347,7 @@ export default class sxbet extends Exchange {
         }
         const queriesLength = queries.length;
         if (queriesLength > 0) {
-            const filtered = [];
+            const filtered: any[] = [];
             const preFilterLength = rawMarkets.length;
             for (let i = 0; i < preFilterLength; i++) {
                 if (this.matchesEventQuery (rawMarkets[i], queries)) {
@@ -466,6 +466,9 @@ export default class sxbet extends Exchange {
         for (let i = 0; i < rawMarketsLength; i++) {
             const raw = rawMarkets[i];
             const parsed = this.parseSxbetMarket (raw);
+            if (parsed === undefined) {
+                throw new ExchangeError (this.id + ' parseSxbetEvent() could not resolve parsed market');
+            }
             marketsList.push (parsed);
             if (parsed['active']) {
                 anyActive = true;
@@ -658,7 +661,7 @@ export default class sxbet extends Exchange {
         const updatedAt = this.safeInteger (ownOdds, 'updatedAt');
         const now = this.milliseconds ();
         const timestamp = (updatedAt !== undefined) ? updatedAt : now;
-        let average = undefined;
+        let average: Num = undefined;
         if ((bid !== undefined) && (ask !== undefined)) {
             average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (this.numberToString (bid), this.numberToString (ask)), '2'));
         }
