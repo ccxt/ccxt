@@ -10,9 +10,9 @@ export const OPENROUTER_MODELS_URL = "https://openrouter.ai/api/v1/models";
 // OpenRouter app attribution (HTTP-Referer + X-Title). Override via env when the
 // playground is served under a different public URL.
 export const OPENROUTER_SITE_URL =
-  process.env.OPENROUTER_SITE_URL?.trim() || "https://ccxt.com/playground";
+  process.env.OPENROUTER_SITE_URL?.trim() || "https://docs.ccxt.com/playground";
 export const OPENROUTER_APP_TITLE =
-  process.env.OPENROUTER_APP_TITLE?.trim() || "CCXT Playground";
+  process.env.OPENROUTER_APP_TITLE?.trim() || "CCXT Docs";
 
 export function openRouterHeaders(extra: Record<string, string> = {}): Record<string, string> {
   return {
