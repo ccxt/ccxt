@@ -158,7 +158,7 @@ class whitebit extends \ccxt\async\whitebit {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -341,7 +341,7 @@ class whitebit extends \ccxt\async\whitebit {
         //
         $tickers = $this->safe_value($message, 'params', array());
         $marketId = $this->safe_string($tickers, 0);
-        $market = $this->safe_market($marketId, null);
+        $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $rawTicker = $this->safe_value($tickers, 1, array());
         $messageHash = 'ticker' . ':' . $symbol;

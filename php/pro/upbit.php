@@ -169,7 +169,7 @@ class upbit extends \ccxt\async\upbit {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $orderbook = Async\await($this->watch_public_multiple(array( $symbol ), 'orderbook'));
             return $orderbook->limit();
@@ -347,7 +347,7 @@ class upbit extends \ccxt\async\upbit {
         //     stream_type => 'REALTIME'
         //   }
         $marketId = $this->safe_string($message, 'code');
-        $symbol = $this->safe_symbol($marketId, null);
+        $symbol = $this->safe_symbol($marketId);
         $messageHash = 'candle.1s:' . $symbol;
         $ohlcv = $this->parse_ohlcv($message);
         $client->resolve($ohlcv, $messageHash);

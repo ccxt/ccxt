@@ -271,7 +271,7 @@ class binance(ccxt.async_support.binance):
         :param str symbol: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
-        :param dict [params]: exchange specific parameters for the bitmex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
         """
         return self.watch_liquidations_for_symbols([symbol], since, limit, params)
@@ -286,7 +286,7 @@ class binance(ccxt.async_support.binance):
         :param str[] symbols: list of unified market symbols
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
-        :param dict [params]: exchange specific parameters for the bitmex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
         """
         if self.markets is None:
@@ -487,7 +487,7 @@ class binance(ccxt.async_support.binance):
         :param str symbol: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
-        :param dict [params]: exchange specific parameters for the bitmex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
         """
         return self.watch_my_liquidations_for_symbols([symbol], since, limit, params)
@@ -502,7 +502,7 @@ class binance(ccxt.async_support.binance):
         :param str[] symbols: list of unified market symbols
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
-        :param dict [params]: exchange specific parameters for the bitmex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
         """
         if self.markets is None:
@@ -664,7 +664,7 @@ class binance(ccxt.async_support.binance):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.rpi]: *future only* set to True to use the RPI endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()

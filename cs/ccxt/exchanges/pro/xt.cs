@@ -545,7 +545,7 @@ public partial class xt : ccxt.xt
      * @param {int} [limit] not used by xt watchOrderBook
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.levels] 5, 10, 20, or 50
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {

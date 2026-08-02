@@ -506,7 +506,7 @@ export default class indodax extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
@@ -817,6 +817,7 @@ export default class indodax extends Exchange {
         const price = this.safeString (order, 'price');
         let amount: Str = undefined;
         let remaining: Str = undefined;
+        let filled: Str = undefined;
         const marketId = this.safeString (order, 'pair');
         market = this.safeMarket (marketId, market);
         if (market !== undefined) {
@@ -830,10 +831,11 @@ export default class indodax extends Exchange {
                 baseId = 'rp';
             }
             cost = this.safeString (order, 'order_' + quoteId);
-            if (!cost) {
-                amount = this.safeString (order, 'order_' + baseId);
-                remaining = this.safeString (order, 'remain_' + baseId);
-            }
+            amount = this.safeString (order, 'order_' + baseId);
+            remaining = this.safeString (order, 'remain_' + baseId);
+            // filled buy orders on idr-quoted markets carry the executed base amount
+            // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
+            filled = this.safeString (order, 'receive_' + baseId);
         }
         const timestamp = this.safeInteger (order, 'submit_time');
         const fee = undefined;
@@ -855,7 +857,7 @@ export default class indodax extends Exchange {
             'cost': cost,
             'average': undefined,
             'amount': amount,
-            'filled': undefined,
+            'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,

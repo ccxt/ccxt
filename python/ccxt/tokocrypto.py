@@ -267,7 +267,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
                 # 'fetchPositions': 'positionRisk',  # or 'account'
                 'recvWindow': 5 * 1000,  # 5 sec, binance default
-                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'newOrderRespType': {
                     'market': 'FULL',  # 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
@@ -910,7 +910,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -1370,7 +1370,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #         "0",                    # Ignore
         #         1591256519999,          # Close time
         #         "0",                    # Ignore
-        #         60,                     # Number of bisic data
+        #         60,                     # Number of basic data
         #         "0",                    # Ignore
         #         "0",                    # Ignore
         #         "0"                     # Ignore
@@ -2490,7 +2490,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         # error response in a form: {"code": -1013, "msg": "Invalid quantity."}
-        # following block cointains legacy checks against message patterns in "msg" property
+        # following block contains legacy checks against message patterns in "msg" property
         # will switch "code" checks eventually, when we know all of them
         if code >= 400:
             if body.find('Price * QTY is zero or less') >= 0:

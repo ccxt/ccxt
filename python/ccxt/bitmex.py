@@ -1047,7 +1047,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -2163,7 +2163,7 @@ class bitmex(Exchange, ImplicitAPI):
         https://www.bitmex.com/api/explorer/#not /Order/Order_cancel
 
         :param str id: order id
-        :param str symbol: not used by bitmex cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -2192,7 +2192,7 @@ class bitmex(Exchange, ImplicitAPI):
         https://www.bitmex.com/api/explorer/#not /Order/Order_cancel
 
         :param str[] ids: order ids
-        :param str symbol: not used by bitmex cancelOrders()
+        :param str symbol: not used by cancelOrders()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -2216,7 +2216,7 @@ class bitmex(Exchange, ImplicitAPI):
 
         https://www.bitmex.com/api/explorer/#not /Order/Order_cancelAll
 
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -3445,7 +3445,7 @@ class bitmex(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str side: the buy or sell side of the closing order, if the position is long set the side to sell, reduceOnly is implied
-        :param dict [params]: extra parameters specific to the bingx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:

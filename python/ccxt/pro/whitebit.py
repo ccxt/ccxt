@@ -147,7 +147,7 @@ class whitebit(ccxt.async_support.whitebit):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -311,7 +311,7 @@ class whitebit(ccxt.async_support.whitebit):
         #
         tickers = self.safe_value(message, 'params', [])
         marketId = self.safe_string(tickers, 0)
-        market = self.safe_market(marketId, None)
+        market = self.safe_market(marketId)
         symbol = market['symbol']
         rawTicker = self.safe_value(tickers, 1, {})
         messageHash = 'ticker' + ':' + symbol

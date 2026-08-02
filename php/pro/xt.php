@@ -514,7 +514,7 @@ class xt extends \ccxt\async\xt {
              * @param {int} [$limit] not used by xt watchOrderBook
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @param {int} [$params->levels] 5, 10, 20, or 50
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());

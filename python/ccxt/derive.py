@@ -1602,7 +1602,7 @@ class derive(Exchange, ImplicitAPI):
         https://docs.derive.xyz/reference/post_private-cancel-all
 
         cancel all open orders in a market
-        :param str symbol: unified market symbol
+        :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subaccount_id]: *required* the subaccount id
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
@@ -2082,7 +2082,7 @@ class derive(Exchange, ImplicitAPI):
 
         https://docs.derive.xyz/reference/post_private-get-positions
 
-        :param str[] [symbols]: not used by kraken fetchPositions()
+        :param str[] [symbols]: not used by fetchPositions()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subaccount_id]: *required* the subaccount id
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`

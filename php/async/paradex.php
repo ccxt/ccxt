@@ -1059,7 +1059,7 @@ class paradex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -2025,7 +2025,7 @@ class paradex extends Exchange {
             for ($i = 0; $i < count($results); $i++) {
                 $result = $results[$i];
                 $marketId = $this->safe_string($result, 'market');
-                $market = $this->safe_market($marketId, null);
+                $market = $this->safe_market($marketId);
                 $status = $this->safe_string($result, 'status');
                 $orderStatus = null;
                 if ($status === 'QUEUED_FOR_CANCELLATION') {

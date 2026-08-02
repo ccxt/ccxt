@@ -413,7 +413,7 @@ class cryptomus(Exchange, ImplicitAPI):
 
     def parse_currency(self, rawCurrency: dict) -> Currency:
         # currency here is array of networks
-        id = None  # all entried have same id, were grouped by
+        id = None  # all entries have same id, were grouped by
         code = None
         networks = {}
         for i in range(0, len(rawCurrency)):
@@ -526,7 +526,7 @@ class cryptomus(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.level]: 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()

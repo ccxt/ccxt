@@ -309,7 +309,7 @@ class zebpay(Exchange, ImplicitAPI):
         [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
         [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
 
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         promisesUnresolved = []
@@ -553,7 +553,7 @@ class zebpay(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -1025,7 +1025,7 @@ class zebpay(Exchange, ImplicitAPI):
 
     def order_request(self, symbol, type, amount, request, price=None, params={}):
         upperCaseType = type.upper()
-        triggerPrice = self.safe_string(params, 'stopLossPrice', None)
+        triggerPrice = self.safe_string(params, 'stopLossPrice')
         quoteOrderQty = self.safe_string_2(params, 'quoteOrderQty', 'cost', None)
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
         clientOrderId = self.safe_string(params, 'clientOrderId', self.uuid())
@@ -1088,10 +1088,10 @@ class zebpay(Exchange, ImplicitAPI):
 
         [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders
 
-        :param str symbol: unified symbol of the market the order was made in
+        :param str [symbol]: unified symbol of the market the orders were made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param dict [params.timestamp]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
+        :param int [params.timestamp]: the timestamp of the request in ms
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         type = None
         type, params = self.handle_market_type_and_params('cancelAllOrders', None, params)
@@ -1258,7 +1258,7 @@ class zebpay(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         status = self.safe_string_lower(order, 'status')
-        orderId = self.safe_string(order, 'orderId', None)
+        orderId = self.safe_string(order, 'orderId')
         parsedOrder = self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1294,7 +1294,7 @@ class zebpay(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str side: not used by kucoinfutures closePositions
-        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.positionId]: client order id of the order
         :returns dict[]: `A list of position structures <https://docs.ccxt.com/?id=position-structure>`
         """

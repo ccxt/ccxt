@@ -196,7 +196,7 @@ class poloniex(ccxt.async_support.poloniex):
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the poloniex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: GTC(default), IOC, FOK
         :param str [params.clientOrderId]: Maximum 64-character length.*
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
@@ -257,7 +257,7 @@ class poloniex(ccxt.async_support.poloniex):
         cancel multiple orders
         :param str id: order id
         :param str [symbol]: unified market symbol
-        :param dict [params]: extra parameters specific to the poloniex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: client order id
         :returns dict: an list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
@@ -277,7 +277,7 @@ class poloniex(ccxt.async_support.poloniex):
         cancel multiple orders
         :param str[] ids: order ids
         :param str symbol: unified market symbol, default is None
-        :param dict [params]: extra parameters specific to the poloniex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str[] [params.clientOrderIds]: client order ids
         :returns dict: an list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
@@ -296,7 +296,7 @@ class poloniex(ccxt.async_support.poloniex):
 
         cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
-        :param dict [params]: extra parameters specific to the poloniex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
         if self.markets is None:
@@ -444,7 +444,7 @@ class poloniex(ccxt.async_support.poloniex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: not used by poloniex watchOrderBook
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()

@@ -933,7 +933,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return.
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -2562,6 +2562,17 @@ class bybit extends \ccxt\async\bybit {
                 $client->reject($error, $authenticatedHash);
                 if (is_array($client->subscriptions) && array_key_exists($authenticatedHash ?? '', $client->subscriptions)) {
                     unset($client->subscriptions[$authenticatedHash]);
+                }
+                $op = $this->safe_string($message, 'op');
+                if (($op !== null) && ($op !== 'auth')) {
+                    // an operation response that carries no reqId, e.g. bybit
+                    // omits it on some permission rejections of trade ops,
+                    // would leave the awaiting future pending forever, and
+                    // since nothing on this $client can proceed without
+                    // authentication, reject everything pending, mirroring the
+                    // behavior of unattributable non auth errors, see
+                    // https://github.com/ccxt/ccxt/issues/29361
+                    $client->reject($error);
                 }
             } else {
                 $client->reject($error, $messageHash);

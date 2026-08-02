@@ -589,7 +589,7 @@ public partial class zebpay : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1162,7 +1162,7 @@ public partial class zebpay : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object upperCaseType = ((string)type).ToUpper();
-        object triggerPrice = this.safeString(parameters, "stopLossPrice", null);
+        object triggerPrice = this.safeString(parameters, "stopLossPrice");
         object quoteOrderQty = this.safeString2(parameters, "quoteOrderQty", "cost", null);
         object timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         object clientOrderId = this.safeString(parameters, "clientOrderId", this.uuid());
@@ -1445,7 +1445,7 @@ public partial class zebpay : Exchange
         object clientOrderId = this.safeString(order, "clientOrderId");
         object timeInForce = this.safeString(order, "timeInForce");
         object status = this.safeStringLower(order, "status");
-        object orderId = this.safeString(order, "orderId", null);
+        object orderId = this.safeString(order, "orderId");
         object parsedOrder = this.safeOrder(new Dictionary<string, object>() {
             { "id", orderId },
             { "clientOrderId", clientOrderId },

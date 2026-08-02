@@ -1449,7 +1449,7 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), default is false
              * @param {string} [$params->method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             //
             // https://docs.kucoin.com/#level-2-$market-data
@@ -1556,7 +1556,7 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $symbolsLength = count($symbols);
             if ($symbolsLength === 0) {
@@ -2300,9 +2300,36 @@ class kucoin extends \ccxt\async\kucoin {
         $orders = $this->safe_value($cachedOrders->hashmap, $symbol, array());
         $order = $this->safe_value($orders, $orderId);
         if ($order !== null) {
-            // todo add others to calculate average etc
             if ($order['status'] === 'closed') {
                 $parsed['status'] = 'closed';
+            }
+            // carry the accumulated fill state forward, the raw feed only
+            // carries the match prices on the match messages, and safeOrder
+            // derives cost from the $order price otherwise, which is wrong for
+            // $orders filled at better prices, so the accumulated values win on
+            // the non match messages, see https://github.com/ccxt/ccxt/issues/19083
+            if ($order['average'] !== null) {
+                $parsed['average'] = $order['average'];
+                $parsed['cost'] = $order['cost'];
+            }
+            if ($parsed['filled'] === null) {
+                $parsed['filled'] = $order['filled'];
+            }
+        }
+        // accumulate the average fill price and cost from the match messages,
+        // which carry $matchPrice and $matchSize, the terminal filled $message
+        // does not repeat them, see https://github.com/ccxt/ccxt/issues/19083
+        $rawType = $this->safe_string($data, 'type');
+        $matchPrice = $this->safe_string($data, 'matchPrice');
+        $matchSize = $this->safe_string($data, 'matchSize');
+        if (($rawType === 'match') && ($matchPrice !== null) && ($matchSize !== null)) {
+            $matchCost = Precise::string_mul($matchPrice, $matchSize);
+            $previousCost = ($order === null) ? '0' : $this->number_to_string($this->safe_number($order, 'cost', 0));
+            $costString = Precise::string_add($previousCost, $matchCost);
+            $parsed['cost'] = $this->parse_number($costString);
+            $filledString = $this->number_to_string($parsed['filled']);
+            if (($filledString !== null) && (Precise::string_gt($filledString, '0'))) {
+                $parsed['average'] = $this->parse_number(Precise::string_div($costString, $filledString));
             }
         }
         $cachedOrders->append($parsed);

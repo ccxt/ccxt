@@ -628,7 +628,7 @@ class latoken(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -1381,7 +1381,7 @@ class latoken(Exchange, ImplicitAPI):
         https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  # stop
 
         :param str id: order id
-        :param str symbol: not used by latoken cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if cancelling a trigger order
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
@@ -1416,7 +1416,7 @@ class latoken(Exchange, ImplicitAPI):
         https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
         https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
 
-        :param str symbol: unified market symbol of the market to cancel orders in
+        :param str [symbol]: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if cancelling trigger orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`

@@ -885,7 +885,7 @@ class hashkey(Exchange, ImplicitAPI):
         swapMarkets = self.safe_list(response, 'contracts', [])
         markets = self.array_concat(spotMarkets, swapMarkets)
         if self.is_empty(markets):
-            markets = [response]  # if user provides params.symbol the exchange returns a single object insted of list of objects
+            markets = [response]  # if user provides params.symbol the exchange returns a single object instead of list of objects
         return self.parse_markets(markets)
 
     def parse_market(self, market: dict) -> Market:
@@ -1255,7 +1255,7 @@ class hashkey(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(maximum value is 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()

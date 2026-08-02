@@ -1373,7 +1373,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders
 
         Cancels all orders on the exchange, including trigger orders
-        :param str symbol: Unified market symbol
+        :param str [symbol]: Unified market symbol
         :param dict [params]: Exchange specific params
         :returns: Response from exchange api
         """

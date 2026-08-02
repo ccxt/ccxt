@@ -251,7 +251,7 @@ class bullish(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             # exchange-specific options
             'options': {
-                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'networks': {
                     'BTC': 'BTC',
@@ -914,7 +914,7 @@ class bullish(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(not used by bullish)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -1583,7 +1583,7 @@ class bullish(Exchange, ImplicitAPI):
         """
         request = {
             'status': 'CANCELLED',
-            'method': 'privateGetV2Orders',  # current endpoint distinquishes between CLOSED and CANCELLED orders
+            'method': 'privateGetV2Orders',  # current endpoint distinguishes between CLOSED and CANCELLED orders
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
@@ -1602,7 +1602,7 @@ class bullish(Exchange, ImplicitAPI):
         """
         request = {
             'status': 'CLOSED',
-            'method': 'privateGetV2Orders',  # current endpoint distinquishes between CLOSED and CANCELLED orders
+            'method': 'privateGetV2Orders',  # current endpoint distinguishes between CLOSED and CANCELLED orders
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 

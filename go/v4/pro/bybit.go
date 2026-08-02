@@ -1146,7 +1146,7 @@ func (this *BybitCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan an
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BybitCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -3088,6 +3088,17 @@ func (this *BybitCore) HandleErrorMessage(client any, message any) any {
 							client.(ccxt.ClientInterface).Reject(error, authenticatedHash)
 							if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), authenticatedHash)) {
 								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), authenticatedHash)
+							}
+							var op any = this.SafeString(message, "op")
+							if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(op, nil))) && ccxt.IsTrue((!ccxt.IsEqual(op, "auth")))) {
+								// an operation response that carries no reqId, e.g. bybit
+								// omits it on some permission rejections of trade ops,
+								// would leave the awaiting future pending forever, and
+								// since nothing on this client can proceed without
+								// authentication, reject everything pending, mirroring the
+								// behavior of unattributable non auth errors, see
+								// https://github.com/ccxt/ccxt/issues/29361
+								client.(ccxt.ClientInterface).Reject(error)
 							}
 						} else {
 							client.(ccxt.ClientInterface).Reject(error, messageHash)

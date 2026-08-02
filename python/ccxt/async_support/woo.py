@@ -652,7 +652,7 @@ class woo(Exchange, ImplicitAPI):
                     'symbol must not be blank': BadRequest,  # when sending 'cancelOrder' without symbol [-1005]
                     'The token is not supported': BadRequest,  # when getting incorrect token's deposit address [-1005]
                     'Your order and symbol are not valid or already canceled': BadRequest,  # actual response whensending 'cancelOrder' for already canceled id [-1006]
-                    'Insufficient WOO. Please enable margin trading for leverage trading': BadRequest,  # when selling insufficent token [-1012]
+                    'Insufficient WOO. Please enable margin trading for leverage trading': BadRequest,  # when selling insufficient token [-1012]
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -1138,7 +1138,7 @@ class woo(Exchange, ImplicitAPI):
         #     "success": True
         # }
         #
-        # only make one request for currrencies...
+        # only make one request for currencies...
         tokenNetworkResponsePromise = self.v1PublicGetTokenNetwork(params)
         #
         # {
@@ -1201,7 +1201,7 @@ class woo(Exchange, ImplicitAPI):
             specialNetworkId = self.safe_string(tokenEntry, 'token')
             resultingNetworks[networkCode] = {
                 'id': networkId,
-                'currencyNetworkId': specialNetworkId,  # exchange uses special crrency-ids(coin + network junction)
+                'currencyNetworkId': specialNetworkId,  # exchange uses special currency-ids(coin + network junction)
                 'network': networkCode,
                 'active': None,
                 'deposit': self.safe_string(networkEntry, 'allow_deposit') == '1',
@@ -1665,7 +1665,7 @@ class woo(Exchange, ImplicitAPI):
         https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
 
         cancel all open orders in a market
-        :param str symbol: unified market symbol
+        :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a trigger/algo order
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
@@ -2184,7 +2184,7 @@ class woo(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()

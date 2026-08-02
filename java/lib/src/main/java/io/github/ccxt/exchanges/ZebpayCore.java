@@ -641,7 +641,7 @@ public class ZebpayCore extends ZebpayApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -1274,7 +1274,7 @@ public class ZebpayCore extends ZebpayApi
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object upperCaseType = ((String)type).toUpperCase();
-        Object triggerPrice = this.safeString(parameters, "stopLossPrice", null);
+        Object triggerPrice = this.safeString(parameters, "stopLossPrice");
         Object quoteOrderQty = this.safeString2(parameters, "quoteOrderQty", "cost", null);
         Object timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         Object clientOrderId = this.safeString(parameters, "clientOrderId", this.uuid());
@@ -1584,7 +1584,7 @@ public class ZebpayCore extends ZebpayApi
         Object clientOrderId = this.safeString(order, "clientOrderId");
         Object timeInForce = this.safeString(order, "timeInForce");
         Object status = this.safeStringLower(order, "status");
-        Object orderId = this.safeString(order, "orderId", null);
+        Object orderId = this.safeString(order, "orderId");
         Object parsedOrder = this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );

@@ -579,7 +579,7 @@ class zebpay extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1111,7 +1111,7 @@ class zebpay extends Exchange {
 
     public function order_request($symbol, $type, $amount, $request, $price = null, $params = array()) {
         $upperCaseType = strtoupper($type);
-        $triggerPrice = $this->safe_string($params, 'stopLossPrice', null);
+        $triggerPrice = $this->safe_string($params, 'stopLossPrice');
         $quoteOrderQty = $this->safe_string_2($params, 'quoteOrderQty', 'cost', null);
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
         $clientOrderId = $this->safe_string($params, 'clientOrderId', $this->uuid());
@@ -1372,7 +1372,7 @@ class zebpay extends Exchange {
         $clientOrderId = $this->safe_string($order, 'clientOrderId');
         $timeInForce = $this->safe_string($order, 'timeInForce');
         $status = $this->safe_string_lower($order, 'status');
-        $orderId = $this->safe_string($order, 'orderId', null);
+        $orderId = $this->safe_string($order, 'orderId');
         $parsedOrder = $this->safe_order(array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,

@@ -950,7 +950,7 @@ func (this *PacificaCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan 
 		var cacheAddress any = this.WalletAddress
 		var settings any = nil
 		if IsTrue(IsEqual(userAccount, cacheAddress)) {
-			settings = this.HandleOption("fetchLeverage", "settings", nil)
+			settings = this.HandleOption("fetchLeverage", "settings")
 		} else {
 			var request any = map[string]any{
 				"account": userAccount,
@@ -959,7 +959,7 @@ func (this *PacificaCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan 
 			settings = (<-this.FetchAccountSettings(this.Extend(request, params)))
 			PanicOnError(settings)
 		}
-		var setting any = this.SafeDict(settings, symbol, nil)
+		var setting any = this.SafeDict(settings, symbol)
 		if IsTrue(IsEqual(setting, nil)) {
 
 			// NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -1064,7 +1064,7 @@ func (this *PacificaCore) LoadAccountSettings(optionalArgs ...any) <-chan any {
 		_ = refresh
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-		var settings any = this.HandleOption("loadAccountSettings", "settings", nil)
+		var settings any = this.HandleOption("loadAccountSettings", "settings")
 		if IsTrue(IsTrue((IsEqual(settings, nil))) || IsTrue((IsEqual(refresh, true)))) {
 			AddElementToObject(this.Options, "settings", this.CreateSafeDictionary())
 
@@ -1118,7 +1118,7 @@ func (this *PacificaCore) FetchMarginMode(symbol any, optionalArgs ...any) <-cha
 		var cacheAddress any = this.WalletAddress
 		var settings any = nil
 		if IsTrue(IsEqual(userAccount, cacheAddress)) {
-			settings = this.HandleOption("fetchMarginMode", "settings", nil)
+			settings = this.HandleOption("fetchMarginMode", "settings")
 		} else {
 			var request any = map[string]any{
 				"account": userAccount,
@@ -1136,7 +1136,7 @@ func (this *PacificaCore) FetchMarginMode(symbol any, optionalArgs ...any) <-cha
 		//       "updated_at": 1758086074002
 		//    },
 		// }
-		var setting any = this.SafeDict(settings, symbol, nil)
+		var setting any = this.SafeDict(settings, symbol)
 		if IsTrue(IsEqual(setting, nil)) {
 
 			// NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -1182,7 +1182,7 @@ func (this *PacificaCore) ParseMarginModeFromSetting(symbol any, setting any) an
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *PacificaCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2052,7 +2052,7 @@ func (this *PacificaCore) CreateOrders(orders any, optionalArgs ...any) <-chan a
 		var ordersToReturn any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(results)); i++ {
 			var order any = GetValue(results, i)
-			var error any = this.SafeString(order, "error", nil)
+			var error any = this.SafeString(order, "error")
 			var success any = this.SafeBool(order, "success", false)
 			var status any = nil
 			if IsTrue(IsTrue((!IsEqual(error, nil))) || IsTrue((!IsTrue(success)))) {
@@ -2136,7 +2136,7 @@ func (this *PacificaCore) CancelOrders(ids any, optionalArgs ...any) <-chan any 
 		var ordersToReturn any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(results)); i++ {
 			var order any = GetValue(results, i)
-			var error any = this.SafeString(order, "error", nil)
+			var error any = this.SafeString(order, "error")
 			var success any = this.SafeBool(order, "success", false)
 			var status any = nil
 			if IsTrue(IsTrue((!IsEqual(error, nil))) || IsTrue((!IsTrue(success)))) {
@@ -3074,7 +3074,7 @@ func (this *PacificaCore) MapTimeInForce(tifRaw any) any {
 	if IsTrue(!IsEqual(tifRaw, nil)) {
 		tif = ToUpper(tifRaw)
 	}
-	return this.SafeString(tifMap, tif, nil)
+	return this.SafeString(tifMap, tif)
 }
 func (this *PacificaCore) MapSide(sideRaw any) any {
 	var sideMap any = map[string]any{
@@ -4075,7 +4075,7 @@ func (this *PacificaCore) CreateSubAccount(name any, optionalArgs ...any) <-chan
 		_ = params
 		var finalHeaders any = map[string]any{}
 		var agentAddress any = nil
-		agentAddressparamsVariable := this.HandleOption("createSubAccount", "agentAddress", nil)
+		agentAddressparamsVariable := this.HandleOption("createSubAccount", "agentAddress")
 		agentAddress = GetValue(agentAddressparamsVariable, 0)
 		params = GetValue(agentAddressparamsVariable, 1)
 		var originAddress any = nil
@@ -4358,7 +4358,7 @@ func (this *PacificaCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(method, "POST")) {
 		body = this.Json(params)
 	}
-	if IsTrue(!IsEqual(this.HandleOption("sign", "apiKey", nil), nil)) {
+	if IsTrue(!IsEqual(this.HandleOption("sign", "apiKey"), nil)) {
 		AddElementToObject(headers, "PF-API-KEY", GetValue(this.Options, "apiKey"))
 	}
 	return map[string]any{
@@ -4375,7 +4375,7 @@ func (this *PacificaCore) CalculateRateLimiterCost(api any, method any, path any
 	var costNumber any = this.ParseNumber(cost)
 	// 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
 	if IsTrue(IsGreaterThan(costNumber, 1)) {
-		if IsTrue(!IsEqual(this.HandleOption(method, "apiKey", nil), nil)) {
+		if IsTrue(!IsEqual(this.HandleOption(method, "apiKey"), nil)) {
 			var costWithKey any = this.HandleOption(method, "maxCostHugeWithApiKey", 3)
 			return costWithKey
 		}

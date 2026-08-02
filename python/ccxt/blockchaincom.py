@@ -77,7 +77,7 @@ class blockchaincom(Exchange, ImplicitAPI):
                 'fetchTransfers': False,
                 'fetchWithdrawal': True,
                 'fetchWithdrawals': True,
-                'fetchWithdrawalWhitelist': True,  # fetches exchange specific benficiary-ids needed for withdrawals
+                'fetchWithdrawalWhitelist': True,  # fetches exchange specific beneficiary-ids needed for withdrawals
                 'transfer': False,
                 'withdraw': True,
             },
@@ -431,7 +431,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         return self.fetch_l3_order_book(symbol, limit, params)
 
@@ -688,7 +688,7 @@ class blockchaincom(Exchange, ImplicitAPI):
 
         https://api.blockchain.com/v3/#deleteallorders
 
-        :param str symbol: unified market symbol of the market to cancel orders in, all markets are used if None, default is None
+        :param str [symbol]: unified market symbol of the market to cancel orders in, all markets are used if None, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1099,7 +1099,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         https://api.blockchain.com/v3/#getdepositbyid
 
         :param str id: deposit id
-        :param str code: not used by blockchaincom fetchDeposit()
+        :param str code: not used by fetchDeposit()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """

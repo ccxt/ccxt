@@ -71,8 +71,9 @@ function overwriteFileAndFolder (path: string, content: string) {
         checkCreateFolder (path);
     }
     content = formatGoSource (path, content);
+    // overwriteFile() already opens+truncates+writes the file; the extra
+    // fs.writeFileSync below wrote every generated file a second time
     overwriteFile (path, content);
-    fs.writeFileSync (path, content);
 }
 
 function capitalize(s: string) {
@@ -538,6 +539,13 @@ class NewTranspiler {
     exchangeTierMethods: Set<string> = new Set();
     private _extendedExchanges: { [key: string]: string } | null = null;
     private _typeAndFuncNamesCache: { [key: string]: Set<string> } = {};
+    // transpiled base-class results, keyed by source path. transpileBaseMethods runs three
+    // times per --rest-and-ws build (REST, prediction recursion, WS) over the same
+    // Exchange.ts; the transpile is pure, so it is paid once per process.
+    private _baseMethodsTranspileCache: { [key: string]: any } = {};
+    // bytes last written by writeGeneratedOnce(), keyed by output path — lets the repeated
+    // base passes skip re-emitting a file whose content they just produced identically
+    private _lastWrittenContent: { [key: string]: string } = {};
     // lazily created in webworkerTranspile and kept alive for the lifetime of the
     // instance, so every transpile stage reuses the same warm worker threads
     piscina: Piscina | undefined;
@@ -1799,7 +1807,7 @@ class NewTranspiler {
         }
         log.magenta ('→', (path as any).yellow);
 
-        overwriteFileAndFolder (path, file);
+        this.writeGeneratedOnce (path, file);
     }
 
     transpileErrorHierarchy (force = true) {
@@ -1912,11 +1920,21 @@ ${constStatements.join('\n')}
         // const delimited = tsContent.split (delimiter)
         const baseMethods = VIRTUAL_BASE_METHODS;
         const allVirtual = Object.keys(baseMethods);
-        this.transpiler.goTranspiler.wrapCallMethods = allVirtual;
-        const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
-        const baseFile = this.transpiler.transpileGoByPath(strippedBaseFile);
-        removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
-        this.transpiler.goTranspiler.wrapCallMethods = [];
+        // A full --rest-and-ws run reaches this method three times with the same source file
+        // (REST, the recursive prediction pass, and WS), and each one used to pay a fresh
+        // transpile of the 9.7k-line Exchange.ts plus the overload-strip temp file. The
+        // result is a pure function of `baseExchangeFile` (`wrapCallMethods` is the same
+        // constant list every time and the source cannot change mid-process), so transpile
+        // it once and replay the emit + wrapper side effects from the cached result.
+        let baseFile = this._baseMethodsTranspileCache[baseExchangeFile];
+        if (!baseFile) {
+            this.transpiler.goTranspiler.wrapCallMethods = allVirtual;
+            const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
+            baseFile = this.transpiler.transpileGoByPath(strippedBaseFile);
+            removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
+            this.transpiler.goTranspiler.wrapCallMethods = [];
+            this._baseMethodsTranspileCache[baseExchangeFile] = baseFile;
+        }
         let baseClass = baseFile.content as any; // remove this later
 
         // capture the 62 symbol-based method names from the TS `Exchange extends BaseExchange` tier,
@@ -2034,7 +2052,9 @@ ${constStatements.join('\n')}
             ]).join("\n");
 
             const file = fileHeader + baseMethods + "\n";
-            fs.writeFileSync (goExchangeBase, formatGoSource (goExchangeBase, file));
+            // repeated base passes (REST / prediction recursion / WS) emit identical bytes —
+            // skip the rewrite (and its gofmt spawnSync over a ~390 KB file) after the first
+            this.writeGeneratedOnce (goExchangeBase, file);
         }
     }
 
@@ -2046,7 +2066,12 @@ ${constStatements.join('\n')}
         // picks up PredictionExchange and the prediction package qualifies it as ccxt.PredictionExchange
         const goPredictionBase = './go/v4/exchange_prediction.go';
         // `registerOnly` writes nothing — it only captures predictionBaseMethodsTypes for this
-        // process — so it can never be satisfied by an up-to-date file on disk.
+        // process — so it can never be satisfied by an up-to-date file on disk. It can however
+        // be satisfied by an earlier full call in the same process: the recursive prediction
+        // pass reaches it right after the main pass already transpiled the same file.
+        if (registerOnly && this.predictionBaseMethodsTypes.length) {
+            return;
+        }
         if (!registerOnly && skipUpToDateStage ('go', 'prediction base methods', force, [
             predictionBaseFile,
             './ts/src/base/Exchange.ts',
@@ -2436,7 +2461,7 @@ ${caseStatements.join('\n')}
         // full builds also transpile the prediction-market exchanges (ts/src/prediction/)
         await this.transpileEverything (force, false, false, true);
 
-        this.transpileTests(force);
+        await this.transpileTests(force);
 
         this.transpileErrorHierarchy (force);
 
@@ -2644,6 +2669,24 @@ ${caseStatements.join('\n')}
         const classes = {};
 
         return classes;
+    }
+
+    // Write a generated file, skipping the write (and the blocking gofmt spawnSync inside
+    // overwriteFileAndFolder) when this process already wrote byte-identical content to the
+    // same path. transpileBaseMethods re-emits exchange_generated.go / exchange_wrappers.go
+    // on every one of its three passes and the later passes produce the same bytes; only
+    // those two paths are remembered, so the cache never grows with the ~200 per-exchange files.
+    writeGeneratedOnce (path: string, content: string) {
+        const repeated = (path === BASE_METHODS_FILE) || (path === GLOBAL_WRAPPER_FILE);
+        if (repeated && this._lastWrittenContent[path] === content) {
+            log.green ('[go] already emitted identical', (path as any).yellow, '- skipping rewrite');
+            return false;
+        }
+        if (repeated) {
+            this._lastWrittenContent[path] = content;
+        }
+        overwriteFileAndFolder (path, content);
+        return true;
     }
 
     /**
@@ -3044,15 +3087,15 @@ func (this *${className}) Init(userConfig map[string]any) {
     //     await Promise.all (transpiledFiles.map ((file, idx) => writeFile (`${outDir}/${file[0]}.go`, file[1])));
     // }
 
-    transpileBaseTestsToGo (force = true) {
+    async transpileBaseTestsToGo (force = true) {
         const outDir = BASE_TESTS_FOLDER;
-        this.transpileBaseTests(outDir, force);
+        await this.transpileBaseTests(outDir, force);
         this.transpileCryptoTestsToGo(outDir, force);
         this.transpileWsOrderbookTestsToGo(outDir, force);
         this.transpileWsCacheTestsToGo(outDir, force);
     }
 
-    transpileBaseTests (outDir: string, force = true) {
+    async transpileBaseTests (outDir: string, force = true) {
 
         const baseFolders = {
             ts: './ts/src/test/base',
@@ -3070,15 +3113,22 @@ func (this *${className}) Init(userConfig map[string]any) {
             return;
         }
 
-        for (const testName of eligible) {
-            const tsFile = `${baseFolders.ts}/${testName}.ts`;
+        // route the ~61 sources through the worker pool instead of transpiling them one by
+        // one on the main thread: `paths` doubles as the sticky ts.Program root list, so the
+        // whole stage shares one program (same shape as the C# driver's base-test stage)
+        const paths = eligible.map ((testName: string) => `${baseFolders.ts}/${testName}.ts`);
+        const transpiled = await this.webworkerTranspile (paths, this.getTranspilerConfig ());
+
+        for (let i = 0; i < eligible.length; i++) {
+            const testName = eligible[i];
+            const tsFile = paths[i];
 
             // const goFileName = capitalize(testName.replace ('test.', ''));
             const goFile = `${outDir}/${testName}.go`;
 
             log.magenta ('Transpiling from', (tsFile as any).yellow);
 
-            const go = this.transpiler.transpileGoByPath(tsFile);
+            const go = transpiled[i];
             let content = go.content;
             content = this.regexAll (content, [
                 [/(\w+) := NewCcxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.DerivedExchange = $1; $1.InitParent($2, map[string]any{}, $1)' ],
@@ -3165,7 +3215,7 @@ func (this *${className}) Init(userConfig map[string]any) {
         overwriteFileAndFolder (files.goFile, file);
     }
 
-    transpileExchangeTests(force = true){
+    async transpileExchangeTests(force = true){
         const baseFolders = {
             ts: './ts/src/test/Exchange',
             tsBase: './ts/src/test/Exchange/base',
@@ -3212,10 +3262,10 @@ func (this *${className}) Init(userConfig map[string]any) {
             'tsFile': './ts/src/test/tests.ts',
             'goFile': BASE_TESTS_FILE,
         });
-        this.transpileAndSaveGoExchangeTests (tests);
+        await this.transpileAndSaveGoExchangeTests (tests);
     }
 
-    transpileWsExchangeTests(force = true){
+    async transpileWsExchangeTests(force = true){
 
         const baseFolders = {
             ts: `./ts/src/pro/test/Exchange`,
@@ -3239,7 +3289,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             return;
         }
 
-        this.transpileAndSaveGoExchangeTests (tests, true);
+        await this.transpileAndSaveGoExchangeTests (tests, true);
     }
 
     async transpileAndSaveGoExchangeTests(tests: any[], isWs = false) {
@@ -3322,14 +3372,18 @@ func (this *${className}) Init(userConfig map[string]any) {
         });
     }
 
-    transpileTests(force = true){
+    async transpileTests(force = true){
         if (!shouldTranspileTests) {
             log.bright.yellow ('Skipping tests transpilation');
             return;
         }
-        this.transpileBaseTestsToGo(force);
-        this.transpileExchangeTests(force);
-        this.transpileWsExchangeTests(force);
+        // every stage is awaited: the test writers are async (they go through the pool),
+        // and letting them float meant `transpileEverything` returned — and the WS stage
+        // started — while ~80 test files were still being printed, so three root sets
+        // alternated against the worker sticky-Program LRU
+        await this.transpileBaseTestsToGo(force);
+        await this.transpileExchangeTests(force);
+        await this.transpileWsExchangeTests(force);
         this.createFunctionsMapFile(force);
     }
 
@@ -3496,7 +3550,7 @@ if (isMainEntry(import.meta.url)) {
             }
         }
     } else if (test) {
-        transpiler.transpileTests ();
+        await transpiler.transpileTests ();
     } else {
         await transpiler.transpileEverything (force, baseOnly, examples, prediction);
     }

@@ -286,7 +286,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol2, Object... optionalArgs)
     {
@@ -913,7 +913,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         Object amount = this.safeString(trade, "sz");
         Object coin = this.safeString(trade, "coin");
         Object marketId = this.coinToMarketId(coin);
-        market = this.safeMarket(marketId, null);
+        market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object id = this.safeString(trade, "tid");
         Object side = this.safeString(trade, "side");

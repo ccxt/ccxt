@@ -1148,7 +1148,7 @@ class bybit(Exchange, ImplicitAPI):
                     'usePrivateInstrumentsInfo': False,
                     'types': ['spot', 'linear', 'inverse', 'option'],
                     'options': ['BTC', 'ETH', 'SOL', 'XRP', 'MNT', 'DOGE'],
-                    'loadAllOptions': False,  # load all possible option markets, adds signficant load time
+                    'loadAllOptions': False,  # load all possible option markets, adds significant load time
                     'loadExpiredOptions': False,  # loads expired options, to load all possible expired options set loadAllOptions to True
                 },
                 'enableUnifiedMargin': None,
@@ -2560,7 +2560,7 @@ class bybit(Exchange, ImplicitAPI):
             parsedSymbols = []
             marketTypeInfo = self.handle_market_type_and_params('fetchTickers', None, params)
             defaultType = marketTypeInfo[0]  # don't omit here
-            # we can't use marketSymbols here due to the conflicing ids between markets
+            # we can't use marketSymbols here due to the conflicting ids between markets
             currentType = None
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
@@ -3298,7 +3298,7 @@ class bybit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderBook() requires a symbol argument')
@@ -4829,7 +4829,7 @@ class bybit(Exchange, ImplicitAPI):
 
         https://bybit-exchange.github.io/docs/v5/order/cancel-all
 
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if trigger order
         :param boolean [params.stop]: alias for trigger
@@ -8671,7 +8671,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str[] symbols: a list of unified market symbols
         :param int [since]: timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
         :param int [limit]: the maximum amount of records to fetch, default=50, max=100
-        :param dict params: extra parameters specific to the exchange api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days
         :param str [params.subType]: 'linear' or 'inverse'
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`

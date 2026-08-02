@@ -1255,7 +1255,7 @@ class coinex extends coinex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = 20, params = {}) {
         if (this.markets === undefined) {
@@ -5179,7 +5179,7 @@ class coinex extends coinex$1["default"] {
         if (type === 'deposit') {
             feeCost = '0';
         }
-        const feeCurrencyId = this.safeString(transaction, 'fee_asset');
+        const feeCurrencyId = this.safeString2(transaction, 'fee_asset', 'fee_ccy'); // https://github.com/ccxt/ccxt/issues/25153
         const fee = {
             'cost': this.parseNumber(feeCost),
             'currency': this.safeCurrencyCode(feeCurrencyId),

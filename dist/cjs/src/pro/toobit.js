@@ -521,7 +521,7 @@ class toobit extends toobit$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1091,7 +1091,7 @@ class toobit extends toobit$1["default"] {
         return this.safePosition({
             'info': position,
             'id': undefined,
-            'symbol': this.safeSymbol(marketId, undefined),
+            'symbol': this.safeSymbol(marketId),
             'notional': this.omitZero(this.safeString(position, 'pv')),
             'marginMode': this.safeStringLower(position, 'mt'),
             'liquidationPrice': this.safeString(position, 'f'),

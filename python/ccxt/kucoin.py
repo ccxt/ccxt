@@ -916,7 +916,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
-                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'fetchCurrencies': {
                     'brokenCurrencies': ['00', 'OPEN_ERROR', 'HUF', 'BDT'],  # skip buggy entries: https://t.me/KuCoin_API/217798
@@ -3662,7 +3662,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -4309,7 +4309,7 @@ class kucoin(Exchange, ImplicitAPI):
                     if reduceOnly:
                         positionSide = 'SHORT' if (positionSide == 'LONG') else 'LONG'
                     request['positionSide'] = positionSide
-        # handling with coinditional orders
+        # handling with conditional orders
         triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
         stopLoss = self.safe_dict(params, 'stopLoss')
         takeProfit = self.safe_dict(params, 'takeProfit')
@@ -4917,7 +4917,7 @@ class kucoin(Exchange, ImplicitAPI):
         https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
         https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
 
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot' or 'swap', used if symbol is not provided(default is 'spot')
         :param str [params.marginMode]: *spot only* 'cross' or 'isolated'
@@ -10476,7 +10476,7 @@ class kucoin(Exchange, ImplicitAPI):
         https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-position-mode
 
         :param bool hedged: set to True to use two way position
-        :param str [symbol]: not used by bybit setPositionMode()
+        :param str [symbol]: not used by setPositionMode()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a response from the exchange
         """
@@ -10524,7 +10524,7 @@ class kucoin(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str side: not used by kucoin closePositions
-        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: client order id of the order
         :returns dict[]: `A list of position structures <https://docs.ccxt.com/?id=position-structure>`
         """

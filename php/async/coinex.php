@@ -1283,7 +1283,7 @@ class coinex extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -5258,7 +5258,7 @@ class coinex extends Exchange {
         if ($type === 'deposit') {
             $feeCost = '0';
         }
-        $feeCurrencyId = $this->safe_string($transaction, 'fee_asset');
+        $feeCurrencyId = $this->safe_string_2($transaction, 'fee_asset', 'fee_ccy'); // https://github.com/ccxt/ccxt/issues/25153
         $fee = array(
             'cost' => $this->parse_number($feeCost),
             'currency' => $this->safe_currency_code($feeCurrencyId),

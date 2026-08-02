@@ -79,7 +79,7 @@ class pacifica extends \ccxt\async\pacifica {
         if ($key !== null) {
             $headers['PF-API-KEY'] = $key;
         } else {
-            if ($this->handle_option('setupApiKeyHeaders', 'apiKey', null) !== null) {
+            if ($this->handle_option('setupApiKeyHeaders', 'apiKey') !== null) {
                 $headers['PF-API-KEY'] = $this->options['apiKey'];
             }
         }
@@ -297,7 +297,7 @@ class pacifica extends \ccxt\async\pacifica {
             $ordersToReturn = array();
             for ($i = 0; $i < count($results); $i++) {
                 $order = $results[$i];
-                $error = $this->safe_string($order, 'error', null);
+                $error = $this->safe_string($order, 'error');
                 $success = $this->safe_bool($order, 'success', false);
                 $marketId = $this->safe_string($order, 'symbol');
                 $market = $this->safe_market($marketId);
@@ -434,7 +434,7 @@ class pacifica extends \ccxt\async\pacifica {
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int|null} [$params->aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $this->setup_api_key_headers();
             if ($this->markets === null) {
@@ -1398,7 +1398,7 @@ class pacifica extends \ccxt\async\pacifica {
         if ($this->handle_error_message($client, $message)) {
             return;
         }
-        $postType = $this->safe_string($message, 'type', null);
+        $postType = $this->safe_string($message, 'type');
         $topic = $this->safe_string($message, 'channel', '');
         $methods = array(
             'pong' => array($this, 'handle_pong'),

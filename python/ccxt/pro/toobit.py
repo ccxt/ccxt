@@ -509,7 +509,7 @@ class toobit(ccxt.async_support.toobit):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -1039,7 +1039,7 @@ class toobit(ccxt.async_support.toobit):
         return self.safe_position({
             'info': position,
             'id': None,
-            'symbol': self.safe_symbol(marketId, None),
+            'symbol': self.safe_symbol(marketId),
             'notional': self.omit_zero(self.safe_string(position, 'pv')),
             'marginMode': self.safe_string_lower(position, 'mt'),
             'liquidationPrice': self.safe_string(position, 'f'),

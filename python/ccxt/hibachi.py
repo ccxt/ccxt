@@ -583,7 +583,7 @@ class hibachi(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch(maximum value is 100)
-        :param dict [params]: extra parameters specific to the hibachi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of recent [trade structures]
         """
         if self.markets is None:
@@ -616,7 +616,7 @@ class hibachi(Exchange, ImplicitAPI):
 
         fetches a price ticker and the related information for the past 24h
         :param str symbol: unified symbol of the market
-        :param dict [params]: extra parameters specific to the hibachi api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if self.markets is None:
@@ -1115,7 +1115,7 @@ class hibachi(Exchange, ImplicitAPI):
         https://api-doc.hibachi.xyz/#8ed24695-016e-49b2-a72d-7511ca921fee
 
         cancel all open orders in a market
-        :param str symbol: unified market symbol
+        :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1264,7 +1264,7 @@ class hibachi(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market
         :param int [limit]: currently unused
         :param dict [params]: extra parameters to be passed -- see documentation link above
-        :returns dict: A dictionary containg `orderbook information <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()

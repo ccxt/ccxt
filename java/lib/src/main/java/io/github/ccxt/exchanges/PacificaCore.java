@@ -911,7 +911,7 @@ public class PacificaCore extends PacificaApi
             Object settings = null;
             if (Helpers.isTrue(Helpers.isEqual(userAccount, cacheAddress)))
             {
-                settings = this.handleOption("fetchLeverage", "settings", null);
+                settings = this.handleOption("fetchLeverage", "settings");
             } else
             {
                 final Object finalUserAccount = userAccount;
@@ -920,7 +920,7 @@ public class PacificaCore extends PacificaApi
                 }};
                 settings = (this.fetchAccountSettings(this.extend(request, parameters))).join();
             }
-            Object setting = this.safeDict(settings, symbol, null);
+            Object setting = this.safeDict(settings, symbol);
             if (Helpers.isTrue(Helpers.isEqual(setting, null)))
             {
                 // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -1020,7 +1020,7 @@ public class PacificaCore extends PacificaApi
 
             Object refresh = Helpers.getArg(optionalArgs, 0, false);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object settings = this.handleOption("loadAccountSettings", "settings", null);
+            Object settings = this.handleOption("loadAccountSettings", "settings");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(settings, null))) || Helpers.isTrue((Helpers.isEqual(refresh, true)))))
             {
                 Helpers.addElementToObject(this.options, "settings", this.createSafeDictionary());
@@ -1075,7 +1075,7 @@ public class PacificaCore extends PacificaApi
             Object settings = null;
             if (Helpers.isTrue(Helpers.isEqual(userAccount, cacheAddress)))
             {
-                settings = this.handleOption("fetchMarginMode", "settings", null);
+                settings = this.handleOption("fetchMarginMode", "settings");
             } else
             {
                 final Object finalUserAccount = userAccount;
@@ -1093,7 +1093,7 @@ public class PacificaCore extends PacificaApi
             //       "updated_at": 1758086074002
             //    },
             // }
-            Object setting = this.safeDict(settings, symbol, null);
+            Object setting = this.safeDict(settings, symbol);
             if (Helpers.isTrue(Helpers.isEqual(setting, null)))
             {
                 // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -1138,7 +1138,7 @@ public class PacificaCore extends PacificaApi
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -1995,7 +1995,7 @@ public class PacificaCore extends PacificaApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(results)); i++)
             {
                 Object order = Helpers.GetValue(results, i);
-                Object error = this.safeString(order, "error", null);
+                Object error = this.safeString(order, "error");
                 Object success = this.safeBool(order, "success", false);
                 Object status = null;
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(error, null))) || Helpers.isTrue((!Helpers.isTrue(success)))))
@@ -2074,7 +2074,7 @@ public class PacificaCore extends PacificaApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(results)); i++)
             {
                 Object order = Helpers.GetValue(results, i);
-                Object error = this.safeString(order, "error", null);
+                Object error = this.safeString(order, "error");
                 Object success = this.safeBool(order, "success", false);
                 Object status = null;
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(error, null))) || Helpers.isTrue((!Helpers.isTrue(success)))))
@@ -2939,7 +2939,7 @@ public class PacificaCore extends PacificaApi
         {
             tif = ((String)tifRaw).toUpperCase();
         }
-        return this.safeString(tifMap, tif, null);
+        return this.safeString(tifMap, tif);
     }
 
     public Object mapSide(Object sideRaw)
@@ -3885,7 +3885,7 @@ public class PacificaCore extends PacificaApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object finalHeaders = new java.util.HashMap<String, Object>() {{}};
             Object agentAddress = null;
-            var agentAddressparametersVariable = this.handleOption("createSubAccount", "agentAddress", null);
+            var agentAddressparametersVariable = this.handleOption("createSubAccount", "agentAddress");
             agentAddress = ((java.util.List<Object>) agentAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) agentAddressparametersVariable).get(1);
             Object originAddress = null;
@@ -4144,7 +4144,7 @@ public class PacificaCore extends PacificaApi
         {
             body = this.json(parameters);
         }
-        if (Helpers.isTrue(!Helpers.isEqual(this.handleOption("sign", "apiKey", null), null)))
+        if (Helpers.isTrue(!Helpers.isEqual(this.handleOption("sign", "apiKey"), null)))
         {
             Helpers.addElementToObject(headers, "PF-API-KEY", Helpers.GetValue(this.options, "apiKey"));
         }
@@ -4168,7 +4168,7 @@ public class PacificaCore extends PacificaApi
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if (Helpers.isTrue(Helpers.isGreaterThan(costNumber, 1)))
         {
-            if (Helpers.isTrue(!Helpers.isEqual(this.handleOption(method, "apiKey", null), null)))
+            if (Helpers.isTrue(!Helpers.isEqual(this.handleOption(method, "apiKey"), null)))
             {
                 Object costWithKey = this.handleOption(method, "maxCostHugeWithApiKey", 3);
                 return costWithKey;

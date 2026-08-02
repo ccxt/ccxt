@@ -843,13 +843,13 @@ class pacifica(Exchange, ImplicitAPI):
         cacheAddress = self.walletAddress
         settings = None
         if userAccount == cacheAddress:
-            settings = self.handle_option('fetchLeverage', 'settings', None)
+            settings = self.handle_option('fetchLeverage', 'settings')
         else:
             request = {
                 'account': userAccount,
             }
             settings = self.fetch_account_settings(self.extend(request, params))
-        setting = self.safe_dict(settings, symbol, None)
+        setting = self.safe_dict(settings, symbol)
         if setting is None:
             # NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
             # When querying self endpoint, all markets with default margin and leverage settings on self account will return blank.
@@ -922,7 +922,7 @@ class pacifica(Exchange, ImplicitAPI):
         return self.parse_account_settings(self.safe_list(response, 'data', []))
 
     def load_account_settings(self, refresh: bool = False, params={}):
-        settings = self.handle_option('loadAccountSettings', 'settings', None)
+        settings = self.handle_option('loadAccountSettings', 'settings')
         if (settings is None) or (refresh is True):
             self.options['settings'] = self.create_safe_dictionary()
             settings = self.fetch_account_settings(params)
@@ -957,7 +957,7 @@ class pacifica(Exchange, ImplicitAPI):
         cacheAddress = self.walletAddress
         settings = None
         if userAccount == cacheAddress:
-            settings = self.handle_option('fetchMarginMode', 'settings', None)
+            settings = self.handle_option('fetchMarginMode', 'settings')
         else:
             request = {
                 'account': userAccount,
@@ -972,7 +972,7 @@ class pacifica(Exchange, ImplicitAPI):
         #       "updated_at": 1758086074002
         #    },
         # }
-        setting = self.safe_dict(settings, symbol, None)
+        setting = self.safe_dict(settings, symbol)
         if setting is None:
             # NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
             # When querying self endpoint, all markets with default margin and leverage settings on self account will return blank.
@@ -1010,7 +1010,7 @@ class pacifica(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.aggLevel]: aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -1674,7 +1674,7 @@ class pacifica(Exchange, ImplicitAPI):
         ordersToReturn = []
         for i in range(0, len(results)):
             order = results[i]
-            error = self.safe_string(order, 'error', None)
+            error = self.safe_string(order, 'error')
             success = self.safe_bool(order, 'success', False)
             status = None
             if (error is not None) or (not success):
@@ -1730,7 +1730,7 @@ class pacifica(Exchange, ImplicitAPI):
         ordersToReturn = []
         for i in range(0, len(results)):
             order = results[i]
-            error = self.safe_string(order, 'error', None)
+            error = self.safe_string(order, 'error')
             success = self.safe_bool(order, 'success', False)
             status = None
             if (error is not None) or (not success):
@@ -1771,7 +1771,7 @@ class pacifica(Exchange, ImplicitAPI):
 
         https://docs.pacifica.fi/api-documentation/api/rest-api/orders/cancel-all-orders
 
-        :param str symbol:(optional) unified market symbol of the market to cancel orders in.
+        :param str [symbol]:(optional) unified market symbol of the market to cancel orders in.
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.excludeReduceOnly]: whether to exclude reduce-only orders
         :param int [params.expiryWindow]: time to live in milliseconds
@@ -2352,7 +2352,7 @@ class pacifica(Exchange, ImplicitAPI):
         tif = None
         if tifRaw is not None:
             tif = tifRaw.upper()
-        return self.safe_string(tifMap, tif, None)
+        return self.safe_string(tifMap, tif)
 
     def map_side(self, sideRaw: str):
         sideMap = {
@@ -3096,7 +3096,7 @@ class pacifica(Exchange, ImplicitAPI):
         """
         finalHeaders = {}
         agentAddress = None
-        agentAddress, params = self.handle_option('createSubAccount', 'agentAddress', None)
+        agentAddress, params = self.handle_option('createSubAccount', 'agentAddress')
         originAddress = None
         originAddress, params = self.handle_origin_and_single_address('createSubAccount', params)
         if originAddress is None:
@@ -3250,7 +3250,7 @@ class pacifica(Exchange, ImplicitAPI):
             headers['Accept'] = '*/*'
         if method == 'POST':
             body = self.json(params)
-        if self.handle_option('sign', 'apiKey', None) is not None:
+        if self.handle_option('sign', 'apiKey') is not None:
             headers['PF-API-KEY'] = self.options['apiKey']
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
@@ -3259,7 +3259,7 @@ class pacifica(Exchange, ImplicitAPI):
         costNumber = self.parse_number(cost)
         # 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if costNumber > 1:
-            if self.handle_option(method, 'apiKey', None) is not None:
+            if self.handle_option(method, 'apiKey') is not None:
                 costWithKey = self.handle_option(
                     method,
                     'maxCostHugeWithApiKey',

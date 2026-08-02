@@ -458,7 +458,7 @@ func (this *Hibachi) Withdraw(code string, amount float64, address string, optio
  * @param {string} symbol unified symbol of the market
  * @param {int} [limit] currently unused
  * @param {object} [params] extra parameters to be passed -- see documentation link above
- * @returns {object} A dictionary containg [orderbook information]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Hibachi) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
