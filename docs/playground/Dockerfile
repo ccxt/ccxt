@@ -9,9 +9,21 @@
 FROM node:24-bookworm AS java-libs
 # empty = latest release on Maven Central; pin with --build-arg CCXT_JAVA_VERSION=4.5.70
 ARG CCXT_JAVA_VERSION=""
-RUN apt-get update && apt-get install -y --no-install-recommends \
-      openjdk-21-jdk-headless maven \
+# Bookworm apt only has OpenJDK 17; ccxt-java is class-file 65 (needs JDK 21+).
+# Install Eclipse Temurin 21 from Adoptium (same tarball pattern as Go below) + Maven for resolve.
+ENV DEBIAN_FRONTEND=noninteractive
+RUN ARCH="$(dpkg --print-architecture)" \
+    && case "$ARCH" in amd64) JARCH=x64 ;; arm64) JARCH=aarch64 ;; *) echo "unsupported arch $ARCH" && exit 1 ;; esac \
+    && apt-get update && apt-get install -y --no-install-recommends \
+         ca-certificates curl tar gzip maven \
+    && curl -fsSL "https://api.adoptium.net/v3/binary/latest/21/ga/linux/${JARCH}/jdk/hotspot/normal/eclipse?project=jdk" \
+         -o /tmp/jdk21.tar.gz \
+    && mkdir -p /usr/lib/jvm/temurin-21 \
+    && tar -xzf /tmp/jdk21.tar.gz -C /usr/lib/jvm/temurin-21 --strip-components=1 \
+    && rm /tmp/jdk21.tar.gz \
     && rm -rf /var/lib/apt/lists/*
+ENV JAVA_HOME=/usr/lib/jvm/temurin-21 \
+    PATH="/usr/lib/jvm/temurin-21/bin:${PATH}"
 WORKDIR /pg
 COPY scripts/setup-runtimes.sh scripts/setup-runtimes.sh
 COPY lib/runners/java/Playground.java lib/runners/java/Playground.java
@@ -26,7 +38,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # --- System runtimes: Python, PHP (+ extensions ccxt needs), composer ---
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      ca-certificates curl git unzip \
+      ca-certificates curl git unzip tar gzip \
       python3 python3-venv python3-pip \
       php-cli php-curl php-mbstring php-bcmath php-gmp \
     && rm -rf /var/lib/apt/lists/* \
@@ -52,11 +64,18 @@ ENV PATH="/usr/share/dotnet:${PATH}" \
     DOTNET_ROOT=/usr/share/dotnet \
     NUGET_PACKAGES=/app/.nuget/packages
 
-# --- OpenJDK 21 (for the Java runner) — JDK, not JRE: runs use single-file
-# source launch (java Main.java), which needs the in-JVM compiler. The ccxt jar
-# set is resolved in the java-libs stage above; Maven never enters this image.
-RUN apt-get update && apt-get install -y --no-install-recommends openjdk-21-jdk-headless \
-    && rm -rf /var/lib/apt/lists/*
+# --- JDK 21 (Java runner) — Debian bookworm has no openjdk-21 package; ship
+# Temurin 21. JDK (not JRE): single-file `java Main.java` needs the compiler.
+# Jars come from the java-libs stage; Maven never enters this image.
+RUN ARCH="$(dpkg --print-architecture)" \
+    && case "$ARCH" in amd64) JARCH=x64 ;; arm64) JARCH=aarch64 ;; *) echo "unsupported arch $ARCH" && exit 1 ;; esac \
+    && curl -fsSL "https://api.adoptium.net/v3/binary/latest/21/ga/linux/${JARCH}/jdk/hotspot/normal/eclipse?project=jdk" \
+         -o /tmp/jdk21.tar.gz \
+    && mkdir -p /usr/lib/jvm/temurin-21 \
+    && tar -xzf /tmp/jdk21.tar.gz -C /usr/lib/jvm/temurin-21 --strip-components=1 \
+    && rm /tmp/jdk21.tar.gz
+ENV JAVA_HOME=/usr/lib/jvm/temurin-21 \
+    PATH="/usr/lib/jvm/temurin-21/bin:${PATH}"
 
 WORKDIR /app
 
