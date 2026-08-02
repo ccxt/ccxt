@@ -412,7 +412,6 @@ class BaseExchange {
         'kraken',
         'krakenfutures',
         'kucoin',
-        'kucoineu',
         'kucoinfutures',
         'latoken',
         'lbank',

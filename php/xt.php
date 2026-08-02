@@ -321,6 +321,7 @@ class xt extends Exchange {
                             'future/user/v1/position/margin' => 1,
                             'future/user/v1/user/collection/add' => 1,
                             'future/user/v1/user/collection/cancel' => 1,
+                            'future/user/v1/position/change-type' => 1,
                         ),
                     ),
                     'user' => array(
@@ -685,7 +686,7 @@ class xt extends Exchange {
                 'default' => array(
                     'sandbox' => false,
                     'createOrder' => array(
-                        'marginMode' => false,
+                        'marginMode' => true,
                         'triggerPrice' => false,
                         'triggerDirection' => false,
                         'triggerPriceType' => null,
@@ -766,6 +767,7 @@ class xt extends Exchange {
                 'forDerivatives' => array(
                     'extends' => 'default',
                     'createOrder' => array(
+                        'marginMode' => false,
                         'triggerPrice' => true,
                         // todo
                         'triggerPriceType' => array(
@@ -1354,8 +1356,8 @@ class xt extends Exchange {
             'contract' => $contract,
             'linear' => $linear,
             'inverse' => $inverse,
-            'taker' => $this->safe_number($market, 'takerFee'),
-            'maker' => $this->safe_number($market, 'makerFee'),
+            'taker' => $this->safe_number_2($market, 'takerFee', 'takerFeeRate'),
+            'maker' => $this->safe_number_2($market, 'makerFee', 'makerFeeRate'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'expiry' => $expiry,
             'expiryDatetime' => $this->iso8601($expiry),
@@ -1539,7 +1541,7 @@ class xt extends Exchange {
          * @param {string} $symbol unified $market $symbol to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} $params extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structure}
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -4980,15 +4982,20 @@ class xt extends Exchange {
             $marginMode = 'ISOLATED';
         }
         $posSide = $this->safe_string_upper($params, 'positionSide');
-        if ($posSide === null) {
-            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a positionSide parameter, either "LONG" or "SHORT"');
-        }
+        $this->check_required_argument('setMarginMode', $posSide, 'positionSide', array( 'LONG', 'SHORT' ));
+        $params = $this->omit($params, 'positionSide');
         $request = array(
             'positionType' => $marginMode,
             'positionSide' => $posSide,
             'symbol' => $market['id'],
         );
-        $response = $this->privateLinearPostFutureUserV1PositionChangeType($this->extend($request, $params));
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('setMarginMode', $market, $params);
+        if ($subType === 'inverse') {
+            $response = $this->privateInversePostFutureUserV1PositionChangeType($this->extend($request, $params));
+        } else {
+            $response = $this->privateLinearPostFutureUserV1PositionChangeType($this->extend($request, $params));
+        }
         //
         // {
         //     "error" => array(

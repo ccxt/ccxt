@@ -448,6 +448,9 @@ abstract class xt extends \ccxt\async\Exchange {
     public function private_inverse_post_future_user_v1_user_collection_cancel($params = array()) {
         return $this->request('future/user/v1/user/collection/cancel', array('private', 'inverse'), 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_inverse_post_future_user_v1_position_change_type($params = array()) {
+        return $this->request('future/user/v1/position/change-type', array('private', 'inverse'), 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_user_get_user_account($params = array()) {
         return $this->request('user/account', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -906,6 +909,9 @@ abstract class xt extends \ccxt\async\Exchange {
     }
     public function privateInversePostFutureUserV1UserCollectionCancel($params = array()) {
         return $this->request('future/user/v1/user/collection/cancel', array('private', 'inverse'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privateInversePostFutureUserV1PositionChangeType($params = array()) {
+        return $this->request('future/user/v1/position/change-type', array('private', 'inverse'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function privateUserGetUserAccount($params = array()) {
         return $this->request('user/account', array('private', 'user'), 'GET', $params, null, null, array("cost" => 1));
