@@ -833,6 +833,7 @@ class indodax extends Exchange {
         $price = $this->safe_string($order, 'price');
         $amount = null;
         $remaining = null;
+        $filled = null;
         $marketId = $this->safe_string($order, 'pair');
         $market = $this->safe_market($marketId, $market);
         if ($market !== null) {
@@ -846,10 +847,11 @@ class indodax extends Exchange {
                 $baseId = 'rp';
             }
             $cost = $this->safe_string($order, 'order_' . $quoteId);
-            if (!$cost) {
-                $amount = $this->safe_string($order, 'order_' . $baseId);
-                $remaining = $this->safe_string($order, 'remain_' . $baseId);
-            }
+            $amount = $this->safe_string($order, 'order_' . $baseId);
+            $remaining = $this->safe_string($order, 'remain_' . $baseId);
+            // $filled buy orders on idr-quoted markets carry the executed base $amount
+            // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
+            $filled = $this->safe_string($order, 'receive_' . $baseId);
         }
         $timestamp = $this->safe_integer($order, 'submit_time');
         $fee = null;
@@ -871,7 +873,7 @@ class indodax extends Exchange {
             'cost' => $cost,
             'average' => null,
             'amount' => $amount,
-            'filled' => null,
+            'filled' => $filled,
             'remaining' => $remaining,
             'status' => $status,
             'fee' => $fee,
