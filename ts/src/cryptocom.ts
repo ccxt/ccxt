@@ -2154,7 +2154,8 @@ export default class cryptocom extends Exchange {
     override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         const network = this.safeStringUpper (params, 'network');
         params = this.omit (params, [ 'network' ]);
-        const depositAddresses = await this.fetchDepositAddressesByNetwork (code, params) as any;
+        const depositAddressesRaw = await this.fetchDepositAddressesByNetwork (code, params);
+        const depositAddresses: Dict = depositAddressesRaw as any;
         if ((network as string) in depositAddresses) {
             return depositAddresses[(network as string)];
         }
