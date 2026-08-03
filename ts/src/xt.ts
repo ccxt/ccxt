@@ -4737,6 +4737,10 @@ export default class xt extends Exchange {
         const breakBySymbolSide: Dict = {};
         for (let i = 0; i < breakList.length; i++) {
             const breakEntry = breakList[i];
+            // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
+            // endpoint, including here and on position/list; there is no one-way/net
+            // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
+            // both validate positionSide against exactly ['LONG', 'SHORT'])
             const key = this.safeString (breakEntry, 'symbol') + '_' + this.safeString (breakEntry, 'positionSide');
             breakBySymbolSide[key] = breakEntry;
         }
