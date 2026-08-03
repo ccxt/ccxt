@@ -49,6 +49,9 @@ export default class myokx extends okx {
             },
             'options': {
                 'mica': true,
+                'fetchMarkets': {
+                    'types': [ 'spot' ], // only spot supported for now
+                },
             },
         });
     }
