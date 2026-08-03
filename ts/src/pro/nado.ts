@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import nadoRest from '../nado.js';
-import { ArgumentsRequired, ExchangeError, NotSupported } from '../base/errors.js';
+import { ArgumentsRequired, ExchangeError, InvalidNonce, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
@@ -1679,9 +1679,29 @@ export default class nado extends nadoRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         if (!(symbol in this.orderbooks)) {
-            this.orderbooks[symbol] = this.orderBook ();
+            return;
         }
         const orderbook = this.orderbooks[symbol];
+        const messageHash = 'orderbook:' + symbol;
+        const maxTimestamp = this.safeString (orderbook, 'maxTimestamp');
+        const lastMaxTimestamp = this.safeString (message, 'last_max_timestamp');
+        if ((maxTimestamp !== undefined) && (lastMaxTimestamp !== undefined) && (maxTimestamp !== lastMaxTimestamp)) {
+            const subscriptions = Object.keys (client.subscriptions);
+            for (let i = 0; i < subscriptions.length; i++) {
+                const subscriptionHash = subscriptions[i];
+                const subscription = this.safeDict (client.subscriptions, subscriptionHash);
+                const streamType = this.safeString (subscription, 'streamType');
+                const subscriptionSymbol = this.safeString (subscription, 'symbol');
+                if ((streamType === 'book_depth') && (subscriptionSymbol === symbol)) {
+                    delete client.subscriptions[subscriptionHash];
+                }
+            }
+            delete client.subscriptions[messageHash];
+            delete this.orderbooks[symbol];
+            const error = new InvalidNonce (this.id + ' watchOrderBook received invalid nonce');
+            client.reject (error, messageHash);
+            return;
+        }
         const asks = this.safeList (message, 'asks', []);
         const bids = this.safeList (message, 'bids', []);
         this.handleDeltas (orderbook['asks'], asks);
@@ -1691,7 +1711,6 @@ export default class nado extends nadoRest {
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         orderbook['maxTimestamp'] = this.safeString (message, 'max_timestamp');
-        const messageHash = 'orderbook:' + symbol;
         client.resolve (orderbook, messageHash);
     }
 
