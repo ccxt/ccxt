@@ -31,6 +31,7 @@ interface Exchange {
     sxbetPrivatePostOrdersCancelV2 (params?: {}): Promise<implicitReturnType>;
     sxbetPrivatePostOrdersCancelEvent (params?: {}): Promise<implicitReturnType>;
     sxbetPrivatePostOrdersCancelAll (params?: {}): Promise<implicitReturnType>;
+    sxbetPrivatePostOrdersApprove (params?: {}): Promise<implicitReturnType>;
     explorerPublicGetApi (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
