@@ -1,5 +1,4 @@
 
-import assert from 'assert';
 import testOrderBook from '../../../test/Exchange/base/test.orderBook.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { InvalidNonce } from '../../../base/errors.js';
