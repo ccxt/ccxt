@@ -29,11 +29,11 @@ export default class derive extends Exchange {
             'dex': true,
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
-                'option': false,
+                'option': true,
                 'addMargin': false,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
@@ -981,14 +981,29 @@ export default class derive extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
+    parseTrades (trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
+        let result = [];
+        for (let i = 0; i < trades.length; i++) {
+            const parsed = this.parseTrade (trades[i], market);
+            if (parsed === undefined) {
+                continue;
+            }
+            const trade = this.extend (parsed, params);
+            result.push (trade);
+        }
+        result = this.sortBy2 (result, 'timestamp', 'id');
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
+    }
+
     parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // fetchTrades & fetchMyTrades
         //
         // {
         //     "subaccount_id": 130837,
-        //     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
         //     "instrument_name": "BTC-PERP",
         //     "direction": "sell",
-        //     "label": "test1234",
         //     "quote_id": null,
         //     "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
         //     "timestamp": 1738065303708,
@@ -999,13 +1014,20 @@ export default class derive extends Exchange {
         //     "liquidity_role": "taker",
         //     "realized_pnl": "0",
         //     "realized_pnl_excl_fees": "0",
-        //     "is_transfer": false,
         //     "tx_status": "settled",
         //     "trade_fee": "1.127415534092999815",
         //     "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        //     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        //     "label": "test1234",                                      // only fetchMyTrades
+        //     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",       // only fetchMyTrades
+        //     "is_transfer": false,                                     // only fetchMyTrades
+        //     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d11bb", // only fetchMyTrades
+        //     "rfq_id": null,                                           // only fetchTrades
+        //     "wallet": "0x353Bf69715DdbF7A2b0C6Deba8EAC1F1D160c123",   // only fetchTrades
+        //     "expected_rebate": "0",                                   // only fetchTrades
+        //     "extra_fee": "0",                                         // only fetchTrades
         // }
         //
+        const isFetchTrades = !('order_id' in trade);
         const marketId = this.safeString (trade, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (trade, 'timestamp');
@@ -1013,6 +1035,11 @@ export default class derive extends Exchange {
             'currency': 'USDC',
             'cost': this.safeString (trade, 'trade_fee'),
         };
+        const takerOrMaker = this.safeString (trade, 'liquidity_role');
+        if (isFetchTrades && (takerOrMaker === 'maker')) {
+            // skip maker trades
+            return undefined;
+        }
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'trade_id'),
