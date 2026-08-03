@@ -15,7 +15,7 @@ import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, 
  * @augments Exchange
  */
 export default class hashkey extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'hashkey',
             'name': 'HashKey Global',
@@ -642,7 +642,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
-    async fetchTime (params = {}): Promise<Int> {
+    override async fetchTime (params = {}): Promise<Int> {
         const response = await this.publicGetApiV1Time (params);
         //
         //     {
@@ -660,7 +660,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    async fetchStatus (params = {}) {
+    override async fetchStatus (params = {}) {
         const response = await this.publicGetApiV1Ping (params);
         //
         // {}
@@ -683,7 +683,7 @@ export default class hashkey extends Exchange {
      * @param {string} [params.symbol] the id of the market to fetch
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params = {}): Promise<Market[]> {
         const request: Dict = {};
         const response = await this.publicGetApiV1ExchangeInfo (this.extend (request, params));
         //
@@ -870,7 +870,7 @@ export default class hashkey extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market: Dict): Market {
+    override parseMarket (market: Dict): Market {
         // spot
         //     {
         //         "symbol": "BTCUSDT",
@@ -1148,7 +1148,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params = {}): Promise<Currencies> {
         const response = await this.publicGetApiV1ExchangeInfo (params);
         const coins = this.safeList (response, 'coins');
         //
@@ -1181,7 +1181,7 @@ export default class hashkey extends Exchange {
         return this.parseCurrencies (coins);
     }
 
-    parseCurrency (rawCurrency: Dict): CurrencyInterface {
+    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const currencyId = this.safeString (rawCurrency, 'coinId');
         const code = this.safeCurrencyCode (currencyId);
         const networks = this.safeList (rawCurrency, 'chainTypes') as List;
@@ -1250,7 +1250,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1292,7 +1292,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1337,7 +1337,7 @@ export default class hashkey extends Exchange {
      * @param {string} [params.accountId] account id to fetch the orders from
      * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const methodName = 'fetchMyTrades';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1436,7 +1436,7 @@ export default class hashkey extends Exchange {
         return this.parseTrades (response as List, market, since, limit);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
         //
@@ -1557,7 +1557,7 @@ export default class hashkey extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         const methodName = 'fetchOHLCV';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1604,7 +1604,7 @@ export default class hashkey extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         1721684280000,
@@ -1637,7 +1637,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1675,7 +1675,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1684,7 +1684,7 @@ export default class hashkey extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseTicker (ticker: any, market: Market = undefined): Ticker {
+    override parseTicker (ticker: any, market: Market = undefined): Ticker {
         //
         //     {
         //         "t": 1721685896846,
@@ -1738,7 +1738,7 @@ export default class hashkey extends Exchange {
      * @param {string} [params.symbol] the id of the market to fetch last price for
      * @returns {object} a dictionary of lastprices structures
      */
-    async fetchLastPrices (symbols: Strings = undefined, params = {}): Promise<LastPrices> {
+    override async fetchLastPrices (symbols: Strings = undefined, params = {}): Promise<LastPrices> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1757,7 +1757,7 @@ export default class hashkey extends Exchange {
         return this.parseLastPrices (response, symbols);
     }
 
-    parseLastPrice (entry: any, market: Market = undefined): LastPrice {
+    override parseLastPrice (entry: any, market: Market = undefined): LastPrice {
         const marketId = this.safeString (entry, 's');
         market = this.safeMarket (marketId, market);
         return {
@@ -1780,7 +1780,7 @@ export default class hashkey extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1828,7 +1828,7 @@ export default class hashkey extends Exchange {
         }
     }
 
-    parseBalance (balance: any): Balances {
+    override parseBalance (balance: any): Balances {
         //
         //     {
         //         "balances": [
@@ -1901,7 +1901,7 @@ export default class hashkey extends Exchange {
      * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1933,7 +1933,7 @@ export default class hashkey extends Exchange {
         return depositAddress as DepositAddress;
     }
 
-    parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "canDeposit": true,
@@ -1974,7 +1974,7 @@ export default class hashkey extends Exchange {
      * @param {int} [params.fromId] starting ID (To be released)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const methodName = 'fetchDeposits';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -2026,7 +2026,7 @@ export default class hashkey extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const methodName = 'fetchWithdrawals';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -2088,7 +2088,7 @@ export default class hashkey extends Exchange {
      * @param {string} [params.platform] the platform to withdraw to (hashkey, HashKey HK)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -2119,7 +2119,7 @@ export default class hashkey extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransaction (transaction: any, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: any, currency: Currency = undefined): Transaction {
         //
         //  fetchDeposits
         //     {
@@ -2243,7 +2243,7 @@ export default class hashkey extends Exchange {
      * @param {string} [params.remark] a note for the transfer
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2266,7 +2266,7 @@ export default class hashkey extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    parseTransfer (transfer: any, currency: Currency = undefined) {
+    override parseTransfer (transfer: any, currency: Currency = undefined) {
         const timestamp = this.safeInteger (transfer, 'timestamp');
         const currencyId = this.safeString (currency, 'id');
         let status: Str = undefined;
@@ -2295,7 +2295,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    async fetchAccounts (params = {}): Promise<Account[]> {
+    override async fetchAccounts (params = {}): Promise<Account[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2314,7 +2314,7 @@ export default class hashkey extends Exchange {
         return this.parseAccounts (response, params);
     }
 
-    parseAccount (account: any) {
+    override parseAccount (account: any) {
         const accountLabel = this.safeString (account, 'accountLabel');
         let label = '';
         if (accountLabel === 'Main Trading Account' || accountLabel === 'Main Future Account') {
@@ -2376,7 +2376,7 @@ export default class hashkey extends Exchange {
      * @param {int} [params.accountType] spot, swap, custody
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         const methodName = 'fetchLedger';
         if (since === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a since argument');
@@ -2439,7 +2439,7 @@ export default class hashkey extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
+    override parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         //     {
         //         "id": "1740844413612065537",
@@ -2512,7 +2512,7 @@ export default class hashkey extends Exchange {
      * @param {float} [params.triggerPrice] *swap markets only* The price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2535,7 +2535,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}): Promise<Order> {
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2868,7 +2868,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the api endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrders (orders: OrderRequest[], params = {}) {
+    override async createOrders (orders: OrderRequest[], params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2989,7 +2989,7 @@ export default class hashkey extends Exchange {
      * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         const methodName = 'cancelOrder';
         this.checkTypeParam (methodName, params);
         if (this.markets === undefined) {
@@ -3077,7 +3077,7 @@ export default class hashkey extends Exchange {
      * @param {string} [params.side] 'buy' or 'sell'
      * @returns {object} response from exchange
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
         // Does not cancel trigger orders. For canceling trigger order use cancelOrder() or cancelOrders()
         const methodName = 'cancelAllOrders';
         if (symbol === undefined) {
@@ -3125,7 +3125,7 @@ export default class hashkey extends Exchange {
      * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         const methodName = 'cancelOrders';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -3174,7 +3174,7 @@ export default class hashkey extends Exchange {
      * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+    override async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         const methodName = 'fetchOrder';
         this.checkTypeParam (methodName, params);
         if (this.markets === undefined) {
@@ -3284,7 +3284,7 @@ export default class hashkey extends Exchange {
      * @param {string} [params.accountId] account id to fetch the orders from
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const methodName = 'fetchOpenOrders';
         this.checkTypeParam (methodName, params);
         if (this.markets === undefined) {
@@ -3490,7 +3490,7 @@ export default class hashkey extends Exchange {
      * @param {string} [params.accountId] account id to fetch the orders from
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const methodName = 'fetchCanceledAndClosedOrders';
         this.checkTypeParam (methodName, params);
         if (this.markets === undefined) {
@@ -3619,7 +3619,7 @@ export default class hashkey extends Exchange {
         return [ isTrigger, params ];
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder spot
         //     {
@@ -3853,7 +3853,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3881,7 +3881,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
-    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3899,7 +3899,7 @@ export default class hashkey extends Exchange {
         return this.parseFundingRates (response, symbols);
     }
 
-    parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "ETHUSDT-PERPETUAL",
@@ -3946,7 +3946,7 @@ export default class hashkey extends Exchange {
      * @param {int} [params.endId] the id of the entry to end with
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3999,7 +3999,7 @@ export default class hashkey extends Exchange {
      * @param {string} [params.side] 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         const methodName = 'fetchPositions';
         if ((symbols === undefined)) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument with one single market symbol');
@@ -4026,7 +4026,7 @@ export default class hashkey extends Exchange {
      * @param {string} [params.side] 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
+    override async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4064,7 +4064,7 @@ export default class hashkey extends Exchange {
         return this.parsePositions (response, [ symbol ]);
     }
 
-    parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined) {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -4109,7 +4109,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4131,7 +4131,7 @@ export default class hashkey extends Exchange {
         return this.parseLeverage (leverage, market);
     }
 
-    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marginMode = this.safeStringLower (leverage, 'marginType');
         const leverageValue = this.safeNumber (leverage, 'leverage');
         return {
@@ -4153,7 +4153,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -4186,7 +4186,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<Dict> {
+    override async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<Dict> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
@@ -4222,7 +4222,7 @@ export default class hashkey extends Exchange {
      * @param {string} params.side position side, either 'long' or 'short'
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
     }
 
@@ -4237,7 +4237,7 @@ export default class hashkey extends Exchange {
      * @param {string} params.side position side, either 'long' or 'short'
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+    override async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
@@ -4282,7 +4282,7 @@ export default class hashkey extends Exchange {
         });
     }
 
-    parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
+    override parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         const marketId = this.safeString (data, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'swap');
         const timestamp = this.safeInteger (data, 'timestamp');
@@ -4311,7 +4311,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
+    override async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4322,7 +4322,7 @@ export default class hashkey extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         //
         //     {
         //         "filters": [
@@ -4431,7 +4431,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4465,7 +4465,7 @@ export default class hashkey extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    async fetchTradingFees (params = {}): Promise<TradingFees> {
+    override async fetchTradingFees (params = {}): Promise<TradingFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4536,7 +4536,7 @@ export default class hashkey extends Exchange {
         };
     }
 
-    sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         let query: Str = undefined;
         if (api === 'private') {
@@ -4588,7 +4588,7 @@ export default class hashkey extends Exchange {
         return result;
     }
 
-    handleErrors (code: int, reason: string, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

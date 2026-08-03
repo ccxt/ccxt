@@ -12,7 +12,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class hollaex extends hollaexRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -66,7 +66,7 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -135,7 +135,7 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -196,7 +196,7 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -283,7 +283,7 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -407,7 +407,7 @@ export default class hollaex extends hollaexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         const messageHash = 'wallet';
         return await this.watchPrivate (messageHash, params);
     }
@@ -516,7 +516,7 @@ export default class hollaex extends hollaexRest {
         return true;
     }
 
-    handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: any) {
         //
         // pong
         //
@@ -624,7 +624,7 @@ export default class hollaex extends hollaexRest {
         }
     }
 
-    ping (client: Client) {
+    override ping (client: Client) {
         // hollaex does not support built-in ws protocol-level ping-pong
         return { 'op': 'ping' };
     }
@@ -634,12 +634,12 @@ export default class hollaex extends hollaexRest {
         return message;
     }
 
-    onError (client: Client, error: any) {
+    override onError (client: Client, error: any) {
         this.options['ws-expires'] = undefined;
         super.onError (client, error);
     }
 
-    onClose (client: Client, error: any) {
+    override onClose (client: Client, error: any) {
         this.options['ws-expires'] = undefined;
         super.onClose (client, error);
     }

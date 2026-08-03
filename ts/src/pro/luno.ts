@@ -8,7 +8,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class luno extends lunoRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -47,7 +47,7 @@ export default class luno extends lunoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         this.checkRequiredCredentials ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -109,7 +109,7 @@ export default class luno extends lunoRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    parseTrade (trade: any, market: Market = undefined): Trade {
+    override parseTrade (trade: any, market: Market = undefined): Trade {
         //
         // watchTrades (public)
         //
@@ -151,7 +151,7 @@ export default class luno extends lunoRest {
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         this.checkRequiredCredentials ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -239,7 +239,7 @@ export default class luno extends lunoRest {
         };
     }
 
-    parseOrderBookBidsAsks (bidasks: any, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
+    override parseOrderBookBidsAsks (bidasks: any, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
         bidasks = this.toArray (bidasks);
         const result: any[] = [];
         for (let i = 0; i < bidasks.length; i++) {
@@ -259,7 +259,7 @@ export default class luno extends lunoRest {
         return result;
     }
 
-    handleDelta (orderbook: any, message: any) {
+    override handleDelta (orderbook: any, message: any) {
         //
         //  create
         //     {
@@ -323,7 +323,7 @@ export default class luno extends lunoRest {
         }
     }
 
-    handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: any) {
         if (message === '') {
             return;
         }

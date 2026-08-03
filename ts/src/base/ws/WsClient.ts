@@ -155,7 +155,7 @@ export default class WsClient extends Client {
         }
     }
 
-    connect (backoffDelay = 0) {
+    override connect (backoffDelay = 0) {
         if (!this.startedConnecting) {
             this.startedConnecting = true
             // exponential backoff for consequent ws connections if necessary
@@ -168,11 +168,11 @@ export default class WsClient extends Client {
         return this.connected
     }
 
-    isOpen () {
+    override isOpen () {
         return (this.connection.readyState === WebSocketPlatform.OPEN)
     }
 
-    close () {
+    override close () {
         if (this.connection instanceof WebSocketPlatform) {
             if (this.disconnected === undefined) {
                 this.disconnected = Future ();

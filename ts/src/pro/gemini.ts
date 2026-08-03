@@ -10,7 +10,7 @@ import { Precise } from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 export default class gemini extends geminiRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -48,7 +48,7 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -89,7 +89,7 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const trades = await this.helperForWatchMultipleConstruct ('trades', symbols, params);
         if (this.newUpdates) {
             const first = this.safeList (trades, 0);
@@ -99,7 +99,7 @@ export default class gemini extends geminiRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    parseWsTrade (trade: any, market: Market = undefined): Trade {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         // regular v2 trade
         //
@@ -282,7 +282,7 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -377,7 +377,7 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -446,7 +446,7 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         const orderbook = await this.helperForWatchMultipleConstruct ('orderbook', symbols, params);
         return orderbook.limit ();
     }
@@ -460,7 +460,7 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         return this.helperForWatchMultipleConstruct ('bidsasks', symbols, params);
     }
 
@@ -662,7 +662,7 @@ export default class gemini extends geminiRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const url = this.urls['api']['ws'] + '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -748,7 +748,7 @@ export default class gemini extends geminiRest {
         client.resolve (this.orders, messageHash);
     }
 
-    parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         //     {
         //         "type": "accepted",
@@ -841,7 +841,7 @@ export default class gemini extends geminiRest {
         throw new ExchangeError (this.json (message));
     }
 
-    handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: any) {
         //
         //  public
         //     {

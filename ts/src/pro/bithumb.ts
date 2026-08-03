@@ -12,7 +12,7 @@ import { Balances } from '../base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class bithumb extends bithumbRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -49,7 +49,7 @@ export default class bithumb extends bithumbRest {
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         const url = this.urls['api']['ws']['public'];
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -73,7 +73,7 @@ export default class bithumb extends bithumbRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -197,7 +197,7 @@ export default class bithumb extends bithumbRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -257,7 +257,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleDelta (orderbook: any, delta: any) {
+    override handleDelta (orderbook: any, delta: any) {
         //
         //    {
         //        symbol: "ETH_BTC",
@@ -274,7 +274,7 @@ export default class bithumb extends bithumbRest {
         orderbookSide.storeArray (bidAsk);
     }
 
-    handleDeltas (orderbook: any, deltas: any) {
+    override handleDeltas (orderbook: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (orderbook, deltas[i]);
         }
@@ -291,7 +291,7 @@ export default class bithumb extends bithumbRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -348,7 +348,7 @@ export default class bithumb extends bithumbRest {
         }
     }
 
-    parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         //    {
         //        "symbol" : "BTC_KRW",
@@ -413,7 +413,7 @@ export default class bithumb extends bithumbRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -504,7 +504,7 @@ export default class bithumb extends bithumbRest {
      * @param {string[]} [params.codes] market codes to filter orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -568,7 +568,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (cachedOrders, symbolSpecificMessageHash);
     }
 
-    parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         //    {
         //        "type": "myOrder",
@@ -659,7 +659,7 @@ export default class bithumb extends bithumbRest {
         }, market);
     }
 
-    handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: any) {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }

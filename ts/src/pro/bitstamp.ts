@@ -11,7 +11,7 @@ import { Precise } from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 
 export default class bitstamp extends bitstampRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -56,7 +56,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -132,7 +132,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
-    handleDelta (orderbook: any, delta: any) {
+    override handleDelta (orderbook: any, delta: any) {
         const timestamp = this.safeTimestamp (delta, 'timestamp');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
@@ -152,7 +152,7 @@ export default class bitstamp extends bitstampRest {
         }
     }
 
-    getCacheIndex (orderbook: any, deltas: any) {
+    override getCacheIndex (orderbook: any, deltas: any) {
         // we will consider it a fail
         const firstElement = deltas[0];
         const firstElementNonce = this.safeInteger (firstElement, 'microtimestamp');
@@ -183,7 +183,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -206,7 +206,7 @@ export default class bitstamp extends bitstampRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    parseWsTrade (trade: any, market: Market = undefined): Trade {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         //     {
         //         "buy_order_id": 1211625836466176,
@@ -301,7 +301,7 @@ export default class bitstamp extends bitstampRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
         }
@@ -359,7 +359,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (this.orders, channel);
     }
 
-    parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         //    {
         //        "id": "1894876776091648",
@@ -543,7 +543,7 @@ export default class bitstamp extends bitstampRest {
         return true;
     }
 
-    handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: any) {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }

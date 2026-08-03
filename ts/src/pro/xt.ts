@@ -9,7 +9,7 @@ import { BadSymbol, NotSupported } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
 
 export default class xt extends xtRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -113,7 +113,7 @@ export default class xt extends xtRest {
         return client.subscriptions['token'];
     }
 
-    getCacheIndex (orderbook: any, cache: any) {
+    override getCacheIndex (orderbook: any, cache: any) {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         const nonce = this.safeInteger (orderbook, 'nonce');
         const firstDelta = this.safeValue (cache, 0);
@@ -131,7 +131,7 @@ export default class xt extends xtRest {
         return cache.length;
     }
 
-    handleDelta (orderbook: any, delta: any) {
+    override handleDelta (orderbook: any, delta: any) {
         orderbook['nonce'] = this.safeInteger2 (delta, 'i', 'u');
         const obAsks = this.safeList (delta, 'a', []);
         const obBids = this.safeList (delta, 'b', []);
@@ -281,7 +281,7 @@ export default class xt extends xtRest {
      * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -305,7 +305,7 @@ export default class xt extends xtRest {
      * @param {string} [params.method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    async unWatchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async unWatchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -330,7 +330,7 @@ export default class xt extends xtRest {
      * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -360,7 +360,7 @@ export default class xt extends xtRest {
      * @param {string} [params.method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -391,7 +391,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -415,7 +415,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<OHLCV[]> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -438,7 +438,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -461,7 +461,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
-    async unWatchTrades (symbol: string, params = {}): Promise<Trade[]> {
+    override async unWatchTrades (symbol: string, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -485,7 +485,7 @@ export default class xt extends xtRest {
      * @param {int} [params.levels] 5, 10, 20, or 50
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -513,7 +513,7 @@ export default class xt extends xtRest {
      * @param {int} [params.levels] 5, 10, 20, or 50
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
-    async unWatchOrderBook (symbol: string, params = {}): Promise<OrderBook> {
+    override async unWatchOrderBook (symbol: string, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -540,7 +540,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -568,7 +568,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -593,7 +593,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -612,7 +612,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -643,7 +643,7 @@ export default class xt extends xtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
      */
-    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -664,7 +664,7 @@ export default class xt extends xtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
      */
-    async unWatchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async unWatchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1205,7 +1205,7 @@ export default class xt extends xtRest {
         }
     }
 
-    parseWsOrderTrade (trade: Dict, market: Market = undefined) {
+    override parseWsOrderTrade (trade: Dict, market: Market = undefined) {
         //
         //    {
         //        "s": "btc_usdt",                         // symbol
@@ -1263,7 +1263,7 @@ export default class xt extends xtRest {
         }, market);
     }
 
-    parseWsOrder (order: Dict, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined) {
         //
         // spot
         //
@@ -1504,7 +1504,7 @@ export default class xt extends xtRest {
         client.resolve (stored, 'trade::' + tradeType);
     }
 
-    handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: any) {
         const event = this.safeString (message, 'event');
         if (event === 'pong') {
             client.onPong ();
@@ -1540,7 +1540,7 @@ export default class xt extends xtRest {
         }
     }
 
-    ping (client: Client) {
+    override ping (client: Client) {
         client.lastPong = this.milliseconds ();
         return 'ping';
     }

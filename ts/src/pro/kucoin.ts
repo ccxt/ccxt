@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class kucoin extends kucoinRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -337,7 +337,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -375,7 +375,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async unWatchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -429,7 +429,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -748,7 +748,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -889,7 +889,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -937,7 +937,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<OHLCV[]> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1114,7 +1114,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         let uta = false;
         [ uta, params ] = this.handleOptionAndParams (params, 'watchTrades', 'uta', uta);
         if (uta) {
@@ -1146,7 +1146,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
@@ -1191,7 +1191,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1239,7 +1239,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
         let uta = false;
         [ uta, params ] = this.handleOptionAndParams (params, 'watchTrades', 'uta', uta);
         if (uta) {
@@ -1402,7 +1402,7 @@ export default class kucoin extends kucoinRest {
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         //
         // https://docs.kucoin.com/#level-2-market-data
         //
@@ -1462,7 +1462,7 @@ export default class kucoin extends kucoinRest {
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         let uta = false;
         [ uta, params ] = this.handleOptionAndParams (params, 'unWatchOrderBook', 'uta', uta);
         if (uta) {
@@ -1505,7 +1505,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
@@ -1570,7 +1570,7 @@ export default class kucoin extends kucoinRest {
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' or '/contractMarket/level2' or '/contractMarket/level2Depth5' or '/contractMarket/level2Depth50' default is '/market/level2' for spot and '/contractMarket/level2' for futures
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         const limit = this.safeInteger (params, 'limit');
         params = this.omit (params, 'limit');
         if (this.markets === undefined) {
@@ -1765,7 +1765,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
-    getCacheIndex (orderbook: any, cache: any) {
+    override getCacheIndex (orderbook: any, cache: any) {
         const firstDelta = this.safeValue (cache, 0);
         const nonce = this.safeInteger (orderbook, 'nonce');
         const firstDeltaStart = this.safeIntegerN (firstDelta, [ 'sequenceStart', 'sequence', 'O' ]);
@@ -1783,7 +1783,7 @@ export default class kucoin extends kucoinRest {
         return cache.length;
     }
 
-    handleDelta (orderbook: any, delta: any) {
+    override handleDelta (orderbook: any, delta: any) {
         let timestamp = this.safeIntegerProduct (delta, 'M', 0.000001);
         if (timestamp === undefined) {
             timestamp = this.safeInteger2 (delta, 'time', 'timestamp');
@@ -1939,7 +1939,7 @@ export default class kucoin extends kucoinRest {
      * @param {string} [params.type] 'spot' or 'swap' (default is 'spot' if symbol is not provided)
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2014,7 +2014,7 @@ export default class kucoin extends kucoinRest {
         return this.safeString (statuses, status, status);
     }
 
-    parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         // /spotMarket/tradeOrders
         //
@@ -2362,7 +2362,7 @@ export default class kucoin extends kucoinRest {
      * @param {string} [params.method] *classic (non-uta) account only* '/spotMarket/tradeOrders' or '/spot/tradeFills' or '/contractMarket/tradeOrders', default is '/spotMarket/tradeOrders'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2495,7 +2495,7 @@ export default class kucoin extends kucoinRest {
         client.resolve (cache, symbolMessageHash);
     }
 
-    parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         // /spotMarket/tradeOrders
         //
@@ -2587,7 +2587,7 @@ export default class kucoin extends kucoinRest {
      * @param {string} [params.type] *classic (non-uta) account only* 'spot' or 'swap' (default is 'spot')
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2831,7 +2831,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    async watchPosition (symbol: Str = undefined, params = {}): Promise<Position> {
+    override async watchPosition (symbol: Str = undefined, params = {}): Promise<Position> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchPosition() requires a symbol argument');
         }
@@ -2869,7 +2869,7 @@ export default class kucoin extends kucoinRest {
      * @param {boolean} [params.uta] set to true for the unified trading account (uta)
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3210,7 +3210,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+    override async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3229,7 +3229,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async unWatchFundingRate (symbol: string, params = {}): Promise<any> {
+    override async unWatchFundingRate (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3320,7 +3320,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+    override async watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3339,7 +3339,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchMarkPrice (symbol: string, params = {}): Promise<any> {
+    override async unWatchMarkPrice (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3447,7 +3447,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    ping (client: Client) {
+    override ping (client: Client) {
         // kucoin does not support built-in ws protocol-level ping-pong
         // instead it requires a custom json-based text ping-pong
         // https://docs.kucoin.com/#ping
@@ -3491,7 +3491,7 @@ export default class kucoin extends kucoinRest {
         return false;
     }
 
-    handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: any) {
         const type = this.safeString2 (message, 'type', 'message');
         const methods: Dict = {
             // 'heartbeat': this.handleHeartbeat,

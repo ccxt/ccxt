@@ -22,7 +22,7 @@ export default class PredictionExchange extends BaseExchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'prediction': true,
@@ -579,7 +579,7 @@ export default class PredictionExchange extends BaseExchange {
         return this.slugToMarketSymbol (eventSlug, marketSlug) + ':' + label;
     }
 
-    setMarkets (markets: any, currencies = undefined) {
+    override setMarkets (markets: any, currencies = undefined) {
         // prediction market rows carry only the unified `market` handle — `symbol` is
         // deprecated there. the base indexer keys this.markets/this.symbols by 'symbol',
         // so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
@@ -918,7 +918,7 @@ export default class PredictionExchange extends BaseExchange {
      * @param {object} [params] extra exchange-specific parameters
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (outcome: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (outcome: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         return await super.fetchOHLCV (outcome, timeframe, since, limit, params);
     }
 
