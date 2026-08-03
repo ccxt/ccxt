@@ -1635,10 +1635,19 @@ public class BingxCore extends BingxApi
         Object amount = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("qty", "amount", "q")));
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue(Helpers.GetValue(market, "swap"))) && Helpers.isTrue((Helpers.inOp(trade, "volume")))))
         {
-            // private trade returns num of contracts instead of base currency (as the order-related methods do)
-            Object contractSize = this.safeString(Helpers.GetValue(market, "info"), "tradeMinQuantity");
-            Object volume = this.safeString(trade, "volume");
-            amount = Precise.stringMul(volume, contractSize);
+            if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
+            {
+                // private linear swap trades report 'amount' as the notional (quote) value, not the base amount;
+                // 'volume' is the exchange's own base-currency fill quantity (bingx linear contractSize is always 1),
+                // use it directly instead of 'notional / price', which picks up rounding noise from the notional field
+                amount = this.safeString(trade, "volume");
+            } else
+            {
+                // private trade returns num of contracts instead of base currency (as the order-related methods do)
+                Object contractSize = this.safeString(Helpers.GetValue(market, "info"), "tradeMinQuantity");
+                Object volume = this.safeString(trade, "volume");
+                amount = Precise.stringMul(volume, contractSize);
+            }
         }
         final Object finalTime = time;
         final Object finalMarket = market;
