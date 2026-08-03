@@ -796,7 +796,7 @@ class bitteam(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     {
         #         "t": 1669680000,
@@ -1361,14 +1361,14 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status):
+    def parse_order_type(self, status: Any):
         statuses = {
             'market': 'market',
             'limit': 'limit',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_value_to_pricision(self, valueObject, valueKey, preciseObject, precisionKey):
+    def parse_value_to_pricision(self, valueObject: Any, valueKey: Any, preciseObject: Any, precisionKey: Any):
         valueRawString = self.safe_string(valueObject, valueKey)
         precisionRawString = self.safe_string(preciseObject, precisionKey)
         if valueRawString is None or precisionRawString is None:
@@ -2077,7 +2077,7 @@ class bitteam(Exchange, ImplicitAPI):
         response = self.privateGetTradeApiCcxtBalance(params)
         return self.parse_balance(response)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         #
         #     {
         #         "ok": True,
@@ -2346,7 +2346,7 @@ class bitteam(Exchange, ImplicitAPI):
             'internal': False,
         }
 
-    def parse_transaction_type(self, type):
+    def parse_transaction_type(self, type: Any):
         types = {
             'deposit': 'deposit',
             'withdraw': 'withdrawal',
@@ -2360,7 +2360,7 @@ class bitteam(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
@@ -2382,7 +2382,7 @@ class bitteam(Exchange, ImplicitAPI):
             url += '?' + query
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         if code != 200:

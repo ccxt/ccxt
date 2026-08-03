@@ -2083,7 +2083,7 @@ class nado(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'candlesticks', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     {
         #         "product_id": 1,
@@ -2204,7 +2204,7 @@ class nado(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         #
         #     {
         #         "product_id": 1,
@@ -2275,7 +2275,7 @@ class nado(Exchange, ImplicitAPI):
             'amount': self.parse_x18(self.safe_string(funding, 'amount')),
         }
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         #
         #     {
         #         "product_id": 1,
@@ -2366,7 +2366,7 @@ class nado(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         #
         #     {
         #         "subaccount": "0x8d7d64d6cf1d4f018dd101482ac71ad49e30c56064656661756c740000000000",
@@ -2740,16 +2740,16 @@ class nado(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' convertToX18() requires a value')
         return Precise.string_div(Precise.string_mul(value, '1000000000000000000'), '1', 0)
 
-    def parse_x18(self, value):
+    def parse_x18(self, value: Any):
         if value is None:
             return None
         return self.parse_number(Precise.string_div(value, '1000000000000000000'))
 
-    def create_order_nonce(self, recvWindow):
+    def create_order_nonce(self, recvWindow: Any):
         expires = self.sum(self.milliseconds(), recvWindow)
         return Precise.string_mul(self.number_to_string(expires), '1048576')
 
-    def create_order_appendix(self, isTriggerOrder, params={}):
+    def create_order_appendix(self, isTriggerOrder: Any, params={}):
         # | value   | builder | builder fee rate | reserved | trigger | reduce only | order type | isolated | version |
         # | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         # | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
@@ -2818,7 +2818,7 @@ class nado(Exchange, ImplicitAPI):
             return padded[start:len(padded)]
         return padded[0:length]
 
-    def sign_order(self, order, productId: Int, chainId):
+    def sign_order(self, order: Any, productId: Int, chainId: Any):
         domain = {
             'name': 'Nado',
             'version': '0.0.1',
@@ -2839,7 +2839,7 @@ class nado(Exchange, ImplicitAPI):
         hash = '0x' + self.hash(encoded, 'keccak', 'hex')
         return self.sign_hash(hash, self.privateKey)
 
-    def sign_cancellation(self, cancellation, chainId, endpointAddress: str):
+    def sign_cancellation(self, cancellation: Any, chainId: Any, endpointAddress: str):
         domain = {
             'name': 'Nado',
             'version': '0.0.1',
@@ -2858,7 +2858,7 @@ class nado(Exchange, ImplicitAPI):
         hash = '0x' + self.hash(encoded, 'keccak', 'hex')
         return self.sign_hash(hash, self.privateKey)
 
-    def sign_cancellation_products(self, cancellation, chainId, endpointAddress: str):
+    def sign_cancellation_products(self, cancellation: Any, chainId: Any, endpointAddress: str):
         domain = {
             'name': 'Nado',
             'version': '0.0.1',
@@ -2876,7 +2876,7 @@ class nado(Exchange, ImplicitAPI):
         hash = '0x' + self.hash(encoded, 'keccak', 'hex')
         return self.sign_hash(hash, self.privateKey)
 
-    def sign_fetch_trigger_orders(self, tx, chainId, endpointAddress):
+    def sign_fetch_trigger_orders(self, tx: Any, chainId: Any, endpointAddress: Any):
         domain = {
             'name': 'Nado',
             'version': '0.0.1',
@@ -2902,14 +2902,14 @@ class nado(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v'])).lower()
         return '0x' + self.pad_hex(r, 64) + self.pad_hex(s, 64) + v
 
-    def remove_market_suffix(self, marketId):
+    def remove_market_suffix(self, marketId: Any):
         if marketId is None:
             return None
         if marketId.endswith('-PERP'):
             return marketId[0:-5]
         return marketId
 
-    def sign(self, path, api: Any = [], method='GET', params={}, headers: Any = None, body: Any = None):
+    def sign(self, path: Any, api: Any = [], method='GET', params={}, headers: Any = None, body: Any = None):
         endpoint = api[0]
         if isinstance(api, str):
             endpoint = api
@@ -2928,7 +2928,7 @@ class nado(Exchange, ImplicitAPI):
             body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: Int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: Int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if not response:
             return None  # fallback to default error handler
         #

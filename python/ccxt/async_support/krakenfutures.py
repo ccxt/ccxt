@@ -774,7 +774,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         candles = self.safe_list(response, 'candles')
         return self.parse_ohlcvs((candles), market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #    {
         #        "time": 1645198500000,
@@ -1624,7 +1624,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 canceledAndRejected.append(innerOrder)
         return self.parse_orders(canceledAndRejected, market, since, limit)
 
-    def parse_order_type(self, orderType):
+    def parse_order_type(self, orderType: Any):
         typesMap = {
             'lmt': 'limit',
             'mkt': 'market',
@@ -1633,7 +1633,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         }
         return self.safe_string(typesMap, orderType, orderType)
 
-    def verify_order_action_success(self, status, method, omit: List[str] = []):
+    def verify_order_action_success(self, status: Any, method: Any, omit: List[str] = []):
         errors = {
             'invalidOrderType': InvalidOrder,
             'invalidSide': InvalidOrder,
@@ -2327,7 +2327,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         balance['datetime'] = datetime
         return balance
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         #
         # cashAccount
         #
@@ -2448,7 +2448,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             fundingRates.append(parsed)
         return self.index_by(fundingRates, 'symbol')
 
-    def parse_funding_rate(self, ticker, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, ticker: Any, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "PF_ENJUSD",
@@ -2596,7 +2596,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         result = self.parse_positions(response)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
-    def parse_positions(self, response, symbols: Strings = None, params={}):
+    def parse_positions(self, response: Any, symbols: Strings = None, params={}):
         result = []
         # a degraded response can omit openPositions entirely - default to an
         # empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
@@ -2720,7 +2720,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'instruments')
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
         """
  @ignore
  @param info Exchange market response for 1 market
@@ -2807,7 +2807,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'status': self.safe_string(transfer, 'result'),
         }
 
-    def parse_account(self, account):
+    def parse_account(self, account: Any):
         accountByType = {
             'main': 'cash',
             'funding': 'cash',
@@ -2831,7 +2831,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         else:
             return account
 
-    async def transfer_out(self, code: str, amount, params={}):
+    async def transfer_out(self, code: str, amount: Any, params={}):
         """
         transfer from futures wallet to spot wallet
         :param str code: Unified currency code
@@ -2986,7 +2986,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         if code == 429:
@@ -3004,7 +3004,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             raise BadRequest(feedback)
         raise ExchangeError(feedback)  # unknown message
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         apiVersions = self.safe_value(self.options['versions'], api, {})
         methodVersions = self.safe_value(apiVersions, method, {})
         defaultVersion = self.safe_string(methodVersions, path, self.version)

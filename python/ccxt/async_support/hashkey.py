@@ -1581,7 +1581,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     [
         #         1721684280000,
@@ -1656,7 +1656,7 @@ class hashkey(Exchange, ImplicitAPI):
         response = await self.publicGetQuoteV1Ticker24hr(params)
         return self.parse_tickers(response, symbols)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: Any, market: Market = None) -> Ticker:
         #
         #     {
         #         "t": 1721685896846,
@@ -1726,7 +1726,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_last_prices(response, symbols)
 
-    def parse_last_price(self, entry, market: Market = None) -> LastPrice:
+    def parse_last_price(self, entry: Any, market: Market = None) -> LastPrice:
         marketId = self.safe_string(entry, 's')
         market = self.safe_market(marketId, market)
         return {
@@ -1793,7 +1793,7 @@ class hashkey(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets')
 
-    def parse_balance(self, balance) -> Balances:
+    def parse_balance(self, balance: Any) -> Balances:
         #
         #     {
         #         "balances": [
@@ -1826,7 +1826,7 @@ class hashkey(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    def parse_swap_balance(self, balance) -> Balances:
+    def parse_swap_balance(self, balance: Any) -> Balances:
         #
         #     {
         #         "balance": "30.63364672",
@@ -1890,7 +1890,7 @@ class hashkey(Exchange, ImplicitAPI):
         depositAddress['network'] = networkCode
         return depositAddress
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "canDeposit": True,
@@ -2058,7 +2058,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: Any, currency: Currency = None) -> Transaction:
         #
         #  fetchDeposits
         #     {
@@ -2145,7 +2145,7 @@ class hashkey(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses = {
             '1': 'pending',
             '2': 'pending',
@@ -2197,7 +2197,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: Any, currency: Currency = None):
         timestamp = self.safe_integer(transfer, 'timestamp')
         currencyId = self.safe_string(currency, 'id')
         status = None
@@ -2241,7 +2241,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_accounts(response, params)
 
-    def parse_account(self, account):
+    def parse_account(self, account: Any):
         accountLabel = self.safe_string(account, 'accountLabel')
         label = ''
         if accountLabel == 'Main Trading Account' or accountLabel == 'Main Future Account':
@@ -2257,7 +2257,7 @@ class hashkey(Exchange, ImplicitAPI):
             'info': account,
         }
 
-    def parse_account_type(self, type):
+    def parse_account_type(self, type: Any):
         types = {
             '1': 'spot account',
             '3': 'swap account',
@@ -2266,7 +2266,7 @@ class hashkey(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def encode_account_type(self, type):
+    def encode_account_type(self, type: Any):
         types = {
             'spot': '1',
             'swap': '3',
@@ -2274,7 +2274,7 @@ class hashkey(Exchange, ImplicitAPI):
         }
         return self.safe_integer(types, type, type)
 
-    def encode_flow_type(self, type):
+    def encode_flow_type(self, type: Any):
         types = {
             'trade': '1',
             'fee': '3',
@@ -2343,7 +2343,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_ledger(response, currency, since, limit)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         types = {
             '1': 'trade',  # transfer
             '2': 'fee',  # trade
@@ -2585,7 +2585,7 @@ class hashkey(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' ' + 'createOrderRequest() is not supported for ' + market['type'] + ' type of markets')
 
-    def create_spot_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> dict:
+    def create_spot_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -3421,7 +3421,7 @@ class hashkey(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets')
         return self.parse_orders(response, market, since, limit)
 
-    def check_type_param(self, methodName, params):
+    def check_type_param(self, methodName: Any, params: Any):
         # some hashkey endpoints have a type param for swap markets that defines the type of an order
         # type param is reserved in ccxt for defining the type of the market
         # current method warns user if he provides the exchange specific value in type parameter
@@ -3601,7 +3601,7 @@ class hashkey(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
-    def parse_order_side_and_reduce_only(self, unparsed):
+    def parse_order_side_and_reduce_only(self, unparsed: Any):
         parts = unparsed.split('_')
         side = parts[0]
         reduceOnly = None
@@ -3613,7 +3613,7 @@ class hashkey(Exchange, ImplicitAPI):
                 reduceOnly = True
         return [side, reduceOnly]
 
-    def parse_order_status(self, status):
+    def parse_order_status(self, status: Str):
         statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -3627,7 +3627,7 @@ class hashkey(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type_time_in_force_and_post_only(self, type, timeInForce):
+    def parse_order_type_time_in_force_and_post_only(self, type: Any, timeInForce: Any):
         postOnly = None
         if type == 'LIMIT_MAKER':
             postOnly = True
@@ -3637,7 +3637,7 @@ class hashkey(Exchange, ImplicitAPI):
         type = self.parse_order_type(type)
         return [type, timeInForce, postOnly]
 
-    def parse_order_type(self, type):
+    def parse_order_type(self, type: Any):
         types = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -3697,7 +3697,7 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rates(response, symbols)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "ETHUSDT-PERPETUAL",
@@ -4011,7 +4011,7 @@ class hashkey(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'reduce', params)
 
-    async def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
+    async def modify_margin_helper(self, symbol: str, amount: Any, type: Any, params={}) -> MarginModification:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -4083,7 +4083,7 @@ class hashkey(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
         #
         #     {
         #         "filters": [
@@ -4288,7 +4288,7 @@ class hashkey(Exchange, ImplicitAPI):
             'tierBased': True,
         }
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.urls['api'][api] + '/' + path
         query = None
         if api == 'private':
@@ -4333,7 +4333,7 @@ class hashkey(Exchange, ImplicitAPI):
         result = result.replace('%2C', ',')
         return result
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: Any, method: Any, headers: Any, body: Any, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         errorInArray = False

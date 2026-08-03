@@ -185,7 +185,7 @@ class mudrex(Exchange, ImplicitAPI):
             },
         })
 
-    def sign(self, path, api='public', method='GET', params={}, headers: Any = None, body: Any = None):
+    def sign(self, path: Any, api='public', method='GET', params={}, headers: Any = None, body: Any = None):
         apiUrls = self.safe_dict(self.urls, 'api', {})
         base = self.safe_string(apiUrls, api)
         if base is None:
@@ -217,7 +217,7 @@ class mudrex(Exchange, ImplicitAPI):
             url += '?' + self.urlencode(query)
         return {'url': url, 'method': methodUpper, 'body': None, 'headers': requestHeaders}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None or not isinstance(response, dict):
             return None
         success = self.safe_bool(response, 'success', True)
@@ -242,7 +242,7 @@ class mudrex(Exchange, ImplicitAPI):
             raise ExchangeError(msg)
         return None
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     [1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741]
         #     [timestampInSeconds, open, high, low, close, volume]

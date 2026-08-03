@@ -255,7 +255,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    def handle_instrument(self, client: Client, message):
+    def handle_instrument(self, client: Client, message: Any):
         #
         #    {
         #        "sequence": 1,
@@ -365,7 +365,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             'quoteVolume': self.safe_string_2(ticker, 'total_24_hour_volume', 'total24_hour_volume'),
         })
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         # snapshot
         #    {
@@ -458,7 +458,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         # {
         #     "sequence": 0,
@@ -527,7 +527,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trade(self, client, message):
+    def handle_trade(self, client: Any, message: Any):
         #
         #    {
         #       "sequence": 0,
@@ -555,7 +555,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         client.resolve(tradesArray, channel + '::' + trade['symbol'])
         return message
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade: Any, market: Market = None):
         #
         #    {
         #       "sequence": 0,
@@ -612,7 +612,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         """
         return self.subscribe_multiple('LEVEL2', symbols, params)
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Any, message: Any):
         #
         # snapshot
         #    {
@@ -670,7 +670,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, channel + '::' + symbol)
 
-    def handle_delta(self, orderbook, delta):
+    def handle_delta(self, orderbook: Any, delta: Any):
         rawSide = self.safe_string_lower(delta, 0)
         side = 'bids' if (rawSide == 'buy') else 'asks'
         price = self.safe_float(delta, 1)
@@ -678,11 +678,11 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         bookside = orderbook[side]
         bookside.store(price, amount)
 
-    def handle_deltas(self, orderbook, deltas):
+    def handle_deltas(self, orderbook: Any, deltas: Any):
         for i in range(0, len(deltas)):
             self.handle_delta(orderbook, deltas[i])
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message: Any):
         #
         #    {
         #       "channels": [
@@ -709,7 +709,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         #
         return message
 
-    def handle_funding_rate(self, client: Client, message):
+    def handle_funding_rate(self, client: Client, message: Any):
         #
         # snapshot
         #    {
@@ -737,7 +737,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         self.fundingRates[fundingRate['symbol']] = fundingRate
         client.resolve(fundingRate, channel + '::' + fundingRate['symbol'])
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         #    {
         #        message: 'Failed to subscribe',
@@ -760,7 +760,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             client.reject(e)
         return True
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Any, message: Any):
         if self.handle_error_message(client, message):
             return
         channel = self.safe_string(message, 'channel', '')

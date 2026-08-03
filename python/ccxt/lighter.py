@@ -382,7 +382,7 @@ class lighter(Exchange, ImplicitAPI):
             },
         })
 
-    def load_account(self, chainId, privateKey, apiKeyIndex: str, accountIndex: str, params={}):
+    def load_account(self, chainId: Any, privateKey: Any, apiKeyIndex: str, accountIndex: str, params={}):
         self.init_auth_object(accountIndex, apiKeyIndex)
         cachedAuths = self.safe_dict(self.options['auths'][accountIndex], apiKeyIndex)
         signer = self.safe_value(cachedAuths, 'signer')
@@ -578,7 +578,7 @@ class lighter(Exchange, ImplicitAPI):
         prefix = self.binary_concat(x19, self.encode('Ethereum Signed Message:'), newline, self.encode(self.number_to_string(binaryMessageLength)))
         return '0x' + self.hash(self.binary_concat(prefix, binaryMessage), 'keccak', 'hex')
 
-    def sign_hash(self, hash, privateKey):
+    def sign_hash(self, hash: Any, privateKey: Any):
         self.check_required_credentials()
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
@@ -586,7 +586,7 @@ class lighter(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_l1_and_prepare_tx_info(self, txInfo, message, privateKey):
+    def sign_l1_and_prepare_tx_info(self, txInfo: Any, message: Any, privateKey: Any):
         hashMessage = self.hash_message(message)
         signature = self.sign_hash(hashMessage, privateKey)
         decTxInfo = self.parse_json(txInfo)
@@ -813,7 +813,7 @@ class lighter(Exchange, ImplicitAPI):
                 orders.append(orderObj)
         return orders
 
-    def fetch_nonce(self, accountIndex, apiKeyIndex, params={}):
+    def fetch_nonce(self, accountIndex: Any, apiKeyIndex: Any, params={}):
         if (accountIndex is None) or (apiKeyIndex is None):
             raise ArgumentsRequired(self.id + ' fetchNonce() requires accountIndex and apiKeyIndex.')
         if 'nonce' in params:
@@ -829,7 +829,7 @@ class lighter(Exchange, ImplicitAPI):
         response = self.publicGetNextNonce({'account_index': accountIndex, 'api_key_index': apiKeyIndex})
         return self.safe_integer(response, 'nonce')
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}):
         """
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
@@ -1482,7 +1482,7 @@ class lighter(Exchange, ImplicitAPI):
         tickers = self.array_concat(spotTickers, swapTickers)
         return self.parse_tickers(tickers, symbols)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         # {
         #     "t": 1767700500000,
@@ -1581,7 +1581,7 @@ class lighter(Exchange, ImplicitAPI):
         ohlcvs = self.safe_list(response, 'c', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         #
         #     {
         #         "market_id": 0,
@@ -1949,7 +1949,7 @@ class lighter(Exchange, ImplicitAPI):
         accounts = self.safe_list(response, 'accounts', [])
         return self.parse_accounts(accounts, params)
 
-    def parse_account(self, account):
+    def parse_account(self, account: Any):
         #
         #     {
         #         "code": "0",
@@ -2259,7 +2259,7 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, type):
+    def parse_order_type(self, type: Any):
         types = {
             'limit': 'limit',
             'market': 'market',
@@ -2273,7 +2273,7 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_order_type_integer(self, typeInteger):
+    def parse_order_type_integer(self, typeInteger: Any):
         if typeInteger is None:
             return None
         types = {
@@ -2289,7 +2289,7 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, str(typeInteger))
 
-    def parse_order_time_in_force(self, tif):
+    def parse_order_time_in_force(self, tif: Any):
         timeInForces = {
             'immediate-or-cancel': 'IOC',
             'good-till-time': 'GTC',
@@ -2298,7 +2298,7 @@ class lighter(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, tif, tif)
 
-    def parse_order_time_in_force_integer(self, tifInteger):
+    def parse_order_time_in_force_integer(self, tifInteger: Any):
         timeInForces = {
             '0': 'immediate-or-cancel',
             '1': 'good-till-time',
@@ -3108,7 +3108,7 @@ class lighter(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = None
         if api == 'root':
             url = self.implode_hostname(self.urls['api']['public'])
@@ -3128,7 +3128,7 @@ class lighter(Exchange, ImplicitAPI):
                 url += '?' + self.rawencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if not response:
             return None  # fallback to default error handler
         #

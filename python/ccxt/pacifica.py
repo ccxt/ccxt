@@ -625,7 +625,7 @@ class pacifica(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'data', [])
         return self.parse_markets(markets)
 
-    def fetch_swap_markets(self, params={}) -> List[Market]:
+    def fetch_swap_markets(self, params: Any = {}) -> List[Market]:
         """
         retrieves data on all swap markets for pacifica
 
@@ -1103,7 +1103,7 @@ class pacifica(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'data', [])
         return self.parse_funding_rates(result, symbols)
 
-    def parse_funding_rate(self, info, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, info: Any, market: Market = None) -> FundingRate:
         #
         #      {
         #         "funding": "0.00010529",
@@ -1217,7 +1217,7 @@ class pacifica(Exchange, ImplicitAPI):
         candles = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     {
         #       "t": 1748954160000,
@@ -2251,7 +2251,7 @@ class pacifica(Exchange, ImplicitAPI):
         orders = self.parse_orders(data, market, since, limit)
         return orders
 
-    def add_pagination_cursor_to_result(self, response):
+    def add_pagination_cursor_to_result(self, response: Any):
         data = self.safe_list(response, 'data', [])
         paginationCursor = self.safe_string(response, 'next_cursor')
         hasMore = self.safe_bool(response, 'has_more', False)
@@ -2811,7 +2811,7 @@ class pacifica(Exchange, ImplicitAPI):
         ois = self.fetch_open_interests([symbol], params)
         return ois[symbol]
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         #
         #     {
         #       "funding": "0.00010529",
@@ -2926,7 +2926,7 @@ class pacifica(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         ledgerType = {
             'subaccount_transfer': 'transfer',
             'deposit': 'transaction',
@@ -2999,7 +2999,7 @@ class pacifica(Exchange, ImplicitAPI):
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_incomes(data, market, since, limit)
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: Any, market: Market = None):
         #
         #     {
         #       "history_id": 2287920,
@@ -3220,7 +3220,7 @@ class pacifica(Exchange, ImplicitAPI):
             return [address1, params]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires address either as "exchange.walletAddress = ..." or or "address" in params')
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         #
@@ -3244,7 +3244,7 @@ class pacifica(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'test' if (isTestnet) else 'api'
         host = self.implode_hostname(self.urls[urlKey][api])
@@ -3263,7 +3263,7 @@ class pacifica(Exchange, ImplicitAPI):
             headers['PF-API-KEY'] = self.options['apiKey']
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
+    def calculate_rate_limiter_cost(self, api: Any, method: Any, path: Any, params: Any, config={}):
         cost = self.safe_string(config, 'cost', '1')
         costNumber = self.parse_number(cost)
         # 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET

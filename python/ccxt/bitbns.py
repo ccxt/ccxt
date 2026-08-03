@@ -491,7 +491,7 @@ class bitbns(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbols)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         timestamp = None
         result = {
             'info': response,
@@ -545,7 +545,7 @@ class bitbns(Exchange, ImplicitAPI):
         # note that "Money" stands for INR - the only fiat in bitbns
         return self.parse_balance(response)
 
-    def parse_status(self, status):
+    def parse_status(self, status: Any):
         statuses = {
             '-1': 'cancelled',
             '0': 'open',
@@ -1073,7 +1073,7 @@ class bitbns(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def parse_transaction_status_by_type(self, status, type: Str = None):
+    def parse_transaction_status_by_type(self, status: Any, type: Str = None):
         statusesByType = {
             'deposit': {
                 '0': 'pending',
@@ -1195,7 +1195,7 @@ class bitbns(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = 'www', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'www', method='GET', params={}, headers: dict = None, body: Str = None):
         urls = self.urls
         if not (api in urls['api']):
             raise ExchangeError(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
@@ -1228,7 +1228,7 @@ class bitbns(Exchange, ImplicitAPI):
             headers['Content-Type'] = 'application/x-www-form-urlencoded'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         #

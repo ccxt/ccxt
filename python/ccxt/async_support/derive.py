@@ -597,7 +597,7 @@ class derive(Exchange, ImplicitAPI):
         result = self.array_concat(result, optionMarkets)
         return result
 
-    async def fetch_spot_markets(self, params={}) -> List[Market]:
+    async def fetch_spot_markets(self, params: Any = {}) -> List[Market]:
         request = {
             'expired': False,
             'instrument_type': 'erc20',
@@ -607,7 +607,7 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'instruments', [])
         return self.parse_markets(data)
 
-    async def fetch_swap_markets(self, params={}) -> List[Market]:
+    async def fetch_swap_markets(self, params: Any = {}) -> List[Market]:
         request = {
             'expired': False,
             'instrument_type': 'perp',
@@ -617,7 +617,7 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'instruments', [])
         return self.parse_markets(data)
 
-    async def fetch_option_markets(self, params={}) -> List[Market]:
+    async def fetch_option_markets(self, params: Any = {}) -> List[Market]:
         request = {
             'expired': False,
             'instrument_type': 'option',
@@ -1116,7 +1116,7 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 0)
         return self.parse_funding_rate(data)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         symbol = self.safe_string(contract, 'symbol')
         fundingTimestamp = self.safe_integer(contract, 'timestamp')
         return {
@@ -1140,7 +1140,7 @@ class derive(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def hash_order_message(self, order):
+    def hash_order_message(self, order: Any):
         accountHash = self.hash(self.eth_abi_encode([
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), 'keccak', 'binary')
@@ -1150,11 +1150,11 @@ class derive(Exchange, ImplicitAPI):
         prefix = self.base16_to_binary('1901')
         return self.hash(self.binary_concat(prefix, binaryDomainSeparator, accountHash), 'keccak', 'hex')
 
-    def sign_order(self, order, privateKey):
+    def sign_order(self, order: Any, privateKey: Any):
         hashOrder = self.hash_order_message(order)
         return self.sign_hash(hashOrder[-64:], privateKey[-64:])
 
-    def hash_message(self, message):
+    def hash_message(self, message: Any):
         binaryMessage = self.encode(message)
         binaryMessageLength = self.binary_length(binaryMessage)
         x19 = self.base16_to_binary('19')
@@ -1162,7 +1162,7 @@ class derive(Exchange, ImplicitAPI):
         prefix = self.binary_concat(x19, self.encode('Ethereum Signed Message:'), newline, self.encode(self.number_to_string(binaryMessageLength)))
         return '0x' + self.hash(self.binary_concat(prefix, binaryMessage), 'keccak', 'hex')
 
-    def sign_hash(self, hash, privateKey):
+    def sign_hash(self, hash: Any, privateKey: Any):
         self.check_required_credentials()
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
@@ -1170,7 +1170,7 @@ class derive(Exchange, ImplicitAPI):
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_message(self, message, privateKey):
+    def sign_message(self, message: Any, privateKey: Any):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def parse_units(self, num: str, dec='1000000000000000000'):
@@ -2310,7 +2310,7 @@ class derive(Exchange, ImplicitAPI):
         events = self.safe_list(result, 'events', [])
         return self.parse_incomes(events, market, since, limit)
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: Any, market: Market = None):
         #
         # {
         #     "instrument_name": "BTC-PERP",
@@ -2403,7 +2403,7 @@ class derive(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result')
         return self.parse_balance(result)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {
             'info': response,
         }
@@ -2585,7 +2585,7 @@ class derive(Exchange, ImplicitAPI):
             return [optionsWallet, params]
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a deriveWalletAddress parameter inside \'params\' or exchange.options[\'deriveWalletAddress\'] = ADDRESS, the address can find in HOME => Developers tab.')
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if not response:
             return None  # fallback to default error handler
         error = self.safe_dict(response, 'error')
@@ -2597,7 +2597,7 @@ class derive(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + path
         if method == 'POST':
             headers = {

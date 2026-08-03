@@ -291,7 +291,7 @@ class bit2c(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -810,7 +810,7 @@ class bit2c(Exchange, ImplicitAPI):
             responseList = response
         return self.parse_trades(responseList, market, since, limit)
 
-    def remove_comma_from_value(self, str):
+    def remove_comma_from_value(self, str: Any):
         newString = ''
         strParts = str.split(',')
         for i in range(0, len(strParts)):
@@ -911,7 +911,7 @@ class bit2c(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def is_fiat(self, code):
+    def is_fiat(self, code: Any):
         return code == 'NIS'
 
     async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
@@ -941,7 +941,7 @@ class bit2c(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
@@ -962,7 +962,7 @@ class bit2c(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         if api == 'public':
             url += '.json'
@@ -986,7 +986,7 @@ class bit2c(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         #

@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitopro import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, DepositWithdrawFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -852,7 +852,7 @@ class bitopro(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 'timestamp'),
             self.safe_number(ohlcv, 'open'),
@@ -917,7 +917,7 @@ class bitopro(Exchange, ImplicitAPI):
         sparse = self.parse_ohlcvs(data, market, timeframe, since, limit)
         return self.insert_missing_candles(sparse, timeframeInSeconds, alignedSince, limit)
 
-    def insert_missing_candles(self, candles, distance, since, limit):
+    def insert_missing_candles(self, candles: Any, distance: Any, since: Any, limit: Any):
         # the exchange doesn't send zero volume candles so we emulate them instead
         # otherwise sending a limit arg leads to unexpected results
         length = len(candles)
@@ -952,7 +952,7 @@ class bitopro(Exchange, ImplicitAPI):
             copyFrom = result[resultLength - 1]
         return result
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         #
         #     [{
         #         "currency":"twd",
@@ -1196,7 +1196,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def parse_cancel_orders(self, data):
+    def parse_cancel_orders(self, data: Any):
         dataKeys = list(data.keys())
         orders = []
         for i in range(0, len(dataKeys)):
@@ -1752,7 +1752,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(result, currency)
 
-    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
         #    {
         #        "currency":"eth",
         #        "withdrawFee":"0.007",
@@ -1776,7 +1776,7 @@ class bitopro(Exchange, ImplicitAPI):
             'networks': {},
         }
 
-    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -1808,7 +1808,7 @@ class bitopro(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if headers is None:
@@ -1842,7 +1842,7 @@ class bitopro(Exchange, ImplicitAPI):
         url = self.urls['api']['rest'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to the default error handler
         if code >= 200 and code < 300:

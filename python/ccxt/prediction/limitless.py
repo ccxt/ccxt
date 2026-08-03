@@ -1466,7 +1466,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         })
         return await self.fetch_orders(outcome, since, limit, params)
 
-    async def fetch_orders_by_ids(self, ids, outcome: Str = None, params={}) -> List[PredictionOrder]:
+    async def fetch_orders_by_ids(self, ids: Any, outcome: Str = None, params={}) -> List[PredictionOrder]:
         """
         fetch orders by the list of order id
 
@@ -2020,7 +2020,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             parsedOrder['status'] = 'open'
         return parsedOrder
 
-    def sign_order_request(self, signRequest: dict, marketSymbol):
+    def sign_order_request(self, signRequest: dict, marketSymbol: Any):
         self.check_required_credentials()
         if self.privateKey is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a privateKey(the embedded/trading wallet key) to sign orders')
@@ -2053,10 +2053,10 @@ class limitless(PredictionExchange, ImplicitAPI):
         msg = self.eth_encode_structured_data(domain, messageTypes, signRequest)
         return self.sign_message(msg, self.privateKey)
 
-    def hash_message(self, message):
+    def hash_message(self, message: Any):
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash, privateKey):
+    def sign_hash(self, hash: Any, privateKey: Any):
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
@@ -2066,7 +2066,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         result = '0x' + rPadded + sPadded + v
         return result.lower()
 
-    def sign_message(self, message, privateKey):
+    def sign_message(self, message: Any, privateKey: Any):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def sign_evm_transaction(self, tx: dict, privateKey: str) -> str:
@@ -2899,7 +2899,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         url = baseUrl + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody: str, response, requestHeaders, requestBody):
+    def handle_errors(self, statusCode: int, statusText: str, url: str, method: str, responseHeaders: dict, responseBody: str, response: Any, requestHeaders: Any, requestBody: Any):
         """
  @ignore
         maps limitless error responses to ccxt exceptions

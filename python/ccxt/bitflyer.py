@@ -227,7 +227,7 @@ class bitflyer(Exchange, ImplicitAPI):
             },
         })
 
-    def parse_expiry_date(self, expiry):
+    def parse_expiry_date(self, expiry: Any):
         day = expiry[0:2]
         monthName = expiry[2:5]
         year = expiry[5:9]
@@ -403,7 +403,7 @@ class bitflyer(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
@@ -1019,14 +1019,14 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit)
 
-    def parse_deposit_status(self, status):
+    def parse_deposit_status(self, status: Any):
         statuses = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_withdrawal_status(self, status):
+    def parse_withdrawal_status(self, status: Any):
         statuses = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
@@ -1137,7 +1137,7 @@ class bitflyer(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate(response, market)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         #
         #    {
         #        "current_funding_rate": -0.003750000000
@@ -1167,7 +1167,7 @@ class bitflyer(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + self.version + '/'
         if api == 'private':
             request += 'me/'
@@ -1194,7 +1194,7 @@ class bitflyer(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to the default error handler
         feedback = self.id + ' ' + body

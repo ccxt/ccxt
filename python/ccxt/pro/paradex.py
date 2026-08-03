@@ -68,7 +68,7 @@ class paradex(ccxt.async_support.paradex):
             self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
         return await future
 
-    def handle_authentication_message(self, client: Client, message):
+    def handle_authentication_message(self, client: Client, message: Any):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -116,7 +116,7 @@ class paradex(ccxt.async_support.paradex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trade(self, client: Client, message):
+    def handle_trade(self, client: Client, message: Any):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -174,7 +174,7 @@ class paradex(ccxt.async_support.paradex):
         orderbook = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -331,7 +331,7 @@ class paradex(ccxt.async_support.paradex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message):
+    def handle_order(self, client: Client, message: Any):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -373,7 +373,7 @@ class paradex(ccxt.async_support.paradex):
             symbolMessageHash = messageHash + ':' + symbol
             client.resolve(self.orders, symbolMessageHash)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -476,7 +476,7 @@ class paradex(ccxt.async_support.paradex):
             return result
         return self.filter_by_array(self.fundingRates, 'symbol', symbols)
 
-    def handle_funding_rate(self, client: Client, message):
+    def handle_funding_rate(self, client: Client, message: Any):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -504,7 +504,7 @@ class paradex(ccxt.async_support.paradex):
         messageHash = channel + '.' + symbol
         client.resolve(fundingRate, messageHash)
 
-    def parse_funding_rate_ws(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate_ws(self, contract: Any, market: Market = None) -> FundingRate:
         #
         #     {
         #         "market": "TRUMP-USD-PERP",
@@ -541,7 +541,7 @@ class paradex(ccxt.async_support.paradex):
             'interval': fundingPeriod + 'h',
         }
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -569,7 +569,7 @@ class paradex(ccxt.async_support.paradex):
                     self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
             return False
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         if not self.handle_error_message(client, message):
             return
         #

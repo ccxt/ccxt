@@ -1255,7 +1255,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             return self.array_slice(candles, -limit)
         return candles
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         # Unused: fetchOHLCV performs client-side bucket aggregation directly.
         #
         #     {
@@ -1326,7 +1326,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         first = self.safe_dict(response, 0, {})
         return self.parse_prediction_open_interest(first, outcomeObj)
 
-    def parse_prediction_open_interest(self, interest, market: Market = None) -> PredictionOpenInterest:
+    def parse_prediction_open_interest(self, interest: dict, market: Market = None) -> PredictionOpenInterest:
         #
         #     {"market": "0x7976b8...92", "value": 4925662.470476}
         #
@@ -1535,7 +1535,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         response = await self.clobPrivateGetBalanceAllowance(self.extend(request, rest))
         return self.parse_balance(response)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         """
  @ignore
         parses a balance-allowance response into a balances object with a USDC entry

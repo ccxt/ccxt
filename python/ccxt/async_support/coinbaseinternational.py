@@ -402,7 +402,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         return self.parse_accounts(response, params)
 
-    def parse_account(self, account):
+    def parse_account(self, account: Any):
         #
         #    {
         #       "portfolio_id":"1ap32qsc-1-0",
@@ -477,7 +477,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         candles = self.safe_list(response, 'aggregations', [])
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #   {
         #     "start": "2024-04-23T00:00:00Z",
@@ -551,10 +551,10 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         rawRates = self.safe_list(response, 'results', [])
         return self.parse_funding_rate_histories(rawRates, market, since, limit)
 
-    def parse_funding_rate_history(self, info, market: Market = None):
+    def parse_funding_rate_history(self, info: Any, market: Market = None):
         return self.parse_funding_rate(info, market)
 
-    def parse_funding_rate(self, contract, market: Market = None):
+    def parse_funding_rate(self, contract: Any, market: Market = None):
         #
         #    {
         #       "instrument_id":"149264167780483072",
@@ -618,7 +618,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         fundings = self.safe_list(response, 'results', [])
         return self.parse_incomes(fundings, market, since, limit)
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: Any, market: Market = None):
         #
         # {
         #     "amount":"0.0008",
@@ -798,7 +798,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def find_default_network(self, networks):
+    def find_default_network(self, networks: Any):
         networksArray = self.to_array(networks)
         for i in range(0, len(networksArray)):
             info = networksArray[i]['info']
@@ -807,7 +807,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 return networksArray[i]
         return networksArray[0]
 
-    async def load_currency_networks(self, code, params={}):
+    async def load_currency_networks(self, code: Any, params={}):
         currency = self.currency(code)
         networks = self.safe_dict(currency, 'networks')
         if networks is not None:
@@ -837,14 +837,14 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         currency['networks'] = self.parse_networks(rawNetworks)
         return True
 
-    def parse_networks(self, networks, params={}):
+    def parse_networks(self, networks: Any, params={}):
         result = {}
         for i in range(0, len(networks)):
             network = self.extend(self.parse_network(networks[i]), params)
             result[network['network']] = network
         return result
 
-    def parse_network(self, network, params={}):
+    def parse_network(self, network: Any, params={}):
         #
         #    {
         #        "asset_id":"1",
@@ -1108,7 +1108,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.filter_by_array_positions(positions, 'symbol', symbols, False)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> List[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -1130,7 +1130,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         params['type'] = 'WITHDRAW'
         return await self.fetch_deposits_withdrawals(code, since, limit, params)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> List[Transaction]:
         """
         fetch all deposits made to an account
         :param str code: unified currency code
@@ -1602,7 +1602,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         return self.parse_balance(balances)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         #
         #    {
         #       "asset_id":"0-0-1",
@@ -2213,7 +2213,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path, api: Any = [], method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = [], method='GET', params={}, headers: dict = None, body: Str = None):
         version = api[0]
         signed = api[1] == 'private'
         fullPath = '/' + version + '/' + self.implode_params(path, params)
@@ -2241,7 +2241,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         #
         #    {
         #        "title":"io.javalin.http.BadRequestResponse: Order rejected(DUPLICATE_CLIENT_ORDER_ID - duplicate client order id detected)",

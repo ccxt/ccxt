@@ -78,7 +78,7 @@ class hollaex(ccxt.async_support.hollaex):
         orderbook = await self.watch_public(messageHash, params)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         #     {
         #         "topic":"orderbook",
@@ -144,7 +144,7 @@ class hollaex(ccxt.async_support.hollaex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         #     {
         #         "topic": "trade",
@@ -202,7 +202,7 @@ class hollaex(ccxt.async_support.hollaex):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client: Client, message, subscription: dict | None = None):
+    def handle_my_trades(self, client: Client, message: Any, subscription: dict | None = None):
         #
         # {
         #     "topic":"usertrade",
@@ -279,7 +279,7 @@ class hollaex(ccxt.async_support.hollaex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message, subscription: dict | None = None):
+    def handle_order(self, client: Client, message: Any, subscription: dict | None = None):
         #
         #     {
         #         "topic": "order",
@@ -382,7 +382,7 @@ class hollaex(ccxt.async_support.hollaex):
         messageHash = 'wallet'
         return await self.watch_private(messageHash, params)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: Any):
         #
         #     {
         #         "topic": "wallet",
@@ -422,7 +422,7 @@ class hollaex(ccxt.async_support.hollaex):
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, messageHash)
 
-    async def watch_public(self, messageHash, params={}):
+    async def watch_public(self, messageHash: Any, params={}):
         url = self.urls['api']['ws']
         request = {
             'op': 'subscribe',
@@ -431,7 +431,7 @@ class hollaex(ccxt.async_support.hollaex):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def watch_private(self, messageHash, params={}):
+    async def watch_private(self, messageHash: Any, params={}):
         self.check_required_credentials()
         expires = self.safe_string(self.options, 'ws-expires')
         if expires is None:
@@ -459,7 +459,7 @@ class hollaex(ccxt.async_support.hollaex):
         message = self.extend(request, params)
         return await self.watch(signedUrl, messageHash, message, messageHash)
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         #     {error: "Bearer or HMAC authentication required"}
         #     {error: "Error: wrong input"}
@@ -474,7 +474,7 @@ class hollaex(ccxt.async_support.hollaex):
                 return False
         return True
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         #
         # pong
         #
@@ -582,14 +582,14 @@ class hollaex(ccxt.async_support.hollaex):
         # hollaex does not support built-in ws protocol-level ping-pong
         return {'op': 'ping'}
 
-    def handle_pong(self, client: Client, message):
+    def handle_pong(self, client: Client, message: Any):
         client.lastPong = self.milliseconds()
         return message
 
-    def on_error(self, client: Client, error):
+    def on_error(self, client: Client, error: Any):
         self.options['ws-expires'] = None
         super(hollaex, self).on_error(client, error)
 
-    def on_close(self, client: Client, error):
+    def on_close(self, client: Client, error: Any):
         self.options['ws-expires'] = None
         super(hollaex, self).on_close(client, error)

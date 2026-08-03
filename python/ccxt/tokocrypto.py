@@ -1303,7 +1303,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         response = self.binanceGetTicker24hr(params)
         return self.parse_tickers(response, symbols)
 
-    def get_market_id_by_type(self, market):
+    def get_market_id_by_type(self, market: Any):
         if market['quote'] == 'USDT':
             return market['baseId'] + market['quoteId']
         return market['id']
@@ -1345,7 +1345,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         response = self.binanceGetTickerBookTicker(params)
         return self.parse_tickers(response, symbols)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         # when api method = publicGetKlines or fapiPublicGetKlines or dapiPublicGetKlines
         #     [
         #         1591478520000,  # open time
@@ -1489,7 +1489,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         return self.parse_balance_custom(response, type, marginMode)
 
-    def parse_balance_custom(self, response, type: Str = None, marginMode: Str = None):
+    def parse_balance_custom(self, response: Any, type: Str = None, marginMode: Str = None):
         timestamp = self.safe_integer(response, 'updateTime')
         result = {
             'info': response,
@@ -1678,7 +1678,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'trades': fills,
         }, market)
 
-    def parse_order_type(self, status):
+    def parse_order_type(self, status: Any):
         statuses = {
             '2': 'market',
             '1': 'limit',
@@ -2267,7 +2267,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         withdrawals = self.safe_list(data, 'list', [])
         return self.parse_transactions(withdrawals, currency, since, limit)
 
-    def parse_transaction_status_by_type(self, status, type: Str = None):
+    def parse_transaction_status_by_type(self, status: Any, type: Str = None):
         statusesByType = {
             'deposit': {
                 '0': 'pending',
@@ -2438,7 +2438,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         if not (api in self.urls['api']['rest']):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
         url = self.urls['api']['rest'][api]
@@ -2490,7 +2490,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         # error response in a form: {"code": -1013, "msg": "Invalid quantity."}
@@ -2549,7 +2549,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
+    def calculate_rate_limiter_cost(self, api: Any, method: Any, path: Any, params: Any, config={}):
         if ('noCoin' in config) and not ('coin' in params):
             return config['noCoin']
         elif ('noSymbol' in config) and not ('symbol' in params):

@@ -483,7 +483,7 @@ class bittrade(Exchange, ImplicitAPI):
         #
         return self.parse_trading_limits(self.safe_value(response, 'data', {}))
 
-    def parse_trading_limits(self, limits, symbol: Str = None, params={}):
+    def parse_trading_limits(self, limits: Any, symbol: Str = None, params={}):
         #
         #   {                                 symbol: "aidocbtc",
         #                  "buy-limit-must-less-than":  1.1,
@@ -509,7 +509,7 @@ class bittrade(Exchange, ImplicitAPI):
             },
         }
 
-    def cost_to_precision(self, symbol, cost):
+    def cost_to_precision(self, symbol: Str, cost: Any):
         return self.decimal_to_precision(cost, TRUNCATE, self.market(symbol)['precision']['cost'], self.precisionMode)
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -991,7 +991,7 @@ class bittrade(Exchange, ImplicitAPI):
         result = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     {
         #         "amount":1.2082,
@@ -1154,7 +1154,7 @@ class bittrade(Exchange, ImplicitAPI):
             'info': currency,
         })
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         balances = self.safe_value(response['data'], 'list', [])
         result = {'info': response}
         for i in range(0, len(balances)):
@@ -1194,7 +1194,7 @@ class bittrade(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_balance(response)
 
-    async def fetch_orders_by_states(self, states, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_by_states(self, states: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         if self.markets is None:
             await self.load_markets()
         request = {
@@ -1419,7 +1419,7 @@ class bittrade(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}):
         """
         create a market buy order by providing the symbol and cost
         :param str symbol: unified symbol of the market to create an order in
@@ -1587,7 +1587,7 @@ class bittrade(Exchange, ImplicitAPI):
         #
         return self.parse_cancel_orders(response)
 
-    def parse_cancel_orders(self, orders):
+    def parse_cancel_orders(self, orders: Any):
         #
         #    {
         #        "success": [
@@ -1679,7 +1679,7 @@ class bittrade(Exchange, ImplicitAPI):
             }),
         ]
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None):
         #
         #     {
         #         "currency": "usdt",
@@ -1905,7 +1905,7 @@ class bittrade(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = '/'
         if api == 'market':
             url += api
@@ -1952,7 +1952,7 @@ class bittrade(Exchange, ImplicitAPI):
         }) + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         if 'status' in response:

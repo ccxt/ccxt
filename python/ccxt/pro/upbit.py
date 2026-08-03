@@ -37,7 +37,7 @@ class upbit(ccxt.async_support.upbit):
             },
         })
 
-    async def watch_public_multiple(self, symbols: Strings, channel, params={}):
+    async def watch_public_multiple(self, symbols: Strings, channel: Any, params={}):
         if self.markets is None:
             await self.load_markets()
         if symbols is None:
@@ -171,7 +171,7 @@ class upbit(ccxt.async_support.upbit):
         timeFrameOHLCV = 'candle.' + timeframe
         return await self.watch_public_multiple([symbol], timeFrameOHLCV)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         # 2020-03-17T23:07:36.511Z "onMessage" <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
         # {type: "ticker",
         #   "code": "BTC-ETH",
@@ -215,7 +215,7 @@ class upbit(ccxt.async_support.upbit):
         messageHash = 'ticker:' + symbol
         client.resolve(ticker, messageHash)
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         # {type: "orderbook",
         #   "code": "BTC-ETH",
         #   "timestamp": 1584486737444,
@@ -267,7 +267,7 @@ class upbit(ccxt.async_support.upbit):
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         # {type: "trade",
         #   "code": "KRW-BTC",
         #   "timestamp": 1584508285812,
@@ -295,7 +295,7 @@ class upbit(ccxt.async_support.upbit):
         messageHash = 'trade:' + symbol
         client.resolve(stored, messageHash)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         # {
         #     type: 'candle.1s',
         #     code: 'KRW-USDT',
@@ -337,7 +337,7 @@ class upbit(ccxt.async_support.upbit):
         client = self.client(url)
         return client
 
-    async def watch_private(self, symbol, channel, messageHash, params={}):
+    async def watch_private(self, symbol: Any, channel: Any, messageHash: Any, params={}):
         await self.authenticate()
         request = {
             'type': channel,
@@ -435,7 +435,7 @@ class upbit(ccxt.async_support.upbit):
             return None
         return self.safe_string(statuses, status, status)
 
-    def parse_ws_order(self, order, market: Market = None):
+    def parse_ws_order(self, order: Any, market: Market = None):
         #
         # {
         #     "type": "myOrder",
@@ -502,7 +502,7 @@ class upbit(ccxt.async_support.upbit):
             'trades': None,
         })
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade: Any, market: Market = None):
         # see: parseWsOrder
         side = self.safe_string_lower(trade, 'ask_bid')
         if side == 'bid':
@@ -535,14 +535,14 @@ class upbit(ccxt.async_support.upbit):
             'info': trade,
         }, market)
 
-    def handle_my_order(self, client: Client, message):
+    def handle_my_order(self, client: Client, message: Any):
         # see: parseWsOrder
         tradeId = self.safe_string(message, 'trade_uuid')
         if tradeId is not None:
             self.handle_my_trade(client, message)
         self.handle_order(client, message)
 
-    def handle_my_trade(self, client: Client, message):
+    def handle_my_trade(self, client: Client, message: Any):
         # see: parseWsOrder
         myTrades = self.myTrades
         if myTrades is None:
@@ -555,7 +555,7 @@ class upbit(ccxt.async_support.upbit):
         messageHash = 'myTrades:' + trade['symbol']
         client.resolve(myTrades, messageHash)
 
-    def handle_order(self, client: Client, message):
+    def handle_order(self, client: Client, message: Any):
         parsed = self.parse_ws_order(message)
         symbol = self.safe_string(parsed, 'symbol')
         orderId = self.safe_string(parsed, 'id')
@@ -596,7 +596,7 @@ class upbit(ccxt.async_support.upbit):
         messageHash = 'myAsset'
         return await self.watch_private(None, channel, messageHash)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: Any):
         #
         # {
         #     "type": "myAsset",
@@ -632,7 +632,7 @@ class upbit(ccxt.async_support.upbit):
         messageHash = self.safe_string(message, 'type')
         client.resolve(self.balance, messageHash)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         methods = {
             'ticker': self.handle_ticker,
             'orderbook': self.handle_order_book,

@@ -97,7 +97,7 @@ class bydfi(ccxt.async_support.bydfi):
         self.unlock_id()
         return reqid
 
-    async def watch_public(self, messageHashes, channels, params={}, subscription={}):
+    async def watch_public(self, messageHashes: Any, channels: Any, params={}, subscription={}):
         url = self.urls['api']['ws']
         id = self.request_id()
         subscriptionParams = {
@@ -117,7 +117,7 @@ class bydfi(ccxt.async_support.bydfi):
         }
         return await self.watch_multiple(url, messageHashes, self.deep_extend(message, params), messageHashes, self.extend(subscriptionParams, subscription))
 
-    async def watch_private(self, messageHashes, params={}):
+    async def watch_private(self, messageHashes: Any, params={}):
         self.check_required_credentials()
         url = self.urls['api']['ws']
         subHash = 'private'
@@ -259,7 +259,7 @@ class bydfi(ccxt.async_support.bydfi):
                 messageHashes.append(key)
         return messageHashes
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #     {
         #         "s": "KAS-USDT",
@@ -372,7 +372,7 @@ class bydfi(ccxt.async_support.bydfi):
         }
         return await self.watch_public(messageHashes, channels, params, subscription)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         #     {
         #         "s": "ETH-USDC",
@@ -496,7 +496,7 @@ class bydfi(ccxt.async_support.bydfi):
         params = self.extend(params, {'unsubscribe': True})
         return await self.watch_public(messageHashes, channels, params, subscription)
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         #     {
         #         "a": [[150000, 15], ...],
@@ -564,7 +564,7 @@ class bydfi(ccxt.async_support.bydfi):
             limit = orders.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
-    def handle_order(self, client: Client, message):
+    def handle_order(self, client: Client, message: Any):
         #
         #     {
         #         "T": 1766588450558,
@@ -701,7 +701,7 @@ class bydfi(ccxt.async_support.bydfi):
             return positions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def handle_positions(self, client, message):
+    def handle_positions(self, client: Any, message: Any):
         #
         #     {
         #         "a": {
@@ -761,7 +761,7 @@ class bydfi(ccxt.async_support.bydfi):
         client.resolve([parsedPosition], messageHash)
         client.resolve([parsedPosition], symbolMessageHash)
 
-    def parse_ws_position(self, position, market: Market = None):
+    def parse_ws_position(self, position: Any, market: Market = None):
         #
         #     {
         #         "S": "1",
@@ -853,7 +853,7 @@ class bydfi(ccxt.async_support.bydfi):
                 client.future(messageHash)
                 self.spawn(self.load_balance_snapshot, client, messageHash)
 
-    async def load_balance_snapshot(self, client, messageHash):
+    async def load_balance_snapshot(self, client: Client, messageHash: Any):
         params = {
             'type': 'swap',
         }
@@ -864,7 +864,7 @@ class bydfi(ccxt.async_support.bydfi):
         future.resolve()
         client.resolve(self.balance, 'balance')
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: Any):
         #
         #     {
         #         "a": {
@@ -928,7 +928,7 @@ class bydfi(ccxt.async_support.bydfi):
             self.balance = self.extend(self.balance, parsedBalance)
             client.resolve(self.balance, messageHash)
 
-    def handle_subscription_status(self, client: Client, message):
+    def handle_subscription_status(self, client: Client, message: Any):
         #
         #     {
         #         "result": True,
@@ -952,7 +952,7 @@ class bydfi(ccxt.async_support.bydfi):
             self.clean_unsubscription(client, subHash, unsubHash, subHashIsPrefix)
         self.clean_cache(subscription)
 
-    def handle_pong(self, client: Client, message):
+    def handle_pong(self, client: Client, message: Any):
         #
         #     {
         #         "id": 1,
@@ -962,7 +962,7 @@ class bydfi(ccxt.async_support.bydfi):
         client.lastPong = self.milliseconds()
         return message
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message: Any):
         #
         #     {
         #         "msg": "Service error",
@@ -977,7 +977,7 @@ class bydfi(ccxt.async_support.bydfi):
         self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
         raise ExchangeError(feedback)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         code = self.safe_string(message, 'code')
         if code is not None and (code != '0'):
             self.handle_error_message(client, message)

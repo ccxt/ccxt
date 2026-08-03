@@ -99,7 +99,7 @@ class gemini(ccxt.async_support.gemini):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
+    def parse_ws_trade(self, trade: Any, market: Market = None) -> Trade:
         #
         # regular v2 trade
         #
@@ -153,7 +153,7 @@ class gemini(ccxt.async_support.gemini):
             'fee': None,
         }, market)
 
-    def handle_trade(self, client: Client, message):
+    def handle_trade(self, client: Client, message: Any):
         #
         #     {
         #         "type": "trade",
@@ -177,7 +177,7 @@ class gemini(ccxt.async_support.gemini):
         messageHash = 'trades:' + symbol
         client.resolve(stored, messageHash)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         #     {
         #         "type": "l2_updates",
@@ -231,7 +231,7 @@ class gemini(ccxt.async_support.gemini):
             messageHash = 'trades:' + symbol
             client.resolve(stored, messageHash)
 
-    def handle_trades_for_multidata(self, client: Client, trades, timestamp: Int):
+    def handle_trades_for_multidata(self, client: Client, trades: Any, timestamp: Int):
         if trades is not None:
             tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
             storesForSymbols = {}
@@ -290,7 +290,7 @@ class gemini(ccxt.async_support.gemini):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         #     {
         #         "type": "candles_15m_updates",
@@ -378,7 +378,7 @@ class gemini(ccxt.async_support.gemini):
         orderbook = await self.watch(url, messageHash, request, subscribeHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         isInitial = ('auction_events' in message) and ('trades' in message) and ('changes' in message)
         changes = self.safe_value(message, 'changes', [])
         marketId = self.safe_string_lower(message, 'symbol')
@@ -432,7 +432,7 @@ class gemini(ccxt.async_support.gemini):
         """
         return self.helper_for_watch_multiple_construct('bidsasks', symbols, params)
 
-    def handle_bids_asks_for_multidata(self, client: Client, rawBidAskChanges, timestamp: Int, nonce: Int):
+    def handle_bids_asks_for_multidata(self, client: Client, rawBidAskChanges: Any, timestamp: Int, nonce: Int):
         #
         # {
         #     eventId: '1683002916916153',
@@ -518,7 +518,7 @@ class gemini(ccxt.async_support.gemini):
             url += 'trades=true&bids=false&offers=false'
         return await self.watch_multiple(url, messageHashes, None)
 
-    def handle_order_book_for_multidata(self, client: Client, rawOrderBookChanges, timestamp: Int, nonce: Int):
+    def handle_order_book_for_multidata(self, client: Client, rawOrderBookChanges: Any, timestamp: Int, nonce: Int):
         #
         # rawOrderBookChanges
         #
@@ -562,7 +562,7 @@ class gemini(ccxt.async_support.gemini):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    def handle_l2_updates(self, client: Client, message):
+    def handle_l2_updates(self, client: Client, message: Any):
         #
         #     {
         #         "type": "l2_updates",
@@ -631,7 +631,7 @@ class gemini(ccxt.async_support.gemini):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_heartbeat(self, client: Client, message):
+    def handle_heartbeat(self, client: Client, message: Any):
         #
         #     {
         #         "type": "heartbeat",
@@ -644,7 +644,7 @@ class gemini(ccxt.async_support.gemini):
         client.lastPong = self.milliseconds()
         return message
 
-    def handle_subscription(self, client: Client, message):
+    def handle_subscription(self, client: Client, message: Any):
         #
         #     {
         #         "type": "subscription_ack",
@@ -657,7 +657,7 @@ class gemini(ccxt.async_support.gemini):
         #
         return message
 
-    def handle_order(self, client: Client, message):
+    def handle_order(self, client: Client, message: Any):
         #
         #     [
         #         {
@@ -691,7 +691,7 @@ class gemini(ccxt.async_support.gemini):
             orders.append(order)
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order, market: Market = None):
+    def parse_ws_order(self, order: Any, market: Market = None):
         #
         #     {
         #         "type": "accepted",
@@ -751,7 +751,7 @@ class gemini(ccxt.async_support.gemini):
             'trades': None,
         }, market)
 
-    def parse_ws_order_status(self, status):
+    def parse_ws_order_status(self, status: Any):
         statuses = {
             'accepted': 'open',
             'booked': 'open',
@@ -762,7 +762,7 @@ class gemini(ccxt.async_support.gemini):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_ws_order_type(self, type):
+    def parse_ws_order_type(self, type: Any):
         types = {
             'exchange limit': 'limit',
             'market buy': 'market',
@@ -770,7 +770,7 @@ class gemini(ccxt.async_support.gemini):
         }
         return self.safe_string(types, type, type)
 
-    def handle_error(self, client: Client, message):
+    def handle_error(self, client: Client, message: Any):
         #
         #     {
         #         "reason": "NoValidTradingPairs",
@@ -779,7 +779,7 @@ class gemini(ccxt.async_support.gemini):
         #
         raise ExchangeError(self.json(message))
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         #
         #  public
         #     {

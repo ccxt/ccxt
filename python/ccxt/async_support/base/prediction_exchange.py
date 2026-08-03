@@ -484,7 +484,7 @@ class PredictionExchange(BaseExchange):
             label = upper
         return self.slug_to_market_symbol(eventSlug, marketSlug) + ':' + label
 
-    def set_markets(self, markets, currencies=None):
+    def set_markets(self, markets: Any, currencies=None):
         # prediction market rows carry only the unified `market` handle — `symbol` is
         # deprecated there. the base indexer keys self.markets/self.symbols by 'symbol',
         # so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
@@ -506,7 +506,7 @@ class PredictionExchange(BaseExchange):
         self.populate_outcomes()
         return stored
 
-    def index_market_outcomes(self, market):
+    def index_market_outcomes(self, market: Any):
         # index one market's outcome tokens into self.outcomes / self.outcomes_by_id,
         # normalizing each to the canonical identity keys(outcome / outcomeId / market) so
         # consumers and the safe* helpers stay uniform even when an exchange's parseMarket
@@ -1333,24 +1333,24 @@ class PredictionExchange(BaseExchange):
             results.append(position)
         return results
 
-    def filter_by_outcome_since_limit(self, array, outcome: Str = None, since: Int = None, limit: Int = None, tail=False):
+    def filter_by_outcome_since_limit(self, array: Any, outcome: Str = None, since: Int = None, limit: Int = None, tail=False):
         return self.filter_by_value_since_limit(array, 'outcome', outcome, since, limit, 'timestamp', tail)
 
-    def filter_by_outcomes_since_limit(self, array, outcomes: Strings = None, since: Int = None, limit: Int = None, tail=False):
+    def filter_by_outcomes_since_limit(self, array: Any, outcomes: Strings = None, since: Int = None, limit: Int = None, tail=False):
         result = self.filter_by_array(array, 'outcome', outcomes, False)
         return self.filter_by_since_limit(result, since, limit, 'timestamp', tail)
 
-    def amount_to_prediction_precision(self, outcome: Str, amount):
+    def amount_to_prediction_precision(self, outcome: Str, amount: Any):
         outcomeObj = self.outcome(outcome)
         marketSymbol = self.safe_string(outcomeObj, 'market')
         return self.amount_to_precision(marketSymbol, amount)
 
-    def price_to_prediction_precision(self, outcome: Str, price):
+    def price_to_prediction_precision(self, outcome: Str, price: Any):
         outcomeObj = self.outcome(outcome)
         marketSymbol = self.safe_string(outcomeObj, 'market')
         return self.price_to_precision(marketSymbol, price)
 
-    def cost_to_prediction_precision(self, outcome: Str, cost):
+    def cost_to_prediction_precision(self, outcome: Str, cost: Any):
         outcomeObj = self.outcome(outcome)
         marketSymbol = self.safe_string(outcomeObj, 'market')
         return self.cost_to_precision(marketSymbol, cost)

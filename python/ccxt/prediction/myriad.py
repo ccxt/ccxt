@@ -9,6 +9,7 @@ import asyncio
 import json
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByOutcomeById
 from ccxt.base.types import Any, Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition, PredictionTradingFee, PredictionOrderRequest
+from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -2543,7 +2544,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 usablePoints.append(point)
         return self.parse_ohlcvs(usablePoints, outcomeObj, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         """
  @ignore
         parses a single myriad price chart data point into an ohlcv tuple
@@ -2918,7 +2919,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         # connect is in flight(sent by a concurrent subscribe) — wait on the shared reply future
         return await client.future('centrifugoConnected')
 
-    async def pong(self, client, message: Any = None):
+    async def pong(self, client: Client, message: Any = None):
         # Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
         await client.send('{}')
 
@@ -2930,7 +2931,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         subscribeMsg = {'subscribe': {'channel': channel}, 'id': requestId}
         return await self.watch(url, messageHash, subscribeMsg, channel)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Any, message: Any):
         # Centrifugo packs several commands per frame joined by \n; a multi-command frame fails the
         # base json.loadsand arrives here raw string, a single command arrives already parsed
         if isinstance(message, str):
@@ -2944,7 +2945,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             return
         self.handle_centrifugo_frame(client, message)
 
-    def handle_centrifugo_frame(self, client, msg):
+    def handle_centrifugo_frame(self, client: Client, msg: Any):
         keys = list(msg.keys())
         keysLength = len(keys)
         if keysLength == 0:
@@ -3020,7 +3021,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         orderbook.reset(snapshot)
         self.orderbooks[sym] = orderbook
 
-    def handle_order_book(self, client, data):
+    def handle_order_book(self, client: Any, data: Any):
         networkId = self.safe_string(data, 'networkId')
         marketId = self.safe_string(data, 'marketId')
         ts = self.safe_integer(data, 'ts')
@@ -3105,7 +3106,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             return self.eth_get_address_from_private_key(self.privateKey).lower()
         return None
 
-    def handle_trades(self, client, data):
+    def handle_trades(self, client: Any, data: Any):
         networkId = self.safe_string(data, 'networkId')
         marketId = self.safe_string(data, 'marketId')
         ts = self.safe_integer(data, 'ts')
@@ -3274,7 +3275,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             result.append([candle[0], candle[1], candle[2], candle[3], candle[4], candle[5]])
         return self.filter_by_since_limit(result, since, limit, 0, True)
 
-    def handle_ticker(self, client, data):
+    def handle_ticker(self, client: Any, data: Any):
         networkId = self.safe_string(data, 'networkId')
         marketId = self.safe_string(data, 'marketId')
         ts = self.safe_integer(data, 'ts')
@@ -3344,7 +3345,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         orders = await self.subscribe_myriad_channel(messageHash, channel, params)
         return self.filter_by_value_since_limit(orders, 'outcome', outcome, since, limit, 'timestamp', True)
 
-    def handle_order(self, client, data):
+    def handle_order(self, client: Any, data: Any):
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheByOutcomeById(limit)
@@ -3433,7 +3434,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 balances[id] = self.number_to_string(self.safe_number(p, 'contracts', 0))
         self.options['positionBalances'] = balances
 
-    def handle_position(self, client, data):
+    def handle_position(self, client: Any, data: Any):
         if self.positions is None:
             limit = self.safe_integer(self.options, 'positionsLimit', 1000)
             self.positions = ArrayCacheByOutcomeById(limit)
@@ -3494,7 +3495,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             address = self.eth_get_address_from_private_key(self.privateKey)
         return address.lower()
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         # Myriad error responses are {"error": "<message>", "details": [...]} with a 4xx status
         if response is None:
             return None

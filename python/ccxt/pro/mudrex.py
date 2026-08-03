@@ -6,6 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheByTimestamp
 from ccxt.base.types import Any, Int, Strings, Ticker, Tickers
+from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
@@ -36,7 +37,7 @@ class mudrex(ccxt.async_support.mudrex):
             },
         })
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return {
             'id': self.request_id(),
             'method': 'PING',
@@ -142,7 +143,7 @@ class mudrex(ccxt.async_support.mudrex):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Any, message: Any):
         if self.safe_string(message, 'method') == 'PONG':
             return
         error = self.safe_dict(message, 'error')
@@ -156,7 +157,7 @@ class mudrex(ccxt.async_support.mudrex):
             elif stream.find('ticker') >= 0:
                 self.handle_ticker(client, message)
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message: Any):
         error = self.safe_dict(message, 'error', {})
         code = self.safe_string(error, 'code')
         msg = self.safe_string(error, 'msg')
@@ -165,7 +166,7 @@ class mudrex(ccxt.async_support.mudrex):
             raise RateLimitExceeded(feedback)
         raise ExchangeError(feedback)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Any, message: Any):
         stream = self.safe_string(message, 'stream')
         if stream is None:
             return
@@ -197,7 +198,7 @@ class mudrex(ccxt.async_support.mudrex):
         messageHash = stream
         client.resolve(stored, messageHash)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Any, message: Any):
         data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             t = data[i]

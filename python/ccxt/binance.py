@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.binance import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Any, ADL, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, LongShortRatio, MarginMode, MarginModes, MarginModification, Market, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Any, ADL, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, LongShortRatio, MarginMode, MarginModes, MarginModification, Market, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -3012,7 +3012,7 @@ class binance(Exchange, ImplicitAPI):
             marginablesById = self.index_by(responseMarginables, 'assetName')
         return self.parse_currencies_custom(responseCurrencies, marginablesById)
 
-    def parse_currencies_custom(self, responseCurrencies, marginablesById) -> Currencies:
+    def parse_currencies_custom(self, responseCurrencies: Any, marginablesById: Any) -> Currencies:
         result = {}
         for i in range(0, len(responseCurrencies)):
             parsed = self.parse_currency(responseCurrencies[i])
@@ -3672,7 +3672,7 @@ class binance(Exchange, ImplicitAPI):
             entry['limits']['cost']['max'] = self.safe_number(filter, 'maxNotional')
         return self.safe_market_structure(entry)
 
-    def parse_balance_helper(self, entry):
+    def parse_balance_helper(self, entry: Any):
         account = self.account()
         account['used'] = self.safe_string(entry, 'locked')
         account['free'] = self.safe_string(entry, 'free')
@@ -3681,7 +3681,7 @@ class binance(Exchange, ImplicitAPI):
         account['debt'] = Precise.string_add(debt, interest)
         return account
 
-    def parse_balance_custom(self, response, type: Str = None, marginMode: Str = None, isPortfolioMargin=False) -> Balances:
+    def parse_balance_custom(self, response: Any, type: Str = None, marginMode: Str = None, isPortfolioMargin=False) -> Balances:
         result = {
             'info': response,
         }
@@ -4484,7 +4484,7 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchLastPrices() does not support ' + type + ' markets yet')
         return self.parse_last_prices(response, symbols)
 
-    def parse_last_price(self, entry, market: Market = None):
+    def parse_last_price(self, entry: Any, market: Market = None):
         #
         # spot
         #
@@ -4574,7 +4574,7 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchTickers() does not support ' + type + ' markets yet')
         return self.parse_tickers(response, symbols)
 
-    def parse_tickers_for_rolling(self, response, symbols):
+    def parse_tickers_for_rolling(self, response: Any, symbols: Any):
         results = []
         for i in range(0, len(response)):
             marketId = self.safe_string(response[i], 'symbol')
@@ -4648,7 +4648,7 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchMarkPrices() does not support ' + type + ' markets yet')
         return self.parse_tickers(response, symbols)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         # when api method = publicGetKlines or fapiPublicGetKlines or dapiPublicGetKlines
         #     [
         #         1591478520000,  # open time
@@ -6778,7 +6778,7 @@ class binance(Exchange, ImplicitAPI):
         }
         return self.create_order(symbol, 'market', 'buy', cost, None, self.extend(req, params))
 
-    def create_market_sell_order_with_cost(self, symbol: str, cost: float, params={}):
+    def create_market_sell_order_with_cost(self, symbol: str, cost: float, params: dict = {}):
         """
         create a market sell order by providing the symbol and cost
 
@@ -8187,7 +8187,7 @@ class binance(Exchange, ImplicitAPI):
         trades = self.parse_trades(data, None, since, limit)
         return self.filter_by_since_limit(trades, since, limit)
 
-    def parse_dust_trade(self, trade, market: Market = None):
+    def parse_dust_trade(self, trade: Any, market: Market = None):
         #
         #     {
         #       "fromAsset": "USDT",
@@ -8493,7 +8493,7 @@ class binance(Exchange, ImplicitAPI):
             responseList[i]['type'] = 'withdrawal'
         return self.parse_transactions(responseList, currency, since, limit)
 
-    def parse_transaction_status_by_type(self, status, type: Str = None):
+    def parse_transaction_status_by_type(self, status: Any, type: Str = None):
         if type is None:
             return status
         statusesByType = {
@@ -8761,7 +8761,7 @@ class binance(Exchange, ImplicitAPI):
             'status': status,
         }
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: Any, market: Market = None):
         #
         #     {
         #       "symbol": "ETHUSDT",
@@ -9049,7 +9049,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, response, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, response: Any, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "coin": "XRP",
@@ -9193,7 +9193,7 @@ class binance(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -9250,7 +9250,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes, 'coin')
 
-    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
         #
         #    {
         #        "coin": "BAT",
@@ -9579,7 +9579,7 @@ class binance(Exchange, ImplicitAPI):
             symbols = list(markets.keys())
             result = {}
             feeTier = self.safe_integer(response, 'feeTier')
-            feeTiers = self.fees['linear']['trading']['tiers']
+            feeTiers = (self.fees)['linear']['trading']['tiers']
             maker = feeTiers['maker'][feeTier][1]
             taker = feeTiers['taker'][feeTier][1]
             for i in range(0, len(symbols)):
@@ -9611,7 +9611,7 @@ class binance(Exchange, ImplicitAPI):
             symbols = list(markets.keys())
             result = {}
             feeTier = self.safe_integer(response, 'feeTier')
-            feeTiers = self.fees['inverse']['trading']['tiers']
+            feeTiers = (self.fees)['inverse']['trading']['tiers']
             maker = feeTiers['maker'][feeTier][1]
             taker = feeTiers['taker'][feeTier][1]
             for i in range(0, len(symbols)):
@@ -9629,7 +9629,7 @@ class binance(Exchange, ImplicitAPI):
             return result
         return None
 
-    def futures_transfer(self, code: str, amount, type, params={}):
+    def futures_transfer(self, code: str, amount: Any, type: Any, params={}):
         """
  @ignore
         transfer between futures account
@@ -9761,7 +9761,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate_histories(response, market, since, limit)
 
-    def parse_funding_rate_history(self, contract, market: Market = None):
+    def parse_funding_rate_history(self, contract: Any, market: Market = None):
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -9807,7 +9807,7 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchFundingRates() supports linear and inverse contracts only')
         return self.parse_funding_rates(response, symbols)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         # ensure it matches with https://www.binance.com/en/futures/funding-history/0
         #
         # fetchFundingRate, fetchFundingRates
@@ -9867,7 +9867,7 @@ class binance(Exchange, ImplicitAPI):
             'interval': intervalString,
         }
 
-    def parse_account_positions(self, account, filterClosed=False):
+    def parse_account_positions(self, account: Any, filterClosed=False):
         positions = self.safe_list(account, 'positions', [])
         assets = self.safe_list(account, 'assets', [])
         balances = {}
@@ -9901,7 +9901,7 @@ class binance(Exchange, ImplicitAPI):
                     result.append(parsed)
         return result
 
-    def parse_account_position(self, position, market: Market = None):
+    def parse_account_position(self, position: Any, market: Market = None):
         #
         # usdm
         #
@@ -10139,7 +10139,7 @@ class binance(Exchange, ImplicitAPI):
             'percentage': percentage,
         }
 
-    def parse_position_risk(self, position, market: Market = None):
+    def parse_position_risk(self, position: Any, market: Market = None):
         #
         # usdm
         #
@@ -10481,7 +10481,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_leverage_tiers(response, symbols, 'symbol')
 
-    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
         """
  @ignore
         :param dict info: Exchange response for 1 market
@@ -11388,7 +11388,7 @@ class binance(Exchange, ImplicitAPI):
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_settlement(self, settlement, market):
+    def parse_settlement(self, settlement: Any, market: Any):
         #
         # fetchSettlementHistory
         #
@@ -11429,7 +11429,7 @@ class binance(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_settlements(self, settlements, market):
+    def parse_settlements(self, settlements: Any, market: Any):
         #
         # fetchSettlementHistory
         #
@@ -11655,7 +11655,7 @@ class binance(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         ledgerType = {
             'FEE': 'fee',
             'FUNDING_FEE': 'fee',
@@ -11709,7 +11709,7 @@ class binance(Exchange, ImplicitAPI):
             return None
         return scheme + '//' + domain + '/'
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params: dict = {}, headers: dict = None, body: Any = None):
         urls = self.urls
         if not (api in urls['api']):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
@@ -11843,7 +11843,7 @@ class binance(Exchange, ImplicitAPI):
             return self.safe_dict(exceptionsForMarketType, exactOrBroad, {})
         return {}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         # error response in a form: {"code": -1013, "msg": "Invalid quantity."}
@@ -11913,7 +11913,7 @@ class binance(Exchange, ImplicitAPI):
                     self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, self.id + ' ' + body)
         return None
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
+    def calculate_rate_limiter_cost(self, api: Any, method: Any, path: Any, params: Any, config={}):
         if ('noCoin' in config) and not ('coin' in params):
             return config['noCoin']
         elif ('noSymbol' in config) and not ('symbol' in params):
@@ -11929,14 +11929,14 @@ class binance(Exchange, ImplicitAPI):
                     return entry[1]
         return self.safe_value(config, 'cost', 1)
 
-    def request(self, path, api='public', method='GET', params={}, headers: Any = None, body: Any = None, config={}):
+    def request(self, path: Any, api='public', method='GET', params={}, headers: Any = None, body: Any = None, config={}):
         response = self.fetch2(path, api, method, params, headers, body, config)
         # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if api == 'private':
             self.options['hasAlreadyAuthenticatedSuccessfully'] = True
         return response
 
-    def modify_margin_helper(self, symbol: str, amount, addOrReduce, params={}):
+    def modify_margin_helper(self, symbol: str, amount: Any, addOrReduce: Any, params={}):
         # used to modify isolated positions
         defaultType = self.safe_string(self.options, 'defaultType', 'future')
         if defaultType == 'spot':
@@ -12184,7 +12184,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_borrow_rate_history(response, code, since, limit)
 
-    def parse_borrow_rate(self, info, currency: Currency = None):
+    def parse_borrow_rate(self, info: Any, currency: Currency = None):
         #
         #    {
         #        "asset": "USDT",
@@ -12241,7 +12241,7 @@ class binance(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    def create_gift_code(self, code: str, amount, params={}):
+    def create_gift_code(self, code: str, amount: Any, params={}):
         """
         create gift code
 
@@ -12280,7 +12280,7 @@ class binance(Exchange, ImplicitAPI):
             'amount': amount,
         }
 
-    def redeem_gift_code(self, giftcardCode, params={}):
+    def redeem_gift_code(self, giftcardCode: Any, params={}):
         """
         redeem gift code
 
@@ -12424,7 +12424,7 @@ class binance(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def repay_cross_margin(self, code: str, amount, params={}):
+    def repay_cross_margin(self, code: str, amount: float, params={}):
         """
         repay borrowed margin and interest
 
@@ -12484,7 +12484,7 @@ class binance(Exchange, ImplicitAPI):
             #
         return self.parse_margin_loan(response, currency)
 
-    def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
+    def repay_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         """
         repay borrowed margin and interest
 
@@ -12585,7 +12585,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_margin_loan(response, currency)
 
-    def parse_margin_loan(self, info, currency: Currency = None):
+    def parse_margin_loan(self, info: Any, currency: Currency = None):
         #
         #     {
         #         "tranId": 108988250265,
@@ -12749,7 +12749,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             return self.parse_open_interest(response, market)
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         timestamp = self.safe_integer_2(interest, 'timestamp', 'time')
         id = self.safe_string(interest, 'symbol')
         amount = self.safe_number_2(interest, 'sumOpenInterest', 'openInterest')
@@ -12919,7 +12919,7 @@ class binance(Exchange, ImplicitAPI):
             liquidationsList = liquidations
         return self.parse_liquidations(liquidationsList, market, since, limit)
 
-    def parse_liquidation(self, liquidation, market: Market = None):
+    def parse_liquidation(self, liquidation: Any, market: Market = None):
         #
         # margin
         #

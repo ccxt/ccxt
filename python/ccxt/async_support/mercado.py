@@ -502,7 +502,7 @@ class mercado(Exchange, ImplicitAPI):
         response = await getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         data = self.safe_value(response, 'response_data', {})
         balances = self.safe_value(data, 'balance', {})
         result = {'info': response}
@@ -812,7 +812,7 @@ class mercado(Exchange, ImplicitAPI):
             'info': transaction,
         }
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
@@ -921,7 +921,7 @@ class mercado(Exchange, ImplicitAPI):
         trades = self.orders_to_trades(orders)
         return self.filter_by_symbol_since_limit(trades, market['symbol'], since, limit)
 
-    def orders_to_trades(self, orders):
+    def orders_to_trades(self, orders: Any):
         result = []
         for i in range(0, len(orders)):
             trades = self.safe_value(orders[i], 'trades', [])
@@ -929,7 +929,7 @@ class mercado(Exchange, ImplicitAPI):
                 result.append(trades[y])
         return result
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/'
         query = self.omit(params, self.extract_params(path))
         if (api == 'public') or (api == 'v4Public') or (api == 'v4PublicNet'):
@@ -952,7 +952,7 @@ class mercado(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         #

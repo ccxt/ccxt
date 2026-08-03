@@ -65,7 +65,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             'passphrase': self.password,
         }
 
-    async def subscribe(self, name, symbol: Str = None, messageHashStart: Str = None, params={}):
+    async def subscribe(self, name: str, symbol: Str = None, messageHashStart: Str = None, params={}):
         if self.markets is None:
             await self.load_markets()
         market = None
@@ -89,7 +89,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         request = self.extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    async def subscribe_multiple(self, name, symbols: List[str] = [], messageHashStart: Str = None, params={}):
+    async def subscribe_multiple(self, name: Any, symbols: List[str] = [], messageHashStart: Str = None, params={}):
         if self.markets is None:
             await self.load_markets()
         market = None
@@ -352,7 +352,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         orderbook = await self.watch(url, messageHash, self.extend(request, authentication), messageHash, subscription)
         return orderbook.limit()
 
-    def handle_trade(self, client: Client, message):
+    def handle_trade(self, client: Client, message: Any):
         #
         #     {
         #         "type": "match",
@@ -386,7 +386,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             client.resolve(tradesArray, messageHash)
         return message
 
-    def handle_my_trade(self, client: Client, message):
+    def handle_my_trade(self, client: Client, message: Any):
         marketId = self.safe_string(message, 'product_id')
         if marketId is not None:
             trade = self.parse_ws_trade(message)
@@ -401,7 +401,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             client.resolve(tradesArray, messageHash)
         return message
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade: Any, market: Market = None):
         #
         # private trades
         # {
@@ -484,14 +484,14 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         }
         return parsed
 
-    def parse_ws_order_status(self, status):
+    def parse_ws_order_status(self, status: Any):
         statuses = {
             'filled': 'closed',
             'canceled': 'canceled',
         }
         return self.safe_string(statuses, status, 'open')
 
-    def handle_order(self, client: Client, message):
+    def handle_order(self, client: Client, message: Any):
         #
         # Order is created
         #
@@ -650,7 +650,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
                         orders.append(previousOrder)
                         client.resolve(orders, messageHash)
 
-    def parse_ws_order(self, order, market: Market = None):
+    def parse_ws_order(self, order: Any, market: Market = None):
         id = self.safe_string(order, 'order_id')
         clientOrderId = self.safe_string(order, 'client_oid')
         marketId = self.safe_string(order, 'product_id')
@@ -697,7 +697,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             'trades': None,
         })
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #     {
         #         "type": "ticker",
@@ -729,7 +729,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             client.resolve(ticker, idMessageHash)
         return message
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: Any, market: Market = None) -> Ticker:
         #
         #     {
         #         "type": "ticker",
@@ -781,16 +781,16 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             'info': ticker,
         })
 
-    def handle_delta(self, bookside, delta):
+    def handle_delta(self, bookside: Any, delta: Any):
         price = self.safe_number(delta, 0)
         amount = self.safe_number(delta, 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside, deltas):
+    def handle_deltas(self, bookside: Any, deltas: Any):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         # first message(snapshot)
         #
@@ -853,7 +853,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             orderbook['datetime'] = self.iso8601(timestamp)
             client.resolve(orderbook, messageHash)
 
-    def handle_subscription_status(self, client: Client, message):
+    def handle_subscription_status(self, client: Client, message: Any):
         #
         #     {
         #         "type": "subscriptions",
@@ -867,7 +867,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         #
         return message
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         #     {
         #         "type": "error",
@@ -894,7 +894,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
             client.reject(error)
             return True
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         type = self.safe_string(message, 'type')
         methods = {
             'snapshot': self.handle_order_book,

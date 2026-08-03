@@ -1303,7 +1303,7 @@ class toobit(Exchange, ImplicitAPI):
             #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         return [
             self.safe_integer_n(ohlcv, [0, 'time', 't']),
             self.safe_number_n(ohlcv, [1, 'open', 'o']),
@@ -1420,7 +1420,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_last_prices(response, symbols)
 
-    def parse_last_price(self, entry, market: Market = None):
+    def parse_last_price(self, entry: Any, market: Market = None):
         marketId = self.safe_string(entry, 's')
         market = self.safe_market(marketId, market)
         return {
@@ -1466,7 +1466,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_bids_asks_custom(response, symbols)
 
-    def parse_bids_asks_custom(self, tickers, symbols: Strings = None, params={}) -> Tickers:
+    def parse_bids_asks_custom(self, tickers: Any, symbols: Strings = None, params={}) -> Tickers:
         results = []
         for i in range(0, len(tickers)):
             parsedTicker = self.parse_bid_ask_custom(tickers[i])
@@ -1475,7 +1475,7 @@ class toobit(Exchange, ImplicitAPI):
         symbols = self.market_symbols(symbols)
         return self.filter_by_array(results, 'symbol', symbols)
 
-    def parse_bid_ask_custom(self, ticker):
+    def parse_bid_ask_custom(self, ticker: Any):
         return {
             'timestamp': self.safe_string(ticker, 't'),
             'symbol': self.safe_string(ticker, 's'),
@@ -1516,7 +1516,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rates(response, symbols)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         nextFundingRate = self.safe_number(contract, 'rate')
@@ -1582,7 +1582,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate_histories(response, market, since, limit)
 
-    def parse_funding_rate_history(self, contract, market: Market = None):
+    def parse_funding_rate_history(self, contract: Any, market: Market = None):
         timestamp = self.safe_integer(contract, 'settleTime')
         marketId = self.safe_string(contract, 'symbol')
         return {
@@ -1641,7 +1641,7 @@ class toobit(Exchange, ImplicitAPI):
             #
         return self.parse_balance(response)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1916,7 +1916,7 @@ class toobit(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def parse_order_type(self, status):
+    def parse_order_type(self, status: Any):
         statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -2499,7 +2499,7 @@ class toobit(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_type(self, type):
+    def parse_ledger_type(self, type: Any):
         types = {
             'USER_ACCOUNT_TRANSFER': 'transfer',
             'AIRDROP': 'rebate',
@@ -2549,7 +2549,7 @@ class toobit(Exchange, ImplicitAPI):
         result[market['symbol']] = fee
         return result
 
-    def parse_trading_fee(self, data, market: Market = None):
+    def parse_trading_fee(self, data: Any, market: Market = None):
         marketId = self.safe_string(data, 'symbol')
         return {
             'info': data,
@@ -2588,7 +2588,7 @@ class toobit(Exchange, ImplicitAPI):
         """
         return await self.fetch_deposits_or_withdrawals_helper('withdrawals', code, since, limit, params)
 
-    async def fetch_deposits_or_withdrawals_helper(self, type, code, since, limit, params={}):
+    async def fetch_deposits_or_withdrawals_helper(self, type: Any, code: Any, since: Any, limit: Any, params={}):
         if self.markets is None:
             await self.load_markets()
         currency = None
@@ -2782,7 +2782,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         address = self.safe_string(depositAddress, 'address')
         self.check_address(address)
         return {
@@ -3014,7 +3014,7 @@ class toobit(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         isPost = method == 'POST'
         isDelete = method == 'DELETE'
@@ -3059,7 +3059,7 @@ class toobit(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         errorCode = self.safe_string(response, 'code')

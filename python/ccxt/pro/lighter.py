@@ -68,7 +68,7 @@ class lighter(ccxt.async_support.lighter):
             hash += '::' + extra
         return hash
 
-    async def subscribe_public(self, messageHash, params={}):
+    async def subscribe_public(self, messageHash: Any, params={}):
         url = self.urls['api']['ws']
         request = {
             'type': 'subscribe',
@@ -79,7 +79,7 @@ class lighter(ccxt.async_support.lighter):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
 
-    async def subscribe_public_multiple(self, messageHashes, params={}):
+    async def subscribe_public_multiple(self, messageHashes: Any, params={}):
         url = self.urls['api']['ws']
         request = {
             'type': 'subscribe',
@@ -90,7 +90,7 @@ class lighter(ccxt.async_support.lighter):
         }
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscription)
 
-    async def unsubscribe(self, messageHash, params={}):
+    async def unsubscribe(self, messageHash: Any, params={}):
         url = self.urls['api']['ws']
         request = {
             'type': 'unsubscribe',
@@ -101,21 +101,21 @@ class lighter(ccxt.async_support.lighter):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
 
-    async def subscribe_private(self, messageHash, params={}):
+    async def subscribe_private(self, messageHash: Any, params: dict = {}):
         await self.preLoadLighterLibrary()
         params['auth'] = self.createAuth(params)
         return await self.subscribe_public(messageHash, params)
 
-    def handle_delta(self, bookside, delta):
+    def handle_delta(self, bookside: Any, delta: Any):
         price = self.safe_float(delta, 'price')
         amount = self.safe_float(delta, 'size')
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside, deltas):
+    def handle_deltas(self, bookside: Any, deltas: Any):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book_message(self, client: Client, message, orderbook):
+    def handle_order_book_message(self, client: Client, message: Any, orderbook: Any):
         data = self.safe_dict(message, 'order_book', {})
         self.handle_deltas(orderbook['asks'], self.safe_list(data, 'asks', []))
         self.handle_deltas(orderbook['bids'], self.safe_list(data, 'bids', []))
@@ -125,7 +125,7 @@ class lighter(ccxt.async_support.lighter):
         orderbook['datetime'] = self.iso8601(timestamp)
         return orderbook
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         # {
         #     "channel": "order_book:0",
@@ -211,7 +211,7 @@ class lighter(ccxt.async_support.lighter):
         messageHash = self.get_message_hash('unsubscribe', symbol)
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         # watchTicker
         #     {
@@ -421,7 +421,7 @@ class lighter(ccxt.async_support.lighter):
         """
         return self.un_watch_tickers(symbols, params)
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade: Any, market: Market = None):
         #
         #     {
         #         "trade_id": 526801155,
@@ -472,7 +472,7 @@ class lighter(ccxt.async_support.lighter):
             'fee': None,
         }, market)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         #     {
         #         "channel": "trade:0",
@@ -573,7 +573,7 @@ class lighter(ccxt.async_support.lighter):
         messageHash = self.get_message_hash('unsubscribe', symbol)
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
-    def parse_ws_order_trade(self, trade, market: Market = None):
+    def parse_ws_order_trade(self, trade: dict, market: Market = None):
         #
         #     {
         #         "trade_id": 526801155,
@@ -653,7 +653,7 @@ class lighter(ccxt.async_support.lighter):
             'fee': fee,
         }, market)
 
-    def handle_my_trades(self, client: Client, message):
+    def handle_my_trades(self, client: Client, message: Any):
         #
         #     {
         #         "channel": "account_all_trades:723310",
@@ -771,7 +771,7 @@ class lighter(ccxt.async_support.lighter):
         }
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
-    def parse_ws_liquidation(self, liquidation, market: Market = None):
+    def parse_ws_liquidation(self, liquidation: Any, market: Market = None):
         #
         #     {
         #         "trade_id": 526801155,
@@ -823,7 +823,7 @@ class lighter(ccxt.async_support.lighter):
             'datetime': self.iso8601(timestamp),
         })
 
-    def handle_liquidation(self, client: Client, message):
+    def handle_liquidation(self, client: Client, message: Any):
         #
         #     {
         #         "channel": "trade:0",
@@ -926,7 +926,7 @@ class lighter(ccxt.async_support.lighter):
             request['channel'] = 'user_stats/' + self.number_to_string(accountIndex)
             return await self.subscribe_public(messageHash, self.extend(request, params))
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: Any):
         #
         #    spot balance
         #    {
@@ -1069,7 +1069,7 @@ class lighter(ccxt.async_support.lighter):
             request['channel'] = 'account_all_orders/' + self.number_to_string(accountIndex)
         return await self.unsubscribe(messageHash, self.extend(request, params))
 
-    def handle_orders(self, client: Client, message):
+    def handle_orders(self, client: Client, message: Any):
         #
         #    {
         #        "account": {ACCOUNT_INDEX},
@@ -1113,7 +1113,7 @@ class lighter(ccxt.async_support.lighter):
         client.resolve(stored, messageHash)
         return True
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message: Any):
         #
         #     {
         #         "error": {
@@ -1133,7 +1133,7 @@ class lighter(ccxt.async_support.lighter):
             client.reject(e)
         return True
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         if not self.handle_error_message(client, message):
             return
         type = self.safe_string(message, 'type', '')
@@ -1168,7 +1168,7 @@ class lighter(ccxt.async_support.lighter):
         if channel == '':
             self.handle_subscription_status(client, message)
 
-    def handle_subscription_status(self, client: Client, message):
+    def handle_subscription_status(self, client: Client, message: Any):
         #
         #     {
         #         "session_id": "8d354239-80e0-4b77-8763-87b6fef2f768",
@@ -1197,13 +1197,13 @@ class lighter(ccxt.async_support.lighter):
             self.clean_unsubscription(client, subHash, unsubHash)
         self.clean_cache(subscription)
 
-    def handle_ping(self, client: Client, message):
+    def handle_ping(self, client: Client, message: Any):
         #
         #     {"type": "ping"}
         #
         self.spawn(self.pong, client, message)
 
-    async def pong(self, client, message):
+    async def pong(self, client: Client, message: Any):
         request = {
             'type': 'pong',
         }

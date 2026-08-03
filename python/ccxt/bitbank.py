@@ -312,7 +312,7 @@ class bitbank(Exchange, ImplicitAPI):
         pairs = self.safe_value(data, 'pairs', [])
         return self.parse_markets(pairs)
 
-    def parse_market(self, entry) -> Market:
+    def parse_market(self, entry: Any) -> Market:
         id = self.safe_string(entry, 'name')
         baseId = self.safe_string(entry, 'base_asset')
         quoteId = self.safe_string(entry, 'quote_asset')
@@ -564,7 +564,7 @@ class bitbank(Exchange, ImplicitAPI):
             }
         return result
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     [
         #         "0.02501786",
@@ -635,7 +635,7 @@ class bitbank(Exchange, ImplicitAPI):
         ohlcv = self.safe_list(first, 'ohlcv', [])
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1041,7 +1041,7 @@ class bitbank(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         query = self.omit(params, self.extract_params(path))
         url = self.implode_hostname(self.urls['api'][api]) + '/'
         if (api == 'public') or (api == 'markets'):
@@ -1070,7 +1070,7 @@ class bitbank(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         success = self.safe_integer(response, 'success')

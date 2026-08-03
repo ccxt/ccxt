@@ -760,7 +760,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         raw = self.safe_dict(response, 'market', response)
         return self.parse_prediction_open_interest(raw, outcomeObj)
 
-    def parse_prediction_open_interest(self, interest, market: Market = None) -> PredictionOpenInterest:
+    def parse_prediction_open_interest(self, interest: dict, market: Market = None) -> PredictionOpenInterest:
         #
         #     {"ticker": "...", "open_interest_fp": "60802.01", ...}   # open interest in contracts
         #
@@ -1145,7 +1145,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         self.options['ohlcvCandleDurationSeconds'] = tf
         return self.parse_ohlcvs(usableCandles, outcomeObj, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         """
  @ignore
         parses a single kalshi candlestick object into a CCXT OHLCV tuple, converting cent prices to decimals
@@ -1403,7 +1403,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         response = await self.kalshiPrivateGetPortfolioBalance(params)
         return self.parse_balance(response)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         """
  @ignore
         parses a kalshi balance response(cents) into a unified balances object with a USD entry

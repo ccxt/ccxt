@@ -622,7 +622,7 @@ class luno(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         wallets = self.safe_value(response, 'balance', [])
         result = {
             'info': response,
@@ -1107,7 +1107,7 @@ class luno(Exchange, ImplicitAPI):
         ohlcvs = self.safe_list(response, 'candles', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         # {
         #     "timestamp": 1664055240000,
         #     "open": "19612.65",
@@ -1339,7 +1339,7 @@ class luno(Exchange, ImplicitAPI):
         entries = self.safe_value(response, 'transactions', [])
         return self.parse_ledger(entries, currency, since, limit)
 
-    def parse_ledger_comment(self, comment):
+    def parse_ledger_comment(self, comment: Any):
         words = comment.split(' ')
         types = {
             'Withdrawal': 'fee',
@@ -1368,7 +1368,7 @@ class luno(Exchange, ImplicitAPI):
             'referenceId': referenceId,
         }
 
-    def parse_ledger_entry(self, entry, currency: Currency = None) -> LedgerEntry:
+    def parse_ledger_entry(self, entry: Any, currency: Currency = None) -> LedgerEntry:
         # details = self.safe_value(entry, 'details', {})
         id = self.safe_string(entry, 'row_index')
         account_id = self.safe_string(entry, 'account_id')
@@ -1502,7 +1502,7 @@ class luno(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "account_id": "string",
@@ -1533,7 +1533,7 @@ class luno(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'name'),
         }
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if query:
@@ -1546,7 +1546,7 @@ class luno(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         error = self.safe_value(response, 'error')

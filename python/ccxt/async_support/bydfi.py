@@ -878,7 +878,7 @@ class bydfi(Exchange, ImplicitAPI):
         result = self.parse_ohlcvs(data, market, timeframe, since, limit)
         return result
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     {
         #         "s": "ETH-USDT",
@@ -1029,7 +1029,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_funding_rate(data, market)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "BTC-USDT",
@@ -1111,7 +1111,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_funding_rate_histories(data, market, since, limit)
 
-    def parse_funding_rate_history(self, contract, market: Market = None):
+    def parse_funding_rate_history(self, contract: Any, market: Market = None):
         #
         #     {
         #         "symbol": "ETH-USDT",
@@ -2455,7 +2455,7 @@ class bydfi(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_balance(data)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         timestamp = self.milliseconds()
         result = {
             'info': response,
@@ -2657,7 +2657,7 @@ class bydfi(Exchange, ImplicitAPI):
         """
         return await self.fetch_transactions_helper('withdrawal', code, since, limit, params)
 
-    async def fetch_transactions_helper(self, type, code, since, limit, params):
+    async def fetch_transactions_helper(self, type: Any, code: Any, since: Any, limit: Any, params: Any):
         methodName = 'fetchDeposits' if (type == 'deposit') else 'fetchWithdrawals'
         if code is None:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a code argument')
@@ -2792,7 +2792,7 @@ class bydfi(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None):
         url = self.urls['api'][api]
         endpoint = '/' + path
         query = ''
@@ -2825,7 +2825,7 @@ class bydfi(Exchange, ImplicitAPI):
         url += endpoint
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         #

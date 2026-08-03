@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.htx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, ADL, Balances, BorrowInterest, Currencies, Currency, CurrencyInterface, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, ADL, Balances, BorrowInterest, Currencies, Currency, CurrencyInterface, DepositAddress, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1678,7 +1678,7 @@ class htx(Exchange, ImplicitAPI):
         #
         return self.parse_trading_limits(self.safe_value(response, 'data', {}))
 
-    def parse_trading_limits(self, limits, symbol: Str = None, params={}):
+    def parse_trading_limits(self, limits: Any, symbol: Str = None, params={}):
         #
         #   {                               "symbol": "aidocbtc",
         #                  "buy-limit-must-less-than":  1.1,
@@ -1704,7 +1704,7 @@ class htx(Exchange, ImplicitAPI):
             },
         }
 
-    def cost_to_precision(self, symbol, cost):
+    def cost_to_precision(self, symbol: Str, cost: Any):
         return self.decimal_to_precision(cost, TRUNCATE, self.market(symbol)['precision']['cost'], self.precisionMode)
 
     async def fetch_markets(self, params={}) -> List[Market]:
@@ -2454,7 +2454,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(tick, 'data', [])
         return self.parse_last_prices(data, symbols)
 
-    def parse_last_price(self, entry, market: Market = None):
+    def parse_last_price(self, entry: Any, market: Market = None):
         # example responses are documented in fetchLastPrices
         marketId = self.safe_string_2(entry, 'symbol', 'contract_code')
         market = self.safe_market(marketId, market)
@@ -3026,7 +3026,7 @@ class htx(Exchange, ImplicitAPI):
         result = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(result, market['symbol'], since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     {
         #         "amount":1.2082,
@@ -3202,7 +3202,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data')
         return self.parse_accounts(data)
 
-    def parse_account(self, account):
+    def parse_account(self, account: Any):
         #
         #     {
         #         "id": 5202591,
@@ -3863,7 +3863,7 @@ class htx(Exchange, ImplicitAPI):
             order = self.safe_value(order, 0)
         return self.parse_order(order, market)
 
-    def parse_margin_balance_helper(self, balance, code, result):
+    def parse_margin_balance_helper(self, balance: Any, code: Any, result: Any):
         account = None
         if code in result:
             account = result[code]
@@ -3879,7 +3879,7 @@ class htx(Exchange, ImplicitAPI):
             account['used'] = self.safe_string(balance, 'balance')
         return account
 
-    async def fetch_spot_orders_by_states(self, states, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_spot_orders_by_states(self, states: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         method = self.safe_string(self.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders')  # spot_private_get_v1_order_history
         if method == 'spot_private_get_v1_order_orders':
             if symbol is None:
@@ -4925,7 +4925,7 @@ class htx(Exchange, ImplicitAPI):
             'trades': trades,
         }, market)
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}) -> Order:
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}) -> Order:
         """
         create a market buy order by providing the symbol and cost
 
@@ -4944,7 +4944,7 @@ class htx(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent: Num = None, trailingTriggerPrice: Num = None, params={}) -> Order:
+    async def create_trailing_percent_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingPercent: Num = None, trailingTriggerPrice: Num = None, params: dict = {}) -> Order:
         """
         create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
         :param str symbol: unified symbol of the market to create an order in
@@ -5900,7 +5900,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_cancel_orders(data)
 
-    def parse_cancel_orders(self, orders):
+    def parse_cancel_orders(self, orders: Any):
         #
         #    {
         #        "success": [
@@ -6133,7 +6133,7 @@ class htx(Exchange, ImplicitAPI):
         #
         return response
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None):
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None):
         #
         #     {
         #         "currency": "usdt",
@@ -6944,7 +6944,7 @@ class htx(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         #
         # inverse swap
         #
@@ -6998,7 +6998,7 @@ class htx(Exchange, ImplicitAPI):
             'interval': self.parse_funding_interval(millisecondsInterval),
         }
 
-    def parse_funding_interval(self, interval):
+    def parse_funding_interval(self, interval: Any):
         intervals = {
             '3600000': '1h',
             '14400000': '4h',
@@ -7248,7 +7248,7 @@ class htx(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         url = '/'
         isArrayParams = isinstance(params, list)
         query = None
@@ -7377,7 +7377,7 @@ class htx(Exchange, ImplicitAPI):
             }) + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         if 'status' in response:
@@ -7570,7 +7570,7 @@ class htx(Exchange, ImplicitAPI):
             raise NullResponse(self.id + ' setLeverage() returned empty response')
         return response
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: Any, market: Market = None):
         #
         #     {
         #       "id": "1667161118",
@@ -8040,7 +8040,7 @@ class htx(Exchange, ImplicitAPI):
         parsed['datetime'] = self.iso8601(timestamp)
         return parsed
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         types = {
             'trade': 'trade',
             'etf': 'trade',
@@ -8216,7 +8216,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_leverage_tiers(data, symbols, 'contract_code')
 
-    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
         currencyId = self.safe_string(info, 'trade_partition')
         marketId = self.safe_string(info, 'contract_code')
         tiers = []
@@ -8527,7 +8527,7 @@ class htx(Exchange, ImplicitAPI):
         openInterest['datetime'] = self.iso8601(timestamp)
         return openInterest
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         #
         # fetchOpenInterestHistory
         #
@@ -8659,7 +8659,7 @@ class htx(Exchange, ImplicitAPI):
             'amount': amount,
         })
 
-    async def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
+    async def repay_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
         """
         repay borrowed margin and interest
 
@@ -8700,7 +8700,7 @@ class htx(Exchange, ImplicitAPI):
             'symbol': symbol,
         })
 
-    async def repay_cross_margin(self, code: str, amount, params={}):
+    async def repay_cross_margin(self, code: str, amount: float, params={}):
         """
         repay borrowed margin and interest
 
@@ -8739,7 +8739,7 @@ class htx(Exchange, ImplicitAPI):
             'amount': amount,
         })
 
-    def parse_margin_loan(self, info, currency: Currency = None):
+    def parse_margin_loan(self, info: Any, currency: Currency = None):
         #
         # borrowMargin cross
         #
@@ -8891,7 +8891,7 @@ class htx(Exchange, ImplicitAPI):
         settlements = self.parse_settlements(settlementRecord, market)
         return self.sort_by(settlements, 'timestamp')
 
-    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -8943,7 +8943,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes, 'currency')
 
-    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
         #
         #            {
         #              "currency": "sxp",
@@ -9008,7 +9008,7 @@ class htx(Exchange, ImplicitAPI):
             result = self.assign_default_deposit_withdraw_fees(result, currency)
         return result
 
-    def parse_settlements(self, settlements, market):
+    def parse_settlements(self, settlements: Any, market: Any):
         #
         # coin-m swap, fetchSettlementHistory
         #
@@ -9078,7 +9078,7 @@ class htx(Exchange, ImplicitAPI):
                 result.append(self.parse_settlement(settlements[i], market))
         return result
 
-    def parse_settlement(self, settlement, market):
+    def parse_settlement(self, settlement: Any, market: Any):
         #
         # coin-m swap, fetchSettlementHistory
         #
@@ -9210,7 +9210,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_liquidations(data, market, since, limit)
 
-    def parse_liquidation(self, liquidation, market: Market = None):
+    def parse_liquidation(self, liquidation: Any, market: Market = None):
         #
         #     {
         #         "query_id": 452057,

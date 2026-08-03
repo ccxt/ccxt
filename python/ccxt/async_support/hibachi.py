@@ -435,7 +435,7 @@ class hibachi(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {
             'info': response,
         }
@@ -798,7 +798,7 @@ class hibachi(Exchange, ImplicitAPI):
             }
         return result
 
-    def order_message(self, market, nonce: float, feeRate: float, type: Str, side: Str, amount: Num, price: Num = None):
+    def order_message(self, market: Any, nonce: float, feeRate: float, type: Str, side: Str, amount: Num, price: Num = None):
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -1270,7 +1270,7 @@ class hibachi(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign_message(self, message, privateKey):
+    def sign_message(self, message: Any, privateKey: Any):
         if len(privateKey) == 44:
             # For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
             return self.hmac(message, self.encode(privateKey), hashlib.sha256, 'hex')
@@ -1390,7 +1390,7 @@ class hibachi(Exchange, ImplicitAPI):
             tradesList = trades
         return self.parse_trades(tradesList, market, since, limit, params)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         # [
         #     {
@@ -1464,7 +1464,7 @@ class hibachi(Exchange, ImplicitAPI):
         # ]
         return self.parse_orders(response, market, since, limit)
 
-    async def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_by_status(self, status: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
  @ignore
         fetch orders filtered by terminal status
@@ -1716,7 +1716,7 @@ class hibachi(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
         headers = {'Hibachi-Client': 'HibachiCCXT/unversioned'}
@@ -1733,7 +1733,7 @@ class hibachi(Exchange, ImplicitAPI):
             headers['Authorization'] = self.apiKey
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         if 'status' in response:
@@ -1751,7 +1751,7 @@ class hibachi(Exchange, ImplicitAPI):
                 raise ExchangeError(feedback)
         return None
 
-    def parse_transaction_type(self, type):
+    def parse_transaction_type(self, type: Any):
         types = {
             'deposit': 'transaction',
             'withdrawal': 'transaction',
@@ -1760,7 +1760,7 @@ class hibachi(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_transaction_status(self, status):
+    def parse_transaction_status(self, status: Str):
         statuses = {
             'pending': 'pending',
             'claimable': 'pending',
@@ -2068,7 +2068,7 @@ class hibachi(Exchange, ImplicitAPI):
         withdrawals = self.filter_by(transactions, 'type', 'withdrawal')
         return self.filter_by_since_limit(withdrawals, since, limit, 'timestamp')
 
-    def parse_settlement(self, settlement, market: Market = None):
+    def parse_settlement(self, settlement: Any, market: Market = None):
         #
         #     {
         #         "direction": "Long",
@@ -2090,7 +2090,7 @@ class hibachi(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_settlements(self, settlements, market: Market = None):
+    def parse_settlements(self, settlements: Any, market: Market = None):
         result = []
         for i in range(0, len(settlements)):
             result.append(self.parse_settlement(settlements[i], market))

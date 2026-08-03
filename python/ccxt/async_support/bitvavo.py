@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitvavo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -483,7 +483,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_markets(response)
 
-    def parse_markets(self, markets):
+    def parse_markets(self, markets: Any):
         result = []
         fees = self.fees
         for i in range(0, len(markets)):
@@ -970,7 +970,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_trading_fees(response)
 
-    def parse_trading_fees(self, fees, market: Market = None):
+    def parse_trading_fees(self, fees: Any, market: Market = None):
         #
         #     {
         #         "fees": {
@@ -1073,7 +1073,7 @@ class bitvavo(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'nonce')
         return orderbook
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     [
         #         1590383700000,
@@ -1149,7 +1149,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1581,7 +1581,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def edit_order_request(self, id: str, symbol, type, side, amount: Num = None, price: Num = None, params={}):
+    def edit_order_request(self, id: str, symbol: Str, type: Any, side: Any, amount: Num = None, price: Num = None, params={}):
         request = {}
         market = self.market(symbol)
         amountRemaining = self.safe_number(params, 'amountRemaining')
@@ -2220,7 +2220,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'fee': fee,
         }, currency)
 
-    def withdraw_request(self, code: Str, amount, address, tag: Str = None, params={}):
+    def withdraw_request(self, code: Str, amount: Any, address: Any, tag: Str = None, params={}):
         currency = self.currency(code)
         request = {
             'symbol': currency['id'],
@@ -2456,7 +2456,7 @@ class bitvavo(Exchange, ImplicitAPI):
             'internal': None,
         }
 
-    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
         #
         #   {
         #       "symbol": "1INCH",
@@ -2499,7 +2499,7 @@ class bitvavo(Exchange, ImplicitAPI):
             }
         return result
 
-    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -2533,7 +2533,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(response, codes, 'symbol')
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         url = '/' + self.version + '/' + self.implode_params(path, params)
         getOrDelete = (method == 'GET') or (method == 'DELETE')
@@ -2562,7 +2562,7 @@ class bitvavo(Exchange, ImplicitAPI):
         url = self.urls['api'][api] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         #
@@ -2579,7 +2579,7 @@ class bitvavo(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
+    def calculate_rate_limiter_cost(self, api: Any, method: Any, path: Any, params: Any, config={}):
         if ('noMarket' in config) and not ('market' in params):
             return config['noMarket']
         return self.safe_value(config, 'cost', 1)
