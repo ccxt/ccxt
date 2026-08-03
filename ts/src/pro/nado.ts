@@ -5,7 +5,7 @@ import { ArgumentsRequired, ExchangeError, InvalidNonce, NotSupported } from '..
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
-import type { Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Bool, Dict, Fee, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -136,7 +136,7 @@ export default class nado extends nadoRest {
         }
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const markets: Market[] = [];
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             markets.push (market);
@@ -168,7 +168,7 @@ export default class nado extends nadoRest {
         }
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const markets: Market[] = [];
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             markets.push (market);
@@ -231,7 +231,7 @@ export default class nado extends nadoRest {
         }
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const markets: Market[] = [];
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
@@ -264,7 +264,7 @@ export default class nado extends nadoRest {
         }
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const markets: Market[] = [];
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             markets.push (market);
@@ -318,7 +318,7 @@ export default class nado extends nadoRest {
         }
         await this.loadMarkets ();
         const markets: Market[] = [];
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         const subscriptionParams: any[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
@@ -370,7 +370,7 @@ export default class nado extends nadoRest {
         }
         await this.loadMarkets ();
         const markets: Market[] = [];
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         const subscriptionParams: any[] = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
@@ -557,7 +557,7 @@ export default class nado extends nadoRest {
         await this.authenticate (this.extend ({}, params));
         let market: Market = undefined;
         let messageHash = 'orders';
-        let productId: any = undefined;
+        let productId: Int = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -595,7 +595,7 @@ export default class nado extends nadoRest {
         await this.authenticate (this.extend ({}, params));
         let market: Market = undefined;
         let messageHash = 'orders';
-        let productId: any = undefined;
+        let productId: Int = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -632,7 +632,7 @@ export default class nado extends nadoRest {
         await this.authenticate (this.extend ({}, params));
         let market: Market = undefined;
         let messageHash = 'myTrades';
-        let productId: any = undefined;
+        let productId: Int = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -670,7 +670,7 @@ export default class nado extends nadoRest {
         await this.authenticate (this.extend ({}, params));
         let market: Market = undefined;
         let messageHash = 'myTrades';
-        let productId: any = undefined;
+        let productId: Int = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -707,7 +707,7 @@ export default class nado extends nadoRest {
         await this.authenticate (this.extend ({}, params));
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         let messageHash = 'positions';
-        let productId: any = undefined;
+        let productId: Int = undefined;
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength === 1) {
@@ -747,7 +747,7 @@ export default class nado extends nadoRest {
         await this.authenticate (this.extend ({}, params));
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         let messageHash = 'positions';
-        let productId: any = undefined;
+        let productId: Int = undefined;
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength === 1) {
@@ -943,7 +943,7 @@ export default class nado extends nadoRest {
         //
         const data = this.safeDict (response, 'data', {});
         const cancelledOrders = this.safeList (data, 'cancelled_orders', []);
-        const result: any[] = [];
+        const result: Order[] = [];
         for (let i = 0; i < cancelledOrders.length; i++) {
             result.push (this.parseOrder (this.extend ({ 'status': 'canceled' }, cancelledOrders[i]), market));
         }
@@ -985,7 +985,7 @@ export default class nado extends nadoRest {
         const response = await this.watchExecuteRequest (requestIdString, request);
         const data = this.safeDict (response, 'data', {});
         const cancelledOrders = this.safeList (data, 'cancelled_orders', []);
-        const result: any[] = [];
+        const result: Order[] = [];
         for (let i = 0; i < cancelledOrders.length; i++) {
             result.push (this.parseOrder (this.extend ({ 'status': 'canceled' }, cancelledOrders[i]), market));
         }
@@ -1303,7 +1303,7 @@ export default class nado extends nadoRest {
             takerOrMaker = isTaker ? 'taker' : 'maker';
         }
         const feeCost = this.parseX18 (this.safeString (trade, 'fee'));
-        let fee: any = undefined;
+        let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,

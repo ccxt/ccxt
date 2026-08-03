@@ -637,7 +637,7 @@ export default class coinbaseexchange extends Exchange {
         //         }
         //     ]
         //
-        const result: any[] = [];
+        const result: Market[] = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'id');
@@ -1186,8 +1186,8 @@ export default class coinbaseexchange extends Exchange {
         const maker = this.safeNumber (response, 'maker_fee_rate');
         const taker = this.safeNumber (response, 'taker_fee_rate');
         const result: Dict = {};
-        for (let i = 0; i < (this.symbols as any).length; i++) {
-            const symbol = (this.symbols as any)[i];
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,

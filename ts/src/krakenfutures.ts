@@ -776,7 +776,7 @@ export default class krakenfutures extends Exchange {
         //    }
         //
         const candles = this.safeList (response, 'candles');
-        return this.parseOHLCVs ((candles as any[]), market, timeframe, since, limit);
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {

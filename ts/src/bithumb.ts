@@ -299,7 +299,7 @@ export default class bithumb extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params = {}): Promise<Market[]> {
-        const result: any[] = [];
+        const result: Market[] = [];
         const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
         const promises: any[] = [];

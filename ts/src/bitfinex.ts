@@ -2722,8 +2722,8 @@ export default class bitfinex extends Exchange {
         const takerFee = this.safeNumber (takerData, 0);
         const takerFeeFiat = this.safeNumber (takerData, 2);
         const takerFeeDeriv = this.safeNumber (takerData, 5);
-        for (let i = 0; i < (this.symbols as any).length; i++) {
-            const symbol = (this.symbols as any)[i];
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
             const market = this.market (symbol);
             const fee = {
                 'info': response,
@@ -3339,13 +3339,13 @@ export default class bitfinex extends Exchange {
         //       ]
         //   ]
         //
-        const rates: any[] = [];
+        const rates: FundingRateHistory[] = [];
         for (let i = 0; i < response.length; i++) {
             const fr = response[i];
             const rate = this.parseFundingRateHistory (fr, market);
             rates.push (rate);
         }
-        const reversedArray: any[] = [];
+        const reversedArray: FundingRateHistory[] = [];
         const rawRates = this.filterBySymbolSinceLimit (rates, symbol, since, limit);
         const ratesLength = rawRates.length;
         for (let i = 0; i < ratesLength; i++) {

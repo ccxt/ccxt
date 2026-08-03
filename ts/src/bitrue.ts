@@ -6,7 +6,7 @@ import Exchange from './abstract/bitrue.js';
 import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, MarginModification, Market, MarketType, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int, Bool } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Fee, Int, MarginModification, Market, MarketType, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, int, Bool } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2870,7 +2870,7 @@ export default class bitrue extends Exchange {
         }
         const code = this.safeCurrencyCode (currencyId, currency);
         const feeCost = this.safeNumber (transaction, 'fee');
-        let fee: NullableDict = undefined;
+        let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = { 'currency': code, 'cost': feeCost };
         }

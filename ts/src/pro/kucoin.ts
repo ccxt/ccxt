@@ -450,7 +450,7 @@ export default class kucoin extends kucoinRest {
         } else {
             [ method, params ] = this.handleOptionAndParams2 (params, 'watchTickers', 'method', 'spotMethod', method);
         }
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         const topics: any[] = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
@@ -514,7 +514,7 @@ export default class kucoin extends kucoinRest {
         }
         symbols = this.marketSymbols (symbols, undefined, false, true);
         const messageHash = 'uta:ticker';
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < (symbols as string[]).length; i++) {
             const symbol = this.safeString (symbols, i);
             const market = this.market (symbol);
@@ -777,7 +777,7 @@ export default class kucoin extends kucoinRest {
         if (length > 100) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() accepts a maximum of 100 symbols');
         }
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         for (let i = 0; i < (symbols as string[]).length; i++) {
             const symbol = (symbols as string[])[i];
             const market = this.market (symbol);
@@ -1159,7 +1159,7 @@ export default class kucoin extends kucoinRest {
         const isFuturesMethod = (firstMarket as Dict)['contract'];
         const marketIds = this.marketIds (symbols);
         const url = await this.negotiate (false, isFuturesMethod);
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         const subscriptionHashes: any[] = [];
         let channelName = '/market/match:';
         if (isFuturesMethod) {
@@ -1200,7 +1200,7 @@ export default class kucoin extends kucoinRest {
         const firstMarket = this.getMarketFromSymbols (symbols);
         const isFuturesMethod = (firstMarket as Dict)['contract'];
         const url = await this.negotiate (false, isFuturesMethod);
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         const subscriptionHashes: any[] = [];
         let channelName = '/market/match:';
         if (isFuturesMethod) {
@@ -1535,7 +1535,7 @@ export default class kucoin extends kucoinRest {
             }
         }
         const topic = method + ':' + marketIds.join (',');
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         const subscriptionHashes: any[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -1593,7 +1593,7 @@ export default class kucoin extends kucoinRest {
             }
         }
         const topic = method + ':' + marketIds.join (',');
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         const subscriptionHashes: any[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -2877,7 +2877,7 @@ export default class kucoin extends kucoinRest {
         [ uta, params ] = this.handleOptionAndParams (params, 'watchPositions', 'uta', uta);
         const tradeType = uta ? 'UNIFIED' : 'TRADE';
         const messageHash = 'positions';
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         symbols = this.marketSymbols (symbols);
         if (symbols === undefined) {
             messageHashes.push (messageHash);

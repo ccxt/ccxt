@@ -3341,7 +3341,7 @@ export default class cryptocom extends Exchange {
         //
         const responseResult = this.safeDict (response, 'result', {});
         const positions = this.safeList (responseResult, 'data', []);
-        const result: any[] = [];
+        const result: Position[] = [];
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             const marketId = this.safeString (entry, 'instrument_name');
@@ -3565,8 +3565,8 @@ export default class cryptocom extends Exchange {
         //
         const result: Dict = {};
         result['info'] = response;
-        for (let i = 0; i < (this.symbols as any).length; i++) {
-            const symbol = (this.symbols as any)[i];
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
             const market = this.market (symbol);
             const isSwap = market['swap'];
             const takerFeeKey = isSwap ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';

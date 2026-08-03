@@ -1375,7 +1375,7 @@ export default class coinbase extends Exchange {
         const dataById = this.indexBy (data, 'id');
         const rates = this.safeDict (this.safeDict (exchangeRates, 'data', {}), 'rates', {});
         const baseIds = Object.keys (rates);
-        const result: any[] = [];
+        const result: Market[] = [];
         for (let i = 0; i < baseIds.length; i++) {
             const baseId = baseIds[i];
             const base = this.safeCurrencyCode (baseId);
@@ -5159,8 +5159,8 @@ export default class coinbase extends Exchange {
         const taker_fee = this.safeNumber (data, 'taker_fee_rate');
         const maker_fee = this.safeNumber (data, 'maker_fee_rate');
         const result: Dict = {};
-        for (let i = 0; i < (this.symbols as any).length; i++) {
-            const symbol = (this.symbols as any)[i];
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
             const market = this.market (symbol);
             if ((isSpot && market['spot']) || (!isSpot && !market['spot'])) {
                 result[symbol] = {
