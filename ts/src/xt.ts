@@ -4819,7 +4819,7 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        // position/break-list 
+        // position/break-list
         //
         //     {
         //         "returnCode": 0,
