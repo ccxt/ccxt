@@ -430,6 +430,9 @@ class NewTranspiler {
             'OrderType': 'string',
             'OrderSide': 'string', // tmp
             'fetchEventsParams': 'Dictionary<string, object>', // params bag; surface as a dict
+            // TS interface names whose C# structs are Currency / Fee (cs/ccxt/base/Exchange.Types.cs)
+            'CurrencyInterface': 'Currency',
+            'FeeInterface': 'Fee',
         }
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {

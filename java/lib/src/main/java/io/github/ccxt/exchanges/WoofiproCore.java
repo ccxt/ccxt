@@ -1809,7 +1809,7 @@ public class WoofiproCore extends WoofiproApi
                     put( "type", "LIMIT" );
                     put( "reduce_only", true );
                 }};
-                ((java.util.List<Object>)outterOrder).add(takeProfitOrder);
+                ((java.util.List<Object>)childOrders).add(takeProfitOrder);
             }
             Helpers.addElementToObject(request, "child_orders", new java.util.ArrayList<Object>(java.util.Arrays.asList(outterOrder)));
         }

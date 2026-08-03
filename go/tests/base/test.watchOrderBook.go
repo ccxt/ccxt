@@ -26,7 +26,7 @@ func TestWatchOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, symb
 							}
 							ret_ = func() any {
 								// catch block:
-								if !IsTrue(IsTemporaryFailure(e)) {
+								if IsTrue(!IsTrue(IsTemporaryFailure(e)) && !IsTrue((IsInstance(e, InvalidNonce)))) {
 									panic(e)
 								}
 								now = exchange.Milliseconds()

@@ -1935,8 +1935,8 @@ export class BaseExchange {
             throw new NotSupported(this.id + ' requires protobuf to encode messages, please install it with `npm install protobufjs`');
         }
         return '0x' + this.binaryToBase16(TxRaw.encode(TxRaw.fromPartial({
-            'bodyBytes': signDoc.bodyBytes,
-            'authInfoBytes': signDoc.authInfoBytes,
+            'bodyBytes': signDoc['bodyBytes'],
+            'authInfoBytes': signDoc['authInfoBytes'],
             'signatures': [this.base16ToBinary(signature)],
         })).finish());
     }

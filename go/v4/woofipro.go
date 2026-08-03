@@ -1831,7 +1831,7 @@ func (this *WoofiproCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 				"type":          "LIMIT",
 				"reduce_only":   true,
 			}
-			AppendToArray(&outterOrder, takeProfitOrder)
+			AppendToArray(&childOrders, takeProfitOrder)
 		}
 		AddElementToObject(request, "child_orders", []any{outterOrder})
 	}

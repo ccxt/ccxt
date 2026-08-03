@@ -1902,9 +1902,32 @@ public partial class nado : ccxt.nado
         object symbol = getValue(market, "symbol");
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
+            return;
         }
         object orderbook = getValue(this.orderbooks, symbol);
+        object messageHash = add("orderbook:", symbol);
+        object maxTimestamp = this.safeString(orderbook, "maxTimestamp");
+        object lastMaxTimestamp = this.safeString(message, "last_max_timestamp");
+        if (isTrue(isTrue(isTrue((!isEqual(maxTimestamp, null))) && isTrue((!isEqual(lastMaxTimestamp, null)))) && isTrue((!isEqual(maxTimestamp, lastMaxTimestamp)))))
+        {
+            object subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
+            for (object i = 0; isLessThan(i, getArrayLength(subscriptions)); postFixIncrement(ref i))
+            {
+                object subscriptionHash = getValue(subscriptions, i);
+                object subscription = this.safeDict(((WebSocketClient)client).subscriptions, subscriptionHash);
+                object streamType = this.safeString(subscription, "streamType");
+                object subscriptionSymbol = this.safeString(subscription, "symbol");
+                if (isTrue(isTrue((isEqual(streamType, "book_depth"))) && isTrue((isEqual(subscriptionSymbol, symbol)))))
+                {
+                    ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)subscriptionHash);
+                }
+            }
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+            ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
+            var error = new InvalidNonce(add(this.id, " watchOrderBook received invalid nonce"));
+            ((WebSocketClient)client).reject(error, messageHash);
+            return;
+        }
         object asks = this.safeList(message, "asks", new List<object>() {});
         object bids = this.safeList(message, "bids", new List<object>() {});
         this.handleDeltas(getValue(orderbook, "asks"), asks);
@@ -1914,7 +1937,6 @@ public partial class nado : ccxt.nado
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)orderbook)["maxTimestamp"] = this.safeString(message, "max_timestamp");
-        object messageHash = add("orderbook:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
     }
 

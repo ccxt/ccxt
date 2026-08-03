@@ -14,7 +14,6 @@ sys.path.append(root)
 
 from ccxt.base.errors import NetworkError  # noqa E402
 from ccxt.test.exchange.base import test_liquidation  # noqa E402
-from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 async def test_watch_liquidations(exchange, skipped_properties, symbol):
     # log (symbol.green, 'watching trades...')
