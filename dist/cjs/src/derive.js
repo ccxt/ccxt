@@ -10,7 +10,7 @@ var errors = require('./base/errors.js');
 var crypto = require('./base/functions/crypto.js');
 var number = require('./base/functions/number.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class derive
@@ -971,10 +971,14 @@ class derive extends derive$1["default"] {
     parseTrades(trades, market = undefined, since = undefined, limit = undefined, params = {}) {
         let result = [];
         for (let i = 0; i < trades.length; i++) {
-            const parsed = this.parseTrade(trades[i], market);
-            if (parsed === undefined) {
+            const rawTrade = trades[i];
+            const isFetchTrades = !('order_id' in rawTrade);
+            const liquidityRole = this.safeString(rawTrade, 'liquidity_role');
+            if (isFetchTrades && (liquidityRole === 'maker')) {
+                // skip maker trades
                 continue;
             }
+            const parsed = this.parseTrade(rawTrade, market);
             const trade = this.extend(parsed, params);
             result.push(trade);
         }
@@ -1013,7 +1017,6 @@ class derive extends derive$1["default"] {
         //     "extra_fee": "0",                                         // only fetchTrades
         // }
         //
-        const isFetchTrades = !('order_id' in trade);
         const marketId = this.safeString(trade, 'instrument_name');
         const symbol = this.safeSymbol(marketId, market);
         const timestamp = this.safeInteger(trade, 'timestamp');
@@ -1021,11 +1024,6 @@ class derive extends derive$1["default"] {
             'currency': 'USDC',
             'cost': this.safeString(trade, 'trade_fee'),
         };
-        const takerOrMaker = this.safeString(trade, 'liquidity_role');
-        if (isFetchTrades && (takerOrMaker === 'maker')) {
-            // skip maker trades
-            return undefined;
-        }
         return this.safeTrade({
             'info': trade,
             'id': this.safeString(trade, 'trade_id'),

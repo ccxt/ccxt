@@ -5896,7 +5896,7 @@ func (this *XtCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan an
 		var response any = nil
 		if IsTrue(IsEqual(subType, "inverse")) {
 
-			response = (<-this.CallDynamically("privateInversePostFutureUserV1PositionChangeType", this.Extend(request, params)))
+			response = (<-this.PrivateInversePostFutureUserV1PositionChangeType(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 

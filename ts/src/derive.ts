@@ -982,12 +982,16 @@ export default class derive extends Exchange {
     }
 
     override parseTrades (trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Trade[] {
-        let result = [];
+        let result: Trade[] = [];
         for (let i = 0; i < trades.length; i++) {
-            const parsed = this.parseTrade (trades[i], market);
-            if (parsed === undefined) {
+            const rawTrade = trades[i];
+            const isFetchTrades = !('order_id' in rawTrade);
+            const liquidityRole = this.safeString (rawTrade, 'liquidity_role');
+            if (isFetchTrades && (liquidityRole === 'maker')) {
+                // skip maker trades
                 continue;
             }
+            const parsed = this.parseTrade (rawTrade, market);
             const trade = this.extend (parsed, params);
             result.push (trade);
         }
@@ -1027,7 +1031,6 @@ export default class derive extends Exchange {
         //     "extra_fee": "0",                                         // only fetchTrades
         // }
         //
-        const isFetchTrades = !('order_id' in trade);
         const marketId = this.safeString (trade, 'instrument_name');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (trade, 'timestamp');
@@ -1035,11 +1038,6 @@ export default class derive extends Exchange {
             'currency': 'USDC',
             'cost': this.safeString (trade, 'trade_fee'),
         };
-        const takerOrMaker = this.safeString (trade, 'liquidity_role');
-        if (isFetchTrades && (takerOrMaker === 'maker')) {
-            // skip maker trades
-            return undefined as any;
-        }
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'trade_id'),

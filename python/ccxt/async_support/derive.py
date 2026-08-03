@@ -967,9 +967,13 @@ class derive(Exchange, ImplicitAPI):
     def parse_trades(self, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         result = []
         for i in range(0, len(trades)):
-            parsed = self.parse_trade(trades[i], market)
-            if parsed is None:
+            rawTrade = trades[i]
+            isFetchTrades = not ('order_id' in rawTrade)
+            liquidityRole = self.safe_string(rawTrade, 'liquidity_role')
+            if isFetchTrades and (liquidityRole == 'maker'):
+                # skip maker trades
                 continue
+            parsed = self.parse_trade(rawTrade, market)
             trade = self.extend(parsed, params)
             result.append(trade)
         result = self.sort_by_2(result, 'timestamp', 'id')
@@ -1007,7 +1011,6 @@ class derive(Exchange, ImplicitAPI):
         #     "extra_fee": "0",                                         # only fetchTrades
         # }
         #
-        isFetchTrades = not ('order_id' in trade)
         marketId = self.safe_string(trade, 'instrument_name')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(trade, 'timestamp')
@@ -1015,10 +1018,6 @@ class derive(Exchange, ImplicitAPI):
             'currency': 'USDC',
             'cost': self.safe_string(trade, 'trade_fee'),
         }
-        takerOrMaker = self.safe_string(trade, 'liquidity_role')
-        if isFetchTrades and (takerOrMaker == 'maker'):
-            # skip maker trades
-            return None
         return self.safe_trade({
             'info': trade,
             'id': self.safe_string(trade, 'trade_id'),
