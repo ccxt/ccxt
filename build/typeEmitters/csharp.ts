@@ -25,7 +25,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { TypesIR, IRField } from '../typesIR.js';
+import { TypesIR, IRField, ensureGeneratedBanner } from '../typesIR.js';
 import { EmittedBlock, SpliceResult, spliceBlocks, findBraceBlockEnd } from './splice.js';
 
 export interface EmitterOutput {
@@ -734,7 +734,12 @@ export function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
             });
         }
         const result: SpliceResult = spliceBlocks (before, blocks, findBraceBlockEnd);
-        outputs.push ({ 'path': relative, 'contents': result.text, 'changed': result.replaced.concat (result.appended) });
+        const contents = ensureGeneratedBanner (result.text, '//', 'after-namespace');
+        const changed = result.replaced.concat (result.appended);
+        if (contents !== result.text) {
+            changed.push ('banner');
+        }
+        outputs.push ({ 'path': relative, 'contents': contents, 'changed': changed });
     }
     return outputs;
 }

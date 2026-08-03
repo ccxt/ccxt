@@ -33,7 +33,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { TypesIR, IRType, IRField, resolveScalar } from '../typesIR.js';
+import { TypesIR, IRType, IRField, resolveScalar, ensureGeneratedBanner } from '../typesIR.js';
 import { EmittedBlock, SpliceResult, spliceBlocks, findBraceBlockEnd } from './splice.js';
 
 // transpileTypes.ts runs its CLI at import time, so its interfaces are restated here
@@ -773,8 +773,12 @@ function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
         const file = files[f];
         const plan = plans[file.path];
         const result: SpliceResult = spliceBlocks (file.text, plan.blocks, findBraceBlockEnd);
+        const contents = ensureGeneratedBanner (result.text, '//', 'after-package');
         const changed = result.replaced.concat (result.appended);
-        outputs.push ({ 'path': file.path, 'contents': result.text, 'changed': changed.concat (plan.notes) });
+        if (contents !== result.text) {
+            changed.push ('banner');
+        }
+        outputs.push ({ 'path': file.path, 'contents': contents, 'changed': changed.concat (plan.notes) });
     }
     return outputs;
 }

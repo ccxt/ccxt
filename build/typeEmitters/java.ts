@@ -42,7 +42,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { TypesIR, IRType, IRField } from '../typesIR.js';
+import { TypesIR, IRType, IRField, ensureGeneratedBanner } from '../typesIR.js';
 import { EmitterOutput, LanguageEmitter } from '../transpileTypes.js';
 
 const TYPES_DIR = path.join ('java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt', 'types');
@@ -734,6 +734,7 @@ function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
             }
             continue;
         }
+        contents = ensureGeneratedBanner (contents, '//', 'after-imports');
         outputs.push ({
             'path': relative,
             'contents': contents,

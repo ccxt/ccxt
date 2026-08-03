@@ -13,7 +13,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { TypesIR, IRType, IRField } from '../typesIR.js';
+import { TypesIR, IRType, IRField, ensureGeneratedBanner } from '../typesIR.js';
 import { spliceBlocks, findIndentBlockEnd, EmittedBlock } from './splice.js';
 
 const TARGET = path.join ('python', 'ccxt', 'base', 'types.py');
@@ -363,10 +363,15 @@ export function emit (ir: TypesIR, repoRoot: string) {
         blocks.push ({ 'name': type.name, 'anchor': anchor, 'source': source });
     }
     const result = spliceBlocks (before, blocks, findIndentBlockEnd);
+    const contents = ensureGeneratedBanner (result.text, '#', 'file-top');
+    const changed = result.replaced.concat (result.appended);
+    if (contents !== result.text && changed.indexOf ('banner') < 0) {
+        changed.push ('banner');
+    }
     return [ {
         'path': TARGET,
-        'contents': result.text,
-        'changed': result.replaced.concat (result.appended),
+        'contents': contents,
+        'changed': changed,
     } ];
 }
 
