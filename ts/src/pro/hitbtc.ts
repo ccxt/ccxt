@@ -249,7 +249,7 @@ export default class hitbtc extends hitbtcRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //    {
         //        "ch": "orderbook/full",                 // Channel
@@ -309,13 +309,13 @@ export default class hitbtc extends hitbtcRest {
         }
     }
 
-    override handleDelta (bookside, delta) {
+    override handleDelta (bookside: any, delta: any) {
         const price = this.safeNumber (delta, 0);
         const amount = this.safeNumber (delta, 1);
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -388,7 +388,7 @@ export default class hitbtc extends hitbtcRest {
         return this.filterByArray (newTickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //    {
         //        "ch": "ticker/1s",
@@ -444,7 +444,7 @@ export default class hitbtc extends hitbtcRest {
         client.resolve (result, topic);
     }
 
-    parseWsTicker (ticker, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //    {
         //        "t": 1614815872000,             // Timestamp in milliseconds
@@ -539,7 +539,7 @@ export default class hitbtc extends hitbtcRest {
         return this.filterByArray (newTickers, 'symbol', symbols);
     }
 
-    handleBidAsk (client: Client, message) {
+    handleBidAsk (client: Client, message: any) {
         //
         //     {
         //         "ch": "orderbook/top/100ms", // or 'orderbook/top/100ms/batch'
@@ -571,7 +571,7 @@ export default class hitbtc extends hitbtcRest {
         client.resolve (result, topic);
     }
 
-    parseWsBidAsk (ticker, market: Market = undefined) {
+    parseWsBidAsk (ticker: any, market: Market = undefined) {
         const timestamp = this.safeInteger (ticker, 't');
         const bidAskSymbol = (market !== undefined) ? market['symbol'] : undefined;
         return this.safeTicker ({
@@ -618,7 +618,7 @@ export default class hitbtc extends hitbtcRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp');
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //    {
         //        "result": {
@@ -680,7 +680,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    override parseWsTrades (trades, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override parseWsTrades (trades: any[], market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         trades = this.toArray (trades);
         let result: Dict[] = [];
         for (let i = 0; i < trades.length; i++) {
@@ -692,7 +692,7 @@ export default class hitbtc extends hitbtcRest {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[];
     }
 
-    override parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         //    {
         //        "t": 1626861123552,       // Timestamp in milliseconds
@@ -751,7 +751,7 @@ export default class hitbtc extends hitbtcRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //    {
         //        "ch": "candles/M1",                     // Channel
@@ -815,7 +815,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    override parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //    {
         //        "t": 1626860340000,             // Message timestamp
@@ -873,7 +873,7 @@ export default class hitbtc extends hitbtcRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp');
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -951,7 +951,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    handleOrderHelper (client: Client, message, order) {
+    handleOrderHelper (client: Client, message: any, order: any) {
         const orders = this.orders;
         if (orders === undefined) {
             return;
@@ -967,7 +967,7 @@ export default class hitbtc extends hitbtcRest {
         client.resolve (orders, messageHash + '::' + symbol);
     }
 
-    override parseWsOrderTrade (trade, market: Market = undefined) {
+    override parseWsOrderTrade (trade: Dict, market: Market = undefined) {
         //
         //    {
         //        "id": 584244931496,
@@ -1017,7 +1017,7 @@ export default class hitbtc extends hitbtcRest {
         }, market);
     }
 
-    override parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         //    {
         //        "id": 584244931496,
@@ -1268,7 +1268,7 @@ export default class hitbtc extends hitbtcRest {
         }
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -1291,14 +1291,14 @@ export default class hitbtc extends hitbtcRest {
         client.resolve (this.balance, messageHash);
     }
 
-    handleNotification (client: Client, message) {
+    handleNotification (client: Client, message: any) {
         //
         //     { jsonrpc: "2.0", result: true, id: null }
         //
         return message;
     }
 
-    handleOrderRequest (client: Client, message) {
+    handleOrderRequest (client: Client, message: any) {
         //
         // createOrderWs, cancelOrderWs
         //
@@ -1342,7 +1342,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         if (this.handleError (client, message)) {
             return;
         }
@@ -1395,7 +1395,7 @@ export default class hitbtc extends hitbtcRest {
         }
     }
 
-    handleAuthenticate (client: Client, message) {
+    handleAuthenticate (client: Client, message: any) {
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -1417,7 +1417,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    handleError (client: Client, message) {
+    handleError (client: Client, message: any) {
         //
         //    {
         //        jsonrpc: '2.0',

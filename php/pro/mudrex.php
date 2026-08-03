@@ -37,7 +37,7 @@ class mudrex extends \ccxt\async\mudrex {
         ));
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return array(
             'id' => $this->request_id(),
             'method' => 'PING',
@@ -165,7 +165,7 @@ class mudrex extends \ccxt\async\mudrex {
         })();
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(mixed $client, mixed $message) {
         if ($this->safe_string($message, 'method') === 'PONG') {
             return;
         }
@@ -184,7 +184,7 @@ class mudrex extends \ccxt\async\mudrex {
         }
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, mixed $message) {
         $error = $this->safe_dict($message, 'error', array());
         $code = $this->safe_string($error, 'code');
         $msg = $this->safe_string($error, 'msg');
@@ -195,7 +195,7 @@ class mudrex extends \ccxt\async\mudrex {
         throw new ExchangeError($feedback);
     }
 
-    public function handle_ohlcv($client, $message) {
+    public function handle_ohlcv(mixed $client, mixed $message) {
         $stream = $this->safe_string($message, 'stream');
         if ($stream === null) {
             return;
@@ -232,7 +232,7 @@ class mudrex extends \ccxt\async\mudrex {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_ticker($client, $message) {
+    public function handle_ticker(mixed $client, mixed $message) {
         $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $t = $data[$i];

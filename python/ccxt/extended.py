@@ -349,7 +349,7 @@ class extended(Exchange, ImplicitAPI):
             self.options['currenciesByNumericId'] = self.index_by_stringified_numeric_id(self.currencies)
         return markets
 
-    def index_by_stringified_numeric_id(self, input):
+    def index_by_stringified_numeric_id(self, input: Any):
         result = {}
         if input is None:
             return None
@@ -797,7 +797,7 @@ class extended(Exchange, ImplicitAPI):
                 tickers[symbol] = ticker
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: Any, market: Market = None) -> Ticker:
         #
         #     {
         #       "dailyVolume": "231216165.666600",
@@ -1070,7 +1070,7 @@ class extended(Exchange, ImplicitAPI):
             result.append(entry)
         return self.parse_funding_histories(result, market, since, limit)
 
-    def parse_funding_history(self, history, market: Market = None):
+    def parse_funding_history(self, history: Any, market: Market = None):
         #
         #     {
         #         "id": 8341,
@@ -1100,14 +1100,14 @@ class extended(Exchange, ImplicitAPI):
             'rate': self.safe_number(history, 'fundingRate'),
         }
 
-    def parse_funding_histories(self, histories, market: Market = None, since: Int = None, limit: Int = None) -> List[FundingHistory]:
+    def parse_funding_histories(self, histories: Any, market: Market = None, since: Int = None, limit: Int = None) -> List[FundingHistory]:
         result = []
         for i in range(0, len(histories)):
             result.append(self.parse_funding_history(histories[i], market))
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: Any, market: Market = None) -> Trade:
         #
         # fetchTrades
         #
@@ -1227,7 +1227,7 @@ class extended(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     {
         #       "o": "75657.5",
@@ -1315,7 +1315,7 @@ class extended(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_funding_rate_history(self, info, market: Market = None):
+    def parse_funding_rate_history(self, info: Any, market: Market = None):
         #
         #     {
         #       "m": "BTC-USD",
@@ -1383,7 +1383,7 @@ class extended(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_open_interests_history(data, market, since, limit)
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         #
         #     {
         #       "i": "112620590.6060360000000000",
@@ -1446,7 +1446,7 @@ class extended(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_balance(data)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = self.safe_dict(response, i, {})
@@ -2068,7 +2068,7 @@ class extended(Exchange, ImplicitAPI):
                 result[symbol] = parsed
         return result
 
-    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
+    def parse_trading_fee(self, fee: Any, market: Market = None) -> TradingFeeInterface:
         #
         #     {
         #         "market": "BTC-USD",
@@ -2116,7 +2116,7 @@ class extended(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        return self.parse_leverage(self.safe_dict(data, 0), market)
+        return self.parse_leverage(self.safe_dict(data, 0, {}), market)
 
     def set_leverage(self, leverage: int, symbol: Str = None, params={}) -> Leverage:
         """
@@ -2147,7 +2147,7 @@ class extended(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_leverage(data, market)
 
-    def parse_leverage(self, leverage, market: Market = None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         #
         #     {
         #         "market": "BTC-USD",
@@ -2291,7 +2291,7 @@ class extended(Exchange, ImplicitAPI):
         positions = self.parse_positions(result, symbols)
         return self.filter_by_since_limit(positions, since, limit, 'timestamp')
 
-    def parse_position(self, position, market: Market = None) -> Position:
+    def parse_position(self, position: Any, market: Market = None) -> Position:
         #
         #     {
         #         "id": 1,
@@ -2355,7 +2355,7 @@ class extended(Exchange, ImplicitAPI):
             'takeProfitPrice': self.safe_string(position, 'tpTriggerPrice'),
         })
 
-    def get_extended_stark_amount(self, amount: str, resolution, roundUp=False) -> str:
+    def get_extended_stark_amount(self, amount: str, resolution: Any, roundUp=False) -> str:
         resolutionString = self.number_to_string(resolution)
         precise = Precise.string_mul(amount, resolutionString)
         result = self.decimal_to_precision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING)
@@ -3104,7 +3104,7 @@ class extended(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #     {
         #         "id": 1784963886257016832,
@@ -3193,7 +3193,7 @@ class extended(Exchange, ImplicitAPI):
     def get_extended_string_to_felt(self, value: str):
         return self.convert_to_big_int(self.string_to_base16(value))
 
-    def get_extended_encode_i64(self, value):
+    def get_extended_encode_i64(self, value: Any):
         # Cairo prime offset for i64 negative encoding.
         prime = '3618502788666131213697322783095070105623107215331596699973092056135872020481'
         valueString = self.number_to_string(value)
@@ -3201,7 +3201,7 @@ class extended(Exchange, ImplicitAPI):
             return Precise.string_add(prime, valueString)
         return value
 
-    def get_extended_decimal_to_base16(self, value):
+    def get_extended_decimal_to_base16(self, value: Any):
         decimalString = ''
         if isinstance(value, str):
             decimalString = value
@@ -3217,7 +3217,7 @@ class extended(Exchange, ImplicitAPI):
             return '0'
         return result
 
-    def get_extended_signature_hex(self, signature):
+    def get_extended_signature_hex(self, signature: Any):
         if isinstance(signature, str):
             if signature.find('0x') == 0:
                 return signature
@@ -3323,7 +3323,7 @@ class extended(Exchange, ImplicitAPI):
             transferHash,
         ])
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if not response:
             return None  # fallback to default error handler
         #
@@ -3339,7 +3339,7 @@ class extended(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         version = self.safe_string(api, 0)
         accessibility = self.safe_string(api, 1)
         endpoint = '/' + self.implode_params(path, params)

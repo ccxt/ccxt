@@ -2264,7 +2264,7 @@ class nado extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "product_id" => 1,
@@ -2398,7 +2398,7 @@ class nado extends Exchange {
         ), $market);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "product_id" => 1,
@@ -2471,7 +2471,7 @@ class nado extends Exchange {
         );
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //         "product_id" => 1,
@@ -2565,7 +2565,7 @@ class nado extends Exchange {
         ));
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         //     {
         //         "subaccount" => "0x8d7d64d6cf1d4f018dd101482ac71ad49e30c56064656661756c740000000000",
@@ -2970,19 +2970,19 @@ class nado extends Exchange {
         return Precise::string_div(Precise::string_mul($value, '1000000000000000000'), '1', 0);
     }
 
-    public function parse_x18($value) {
+    public function parse_x18(mixed $value) {
         if ($value === null) {
             return null;
         }
         return $this->parse_number(Precise::string_div($value, '1000000000000000000'));
     }
 
-    public function create_order_nonce($recvWindow) {
+    public function create_order_nonce(mixed $recvWindow) {
         $expires = $this->sum($this->milliseconds(), $recvWindow);
         return Precise::string_mul($this->number_to_string($expires), '1048576');
     }
 
-    public function create_order_appendix($isTriggerOrder, $params = array()) {
+    public function create_order_appendix(mixed $isTriggerOrder, $params = array()) {
         // | value   | $builder | $builder fee rate | reserved | trigger | reduce only | order type | isolated | version |
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
@@ -3070,7 +3070,7 @@ class nado extends Exchange {
         return mb_substr($padded, 0, $length - 0);
     }
 
-    public function sign_order($order, ?int $productId, $chainId) {
+    public function sign_order(mixed $order, ?int $productId, mixed $chainId) {
         $domain = array(
             'name' => 'Nado',
             'version' => '0.0.1',
@@ -3092,7 +3092,7 @@ class nado extends Exchange {
         return $this->sign_hash($hash, $this->privateKey);
     }
 
-    public function sign_cancellation($cancellation, $chainId, string $endpointAddress) {
+    public function sign_cancellation(mixed $cancellation, mixed $chainId, string $endpointAddress) {
         $domain = array(
             'name' => 'Nado',
             'version' => '0.0.1',
@@ -3112,7 +3112,7 @@ class nado extends Exchange {
         return $this->sign_hash($hash, $this->privateKey);
     }
 
-    public function sign_cancellation_products($cancellation, $chainId, string $endpointAddress) {
+    public function sign_cancellation_products(mixed $cancellation, mixed $chainId, string $endpointAddress) {
         $domain = array(
             'name' => 'Nado',
             'version' => '0.0.1',
@@ -3131,7 +3131,7 @@ class nado extends Exchange {
         return $this->sign_hash($hash, $this->privateKey);
     }
 
-    public function sign_fetch_trigger_orders($tx, $chainId, $endpointAddress) {
+    public function sign_fetch_trigger_orders(mixed $tx, mixed $chainId, mixed $endpointAddress) {
         $domain = array(
             'name' => 'Nado',
             'version' => '0.0.1',
@@ -3160,7 +3160,7 @@ class nado extends Exchange {
         return '0x' . $this->pad_hex($r, 64) . $this->pad_hex($s, 64) . $v;
     }
 
-    public function remove_market_suffix($marketId) {
+    public function remove_market_suffix(mixed $marketId) {
         if ($marketId === null) {
             return null;
         }
@@ -3170,7 +3170,7 @@ class nado extends Exchange {
         return $marketId;
     }
 
-    public function sign($path, mixed $api = array(), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         $endpoint = $api[0];
         if (gettype($api) === 'string') {
             $endpoint = $api;
@@ -3195,7 +3195,7 @@ class nado extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(?int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(?int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null; // fallback to default $error handler
         }

@@ -5,6 +5,7 @@ import coinbaseRest from '../coinbase.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict } from '../base/types.js';
+import type Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -338,7 +339,7 @@ export default class coinbase extends coinbaseRest {
         const name = 'ticker_batch';
         const ticker = await this.subscribeMultiple (name, false, symbols, params);
         if (this.newUpdates) {
-            const tickers = {};
+            const tickers: Dict = {};
             const symbol = ticker['symbol'];
             tickers[symbol] = ticker;
             return tickers;
@@ -365,7 +366,7 @@ export default class coinbase extends coinbaseRest {
         return await this.unSubscribeMultiple ('ticker', 'ticker_batch', false, symbols);
     }
 
-    handleTickers (client, message) {
+    handleTickers (client: Client, message: any) {
         //
         //    {
         //        "channel": "ticker",
@@ -484,7 +485,7 @@ export default class coinbase extends coinbaseRest {
         }
     }
 
-    parseWsTicker (ticker, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //     {
         //         "type": "ticker",
@@ -711,7 +712,7 @@ export default class coinbase extends coinbaseRest {
         return orderbook.limit ();
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: any, message: any) {
         //
         //    {
         //        "channel": "market_trades",
@@ -768,7 +769,7 @@ export default class coinbase extends coinbaseRest {
         this.tryResolveUsdc (client, messageHash, tradesArray);
     }
 
-    handleOrder (client, message) {
+    handleOrder (client: any, message: any) {
         //
         //    {
         //        "channel": "user",
@@ -835,7 +836,7 @@ export default class coinbase extends coinbaseRest {
         client.resolve (this.orders, 'user');
     }
 
-    override parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         //    {
         //        "order_id": "XXX",
@@ -886,7 +887,7 @@ export default class coinbase extends coinbaseRest {
         });
     }
 
-    handleOrderBookHelper (orderbook, updates) {
+    handleOrderBookHelper (orderbook: any, updates: any) {
         for (let i = 0; i < updates.length; i++) {
             const trade = updates[i];
             const sideId = this.safeString (trade, 'side');
@@ -898,7 +899,7 @@ export default class coinbase extends coinbaseRest {
         }
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: any, message: any) {
         //
         //    {
         //        "channel": "l2_data",
@@ -960,13 +961,13 @@ export default class coinbase extends coinbaseRest {
         }
     }
 
-    tryResolveUsdc (client, messageHash, result) {
+    tryResolveUsdc (client: Client, messageHash: any, result: any) {
         if (messageHash.endsWith ('/USD') || messageHash.endsWith ('-USD')) {
             client.resolve (result, messageHash + 'C'); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
         }
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //     {
         //         "type": "subscriptions",
@@ -1006,7 +1007,7 @@ export default class coinbase extends coinbaseRest {
         return message;
     }
 
-    handleHeartbeats (client, message) {
+    handleHeartbeats (client: Client, message: any) {
         // although the subscription takes a product_ids parameter (i.e. symbol),
         // there is no (clear) way of mapping the message back to the symbol.
         //
@@ -1026,7 +1027,7 @@ export default class coinbase extends coinbaseRest {
         return message;
     }
 
-    override handleMessage (client, message) {
+    override handleMessage (client: any, message: any) {
         const channel = this.safeString (message, 'channel');
         const methods: Dict = {
             'subscriptions': this.handleSubscriptionStatus,

@@ -577,7 +577,7 @@ export default class cex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = {};
+        const request: Dict = {};
         if (symbols !== undefined) {
             request['pairs'] = this.marketIds (symbols);
         }
@@ -833,7 +833,7 @@ export default class cex extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 'timestamp'),
             this.safeNumber (ohlcv, 'open'),
@@ -872,7 +872,7 @@ export default class cex extends Exchange {
         return this.parseTradingFees (fees, true);
     }
 
-    parseTradingFees (response, useKeyAsId = false): TradingFees {
+    parseTradingFees (response: any, useKeyAsId = false): TradingFees {
         const result: Dict = {};
         const keys = Object.keys (response);
         for (let i = 0; i < keys.length; i++) {
@@ -1001,7 +1001,7 @@ export default class cex extends Exchange {
         return this.parseBalance (accountBalance);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
         };
@@ -1235,7 +1235,7 @@ export default class cex extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const fee = {};
+        const fee: Dict = {};
         const feeAmount = this.safeNumber (order, 'feeAmount');
         if (feeAmount !== undefined) {
             const currencyId = this.safeString (order, 'feeCurrency');
@@ -1525,7 +1525,7 @@ export default class cex extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const ledgerType: Dict = {
             'deposit': 'deposit',
             'withdraw': 'withdrawal',
@@ -1800,7 +1800,7 @@ export default class cex extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         const address = this.safeString (depositAddress, 'address');
         const currencyId = this.safeString (depositAddress, 'currency');
         currency = this.safeCurrency (currencyId, currency);
@@ -1814,7 +1814,7 @@ export default class cex extends Exchange {
         } as DepositAddress;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
@@ -1844,7 +1844,7 @@ export default class cex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:
         //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
         // and because of `.parseJson` bug, we need extra fix

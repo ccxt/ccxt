@@ -61,7 +61,7 @@ class backpack(ccxt.async_support.backpack):
             },
         })
 
-    async def watch_public(self, topics, messageHashes, params={}, unwatch=False):
+    async def watch_public(self, topics: Any, messageHashes: Any, params={}, unwatch=False):
         if self.markets is None:
             await self.load_markets()
         url = self.urls['api']['ws']['public']
@@ -76,7 +76,7 @@ class backpack(ccxt.async_support.backpack):
             return None
         return await self.watch_multiple(url, messageHashes, message, messageHashes)
 
-    async def watch_private(self, topics, messageHashes, params={}, unwatch=False):
+    async def watch_private(self, topics: Any, messageHashes: Any, params={}, unwatch=False):
         self.check_required_credentials()
         url = self.urls['api']['ws']['private']
         instruction = 'subscribe'
@@ -138,8 +138,9 @@ class backpack(ccxt.async_support.backpack):
                             del cache[symbol]
                 else:
                     symbol = messageHash.replace('unsubscribe:orders:', '')
-                    if (self.orders is not None) and (symbol in self.orders):
-                        del self.orders[symbol]
+                    cache = self.orders
+                    if (cache is not None) and (symbol in cache):
+                        del cache[symbol]
             elif messageHash.find('positions') >= 0:
                 if messageHash == 'unsubscribe:positions':
                     cache = self.positions
@@ -227,7 +228,7 @@ class backpack(ccxt.async_support.backpack):
             messageHashes.append('unsubscribe:ticker:' + symbol)
         return await self.watch_public(topics, messageHashes, params, True)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #     {
         #         data: {
@@ -341,7 +342,7 @@ class backpack(ccxt.async_support.backpack):
             messageHashes.append('unsubscribe:bidask:' + symbol)
         return await self.watch_public(topics, messageHashes, params, True)
 
-    def handle_bid_ask(self, client: Client, message):
+    def handle_bid_ask(self, client: Client, message: Any):
         #
         #     {
         #         data: {
@@ -366,7 +367,7 @@ class backpack(ccxt.async_support.backpack):
         self.bidsasks[symbol] = parsedBidAsk
         client.resolve(parsedBidAsk, messageHash)
 
-    def parse_ws_bid_ask(self, ticker, market: Market = None):
+    def parse_ws_bid_ask(self, ticker: Any, market: Market = None):
         #
         #     {
         #         A: '0.4087',
@@ -489,7 +490,7 @@ class backpack(ccxt.async_support.backpack):
             messageHashes.append('unsubscribe:candles:' + market['symbol'] + ':' + interval)
         return await self.watch_public(topics, messageHashes, params, True)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         #     {
         #         data: {
@@ -528,7 +529,7 @@ class backpack(ccxt.async_support.backpack):
         messageHash = 'candles:' + symbol + ':' + timeframe
         client.resolve([symbol, timeframe, ohlcv], messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ws_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     {
         #         E: '1754519557526056',
@@ -638,7 +639,7 @@ class backpack(ccxt.async_support.backpack):
             messageHashes.append('unsubscribe:trades:' + symbol)
         return await self.watch_public(topics, messageHashes, params, True)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         #     {
         #         data: {
@@ -671,7 +672,7 @@ class backpack(ccxt.async_support.backpack):
         client.resolve(cache, messageHash)
         client.resolve(cache, 'trades')
 
-    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
+    def parse_ws_trade(self, trade: Any, market: Market = None) -> Trade:
         #
         #     {
         #         E: '1754601477746429',
@@ -797,7 +798,7 @@ class backpack(ccxt.async_support.backpack):
             topics.append(topic)
         return await self.watch_public(topics, messageHashes, params, True)
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         # initial snapshot is fetched with ccxt's fetchOrderBook
         # the feed does not include a snapshot, just the deltas
@@ -839,7 +840,7 @@ class backpack(ccxt.async_support.backpack):
         self.handle_delta(storedOrderBook, data)
         client.resolve(storedOrderBook, messageHash)
 
-    def handle_delta(self, orderbook, delta):
+    def handle_delta(self, orderbook: Any, delta: Any):
         timestamp = self.parse_to_int(self.safe_integer(delta, 'T', 0) / 1000)
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
@@ -851,12 +852,12 @@ class backpack(ccxt.async_support.backpack):
         self.handle_bid_asks(storedBids, bids)
         self.handle_bid_asks(storedAsks, asks)
 
-    def handle_bid_asks(self, bookSide, bidAsks):
+    def handle_bid_asks(self, bookSide: Any, bidAsks: Any):
         for i in range(0, len(bidAsks)):
             bidAsk = self.parse_order_book_bid_ask(bidAsks[i])
             bookSide.storeArray(bidAsk)
 
-    def get_cache_index(self, orderbook, cache):
+    def get_cache_index(self, orderbook: Any, cache: Any):
         #
         # {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
         firstDelta = self.safe_dict(cache, 0)
@@ -929,7 +930,7 @@ class backpack(ccxt.async_support.backpack):
             messageHash = 'unsubscribe:orders:' + symbol
         return await self.watch_private([topic], [messageHash], params, True)
 
-    def handle_order(self, client: Client, message):
+    def handle_order(self, client: Client, message: Any):
         #
         #     {
         #         data: {
@@ -970,7 +971,7 @@ class backpack(ccxt.async_support.backpack):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(orders, symbolSpecificMessageHash)
 
-    def parse_ws_order(self, order, market: Market = None) -> Order:
+    def parse_ws_order(self, order: Any, market: Market = None) -> Order:
         #
         #     {
         #         E: '1754939110175879',
@@ -1118,7 +1119,7 @@ class backpack(ccxt.async_support.backpack):
             topics.append('account.positionUpdate')
         return await self.watch_private(topics, messageHashes, params, True)
 
-    def handle_positions(self, client, message):
+    def handle_positions(self, client: Any, message: Any):
         #
         #     {
         #         data: {
@@ -1157,7 +1158,7 @@ class backpack(ccxt.async_support.backpack):
         client.resolve([parsedPosition], messageHash)
         client.resolve([parsedPosition], symbolSpecificMessageHash)
 
-    def parse_ws_position(self, position, market: Market = None):
+    def parse_ws_position(self, position: Any, market: Market = None):
         #
         #     {
         #         B: '4236.36',
@@ -1230,7 +1231,7 @@ class backpack(ccxt.async_support.backpack):
             'marginRatio': None,
         })
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         if not self.handle_error_message(client, message):
             return
         data = self.safe_dict(message, 'data')
@@ -1250,7 +1251,7 @@ class backpack(ccxt.async_support.backpack):
         elif event == 'positionAdjusted' or event == 'positionOpened' or event == 'positionClosed' or event == 'positionUpdated':
             self.handle_positions(client, message)
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         #     {
         #         id: null,

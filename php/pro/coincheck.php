@@ -75,7 +75,7 @@ class coincheck extends \ccxt\async\coincheck {
         })();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(mixed $client, mixed $message) {
         //
         //     array(
         //         "btc_jpy",
@@ -145,7 +145,7 @@ class coincheck extends \ccxt\async\coincheck {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     array(
         //         array(
@@ -212,7 +212,7 @@ class coincheck extends \ccxt\async\coincheck {
         ), $market);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         $data = $this->safe_value($message, 0);
         if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
             $this->handle_order_book($client, $message);

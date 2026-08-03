@@ -2564,8 +2564,9 @@ func (this *CryptocomCore) FetchDepositAddress(code any, optionalArgs ...any) <-
 		var network any = this.SafeStringUpper(params, "network")
 		params = this.Omit(params, []any{"network"})
 
-		depositAddresses := (<-this.FetchDepositAddressesByNetwork(code, params))
-		PanicOnError(depositAddresses)
+		depositAddressesRaw := (<-this.FetchDepositAddressesByNetwork(code, params))
+		PanicOnError(depositAddressesRaw)
+		var depositAddresses any = depositAddressesRaw
 		if IsTrue(InOp(depositAddresses, network)) {
 
 			ch <- GetValue(depositAddresses, network)
@@ -2607,8 +2608,8 @@ func (this *CryptocomCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes217812 := (<-this.LoadMarkets())
-			PanicOnError(retRes217812)
+			retRes217912 := (<-this.LoadMarkets())
+			PanicOnError(retRes217912)
 		}
 		var currency any = nil
 		var request any = map[string]any{}
@@ -2690,8 +2691,8 @@ func (this *CryptocomCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes224012 := (<-this.LoadMarkets())
-			PanicOnError(retRes224012)
+			retRes224112 := (<-this.LoadMarkets())
+			PanicOnError(retRes224112)
 		}
 		var currency any = nil
 		var request any = map[string]any{}
@@ -3226,8 +3227,8 @@ func (this *CryptocomCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes275012 := (<-this.LoadMarkets())
-			PanicOnError(retRes275012)
+			retRes275112 := (<-this.LoadMarkets())
+			PanicOnError(retRes275112)
 		}
 
 		response := (<-this.V1PrivatePostPrivateGetCurrencyNetworks(params))
@@ -3269,8 +3270,8 @@ func (this *CryptocomCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes277212 := (<-this.LoadMarkets())
-			PanicOnError(retRes277212)
+			retRes277312 := (<-this.LoadMarkets())
+			PanicOnError(retRes277312)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -3429,8 +3430,8 @@ func (this *CryptocomCore) FetchAccounts(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes291712 := (<-this.LoadMarkets())
-			PanicOnError(retRes291712)
+			retRes291812 := (<-this.LoadMarkets())
+			PanicOnError(retRes291812)
 		}
 
 		response := (<-this.V1PrivatePostPrivateGetAccounts(params))
@@ -3538,8 +3539,8 @@ func (this *CryptocomCore) FetchSettlementHistory(optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes300612 := (<-this.LoadMarkets())
-			PanicOnError(retRes300612)
+			retRes300712 := (<-this.LoadMarkets())
+			PanicOnError(retRes300712)
 		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -3642,8 +3643,8 @@ func (this *CryptocomCore) FetchFundingRate(symbol any, optionalArgs ...any) <-c
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes309512 := (<-this.LoadMarkets())
-			PanicOnError(retRes309512)
+			retRes309612 := (<-this.LoadMarkets())
+			PanicOnError(retRes309612)
 		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
@@ -3750,8 +3751,8 @@ func (this *CryptocomCore) FetchFundingRateHistory(optionalArgs ...any) <-chan a
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes318112 := (<-this.LoadMarkets())
-			PanicOnError(retRes318112)
+			retRes318212 := (<-this.LoadMarkets())
+			PanicOnError(retRes318212)
 		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -3759,9 +3760,9 @@ func (this *CryptocomCore) FetchFundingRateHistory(optionalArgs ...any) <-chan a
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes318619 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-			PanicOnError(retRes318619)
-			ch <- retRes318619
+			retRes318719 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+			PanicOnError(retRes318719)
+			ch <- retRes318719
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -3844,8 +3845,8 @@ func (this *CryptocomCore) FetchPosition(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes325412 := (<-this.LoadMarkets())
-			PanicOnError(retRes325412)
+			retRes325512 := (<-this.LoadMarkets())
+			PanicOnError(retRes325512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -3906,8 +3907,8 @@ func (this *CryptocomCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes329912 := (<-this.LoadMarkets())
-			PanicOnError(retRes329912)
+			retRes330012 := (<-this.LoadMarkets())
+			PanicOnError(retRes330012)
 		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{}
@@ -4077,8 +4078,8 @@ func (this *CryptocomCore) ClosePosition(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes345412 := (<-this.LoadMarkets())
-			PanicOnError(retRes345412)
+			retRes345512 := (<-this.LoadMarkets())
+			PanicOnError(retRes345512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4134,8 +4135,8 @@ func (this *CryptocomCore) FetchTradingFee(symbol any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes349612 := (<-this.LoadMarkets())
-			PanicOnError(retRes349612)
+			retRes349712 := (<-this.LoadMarkets())
+			PanicOnError(retRes349712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -4185,8 +4186,8 @@ func (this *CryptocomCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes353212 := (<-this.LoadMarkets())
-			PanicOnError(retRes353212)
+			retRes353312 := (<-this.LoadMarkets())
+			PanicOnError(retRes353312)
 		}
 
 		response := (<-this.V1PrivatePostPrivateGetFeeRate(params))

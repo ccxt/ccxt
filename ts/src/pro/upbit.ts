@@ -37,7 +37,7 @@ export default class upbit extends upbitRest {
         });
     }
 
-    async watchPublicMultiple (symbols: Strings, channel, params = {}) {
+    async watchPublicMultiple (symbols: Strings, channel: any, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -188,7 +188,7 @@ export default class upbit extends upbitRest {
         return await this.watchPublicMultiple ([ symbol ], timeFrameOHLCV);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         // 2020-03-17T23:07:36.511Z "onMessage" <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
         // { type: "ticker",
         //   "code": "BTC-ETH",
@@ -234,7 +234,7 @@ export default class upbit extends upbitRest {
         client.resolve (ticker, messageHash);
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         // { type: "orderbook",
         //   "code": "BTC-ETH",
         //   "timestamp": 1584486737444,
@@ -289,7 +289,7 @@ export default class upbit extends upbitRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         // { type: "trade",
         //   "code": "KRW-BTC",
         //   "timestamp": 1584508285812,
@@ -320,7 +320,7 @@ export default class upbit extends upbitRest {
         client.resolve (stored, messageHash);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         // {
         //     type: 'candle.1s',
         //     code: 'KRW-USDT',
@@ -365,9 +365,9 @@ export default class upbit extends upbitRest {
         return client;
     }
 
-    async watchPrivate (symbol, channel, messageHash, params = {}) {
+    async watchPrivate (symbol: any, channel: any, messageHash: any, params = {}) {
         await this.authenticate ();
-        const request = {
+        const request: Dict = {
             'type': channel,
         };
         if (symbol !== undefined) {
@@ -478,7 +478,7 @@ export default class upbit extends upbitRest {
         return this.safeString (statuses, status, status);
     }
 
-    override parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         // {
         //     "type": "myOrder",
@@ -548,7 +548,7 @@ export default class upbit extends upbitRest {
         });
     }
 
-    override parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         // see: parseWsOrder
         let side = this.safeStringLower (trade, 'ask_bid');
         if (side === 'bid') {
@@ -584,7 +584,7 @@ export default class upbit extends upbitRest {
         }, market);
     }
 
-    handleMyOrder (client: Client, message) {
+    handleMyOrder (client: Client, message: any) {
         // see: parseWsOrder
         const tradeId = this.safeString (message, 'trade_uuid');
         if (tradeId !== undefined) {
@@ -593,7 +593,7 @@ export default class upbit extends upbitRest {
         this.handleOrder (client, message);
     }
 
-    handleMyTrade (client: Client, message) {
+    handleMyTrade (client: Client, message: any) {
         // see: parseWsOrder
         let myTrades = this.myTrades;
         if (myTrades === undefined) {
@@ -608,7 +608,7 @@ export default class upbit extends upbitRest {
         client.resolve (myTrades, messageHash);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
@@ -626,7 +626,7 @@ export default class upbit extends upbitRest {
             }
             const fees = this.safeValue (order, 'fees');
             if (fees !== undefined) {
-                parsed['fees'] = fees;
+                (parsed as Dict)['fees'] = fees;
             }
             parsed['trades'] = this.safeValue (order, 'trades');
             parsed['timestamp'] = this.safeInteger (order, 'timestamp');
@@ -656,7 +656,7 @@ export default class upbit extends upbitRest {
         return await this.watchPrivate (undefined, channel, messageHash);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         // {
         //     "type": "myAsset",
@@ -695,7 +695,7 @@ export default class upbit extends upbitRest {
         client.resolve (this.balance, messageHash);
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         const methods: Dict = {
             'ticker': this.handleTicker,
             'orderbook': this.handleOrderBook,

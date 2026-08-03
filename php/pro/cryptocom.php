@@ -66,7 +66,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         ));
     }
 
-    public function pong($client, $message) {
+    public function pong(Client $client, mixed $message) {
         return Async\async(function () use ($client, $message) {
             // {
             //     "id" => 1587523073344,
@@ -216,20 +216,20 @@ class cryptocom extends \ccxt\async\cryptocom {
         })();
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);
         $count = $this->safe_integer($delta, 2);
         $bookside->storeArray(array( $price, $amount, $count ));
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         // snapshot
         //    {
@@ -414,7 +414,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         // {
         //     "code" => 0,
@@ -605,7 +605,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //       "instrument_name" => "ETHUSD-PERP",
@@ -735,7 +735,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         })();
     }
 
-    public function handle_bid_ask(Client $client, $message) {
+    public function handle_bid_ask(Client $client, mixed $message) {
         $data = $this->safe_list($message, 'data', array());
         $ticker = $this->safe_dict($data, 0, array());
         $parsedTicker = $this->parse_ws_bid_ask($ticker);
@@ -747,7 +747,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $client->resolve($parsedTicker, $messageHash);
     }
 
-    public function parse_ws_bid_ask($ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
         $marketId = $this->safe_string($ticker, 'i');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_string($market, 'symbol');
@@ -820,7 +820,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //  {
         //       "instrument_name" => "BTC_USDT",
@@ -886,7 +886,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         })();
     }
 
-    public function handle_orders(Client $client, $message, ?array $subscription = null) {
+    public function handle_orders(Client $client, mixed $message, ?array $subscription = null) {
         //
         //    {
         //        "method" => "subscribe",
@@ -988,7 +988,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         })();
     }
 
-    public function set_positions_cache(Client $client, $type, ?array $symbols = null) {
+    public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null) {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
         if ($fetchPositionsSnapshot) {
             $messageHash = 'fetchPositionsSnapshot';
@@ -1001,7 +1001,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
     }
 
-    public function load_positions_snapshot($client, $messageHash) {
+    public function load_positions_snapshot(Client $client, mixed $messageHash) {
         return Async\async(function () use ($client, $messageHash) {
             $positions = Async\await($this->fetch_positions());
             $this->positions = new ArrayCacheBySymbolBySide();
@@ -1022,7 +1022,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         })();
     }
 
-    public function handle_positions($client, $message) {
+    public function handle_positions(mixed $client, mixed $message) {
         //
         //    {
         //        "subscription" => "user.position_balance",
@@ -1092,7 +1092,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //     {
         //         "id" => 1,
@@ -1219,7 +1219,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         })();
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         //    {
         //        "id" => 1,
@@ -1292,7 +1292,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         })();
     }
 
-    public function handle_cancel_all_orders(Client $client, $message) {
+    public function handle_cancel_all_orders(Client $client, mixed $message) {
         //
         //    {
         //        "id" => 1688914586647,
@@ -1304,7 +1304,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $client->resolve($message, $messageHash);
     }
 
-    public function watch_public($messageHash, $params = array()) {
+    public function watch_public(mixed $messageHash, $params = array()) {
         return Async\async(function () use ($messageHash, $params) {
             $url = $this->urls['api']['ws']['public'];
             $id = $this->nonce();
@@ -1320,7 +1320,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         })();
     }
 
-    public function watch_public_multiple($messageHashes, $topics, $params = array()) {
+    public function watch_public_multiple(mixed $messageHashes, mixed $topics, $params = array()) {
         return Async\async(function () use ($messageHashes, $topics, $params) {
             $url = $this->urls['api']['ws']['public'];
             $id = $this->nonce();
@@ -1360,7 +1360,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         })();
     }
 
-    public function watch_private_request($nonce, $params = array()) {
+    public function watch_private_request(mixed $nonce, $params = array()) {
         return Async\async(function () use ($nonce, $params) {
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['private'];
@@ -1373,7 +1373,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         })();
     }
 
-    public function watch_private_subscribe($messageHash, $params = array()) {
+    public function watch_private_subscribe(mixed $messageHash, $params = array()) {
         return Async\async(function () use ($messageHash, $params) {
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['private'];
@@ -1390,7 +1390,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         })();
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //    {
         //        "id" => 0,
@@ -1426,7 +1426,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
     }
 
-    public function handle_subscribe(Client $client, $message) {
+    public function handle_subscribe(Client $client, mixed $message) {
         $methods = array(
             'candlestick' => array($this, 'handle_ohlcv'),
             'ticker' => array($this, 'handle_ticker'),
@@ -1454,7 +1454,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         //
         // ping
         //    {
@@ -1537,11 +1537,11 @@ class cryptocom extends \ccxt\async\cryptocom {
         })();
     }
 
-    public function handle_ping(Client $client, $message) {
+    public function handle_ping(Client $client, mixed $message) {
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 
-    public function handle_authenticate(Client $client, $message) {
+    public function handle_authenticate(Client $client, mixed $message) {
         //
         //  array( id => 1648132625434, method => "public/auth", code => 0 )
         //
@@ -1549,7 +1549,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $future->resolve(true);
     }
 
-    public function handle_unsubscribe(Client $client, $message) {
+    public function handle_unsubscribe(Client $client, mixed $message) {
         $id = $this->safe_string($message, 'id');
         $keys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
         for ($i = 0; $i < count($keys); $i++) {

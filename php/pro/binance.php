@@ -201,7 +201,7 @@ class binance extends \ccxt\async\binance {
         );
     }
 
-    public function request_id($url) {
+    public function request_id(mixed $url) {
         $options = $this->safe_dict($this->options, 'requestId', $this->create_safe_dictionary());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
@@ -242,7 +242,7 @@ class binance extends \ccxt\async\binance {
         return $stream;
     }
 
-    public function get_ws_url($type, $category) {
+    public function get_ws_url(mixed $type, mixed $category) {
         $baseUrl = $this->urls['api']['ws'][$type];
         if ($type === 'future') {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
@@ -266,14 +266,14 @@ class binance extends \ccxt\async\binance {
         return $baseUrl;
     }
 
-    public function get_future_ws_category($channel) {
+    public function get_future_ws_category(mixed $channel) {
         if ($channel === 'depth' || $channel === 'rpiDepth' || $channel === 'bookTicker' || $channel === 'trade') {
             return 'public';
         }
         return 'market';
     }
 
-    public function get_private_ws_url($type, $listenKey) {
+    public function get_private_ws_url(mixed $type, mixed $listenKey) {
         if ($type === 'future') {
             return $this->get_ws_url($type, 'private') . '?$listenKey=' . $listenKey;
         }
@@ -363,7 +363,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function handle_liquidation(Client $client, $message) {
+    public function handle_liquidation(Client $client, mixed $message) {
         //
         // future
         //    {
@@ -418,7 +418,7 @@ class binance extends \ccxt\async\binance {
         $client->resolve(array( $liquidation ), 'liquidations::' . $symbol);
     }
 
-    public function parse_ws_liquidation($liquidation, ?array $market = null) {
+    public function parse_ws_liquidation(mixed $liquidation, ?array $market = null) {
         //
         // future
         //    {
@@ -573,7 +573,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function handle_my_liquidation(Client $client, $message) {
+    public function handle_my_liquidation(Client $client, mixed $message) {
         //
         //    {
         //        "s":"BTCUSDT",              // Symbol
@@ -903,7 +903,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function handle_fetch_order_book(Client $client, $message) {
+    public function handle_fetch_order_book(Client $client, mixed $message) {
         //
         //    {
         //        "id":"51e2affb-0aba-4821-ba75-f2625006eb43",
@@ -935,7 +935,7 @@ class binance extends \ccxt\async\binance {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function fetch_order_book_snapshot($client, $message, $subscription) {
+    public function fetch_order_book_snapshot(Client $client, mixed $message, mixed $subscription) {
         return Async\async(function () use ($client, $message, $subscription) {
             $symbol = $this->safe_string($subscription, 'symbol');
             $messageHash = 'orderbook::' . $symbol;
@@ -996,19 +996,19 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
-    public function handle_order_book_message(Client $client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, mixed $message, mixed $orderbook) {
         $u = $this->safe_integer($message, 'u');
         $this->handle_deltas($orderbook['asks'], $this->safe_value($message, 'a', array()));
         $this->handle_deltas($orderbook['bids'], $this->safe_value($message, 'b', array()));
@@ -1019,7 +1019,7 @@ class binance extends \ccxt\async\binance {
         return $orderbook;
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -1125,7 +1125,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_order_book_subscription(Client $client, $message, $subscription) {
+    public function handle_order_book_subscription(Client $client, mixed $message, mixed $subscription) {
         $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
         // $messageHash = $this->safe_string($subscription, 'messageHash');
         $symbolOfSubscription = $this->safe_string($subscription, 'symbol'); // watchOrderBook
@@ -1144,7 +1144,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
         //         "result" => null,
@@ -1350,7 +1350,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function parse_ws_trade($trade, ?array $market = null): array {
+    public function parse_ws_trade(mixed $trade, ?array $market = null): array {
         //
         // public watchTrades
         //
@@ -1513,7 +1513,7 @@ class binance extends \ccxt\async\binance {
         ));
     }
 
-    public function handle_trade(Client $client, $message) {
+    public function handle_trade(Client $client, mixed $message) {
         // the $trade streams push raw $trade information in real-time
         // each $trade has a unique buyer and seller
         $isSpot = $this->is_spot_url($client);
@@ -1736,7 +1736,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "e" => "kline",
@@ -1906,7 +1906,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function handle_fetch_ohlcv(Client $client, $message) {
+    public function handle_fetch_ohlcv(Client $client, mixed $message) {
         //
         //    {
         //        "id" => "1dbbeb56-8eea-466a-8f6e-86bdcfa2fc0b",
@@ -2147,7 +2147,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function watch_multi_ticker_helper($methodName, ?string $channelName, ?array $symbols = null, $params = array(), bool $isUnsubscribe = false) {
+    public function watch_multi_ticker_helper(mixed $methodName, ?string $channelName, ?array $symbols = null, $params = array(), bool $isUnsubscribe = false) {
         return Async\async(function () use ($methodName, $channelName, $symbols, $params, $isUnsubscribe) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -2260,7 +2260,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function parse_ws_ticker($message, $marketType) {
+    public function parse_ws_ticker(mixed $message, mixed $marketType) {
         // markPrice
         //   {
         //       "e" => "markPriceUpdate",   // Event type
@@ -2380,7 +2380,7 @@ class binance extends \ccxt\async\binance {
         ), $market);
     }
 
-    public function handle_ticker_ws(Client $client, $message) {
+    public function handle_ticker_ws(Client $client, mixed $message) {
         //
         // $ticker->price
         //    {
@@ -2413,7 +2413,7 @@ class binance extends \ccxt\async\binance {
         $client->resolve($ticker, $messageHash);
     }
 
-    public function handle_bids_asks(Client $client, $message) {
+    public function handle_bids_asks(Client $client, mixed $message) {
         //
         // arrives one symbol dict or array of symbol dicts
         //
@@ -2429,7 +2429,7 @@ class binance extends \ccxt\async\binance {
         $this->handle_tickers_and_bids_asks($client, $message, 'bidasks');
     }
 
-    public function handle_tickers(Client $client, $message) {
+    public function handle_tickers(Client $client, mixed $message) {
         //
         // arrives one symbol dict or array of symbol dicts
         //
@@ -2462,11 +2462,11 @@ class binance extends \ccxt\async\binance {
         $this->handle_tickers_and_bids_asks($client, $message, 'tickers');
     }
 
-    public function handle_mark_prices(Client $client, $message) {
+    public function handle_mark_prices(Client $client, mixed $message) {
         $this->handle_tickers_and_bids_asks($client, $message, 'markPrices');
     }
 
-    public function handle_tickers_and_bids_asks(Client $client, $message, $methodType) {
+    public function handle_tickers_and_bids_asks(Client $client, mixed $message, mixed $methodType) {
         $isSpot = $this->is_spot_url($client);
         $marketType = ($isSpot) ? 'spot' : 'contract';
         $isBidAsk = ($methodType === 'bidasks');
@@ -2589,7 +2589,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function handle_user_data_stream_subscribe(Client $client, $message) {
+    public function handle_user_data_stream_subscribe(Client $client, mixed $message) {
         //
         //   {
         //     "id" => 1,
@@ -2848,7 +2848,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function set_balance_cache(Client $client, $type, $isPortfolioMargin = false) {
+    public function set_balance_cache(Client $client, mixed $type, $isPortfolioMargin = false) {
         if ((is_array($client->subscriptions) && array_key_exists($type ?? '', $client->subscriptions)) && (is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             return;
         }
@@ -2865,7 +2865,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function load_balance_snapshot($client, $messageHash, $type, $isPortfolioMargin) {
+    public function load_balance_snapshot(Client $client, mixed $messageHash, mixed $type, mixed $isPortfolioMargin) {
         return Async\async(function () use ($client, $messageHash, $type, $isPortfolioMargin) {
             $params = array(
                 'type' => $type,
@@ -2929,7 +2929,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function handle_balance_ws(Client $client, $message) {
+    public function handle_balance_ws(Client $client, mixed $message) {
         //
         //
         $messageHash = $this->safe_string($message, 'id');
@@ -2946,7 +2946,7 @@ class binance extends \ccxt\async\binance {
         $client->resolve($parsedBalances, $messageHash);
     }
 
-    public function handle_account_status_ws(Client $client, $message) {
+    public function handle_account_status_ws(Client $client, mixed $message) {
         //
         // spot
         //    {
@@ -3069,7 +3069,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function handle_positions_ws(Client $client, $message) {
+    public function handle_positions_ws(Client $client, mixed $message) {
         //
         //    {
         //        id => '1',
@@ -3162,7 +3162,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         // sent upon a balance update not related to orders
         //
@@ -3294,7 +3294,7 @@ class binance extends \ccxt\async\binance {
         return $accountType;
     }
 
-    public function get_market_type($method, $market, $params = array()) {
+    public function get_market_type(mixed $method, mixed $market, $params = array()) {
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params($method, $market, $params);
         $subType = null;
@@ -3381,7 +3381,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function handle_order_ws(Client $client, $message) {
+    public function handle_order_ws(Client $client, mixed $message) {
         //
         //    {
         //        "id" => 1,
@@ -3435,7 +3435,7 @@ class binance extends \ccxt\async\binance {
         $client->resolve($order, $messageHash);
     }
 
-    public function handle_orders_ws(Client $client, $message) {
+    public function handle_orders_ws(Client $client, mixed $message) {
         //
         //    {
         //        "id" => 1,
@@ -3530,7 +3530,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function handle_edit_order_ws(Client $client, $message) {
+    public function handle_edit_order_ws(Client $client, mixed $message) {
         //
         // spot
         //    {
@@ -3990,7 +3990,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         // spot
         //
@@ -4162,7 +4162,7 @@ class binance extends \ccxt\async\binance {
         ));
     }
 
-    public function handle_order_update(Client $client, $message) {
+    public function handle_order_update(Client $client, mixed $message) {
         //
         // spot
         //
@@ -4354,7 +4354,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function set_positions_cache(Client $client, $type, ?array $symbols = null, $isPortfolioMargin = false) {
+    public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null, $isPortfolioMargin = false) {
         if ($type === 'spot') {
             return;
         }
@@ -4376,7 +4376,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function load_positions_snapshot($client, $messageHash, $type, $isPortfolioMargin) {
+    public function load_positions_snapshot(Client $client, mixed $messageHash, mixed $type, mixed $isPortfolioMargin) {
         return Async\async(function () use ($client, $messageHash, $type, $isPortfolioMargin) {
             $params = array(
                 'type' => $type,
@@ -4403,7 +4403,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function handle_positions($client, $message) {
+    public function handle_positions(mixed $client, mixed $message) {
         //
         //     {
         //         e => 'ACCOUNT_UPDATE',
@@ -4469,7 +4469,7 @@ class binance extends \ccxt\async\binance {
         $client->resolve($newPositions, $accountType . ':positions');
     }
 
-    public function parse_ws_position($position, ?array $market = null) {
+    public function parse_ws_position(mixed $position, ?array $market = null) {
         //
         //     {
         //         "s" => "BTCUSDT", // Symbol
@@ -4631,7 +4631,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function handle_trades_ws(Client $client, $message) {
+    public function handle_trades_ws(Client $client, mixed $message) {
         //
         // fetchMyTradesWs
         //
@@ -4746,7 +4746,7 @@ class binance extends \ccxt\async\binance {
         })();
     }
 
-    public function handle_my_trade(Client $client, $message) {
+    public function handle_my_trade(Client $client, mixed $message) {
         $messageHash = 'myTrades';
         $executionType = $this->safe_string($message, 'x');
         if ($executionType === 'TRADE') {
@@ -4820,7 +4820,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         $parsed = $this->parse_ws_order($message);
         $symbol = $this->safe_string($parsed, 'symbol');
         $orderId = $this->safe_string($parsed, 'id');
@@ -4856,12 +4856,12 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_acount_update($client, $message) {
+    public function handle_acount_update(Client $client, mixed $message) {
         $this->handle_balance($client, $message);
         $this->handle_positions($client, $message);
     }
 
-    public function handle_ws_error(Client $client, $message) {
+    public function handle_ws_error(Client $client, mixed $message) {
         //
         //    {
         //        "error" => array(
@@ -4907,7 +4907,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_event_stream_terminated(Client $client, $message) {
+    public function handle_event_stream_terminated(Client $client, mixed $message) {
         //
         //    {
         //        e => 'eventStreamTerminated',
@@ -4924,7 +4924,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         // handle WebSocketAPI
         $eventMsg = $this->safe_dict($message, 'event');
         if ($eventMsg !== null) {

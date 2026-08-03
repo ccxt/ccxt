@@ -1325,7 +1325,7 @@ func (this *BtcmarketsCore) CalculateFee(symbol any, typeVar any, side any, amou
 		currency = GetValue(market, "base")
 		cost = this.AmountToPrecision(symbol, amount)
 	}
-	var rate any = GetValue(market, takerOrMaker)
+	var rate any = this.SafeValue(market, takerOrMaker)
 	var rateCost any = Precise.StringMul(this.NumberToString(rate), cost)
 	var feeCost any = this.FeeToPrecision(symbol, rateCost)
 	if IsTrue(IsEqual(feeCost, nil)) {

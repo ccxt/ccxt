@@ -81,7 +81,7 @@ export default class cex extends cexRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //     {
         //         "e": "get-balance",
@@ -172,7 +172,7 @@ export default class cex extends cexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTradesSnapshot (client: Client, message) {
+    handleTradesSnapshot (client: Client, message: any) {
         //
         //     {
         //         "e": "history",
@@ -187,7 +187,7 @@ export default class cex extends cexRest {
         this.handleTradesInner (client, message);
     }
 
-    parseWsOldTrade (trade, market: Market = undefined) {
+    parseWsOldTrade (trade: any, market: Market = undefined) {
         //
         //  snapshot trade
         //    "sell:1665467367741:3888551:19058.8:14541219"
@@ -220,7 +220,7 @@ export default class cex extends cexRest {
         }, market);
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: any) {
         //
         //     {
         //         "e": "history-update",
@@ -232,7 +232,7 @@ export default class cex extends cexRest {
         this.handleTradesInner (client, message);
     }
 
-    handleTradesInner (client: Client, message) {
+    handleTradesInner (client: Client, message: any) {
         const data = this.safeList (message, 'data', []);
         const symbol = this.safeString (this.options['watchTrades'], 'symbol');
         if (symbol === undefined) {
@@ -357,7 +357,7 @@ export default class cex extends cexRest {
         return await this.watch (url, messageHash, request, messageHash) as Ticker;
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //     {
         //         "e": "tick",
@@ -386,7 +386,7 @@ export default class cex extends cexRest {
         }
     }
 
-    parseWsTicker (ticker, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //  public
         //    {
@@ -551,7 +551,7 @@ export default class cex extends cexRest {
         return this.filterBySymbolSinceLimit (orders, market['symbol'], since, limit);
     }
 
-    handleTransaction (client: Client, message) {
+    handleTransaction (client: Client, message: any) {
         const data = this.safeValue (message, 'data');
         const symbol2 = this.safeString (data, 'symbol2');
         if (symbol2 === undefined) {
@@ -561,7 +561,7 @@ export default class cex extends cexRest {
         this.handleMyTrades (client, message);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         //     {
         //         "e": "tx",
@@ -617,7 +617,7 @@ export default class cex extends cexRest {
         client.resolve (stored, messageHash);
     }
 
-    override parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         //     {
         //         "d": "order:59091012956:a:BTC",
@@ -680,7 +680,7 @@ export default class cex extends cexRest {
         return this.safeTrade (parsedTrade, market);
     }
 
-    handleOrderUpdate (client: Client, message) {
+    handleOrderUpdate (client: Client, message: any) {
         //
         //  partialExecution
         //     {
@@ -800,7 +800,7 @@ export default class cex extends cexRest {
         client.resolve (storedOrders, messageHash);
     }
 
-    parseWsOrderUpdate (order, market: Market = undefined) {
+    parseWsOrderUpdate (order: any, market: Market = undefined) {
         //
         //      {
         //          "id": "150714937",
@@ -913,7 +913,7 @@ export default class cex extends cexRest {
         return this.safeOrder (parsedOrder, market);
     }
 
-    fromPrecision (amount, scale) {
+    fromPrecision (amount: any, scale: any) {
         if (amount === undefined) {
             return undefined;
         }
@@ -923,12 +923,12 @@ export default class cex extends cexRest {
         return precise.toString ();
     }
 
-    currencyFromPrecision (currency, amount) {
+    currencyFromPrecision (currency: any, amount: any) {
         const scale = this.safeInteger (this.currencies[currency], 'precision', 0);
         return this.fromPrecision (amount, scale);
     }
 
-    handleOrdersSnapshot (client: Client, message) {
+    handleOrdersSnapshot (client: Client, message: any) {
         //
         //     {
         //         "e": "open-orders",
@@ -1003,7 +1003,7 @@ export default class cex extends cexRest {
         return orderbook.limit ();
     }
 
-    handleOrderBookSnapshot (client: Client, message) {
+    handleOrderBookSnapshot (client: Client, message: any) {
         //
         //     {
         //         "e": "order-book-subscribe",
@@ -1043,7 +1043,7 @@ export default class cex extends cexRest {
         client.resolve (orderbook, messageHash);
     }
 
-    pairToSymbol (pair) {
+    pairToSymbol (pair: any) {
         const parts = pair.split (':');
         const baseId = this.safeString (parts, 0);
         const quoteId = this.safeString (parts, 1);
@@ -1053,7 +1053,7 @@ export default class cex extends cexRest {
         return symbol;
     }
 
-    handleOrderBookUpdate (client: Client, message) {
+    handleOrderBookUpdate (client: Client, message: any) {
         //
         //     {
         //         "e": "md_update",
@@ -1090,12 +1090,12 @@ export default class cex extends cexRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
-    override handleDelta (bookside, delta) {
+    override handleDelta (bookside: any, delta: any) {
         const bidAsk = this.parseOrderBookBidAsk (delta, 0, 1);
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -1135,7 +1135,7 @@ export default class cex extends cexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleInitOHLCV (client: Client, message) {
+    handleInitOHLCV (client: Client, message: any) {
         //
         //     {
         //         "e": "init-ohlcv-data",
@@ -1179,7 +1179,7 @@ export default class cex extends cexRest {
         client.resolve (stored, messageHash);
     }
 
-    handleOHLCV24 (client: Client, message) {
+    handleOHLCV24 (client: Client, message: any) {
         //
         //     {
         //         "e": "ohlcv24",
@@ -1190,7 +1190,7 @@ export default class cex extends cexRest {
         return message;
     }
 
-    handleOHLCV1m (client: Client, message) {
+    handleOHLCV1m (client: Client, message: any) {
         //
         //     {
         //         "e": "ohlcv1m",
@@ -1223,7 +1223,7 @@ export default class cex extends cexRest {
         client.resolve (stored, messageHash);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         "e": "ohlcv",
@@ -1483,7 +1483,7 @@ export default class cex extends cexRest {
         return this.parseOrders (canceledOrders, undefined, undefined, undefined, params);
     }
 
-    resolveData (client: Client, message) {
+    resolveData (client: Client, message: any) {
         //
         //    "e": "open-orders",
         //    "data": [
@@ -1506,7 +1506,7 @@ export default class cex extends cexRest {
         client.resolve (data, messageHash);
     }
 
-    handleConnected (client: Client, message) {
+    handleConnected (client: Client, message: any) {
         //
         //     {
         //         "e": "connected"
@@ -1515,7 +1515,7 @@ export default class cex extends cexRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //     {
         //         "e": "get-balance",
@@ -1544,7 +1544,7 @@ export default class cex extends cexRest {
         }
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         const ok = this.safeString (message, 'ok');
         if (ok === 'error') {
             this.handleErrorMessage (client, message);
@@ -1580,7 +1580,7 @@ export default class cex extends cexRest {
         }
     }
 
-    handleAuthenticationMessage (client: Client, message) {
+    handleAuthenticationMessage (client: Client, message: any) {
         //
         //     {
         //         "e": "auth",

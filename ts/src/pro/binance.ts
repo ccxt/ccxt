@@ -197,7 +197,7 @@ export default class binance extends binanceRest {
         };
     }
 
-    requestId (url) {
+    requestId (url: any) {
         const options = this.safeDict (this.options, 'requestId', this.createSafeDictionary ());
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
@@ -238,7 +238,7 @@ export default class binance extends binanceRest {
         return stream;
     }
 
-    getWsUrl (type, category) {
+    getWsUrl (type: any, category: any) {
         const baseUrl = this.urls['api']['ws'][type];
         if (type === 'future') {
             // skip URL manipulation for proxied/bridge URLs (contain an embedded protocol)
@@ -262,14 +262,14 @@ export default class binance extends binanceRest {
         return baseUrl;
     }
 
-    getFutureWsCategory (channel) {
+    getFutureWsCategory (channel: any) {
         if (channel === 'depth' || channel === 'rpiDepth' || channel === 'bookTicker' || channel === 'trade') {
             return 'public';
         }
         return 'market';
     }
 
-    getPrivateWsUrl (type, listenKey) {
+    getPrivateWsUrl (type: any, listenKey: any) {
         if (type === 'future') {
             return this.getWsUrl (type, 'private') + '?listenKey=' + listenKey;
         }
@@ -357,7 +357,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit, true);
     }
 
-    handleLiquidation (client: Client, message) {
+    handleLiquidation (client: Client, message: any) {
         //
         // future
         //    {
@@ -412,7 +412,7 @@ export default class binance extends binanceRest {
         client.resolve ([ liquidation ], 'liquidations::' + symbol);
     }
 
-    parseWsLiquidation (liquidation, market: Market = undefined) {
+    parseWsLiquidation (liquidation: any, market: Market = undefined) {
         //
         // future
         //    {
@@ -565,7 +565,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit);
     }
 
-    handleMyLiquidation (client: Client, message) {
+    handleMyLiquidation (client: Client, message: any) {
         //
         //    {
         //        "s":"BTCUSDT",              // Symbol
@@ -889,7 +889,7 @@ export default class binance extends binanceRest {
         return orderbook;
     }
 
-    handleFetchOrderBook (client: Client, message) {
+    handleFetchOrderBook (client: Client, message: any) {
         //
         //    {
         //        "id":"51e2affb-0aba-4821-ba75-f2625006eb43",
@@ -921,7 +921,7 @@ export default class binance extends binanceRest {
         client.resolve (orderbook, messageHash);
     }
 
-    async fetchOrderBookSnapshot (client, message, subscription) {
+    async fetchOrderBookSnapshot (client: Client, message: any, subscription: any) {
         const symbol = this.safeString (subscription, 'symbol');
         const messageHash = 'orderbook::' + symbol;
         try {
@@ -980,19 +980,19 @@ export default class binance extends binanceRest {
         }
     }
 
-    override handleDelta (bookside, delta) {
+    override handleDelta (bookside: any, delta: any) {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
     }
 
-    handleOrderBookMessage (client: Client, message, orderbook) {
+    handleOrderBookMessage (client: Client, message: any, orderbook: any) {
         const u = this.safeInteger (message, 'u');
         this.handleDeltas (orderbook['asks'], this.safeValue (message, 'a', []));
         this.handleDeltas (orderbook['bids'], this.safeValue (message, 'b', []));
@@ -1003,7 +1003,7 @@ export default class binance extends binanceRest {
         return orderbook;
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -1109,7 +1109,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleOrderBookSubscription (client: Client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message: any, subscription: any) {
         const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
         const symbolOfSubscription = this.safeString (subscription, 'symbol'); // watchOrderBook
@@ -1128,7 +1128,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //     {
         //         "result": null,
@@ -1323,12 +1323,12 @@ export default class binance extends binanceRest {
      * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         params['callerMethodName'] = 'watchTrades';
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
-    override parseWsTrade (trade, market: Market = undefined): Trade {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         // public watchTrades
         //
@@ -1491,7 +1491,7 @@ export default class binance extends binanceRest {
         });
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: any) {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
         const isSpot = this.isSpotUrl (client);
@@ -1526,7 +1526,7 @@ export default class binance extends binanceRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1696,7 +1696,7 @@ export default class binance extends binanceRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1706,7 +1706,7 @@ export default class binance extends binanceRest {
         return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         "e": "kline",
@@ -1874,7 +1874,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    handleFetchOHLCV (client: Client, message) {
+    handleFetchOHLCV (client: Client, message: any) {
         //
         //    {
         //        "id": "1dbbeb56-8eea-466a-8f6e-86bdcfa2fc0b",
@@ -2101,7 +2101,7 @@ export default class binance extends binanceRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    async watchMultiTickerHelper (methodName, channelName: Str, symbols: Strings = undefined, params = {}, isUnsubscribe: boolean = false) {
+    async watchMultiTickerHelper (methodName: any, channelName: Str, symbols: Strings = undefined, params = {}, isUnsubscribe: boolean = false) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2212,7 +2212,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    parseWsTicker (message, marketType) {
+    parseWsTicker (message: any, marketType: any) {
         // markPrice
         //   {
         //       "e": "markPriceUpdate",   // Event type
@@ -2332,7 +2332,7 @@ export default class binance extends binanceRest {
         }, market);
     }
 
-    handleTickerWs (client: Client, message) {
+    handleTickerWs (client: Client, message: any) {
         //
         // ticker.price
         //    {
@@ -2365,7 +2365,7 @@ export default class binance extends binanceRest {
         client.resolve (ticker, messageHash);
     }
 
-    handleBidsAsks (client: Client, message) {
+    handleBidsAsks (client: Client, message: any) {
         //
         // arrives one symbol dict or array of symbol dicts
         //
@@ -2381,7 +2381,7 @@ export default class binance extends binanceRest {
         this.handleTickersAndBidsAsks (client, message, 'bidasks');
     }
 
-    handleTickers (client: Client, message) {
+    handleTickers (client: Client, message: any) {
         //
         // arrives one symbol dict or array of symbol dicts
         //
@@ -2414,11 +2414,11 @@ export default class binance extends binanceRest {
         this.handleTickersAndBidsAsks (client, message, 'tickers');
     }
 
-    handleMarkPrices (client: Client, message) {
+    handleMarkPrices (client: Client, message: any) {
         this.handleTickersAndBidsAsks (client, message, 'markPrices');
     }
 
-    handleTickersAndBidsAsks (client: Client, message, methodType) {
+    handleTickersAndBidsAsks (client: Client, message: any, methodType: any) {
         const isSpot = this.isSpotUrl (client);
         const marketType = (isSpot) ? 'spot' : 'contract';
         const isBidAsk = (methodType === 'bidasks');
@@ -2476,7 +2476,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    signParams (params = {}) {
+    signParams (params: Dict = {}) {
         this.checkRequiredCredentials ();
         const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
         if (defaultRecvWindow !== undefined) {
@@ -2538,7 +2538,7 @@ export default class binance extends binanceRest {
         await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    handleUserDataStreamSubscribe (client: Client, message) {
+    handleUserDataStreamSubscribe (client: Client, message: any) {
         //
         //   {
         //     "id": 1,
@@ -2789,7 +2789,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    setBalanceCache (client: Client, type, isPortfolioMargin = false) {
+    setBalanceCache (client: Client, type: any, isPortfolioMargin = false) {
         if ((type in client.subscriptions) && (type in this.balance)) {
             return;
         }
@@ -2806,7 +2806,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    async loadBalanceSnapshot (client, messageHash, type, isPortfolioMargin) {
+    async loadBalanceSnapshot (client: Client, messageHash: any, type: any, isPortfolioMargin: any) {
         const params: Dict = {
             'type': type,
         };
@@ -2866,7 +2866,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    handleBalanceWs (client: Client, message) {
+    handleBalanceWs (client: Client, message: any) {
         //
         //
         const messageHash = this.safeString (message, 'id');
@@ -2883,7 +2883,7 @@ export default class binance extends binanceRest {
         client.resolve (parsedBalances, messageHash);
     }
 
-    handleAccountStatusWs (client: Client, message) {
+    handleAccountStatusWs (client: Client, message: any) {
         //
         // spot
         //    {
@@ -3004,7 +3004,7 @@ export default class binance extends binanceRest {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    handlePositionsWs (client: Client, message) {
+    handlePositionsWs (client: Client, message: any) {
         //
         //    {
         //        id: '1',
@@ -3097,7 +3097,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, type);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         // sent upon a balance update not related to orders
         //
@@ -3229,7 +3229,7 @@ export default class binance extends binanceRest {
         return accountType;
     }
 
-    getMarketType (method, market, params = {}) {
+    getMarketType (method: any, market: any, params = {}) {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (method, market, params);
         let subType: Str = undefined;
@@ -3314,7 +3314,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    handleOrderWs (client: Client, message) {
+    handleOrderWs (client: Client, message: any) {
         //
         //    {
         //        "id": 1,
@@ -3368,7 +3368,7 @@ export default class binance extends binanceRest {
         client.resolve (order, messageHash);
     }
 
-    handleOrdersWs (client: Client, message) {
+    handleOrdersWs (client: Client, message: any) {
         //
         //    {
         //        "id": 1,
@@ -3461,7 +3461,7 @@ export default class binance extends binanceRest {
         return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
-    handleEditOrderWs (client: Client, message) {
+    handleEditOrderWs (client: Client, message: any) {
         //
         // spot
         //    {
@@ -3908,7 +3908,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    override parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         // spot
         //
@@ -4080,7 +4080,7 @@ export default class binance extends binanceRest {
         });
     }
 
-    handleOrderUpdate (client: Client, message) {
+    handleOrderUpdate (client: Client, message: any) {
         //
         // spot
         //
@@ -4272,7 +4272,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type, symbols: Strings = undefined, isPortfolioMargin = false) {
+    setPositionsCache (client: Client, type: any, symbols: Strings = undefined, isPortfolioMargin = false) {
         if (type === 'spot') {
             return;
         }
@@ -4294,7 +4294,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash, type, isPortfolioMargin) {
+    async loadPositionsSnapshot (client: Client, messageHash: any, type: any, isPortfolioMargin: any) {
         const params: Dict = {
             'type': type,
         };
@@ -4319,7 +4319,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handlePositions (client, message) {
+    handlePositions (client: any, message: any) {
         //
         //     {
         //         e: 'ACCOUNT_UPDATE',
@@ -4385,7 +4385,7 @@ export default class binance extends binanceRest {
         client.resolve (newPositions, accountType + ':positions');
     }
 
-    parseWsPosition (position, market: Market = undefined) {
+    parseWsPosition (position: any, market: Market = undefined) {
         //
         //     {
         //         "s": "BTCUSDT", // Symbol
@@ -4543,7 +4543,7 @@ export default class binance extends binanceRest {
         return this.filterBySinceLimit (trades, since, limit);
     }
 
-    handleTradesWs (client: Client, message) {
+    handleTradesWs (client: Client, message: any) {
         //
         // fetchMyTradesWs
         //
@@ -4658,7 +4658,7 @@ export default class binance extends binanceRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrade (client: Client, message) {
+    handleMyTrade (client: Client, message: any) {
         const messageHash = 'myTrades';
         const executionType = this.safeString (message, 'x');
         if (executionType === 'TRADE') {
@@ -4732,7 +4732,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
@@ -4751,7 +4751,7 @@ export default class binance extends binanceRest {
                 }
                 const fees = this.safeValue (order, 'fees');
                 if (fees !== undefined) {
-                    parsed['fees'] = fees;
+                    (parsed as Dict)['fees'] = fees;
                 }
                 parsed['trades'] = this.safeValue (order, 'trades');
                 const timestamp = this.safeInteger (parsed, 'timestamp');
@@ -4768,12 +4768,12 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleAcountUpdate (client, message) {
+    handleAcountUpdate (client: Client, message: any) {
         this.handleBalance (client, message);
         this.handlePositions (client, message);
     }
 
-    handleWsError (client: Client, message) {
+    handleWsError (client: Client, message: any) {
         //
         //    {
         //        "error": {
@@ -4819,7 +4819,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleEventStreamTerminated (client: Client, message) {
+    handleEventStreamTerminated (client: Client, message: any) {
         //
         //    {
         //        e: 'eventStreamTerminated',
@@ -4836,7 +4836,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         // handle WebSocketAPI
         const eventMsg = this.safeDict (message, 'event');
         if (eventMsg !== undefined) {

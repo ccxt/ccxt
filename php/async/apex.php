@@ -330,7 +330,7 @@ class apex extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         // {
         //     "totalEquityValue" => "100.000000",
@@ -802,7 +802,7 @@ class apex extends Exchange {
             }
             $market = $this->market($symbol);
             $request = array(
-                'symbol' => $market['id2'],
+                'symbol' => $this->safe_string($market, 'id2'),
             );
             $response = Async\await($this->publicGetV3Ticker($this->extend($request, $params)));
             $tickers = $this->safe_list($response, 'data', array());
@@ -852,7 +852,7 @@ class apex extends Exchange {
             $market = $this->market($symbol);
             $request = array(
                 'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-                'symbol' => $market['id2'],
+                'symbol' => $this->safe_string($market, 'id2'),
             );
             if ($limit === null) {
                 $limit = 200; // default is 200 when requested with `$since`
@@ -864,12 +864,12 @@ class apex extends Exchange {
             }
             $response = Async\await($this->publicGetV3Klines($this->extend($request, $params)));
             $data = $this->safe_dict($response, 'data', array());
-            $OHLCVs = $this->safe_list($data, $market['id2'], array());
+            $OHLCVs = $this->safe_list($data, $this->safe_string($market, 'id2'), array());
             return $this->parse_ohlcvs($OHLCVs, $market, $timeframe, $since, $limit);
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //  {
         //     "start" => 1647511440000,
@@ -910,7 +910,7 @@ class apex extends Exchange {
             }
             $market = $this->market($symbol);
             $request = array(
-                'symbol' => $market['id2'],
+                'symbol' => $this->safe_string($market, 'id2'),
             );
             if ($limit === null) {
                 $limit = 100; // default is 200 when requested with `since`
@@ -971,7 +971,7 @@ class apex extends Exchange {
             }
             $market = $this->market($symbol);
             $request = array(
-                'symbol' => $market['id2'],
+                'symbol' => $this->safe_string($market, 'id2'),
             );
             if ($limit === null) {
                 $limit = 500; // default is 50
@@ -1058,7 +1058,7 @@ class apex extends Exchange {
             }
             $market = $this->market($symbol);
             $request = array(
-                'symbol' => $market['id2'],
+                'symbol' => $this->safe_string($market, 'id2'),
             );
             $response = Async\await($this->publicGetV3Ticker($this->extend($request, $params)));
             $tickers = $this->safe_list($response, 'data', array());
@@ -1067,7 +1067,7 @@ class apex extends Exchange {
         })();
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         // {
         //     "symbol" => "BTCUSDT",
@@ -1919,7 +1919,7 @@ class apex extends Exchange {
         })();
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         // {
         //     "id" => "1234",
@@ -2056,7 +2056,7 @@ class apex extends Exchange {
         ));
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
         $headers = array(
             'User-Agent' => 'apex-CCXT',
@@ -2090,7 +2090,7 @@ class apex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $signBody, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         //
         // array("code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":array("price":"0"))
         // array("code":400,"msg":"strconv.ParseInt => parsing \"dsfdfsd\" => invalid syntax","timeCost":5320995)

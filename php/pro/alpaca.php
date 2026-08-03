@@ -97,7 +97,7 @@ class alpaca extends \ccxt\async\alpaca {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //    {
         //         "T" => "q",
@@ -118,7 +118,7 @@ class alpaca extends \ccxt\async\alpaca {
         $client->resolve($ticker, $messageHash);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(mixed $ticker, ?array $market = null): array {
         //
         //    {
         //         "T" => "q",
@@ -190,7 +190,7 @@ class alpaca extends \ccxt\async\alpaca {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //    {
         //        "T" => "b",
@@ -248,7 +248,7 @@ class alpaca extends \ccxt\async\alpaca {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         // $snapshot
         //    {
@@ -295,12 +295,12 @@ class alpaca extends \ccxt\async\alpaca {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $bidAsk = $this->parse_order_book_bid_ask($delta, 'p', 's');
         $bookside->storeArray($bidAsk);
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -339,7 +339,7 @@ class alpaca extends \ccxt\async\alpaca {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "T" => "t",
@@ -438,12 +438,12 @@ class alpaca extends \ccxt\async\alpaca {
         })();
     }
 
-    public function handle_trade_update(Client $client, $message) {
+    public function handle_trade_update(Client $client, mixed $message) {
         $this->handle_order($client, $message);
         $this->handle_my_trade($client, $message);
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         //    {
         //        "stream" => "trade_updates",
@@ -504,7 +504,7 @@ class alpaca extends \ccxt\async\alpaca {
         $client->resolve($orders, $messageHash);
     }
 
-    public function handle_my_trade(Client $client, $message) {
+    public function handle_my_trade(Client $client, mixed $message) {
         //
         //    {
         //        "stream" => "trade_updates",
@@ -572,7 +572,7 @@ class alpaca extends \ccxt\async\alpaca {
         $client->resolve($myTrades, $messageHash);
     }
 
-    public function parse_my_trade($trade, ?array $market = null) {
+    public function parse_my_trade(mixed $trade, ?array $market = null) {
         //
         //    {
         //        "id" => "c2470331-8993-4051-bf5d-428d5bdc9a48",
@@ -637,7 +637,7 @@ class alpaca extends \ccxt\async\alpaca {
         ), $market);
     }
 
-    public function authenticate($url, $params = array()) {
+    public function authenticate(mixed $url, $params = array()) {
         return Async\async(function () use ($url, $params) {
             $this->check_required_credentials();
             $messageHash = 'authenticated';
@@ -666,7 +666,7 @@ class alpaca extends \ccxt\async\alpaca {
         })();
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //    {
         //        "T" => "error",
@@ -679,7 +679,7 @@ class alpaca extends \ccxt\async\alpaca {
         throw new ExchangeError($this->id . ' $code => ' . $code . ' $message => ' . $msg);
     }
 
-    public function handle_connected(Client $client, $message) {
+    public function handle_connected(Client $client, mixed $message) {
         //
         //    {
         //        "T" => "success",
@@ -689,7 +689,7 @@ class alpaca extends \ccxt\async\alpaca {
         return $message;
     }
 
-    public function handle_crypto_message(Client $client, $message) {
+    public function handle_crypto_message(Client $client, mixed $message) {
         for ($i = 0; $i < count($message); $i++) {
             $data = $message[$i];
             $T = $this->safe_string($data, 'T');
@@ -720,7 +720,7 @@ class alpaca extends \ccxt\async\alpaca {
         }
     }
 
-    public function handle_trading_message(Client $client, $message) {
+    public function handle_trading_message(Client $client, mixed $message) {
         $stream = $this->safe_string($message, 'stream');
         $methods = array(
             'authorization' => array($this, 'handle_authenticate'),
@@ -733,7 +733,7 @@ class alpaca extends \ccxt\async\alpaca {
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
             $this->handle_crypto_message($client, $message);
             return;
@@ -741,7 +741,7 @@ class alpaca extends \ccxt\async\alpaca {
         $this->handle_trading_message($client, $message);
     }
 
-    public function handle_authenticate(Client $client, $message) {
+    public function handle_authenticate(Client $client, mixed $message) {
         //
         // crypto
         //    {
@@ -778,7 +778,7 @@ class alpaca extends \ccxt\async\alpaca {
         throw new AuthenticationError($this->id . ' failed to authenticate.');
     }
 
-    public function handle_subscription(Client $client, $message) {
+    public function handle_subscription(Client $client, mixed $message) {
         //
         // crypto
         //    {

@@ -114,7 +114,7 @@ class xt(ccxt.async_support.xt):
                 client.subscriptions['token'] = self.safe_string(result, 'accessToken')
         return client.subscriptions['token']
 
-    def get_cache_index(self, orderbook, cache):
+    def get_cache_index(self, orderbook: Any, cache: Any):
         # return the first index of the cache that can be applied to the orderbook or -1 if not possible
         nonce = self.safe_integer(orderbook, 'nonce')
         firstDelta = self.safe_value(cache, 0)
@@ -128,7 +128,7 @@ class xt(ccxt.async_support.xt):
                 return i
         return len(cache)
 
-    def handle_delta(self, orderbook, delta):
+    def handle_delta(self, orderbook: Any, delta: Any):
         orderbook['nonce'] = self.safe_integer_2(delta, 'i', 'u')
         obAsks = self.safe_list(delta, 'a', [])
         obBids = self.safe_list(delta, 'b', [])
@@ -655,7 +655,7 @@ class xt(ccxt.async_support.xt):
                 client.future(messageHash)
                 self.spawn(self.load_positions_snapshot, client, messageHash)
 
-    async def load_positions_snapshot(self, client, messageHash):
+    async def load_positions_snapshot(self, client: Client, messageHash: Any):
         positions = await self.fetch_positions()
         self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
@@ -670,7 +670,7 @@ class xt(ccxt.async_support.xt):
             future.resolve(cache)
             client.resolve(cache, 'position::contract')
 
-    def handle_position(self, client, message):
+    def handle_position(self, client: Any, message: Any):
         #
         #    {
         #      topic: 'position',
@@ -1394,7 +1394,7 @@ class xt(ccxt.async_support.xt):
         tradeType = 'contract' if market['contract'] else 'spot'
         client.resolve(stored, 'trade::' + tradeType)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         event = self.safe_string(message, 'event')
         if event == 'pong':
             client.onPong()
@@ -1429,7 +1429,7 @@ class xt(ccxt.async_support.xt):
         client.lastPong = self.milliseconds()
         return 'ping'
 
-    def handle_subscription_status(self, client, message):
+    def handle_subscription_status(self, client: Client, message: Any):
         #
         #     {
         #         id: '1763045665228ticker@eth_usdt',

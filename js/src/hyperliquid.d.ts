@@ -6,7 +6,7 @@ import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, Fundi
  */
 export default class hyperliquid extends Exchange {
     describe(): any;
-    setSandboxMode(enabled: any): void;
+    setSandboxMode(enabled: boolean): void;
     market(symbol: Str): MarketInterface;
     /**
      * @method
@@ -68,7 +68,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchSwapMarkets(params?: {}): Promise<Market[]>;
+    fetchSwapMarkets(params?: any): Promise<Market[]>;
     /**
      * @method
      * @name hyperliquid#calculatePricePrecision
@@ -87,7 +87,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchSpotMarkets(params?: {}): Promise<Market[]>;
+    fetchSpotMarkets(params?: any): Promise<Market[]>;
     parseMarket(market: Dict): Market;
     updateSpotCurrencyCode(code: Str): Str;
     /**
@@ -238,7 +238,7 @@ export default class hyperliquid extends Exchange {
         s: string;
         v: any;
     };
-    setRef(): Promise<true | undefined>;
+    setRef(): Promise<any>;
     approveBuilderFee(builder: string, maxFeeRate: string): Promise<any>;
     initializeClient(): Promise<boolean>;
     handleBuilderFeeApproval(): Promise<boolean>;
@@ -784,7 +784,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a response object
      */
     createSubAccount(name: string, params?: {}): Promise<any>;
-    extractTypeFromDelta(data?: never[]): never[];
+    extractTypeFromDelta(data?: never[]): any[];
     formatVaultAddress(address?: Str): string | undefined;
     handlePublicAddress(methodName: string, params: Dict): [Str, Dict];
     coinToMarketId(coin: Str): string | undefined;
@@ -796,5 +796,5 @@ export default class hyperliquid extends Exchange {
         headers: NullableDict;
     };
     calculateRateLimiterCost(api: any, method: any, path: any, params: any, config?: {}): any;
-    parseCreateEditOrderArgs(id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): {}[];
+    parseCreateEditOrderArgs(id: Str, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Dict[];
 }

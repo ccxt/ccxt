@@ -7,7 +7,7 @@ import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV
 export default class bithumb extends Exchange {
     describe(): any;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
-    amountToPrecision(symbol: any, amount: any): string;
+    amountToPrecision(symbol: Str, amount: any): string;
     /**
      * @method
      * @name bithumb#fetchMarkets
@@ -137,7 +137,7 @@ export default class bithumb extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
     cancelUnifiedOrder(order: Order, params?: {}): Promise<Order>;
     /**
      * @method

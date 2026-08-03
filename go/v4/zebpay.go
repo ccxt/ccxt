@@ -577,7 +577,7 @@ func (this *ZebpayCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan 
 			// }
 			//
 			var responseData any = this.SafeList(response, "data", []any{})
-			data = this.SafeDict(responseData, 0)
+			data = this.SafeDict(responseData, 0, map[string]any{})
 		}
 
 		ch <- this.ParseTradingFee(data, market)

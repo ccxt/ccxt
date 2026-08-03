@@ -71,7 +71,7 @@ export default class exmo extends exmoRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //  spot
         //     {
@@ -138,7 +138,7 @@ export default class exmo extends exmoRest {
         client.resolve (this.balance, messageHash);
     }
 
-    parseSpotBalance (message) {
+    parseSpotBalance (message: any) {
         //
         //     {
         //         "balances": {
@@ -183,7 +183,7 @@ export default class exmo extends exmoRest {
         this.balance = this.safeBalance (this.balance);
     }
 
-    parseMarginBalance (message) {
+    parseMarginBalance (message: any) {
         //
         //     {
         //         "RUB": {
@@ -276,7 +276,7 @@ export default class exmo extends exmoRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //  spot
         //      {
@@ -341,7 +341,7 @@ export default class exmo extends exmoRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //      {
         //          "ts": 1654206084001,
@@ -419,7 +419,7 @@ export default class exmo extends exmoRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         //  spot
         //     {
@@ -548,7 +548,7 @@ export default class exmo extends exmoRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "ts": 1574427585174,
@@ -611,12 +611,12 @@ export default class exmo extends exmoRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleDelta (bookside, delta) {
+    override handleDelta (bookside: any, delta: any) {
         const bidAsk = this.parseOrderBookBidAsk (delta, 0, 1);
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -661,7 +661,7 @@ export default class exmo extends exmoRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message) {
+    handleOrders (client: Client, message: any) {
         //
         //  spot
         // {
@@ -844,7 +844,7 @@ export default class exmo extends exmoRest {
         }, market);
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         //
         // {
         //     "ts": 1654206362552,
@@ -899,7 +899,7 @@ export default class exmo extends exmoRest {
         throw new NotSupported (this.id + ' received an unsupported message: ' + this.json (message));
     }
 
-    handleSubscribed (client: Client, message) {
+    handleSubscribed (client: Client, message: any) {
         //
         // {
         //     "method": "subscribe",
@@ -910,7 +910,7 @@ export default class exmo extends exmoRest {
         return message;
     }
 
-    handleInfo (client: Client, message) {
+    handleInfo (client: Client, message: any) {
         //
         // {
         //     "ts": 1654215731659,
@@ -923,7 +923,7 @@ export default class exmo extends exmoRest {
         return message;
     }
 
-    handleAuthenticationMessage (client: Client, message) {
+    handleAuthenticationMessage (client: Client, message: any) {
         //
         //     {
         //         "method": "login",

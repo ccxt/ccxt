@@ -1604,7 +1604,7 @@ export default class hashkey extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         1721684280000,
@@ -1684,7 +1684,7 @@ export default class hashkey extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    override parseTicker (ticker, market: Market = undefined): Ticker {
+    override parseTicker (ticker: any, market: Market = undefined): Ticker {
         //
         //     {
         //         "t": 1721685896846,
@@ -1757,7 +1757,7 @@ export default class hashkey extends Exchange {
         return this.parseLastPrices (response, symbols);
     }
 
-    override parseLastPrice (entry, market: Market = undefined): LastPrice {
+    override parseLastPrice (entry: any, market: Market = undefined): LastPrice {
         const marketId = this.safeString (entry, 's');
         market = this.safeMarket (marketId, market);
         return {
@@ -1828,7 +1828,7 @@ export default class hashkey extends Exchange {
         }
     }
 
-    override parseBalance (balance): Balances {
+    override parseBalance (balance: any): Balances {
         //
         //     {
         //         "balances": [
@@ -1864,7 +1864,7 @@ export default class hashkey extends Exchange {
         return this.safeBalance (result);
     }
 
-    parseSwapBalance (balance): Balances {
+    parseSwapBalance (balance: any): Balances {
         //
         //     {
         //         "balance": "30.63364672",
@@ -1933,7 +1933,7 @@ export default class hashkey extends Exchange {
         return depositAddress as DepositAddress;
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "canDeposit": true,
@@ -2119,7 +2119,7 @@ export default class hashkey extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    override parseTransaction (transaction: any, currency: Currency = undefined): Transaction {
         //
         //  fetchDeposits
         //     {
@@ -2211,7 +2211,7 @@ export default class hashkey extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             '1': 'pending',
             '2': 'pending',
@@ -2266,7 +2266,7 @@ export default class hashkey extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    override parseTransfer (transfer, currency: Currency = undefined) {
+    override parseTransfer (transfer: any, currency: Currency = undefined) {
         const timestamp = this.safeInteger (transfer, 'timestamp');
         const currencyId = this.safeString (currency, 'id');
         let status: Str = undefined;
@@ -2314,7 +2314,7 @@ export default class hashkey extends Exchange {
         return this.parseAccounts (response, params);
     }
 
-    override parseAccount (account) {
+    override parseAccount (account: any) {
         const accountLabel = this.safeString (account, 'accountLabel');
         let label = '';
         if (accountLabel === 'Main Trading Account' || accountLabel === 'Main Future Account') {
@@ -2332,7 +2332,7 @@ export default class hashkey extends Exchange {
         };
     }
 
-    parseAccountType (type) {
+    parseAccountType (type: any) {
         const types: Dict = {
             '1': 'spot account',
             '3': 'swap account',
@@ -2342,7 +2342,7 @@ export default class hashkey extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    encodeAccountType (type) {
+    encodeAccountType (type: any) {
         const types = {
             'spot': '1',
             'swap': '3',
@@ -2351,7 +2351,7 @@ export default class hashkey extends Exchange {
         return this.safeInteger (types, (type as string), type);
     }
 
-    encodeFlowType (type) {
+    encodeFlowType (type: any) {
         const types = {
             'trade': '1',
             'fee': '3',
@@ -2390,7 +2390,7 @@ export default class hashkey extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        const request = {};
+        const request: Dict = {};
         request['startTime'] = since;
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -2428,7 +2428,7 @@ export default class hashkey extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             '1': 'trade', // transfer
             '2': 'fee', // trade
@@ -2690,7 +2690,7 @@ export default class hashkey extends Exchange {
         }
     }
 
-    createSpotOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Dict {
+    createSpotOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -3130,7 +3130,7 @@ export default class hashkey extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = {};
+        const request: Dict = {};
         const orderIds = ids.join (',');
         request['ids'] = orderIds;
         let market: Market = undefined;
@@ -3603,7 +3603,7 @@ export default class hashkey extends Exchange {
         return this.parseOrders (response as Dict, market, since, limit);
     }
 
-    checkTypeParam (methodName, params) {
+    checkTypeParam (methodName: any, params: any) {
         // some hashkey endpoints have a type param for swap markets that defines the type of an order
         // type param is reserved in ccxt for defining the type of the market
         // current method warns user if he provides the exchange specific value in type parameter
@@ -3792,7 +3792,7 @@ export default class hashkey extends Exchange {
         }, market);
     }
 
-    parseOrderSideAndReduceOnly (unparsed) {
+    parseOrderSideAndReduceOnly (unparsed: any) {
         const parts = unparsed.split ('_');
         const side = parts[0];
         let reduceOnly: Bool = undefined;
@@ -3807,7 +3807,7 @@ export default class hashkey extends Exchange {
         return [ side, reduceOnly ];
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -3822,7 +3822,7 @@ export default class hashkey extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderTypeTimeInForceAndPostOnly (type, timeInForce) {
+    parseOrderTypeTimeInForceAndPostOnly (type: any, timeInForce: any) {
         let postOnly: Bool = undefined;
         if (type === 'LIMIT_MAKER') {
             postOnly = true;
@@ -3834,7 +3834,7 @@ export default class hashkey extends Exchange {
         return [ type, timeInForce, postOnly ];
     }
 
-    parseOrderType (type) {
+    parseOrderType (type: any) {
         const types = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -3899,7 +3899,7 @@ export default class hashkey extends Exchange {
         return this.parseFundingRates (response, symbols);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "ETHUSDT-PERPETUAL",
@@ -4241,7 +4241,7 @@ export default class hashkey extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: any, type: any, params = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4322,7 +4322,7 @@ export default class hashkey extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    override parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         //
         //     {
         //         "filters": [
@@ -4536,13 +4536,13 @@ export default class hashkey extends Exchange {
         };
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         let query: Str = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ();
-            const additionalParams = {
+            const additionalParams: Dict = {
                 'timestamp': timestamp,
             };
             const recvWindow = this.safeInteger (this.options, 'recvWindow');
@@ -4588,7 +4588,7 @@ export default class hashkey extends Exchange {
         return result;
     }
 
-    override handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

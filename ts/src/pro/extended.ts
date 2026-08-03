@@ -74,7 +74,7 @@ export default class extended extends extendedRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "ts": 1701563440000,
@@ -129,13 +129,13 @@ export default class extended extends extendedRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleDelta (bookside, delta) {
+    override handleDelta (bookside: any, delta: any) {
         const price = this.safeFloat (delta, 'p');
         const amount = this.safeFloat2 (delta, 'c', 'q');
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -214,7 +214,7 @@ export default class extended extends extendedRest {
         return await this.watchPrivate ('balance', params);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //     {
         //         "type": "BALANCE",
@@ -305,7 +305,7 @@ export default class extended extends extendedRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         //     {
         //         "type": "TRADE",
@@ -395,7 +395,7 @@ export default class extended extends extendedRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    handlePositions (client: Client, message) {
+    handlePositions (client: Client, message: any) {
         //
         //     {
         //         "type": "POSITION",
@@ -454,7 +454,7 @@ export default class extended extends extendedRest {
         client.resolve (newPositions, 'positions');
     }
 
-    handleOrders (client: Client, message) {
+    handleOrders (client: Client, message: any) {
         //
         //     {
         //         "type": "ORDER",
@@ -545,7 +545,7 @@ export default class extended extends extendedRest {
         });
     }
 
-    handleFundingRate (client: Client, message) {
+    handleFundingRate (client: Client, message: any) {
         //
         //     {
         //         "ts": 1701563440000,
@@ -565,7 +565,7 @@ export default class extended extends extendedRest {
         client.resolve (fundingRate, messageHash);
     }
 
-    parseWsFundingRate (fundingRate, market: Market = undefined, message: any = undefined): FundingRate {
+    parseWsFundingRate (fundingRate: any, market: Market = undefined, message: any = undefined): FundingRate {
         const marketId = this.safeString (fundingRate, 'm');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (message, 'ts');
@@ -620,7 +620,7 @@ export default class extended extends extendedRest {
         });
     }
 
-    handleMarkPrice (client: Client, message) {
+    handleMarkPrice (client: Client, message: any) {
         //
         //     {
         //         "type": "MP",
@@ -686,7 +686,7 @@ export default class extended extends extendedRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     {
         //         "ts": 1701563440000,
@@ -784,7 +784,7 @@ export default class extended extends extendedRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         "ts": 1695738675123,
@@ -845,7 +845,7 @@ export default class extended extends extendedRest {
         return undefined;
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         //
@@ -861,7 +861,7 @@ export default class extended extends extendedRest {
         throw new ExchangeError (feedback);
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         if (this.handleErrorMessage (client, message)) {
             return;
         }

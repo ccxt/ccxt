@@ -1117,7 +1117,7 @@ class btcmarkets extends btcmarkets$1["default"] {
             currency = market['base'];
             cost = this.amountToPrecision(symbol, amount);
         }
-        const rate = market[takerOrMaker];
+        const rate = this.safeValue(market, takerOrMaker);
         const rateCost = Precise["default"].stringMul(this.numberToString(rate), cost);
         let feeCost = this.feeToPrecision(symbol, rateCost);
         if (feeCost === undefined) {

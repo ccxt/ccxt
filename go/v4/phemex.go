@@ -1340,7 +1340,7 @@ func (this *PhemexCore) ToEp(price any, optionalArgs ...any) any {
 	if IsTrue(IsTrue((IsEqual(price, nil))) || IsTrue((IsEqual(market, nil)))) {
 		return price
 	}
-	return this.ToEn(price, GetValue(market, "priceScale"))
+	return this.ToEn(price, this.SafeValue(market, "priceScale"))
 }
 func (this *PhemexCore) FromEn(en any, scale any) any {
 	if IsTrue(IsTrue(IsEqual(en, nil)) || IsTrue(IsEqual(scale, nil))) {
@@ -4181,7 +4181,7 @@ func (this *PhemexCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	var networkId any = this.SafeString(transaction, "chainName")
 	var timestamp any = this.SafeIntegerN(transaction, []any{"createdAt", "submitedAt", "submittedAt"})
 	var typeVar any = this.SafeStringLower(transaction, "type")
-	var feeCost any = this.ParseNumber(this.FromEn(this.SafeString(transaction, "feeEv"), GetValue(currency, "valueScale")))
+	var feeCost any = this.ParseNumber(this.FromEn(this.SafeString(transaction, "feeEv"), this.SafeValue(currency, "valueScale")))
 	if IsTrue(IsEqual(feeCost, nil)) {
 		feeCost = this.SafeNumber(transaction, "feeRv")
 	}
@@ -4194,7 +4194,7 @@ func (this *PhemexCore) ParseTransaction(transaction any, optionalArgs ...any) a
 		}
 	}
 	var status any = this.ParseTransactionStatus(this.SafeString(transaction, "status"))
-	var amount any = this.ParseNumber(this.FromEn(this.SafeString(transaction, "amountEv"), GetValue(currency, "valueScale")))
+	var amount any = this.ParseNumber(this.FromEn(this.SafeString(transaction, "amountEv"), this.SafeValue(currency, "valueScale")))
 	if IsTrue(IsEqual(amount, nil)) {
 		amount = this.SafeNumber(transaction, "amountRv")
 	}

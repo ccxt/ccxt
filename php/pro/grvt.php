@@ -58,7 +58,7 @@ class grvt extends \ccxt\async\grvt {
         ));
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         //
         // confirmation
         //
@@ -204,7 +204,7 @@ class grvt extends \ccxt\async\grvt {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         // v1.ticker.s
         //
@@ -292,7 +292,7 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve($ticker, 'ticker::' . $symbol);
     }
 
-    public function parse_ws_ticker($message, ?array $market = null) {
+    public function parse_ws_ticker(mixed $message, ?array $market = null) {
         // same dict api
         return $this->parse_ticker($message, $market);
     }
@@ -354,7 +354,7 @@ class grvt extends \ccxt\async\grvt {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //    {
         //        "stream" => "v1.trade",
@@ -393,7 +393,7 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve($stored, 'trade::' . $symbol);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         // same api
         return $this->parse_trade($trade, $market);
     }
@@ -463,7 +463,7 @@ class grvt extends \ccxt\async\grvt {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //    {
         //        "stream" => "v1.candle",
@@ -506,7 +506,7 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve($resolveData, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         // same api
         return $this->parse_ohlcv($ohlcv, $market);
     }
@@ -580,7 +580,7 @@ class grvt extends \ccxt\async\grvt {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //    {
         //        "stream" => "v1.book.s",
@@ -716,7 +716,7 @@ class grvt extends \ccxt\async\grvt {
         })();
     }
 
-    public function handle_my_trade(Client $client, $message) {
+    public function handle_my_trade(Client $client, mixed $message) {
         //
         //    {
         //        "stream" => "v1.fill",
@@ -763,7 +763,7 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve($this->myTrades, 'myTrades');
     }
 
-    public function parse_ws_my_trade($trade, ?array $market = null) {
+    public function parse_ws_my_trade(mixed $trade, ?array $market = null) {
         return $this->parse_trade($trade, $market);
     }
 
@@ -811,7 +811,7 @@ class grvt extends \ccxt\async\grvt {
         })();
     }
 
-    public function handle_position($client, $message) {
+    public function handle_position(mixed $client, mixed $message) {
         //
         //    {
         //        "stream" => "v1.position",
@@ -853,7 +853,7 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function parse_ws_position($position, ?array $market = null) {
+    public function parse_ws_position(mixed $position, ?array $market = null) {
         // same api
         return $this->parse_position($position, $market);
     }
@@ -898,7 +898,7 @@ class grvt extends \ccxt\async\grvt {
         })();
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         //    {
         //        "stream" => "v1.order",
@@ -974,12 +974,12 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve($this->orders, 'order::' . $order['symbol']);
     }
 
-    public function parse_ws_order($order, ?array $market = null): array {
+    public function parse_ws_order(mixed $order, ?array $market = null): array {
         // same api
         return $this->parse_order($order, $market);
     }
 
-    public function handle_error_message(Client $client, $response): ?bool {
+    public function handle_error_message(Client $client, mixed $response): ?bool {
         //
         //    {
         //        "jsonrpc" => "2.0",

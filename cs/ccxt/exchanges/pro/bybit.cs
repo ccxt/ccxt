@@ -229,7 +229,7 @@ public partial class bybit : ccxt.bybit
                 var subTypeparametersVariable = this.handleSubTypeAndParams(method, market, parameters, "linear");
                 subType = ((IList<object>)subTypeparametersVariable)[0];
                 parameters = ((IList<object>)subTypeparametersVariable)[1];
-                url = getValue(getValue(url, accessibility), subType);
+                url = getValue(getValue(url, accessibility), ((string)subType));
             } else
             {
                 // option

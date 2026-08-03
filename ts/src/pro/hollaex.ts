@@ -76,7 +76,7 @@ export default class hollaex extends hollaexRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "topic":"orderbook",
@@ -149,7 +149,7 @@ export default class hollaex extends hollaexRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     {
         //         "topic": "trade",
@@ -214,7 +214,7 @@ export default class hollaex extends hollaexRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message, subscription: Dict | undefined = undefined) {
+    handleMyTrades (client: Client, message: any, subscription: Dict | undefined = undefined) {
         //
         // {
         //     "topic":"usertrade",
@@ -301,7 +301,7 @@ export default class hollaex extends hollaexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message, subscription: Dict | undefined = undefined) {
+    handleOrder (client: Client, message: any, subscription: Dict | undefined = undefined) {
         //
         //     {
         //         "topic": "order",
@@ -412,7 +412,7 @@ export default class hollaex extends hollaexRest {
         return await this.watchPrivate (messageHash, params);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //     {
         //         "topic": "wallet",
@@ -456,7 +456,7 @@ export default class hollaex extends hollaexRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchPublic (messageHash, params = {}) {
+    async watchPublic (messageHash: any, params = {}) {
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'op': 'subscribe',
@@ -466,7 +466,7 @@ export default class hollaex extends hollaexRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPrivate (messageHash, params = {}) {
+    async watchPrivate (messageHash: any, params = {}) {
         this.checkRequiredCredentials ();
         let expires = this.safeString (this.options, 'ws-expires');
         if (expires === undefined) {
@@ -497,7 +497,7 @@ export default class hollaex extends hollaexRest {
         return await this.watch (signedUrl, messageHash, message, messageHash);
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //     { error: "Bearer or HMAC authentication required" }
         //     { error: "Error: wrong input" }
@@ -516,7 +516,7 @@ export default class hollaex extends hollaexRest {
         return true;
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         //
         // pong
         //
@@ -629,17 +629,17 @@ export default class hollaex extends hollaexRest {
         return { 'op': 'ping' };
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: any) {
         client.lastPong = this.milliseconds ();
         return message;
     }
 
-    override onError (client: Client, error) {
+    override onError (client: Client, error: any) {
         this.options['ws-expires'] = undefined;
         super.onError (client, error);
     }
 
-    override onClose (client: Client, error) {
+    override onClose (client: Client, error: any) {
         this.options['ws-expires'] = undefined;
         super.onClose (client, error);
     }

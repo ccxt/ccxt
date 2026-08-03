@@ -2184,7 +2184,7 @@ export default class extended extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        return this.parseLeverage(this.safeDict(data, 0), market);
+        return this.parseLeverage(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method

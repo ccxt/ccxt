@@ -1324,7 +1324,7 @@ func (this *HyperliquidCore) FetchOrderBook(symbol any, optionalArgs ...any) <-c
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"type": "l2Book",
-			"coin": Ternary(IsTrue(GetValue(market, "swap")), GetValue(market, "baseName"), GetValue(market, "id")),
+			"coin": Ternary(IsTrue(GetValue(market, "swap")), this.SafeString(market, "baseName"), GetValue(market, "id")),
 		}
 
 		response := (<-this.PublicPostInfo(this.Extend(request, params)))
@@ -1689,7 +1689,7 @@ func (this *HyperliquidCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan 
 		var request any = map[string]any{
 			"type": "candleSnapshot",
 			"req": map[string]any{
-				"coin":      Ternary(IsTrue(GetValue(market, "swap")), GetValue(market, "baseName"), GetValue(market, "id")),
+				"coin":      Ternary(IsTrue(GetValue(market, "swap")), this.SafeString(market, "baseName"), GetValue(market, "id")),
 				"interval":  this.SafeString(this.Timeframes, timeframe, timeframe),
 				"startTime": since,
 				"endTime":   until,
@@ -3686,7 +3686,7 @@ func (this *HyperliquidCore) FetchFundingRateHistory(optionalArgs ...any) <-chan
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"type": "fundingHistory",
-			"coin": GetValue(market, "baseName"),
+			"coin": this.SafeString(market, "baseName"),
 		}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)

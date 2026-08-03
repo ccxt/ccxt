@@ -4,7 +4,7 @@ import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
 import { setupCsharpPrinter } from './csharp-worker.js'
-import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
+import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { platform } from 'process'
 import os from 'os'
 import fs from 'fs'
@@ -314,6 +314,28 @@ class NewTranspiler {
         this.transpiler = new Transpiler (this.getTranspilerConfig())
         setupCsharpPrinter (this.transpiler);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
+        this.patchCsharpPropertyTypes ();
+    }
+
+    // Same ast-transpiler field-type hole as Java: getType() returns raw TS aliases
+    // (Dict/Str/Num/...) for class fields without VariableTypeReplacements. Without this,
+    // `skippedMethods: Dict = {}` emits `public Dict ...` and CS0246. Route field types
+    // through the existing map (exact key only).
+    patchCsharpPropertyTypes () {
+        const csharpTranspiler = (this.transpiler as any)?.csharpTranspiler;
+        if (!csharpTranspiler || typeof csharpTranspiler.getType !== 'function' || csharpTranspiler._propertyTypesPatched) {
+            return;
+        }
+        const originalGetType = csharpTranspiler.getType.bind (csharpTranspiler);
+        csharpTranspiler.getType = (node: any) => {
+            const type = originalGetType (node);
+            const replacements = csharpTranspiler.VariableTypeReplacements ?? {};
+            if ((typeof type === 'string') && Object.prototype.hasOwnProperty.call (replacements, type)) {
+                return replacements[type];
+            }
+            return type;
+        };
+        csharpTranspiler._propertyTypesPatched = true;
     }
 
     createGeneratedHeader() {
@@ -742,6 +764,9 @@ class NewTranspiler {
     }
 
     createCSharpWrappers(exchange:string, path: string, wrappers: any[], ws = false, prediction = false) {
+        // ast-transpiler drops the `= {}` default of a type-annotated params bag, which would
+        // emit it as a required parameter sitting after optionals (CS1737)
+        restoreParamsBagInitializers(wrappers);
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
         const shouldCreateClassWrappers = exchange === 'BaseExchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
@@ -1721,6 +1746,9 @@ class NewTranspiler {
             [ /testReturnResponseHeaders\(BaseExchange exchange\)/g, 'testReturnResponseHeaders(Exchange exchange)' ],
             [ /throw new Error/g, 'throw new Exception' ],
             [/class testMainClass/g, 'public partial class testMainClass'],
+            // noImplicitAny bags: keep object so safeValue assignments typecheck
+            [ /public (?:Dict|Dictionary<string, object>) skippedMethods\b/g, 'public object skippedMethods' ],
+            [ /public (?:Dict|Dictionary<string, object>) checkedPublicTests\b/g, 'public object checkedPublicTests' ],
         ])
 
         const file = [

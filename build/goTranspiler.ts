@@ -3,7 +3,7 @@ import path from 'path';
 import errors from "../js/src/base/errors.js";
 import { basename, resolve } from 'path';
 import { createFolderRecursively, overwriteFile, checkCreateFolder } from './fsLocal.js';
-import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js';
+import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js';
 // import { writeFile } from 'fs/promises';
 import { platform } from 'process';
 import { spawnSync } from 'child_process';
@@ -945,10 +945,6 @@ class NewTranspiler {
             return ` <- chan int64`; // custom handling for now
         }
 
-        if (name.startsWith('fetchDepositWithdrawFee')) { // tmp fix later with proper types
-            return `map[string]any`;
-        }
-
         const isPromise = type.startsWith('Promise<') && type.endsWith('>');
         let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
         let isList = false;
@@ -1237,10 +1233,6 @@ class NewTranspiler {
             return this.isPrediction ? `NewPredictionOrderBookFromWs(res)` : `NewOrderBookFromWs(res)`;
         }
 
-        if (methodName === 'fetchDepositWithdrawFees' || methodName === 'fetchDepositWithdrawFee') {
-            return `(res).(map[string]any)`;
-        }
-
         if (methodName.startsWith('unWatch')) {
             // type not unified yet
             return 'res'
@@ -1253,6 +1245,18 @@ class NewTranspiler {
 
         if (unwrappedType === '[]map[string]any') {
             return `NewMapArray(res)`; // safe conversion, the runtime value is usually a []any
+        }
+
+        if (unwrappedType.startsWith('map[string]')) {
+            const mapValueType = unwrappedType.substring('map[string]'.length);
+            // struct-valued dictionaries (e.g. Dictionary<DepositWithdrawFee>) hold
+            // map[string]any values at runtime, so convert them via the generated
+            // NewXMap constructor. scalar/any values keep the plain type assertion,
+            // and MarketInterface keeps the existing emission (LoadMarkets uses the
+            // hand-written NewMarketsMap template instead).
+            if (/^[A-Z]\w*$/.test(mapValueType) && mapValueType !== 'MarketInterface') {
+                return `New${capitalize(mapValueType)}Map(res)`;
+            }
         }
 
         const needsToInstantiate = !unwrappedType.startsWith('List<') &&
@@ -1576,6 +1580,9 @@ class NewTranspiler {
     }
 
     createGoWrappers(exchange: string, path: string, wrappers: any[], ws: boolean | 'prediction' = false) {
+        // ast-transpiler drops the `= {}` default of a type-annotated params bag, which would
+        // emit it as a required positional arg ahead of the variadic options
+        restoreParamsBagInitializers(wrappers);
         const isPrediction = (ws === 'prediction');
         const isWs = (ws === true);
         const methodsList = new Set(wrappers.map(wrapper => wrapper.name));

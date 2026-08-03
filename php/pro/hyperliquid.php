@@ -301,7 +301,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         })();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(mixed $client, mixed $message) {
         //
         //     {
         //         "channel" => "l2Book",
@@ -526,7 +526,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         })();
     }
 
-    public function handle_ws_tickers(Client $client, $message) {
+    public function handle_ws_tickers(Client $client, mixed $message) {
         // hip3 $mids
         // {
         //     channel => 'allMids',
@@ -566,11 +566,11 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return true;
     }
 
-    public function parse_ws_ticker($rawTicker, ?array $market = null): array {
+    public function parse_ws_ticker(mixed $rawTicker, ?array $market = null): array {
         return $this->parse_ticker($rawTicker, $market);
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         //     {
         //         "channel" => "userFills",
@@ -695,7 +695,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "channel" => "trades",
@@ -872,7 +872,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         channel => 'candle',
@@ -1018,7 +1018,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         // spot
         // {
@@ -1108,7 +1108,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $client->resolve($this->balance[$account], $messageHash);
     }
 
-    public function parse_ws_balance($balance, ?string $accountType = null) {
+    public function parse_ws_balance(mixed $balance, ?string $accountType = null) {
         //
         // spot
         //     {
@@ -1225,7 +1225,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $this->positions = new ArrayCacheBySymbolBySide();
     }
 
-    public function handle_positions($client, $message) {
+    public function handle_positions(mixed $client, mixed $message) {
         if ($this->positions === null) {
             $this->positions = new ArrayCacheBySymbolBySide();
         }
@@ -1374,7 +1374,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         })();
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         //     {
         //         channel => 'orderUpdates',
@@ -1423,7 +1423,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //    {
         //      "channel" => "post",
@@ -1591,7 +1591,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }
     }
 
-    public function handle_subscription_response(Client $client, $message) {
+    public function handle_subscription_response(Client $client, mixed $message) {
         // {
         //     "channel":"subscriptionResponse",
         //     "data":{
@@ -1639,7 +1639,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         //
         // {
         //     "channel":"subscriptionResponse",
@@ -1693,7 +1693,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         );
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         //
         //   {
         //       "channel" => "pong"

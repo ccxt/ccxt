@@ -1127,7 +1127,7 @@ class xt extends Exchange {
         return $this->parse_markets($swapAndFutureMarkets);
     }
 
-    public function parse_markets($markets) {
+    public function parse_markets(mixed $markets) {
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $result[] = $this->parse_market($markets[$i]);
@@ -1491,7 +1491,7 @@ class xt extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // spot
         //
@@ -1843,7 +1843,7 @@ class xt extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_ticker($ticker, ?array $market = null) {
+    public function parse_ticker(mixed $ticker, ?array $market = null) {
         //
         // spot => fetchTicker, fetchTickers
         //
@@ -2114,7 +2114,7 @@ class xt extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null) {
+    public function parse_trade(mixed $trade, ?array $market = null) {
         //
         // spot => fetchTrades
         //
@@ -2367,7 +2367,7 @@ class xt extends Exchange {
         return $this->parse_balance($balances);
     }
 
-    public function parse_balance($response) {
+    public function parse_balance(mixed $response) {
         //
         // spot
         //
@@ -2474,7 +2474,7 @@ class xt extends Exchange {
         }
     }
 
-    public function create_spot_order(string $symbol, $type, $side, $amount, ?float $price = null, $params = array()) {
+    public function create_spot_order(string $symbol, string $type, mixed $side, mixed $amount, ?float $price = null, $params = array()) {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2537,7 +2537,7 @@ class xt extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function create_contract_order(string $symbol, $type, $side, $amount, ?float $price = null, $params = array()) {
+    public function create_contract_order(string $symbol, mixed $type, mixed $side, mixed $amount, ?float $price = null, $params = array()) {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -2964,7 +2964,7 @@ class xt extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3509,7 +3509,7 @@ class xt extends Exchange {
         );
     }
 
-    public function parse_order($order, ?array $market = null) {
+    public function parse_order(array $order, ?array $market = null) {
         //
         // spot => createOrder
         //
@@ -3692,7 +3692,7 @@ class xt extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'NEW' => 'open',
             'PARTIALLY_FILLED' => 'open',
@@ -3777,7 +3777,7 @@ class xt extends Exchange {
         return $this->parse_ledger($ledger, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null): array {
+    public function parse_ledger_entry(mixed $item, ?array $currency = null): array {
         //
         //     {
         //         "id" => "207260567109387524",
@@ -3817,7 +3817,7 @@ class xt extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $ledgerType = array(
             'EXCHANGE' => 'transfer',
             'CLOSE_POSITION' => 'trade',
@@ -3870,7 +3870,7 @@ class xt extends Exchange {
         return $this->parse_deposit_address($result, $currency);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address" => "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -4129,7 +4129,7 @@ class xt extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'SUBMIT' => 'pending',
             'REVIEW' => 'pending',
@@ -4222,7 +4222,7 @@ class xt extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'SUB', $params);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $addOrReduce, $params = array()): array {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $addOrReduce, $params = array()): array {
         $positionSide = $this->safe_string($params, 'positionSide');
         $this->check_required_argument('setLeverage', $positionSide, 'positionSide', array( 'LONG', 'SHORT' ));
         if ($this->markets === null) {
@@ -4254,7 +4254,7 @@ class xt extends Exchange {
         return $this->parse_margin_modification($response, $market);
     }
 
-    public function parse_margin_modification($data, ?array $market = null): array {
+    public function parse_margin_modification(mixed $data, ?array $market = null): array {
         return array(
             'info' => $data,
             'type' => null,
@@ -4319,7 +4319,7 @@ class xt extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
 
-    public function parse_leverage_tiers($response, ?array $symbols = null, ?string $marketIdKey = null): array {
+    public function parse_leverage_tiers(mixed $response, ?array $symbols = null, ?string $marketIdKey = null): array {
         //
         //     {
         //         "symbol" => "rad_usdt",
@@ -4405,7 +4405,7 @@ class xt extends Exchange {
         return $this->parse_market_leverage_tiers($data, $market);
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "rad_usdt",
@@ -4586,7 +4586,7 @@ class xt extends Exchange {
         return $this->parse_funding_rate($result, $market);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "btc_usdt",
@@ -4692,7 +4692,7 @@ class xt extends Exchange {
         return $this->filter_by_since_limit($sorted, $since, $limit);
     }
 
-    public function parse_funding_history($contract, ?array $market = null) {
+    public function parse_funding_history(mixed $contract, ?array $market = null) {
         //
         //     {
         //         "id" => "210804044057280512",
@@ -4839,7 +4839,7 @@ class xt extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(mixed $position, ?array $market = null) {
         //
         //     {
         //         "symbol" => "btc_usdt",
@@ -4936,7 +4936,7 @@ class xt extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(mixed $transfer, ?array $currency = null) {
         return array(
             'info' => $transfer,
             'id' => $this->safe_string($transfer, 'result'),
@@ -5108,7 +5108,7 @@ class xt extends Exchange {
         return $this->parse_order($result, $market);
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, mixed $url, mixed $method, mixed $headers, mixed $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         //
         // spot => $error
         //
@@ -5176,7 +5176,7 @@ class xt extends Exchange {
         return null;
     }
 
-    public function sign($path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $signed = $api[0] === 'private';
         $endpoint = $api[1];
         $request = '/' . $this->implode_params($path, $params);

@@ -69,7 +69,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         ));
     }
 
-    public function watch_public($name, $symbol, $params = array()) {
+    public function watch_public(mixed $name, mixed $symbol, $params = array()) {
         return Async\async(function () use ($name, $symbol, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -93,7 +93,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function watch_public_multiple($methodName, string $channelName, $symbols, $params = array()) {
+    public function watch_public_multiple(mixed $methodName, string $channelName, mixed $symbols, $params = array()) {
         return Async\async(function () use ($methodName, $channelName, $symbols, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -154,7 +154,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "ticker24h",
@@ -215,7 +215,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_bid_ask(Client $client, $message) {
+    public function handle_bid_ask(Client $client, mixed $message) {
         $event = 'bidask';
         $tickers = $this->safe_value($message, 'data', array());
         $result = array();
@@ -231,7 +231,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($result, $event);
     }
 
-    public function parse_ws_bid_ask($ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
         $marketId = $this->safe_string($ticker, 'market');
         $market = $this->safe_market($marketId, null, '-');
         $symbol = $this->safe_string($market, 'symbol');
@@ -270,7 +270,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_trade(Client $client, $message) {
+    public function handle_trade(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "trade",
@@ -338,7 +338,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_fetch_ohlcv(Client $client, $message) {
+    public function handle_fetch_ohlcv(Client $client, mixed $message) {
         //
         //    {
         //        action => 'getCandles',
@@ -354,7 +354,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($ohlcv, $messageHash);
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "candle",
@@ -439,19 +439,19 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
-    public function handle_order_book_message(Client $client, $message, $orderbook) {
+    public function handle_order_book_message(Client $client, mixed $message, mixed $orderbook) {
         //
         //     {
         //         "event" => "book",
@@ -474,7 +474,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         return $orderbook;
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "book",
@@ -515,7 +515,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
     }
 
-    public function watch_order_book_snapshot($client, $message, $subscription) {
+    public function watch_order_book_snapshot(mixed $client, mixed $message, mixed $subscription) {
         return Async\async(function () use ($client, $message, $subscription) {
             $params = $this->safe_value($subscription, 'params');
             $marketId = $this->safe_string($subscription, 'marketId');
@@ -531,7 +531,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_order_book_snapshot(Client $client, $message) {
+    public function handle_order_book_snapshot(Client $client, mixed $message) {
         //
         //     {
         //         "action" => "getBook",
@@ -573,7 +573,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_order_book_subscription(Client $client, $message, $subscription) {
+    public function handle_order_book_subscription(Client $client, mixed $message, mixed $subscription) {
         $symbol = $this->safe_string($subscription, 'symbol');
         $limit = $this->safe_integer($subscription, 'limit');
         if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
@@ -582,7 +582,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
     }
 
-    public function handle_order_book_subscriptions(Client $client, $message, $marketIds) {
+    public function handle_order_book_subscriptions(Client $client, mixed $message, mixed $marketIds) {
         $name = 'book';
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $this->safe_string($marketIds, $i);
@@ -791,7 +791,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_multiple_orders(Client $client, $message) {
+    public function handle_multiple_orders(Client $client, mixed $message) {
         //
         //    {
         //        $action => 'privateCancelOrders',
@@ -873,7 +873,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         return intval($ts . $randomPart);
     }
 
-    public function watch_request($action, $request) {
+    public function watch_request(mixed $action, mixed $request) {
         return Async\async(function () use ($action, $request) {
             $messageHash = $this->request_id();
             $messageHashStr = (string) $messageHash;
@@ -937,7 +937,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         //    {
         //        $action => 'privateGetTrades',
@@ -990,7 +990,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_withdraw(Client $client, $message) {
+    public function handle_withdraw(Client $client, mixed $message) {
         //
         //    {
         //        $action => 'privateWithdrawAssets',
@@ -1032,7 +1032,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_withdraws(Client $client, $message) {
+    public function handle_withdraws(Client $client, mixed $message) {
         //
         //    {
         //        $action => 'privateGetWithdrawalHistory',
@@ -1103,7 +1103,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_deposits(Client $client, $message) {
+    public function handle_deposits(Client $client, mixed $message) {
         //
         //    {
         //        action => 'privateGetDepositHistory',
@@ -1172,7 +1172,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_fetch_currencies(Client $client, $message) {
+    public function handle_fetch_currencies(Client $client, mixed $message) {
         //
         //    {
         //        action => 'getAssets',
@@ -1199,7 +1199,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($currencies, $messageHash);
     }
 
-    public function handle_trading_fees($client, $message) {
+    public function handle_trading_fees(Client $client, mixed $message) {
         //
         //    {
         //        action => 'privateGetAccount',
@@ -1236,7 +1236,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_fetch_balance(Client $client, $message) {
+    public function handle_fetch_balance(Client $client, mixed $message) {
         //
         //    {
         //        action => 'privateGetBalance',
@@ -1255,7 +1255,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($balance, $messageHash);
     }
 
-    public function handle_single_order(Client $client, $message) {
+    public function handle_single_order(Client $client, mixed $message) {
         //
         //    {
         //        action => 'privateCreateOrder',
@@ -1290,7 +1290,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($order, $messageHash);
     }
 
-    public function handle_markets(Client $client, $message) {
+    public function handle_markets(Client $client, mixed $message) {
         //
         //    {
         //        action => 'getMarkets',
@@ -1316,7 +1316,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($markets, $messageHash);
     }
 
-    public function build_message_hash($action, $params = array()) {
+    public function build_message_hash(mixed $action, $params = array()) {
         $methods = array(
             'privateCreateOrder' => array($this, 'action_and_market_message_hash'),
             'privateUpdateOrder' => array($this, 'action_and_order_id_message_hash'),
@@ -1332,12 +1332,12 @@ class bitvavo extends \ccxt\async\bitvavo {
         return $messageHash;
     }
 
-    public function action_and_market_message_hash($action, $params = array()) {
+    public function action_and_market_message_hash(mixed $action, $params = array()) {
         $symbol = $this->safe_string($params, 'market', '');
         return $action . $symbol;
     }
 
-    public function action_and_order_id_message_hash($action, $params = array()) {
+    public function action_and_order_id_message_hash(mixed $action, $params = array()) {
         $orderId = $this->safe_string($params, 'orderId');
         if ($orderId === null) {
             throw new ExchangeError($this->id . ' privateUpdateOrderMessageHash requires a $orderId parameter');
@@ -1345,7 +1345,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         return $action . $orderId;
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "order",
@@ -1381,7 +1381,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($this->orders, $messageHash);
     }
 
-    public function handle_my_trade(Client $client, $message) {
+    public function handle_my_trade(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "fill",
@@ -1411,7 +1411,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $client->resolve($tradesArray, $messageHash);
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "subscribed",
@@ -1462,7 +1462,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         })();
     }
 
-    public function handle_authentication_message(Client $client, $message) {
+    public function handle_authentication_message(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "authenticate",
@@ -1484,7 +1484,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //    {
         //        $action => 'privateCreateOrder',
@@ -1519,7 +1519,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         return null;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "subscribed",

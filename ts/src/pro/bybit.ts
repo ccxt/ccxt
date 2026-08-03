@@ -218,7 +218,7 @@ export default class bybit extends bybitRest {
             } else if ((type === 'swap') || (type === 'future')) {
                 let subType: Str = undefined;
                 [ subType, params ] = this.handleSubTypeAndParams (method, market, params, 'linear');
-                url = url[accessibility][subType];
+                url = url[accessibility][subType as string];
             } else {
                 // option
                 url = url[accessibility]['option'];
@@ -228,7 +228,7 @@ export default class bybit extends bybitRest {
         return url;
     }
 
-    cleanParams (params) {
+    cleanParams (params: any) {
         params = this.omit (params, [ 'type', 'subType', 'settle', 'defaultSettle', 'unifiedMargin' ]);
         return params;
     }
@@ -485,7 +485,7 @@ export default class bybit extends bybitRest {
         return this.unWatchTickers ([ symbol ], params);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         // linear
         //     {
@@ -665,7 +665,7 @@ export default class bybit extends bybitRest {
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    parseWsBidAsk (orderbook, market: Market = undefined) {
+    parseWsBidAsk (orderbook: any, market: Market = undefined) {
         const timestamp = this.safeInteger (orderbook, 'timestamp');
         const bids = this.sortBy (this.aggregate (orderbook['bids']), 0);
         const asks = this.sortBy (this.aggregate (orderbook['asks']), 0);
@@ -696,7 +696,7 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
         return result[symbol][timeframe];
@@ -789,12 +789,12 @@ export default class bybit extends bybitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         params['callerMethodName'] = 'watchOHLCV';
         return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         "topic": "kline.5.BTCUSDT",
@@ -849,7 +849,7 @@ export default class bybit extends bybitRest {
         client.resolve (resolveData, messageHash);
     }
 
-    override parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "start": 1670363160000,
@@ -996,7 +996,7 @@ export default class bybit extends bybitRest {
         return this.unWatchOrderBookForSymbols ([ symbol ], params);
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "topic": "orderbook.50.BTCUSDT",
@@ -1069,12 +1069,12 @@ export default class bybit extends bybitRest {
         }
     }
 
-    override handleDelta (bookside, delta) {
+    override handleDelta (bookside: any, delta: any) {
         const bidAsk = this.parseOrderBookBidAsk (delta, 0, 1);
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -1179,7 +1179,7 @@ export default class bybit extends bybitRest {
         return this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     {
         //         "topic": "publicTrade.BTCUSDT",
@@ -1222,7 +1222,7 @@ export default class bybit extends bybitRest {
         client.resolve (stored, messageHash);
     }
 
-    override parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         // public
         //    {
@@ -1293,7 +1293,7 @@ export default class bybit extends bybitRest {
         }, market);
     }
 
-    getPrivateType (url) {
+    getPrivateType (url: any) {
         if (url.indexOf ('spot') >= 0) {
             return 'spot';
         } else if (url.indexOf ('v5/private') >= 0) {
@@ -1385,7 +1385,7 @@ export default class bybit extends bybitRest {
         return await this.unWatchTopics (url, 'myTrades', [ ], [ messageHash ], [ subHash ], [ topic ], params);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         // spot
         //    {
@@ -1590,7 +1590,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash) {
+    async loadPositionsSnapshot (client: Client, messageHash: any) {
         // as only one ws channel gives positions for all types, for snapshot must load all positions
         const fetchFunctions = [
             this.fetchPositions (undefined, { 'type': 'swap', 'subType': 'linear' }),
@@ -1614,7 +1614,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    handlePositions (client, message) {
+    handlePositions (client: any, message: any) {
         //
         //    {
         //        topic: 'position',
@@ -1750,7 +1750,7 @@ export default class bybit extends bybitRest {
         return this.filterBySymbolsSinceLimit (this.liquidations, [ symbol ], since, limit, true);
     }
 
-    handleLiquidation (client: Client, message) {
+    handleLiquidation (client: Client, message: any) {
         //
         //     {
         //         "data": {
@@ -1814,7 +1814,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    parseWsLiquidation (liquidation, market: Market = undefined) {
+    parseWsLiquidation (liquidation: any, market: Market = undefined) {
         //
         //     {
         //         "price": "0.03803",
@@ -1916,7 +1916,7 @@ export default class bybit extends bybitRest {
         return await this.unWatchTopics (url, 'orders', [ ], [ messageHash ], [ subHash ], topics, params);
     }
 
-    handleOrderWs (client: Client, message) {
+    handleOrderWs (client: Client, message: any) {
         //
         //    {
         //        "reqId":"1",
@@ -1943,7 +1943,7 @@ export default class bybit extends bybitRest {
         client.resolve (order, messageHash);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         //     spot
         //     {
@@ -2122,7 +2122,7 @@ export default class bybit extends bybitRest {
         return await this.watchTopics (url, [ messageHash ], topics, params);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         // spot
         //    {
@@ -2316,7 +2316,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    parseWsBalance (balance, accountType: Str = undefined) {
+    parseWsBalance (balance: any, accountType: Str = undefined) {
         //
         // spot
         //    {
@@ -2375,7 +2375,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    async watchTopics (url, messageHashes, topics, params = {}) {
+    async watchTopics (url: any, messageHashes: any, topics: any, params = {}) {
         const request: Dict = {
             'op': 'subscribe',
             'req_id': this.requestId (),
@@ -2385,7 +2385,7 @@ export default class bybit extends bybitRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
-    async unWatchTopics (url: string, topic: string, symbols: Strings, messageHashes: string[], subMessageHashes: string[], topics, params = {}, subExtension = {}) {
+    async unWatchTopics (url: string, topic: string, symbols: Strings, messageHashes: string[], subMessageHashes: string[], topics: any, params = {}, subExtension = {}) {
         const reqId = this.requestId ();
         const request: Dict = {
             'op': 'unsubscribe',
@@ -2403,7 +2403,7 @@ export default class bybit extends bybitRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes, this.extend (subscription, subExtension));
     }
 
-    async authenticate (url, params = {}) {
+    async authenticate (url: any, params = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);
@@ -2427,7 +2427,7 @@ export default class bybit extends bybitRest {
         return await future;
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //   {
         //       "success": false,
@@ -2520,7 +2520,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         const topic = this.safeString2 (message, 'topic', 'op', '');
         if (this.handleErrorMessage (client, message)) {
             return;
@@ -2604,7 +2604,7 @@ export default class bybit extends bybitRest {
         };
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: any) {
         //
         //   {
         //       "success": true,
@@ -2627,7 +2627,7 @@ export default class bybit extends bybitRest {
         return message;
     }
 
-    handleAuthenticate (client: Client, message) {
+    handleAuthenticate (client: Client, message: any) {
         //
         //    {
         //        "success": true,
@@ -2666,7 +2666,7 @@ export default class bybit extends bybitRest {
         return message;
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //    {
         //        "topic": "kline",
@@ -2684,7 +2684,7 @@ export default class bybit extends bybitRest {
         return message;
     }
 
-    handleUnSubscribe (client: Client, message) {
+    handleUnSubscribe (client: Client, message: any) {
         //
         // {"success":true,"ret_msg":"","conn_id":"7188110e-6908-41e9-b863-6365127e92ad","req_id":"3","op":"unsubscribe"}
         //

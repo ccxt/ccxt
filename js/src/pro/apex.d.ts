@@ -1,5 +1,5 @@
 import apexRest from '../apex.js';
-import type { Bool, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class apex extends apexRest {
     describe(): any;
@@ -90,7 +90,7 @@ export default class apex extends apexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
     /**
      * @method
      * @name apex#watchOHLCVForSymbols
@@ -145,7 +145,7 @@ export default class apex extends apexRest {
     handleMyTrades(client: Client, lists: any): void;
     handleOrder(client: Client, lists: any): void;
     setPositionsCache(client: Client, symbols?: Strings): void;
-    loadPositionsSnapshot(client: any, messageHash: any): Promise<void>;
+    loadPositionsSnapshot(client: Client, messageHash: any): Promise<void>;
     handlePositions(client: any, lists: any): void;
     authenticate(url: any, params?: {}): Promise<any>;
     handleErrorMessage(client: Client, message: any): Bool;
@@ -154,7 +154,7 @@ export default class apex extends apexRest {
         args: string[];
         op: string;
     };
-    pong(client: any, message: any): Promise<void>;
+    pong(client: Client, message: any): Promise<void>;
     handlePong(client: Client, message: any): any;
     handlePing(client: Client, message: any): void;
     handleAccount(client: Client, message: any): void;

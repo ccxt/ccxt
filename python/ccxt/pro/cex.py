@@ -84,7 +84,7 @@ class cex(ccxt.async_support.cex):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash, request)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: Any):
         #
         #     {
         #         "e": "get-balance",
@@ -165,7 +165,7 @@ class cex(ccxt.async_support.cex):
         trades = await self.watch(url, messageHash, request, subscriptionHash)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades_snapshot(self, client: Client, message):
+    def handle_trades_snapshot(self, client: Client, message: Any):
         #
         #     {
         #         "e": "history",
@@ -179,7 +179,7 @@ class cex(ccxt.async_support.cex):
         #
         self.handle_trades_inner(client, message)
 
-    def parse_ws_old_trade(self, trade, market: Market = None):
+    def parse_ws_old_trade(self, trade: Any, market: Market = None):
         #
         #  snapshot trade
         #    "sell:1665467367741:3888551:19058.8:14541219"
@@ -210,7 +210,7 @@ class cex(ccxt.async_support.cex):
             'fee': None,
         }, market)
 
-    def handle_trade(self, client: Client, message):
+    def handle_trade(self, client: Client, message: Any):
         #
         #     {
         #         "e": "history-update",
@@ -221,7 +221,7 @@ class cex(ccxt.async_support.cex):
         #
         self.handle_trades_inner(client, message)
 
-    def handle_trades_inner(self, client: Client, message):
+    def handle_trades_inner(self, client: Client, message: Any):
         data = self.safe_list(message, 'data', [])
         symbol = self.safe_string(self.options['watchTrades'], 'symbol')
         if symbol is None:
@@ -333,7 +333,7 @@ class cex(ccxt.async_support.cex):
         }, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #     {
         #         "e": "tick",
@@ -359,7 +359,7 @@ class cex(ccxt.async_support.cex):
         if messageHash is not None:
             client.resolve(ticker, messageHash)
 
-    def parse_ws_ticker(self, ticker, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None):
         #
         #  public
         #    {
@@ -511,7 +511,7 @@ class cex(ccxt.async_support.cex):
         orders = await self.watch(url, messageHash, request, subscriptionHash, request)
         return self.filter_by_symbol_since_limit(orders, market['symbol'], since, limit)
 
-    def handle_transaction(self, client: Client, message):
+    def handle_transaction(self, client: Client, message: Any):
         data = self.safe_value(message, 'data')
         symbol2 = self.safe_string(data, 'symbol2')
         if symbol2 is None:
@@ -519,7 +519,7 @@ class cex(ccxt.async_support.cex):
         self.handle_order_update(client, message)
         self.handle_my_trades(client, message)
 
-    def handle_my_trades(self, client: Client, message):
+    def handle_my_trades(self, client: Client, message: Any):
         #
         #     {
         #         "e": "tx",
@@ -573,7 +573,7 @@ class cex(ccxt.async_support.cex):
         messageHash = 'myTrades:' + trade['symbol']
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade: Any, market: Market = None):
         #
         #     {
         #         "d": "order:59091012956:a:BTC",
@@ -633,7 +633,7 @@ class cex(ccxt.async_support.cex):
             }
         return self.safe_trade(parsedTrade, market)
 
-    def handle_order_update(self, client: Client, message):
+    def handle_order_update(self, client: Client, message: Any):
         #
         #  partialExecution
         #     {
@@ -746,7 +746,7 @@ class cex(ccxt.async_support.cex):
         messageHash = 'orders:' + symbol
         client.resolve(storedOrders, messageHash)
 
-    def parse_ws_order_update(self, order, market: Market = None):
+    def parse_ws_order_update(self, order: Any, market: Market = None):
         #
         #      {
         #          "id": "150714937",
@@ -849,7 +849,7 @@ class cex(ccxt.async_support.cex):
             parsedOrder['trades'] = self.parse_ws_trade(order, market)
         return self.safe_order(parsedOrder, market)
 
-    def from_precision(self, amount, scale):
+    def from_precision(self, amount: Any, scale: Any):
         if amount is None:
             return None
         precise = Precise(amount)
@@ -857,11 +857,11 @@ class cex(ccxt.async_support.cex):
         precise.reduce()
         return str(precise)
 
-    def currency_from_precision(self, currency, amount):
+    def currency_from_precision(self, currency: Any, amount: Any):
         scale = self.safe_integer(self.currencies[currency], 'precision', 0)
         return self.from_precision(amount, scale)
 
-    def handle_orders_snapshot(self, client: Client, message):
+    def handle_orders_snapshot(self, client: Client, message: Any):
         #
         #     {
         #         "e": "open-orders",
@@ -930,7 +930,7 @@ class cex(ccxt.async_support.cex):
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
-    def handle_order_book_snapshot(self, client: Client, message):
+    def handle_order_book_snapshot(self, client: Client, message: Any):
         #
         #     {
         #         "e": "order-book-subscribe",
@@ -969,7 +969,7 @@ class cex(ccxt.async_support.cex):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    def pair_to_symbol(self, pair):
+    def pair_to_symbol(self, pair: Any):
         parts = pair.split(':')
         baseId = self.safe_string(parts, 0)
         quoteId = self.safe_string(parts, 1)
@@ -978,7 +978,7 @@ class cex(ccxt.async_support.cex):
         symbol = base + '/' + quote
         return symbol
 
-    def handle_order_book_update(self, client: Client, message):
+    def handle_order_book_update(self, client: Client, message: Any):
         #
         #     {
         #         "e": "md_update",
@@ -1013,11 +1013,11 @@ class cex(ccxt.async_support.cex):
         storedOrderBook['nonce'] = incrementalId
         client.resolve(storedOrderBook, messageHash)
 
-    def handle_delta(self, bookside, delta):
+    def handle_delta(self, bookside: Any, delta: Any):
         bidAsk = self.parse_order_book_bid_ask(delta, 0, 1)
         bookside.storeArray(bidAsk)
 
-    def handle_deltas(self, bookside, deltas):
+    def handle_deltas(self, bookside: Any, deltas: Any):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -1052,7 +1052,7 @@ class cex(ccxt.async_support.cex):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_init_ohlcv(self, client: Client, message):
+    def handle_init_ohlcv(self, client: Client, message: Any):
         #
         #     {
         #         "e": "init-ohlcv-data",
@@ -1092,7 +1092,7 @@ class cex(ccxt.async_support.cex):
         self.ohlcvs[symbol]['unknown'] = stored
         client.resolve(stored, messageHash)
 
-    def handle_ohlcv24(self, client: Client, message):
+    def handle_ohlcv24(self, client: Client, message: Any):
         #
         #     {
         #         "e": "ohlcv24",
@@ -1102,7 +1102,7 @@ class cex(ccxt.async_support.cex):
         #
         return message
 
-    def handle_ohlcv1m(self, client: Client, message):
+    def handle_ohlcv1m(self, client: Client, message: Any):
         #
         #     {
         #         "e": "ohlcv1m",
@@ -1134,7 +1134,7 @@ class cex(ccxt.async_support.cex):
         stored.append(ohlcv)
         client.resolve(stored, messageHash)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         #     {
         #         "e": "ohlcv",
@@ -1372,7 +1372,7 @@ class cex(ccxt.async_support.cex):
         canceledOrders = self.safe_value(response, 'cancel-orders')
         return self.parse_orders(canceledOrders, None, None, None, params)
 
-    def resolve_data(self, client: Client, message):
+    def resolve_data(self, client: Client, message: Any):
         #
         #    "e": "open-orders",
         #    "data": [
@@ -1394,7 +1394,7 @@ class cex(ccxt.async_support.cex):
         messageHash = self.safe_string(message, 'oid')
         client.resolve(data, messageHash)
 
-    def handle_connected(self, client: Client, message):
+    def handle_connected(self, client: Client, message: Any):
         #
         #     {
         #         "e": "connected"
@@ -1402,7 +1402,7 @@ class cex(ccxt.async_support.cex):
         #
         return message
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         #     {
         #         "e": "get-balance",
@@ -1428,7 +1428,7 @@ class cex(ccxt.async_support.cex):
             else:
                 raise error
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         ok = self.safe_string(message, 'ok')
         if ok == 'error':
             self.handle_error_message(client, message)
@@ -1461,7 +1461,7 @@ class cex(ccxt.async_support.cex):
         if handler is not None:
             handler(client, message)
 
-    def handle_authentication_message(self, client: Client, message):
+    def handle_authentication_message(self, client: Client, message: Any):
         #
         #     {
         #         "e": "auth",

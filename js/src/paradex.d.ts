@@ -154,8 +154,8 @@ export default class paradex extends Exchange {
         publicKey: string;
         address: string;
     }>;
-    onboarding(params?: {}): Promise<any>;
-    authenticateRest(params?: {}): Promise<Str>;
+    onboarding(params?: Dict): Promise<any>;
+    authenticateRest(params?: Dict): Promise<Str>;
     parseOrder(order: Dict, market?: Market): Order;
     parseTimeInForce(timeInForce: Str): Str;
     parseOrderStatus(status: Str): string | undefined;

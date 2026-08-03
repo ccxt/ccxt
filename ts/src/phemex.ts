@@ -1191,7 +1191,7 @@ export default class phemex extends Exchange {
         });
     }
 
-    customParseBidAsk (bidask, priceKey = 0, amountKey = 1, market: Market = undefined) {
+    customParseBidAsk (bidask: any, priceKey = 0, amountKey = 1, market: Market = undefined) {
         if (market === undefined) {
             throw new ArgumentsRequired (this.id + ' customParseBidAsk() requires a market argument');
         }
@@ -1205,7 +1205,7 @@ export default class phemex extends Exchange {
         ];
     }
 
-    customParseOrderBook (orderbook, symbol, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market: Market = undefined) {
+    customParseOrderBook (orderbook: any, symbol: any, timestamp: Int = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market: Market = undefined) {
         const result: Dict = {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1290,7 +1290,7 @@ export default class phemex extends Exchange {
         return orderbook as OrderBook;
     }
 
-    toEn (n, scale) {
+    toEn (n: any, scale: any) {
         const stringN = this.numberToString (n);
         const precise = new Precise (stringN as string);
         precise.decimals = precise.decimals - scale;
@@ -1299,21 +1299,21 @@ export default class phemex extends Exchange {
         return this.parseToNumeric (preciseString);
     }
 
-    toEv (amount, market: Dictionary<any> | undefined = undefined) {
+    toEv (amount: any, market: Dictionary<any> | undefined = undefined) {
         if ((amount === undefined) || (market === undefined)) {
             return amount;
         }
         return this.toEn (amount, market['valueScale']);
     }
 
-    toEp (price, market: Market = undefined) {
+    toEp (price: any, market: Market = undefined) {
         if ((price === undefined) || (market === undefined)) {
             return price;
         }
-        return this.toEn (price, market['priceScale']);
+        return this.toEn (price, this.safeValue (market, 'priceScale'));
     }
 
-    fromEn (en, scale) {
+    fromEn (en: any, scale: any) {
         if (en === undefined || scale === undefined) {
             return undefined;
         }
@@ -1323,28 +1323,28 @@ export default class phemex extends Exchange {
         return precise.toString ();
     }
 
-    fromEp (ep, market: Market = undefined) {
+    fromEp (ep: any, market: Market = undefined) {
         if ((ep === undefined) || (market === undefined)) {
             return ep;
         }
         return this.fromEn (ep, this.safeInteger (market, 'priceScale'));
     }
 
-    fromEv (ev, market: Market = undefined) {
+    fromEv (ev: any, market: Market = undefined) {
         if ((ev === undefined) || (market === undefined)) {
             return ev;
         }
         return this.fromEn (ev, this.safeInteger (market, 'valueScale'));
     }
 
-    fromEr (er, market: Market = undefined) {
+    fromEr (er: any, market: Market = undefined) {
         if ((er === undefined) || (market === undefined)) {
             return er;
         }
         return this.fromEn (er, this.safeInteger (market, 'ratioScale'));
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         1592467200, // timestamp
@@ -2014,7 +2014,7 @@ export default class phemex extends Exchange {
         }, market);
     }
 
-    parseSpotBalance (response) {
+    parseSpotBalance (response: any) {
         //
         //     {
         //         "code":0,
@@ -2067,7 +2067,7 @@ export default class phemex extends Exchange {
         return this.safeBalance (result);
     }
 
-    parseSwapBalance (response) {
+    parseSwapBalance (response: any) {
         // usdt
         //   {
         //       "info": {
@@ -2453,7 +2453,7 @@ export default class phemex extends Exchange {
         }, market);
     }
 
-    parseOrderSide (side) {
+    parseOrderSide (side: any) {
         const sides: Dict = {
             '1': 'buy',
             '2': 'sell',
@@ -2461,7 +2461,7 @@ export default class phemex extends Exchange {
         return this.safeString (sides, side, side);
     }
 
-    parseSwapOrder (order, market: Market = undefined) {
+    parseSwapOrder (order: any, market: Market = undefined) {
         //
         //     {
         //         "bizError":0,
@@ -3796,7 +3796,7 @@ export default class phemex extends Exchange {
         const networkId = this.safeString (transaction, 'chainName');
         const timestamp = this.safeIntegerN (transaction, [ 'createdAt', 'submitedAt', 'submittedAt' ]);
         let type = this.safeStringLower (transaction, 'type');
-        let feeCost: Num = this.parseNumber (this.fromEn (this.safeString (transaction, 'feeEv'), currency['valueScale']));
+        let feeCost: Num = this.parseNumber (this.fromEn (this.safeString (transaction, 'feeEv'), this.safeValue (currency, 'valueScale')));
         if (feeCost === undefined) {
             feeCost = this.safeNumber (transaction, 'feeRv');
         }
@@ -3809,7 +3809,7 @@ export default class phemex extends Exchange {
             };
         }
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        let amount: Num = this.parseNumber (this.fromEn (this.safeString (transaction, 'amountEv'), currency['valueScale']));
+        let amount: Num = this.parseNumber (this.fromEn (this.safeString (transaction, 'amountEv'), this.safeValue (currency, 'valueScale')));
         if (amount === undefined) {
             amount = this.safeNumber (transaction, 'amountRv');
         }
@@ -4292,7 +4292,7 @@ export default class phemex extends Exchange {
         return result as FundingHistory[];
     }
 
-    parseFundingFeeToPrecision (value, market: Market = undefined, currencyCode: Str = undefined) {
+    parseFundingFeeToPrecision (value: any, market: Market = undefined, currencyCode: Str = undefined) {
         if (value === undefined || currencyCode === undefined || market === undefined) {
             return value;
         }
@@ -4359,7 +4359,7 @@ export default class phemex extends Exchange {
         return this.parseFundingRate (result, market);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "askEp": 2332500,
@@ -4458,7 +4458,7 @@ export default class phemex extends Exchange {
         });
     }
 
-    parseMarginStatus (status) {
+    parseMarginStatus (status: any) {
         const statuses: Dict = {
             '0': 'ok',
         };
@@ -4671,7 +4671,7 @@ export default class phemex extends Exchange {
         return this.parseLeverageTiers (riskLimits, symbols, 'symbol');
     }
 
-    override parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         /**
          * @param {object} info Exchange market response for 1 market
          * @param {object} market CCXT market
@@ -4711,7 +4711,7 @@ export default class phemex extends Exchange {
         return tiers as LeverageTier[];
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const requestPath = '/' + this.implodeParams (path, params);
         let url = requestPath;
@@ -5219,7 +5219,7 @@ export default class phemex extends Exchange {
         return this.parseOpenInterest (result, market);
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         //    {
         //        closeRp: '67550.1',
@@ -5821,7 +5821,7 @@ export default class phemex extends Exchange {
         } as ADL;
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

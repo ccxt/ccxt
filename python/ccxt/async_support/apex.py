@@ -330,7 +330,7 @@ class apex(Exchange, ImplicitAPI):
         # }
         return self.safe_integer(data, 'time')
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         #
         # {
         #     "totalEquityValue": "100.000000",
@@ -777,7 +777,7 @@ class apex(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id2'],
+            'symbol': self.safe_string(market, 'id2'),
         }
         response = await self.publicGetV3Ticker(self.extend(request, params))
         tickers = self.safe_list(response, 'data', [])
@@ -819,7 +819,7 @@ class apex(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
-            'symbol': market['id2'],
+            'symbol': self.safe_string(market, 'id2'),
         }
         if limit is None:
             limit = 200  # default is 200 when requested with `since`
@@ -829,10 +829,10 @@ class apex(Exchange, ImplicitAPI):
             request['start'] = int(math.floor(since / 1000))
         response = await self.publicGetV3Klines(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
-        OHLCVs = self.safe_list(data, market['id2'], [])
+        OHLCVs = self.safe_list(data, self.safe_string(market, 'id2'), [])
         return self.parse_ohlcvs(OHLCVs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #  {
         #     "start": 1647511440000,
@@ -870,7 +870,7 @@ class apex(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id2'],
+            'symbol': self.safe_string(market, 'id2'),
         }
         if limit is None:
             limit = 100  # default is 200 when requested with `since`
@@ -926,7 +926,7 @@ class apex(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id2'],
+            'symbol': self.safe_string(market, 'id2'),
         }
         if limit is None:
             limit = 500  # default is 50
@@ -1007,14 +1007,14 @@ class apex(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': market['id2'],
+            'symbol': self.safe_string(market, 'id2'),
         }
         response = await self.publicGetV3Ticker(self.extend(request, params))
         tickers = self.safe_list(response, 'data', [])
         rawTicker = self.safe_dict(tickers, 0, {})
         return self.parse_open_interest(rawTicker, market)
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         #
         # {
         #     "symbol": "BTCUSDT",
@@ -1763,7 +1763,7 @@ class apex(Exchange, ImplicitAPI):
         fundingValues = self.safe_list(data, 'fundingValues', [])
         return self.parse_incomes(fundingValues, market, since, limit)
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: Any, market: Market = None):
         #
         # {
         #     "id": "1234",
@@ -1888,7 +1888,7 @@ class apex(Exchange, ImplicitAPI):
             'percentage': None,
         })
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path
         headers = {
             'User-Agent': 'apex-CCXT',
@@ -1917,7 +1917,7 @@ class apex(Exchange, ImplicitAPI):
             headers['APEX-PASSPHRASE'] = self.password
         return {'url': url, 'method': method, 'body': signBody, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         #
         # {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
         # {"code":400,"msg":"strconv.ParseInt: parsing \"dsfdfsd\": invalid syntax","timeCost":5320995}

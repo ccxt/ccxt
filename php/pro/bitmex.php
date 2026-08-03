@@ -130,7 +130,7 @@ class bitmex extends \ccxt\async\bitmex {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "table" => "instrument",
@@ -435,7 +435,7 @@ class bitmex extends \ccxt\async\bitmex {
         })();
     }
 
-    public function handle_liquidation(Client $client, $message) {
+    public function handle_liquidation(Client $client, mixed $message) {
         //
         //    {
         //        "table":"liquidation",
@@ -510,7 +510,7 @@ class bitmex extends \ccxt\async\bitmex {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //     {
         //         "table" => "margin",
@@ -616,7 +616,7 @@ class bitmex extends \ccxt\async\bitmex {
         $client->resolve($this->balance, $messageHash);
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         // initial snapshot
         //
@@ -741,7 +741,7 @@ class bitmex extends \ccxt\async\bitmex {
         })();
     }
 
-    public function handle_authentication_message(Client $client, $message) {
+    public function handle_authentication_message(Client $client, mixed $message) {
         $authenticated = $this->safe_bool($message, 'success', false);
         $messageHash = 'authenticated';
         if ($authenticated) {
@@ -794,7 +794,7 @@ class bitmex extends \ccxt\async\bitmex {
         })();
     }
 
-    public function handle_positions($client, $message) {
+    public function handle_positions(mixed $client, mixed $message) {
         //
         // partial
         //    {
@@ -1028,7 +1028,7 @@ class bitmex extends \ccxt\async\bitmex {
         })();
     }
 
-    public function handle_orders(Client $client, $message) {
+    public function handle_orders(Client $client, mixed $message) {
         //
         //     {
         //         "table" => "order",
@@ -1250,7 +1250,7 @@ class bitmex extends \ccxt\async\bitmex {
         })();
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         //     {
         //         "table":"execution",
@@ -1474,7 +1474,7 @@ class bitmex extends \ccxt\async\bitmex {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "table" => "tradeBin1m",
@@ -1588,7 +1588,7 @@ class bitmex extends \ccxt\async\bitmex {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         // first snapshot
         //
@@ -1713,7 +1713,7 @@ class bitmex extends \ccxt\async\bitmex {
         }
     }
 
-    public function handle_system_status(Client $client, $message) {
+    public function handle_system_status(Client $client, mixed $message) {
         //
         // todo answer the question whether handleSystemStatus should be renamed
         // and unified for any usage pattern that
@@ -1730,7 +1730,7 @@ class bitmex extends \ccxt\async\bitmex {
         return $message;
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
         //         "success" => true,
@@ -1741,7 +1741,7 @@ class bitmex extends \ccxt\async\bitmex {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         // generic $error format
         //
@@ -1780,7 +1780,7 @@ class bitmex extends \ccxt\async\bitmex {
         return true;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         //
         //     {
         //         "info" => "Welcome to the BitMEX Realtime API.",

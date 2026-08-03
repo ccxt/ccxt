@@ -81,7 +81,7 @@ class bittrade(ccxt.async_support.bittrade):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #     {
         #         "ch": "market.btcusdt.detail",
@@ -149,7 +149,7 @@ class bittrade(ccxt.async_support.bittrade):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         #     {
         #         "ch": "market.btcusdt.trade.detail",
@@ -226,7 +226,7 @@ class bittrade(ccxt.async_support.bittrade):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         #     {
         #         "ch": "market.btcusdt.kline.1min",
@@ -299,7 +299,7 @@ class bittrade(ccxt.async_support.bittrade):
         orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
         return orderbook.limit()
 
-    def handle_order_book_snapshot(self, client: Client, message, subscription):
+    def handle_order_book_snapshot(self, client: Client, message: Any, subscription: Any):
         #
         #     {
         #         "id": 1583473663565,
@@ -338,7 +338,7 @@ class bittrade(ccxt.async_support.bittrade):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    async def watch_order_book_snapshot(self, client, message, subscription):
+    async def watch_order_book_snapshot(self, client: Any, message: Any, subscription: Any):
         messageHash = self.safe_string(subscription, 'messageHash')
         try:
             symbol = self.safe_string(subscription, 'symbol')
@@ -369,16 +369,16 @@ class bittrade(ccxt.async_support.bittrade):
             client.reject(e, messageHash)
         return None
 
-    def handle_delta(self, bookside, delta):
+    def handle_delta(self, bookside: Any, delta: Any):
         price = self.safe_float(delta, 0)
         amount = self.safe_float(delta, 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside, deltas):
+    def handle_deltas(self, bookside: Any, deltas: Any):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book_message(self, client: Client, message, orderbook):
+    def handle_order_book_message(self, client: Client, message: Any, orderbook: Any):
         #
         #     {
         #         "ch": "market.btcusdt.mbp.150",
@@ -415,7 +415,7 @@ class bittrade(ccxt.async_support.bittrade):
             orderbook['datetime'] = self.iso8601(timestamp)
         return orderbook
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         # deltas
         #
@@ -450,7 +450,7 @@ class bittrade(ccxt.async_support.bittrade):
             self.handle_order_book_message(client, message, orderbook)
             client.resolve(orderbook, messageHash)
 
-    def handle_order_book_subscription(self, client: Client, message, subscription):
+    def handle_order_book_subscription(self, client: Client, message: Any, subscription: Any):
         symbol = self.safe_string(subscription, 'symbol')
         if symbol is None:
             return
@@ -461,7 +461,7 @@ class bittrade(ccxt.async_support.bittrade):
         # watch the snapshot in a separate async call
         self.spawn(self.watch_order_book_snapshot, client, message, subscription)
 
-    def handle_subscription_status(self, client: Client, message):
+    def handle_subscription_status(self, client: Client, message: Any):
         #
         #     {
         #         "id": 1583414227,
@@ -484,7 +484,7 @@ class bittrade(ccxt.async_support.bittrade):
                 del client.subscriptions[id]
         return message
 
-    def handle_system_status(self, client: Client, message):
+    def handle_system_status(self, client: Client, message: Any):
         #
         # todo: answer the question whether handleSystemStatus should be renamed
         # and unified for any usage pattern that
@@ -497,7 +497,7 @@ class bittrade(ccxt.async_support.bittrade):
         #
         return message
 
-    def handle_subject(self, client: Client, message):
+    def handle_subject(self, client: Client, message: Any):
         #
         #     {
         #         "ch": "market.btcusdt.mbp.150",
@@ -534,16 +534,16 @@ class bittrade(ccxt.async_support.bittrade):
             if method is not None:
                 method(client, message)
 
-    async def pong(self, client, message):
+    async def pong(self, client: Client, message: Any):
         #
         #     {ping: 1583491673714}
         #
         await client.send({'pong': self.safe_integer(message, 'ping')})
 
-    def handle_ping(self, client: Client, message):
+    def handle_ping(self, client: Client, message: Any):
         self.spawn(self.pong, client, message)
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         #     {
         #         "ts": 1586323747018,
@@ -573,7 +573,7 @@ class bittrade(ccxt.async_support.bittrade):
             return False
         return True
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         if self.handle_error_message(client, message):
             #
             #     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}

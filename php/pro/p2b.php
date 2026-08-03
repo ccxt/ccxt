@@ -66,7 +66,7 @@ class p2b extends \ccxt\async\p2b {
         ));
     }
 
-    public function subscribe(string $name, string $messageHash, $request, $params = array()) {
+    public function subscribe(string $name, string $messageHash, mixed $request, $params = array()) {
         return Async\async(function () use ($name, $messageHash, $request, $params) {
             /**
              * @ignore
@@ -280,7 +280,7 @@ class p2b extends \ccxt\async\p2b {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //    {
         //        "method" => "kline.update",
@@ -325,7 +325,7 @@ class p2b extends \ccxt\async\p2b {
         return $message;
     }
 
-    public function handle_trade(Client $client, $message) {
+    public function handle_trade(Client $client, mixed $message) {
         //
         //    {
         //        "method" => "deals.update",
@@ -366,7 +366,7 @@ class p2b extends \ccxt\async\p2b {
         return $message;
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         // state
         //
@@ -423,7 +423,7 @@ class p2b extends \ccxt\async\p2b {
         return $message;
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //    {
         //        "method" => "depth.update",
@@ -487,7 +487,7 @@ class p2b extends \ccxt\async\p2b {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if ($this->handle_error_message($client, $message)) {
             return;
         }
@@ -510,7 +510,7 @@ class p2b extends \ccxt\async\p2b {
         }
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         $error = $this->safe_string($message, 'error');
         if ($error !== null) {
             throw new ExchangeError($this->id . ' $error => ' . $this->json($error));
@@ -530,7 +530,7 @@ class p2b extends \ccxt\async\p2b {
         );
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         //
         //    {
         //        error => null,
@@ -542,12 +542,12 @@ class p2b extends \ccxt\async\p2b {
         return $message;
     }
 
-    public function on_error(Client $client, $error) {
+    public function on_error(Client $client, mixed $error) {
         $this->options['tickerSubs'] = $this->create_safe_dictionary();
         parent::on_error($client, $error);
     }
 
-    public function on_close(Client $client, $error) {
+    public function on_close(Client $client, mixed $error) {
         $this->options['tickerSubs'] = $this->create_safe_dictionary();
         parent::on_close($client, $error);
     }

@@ -439,7 +439,7 @@ export default class hibachi extends Exchange {
         return result;
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
         };
@@ -827,7 +827,7 @@ export default class hibachi extends Exchange {
         return result;
     }
 
-    orderMessage (market, nonce: number, feeRate: number, type: Str, side: Str, amount: Num, price: Num = undefined) {
+    orderMessage (market: any, nonce: number, feeRate: number, type: Str, side: Str, amount: Num, price: Num = undefined) {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -908,7 +908,7 @@ export default class hibachi extends Exchange {
         }
         const message = this.orderMessage (market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage (message, this.privateKey);
-        const request = {
+        const request: Dict = {
             'symbol': this.safeString (market, 'id'),
             'nonce': nonce,
             'side': sideInternal,
@@ -1173,7 +1173,7 @@ export default class hibachi extends Exchange {
     override async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
         const orders: Dict[] = [];
         for (let i = 0; i < ids.length; i++) {
-            const orderRequest = this.cancelOrderRequest (ids[i]);
+            const orderRequest: Dict = this.cancelOrderRequest (ids[i]);
             orderRequest['action'] = 'cancel';
             orders.push (orderRequest);
         }
@@ -1337,7 +1337,7 @@ export default class hibachi extends Exchange {
         return this.milliseconds ();
     }
 
-    signMessage (message, privateKey) {
+    signMessage (message: any, privateKey: any) {
         if (privateKey.length === 44) {
             // For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
             return this.hmac (message, this.encode (privateKey), sha256, 'hex');
@@ -1371,7 +1371,7 @@ export default class hibachi extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetMarketDataOrderbook (this.extend (request, params));
-        const formattedResponse = {};
+        const formattedResponse: Dict = {};
         formattedResponse['ask'] = this.safeList (this.safeDict (response, 'ask'), 'levels');
         formattedResponse['bid'] = this.safeList (this.safeDict (response, 'bid'), 'levels');
         // {
@@ -1465,7 +1465,7 @@ export default class hibachi extends Exchange {
         return this.parseTrades (tradesList, market, since, limit, params);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         // [
         //     {
@@ -1558,7 +1558,7 @@ export default class hibachi extends Exchange {
      * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1810,7 +1810,7 @@ export default class hibachi extends Exchange {
         });
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
         headers = { 'Hibachi-Client': 'HibachiCCXT/unversioned' };
@@ -1832,7 +1832,7 @@ export default class hibachi extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -1854,7 +1854,7 @@ export default class hibachi extends Exchange {
         return undefined;
     }
 
-    parseTransactionType (type) {
+    parseTransactionType (type: any) {
         const types: Dict = {
             'deposit': 'transaction',
             'withdrawal': 'transaction',
@@ -1864,7 +1864,7 @@ export default class hibachi extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'pending': 'pending',
             'claimable': 'pending',
@@ -2185,7 +2185,7 @@ export default class hibachi extends Exchange {
         return this.filterBySinceLimit (withdrawals, since, limit, 'timestamp') as Transaction[];
     }
 
-    parseSettlement (settlement, market: Market = undefined) {
+    parseSettlement (settlement: any, market: Market = undefined) {
         //
         //     {
         //         "direction": "Long",
@@ -2208,7 +2208,7 @@ export default class hibachi extends Exchange {
         };
     }
 
-    parseSettlements (settlements, market: Market = undefined) {
+    parseSettlements (settlements: any, market: Market = undefined) {
         const result: Dict[] = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));

@@ -299,7 +299,7 @@ export default class coinsph extends Exchange {
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
     parseDepositAddress(depositAddress: any, currency?: Currency): DepositAddress;
-    urlEncodeQuery(query?: {}): string;
+    urlEncodeQuery(query?: Dict): string;
     parseArrayParam(array: any, key: any): string;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: any;

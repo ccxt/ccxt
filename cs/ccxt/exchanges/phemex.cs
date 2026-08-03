@@ -1315,7 +1315,7 @@ public partial class phemex : Exchange
         {
             return price;
         }
-        return this.toEn(price, getValue(market, "priceScale"));
+        return this.toEn(price, this.safeValue(market, "priceScale"));
     }
 
     public virtual object fromEn(object en, object scale)
@@ -4035,7 +4035,7 @@ public partial class phemex : Exchange
         object networkId = this.safeString(transaction, "chainName");
         object timestamp = this.safeIntegerN(transaction, new List<object>() {"createdAt", "submitedAt", "submittedAt"});
         object type = this.safeStringLower(transaction, "type");
-        object feeCost = this.parseNumber(this.fromEn(this.safeString(transaction, "feeEv"), getValue(currency, "valueScale")));
+        object feeCost = this.parseNumber(this.fromEn(this.safeString(transaction, "feeEv"), this.safeValue(currency, "valueScale")));
         if (isTrue(isEqual(feeCost, null)))
         {
             feeCost = this.safeNumber(transaction, "feeRv");
@@ -4050,7 +4050,7 @@ public partial class phemex : Exchange
             };
         }
         object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        object amount = this.parseNumber(this.fromEn(this.safeString(transaction, "amountEv"), getValue(currency, "valueScale")));
+        object amount = this.parseNumber(this.fromEn(this.safeString(transaction, "amountEv"), this.safeValue(currency, "valueScale")));
         if (isTrue(isEqual(amount, null)))
         {
             amount = this.safeNumber(transaction, "amountRv");

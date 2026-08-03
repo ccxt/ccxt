@@ -1496,7 +1496,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function parse_contract_market($market, $settleId) {
+    public function parse_contract_market(mixed $market, mixed $settleId) {
         //
         //  Perpetual swap
         //
@@ -1832,7 +1832,7 @@ class gate extends Exchange {
         return $underlyings;
     }
 
-    public function prepare_request(?array $market = null, ?string $type = null, array $params = array()) {
+    public function prepare_request(?array $market = null, ?string $type = null, $params = array()) {
         /**
          * @ignore
          * Fills $request $params contract, $settle, currency_pair, $market and account where applicable
@@ -1865,7 +1865,7 @@ class gate extends Exchange {
         return array( $request, $params );
     }
 
-    public function spot_order_prepare_request(?array $market = null, ?bool $trigger = false, array $params = array()) {
+    public function spot_order_prepare_request(?array $market = null, ?bool $trigger = false, $params = array()) {
         /**
          * @ignore
          * Fills $request $params currency_pair, $market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
@@ -1886,7 +1886,7 @@ class gate extends Exchange {
         return array( $request, $query );
     }
 
-    public function multi_order_spot_prepare_request(?array $market = null, ?bool $trigger = false, array $params = array()) {
+    public function multi_order_spot_prepare_request(?array $market = null, ?bool $trigger = false, $params = array()) {
         /**
          * @ignore
          * Fills $request $params currency_pair, $market and account where applicable for spot order methods like fetchOpenOrders, cancelAllOrders
@@ -1910,7 +1910,7 @@ class gate extends Exchange {
         return array( $request, $query );
     }
 
-    public function get_margin_mode($trigger, $params) {
+    public function get_margin_mode(mixed $trigger, mixed $params) {
         /**
          * @ignore
          * Gets the margin type for this api call
@@ -1945,7 +1945,7 @@ class gate extends Exchange {
         return array( $marginMode, $params );
     }
 
-    public function get_settlement_currencies($type, $method) {
+    public function get_settlement_currencies(mixed $type, mixed $method) {
         $options = $this->safe_value($this->options, $type, array()); // array( 'BTC', 'USDT' ) unified codes
         $fetchMarketsContractOptions = $this->safe_value($options, $method, array());
         $defaultSettle = ($type === 'swap') ? array( 'usdt' ) : array( 'btc' );
@@ -2191,7 +2191,7 @@ class gate extends Exchange {
         return $this->parse_funding_rates($response, $symbols);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //    {
         //        "name" => "BTC_USDT",
@@ -2265,7 +2265,7 @@ class gate extends Exchange {
         );
     }
 
-    public function parse_funding_interval($interval) {
+    public function parse_funding_interval(mixed $interval) {
         $intervals = array(
             '3600000' => '1h',
             '14400000' => '4h',
@@ -2359,12 +2359,13 @@ class gate extends Exchange {
         }
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
-        $chainsIndexedById = $this->fetch_deposit_addresses_by_network($code, $params);
+        $chainsIndexedByIdRaw = $this->fetch_deposit_addresses_by_network($code, $params);
+        $chainsIndexedById = $chainsIndexedByIdRaw;
         $selectedNetworkIdOrCode = $this->select_network_code_from_unified_networks($code, $networkCode, $chainsIndexedById);
         return $chainsIndexedById[$selectedNetworkIdOrCode];
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         chain => "BTC",
@@ -2451,7 +2452,7 @@ class gate extends Exchange {
         return $this->parse_trading_fees($response);
     }
 
-    public function parse_trading_fees($response) {
+    public function parse_trading_fees(mixed $response) {
         $result = array();
         $symbols = $this->symbols;
         for ($i = 0; $i < count($symbols); $i++) {
@@ -2462,7 +2463,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function parse_trading_fee($info, ?array $market = null) {
+    public function parse_trading_fee(mixed $info, ?array $market = null) {
         //
         //    {
         //        "user_id" => 1486602,
@@ -2557,7 +2558,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit and withdraw fees
          *
@@ -2593,7 +2594,7 @@ class gate extends Exchange {
         return $this->parse_deposit_withdraw_fees($response, $codes, 'currency');
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //    {
         //        "currency" => "MTN",
@@ -2702,7 +2703,7 @@ class gate extends Exchange {
         return $this->parse_funding_histories($response, $symbol, $since, $limit);
     }
 
-    public function parse_funding_histories($response, $symbol, $since, $limit): array {
+    public function parse_funding_histories(mixed $response, mixed $symbol, ?int $since, ?int $limit): array {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
@@ -2713,7 +2714,7 @@ class gate extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function parse_funding_history($info, ?array $market = null) {
+    public function parse_funding_history(mixed $info, ?array $market = null) {
         //
         //    {
         //        "time" => 1646899200,
@@ -3071,7 +3072,7 @@ class gate extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_balance_helper($entry) {
+    public function parse_balance_helper(mixed $entry) {
         $account = $this->account();
         $account['used'] = $this->safe_string_2($entry, 'freeze', 'locked');
         $account['free'] = $this->safe_string($entry, 'available');
@@ -3533,7 +3534,7 @@ class gate extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // Spot $market candles
         //
@@ -4193,7 +4194,7 @@ class gate extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_type($type) {
+    public function parse_transaction_type(mixed $type) {
         $types = array(
             'd' => 'deposit',
             'w' => 'withdrawal',
@@ -5430,7 +5431,7 @@ class gate extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function prepare_orders_by_status_request($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function prepare_orders_by_status_request(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -5470,7 +5471,7 @@ class gate extends Exchange {
         return array( $request, $finalParams );
     }
 
-    public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -6689,7 +6690,7 @@ class gate extends Exchange {
         return $tiers;
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
         //
         //     array(
         //         {
@@ -6724,7 +6725,7 @@ class gate extends Exchange {
         return $tiers;
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
         /**
          * repay borrowed margin and interest
          *
@@ -6756,7 +6757,7 @@ class gate extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function repay_cross_margin(string $code, $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()) {
         /**
          * repay cross margin borrowed margin and interest
          *
@@ -6904,7 +6905,7 @@ class gate extends Exchange {
         return $this->parse_margin_loan($response, $currency);
     }
 
-    public function parse_margin_loan($info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null) {
         //
         // Cross
         //
@@ -7037,7 +7038,7 @@ class gate extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $authentication = $api[0]; // public, private
         $type = $api[1]; // spot, margin, future, delivery
         $query = $this->omit($params, $this->extract_params($path));
@@ -7131,7 +7132,7 @@ class gate extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $params = array()) {
+    public function modify_margin_helper(string $symbol, mixed $amount, $params = array()) {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -7285,7 +7286,7 @@ class gate extends Exchange {
         return $this->parse_open_interests_history($response, $market, $since, $limit);
     }
 
-    public function parse_open_interest($interest, ?array $market = null): array {
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
         //
         //    {
         //        "long_liq_size" => "0",
@@ -7455,7 +7456,7 @@ class gate extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function parse_settlement($settlement, $market) {
+    public function parse_settlement(mixed $settlement, mixed $market) {
         //
         // fetchSettlementHistory
         //
@@ -7506,7 +7507,7 @@ class gate extends Exchange {
         );
     }
 
-    public function parse_settlements($settlements, $market) {
+    public function parse_settlements(mixed $settlements, mixed $market) {
         //
         // fetchSettlementHistory
         //
@@ -7745,7 +7746,7 @@ class gate extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $ledgerType = array(
             'deposit' => 'deposit',
             'withdraw' => 'withdrawal',
@@ -7975,7 +7976,7 @@ class gate extends Exchange {
         return $this->parse_liquidations($response, $market, $since, $limit);
     }
 
-    public function parse_liquidation($liquidation, ?array $market = null) {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null) {
         //
         // fetchLiquidations
         //
@@ -8622,7 +8623,7 @@ class gate extends Exchange {
         return $this->parse_positions($responseList, $symbols, $params);
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

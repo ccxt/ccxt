@@ -152,8 +152,9 @@ export default class backpack extends backpackRest {
                 }
                 else {
                     const symbol = messageHash.replace('unsubscribe:orders:', '');
-                    if ((this.orders !== undefined) && (symbol in this.orders)) {
-                        delete this.orders[symbol];
+                    const cache = this.orders;
+                    if ((cache !== undefined) && (symbol in cache)) {
+                        delete cache[symbol];
                     }
                 }
             }

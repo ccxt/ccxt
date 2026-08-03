@@ -75,7 +75,7 @@ class extended(ccxt.async_support.extended):
         })
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         #     {
         #         "ts": 1701563440000,
@@ -126,12 +126,12 @@ class extended(ccxt.async_support.extended):
         orderbook['nonce'] = nonce
         client.resolve(orderbook, messageHash)
 
-    def handle_delta(self, bookside, delta):
+    def handle_delta(self, bookside: Any, delta: Any):
         price = self.safe_float(delta, 'p')
         amount = self.safe_float_2(delta, 'c', 'q')
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside, deltas):
+    def handle_deltas(self, bookside: Any, deltas: Any):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -200,7 +200,7 @@ class extended(ccxt.async_support.extended):
             await self.load_markets()
         return await self.watch_private('balance', params)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: Any):
         #
         #     {
         #         "type": "BALANCE",
@@ -282,7 +282,7 @@ class extended(ccxt.async_support.extended):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client: Client, message):
+    def handle_my_trades(self, client: Client, message: Any):
         #
         #     {
         #         "type": "TRADE",
@@ -361,7 +361,7 @@ class extended(ccxt.async_support.extended):
             return positions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def handle_positions(self, client: Client, message):
+    def handle_positions(self, client: Client, message: Any):
         #
         #     {
         #         "type": "POSITION",
@@ -413,7 +413,7 @@ class extended(ccxt.async_support.extended):
                 client.resolve(filtered, messageHash)
         client.resolve(newPositions, 'positions')
 
-    def handle_orders(self, client: Client, message):
+    def handle_orders(self, client: Client, message: Any):
         #
         #     {
         #         "type": "ORDER",
@@ -494,7 +494,7 @@ class extended(ccxt.async_support.extended):
             'messageHash': messageHash,
         })
 
-    def handle_funding_rate(self, client: Client, message):
+    def handle_funding_rate(self, client: Client, message: Any):
         #
         #     {
         #         "ts": 1701563440000,
@@ -513,7 +513,7 @@ class extended(ccxt.async_support.extended):
         messageHash = 'fundingRate:' + symbol
         client.resolve(fundingRate, messageHash)
 
-    def parse_ws_funding_rate(self, fundingRate, market: Market = None, message: Any = None) -> FundingRate:
+    def parse_ws_funding_rate(self, fundingRate: Any, market: Market = None, message: Any = None) -> FundingRate:
         marketId = self.safe_string(fundingRate, 'm')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(message, 'ts')
@@ -564,7 +564,7 @@ class extended(ccxt.async_support.extended):
             'messageHash': messageHash,
         })
 
-    def handle_mark_price(self, client: Client, message):
+    def handle_mark_price(self, client: Client, message: Any):
         #
         #     {
         #         "type": "MP",
@@ -624,7 +624,7 @@ class extended(ccxt.async_support.extended):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         #     {
         #         "ts": 1701563440000,
@@ -712,7 +712,7 @@ class extended(ccxt.async_support.extended):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         #     {
         #         "ts": 1695738675123,
@@ -765,7 +765,7 @@ class extended(ccxt.async_support.extended):
                 return subscription
         return None
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         #     {"status": "ERROR", "error": {"code": 1001, "message": "Market not found."}}
         #
@@ -779,7 +779,7 @@ class extended(ccxt.async_support.extended):
         self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
         raise ExchangeError(feedback)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         if self.handle_error_message(client, message):
             return
         type = self.safe_string(message, 'type')

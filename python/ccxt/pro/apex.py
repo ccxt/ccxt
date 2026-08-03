@@ -111,7 +111,7 @@ class apex(ccxt.async_support.apex):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         #     {
         #         "topic": "recentlyTrade.H.BTCUSDT",
@@ -152,7 +152,7 @@ class apex(ccxt.async_support.apex):
         messageHash = 'trade' + ':' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade: Any, market: Market = None):
         #
         # public
         #    {
@@ -235,7 +235,7 @@ class apex(ccxt.async_support.apex):
         orderbook = await self.watch_topics(url, messageHashes, topics, params)
         return orderbook.limit()
 
-    async def watch_topics(self, url, messageHashes, topics, params={}):
+    async def watch_topics(self, url: Any, messageHashes: Any, topics: Any, params={}):
         # apex's server rejects a subscribe whose args include any
         # already-subscribed topic("topic:already subscribed ..."). Since the
         # connection is now reused across watch* calls, filter to only the
@@ -277,7 +277,7 @@ class apex(ccxt.async_support.apex):
             self.options['wsPrivateUrl'] = url
         return url
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         #     {
         #         "topic": "orderbook25.H.BTCUSDT",
@@ -335,11 +335,11 @@ class apex(ccxt.async_support.apex):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    def handle_delta(self, bookside, delta):
+    def handle_delta(self, bookside: Any, delta: Any):
         bidAsk = self.parse_order_book_bid_ask(delta, 0, 1)
         bookside.storeArray(bidAsk)
 
-    def handle_deltas(self, bookside, deltas):
+    def handle_deltas(self, bookside: Any, deltas: Any):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -393,7 +393,7 @@ class apex(ccxt.async_support.apex):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         # "topic":"instrumentInfo.H.BTCUSDT",
         #     "type":"snapshot",
         #     "data":{
@@ -440,7 +440,7 @@ class apex(ccxt.async_support.apex):
         messageHash = 'ticker:' + symbol
         client.resolve(self.tickers[symbol], messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -489,7 +489,7 @@ class apex(ccxt.async_support.apex):
         filtered = self.filter_by_since_limit(stored, since, limit, 0, True)
         return self.create_ohlcv_object(symbol, timeframe, filtered)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         #     {
         #         "topic": "candle.5.BTCUSDT",
@@ -536,7 +536,7 @@ class apex(ccxt.async_support.apex):
         resolveData = [symbol, timeframe, stored]
         client.resolve(resolveData, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ws_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     {
         #         "start": 1670363160000,
@@ -646,7 +646,7 @@ class apex(ccxt.async_support.apex):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_my_trades(self, client: Client, lists):
+    def handle_my_trades(self, client: Client, lists: Any):
         # [
         #     {
         #         "symbol":"ETH-USDT",
@@ -683,7 +683,7 @@ class apex(ccxt.async_support.apex):
         messageHash = 'myTrades'
         client.resolve(trades, messageHash)
 
-    def handle_order(self, client: Client, lists):
+    def handle_order(self, client: Client, lists: Any):
         # [
         #     {
         #         "symbol":"ETH-USDT",
@@ -738,7 +738,7 @@ class apex(ccxt.async_support.apex):
             client.future(messageHash)
             self.spawn(self.load_positions_snapshot, client, messageHash)
 
-    async def load_positions_snapshot(self, client, messageHash):
+    async def load_positions_snapshot(self, client: Client, messageHash: Any):
         # one ws channel gives positions for all types, for snapshot must load all positions
         fetchFunctions = [
             self.fetch_positions(),
@@ -757,7 +757,7 @@ class apex(ccxt.async_support.apex):
             future.resolve(cache)
             client.resolve(cache, 'positions')
 
-    def handle_positions(self, client, lists):
+    def handle_positions(self, client: Any, lists: Any):
         #
         # [
         #     {
@@ -813,7 +813,7 @@ class apex(ccxt.async_support.apex):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, 'positions')
 
-    async def authenticate(self, url, params={}):
+    async def authenticate(self, url: Any, params={}):
         self.check_required_credentials()
         timestamp = str(self.milliseconds())
         request_path = '/ws/accounts'
@@ -843,7 +843,7 @@ class apex(ccxt.async_support.apex):
             self.watch(url, messageHash, message, messageHash)
         return await future
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         #   {
         #       "success": False,
@@ -924,7 +924,7 @@ class apex(ccxt.async_support.apex):
                 client.reject(error, messageHash)
             return True
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         if self.handle_error_message(client, message):
             return
         topic = self.safe_string_2(message, 'topic', 'op', '')
@@ -966,7 +966,7 @@ class apex(ccxt.async_support.apex):
             'op': 'ping',
         }
 
-    async def pong(self, client, message):
+    async def pong(self, client: Client, message: Any):
         #
         #     {"op": "ping", "args": ["1761069137485"]}
         #
@@ -977,7 +977,7 @@ class apex(ccxt.async_support.apex):
             error = NetworkError(self.id + ' handlePing failed with error ' + self.exception_message(e))
             client.reset(error)
 
-    def handle_pong(self, client: Client, message):
+    def handle_pong(self, client: Client, message: Any):
         #
         #   {
         #       "success": True,
@@ -991,10 +991,10 @@ class apex(ccxt.async_support.apex):
         client.lastPong = self.safe_integer(message, 'pong', self.milliseconds())
         return message
 
-    def handle_ping(self, client: Client, message):
+    def handle_ping(self, client: Client, message: Any):
         self.spawn(self.pong, client, message)
 
-    def handle_account(self, client: Client, message):
+    def handle_account(self, client: Client, message: Any):
         contents = self.safe_dict(message, 'contents', {})
         fills = self.safe_list(contents, 'fills', [])
         if fills is not None:
@@ -1006,7 +1006,7 @@ class apex(ccxt.async_support.apex):
         if orders is not None:
             self.handle_order(client, orders)
 
-    def handle_authenticate(self, client: Client, message):
+    def handle_authenticate(self, client: Client, message: Any):
         #
         #    {
         #        "success": True,
@@ -1028,7 +1028,7 @@ class apex(ccxt.async_support.apex):
                 del client.subscriptions[messageHash]
         return message
 
-    def handle_subscription_status(self, client: Client, message):
+    def handle_subscription_status(self, client: Client, message: Any):
         #
         #    {
         #        "topic": "kline",

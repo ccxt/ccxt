@@ -595,7 +595,7 @@ export default class bitmex extends Exchange {
         }
         const market = this.market(symbol);
         if (market['spot']) {
-            return this.parseNumber(this.convertToRealAmount(market[currencySide], rawQuantity));
+            return this.parseNumber(this.convertToRealAmount(this.safeString(market, currencySide), rawQuantity));
         }
         return this.parseNumber(rawQuantity);
     }

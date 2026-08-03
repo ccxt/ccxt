@@ -290,7 +290,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         })();
     }
 
-    public function handle_instrument(Client $client, $message) {
+    public function handle_instrument(Client $client, mixed $message) {
         //
         //    {
         //        "sequence" => 1,
@@ -402,7 +402,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         ));
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         // snapshot
         //    {
@@ -502,7 +502,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         // {
         //     "sequence" => 0,
@@ -580,7 +580,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         })();
     }
 
-    public function handle_trade($client, $message) {
+    public function handle_trade(mixed $client, mixed $message) {
         //
         //    {
         //       "sequence" => 0,
@@ -610,7 +610,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return $message;
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         //    {
         //       "sequence" => 0,
@@ -670,7 +670,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return $this->subscribe_multiple('LEVEL2', $symbols, $params);
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(mixed $client, mixed $message) {
         //
         // snapshot
         //    {
@@ -731,7 +731,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $client->resolve($orderbook, $channel . '::' . $symbol);
     }
 
-    public function handle_delta($orderbook, $delta) {
+    public function handle_delta(mixed $orderbook, mixed $delta) {
         $rawSide = $this->safe_string_lower($delta, 0);
         $side = ($rawSide === 'buy') ? 'bids' : 'asks';
         $price = $this->safe_float($delta, 1);
@@ -740,13 +740,13 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas($orderbook, $deltas) {
+    public function handle_deltas(mixed $orderbook, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($orderbook, $deltas[$i]);
         }
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //    {
         //       "channels" => array(
@@ -774,7 +774,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return $message;
     }
 
-    public function handle_funding_rate(Client $client, $message) {
+    public function handle_funding_rate(Client $client, mixed $message) {
         //
         // snapshot
         //    {
@@ -803,7 +803,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $client->resolve($fundingRate, $channel . '::' . $fundingRate['symbol']);
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //    {
         //        $message => 'Failed to subscribe',
@@ -829,7 +829,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return true;
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(mixed $client, mixed $message) {
         if ($this->handle_error_message($client, $message)) {
             return;
         }

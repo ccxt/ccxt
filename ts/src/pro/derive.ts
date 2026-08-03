@@ -49,7 +49,7 @@ export default class derive extends deriveRest {
         });
     }
 
-    requestId (url) {
+    requestId (url: any) {
         const options = this.safeValue (this.options, 'requestId', {});
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
@@ -57,7 +57,7 @@ export default class derive extends deriveRest {
         return newValue;
     }
 
-    async watchPublic (messageHash, message, subscription) {
+    async watchPublic (messageHash: any, message: any, subscription: any) {
         const url = this.urls['api']['ws'];
         const requestId = this.requestId (url);
         const request = this.extend (message, {
@@ -107,7 +107,7 @@ export default class derive extends deriveRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         // {
         //     method: 'subscription',
@@ -173,7 +173,7 @@ export default class derive extends deriveRest {
         return await this.watchPublic (topic, request, subscription);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         // {
         //     method: 'subscription',
@@ -314,7 +314,7 @@ export default class derive extends deriveRest {
         return await this.unWatchPublic (messageHah, request, subscription);
     }
 
-    async unWatchPublic (messageHash, message, subscription) {
+    async unWatchPublic (messageHash: any, message: any, subscription: any) {
         const url = this.urls['api']['ws'];
         const requestId = this.requestId (url);
         const request = this.extend (message, {
@@ -327,7 +327,7 @@ export default class derive extends deriveRest {
         return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
-    handleOrderBookUnSubscription (client: Client, topic) {
+    handleOrderBookUnSubscription (client: Client, topic: any) {
         const parsedTopic = topic.split ('.');
         const marketId = this.safeString (parsedTopic, 1);
         const market = this.safeMarket (marketId);
@@ -343,7 +343,7 @@ export default class derive extends deriveRest {
         client.resolve (error, 'unwatch' + topic);
     }
 
-    handleTradesUnSubscription (client: Client, topic) {
+    handleTradesUnSubscription (client: Client, topic: any) {
         const parsedTopic = topic.split ('.');
         const marketId = this.safeString (parsedTopic, 1);
         const market = this.safeMarket (marketId);
@@ -359,7 +359,7 @@ export default class derive extends deriveRest {
         client.resolve (error, 'unwatch' + topic);
     }
 
-    handleUnSubscribe (client: Client, message) {
+    handleUnSubscribe (client: Client, message: any) {
         //
         // {
         //     id: 1,
@@ -422,7 +422,7 @@ export default class derive extends deriveRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: any) {
         //
         //
         const params = this.safeDict (message, 'params');
@@ -477,7 +477,7 @@ export default class derive extends deriveRest {
         return await future;
     }
 
-    async watchPrivate (messageHash, message, subscription) {
+    async watchPrivate (messageHash: any, message: any, subscription: any) {
         await this.authenticate ();
         const url = this.urls['api']['ws'];
         const requestId = this.requestId (url);
@@ -536,7 +536,7 @@ export default class derive extends deriveRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         // {
         //     method: 'subscription',
@@ -601,7 +601,7 @@ export default class derive extends deriveRest {
                     }
                     const fees = this.safeValue (order, 'fees');
                     if (fees !== undefined) {
-                        parsed['fees'] = fees;
+                        (parsed as Dict)['fees'] = fees;
                     }
                     parsed['trades'] = this.safeValue (order, 'trades');
                     parsed['timestamp'] = this.safeInteger (order, 'timestamp');
@@ -660,7 +660,7 @@ export default class derive extends deriveRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrade (client: Client, message) {
+    handleMyTrade (client: Client, message: any) {
         //
         //
         let myTrades = this.myTrades;
@@ -680,7 +680,7 @@ export default class derive extends deriveRest {
         }
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         // {
         //     id: '690c6276-0fc6-4121-aafa-f28bf5adedcb',
@@ -713,7 +713,7 @@ export default class derive extends deriveRest {
         }
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
@@ -761,7 +761,7 @@ export default class derive extends deriveRest {
         }
     }
 
-    handleAuth (client: Client, message) {
+    handleAuth (client: Client, message: any) {
         //
         // {
         //     id: 1,

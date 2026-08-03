@@ -1926,7 +1926,7 @@ class bitget extends Exchange {
         return array( $productType, $params );
     }
 
-    public function handle_uta_and_params($params, ?string $methodName, bool $defaultValue = false) {
+    public function handle_uta_and_params(mixed $params, ?string $methodName, bool $defaultValue = false) {
         return Async\async(function () use ($params, $methodName, $defaultValue) {
             $uta = null;
             list($uta, $params) = $this->handle_option_and_params($params, $methodName, 'uta');
@@ -2001,7 +2001,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function fetch_default_markets($params): PromiseInterface {
+    public function fetch_default_markets(mixed $params): PromiseInterface {
         return Async\async(function () use ($params) {
             $types = null;
             $fetchMarketsOptions = $this->safe_dict($this->options, 'fetchMarkets');
@@ -2258,7 +2258,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function fetch_uta_markets($params): PromiseInterface {
+    public function fetch_uta_markets(mixed $params): PromiseInterface {
         return Async\async(function () use ($params) {
             $subTypes = array( 'SPOT', 'USDT-FUTURES', 'COIN-FUTURES', 'USDC-FUTURES' );
             $promises = array();
@@ -2773,7 +2773,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
         //
         // swap and future
         //
@@ -3189,7 +3189,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "coin" => "BTC",
@@ -4270,7 +4270,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function parse_trading_fee($data, ?array $market = null) {
+    public function parse_trading_fee(mixed $data, ?array $market = null) {
         $marketId = $this->safe_string($data, 'symbol');
         return array(
             'info' => $data,
@@ -4282,7 +4282,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         "1645911960000",
@@ -4670,7 +4670,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function parse_uta_balance($balance): array {
+    public function parse_uta_balance(mixed $balance): array {
         $result = array( 'info' => $balance );
         //
         //     {
@@ -4699,7 +4699,7 @@ class bitget extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_balance($balance): array {
+    public function parse_balance(mixed $balance): array {
         $result = array( 'info' => $balance );
         //
         // spot
@@ -6225,7 +6225,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function cancel_uta_orders($ids, ?string $symbol = null, $params = array()) {
+    public function cancel_uta_orders(mixed $ids, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
@@ -7765,7 +7765,7 @@ class bitget extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_type($type) {
+    public function parse_ledger_type(mixed $type) {
         $types = array(
             'trans_to_cross' => 'transfer',
             'trans_from_cross' => 'transfer',
@@ -8877,7 +8877,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         // fetchFundingRate => publicMixGetV2MixMarketCurrentFundRate, publicUtaGetV3MarketCurrentFundRate
         //
@@ -9078,7 +9078,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function parse_funding_history($contract, ?array $market = null) {
+    public function parse_funding_history(mixed $contract, ?array $market = null) {
         //
         //     {
         //         "billId" => "1111499428100472833",
@@ -9117,7 +9117,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_funding_histories($contracts, ?array $market = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_funding_histories(mixed $contracts, ?array $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($contracts); $i++) {
             $contract = $contracts[$i];
@@ -9136,7 +9136,7 @@ class bitget extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): PromiseInterface {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $type, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -9567,7 +9567,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         // default
         //
@@ -9778,7 +9778,7 @@ class bitget extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //     {
         //         "chains" => array(
@@ -9834,7 +9834,7 @@ class bitget extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
@@ -9963,7 +9963,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function repay_isolated_margin(string $symbol, string $code, $amount, $params = array()) {
+    public function repay_isolated_margin(string $symbol, string $code, float $amount, $params = array()) {
         return Async\async(function () use ($symbol, $code, $amount, $params) {
             /**
              * repay borrowed margin and interest
@@ -10006,7 +10006,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function repay_cross_margin(string $code, $amount, $params = array()) {
+    public function repay_cross_margin(string $code, float $amount, $params = array()) {
         return Async\async(function () use ($code, $amount, $params) {
             /**
              * repay borrowed margin and interest
@@ -10045,7 +10045,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function parse_margin_loan($info, ?array $currency = null, ?array $market = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null, ?array $market = null) {
         //
         // isolated => borrowMargin
         //
@@ -10214,7 +10214,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function parse_liquidation($liquidation, ?array $market = null) {
+    public function parse_liquidation(mixed $liquidation, ?array $market = null) {
         //
         // isolated
         //
@@ -10460,7 +10460,7 @@ class bitget extends Exchange {
         })();
     }
 
-    public function parse_borrow_rate($info, ?array $currency = null) {
+    public function parse_borrow_rate(mixed $info, ?array $currency = null) {
         //
         // default
         //
@@ -11421,7 +11421,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
         }
@@ -11473,7 +11473,7 @@ class bitget extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $signed = $api[0] === 'private';
         $endpoint = $api[1];
         $pathPart = '/api';

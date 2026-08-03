@@ -123,7 +123,7 @@ class xt extends \ccxt\async\xt {
         })();
     }
 
-    public function get_cache_index($orderbook, $cache) {
+    public function get_cache_index(mixed $orderbook, mixed $cache) {
         // return the first index of the $cache that can be applied to the $orderbook or -1 if not possible
         $nonce = $this->safe_integer($orderbook, 'nonce');
         $firstDelta = $this->safe_value($cache, 0);
@@ -141,7 +141,7 @@ class xt extends \ccxt\async\xt {
         return count($cache);
     }
 
-    public function handle_delta($orderbook, $delta) {
+    public function handle_delta(mixed $orderbook, mixed $delta) {
         $orderbook['nonce'] = $this->safe_integer_2($delta, 'i', 'u');
         $obAsks = $this->safe_list($delta, 'a', array());
         $obBids = $this->safe_list($delta, 'b', array());
@@ -771,7 +771,7 @@ class xt extends \ccxt\async\xt {
         }
     }
 
-    public function load_positions_snapshot($client, $messageHash) {
+    public function load_positions_snapshot(Client $client, mixed $messageHash) {
         return Async\async(function () use ($client, $messageHash) {
             $positions = Async\await($this->fetch_positions());
             $this->positions = new ArrayCacheBySymbolBySide();
@@ -792,7 +792,7 @@ class xt extends \ccxt\async\xt {
         })();
     }
 
-    public function handle_position($client, $message) {
+    public function handle_position(mixed $client, mixed $message) {
         //
         //    {
         //      topic => 'position',
@@ -1554,7 +1554,7 @@ class xt extends \ccxt\async\xt {
         $client->resolve($stored, 'trade::' . $tradeType);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         $event = $this->safe_string($message, 'event');
         if ($event === 'pong') {
             $client->onPong();
@@ -1595,7 +1595,7 @@ class xt extends \ccxt\async\xt {
         return 'ping';
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
         //         $id => '1763045665228ticker@eth_usdt',

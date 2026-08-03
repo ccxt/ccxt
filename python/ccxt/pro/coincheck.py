@@ -72,7 +72,7 @@ class coincheck(ccxt.async_support.coincheck):
         orderbook = await self.watch(url, messageHash, message, messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Any, message: Any):
         #
         #     [
         #         "btc_jpy",
@@ -135,7 +135,7 @@ class coincheck(ccxt.async_support.coincheck):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         #     [
         #         [
@@ -198,7 +198,7 @@ class coincheck(ccxt.async_support.coincheck):
             'fee': None,
         }, market)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         data = self.safe_value(message, 0)
         if not isinstance(data, list):
             self.handle_order_book(client, message)

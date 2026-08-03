@@ -51,7 +51,7 @@ export default class grvt extends grvtRest {
         });
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         //
         // confirmation
         //
@@ -191,7 +191,7 @@ export default class grvt extends grvtRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         // v1.ticker.s
         //
@@ -279,7 +279,7 @@ export default class grvt extends grvtRest {
         client.resolve (ticker, 'ticker::' + symbol);
     }
 
-    parseWsTicker (message, market: Market = undefined) {
+    parseWsTicker (message: any, market: Market = undefined) {
         // same dict as REST api
         return this.parseTicker (message, market);
     }
@@ -339,7 +339,7 @@ export default class grvt extends grvtRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //    {
         //        "stream": "v1.trade",
@@ -378,7 +378,7 @@ export default class grvt extends grvtRest {
         client.resolve (stored, 'trade::' + symbol);
     }
 
-    override parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         // same as REST api
         return this.parseTrade (trade, market);
     }
@@ -395,7 +395,7 @@ export default class grvt extends grvtRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -444,7 +444,7 @@ export default class grvt extends grvtRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //    {
         //        "stream": "v1.candle",
@@ -487,7 +487,7 @@ export default class grvt extends grvtRest {
         client.resolve (resolveData, messageHash);
     }
 
-    override parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         // same as REST api
         return this.parseOHLCV (ohlcv, market);
     }
@@ -557,7 +557,7 @@ export default class grvt extends grvtRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //    {
         //        "stream": "v1.book.s",
@@ -689,7 +689,7 @@ export default class grvt extends grvtRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleMyTrade (client: Client, message) {
+    handleMyTrade (client: Client, message: any) {
         //
         //    {
         //        "stream": "v1.fill",
@@ -736,7 +736,7 @@ export default class grvt extends grvtRest {
         client.resolve (this.myTrades, 'myTrades');
     }
 
-    parseWsMyTrade (trade, market: Market = undefined) {
+    parseWsMyTrade (trade: any, market: Market = undefined) {
         return this.parseTrade (trade, market);
     }
 
@@ -782,7 +782,7 @@ export default class grvt extends grvtRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    handlePosition (client, message) {
+    handlePosition (client: any, message: any) {
         //
         //    {
         //        "stream": "v1.position",
@@ -824,7 +824,7 @@ export default class grvt extends grvtRest {
         client.resolve (newPositions, 'positions');
     }
 
-    parseWsPosition (position, market: Market = undefined) {
+    parseWsPosition (position: any, market: Market = undefined) {
         // same as REST api
         return this.parsePosition (position, market);
     }
@@ -867,7 +867,7 @@ export default class grvt extends grvtRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         //    {
         //        "stream": "v1.order",
@@ -943,12 +943,12 @@ export default class grvt extends grvtRest {
         client.resolve (this.orders, 'order::' + order['symbol']);
     }
 
-    override parseWsOrder (order, market: Market = undefined): Order {
+    override parseWsOrder (order: any, market: Market = undefined): Order {
         // same as REST api
         return this.parseOrder (order, market);
     }
 
-    handleErrorMessage (client: Client, response): Bool {
+    handleErrorMessage (client: Client, response: any): Bool {
         //
         //    {
         //        "jsonrpc": "2.0",

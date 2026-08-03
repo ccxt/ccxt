@@ -249,7 +249,7 @@ export default class xt extends xtRest {
     unWatchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     handleFundingRate(client: Client, message: Dict): Dict;
     setPositionsCache(client: Client): void;
-    loadPositionsSnapshot(client: any, messageHash: any): Promise<void>;
+    loadPositionsSnapshot(client: Client, messageHash: any): Promise<void>;
     handlePosition(client: any, message: any): void;
     handleTicker(client: Client, message: Dict): Dict;
     handleTickers(client: Client, message: Dict): Dict;
@@ -263,7 +263,7 @@ export default class xt extends xtRest {
     handleMyTrades(client: Client, message: Dict): void;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): string;
-    handleSubscriptionStatus(client: any, message: any): any;
+    handleSubscriptionStatus(client: Client, message: any): any;
     handleUnSubscription(client: Client, subscription: Dict): void;
     handleErrorMessage(client: Client, message: Dict): void;
 }

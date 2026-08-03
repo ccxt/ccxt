@@ -441,7 +441,7 @@ class hibachi extends Exchange {
         return $result;
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
         );
@@ -839,7 +839,7 @@ class hibachi extends Exchange {
         })();
     }
 
-    public function order_message($market, float $nonce, float $feeRate, ?string $type, ?string $side, ?float $amount, ?float $price = null) {
+    public function order_message(mixed $market, float $nonce, float $feeRate, ?string $type, ?string $side, ?float $amount, ?float $price = null) {
         if ($type === null) {
             throw new ArgumentsRequired($this->id . ' requires a $type argument');
         }
@@ -1365,7 +1365,7 @@ class hibachi extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign_message($message, $privateKey) {
+    public function sign_message(mixed $message, mixed $privateKey) {
         if (strlen($privateKey) === 44) {
             // For Exchange Managed account, the key length is 44 and we use HMAC to sign the $message
             return $this->hmac($message, $this->encode($privateKey), 'sha256', 'hex');
@@ -1497,7 +1497,7 @@ class hibachi extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // array(
         //     {
@@ -1577,7 +1577,7 @@ class hibachi extends Exchange {
         })();
     }
 
-    public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             /**
              * @ignore
@@ -1854,7 +1854,7 @@ class hibachi extends Exchange {
         ));
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;
         $headers = array( 'Hibachi-Client' => 'HibachiCCXT/unversioned' );
@@ -1876,7 +1876,7 @@ class hibachi extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -1898,7 +1898,7 @@ class hibachi extends Exchange {
         return null;
     }
 
-    public function parse_transaction_type($type) {
+    public function parse_transaction_type(mixed $type) {
         $types = array(
             'deposit' => 'transaction',
             'withdrawal' => 'transaction',
@@ -1908,7 +1908,7 @@ class hibachi extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'pending' => 'pending',
             'claimable' => 'pending',
@@ -2239,7 +2239,7 @@ class hibachi extends Exchange {
         })();
     }
 
-    public function parse_settlement($settlement, ?array $market = null) {
+    public function parse_settlement(mixed $settlement, ?array $market = null) {
         //
         //     {
         //         "direction" => "Long",
@@ -2262,7 +2262,7 @@ class hibachi extends Exchange {
         );
     }
 
-    public function parse_settlements($settlements, ?array $market = null) {
+    public function parse_settlements(mixed $settlements, ?array $market = null) {
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
             $result[] = $this->parse_settlement($settlements[$i], $market);

@@ -324,7 +324,7 @@ export default class apex extends Exchange {
         return this.safeInteger (data, 'time');
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         //
         // {
         //     "totalEquityValue": "100.000000",
@@ -787,7 +787,7 @@ export default class apex extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': market['id2'],
+            'symbol': this.safeString (market, 'id2'),
         };
         const response = await this.publicGetV3Ticker (this.extend (request, params));
         const tickers = this.safeList (response, 'data', []);
@@ -833,7 +833,7 @@ export default class apex extends Exchange {
         const market = this.market (symbol);
         let request: Dict = {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
-            'symbol': market['id2'],
+            'symbol': this.safeString (market, 'id2'),
         };
         if (limit === undefined) {
             limit = 200; // default is 200 when requested with `since`
@@ -845,11 +845,11 @@ export default class apex extends Exchange {
         }
         const response = await this.publicGetV3Klines (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        const OHLCVs = this.safeList (data, market['id2'], []);
+        const OHLCVs = this.safeList (data, this.safeString (market, 'id2'), []);
         return this.parseOHLCVs (OHLCVs, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //  {
         //     "start": 1647511440000,
@@ -889,7 +889,7 @@ export default class apex extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': market['id2'],
+            'symbol': this.safeString (market, 'id2'),
         };
         if (limit === undefined) {
             limit = 100; // default is 200 when requested with `since`
@@ -948,7 +948,7 @@ export default class apex extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': market['id2'],
+            'symbol': this.safeString (market, 'id2'),
         };
         if (limit === undefined) {
             limit = 500; // default is 50
@@ -1033,7 +1033,7 @@ export default class apex extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'symbol': market['id2'],
+            'symbol': this.safeString (market, 'id2'),
         };
         const response = await this.publicGetV3Ticker (this.extend (request, params));
         const tickers = this.safeList (response, 'data', []);
@@ -1041,7 +1041,7 @@ export default class apex extends Exchange {
         return this.parseOpenInterest (rawTicker, market);
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         // {
         //     "symbol": "BTCUSDT",
@@ -1415,7 +1415,7 @@ export default class apex extends Exchange {
         const finalClientOrderId = clientOrderId; // java req
         params = this.omit (params, [ 'clientId', 'clientOrderId', 'client_order_id', 'stopLossPrice', 'takeProfitPrice', 'triggerPrice' ]);
         const finalOrderPrice = orderPrice; // java req
-        const orderToSign = {
+        const orderToSign: Dict = {
             'accountId': accountId,
             'slotId': finalClientOrderId,
             'nonce': finalClientOrderId,
@@ -1871,7 +1871,7 @@ export default class apex extends Exchange {
         return this.parseIncomes (fundingValues, market, since, limit);
     }
 
-    override parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         // {
         //     "id": "1234",
@@ -2004,7 +2004,7 @@ export default class apex extends Exchange {
         });
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         headers = {
             'User-Agent': 'apex-CCXT',
@@ -2038,7 +2038,7 @@ export default class apex extends Exchange {
         return { 'url': url, 'method': method, 'body': signBody, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         //
         // {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
         // {"code":400,"msg":"strconv.ParseInt: parsing \"dsfdfsd\": invalid syntax","timeCost":5320995}

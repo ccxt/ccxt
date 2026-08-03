@@ -903,14 +903,14 @@ export default class xt extends Exchange {
         const currenciesResult = this.safeValue (currenciesResponse, 'result', []);
         const currenciesData = this.safeValue (currenciesResult, 'currencies', []);
         const chainsDataIndexed = this.indexBy (chainsData, 'currency');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < currenciesData.length; i++) {
             const entry = currenciesData[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const networkEntry = this.safeValue (chainsDataIndexed, currencyId, {});
             const rawNetworks = this.safeValue (networkEntry, 'supportChains', []);
-            const networks = {};
+            const networks: Dict = {};
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
                 const networkId = this.safeString (rawNetwork, 'chain');
@@ -1006,7 +1006,7 @@ export default class xt extends Exchange {
         return this.arrayConcat (spotMarkets, swapAndFutureMarkets);
     }
 
-    async fetchSpotMarkets (params = {}) {
+    async fetchSpotMarkets (params: any = {}) {
         const response = await this.publicSpotGetSymbol (params);
         //
         //     {
@@ -1133,7 +1133,7 @@ export default class xt extends Exchange {
         return this.parseMarkets (swapAndFutureMarkets);
     }
 
-    override parseMarkets (markets) {
+    override parseMarkets (markets: any) {
         const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             result.push (this.parseMarket (markets[i]));
@@ -1422,7 +1422,7 @@ export default class xt extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1000) as OHLCV[];
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1497,7 +1497,7 @@ export default class xt extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         // spot
         //
@@ -1553,7 +1553,7 @@ export default class xt extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         let response = undefined;
@@ -1792,7 +1792,7 @@ export default class xt extends Exchange {
         //     }
         //
         const tickers = this.safeValue (response, 'result', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             const ticker = this.parseTicker (tickers[i], market);
             const symbol = ticker['symbol'];
@@ -1849,7 +1849,7 @@ export default class xt extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    override parseTicker (ticker, market: Market = undefined) {
+    override parseTicker (ticker: any, market: Market = undefined) {
         //
         // spot: fetchTicker, fetchTickers
         //
@@ -1949,7 +1949,7 @@ export default class xt extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         let response = undefined;
@@ -2024,7 +2024,7 @@ export default class xt extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2120,7 +2120,7 @@ export default class xt extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    override parseTrade (trade, market: Market = undefined) {
+    override parseTrade (trade: any, market: Market = undefined) {
         //
         // spot: fetchTrades
         //
@@ -2373,7 +2373,7 @@ export default class xt extends Exchange {
         return this.parseBalance (balances);
     }
 
-    override parseBalance (response) {
+    override parseBalance (response: any) {
         //
         // spot
         //
@@ -2400,7 +2400,7 @@ export default class xt extends Exchange {
         //         "coupon":"0"
         //     }
         //
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString2 (balance, 'currency', 'coin');
@@ -2480,12 +2480,12 @@ export default class xt extends Exchange {
         }
     }
 
-    async createSpotOrder (symbol: string, type, side, amount, price: Num = undefined, params = {}) {
+    async createSpotOrder (symbol: string, type: OrderType, side: any, amount: any, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
             'type': type.toUpperCase (),
@@ -2543,12 +2543,12 @@ export default class xt extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async createContractOrder (symbol: string, type, side, amount, price: Num = undefined, params = {}) {
+    async createContractOrder (symbol: string, type: any, side: any, amount: any, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'origQty': this.amountToPrecision (symbol, amount),
         };
@@ -2644,7 +2644,7 @@ export default class xt extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {};
+        const request: Dict = {};
         let type: Str = undefined;
         let subType: SubType = undefined;
         let response = undefined;
@@ -2819,7 +2819,7 @@ export default class xt extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2970,11 +2970,11 @@ export default class xt extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let request = {};
+        let request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -3331,7 +3331,7 @@ export default class xt extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {};
+        const request: Dict = {};
         let type: Str = undefined;
         let subType: SubType = undefined;
         let response = undefined;
@@ -3411,7 +3411,7 @@ export default class xt extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -3515,7 +3515,7 @@ export default class xt extends Exchange {
         ];
     }
 
-    override parseOrder (order, market: Market = undefined) {
+    override parseOrder (order: Dict, market: Market = undefined) {
         //
         // spot: createOrder
         //
@@ -3698,7 +3698,7 @@ export default class xt extends Exchange {
         }, market);
     }
 
-    parseOrderStatus (status) {
+    parseOrderStatus (status: Str) {
         const statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -3732,7 +3732,7 @@ export default class xt extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = {};
+        const request: Dict = {};
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -3783,7 +3783,7 @@ export default class xt extends Exchange {
         return this.parseLedger (ledger, currency, since, limit);
     }
 
-    override parseLedgerEntry (item, currency: Currency = undefined): LedgerEntry {
+    override parseLedgerEntry (item: any, currency: Currency = undefined): LedgerEntry {
         //
         //     {
         //         "id": "207260567109387524",
@@ -3823,7 +3823,7 @@ export default class xt extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const ledgerType = {
             'EXCHANGE': 'transfer',
             'CLOSE_POSITION': 'trade',
@@ -3876,7 +3876,7 @@ export default class xt extends Exchange {
         return this.parseDepositAddress (result, currency);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "address": "0x7f7173cf29d3846d20ca5a3aec1120b93dbd157a",
@@ -3909,7 +3909,7 @@ export default class xt extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = {};
+        const request: Dict = {};
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -3968,7 +3968,7 @@ export default class xt extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = {};
+        const request: Dict = {};
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -4035,7 +4035,7 @@ export default class xt extends Exchange {
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
         const networkId = this.safeString2 (networkIdsByCodes, networkCode, code, code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'chain': networkId,
             'amount': this.currencyToPrecision (code, amount),
@@ -4135,7 +4135,7 @@ export default class xt extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses = {
             'SUBMIT': 'pending',
             'REVIEW': 'pending',
@@ -4229,7 +4229,7 @@ export default class xt extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'SUB', params);
     }
 
-    async modifyMarginHelper (symbol: string, amount, addOrReduce, params = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: any, addOrReduce: any, params = {}): Promise<MarginModification> {
         const positionSide = this.safeString (params, 'positionSide');
         this.checkRequiredArgument ('setLeverage', positionSide, 'positionSide', [ 'LONG', 'SHORT' ]);
         if (this.markets === undefined) {
@@ -4261,7 +4261,7 @@ export default class xt extends Exchange {
         return this.parseMarginModification (response, market);
     }
 
-    override parseMarginModification (data, market: Market = undefined): MarginModification {
+    override parseMarginModification (data: any, market: Market = undefined): MarginModification {
         return {
             'info': data,
             'type': undefined,
@@ -4326,7 +4326,7 @@ export default class xt extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    override parseLeverageTiers (response, symbols: Strings = undefined, marketIdKey: Str = undefined): LeverageTiers {
+    override parseLeverageTiers (response: any, symbols: Strings = undefined, marketIdKey: Str = undefined): LeverageTiers {
         //
         //     {
         //         "symbol": "rad_usdt",
@@ -4344,7 +4344,7 @@ export default class xt extends Exchange {
         //         ]
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const marketId = this.safeString (entry, 'symbol');
@@ -4412,7 +4412,7 @@ export default class xt extends Exchange {
         return this.parseMarketLeverageTiers (data, market);
     }
 
-    override parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         //
         //     {
         //         "symbol": "rad_usdt",
@@ -4479,7 +4479,7 @@ export default class xt extends Exchange {
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -4593,7 +4593,7 @@ export default class xt extends Exchange {
         return this.parseFundingRate (result, market);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "btc_usdt",
@@ -4650,7 +4650,7 @@ export default class xt extends Exchange {
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingHistory() supports swap contracts only');
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -4699,7 +4699,7 @@ export default class xt extends Exchange {
         return this.filterBySinceLimit (sorted, since, limit) as FundingHistory[];
     }
 
-    parseFundingHistory (contract, market: Market = undefined) {
+    parseFundingHistory (contract: any, market: Market = undefined) {
         //
         //     {
         //         "id": "210804044057280512",
@@ -4846,7 +4846,7 @@ export default class xt extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    override parsePosition (position, market: Market = undefined) {
+    override parsePosition (position: any, market: Market = undefined) {
         //
         //     {
         //         "symbol": "btc_usdt",
@@ -4943,7 +4943,7 @@ export default class xt extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    override parseTransfer (transfer, currency: Currency = undefined) {
+    override parseTransfer (transfer: any, currency: Currency = undefined) {
         return {
             'info': transfer,
             'id': this.safeString (transfer, 'result'),
@@ -5044,7 +5044,7 @@ export default class xt extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const request = {};
+        const request: Dict = {};
         const stopLoss = this.safeNumber2 (params, 'stopLoss', 'triggerStopPrice');
         const takeProfit = this.safeNumber2 (params, 'takeProfit', 'triggerProfitPrice');
         params = this.omit (params, [ 'stopLoss', 'takeProfit' ]);
@@ -5116,7 +5116,7 @@ export default class xt extends Exchange {
         return this.parseOrder (result, market);
     }
 
-    override handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any) {
         //
         // spot: error
         //
@@ -5184,7 +5184,7 @@ export default class xt extends Exchange {
         return undefined;
     }
 
-    override sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const request = '/' + this.implodeParams (path, params);

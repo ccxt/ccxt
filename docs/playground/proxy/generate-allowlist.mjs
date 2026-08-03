@@ -54,8 +54,10 @@ for (const id of ccxt.exchanges) {
 const domains = new Set();
 for (const h of hosts) domains.add("." + registrable(h));
 
-// The server-side AI assistant calls OpenRouter; allow it so the feature works.
-domains.add(".openrouter.ai");
+// Nothing else is added here: the AI assistant posts to PLAYGROUND_AI_URL, which
+// is expected to be deployment-local and reached directly (NO_PROXY), not out
+// through this allowlist. Point it at a remote endpoint and you must add that
+// host here too.
 
 process.stdout.write([...domains].sort().join("\n") + "\n");
 process.stderr.write(`allowlist: ${hosts.size} hosts -> ${domains.size} domain rules\n`);

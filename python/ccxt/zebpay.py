@@ -503,7 +503,7 @@ class zebpay(Exchange, ImplicitAPI):
             # }
             #
             responseData = self.safe_list(response, 'data', [])
-            data = self.safe_dict(responseData, 0)
+            data = self.safe_dict(responseData, 0, {})
         return self.parse_trading_fee(data, market)
 
     def fetch_trading_fees(self, params={}) -> TradingFees:
@@ -1027,7 +1027,7 @@ class zebpay(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def order_request(self, symbol, type, amount, request, price: Num = None, params={}):
+    def order_request(self, symbol: Any, type: Any, amount: Any, request: Any, price: Num = None, params={}):
         upperCaseType = type.upper()
         triggerPrice = self.safe_string(params, 'stopLossPrice')
         quoteOrderQty = self.safe_string_2(params, 'quoteOrderQty', 'cost', None)
@@ -1508,7 +1508,7 @@ class zebpay(Exchange, ImplicitAPI):
             'direction': 'out',
         })
 
-    def fetch_spot_markets(self, params={}) -> List[Market]:
+    def fetch_spot_markets(self, params: Any = {}) -> List[Market]:
         response = self.publicSpotGetV2ExExchangeInfo(params)
         #
         #    {
@@ -1580,7 +1580,7 @@ class zebpay(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_swap_markets(self, params={}) -> List[Market]:
+    def fetch_swap_markets(self, params: Any = {}) -> List[Market]:
         response = self.publicSwapGetV1MarketMarkets(params)
         #
         #    {
@@ -1651,7 +1651,7 @@ class zebpay(Exchange, ImplicitAPI):
             }))
         return result
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1788,7 +1788,7 @@ class zebpay(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_margin_modification(self, info, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, info: Any, market: Market = None) -> MarginModification:
         #
         #    {
         #         "symbol": "BTCINR",
@@ -1812,7 +1812,7 @@ class zebpay(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         params = self.omit(params, 'defaultType')
         isV1 = path.find('v1/') > -1
         marketType = 'swap' if isV1 else 'spot'
@@ -1855,7 +1855,7 @@ class zebpay(Exchange, ImplicitAPI):
             headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if not response:
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, body)
             return None
