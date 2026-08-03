@@ -6,7 +6,7 @@ import Exchange from './abstract/kucoin.js';
 import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { ADL, Account, Balances, Bool, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, List, MarginMode, MarginModification, Market, NullableDict, NullableList, Num, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int } from './base/types.js';
+import type { ADL, Account, Balances, Bool, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, List, MarginMode, MarginModification, Market, NullableDict, NullableList, Num, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, DepositWithdrawFee, Dictionary } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2493,7 +2493,7 @@ export default class kucoin extends Exchange {
      * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchDepositWithdrawFee (code: string, params = {}) {
+    override async fetchDepositWithdrawFee (code: string, params = {}): Promise<DepositWithdrawFee> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9811,7 +9811,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<Dictionary<DepositWithdrawFee>> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

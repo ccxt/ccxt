@@ -8,7 +8,7 @@ import { ExchangeError, InvalidAddress, DuplicateOrderId, InsufficientFunds, Inv
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate, Fee, NullableDict } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate, Fee, NullableDict, DepositWithdrawFee, Dictionary } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2854,7 +2854,7 @@ export default class lbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<Dictionary<DepositWithdrawFee>> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

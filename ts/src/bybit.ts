@@ -7,7 +7,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, AccountSuspended, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, MarginModeAlreadySet, NoChange, ManualInteractionNeeded, BadSymbol, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, CurrencyInterface, MarketInterface, TransferEntry, Liquidation, Leverage, List, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, NullableDict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, MarginMode, ADL, Bool, Fee } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, CurrencyInterface, MarketInterface, TransferEntry, Liquidation, Leverage, List, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, NullableDict, LeverageTier, LeverageTiers, int, LedgerEntry, Conversion, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, MarginMode, ADL, Bool, Fee, DepositWithdrawFee, Dictionary } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -8186,7 +8186,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<Dictionary<DepositWithdrawFee>> {
         this.checkRequiredCredentials ();
         if (this.markets === undefined) {
             await this.loadMarkets ();

@@ -6,7 +6,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds, BadRequest, InvalidAddress, OnMaintenance } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { totp } from './base/functions/totp.js';
-import type { Balances, Bool, Currency, CurrencyInterface, FundingRateHistory, Greeks, Int, Liquidation, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, NullableDict, int, FundingRate, DepositAddress, Position } from './base/types.js';
+import type { Balances, Bool, Currency, CurrencyInterface, FundingRateHistory, Greeks, Int, Liquidation, List, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, MarketInterface, Num, Account, Option, OptionChain, Currencies, TradingFees, Dict, NullableDict, int, FundingRate, DepositAddress, Position, DepositWithdrawFee, Dictionary } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3209,7 +3209,7 @@ export default class deribit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<Dictionary<DepositWithdrawFee>> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
