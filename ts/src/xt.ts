@@ -4965,8 +4965,7 @@ export default class xt extends Exchange {
         const positionType = this.safeString (position, 'positionType');
         const marginMode = (positionType === 'CROSSED') ? 'cross' : 'isolated';
         const collateral = this.safeNumber (position, 'isolatedMargin');
-        const breakPriceString = this.safeString (position, 'breakPrice');
-        const hasBreakPrice = Precise.stringGt (breakPriceString, '0');
+        const liquidationPriceString = this.omitZero (this.safeString (position, 'breakPrice'));
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -4987,7 +4986,7 @@ export default class xt extends Exchange {
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
             'unrealizedPnl': undefined,
-            'liquidationPrice': hasBreakPrice ? this.parseNumber (breakPriceString) : undefined,
+            'liquidationPrice': this.parseNumber (liquidationPriceString),
             'marginMode': marginMode,
             'percentage': undefined,
             'marginRatio': undefined,
