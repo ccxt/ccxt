@@ -96,6 +96,7 @@ jobs:
           printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf 'Host *\n  ServerAliveInterval 30\n  ServerAliveCountMax 10\n' > ~/.ssh/config
 
       - name: Deploy with canary smoke test (no-downtime, auto-abort on failure)
         env:
