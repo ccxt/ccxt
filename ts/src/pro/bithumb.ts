@@ -4,11 +4,11 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import bithumbRest from '../bithumb.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type{ Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, NullableDict, Bool, Order, Str, Market } from '../base/types.js';
+import type{ Int, OrderBook, Ticker, Trade, Strings, Tickers, Dict, Bool, Order, Str, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
 import { jwt } from '../base/functions/rsa.js';
-import { Balances } from '../base/types.js';
+import { Balances, FeeString } from '../base/types.js';
 //  ---------------------------------------------------------------------------
 
 export default class bithumb extends bithumbRest {
@@ -624,7 +624,7 @@ export default class bithumb extends bithumbRest {
         const filled = this.safeString (order, 'executed_volume');
         const cost = this.safeString (order, 'executed_funds');
         const feeCost = this.safeString (order, 'paid_fee');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         if (feeCost !== undefined) {
             const marketForFee = this.safeMarket (marketId, market);
             const feeCurrency = this.safeString (marketForFee, 'quote');

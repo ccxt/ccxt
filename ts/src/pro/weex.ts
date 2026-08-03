@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import weexRest from '../weex.js';
 import { BadRequest, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, NullableDict } from '../base/types.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, FeeString } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -1240,7 +1240,7 @@ export default class weex extends weexRest {
         const marketResolved = this.safeMarket (marketId, undefined, undefined, marketType);
         market = marketResolved;
         const side = this.safeStringLower (trade, 'orderSide');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const commission = this.safeString (trade, 'fillFee');
         if (commission !== undefined) {
             const commissionAsset = this.safeString (trade, 'coin');
@@ -1516,7 +1516,7 @@ export default class weex extends weexRest {
         const marketResolved = this.safeMarket (marketId, undefined, undefined, marketType);
         market = marketResolved;
         const side = this.safeStringLower (order, 'orderSide');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const commission = this.safeString (order, 'cumFillFee');
         if (commission !== undefined) {
             const commissionAsset = this.safeString (order, 'coin');

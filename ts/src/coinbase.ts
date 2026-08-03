@@ -7,7 +7,7 @@ import { ExchangeError, ArgumentsRequired, AuthenticationError, BadRequest, Inva
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { jwt } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, Conversion, Dict, NullableDict, List, NullableList, int, TradingFees, LedgerEntry, DepositAddress, Position, Bool, TransferEntry } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, Conversion, Dict, Fee, NullableDict, List, NullableList, int, TradingFees, LedgerEntry, DepositAddress, Position, Bool, TransferEntry } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1375,7 +1375,7 @@ export default class coinbase extends Exchange {
         const dataById = this.indexBy (data, 'id');
         const rates = this.safeDict (this.safeDict (exchangeRates, 'data', {}), 'rates', {});
         const baseIds = Object.keys (rates);
-        const result: any[] = [];
+        const result: Market[] = [];
         for (let i = 0; i < baseIds.length; i++) {
             const baseId = baseIds[i];
             const base = this.safeCurrencyCode (baseId);
@@ -2908,7 +2908,7 @@ export default class coinbase extends Exchange {
         //     }
         //     let txid = undefined;
         //
-        let fee: NullableDict = undefined;
+        let fee: Fee = undefined;
         const networkInfo = this.safeDict (item, 'network', {});
         // txid = network['hash']; // txid does not belong to the unified ledger structure
         const feeInfo = this.safeDict (networkInfo, 'transaction_fee');
@@ -5159,8 +5159,8 @@ export default class coinbase extends Exchange {
         const taker_fee = this.safeNumber (data, 'taker_fee_rate');
         const maker_fee = this.safeNumber (data, 'maker_fee_rate');
         const result: Dict = {};
-        for (let i = 0; i < (this.symbols as any).length; i++) {
-            const symbol = (this.symbols as any)[i];
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
             const market = this.market (symbol);
             if ((isSpot && market['spot']) || (!isSpot && !market['spot'])) {
                 result[symbol] = {

@@ -135,7 +135,7 @@ export default class bullish extends bullishRest {
         const market = this.market (symbol);
         const messageHash = 'trades::' + market['symbol'];
         const url = '/trading-api/v1/market-data/trades';
-        const request: any = {
+        const request: Dict = {
             'topic': 'anonymousTrades',
             'symbol': market['id'],
         };

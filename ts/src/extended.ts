@@ -1665,7 +1665,7 @@ export default class extended extends Exchange {
         if (amountString !== undefined) {
             direction = Precise.stringLt (amountString, '0') ? 'out' : 'in';
         }
-        let fee: NullableDict = undefined;
+        let fee: Fee = undefined;
         const feeCost = this.safeString (item, 'fee');
         if (feeCost !== undefined) {
             fee = {
@@ -2174,7 +2174,7 @@ export default class extended extends Exchange {
         return result;
     }
 
-    parseTradingFee (fee: any, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "market": "BTC-USD",

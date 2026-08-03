@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, NotSupported } from '../base/er
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { eddsa } from '../base/functions/crypto.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, NullableDict, Bool, Market } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, FeeString, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -572,7 +572,7 @@ export default class woofipro extends woofiproRest {
         if (maker !== undefined) {
             takerOrMaker = maker ? 'maker' : 'taker';
         }
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeValue = this.safeString (trade, 'fee');
         if (feeValue !== undefined) {
             fee = {

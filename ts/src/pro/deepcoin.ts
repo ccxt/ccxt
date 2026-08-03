@@ -3,7 +3,7 @@
 
 import deepcoinRest from '../deepcoin.js';
 import { BadRequest, ExchangeError } from '../base/errors.js';
-import type { Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Dict, FeeString, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
@@ -460,7 +460,7 @@ export default class deepcoin extends deepcoinRest {
         const direction = this.safeString (trade, 'D');
         const timestamp = this.safeTimestamp2 (trade, 'TT', 'T');
         const matchRole = this.safeString (trade, 'm');
-        let fee: Dict | undefined = undefined;
+        let fee: FeeString = undefined;
         const feeCost = this.safeString (trade, 'F');
         if (feeCost !== undefined) {
             fee = {

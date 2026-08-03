@@ -7,7 +7,7 @@ import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadResponse, BadSymbol, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OnMaintenance, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
-import type { Balances, Bool, Currencies, Currency, Dict, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, Dict, Fee, FundingHistory, FundingRate, FundingRates, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -707,7 +707,7 @@ export default class nado extends Exchange {
         }
         const data = this.safeDict (response, 'data', {});
         const cancelledOrders = this.safeList (data, 'cancelled_orders', []);
-        const result: any[] = [];
+        const result: Order[] = [];
         for (let i = 0; i < cancelledOrders.length; i++) {
             result.push (this.parseOrder (this.extend ({ 'status': 'canceled' }, cancelledOrders[i]), market));
         }
@@ -826,7 +826,7 @@ export default class nado extends Exchange {
         }
         const data = this.safeDict (response, 'data', {});
         const cancelledOrders = this.safeList (data, 'cancelled_orders', []);
-        const result: any[] = [];
+        const result: Order[] = [];
         for (let i = 0; i < cancelledOrders.length; i++) {
             result.push (this.parseOrder (this.extend ({ 'status': 'canceled' }, cancelledOrders[i]), market));
         }
@@ -1511,7 +1511,7 @@ export default class nado extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const positions = this.safeList (data, 'perp_balances', []);
         const products = this.safeList (data, 'perp_products', []);
-        const result: any[] = [];
+        const result: Position[] = [];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const balance = this.safeDict (position, 'balance', {});
@@ -1922,7 +1922,7 @@ export default class nado extends Exchange {
         //     }
         //
         const fundingPayments = this.safeList (response, 'funding_payments', []);
-        const result: any[] = [];
+        const result: FundingHistory[] = [];
         for (let i = 0; i < fundingPayments.length; i++) {
             result.push (this.parseFundingHistory (fundingPayments[i], market));
         }
@@ -2268,7 +2268,7 @@ export default class nado extends Exchange {
                 side = 'buy';
             }
         }
-        let price: any = this.safeString (trade, 'price');
+        let price: Str = this.safeString (trade, 'price');
         if (price === undefined) {
             const parsedPrice = this.parseX18 (this.safeString (order, 'priceX18'));
             price = (parsedPrice === undefined) ? undefined : this.numberToString (parsedPrice);
@@ -2289,7 +2289,7 @@ export default class nado extends Exchange {
         } else {
             feeCost = this.parseNumber (feeString);
         }
-        let fee: any = undefined;
+        let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -2767,7 +2767,7 @@ export default class nado extends Exchange {
         let remaining: Num = undefined;
         let cost: Num = undefined;
         let average: Str = undefined;
-        let fee: any = undefined;
+        let fee: Fee = undefined;
         let lastTradeTimestamp: Int = undefined;
         let lastUpdateTimestamp: Int = undefined;
         let status: Str = undefined;

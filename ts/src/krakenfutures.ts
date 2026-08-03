@@ -5,7 +5,7 @@ import Exchange from './abstract/krakenfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Bool, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, NullableDict } from './base/types.js';
+import type { Balances, Bool, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, Leverage, Leverages, LeverageTier, LeverageTiers, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, NullableDict, FeeString } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -776,7 +776,7 @@ export default class krakenfutures extends Exchange {
         //    }
         //
         const candles = this.safeList (response, 'candles');
-        return this.parseOHLCVs ((candles as any[]), market, timeframe, since, limit);
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
@@ -1052,7 +1052,7 @@ export default class krakenfutures extends Exchange {
                 takerOrMaker = 'taker';
             }
         }
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         if ((takerOrMaker !== undefined) && (cost !== undefined)) {
             const feeRate = this.safeString (market, takerOrMaker);
             fee = {
@@ -2135,7 +2135,7 @@ export default class krakenfutures extends Exchange {
         let fixed = false;
         let statusId: Str = undefined;
         let price: Str = undefined;
-        let trades: any[] = [];
+        let trades: Trade[] = [];
         if (orderEventsLength) {
             const executions: any[] = [];
             for (let i = 0; i < orderEvents.length; i++) {
@@ -2569,7 +2569,7 @@ export default class krakenfutures extends Exchange {
         const marketIds = this.marketIds (symbols);
         const response = await this.publicGetTickers (params);
         const tickers = this.safeList (response, 'tickers', []);
-        const fundingRates: any[] = [];
+        const fundingRates: FundingRate[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = tickers[i];
             const entry_symbol = this.safeValue (entry, 'symbol');
@@ -2744,7 +2744,7 @@ export default class krakenfutures extends Exchange {
     }
 
     override parsePositions (response: any, symbols: Strings = undefined, params = {}) {
-        const result: any[] = [];
+        const result: Position[] = [];
         // a degraded response can omit openPositions entirely - default to an
         // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
         const positions = this.safeList (response, 'openPositions', []);

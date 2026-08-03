@@ -673,7 +673,7 @@ export default class bigone extends Exchange {
         //    ]
         //
         const markets = this.safeList (response, 'data', []);
-        const result: any[] = [];
+        const result: Market[] = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const baseAsset = this.safeDict (market, 'base_asset', {});
