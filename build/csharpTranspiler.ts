@@ -1743,6 +1743,9 @@ class NewTranspiler {
             [ /testReturnResponseHeaders\(BaseExchange exchange\)/g, 'testReturnResponseHeaders(Exchange exchange)' ],
             [ /throw new Error/g, 'throw new Exception' ],
             [/class testMainClass/g, 'public partial class testMainClass'],
+            // noImplicitAny bags: keep object so safeValue assignments typecheck
+            [ /public (?:Dict|Dictionary<string, object>) skippedMethods\b/g, 'public object skippedMethods' ],
+            [ /public (?:Dict|Dictionary<string, object>) checkedPublicTests\b/g, 'public object checkedPublicTests' ],
         ])
 
         const file = [

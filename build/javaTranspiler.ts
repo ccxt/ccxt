@@ -3203,6 +3203,9 @@ class NewTranspiler {
             [/TestMainClass\.this/gm, 'TestMain.this'],
             [/throw new Exception/g, 'throw new RuntimeException'],
             [/throw e/gm, 'throw new RuntimeException(e)'],
+            // noImplicitAny bags: Object so safeValue assignments typecheck (Map is too narrow)
+            [/public (?:Dict|java\.util\.Map<String, Object>) skippedMethods\b/g, 'public Object skippedMethods'],
+            [/public (?:Dict|java\.util\.Map<String, Object>) checkedPublicTests\b/g, 'public Object checkedPublicTests'],
 
         ])
         // Null-safe Array.isArray (see Helpers.isArrayJs).
