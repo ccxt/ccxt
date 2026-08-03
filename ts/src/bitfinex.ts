@@ -1238,7 +1238,7 @@ export default class bitfinex extends Exchange {
         //            FRR_AMOUNT_AVAILABLE
         //     ]
         //
-        const length = ticker.length;
+        const length = (ticker as List).length;
         const firstValue = this.safeNumber (ticker, 0);
         const isFetchTicker = firstValue !== undefined; // if it's Nan, then it's string (symbol)
         let symbol: Str = undefined;
@@ -2224,7 +2224,7 @@ export default class bitfinex extends Exchange {
         //      ]
         //
         const ordersList: any[] = [];
-        for (let i = 0; i < response.length; i++) {
+        for (let i = 0; i < (response as List).length; i++) {
             ordersList.push ({ 'result': response[i] });
         }
         return this.parseOrders (ordersList, market, since, limit);
@@ -2310,7 +2310,7 @@ export default class bitfinex extends Exchange {
         //      ]
         //
         const ordersList: any[] = [];
-        for (let i = 0; i < response.length; i++) {
+        for (let i = 0; i < (response as List).length; i++) {
             ordersList.push ({ 'result': response[i] });
         }
         return this.parseOrders (ordersList, market, since, limit);
@@ -2385,7 +2385,7 @@ export default class bitfinex extends Exchange {
             response = await this.privatePostAuthRTradesHist (this.extend (request, params));
         }
         const tradesList: any[] = [];
-        for (let i = 0; i < response.length; i++) {
+        for (let i = 0; i < (response as List).length; i++) {
             tradesList.push ({ 'result': response[i] }); // convert to array of dicts to match parseOrder signature
         }
         return this.parseTrades (tradesList, market, since, limit);
@@ -2542,7 +2542,7 @@ export default class bitfinex extends Exchange {
         //         "Purchase of 100 pizzas", // WITHDRAW_TRANSACTION_NOTE, might also be: null
         //     ]
         //
-        const transactionLength = transaction.length;
+        const transactionLength = (transaction as List).length;
         let timestamp: Int = undefined;
         let updated: Int = undefined;
         let code: Str = undefined;
@@ -3214,7 +3214,7 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const ledgerObjects: any[] = [];
-        for (let i = 0; i < response.length; i++) {
+        for (let i = 0; i < (response as List).length; i++) {
             const item = response[i];
             ledgerObjects.push ({ 'result': item });
         }

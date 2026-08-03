@@ -1586,7 +1586,7 @@ export default class modetrade extends Exchange {
                     'type': 'LIMIT',
                     'reduce_only': true,
                 };
-                outterOrder.push (takeProfitOrder);
+                childOrders.push (takeProfitOrder);
             }
             request['child_orders'] = [ outterOrder ];
         }

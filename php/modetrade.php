@@ -1575,7 +1575,7 @@ class modetrade extends Exchange {
                     'type' => 'LIMIT',
                     'reduce_only' => true,
                 );
-                $outterOrder[] = $takeProfitOrder;
+                $childOrders[] = $takeProfitOrder;
             }
             $request['child_orders'] = array( $outterOrder );
         }
