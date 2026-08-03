@@ -2652,7 +2652,7 @@ func (this *ExtendedCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan 
 		//
 		var data any = this.SafeList(response, "data", []any{})
 
-		ch <- this.ParseLeverage(this.SafeDict(data, 0), market)
+		ch <- this.ParseLeverage(this.SafeDict(data, 0, map[string]any{}), market)
 		return nil
 
 	}()

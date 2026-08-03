@@ -592,7 +592,7 @@ func (this *BitmexCore) ConvertFromRawQuantity(symbol any, rawQuantity any, opti
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(GetValue(market, "spot")) {
-		return this.ParseNumber(this.ConvertToRealAmount(GetValue(market, currencySide), rawQuantity))
+		return this.ParseNumber(this.ConvertToRealAmount(this.SafeString(market, currencySide), rawQuantity))
 	}
 	return this.ParseNumber(rawQuantity)
 }
