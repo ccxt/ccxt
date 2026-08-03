@@ -312,7 +312,7 @@ export default class foxbit extends Exchange {
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     parseTrade(trade: any, market?: Market): Trade;
     parseOrderStatus(status: Str): Str;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         address: Str;
         tag: Str;

@@ -213,7 +213,7 @@ export default class hashkey extends Exchange {
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTransactionStatus(status: any): string;
+    parseTransactionStatus(status: Str): Str;
     /**
      * @method
      * @name hashkey#transfer
@@ -328,7 +328,7 @@ export default class hashkey extends Exchange {
      */
     createSpotOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Dict;
-    createSpotOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Dict;
+    createSpotOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): Dict;
     createSwapOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): Dict;
     /**
      * @method
@@ -501,7 +501,7 @@ export default class hashkey extends Exchange {
     handleTriggerOptionAndParams(params: object, methodName: string, defaultValue?: Bool): [Bool, object];
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderSideAndReduceOnly(unparsed: any): any[];
-    parseOrderStatus(status: any): string;
+    parseOrderStatus(status: Str): Str;
     parseOrderTypeTimeInForceAndPostOnly(type: any, timeInForce: any): any[];
     parseOrderType(type: any): string;
     /**
@@ -662,5 +662,5 @@ export default class hashkey extends Exchange {
         headers: NullableDict;
     };
     customUrlencode(params?: Dict): Str;
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
+    handleErrors(code: int, reason: string, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
 }

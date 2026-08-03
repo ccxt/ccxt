@@ -1,5 +1,5 @@
 import Exchange from './abstract/gate.js';
-import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, CurrencyInterface } from './base/types.js';
+import type { Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OpenInterest, Order, Balances, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Leverage, Leverages, Num, NullableDict, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, Dict, LeverageTier, LeverageTiers, int, CancellationRequest, LedgerEntry, FundingRate, FundingRates, DepositAddress, Bool, BorrowInterest, CurrencyInterface, DepositWithdrawFees } from './base/types.js';
 /**
  * @class gate
  * @augments Exchange
@@ -41,8 +41,8 @@ export default class gate extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchSpotMarkets(params?: {}): Promise<any[]>;
-    fetchSwapMarkets(params?: {}): Promise<any[]>;
+    fetchSpotMarkets(params?: any): Promise<any[]>;
+    fetchSwapMarkets(params?: any): Promise<any[]>;
     fetchFutureMarkets(params?: {}): Promise<any[]>;
     parseContractMarket(market: any, settleId: any): {
         id: Str;
@@ -95,7 +95,7 @@ export default class gate extends Exchange {
         created: Int;
         info: any;
     };
-    fetchOptionMarkets(params?: {}): Promise<any[]>;
+    fetchOptionMarkets(params?: any): Promise<any[]>;
     fetchOptionUnderlyings(): Promise<Str[]>;
     prepareRequest(market?: Market, type?: Str, params?: Dict): Dict[];
     spotOrderPrepareRequest(market?: Market, trigger?: Bool, params?: Dict): any[];
@@ -205,7 +205,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<DepositWithdrawFees>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): Dict;
     /**
      * @method
@@ -220,7 +220,7 @@ export default class gate extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<FundingHistory[]>;
-    parseFundingHistories(response: any, symbol: any, since: any, limit: any): FundingHistory[];
+    parseFundingHistories(response: any, symbol: any, since: Int, limit: Int): FundingHistory[];
     parseFundingHistory(info: any, market?: Market): {
         info: any;
         symbol: Str;
@@ -729,7 +729,7 @@ export default class gate extends Exchange {
      * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
+    repayIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{
         id: Int;
         currency: Str;
         amount: Num;
@@ -751,7 +751,7 @@ export default class gate extends Exchange {
      * @param {boolean} [params.unifiedAccount] set to true for repaying in the unified account
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    repayCrossMargin(code: string, amount: any, params?: {}): Promise<{
+    repayCrossMargin(code: string, amount: number, params?: {}): Promise<{
         id: Int;
         currency: Str;
         amount: Num;
@@ -828,7 +828,7 @@ export default class gate extends Exchange {
     fetchBorrowInterest(code?: Str, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<BorrowInterest[]>;
     parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     nonce(): number;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): {
         url: any;
         method: string;
         body: Str;

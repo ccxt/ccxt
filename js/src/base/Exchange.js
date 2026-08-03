@@ -149,6 +149,8 @@ export class BaseExchange {
         this.hostname = undefined;
         this.precisionMode = undefined;
         this.paddingMode = undefined;
+        // nested by design: exchanges declare { 'exact': {...}, 'broad': {...} }
+        // and pro subclasses add a 'ws' sub-tree, with error classes as values
         this.exceptions = {};
         this.timeframes = {};
         this.version = undefined;

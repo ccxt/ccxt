@@ -128,9 +128,9 @@ function initExchange(exchangeId, args, isWs = false) {
         return new (prediction)[exchangeId](args);
     }
     if (isWs) {
-        return new (ccxt.pro)[exchangeId](args);
+        return new ccxt.pro[exchangeId](args);
     }
-    return new (ccxt)[exchangeId](args);
+    return new ccxt[exchangeId](args);
 }
 async function importTestFile(filePath) {
     // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat

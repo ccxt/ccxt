@@ -1072,8 +1072,22 @@ class bitbank extends bitbank$1["default"] {
         }
         else {
             this.checkRequiredCredentials();
+            // bitbank supports two auth methods, see https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#authorization
+            // 'timeWindow' (default): request time + validity window, stateless and safe for concurrent use of one key
+            // 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
+            // since bitbank offers no server time endpoint to compensate against
+            const authMethod = this.safeString(this.options, 'authMethod', 'timeWindow');
+            const isTimeWindow = (authMethod === 'timeWindow');
+            const requestTime = this.milliseconds().toString();
+            const timeWindow = this.safeString(this.options, 'timeWindow', '5000');
             const nonce = this.nonce().toString();
-            let auth = nonce;
+            let auth = undefined;
+            if (isTimeWindow) {
+                auth = requestTime + timeWindow;
+            }
+            else {
+                auth = nonce;
+            }
             url += this.version + '/' + this.implodeParams(path, params);
             if (method === 'POST') {
                 body = this.json(query);
@@ -1090,9 +1104,15 @@ class bitbank extends bitbank$1["default"] {
             headers = {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': this.apiKey,
-                'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256),
             };
+            if (isTimeWindow) {
+                headers['ACCESS-REQUEST-TIME'] = requestTime;
+                headers['ACCESS-TIME-WINDOW'] = timeWindow;
+            }
+            else {
+                headers['ACCESS-NONCE'] = nonce;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

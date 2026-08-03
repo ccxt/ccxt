@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitfinex.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, NullableDict } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, NullableDict, int } from './base/types.js';
 /**
  * @class bitfinex
  * @augments Exchange
@@ -8,8 +8,8 @@ export default class bitfinex extends Exchange {
     describe(): any;
     isFiat(code: any): boolean;
     getCurrencyName(code: any): any;
-    amountToPrecision(symbol: any, amount: any): string;
-    priceToPrecision(symbol: any, price: any): string;
+    amountToPrecision(symbol: Str, amount: any): string;
+    priceToPrecision(symbol: Str, price: any): string;
     /**
      * @method
      * @name bitfinex#fetchStatus
@@ -43,7 +43,7 @@ export default class bitfinex extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrenciesCustom(ids: any, indexed: any, indexedNetworks: any): {};
+    parseCurrenciesCustom(ids: any, indexed: any, indexedNetworks: any): Dict;
     parseCurrencyCustom(id: any, indexed: any, indexedNetworks: any): Currency;
     /**
      * @method
@@ -356,7 +356,7 @@ export default class bitfinex extends Exchange {
         body: Str;
         headers: NullableDict;
     };
-    handleErrors(statusCode: any, statusText: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(statusCode: int, statusText: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
     parseLedgerEntryType(type: Str): string | undefined;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     /**

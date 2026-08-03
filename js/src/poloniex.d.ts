@@ -1,5 +1,5 @@
 import Exchange from './abstract/poloniex.js';
-import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict } from './base/types.js';
+import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, DepositWithdrawFees } from './base/types.js';
 /**
  * @class poloniex
  * @augments Exchange
@@ -34,8 +34,8 @@ export default class poloniex extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchSpotMarkets(params?: {}): Promise<Market[]>;
-    fetchSwapMarkets(params?: {}): Promise<Market[]>;
+    fetchSpotMarkets(params?: any): Promise<Market[]>;
+    fetchSwapMarkets(params?: any): Promise<Market[]>;
     parseMarket(market: Dict): Market;
     parseSpotMarket(market: Dict): Market;
     parseSwapMarket(market: Dict): Market;
@@ -333,7 +333,7 @@ export default class poloniex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<DepositWithdrawFees>;
     parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: Str): Dict;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     /**

@@ -7,7 +7,7 @@ import type { IndexType, Int, OrderSide, OrderType, OHLCV, Trade, Order, Balance
  */
 export default class kraken extends Exchange {
     describe(): any;
-    feeToPrecision(symbol: any, fee: any): string;
+    feeToPrecision(symbol: Str, fee: any): string;
     /**
      * @method
      * @name kraken#fetchMarkets
@@ -400,7 +400,7 @@ export default class kraken extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Transaction[]>;
     addPaginationCursorToResult(result: any): any;
     /**
      * @method

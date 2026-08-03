@@ -7,7 +7,7 @@ declare function assertStructure(exchange: Exchange, skippedProperties: object, 
 declare function assertTimestamp(exchange: Exchange, skippedProperties: object, method: string, entry: object, nowToCheck?: any, keyNameOrIndex?: string | number, allowNull?: boolean): void;
 declare function assertTimestampAndDatetime(exchange: Exchange, skippedProperties: object, method: string, entry: object, nowToCheck?: any, keyNameOrIndex?: any, allowNull?: boolean): void;
 declare function assertCurrencyCode(exchange: Exchange, skippedProperties: object, method: string, entry: object, actualCode: Str, expectedCode?: Str, allowNull?: boolean): void;
-declare function assertValidCurrencyIdAndCode(exchange: Exchange, skippedProperties: object, method: string, entry: object, currencyId: any, currencyCode: any, allowNull?: boolean): void;
+declare function assertValidCurrencyIdAndCode(exchange: Exchange, skippedProperties: object, method: string, entry: object, currencyId: Str, currencyCode: Str, allowNull?: boolean): void;
 declare function assertSymbol(exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, expectedSymbol?: Str, allowNull?: boolean): void;
 declare function assertSymbolInMarkets(exchange: Exchange, skippedProperties: object, method: string, symbol: string): void;
 declare function assertGreater(exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, compareTo: string, allowNull?: boolean): void;
@@ -21,9 +21,9 @@ declare function assertFeeStructure(exchange: Exchange, skippedProperties: objec
 declare function assertTimestampOrder(exchange: Exchange, method: Str, codeOrSymbol: string, items: any[], ascending?: boolean): void;
 declare function assertInteger(exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number, allowNull?: boolean): void;
 declare function checkPrecisionAccuracy(exchange: Exchange, skippedProperties: object, method: string, entry: object, key: string | number): void;
-declare function fetchBestBidAsk(exchange: any, method: any, symbol: any): Promise<number[]>;
-declare function fetchOrder(exchange: any, symbol: any, orderId: any, skippedProperties: any): Promise<Order | undefined>;
-declare function assertOrderState(exchange: any, skippedProperties: any, method: any, order: any, assertedStatus: any, strictCheck: any): void;
+declare function fetchBestBidAsk(exchange: any, method: string, symbol: string): Promise<number[]>;
+declare function fetchOrder(exchange: any, symbol: Str, orderId: Str, skippedProperties: any): Promise<Order | undefined>;
+declare function assertOrderState(exchange: any, skippedProperties: any, method: string, order: any, assertedStatus: string, strictCheck: boolean): void;
 declare function getActiveMarkets(exchange: any, includeUnknown?: boolean): any;
 declare function removeProxyOptions(exchange: Exchange, skippedProperties: object): Str[];
 declare function setProxyOptions(exchange: Exchange, skippedProperties: object, proxyUrl: Str, httpProxy: Str, httpsProxy: Str, socksProxy: Str): void;

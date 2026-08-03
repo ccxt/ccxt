@@ -1,5 +1,6 @@
 import Exchange from '../abstract/prediction/myriad.js';
 import type { Int, Str, Num, Dict, int, Strings, PredictionOrderRequest, Market, PredictionOrderBook, OHLCV, PredictionTradingFee, PredictionEvent, Balances, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition } from '../base/types.js';
+import type Client from '../base/ws/Client.js';
 /**
  * @class myriad
  * @augments Exchange
@@ -587,10 +588,10 @@ export default class myriad extends Exchange {
     fromWei(wei: Str): Num;
     marketOutcomeToSymbol(networkId: Str, marketId: Str, outcomeId: Str): Str;
     connectCentrifugo(url: Str): Promise<any>;
-    pong(client: any, message?: any): Promise<void>;
+    pong(client: Client, message?: any): Promise<void>;
     subscribeMyriadChannel(messageHash: string, channel: string, params?: {}): Promise<any>;
     handleMessage(client: any, message: any): void;
-    handleCentrifugoFrame(client: any, msg: any): void;
+    handleCentrifugoFrame(client: Client, msg: any): void;
     /**
      * @method
      * @name myriad#watchOrderBook

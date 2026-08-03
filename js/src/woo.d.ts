@@ -123,7 +123,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createTrailingAmountOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
+    createTrailingAmountOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingAmount?: Num, trailingTriggerPrice?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name woo#createTrailingPercentOrder
@@ -139,7 +139,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createTrailingPercentOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: Num, trailingTriggerPrice?: Num, params?: {}): Promise<Order>;
+    createTrailingPercentOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, trailingPercent?: Num, trailingTriggerPrice?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name woo#createOrder
@@ -504,7 +504,7 @@ export default class woo extends Exchange {
         info: any;
     };
     nonce(): number;
-    sign(path: any, section?: string, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+    sign(path: any, section?: string, method?: string, params?: Dict, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
         body: Str;

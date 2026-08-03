@@ -198,7 +198,7 @@ export default class coinbase extends Exchange {
      * @param {int} [params.limit] default 250, maximum number of accounts to return
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: Dict): Promise<Balances>;
     /**
      * @method
      * @name coinbase#fetchLedger
@@ -228,7 +228,7 @@ export default class coinbase extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name coinbase#createOrder
@@ -258,7 +258,7 @@ export default class coinbase extends Exchange {
      * @param {float} [params.reduceOnly] set to true for closing a position or use closePosition
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
     parseOrderStatus(status: Str): Str;
     parseOrderType(type: Str): Str;

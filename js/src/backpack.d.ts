@@ -265,7 +265,7 @@ export default class backpack extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: Dict): any;
     encodeOrderSide(side: any): string;
     /**
      * @method

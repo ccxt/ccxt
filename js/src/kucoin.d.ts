@@ -1,5 +1,5 @@
 import Exchange from './abstract/kucoin.js';
-import type { ADL, Account, Balances, Bool, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, Market, NullableDict, Num, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int } from './base/types.js';
+import type { ADL, Account, Balances, Bool, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, FundingHistory, FundingRate, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, Market, NullableDict, Num, OHLCV, OpenInterest, OpenInterests, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, int, DepositWithdrawFee, DepositWithdrawFees } from './base/types.js';
 /**
  * @class kucoin
  * @augments Exchange
@@ -35,7 +35,7 @@ export default class kucoin extends Exchange {
         updated: undefined;
         eta: undefined;
         url: undefined;
-        info: undefined;
+        info: any;
     }>;
     /**
      * @method
@@ -49,7 +49,7 @@ export default class kucoin extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchContractMarkets(params?: {}): Promise<Market[]>;
+    fetchContractMarkets(params?: any): Promise<Market[]>;
     fetchUTAMarkets(params?: {}): Promise<Market[]>;
     /**
      * @method
@@ -107,7 +107,7 @@ export default class kucoin extends Exchange {
      * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchDepositWithdrawFee(code: string, params?: {}): Promise<any>;
+    fetchDepositWithdrawFee(code: string, params?: {}): Promise<DepositWithdrawFee>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): Dict;
     isFuturesMethod(methodName: any, params: any): boolean;
     parseSpotOrUtaTicker(ticker: Dict, market?: Market): Ticker;
@@ -756,7 +756,7 @@ export default class kucoin extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    fetchUtaOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    fetchUtaOrdersByStatus(status: any, symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name kucoin#fetchClosedOrders
@@ -1305,7 +1305,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoints
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    repayCrossMargin(code: string, amount: any, params?: {}): Promise<{
+    repayCrossMargin(code: string, amount: number, params?: {}): Promise<{
         id: Str;
         currency: Str;
         amount: Num;
@@ -1325,7 +1325,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoints
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{
+    repayIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<{
         id: Str;
         currency: Str;
         amount: Num;
@@ -1352,7 +1352,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<any>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<DepositWithdrawFees>;
     /**
      * @method
      * @name kucoin#fetchLeverage

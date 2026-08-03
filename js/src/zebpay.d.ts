@@ -20,7 +20,7 @@ export default class zebpay extends Exchange {
         updated: undefined;
         eta: undefined;
         url: undefined;
-        info: undefined;
+        info: any;
     }>;
     /**
      * @method
@@ -322,8 +322,8 @@ export default class zebpay extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
-    fetchSpotMarkets(params?: {}): Promise<Market[]>;
-    fetchSwapMarkets(params?: {}): Promise<Market[]>;
+    fetchSpotMarkets(params?: any): Promise<Market[]>;
+    fetchSwapMarkets(params?: any): Promise<Market[]>;
     parseBalance(response: any): Balances;
     parsePosition(position: Dict, market?: Market): {
         info: Dict;
@@ -352,7 +352,7 @@ export default class zebpay extends Exchange {
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseMarginModification(info: any, market?: Market): MarginModification;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): {
         url: any;
         method: string;
         body: Str;

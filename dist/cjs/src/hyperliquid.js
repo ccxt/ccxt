@@ -1209,7 +1209,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const market = this.market(symbol);
         const request = {
             'type': 'l2Book',
-            'coin': market['swap'] ? market['baseName'] : market['id'],
+            'coin': market['swap'] ? this.safeString(market, 'baseName') : market['id'],
         };
         const response = await this.publicPostInfo(this.extend(request, params));
         //
@@ -1494,7 +1494,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const request = {
             'type': 'candleSnapshot',
             'req': {
-                'coin': market['swap'] ? market['baseName'] : market['id'],
+                'coin': market['swap'] ? this.safeString(market, 'baseName') : market['id'],
                 'interval': this.safeString(this.timeframes, timeframe, timeframe),
                 'startTime': since,
                 'endTime': until,
@@ -2998,7 +2998,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const market = this.market(symbol);
         const request = {
             'type': 'fundingHistory',
-            'coin': market['baseName'],
+            'coin': this.safeString(market, 'baseName'),
         };
         if (since !== undefined) {
             request['startTime'] = since;

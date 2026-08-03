@@ -295,7 +295,7 @@ export default class bitvavo extends bitvavoRest {
      */
     fetchCurrenciesWs(params?: {}): Promise<Currencies>;
     handleFetchCurrencies(client: Client, message: any): void;
-    handleTradingFees(client: any, message: any): void;
+    handleTradingFees(client: Client, message: any): void;
     /**
      * @method
      * @name bitvavo#fetchBalanceWs

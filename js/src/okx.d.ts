@@ -1,12 +1,12 @@
 import Exchange from './abstract/okx.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, CurrencyInterface, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, NullableDict, List, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, CurrencyInterface, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, NullableDict, List, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests, DepositWithdrawFees } from './base/types.js';
 /**
  * @class okx
  * @augments Exchange
  */
 export default class okx extends Exchange {
     describe(): any;
-    handleMarketTypeAndParams(methodName: string, market?: Market, params?: {}, defaultValue?: any): any;
+    handleMarketTypeAndParams(methodName: string, market?: Market, params?: Dict, defaultValue?: any): any;
     convertToInstrumentType(type: any): string;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
@@ -256,7 +256,7 @@ export default class okx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    editOrderRequest(id: string, symbol: any, type: any, side: any, amount?: Num, price?: Num, params?: {}): any;
+    editOrderRequest(id: string, symbol: Str, type: any, side: any, amount?: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name okx#editOrder
@@ -631,7 +631,7 @@ export default class okx extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
         body: Str;
@@ -865,7 +865,7 @@ export default class okx extends Exchange {
      * @param {string} [params.id] the order ID of borrowing, it is necessary while repaying
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    repayCrossMargin(code: string, amount: any, params?: {}): Promise<{
+    repayCrossMargin(code: string, amount: number, params?: {}): Promise<{
         id: undefined;
         currency: Str;
         amount: Num;
@@ -932,7 +932,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<DepositWithdrawFees>;
     parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: any): Dict;
     /**
      * @method

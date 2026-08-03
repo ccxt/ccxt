@@ -40,7 +40,7 @@ const precisionConstants = {
     NO_PADDING,
     PAD_WITH_ZERO,
 };
-const assert = (x, y) => { if (!x)
+const assert = (x, y = undefined) => { if (!x)
     throw new Error(y || 'assertion failed'); };
 function numberToString(x) {
     if (x === undefined)
@@ -126,7 +126,7 @@ const _decimalToPrecision = (x, roundingMode, numPrecisionDigits, countingMode =
     if (numPrecisionDigits < 0) {
         const toNearest = Math.pow(10, -numPrecisionDigits);
         if (roundingMode === ROUND) {
-            return (toNearest * _decimalToPrecision(x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString();
+            return (toNearest * parseFloat(_decimalToPrecision(x / toNearest, roundingMode, 0, countingMode, paddingMode))).toString();
         }
         if (roundingMode === TRUNCATE) {
             return (x - (x % toNearest)).toString();

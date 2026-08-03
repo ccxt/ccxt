@@ -508,7 +508,7 @@ export default class zebpay extends Exchange {
             // }
             //
             const responseData = this.safeList(response, 'data', []);
-            data = this.safeDict(responseData, 0);
+            data = this.safeDict(responseData, 0, {});
         }
         return this.parseTradingFee(data, market);
     }

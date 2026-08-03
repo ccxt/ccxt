@@ -35,7 +35,7 @@ export default class xt extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchSpotMarkets(params?: {}): Promise<List>;
+    fetchSpotMarkets(params?: any): Promise<List>;
     fetchSwapAndFutureMarkets(params?: {}): Promise<List>;
     parseMarkets(markets: any): List;
     parseMarket(market: Dict): Market;
@@ -174,7 +174,7 @@ export default class xt extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createSpotOrder(symbol: string, type: any, side: any, amount: any, price?: Num, params?: {}): Promise<Order>;
+    createSpotOrder(symbol: string, type: OrderType, side: any, amount: any, price?: Num, params?: {}): Promise<Order>;
     createContractOrder(symbol: string, type: any, side: any, amount: any, price?: Num, params?: {}): Promise<Order>;
     /**
      * @method
@@ -301,8 +301,8 @@ export default class xt extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
-    parseOrder(order: any, market?: Market): Order;
-    parseOrderStatus(status: any): string;
+    parseOrder(order: Dict, market?: Market): Order;
+    parseOrderStatus(status: Str): Str;
     /**
      * @method
      * @name xt#fetchLedger
@@ -367,7 +367,7 @@ export default class xt extends Exchange {
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: any): string;
+    parseTransactionStatus(status: Str): Str;
     /**
      * @method
      * @name xt#setLeverage
@@ -559,11 +559,11 @@ export default class xt extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
-    handleErrors(code: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+    handleErrors(code: int, reason: string, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): undefined;
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: string;
         method: string;
-        body: Str;
+        body: any;
         headers: Dict;
     };
 }
