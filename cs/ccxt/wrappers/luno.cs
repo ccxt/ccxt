@@ -87,7 +87,7 @@ public partial class luno
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -427,8 +427,9 @@ public partial class luno
         var res = await this.cancelOrder(id, symbol, parameters);
         return new Order(res);
     }
-    public async Task<List<LedgerEntry>> FetchLedgerByEntries(string code = null, object entry = null, object limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedgerByEntries(string code = null, object entry = null, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
+        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedgerByEntries(code, entry, limit, parameters);
         return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
@@ -496,6 +497,12 @@ public partial class luno
     /// int : an optional account id for the new address
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.network</term>
+    /// <description>
+    /// int : the blockchain network id to use
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
@@ -520,6 +527,12 @@ public partial class luno
     /// <term>params.address</term>
     /// <description>
     /// string : a specific cryptocurrency address to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.network</term>
+    /// <description>
+    /// int : the blockchain network id to use
     /// </description>
     /// </item>
     /// </list>

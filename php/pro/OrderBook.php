@@ -57,6 +57,32 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
         @$this['nonce'] = $snapshot['nonce'];
         @$this['timestamp'] = $snapshot['timestamp'];
         $this['datetime'] = \ccxt\Exchange::iso8601($this['timestamp']);
+        // prediction-market identity — only attach when present, so crypto books are unchanged
+        if (array_key_exists('outcome', $snapshot)) {
+            $this['outcome'] = $snapshot['outcome'];
+            $this['outcomeId'] = $snapshot['outcomeId'];
+            $this['market'] = $snapshot['market'];
+            // prediction books are keyed by `outcome`; drop the unused `symbol` to match the REST shape
+            unset($this['symbol']);
+        }
+    }
+
+    public function copy() {
+        $snapshot = array();
+        if (array_key_exists('outcome', $this)) {
+            $snapshot['outcome'] = @$this['outcome'];
+            $snapshot['outcomeId'] = @$this['outcomeId'];
+            $snapshot['market'] = @$this['market'];
+        } else {
+            $snapshot['symbol'] = @$this['symbol'];
+        }
+        $copy = new static($snapshot, $this['asks']->depth);
+        $copy['asks'] = $this['asks']->copy();
+        $copy['bids'] = $this['bids']->copy();
+        $copy['nonce'] = @$this['nonce'];
+        $copy['timestamp'] = @$this['timestamp'];
+        $copy['datetime'] = @$this['datetime'];
+        return $copy;
     }
 
     public function update($snapshot) {

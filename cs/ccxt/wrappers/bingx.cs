@@ -169,7 +169,7 @@ public partial class bingx
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -473,7 +473,7 @@ public partial class bingx
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the exchange api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>
@@ -733,6 +733,12 @@ public partial class bingx
     /// <term>params.hedged</term>
     /// <description>
     /// boolean : *swap only* whether the order is in hedged mode or one way mode
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.closePosition</term>
+    /// <description>
+    /// bool : *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
     /// </description>
     /// </item>
     /// </list>
@@ -1389,7 +1395,7 @@ public partial class bingx
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : parameters specific to the bingx api endpoint
+    /// object : parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>

@@ -7,8 +7,8 @@
             "depositFee": "0",
             "depositConfirmations": "2",
             "depositStatus": "OK",
-            "withdrawalFee": "0.0000032",
-            "withdrawalMinAmount": "0.000011",
+            "withdrawalFee": "0.000019",
+            "withdrawalMinAmount": "0.000019",
             "withdrawalStatus": "OK",
             "networks": [
                 "BTC"
@@ -24,7 +24,7 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.0000032,
+        "fee": 0.000019,
         "fees": {},
         "networks": {
             "BTC": {
@@ -35,8 +35,8 @@
                     "depositFee": "0",
                     "depositConfirmations": "2",
                     "depositStatus": "OK",
-                    "withdrawalFee": "0.0000032",
-                    "withdrawalMinAmount": "0.000011",
+                    "withdrawalFee": "0.000019",
+                    "withdrawalMinAmount": "0.000019",
                     "withdrawalStatus": "OK",
                     "networks": [
                         "BTC"
@@ -48,11 +48,11 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.0000032,
+                "fee": 0.000019,
                 "precision": 1e-8,
                 "limits": {
                     "withdraw": {
-                        "min": 0.000011,
+                        "min": 0.000019,
                         "max": null
                     }
                 }
@@ -68,7 +68,7 @@
                 "max": null
             },
             "withdraw": {
-                "min": 0.000011,
+                "min": 0.000019,
                 "max": null
             }
         }
@@ -229,8 +229,8 @@
             "depositFee": "0",
             "depositConfirmations": "10",
             "depositStatus": "OK",
-            "withdrawalFee": "0.000003",
-            "withdrawalMinAmount": "0.012",
+            "withdrawalFee": "0.0086",
+            "withdrawalMinAmount": "0.022",
             "withdrawalStatus": "OK",
             "networks": [
                 "LTC"
@@ -246,7 +246,7 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.000003,
+        "fee": 0.0086,
         "fees": {},
         "networks": {
             "LTC": {
@@ -257,8 +257,8 @@
                     "depositFee": "0",
                     "depositConfirmations": "10",
                     "depositStatus": "OK",
-                    "withdrawalFee": "0.000003",
-                    "withdrawalMinAmount": "0.012",
+                    "withdrawalFee": "0.0086",
+                    "withdrawalMinAmount": "0.022",
                     "withdrawalStatus": "OK",
                     "networks": [
                         "LTC"
@@ -270,11 +270,11 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.000003,
+                "fee": 0.0086,
                 "precision": 1e-8,
                 "limits": {
                     "withdraw": {
-                        "min": 0.012,
+                        "min": 0.022,
                         "max": null
                     }
                 }
@@ -290,7 +290,7 @@
                 "max": null
             },
             "withdraw": {
-                "min": 0.012,
+                "min": 0.022,
                 "max": null
             }
         }
@@ -303,8 +303,8 @@
             "depositFee": "0",
             "depositConfirmations": "32",
             "depositStatus": "OK",
-            "withdrawalFee": "0.000035",
-            "withdrawalMinAmount": "0.00029",
+            "withdrawalFee": "0.00039",
+            "withdrawalMinAmount": "0.00055",
             "withdrawalStatus": "OK",
             "networks": [
                 "ETH"
@@ -320,7 +320,7 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.000035,
+        "fee": 0.00039,
         "fees": {},
         "networks": {
             "ERC20": {
@@ -331,8 +331,8 @@
                     "depositFee": "0",
                     "depositConfirmations": "32",
                     "depositStatus": "OK",
-                    "withdrawalFee": "0.000035",
-                    "withdrawalMinAmount": "0.00029",
+                    "withdrawalFee": "0.00039",
+                    "withdrawalMinAmount": "0.00055",
                     "withdrawalStatus": "OK",
                     "networks": [
                         "ETH"
@@ -344,11 +344,11 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.000035,
+                "fee": 0.00039,
                 "precision": 1e-8,
                 "limits": {
                     "withdraw": {
-                        "min": 0.00029,
+                        "min": 0.00055,
                         "max": null
                     }
                 }
@@ -364,7 +364,7 @@
                 "max": null
             },
             "withdraw": {
-                "min": 0.00029,
+                "min": 0.00055,
                 "max": null
             }
         }
@@ -377,8 +377,8 @@
             "depositFee": "0",
             "depositConfirmations": "10",
             "depositStatus": "OK",
-            "withdrawalFee": "0.2",
-            "withdrawalMinAmount": "2",
+            "withdrawalFee": "1.9",
+            "withdrawalMinAmount": "4.7",
             "withdrawalStatus": "OK",
             "networks": [
                 "ADA"
@@ -394,7 +394,7 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.2,
+        "fee": 1.9,
         "fees": {},
         "networks": {
             "ADA": {
@@ -405,8 +405,8 @@
                     "depositFee": "0",
                     "depositConfirmations": "10",
                     "depositStatus": "OK",
-                    "withdrawalFee": "0.2",
-                    "withdrawalMinAmount": "2",
+                    "withdrawalFee": "1.9",
+                    "withdrawalMinAmount": "4.7",
                     "withdrawalStatus": "OK",
                     "networks": [
                         "ADA"
@@ -418,11 +418,11 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.2,
+                "fee": 1.9,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 2,
+                        "min": 4.7,
                         "max": null
                     }
                 }
@@ -438,7 +438,7 @@
                 "max": null
             },
             "withdraw": {
-                "min": 2,
+                "min": 4.7,
                 "max": null
             }
         }
@@ -451,7 +451,7 @@
             "depositFee": "0",
             "depositConfirmations": "1",
             "depositStatus": "OK",
-            "withdrawalFee": "0",
+            "withdrawalFee": "0.34",
             "withdrawalMinAmount": "10",
             "withdrawalStatus": "OK",
             "networks": [
@@ -468,7 +468,7 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0,
+        "fee": 0.34,
         "fees": {},
         "networks": {
             "XRP": {
@@ -479,7 +479,7 @@
                     "depositFee": "0",
                     "depositConfirmations": "1",
                     "depositStatus": "OK",
-                    "withdrawalFee": "0",
+                    "withdrawalFee": "0.34",
                     "withdrawalMinAmount": "10",
                     "withdrawalStatus": "OK",
                     "networks": [
@@ -492,7 +492,7 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0,
+                "fee": 0.34,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
@@ -525,7 +525,7 @@
             "depositFee": "0",
             "depositConfirmations": "32",
             "depositStatus": "OK",
-            "withdrawalFee": "0.52",
+            "withdrawalFee": "1.2",
             "withdrawalMinAmount": "1.2",
             "withdrawalStatus": "OK",
             "networks": [
@@ -542,7 +542,7 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.52,
+        "fee": 1.2,
         "fees": {},
         "networks": {
             "ERC20": {
@@ -553,7 +553,7 @@
                     "depositFee": "0",
                     "depositConfirmations": "32",
                     "depositStatus": "OK",
-                    "withdrawalFee": "0.52",
+                    "withdrawalFee": "1.2",
                     "withdrawalMinAmount": "1.2",
                     "withdrawalStatus": "OK",
                     "networks": [
@@ -566,7 +566,7 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.52,
+                "fee": 1.2,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {

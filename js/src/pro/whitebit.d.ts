@@ -1,5 +1,5 @@
 import whitebitRest from '../whitebit.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Strings, Tickers, Bool } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market, Strings, Tickers, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class whitebit extends whitebitRest {
     describe(): any;
@@ -25,7 +25,7 @@ export default class whitebit extends whitebitRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: Client, message: any): void;
@@ -77,8 +77,8 @@ export default class whitebit extends whitebitRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
-    handleMyTrades(client: Client, message: any, subscription?: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    handleMyTrades(client: Client, message: any, subscription?: Dict | undefined): void;
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name whitebit#watchOrders
@@ -91,8 +91,8 @@ export default class whitebit extends whitebitRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrder(client: Client, message: any, subscription?: any): void;
-    parseWsOrder(order: any, market?: any): Order;
+    handleOrder(client: Client, message: any, subscription?: Dict | undefined): void;
+    parseWsOrder(order: any, market?: Market): Order;
     parseWsOrderType(status: any): string;
     /**
      * @method
@@ -118,6 +118,6 @@ export default class whitebit extends whitebitRest {
     ping(client: Client): {
         id: number;
         method: string;
-        params: any[];
+        params: never[];
     };
 }

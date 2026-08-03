@@ -49,6 +49,7 @@ class binanceus(binance, ImplicitAPI):
                 'defaultType': 'spot',
                 'fetchMargins': False,
                 'quoteOrderQty': False,
+                'fetchCurrencies': False,
             },
             'has': {
                 'CORS': None,

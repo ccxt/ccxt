@@ -6,7 +6,10 @@ using Newtonsoft.Json;
 using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Runtime.InteropServices;
+
 namespace Tests;
+
 using dict = Dictionary<string, object>;
 
 public partial class testMainClass : BaseTest
@@ -32,15 +35,19 @@ public partial class testMainClass : BaseTest
     public static int TICK_SIZE = Exchange.TICK_SIZE;
 
     // public static object AuthenticationError = typeof(Exchange.AuthenticationError);
-    public static Exchange initExchange(object exchangeId, object exchangeArgs = null, bool isWs = false)
+    public static BaseExchange initExchange(object exchangeId, object exchangeArgs = null, bool isWs = false)
     {
-        if (isWs)
+        // the --prediction flag forces the prediction-markets namespace; prediction exchanges carry
+        // their watch* methods on the main prediction class (no ccxt.pro variant), so keep the bare id
+        var forcePrediction = getCliArgValue("--prediction");
+        if (isWs && !forcePrediction)
         {
-            // var binance = new ccxt.binance();
-            exchangeId = "ccxt.pro." + (string)exchangeId;// + "Ws";
+            exchangeId = "ccxt.pro." + (string)exchangeId;
         }
-        var exchange = Exchange.DynamicallyCreateInstance((string)exchangeId, exchangeArgs);
-        return exchange;
+        // DynamicallyCreateInstance returns BaseExchange: a regular venue is an Exchange, a prediction
+        // venue a PredictionExchange. The shared static harness types the variable as BaseExchange and
+        // drives the tested method via reflection, so both run through the same path.
+        return Exchange.DynamicallyCreateInstance((string)exchangeId, exchangeArgs, false, forcePrediction);
     }
 
     public static bool getCliArgValue(string option)
@@ -130,6 +137,13 @@ public partial class testMainClass : BaseTest
         var parsedValues = new List<string> { };
         foreach (var value in values)
         {
+            if (value == null)
+            {
+                // match the JS/Python/PHP dumps, which stringify a null/undefined arg instead of
+                // throwing — e.g. exchange.json(undefined) is null in C# (ws tests have no eventId)
+                parsedValues.Add("null");
+                continue;
+            }
             if (value is IList<object> || value is IDictionary<string, object>)
             {
                 parsedValues.Add(JsonConvert.SerializeObject(value));
@@ -305,9 +319,9 @@ public partial class testMainClass : BaseTest
         return exc;
     }
 
-    public Exchange setFetchResponse(object exchange2, object response)
+    public BaseExchange setFetchResponse(object exchange2, object response)
     {
-        var exchange = exchange2 as Exchange;
+        var exchange = exchange2 as BaseExchange;
 
         exchange.fetchResponse = response;
         return exchange;
@@ -342,6 +356,21 @@ public partial class testMainClass : BaseTest
     public string getRootDir()
     {
         return ROOT_DIR;
+    }
+
+    public bool isWindows()
+    {
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+    }
+
+    public bool isLinux()
+    {
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+    }
+
+    public bool isAmd64()
+    {
+        return RuntimeInformation.ProcessArchitecture == Architecture.X64;
     }
 
     public object convertAscii(object input)

@@ -12,7 +12,6 @@ sys.path.append(root + '/python')
 # ----------------------------------------------------------------------------
 
 
-# AUTO-TRANSPILE #
 async def example():
     prefix = '-'
     exchange_1 = ccxt.okx()

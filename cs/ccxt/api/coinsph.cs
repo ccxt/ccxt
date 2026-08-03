@@ -226,6 +226,11 @@ public partial class coinsph : Exchange
         return await this.callAsync ("privatePostOpenapiV1Order",parameters);
     }
 
+    public async Task<object> privatePostOpenapiV1OrderCancelReplace (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenapiV1OrderCancelReplace",parameters);
+    }
+
     public async Task<object> privatePostOpenapiV1CapitalWithdrawApply (object parameters = null)
     {
         return await this.callAsync ("privatePostOpenapiV1CapitalWithdrawApply",parameters);
@@ -276,14 +281,39 @@ public partial class coinsph : Exchange
         return await this.callAsync ("privatePostOpenapiConvertV1GetQuote",parameters);
     }
 
-    public async Task<object> privatePostOpenapiConvertV1AccpetQuote (object parameters = null)
+    public async Task<object> privatePostOpenapiConvertV1AcceptQuote (object parameters = null)
     {
-        return await this.callAsync ("privatePostOpenapiConvertV1AccpetQuote",parameters);
+        return await this.callAsync ("privatePostOpenapiConvertV1AcceptQuote",parameters);
     }
 
     public async Task<object> privatePostOpenapiConvertV1QueryOrderHistory (object parameters = null)
     {
         return await this.callAsync ("privatePostOpenapiConvertV1QueryOrderHistory",parameters);
+    }
+
+    public async Task<object> privatePostOpenapiOtcTradeV1GetSupportedTradingPairs (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenapiOtcTradeV1GetSupportedTradingPairs",parameters);
+    }
+
+    public async Task<object> privatePostOpenapiOtcTradeV1CreateRfq (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenapiOtcTradeV1CreateRfq",parameters);
+    }
+
+    public async Task<object> privatePostOpenapiOtcTradeV1AcceptRfq (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenapiOtcTradeV1AcceptRfq",parameters);
+    }
+
+    public async Task<object> privatePostOpenapiOtcTradeV1ManualSettle (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenapiOtcTradeV1ManualSettle",parameters);
+    }
+
+    public async Task<object> privatePostOpenapiOtcTradeV1QueryOrderHistory (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenapiOtcTradeV1QueryOrderHistory",parameters);
     }
 
     public async Task<object> privatePostOpenapiFiatV1SupportChannel (object parameters = null)
@@ -314,6 +344,11 @@ public partial class coinsph : Exchange
     public async Task<object> privatePostOpenapiTransferV3Transfers (object parameters = null)
     {
         return await this.callAsync ("privatePostOpenapiTransferV3Transfers",parameters);
+    }
+
+    public async Task<object> privatePostOpenapiTransferV4Transfers (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOpenapiTransferV4Transfers",parameters);
     }
 
     public async Task<object> privatePostOpenapiV1SubAccountCreate (object parameters = null)

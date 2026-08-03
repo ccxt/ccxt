@@ -14,7 +14,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_trade.php';
 function test_fetch_my_trades($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchMyTrades';
-        $trades = Async\await($exchange->fetch_my_trades($symbol));
+        $trades = \React\Async\await($exchange->fetch_my_trades($symbol));
         assert_non_emtpy_array($exchange, $skipped_properties, $method, $trades, $symbol);
         $now = $exchange->milliseconds();
         for ($i = 0; $i < count($trades); $i++) {

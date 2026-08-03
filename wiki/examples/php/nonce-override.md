@@ -1,8 +1,5 @@
-- [Nonce Override](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -31,5 +28,5 @@ try {
     echo '[Error] ' . $e->getMessage() . "\n";
 }
 
-?> 
+?>
 ```

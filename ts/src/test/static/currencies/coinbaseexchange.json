@@ -39,7 +39,9 @@
                     "min_withdrawal_amount": "0.00002",
                     "max_withdrawal_amount": "200",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 },
                 {
                     "id": "base",
@@ -51,7 +53,9 @@
                     "min_withdrawal_amount": "0.00002",
                     "max_withdrawal_amount": "200",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 },
                 {
                     "id": "bitcoin",
@@ -63,7 +67,9 @@
                     "min_withdrawal_amount": "0.0001",
                     "max_withdrawal_amount": "2400",
                     "network_confirmations": "2",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": false
                 },
                 {
                     "id": "ethereum",
@@ -75,7 +81,9 @@
                     "min_withdrawal_amount": "0.00002",
                     "max_withdrawal_amount": "200",
                     "network_confirmations": "35",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 },
                 {
                     "id": "solana",
@@ -87,7 +95,9 @@
                     "min_withdrawal_amount": "0.00002",
                     "max_withdrawal_amount": "200",
                     "network_confirmations": "31",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": false
                 }
             ],
             "display_name": "BTC"
@@ -104,10 +114,13 @@
         "fee": null,
         "fees": {},
         "networks": {
-            "ARBITRUM": {
+            "ARBONE": {
                 "id": "arbitrum",
                 "name": "Arbitrum",
+                "network": "ARBONE",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
@@ -127,13 +140,18 @@
                     "min_withdrawal_amount": "0.00002",
                     "max_withdrawal_amount": "200",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             },
             "BASE": {
                 "id": "base",
                 "name": "Base",
+                "network": "BASE",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
@@ -153,13 +171,18 @@
                     "min_withdrawal_amount": "0.00002",
                     "max_withdrawal_amount": "200",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             },
-            "BITCOIN": {
+            "BTC": {
                 "id": "bitcoin",
                 "name": "Bitcoin",
+                "network": "BTC",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
@@ -179,13 +202,18 @@
                     "min_withdrawal_amount": "0.0001",
                     "max_withdrawal_amount": "2400",
                     "network_confirmations": "2",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": false
                 }
             },
-            "ETHEREUM": {
+            "ERC20": {
                 "id": "ethereum",
                 "name": "Ethereum",
+                "network": "ERC20",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
@@ -205,13 +233,18 @@
                     "min_withdrawal_amount": "0.00002",
                     "max_withdrawal_amount": "200",
                     "network_confirmations": "35",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             },
-            "SOLANA": {
+            "SOL": {
                 "id": "solana",
                 "name": "Solana",
+                "network": "SOL",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
@@ -231,7 +264,9 @@
                     "min_withdrawal_amount": "0.00002",
                     "max_withdrawal_amount": "200",
                     "network_confirmations": "31",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": false
                 }
             }
         },
@@ -276,6 +311,20 @@
             "default_network": "ethereum",
             "supported_networks": [
                 {
+                    "id": "arbitrum",
+                    "name": "Arbitrum",
+                    "status": "online",
+                    "contract_address": "",
+                    "crypto_address_link": "https://arbiscan.io/address/{{address}}",
+                    "crypto_transaction_link": "https://arbiscan.io/tx/{{txId}}",
+                    "min_withdrawal_amount": "0.01",
+                    "max_withdrawal_amount": "150000",
+                    "network_confirmations": null,
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
+                },
+                {
                     "id": "ethereum",
                     "name": "Ethereum",
                     "status": "online",
@@ -285,7 +334,23 @@
                     "min_withdrawal_amount": "0.000001",
                     "max_withdrawal_amount": "20000000",
                     "network_confirmations": "14",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
+                },
+                {
+                    "id": "polygon",
+                    "name": "Polygon",
+                    "status": "online",
+                    "contract_address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+                    "crypto_address_link": "https://polygonscan.com/address/{{address}}",
+                    "crypto_transaction_link": "https://polygonscan.com/tx/{{txId}}",
+                    "min_withdrawal_amount": "1",
+                    "max_withdrawal_amount": "5000000",
+                    "network_confirmations": null,
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             ],
             "display_name": "USDT"
@@ -302,10 +367,44 @@
         "fee": null,
         "fees": {},
         "networks": {
-            "ETHEREUM": {
+            "ARBONE": {
+                "id": "arbitrum",
+                "name": "Arbitrum",
+                "network": "ARBONE",
+                "active": true,
+                "withdraw": null,
+                "deposit": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.01,
+                        "max": 150000
+                    }
+                },
+                "contract": null,
+                "info": {
+                    "id": "arbitrum",
+                    "name": "Arbitrum",
+                    "status": "online",
+                    "contract_address": "",
+                    "crypto_address_link": "https://arbiscan.io/address/{{address}}",
+                    "crypto_transaction_link": "https://arbiscan.io/tx/{{txId}}",
+                    "min_withdrawal_amount": "0.01",
+                    "max_withdrawal_amount": "150000",
+                    "network_confirmations": null,
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
+                }
+            },
+            "ERC20": {
                 "id": "ethereum",
                 "name": "Ethereum",
+                "network": "ERC20",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
@@ -325,7 +424,40 @@
                     "min_withdrawal_amount": "0.000001",
                     "max_withdrawal_amount": "20000000",
                     "network_confirmations": "14",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
+                }
+            },
+            "MATIC": {
+                "id": "polygon",
+                "name": "Polygon",
+                "network": "MATIC",
+                "active": true,
+                "withdraw": null,
+                "deposit": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 1,
+                        "max": 5000000
+                    }
+                },
+                "contract": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+                "info": {
+                    "id": "polygon",
+                    "name": "Polygon",
+                    "status": "online",
+                    "contract_address": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+                    "crypto_address_link": "https://polygonscan.com/address/{{address}}",
+                    "crypto_transaction_link": "https://polygonscan.com/tx/{{txId}}",
+                    "min_withdrawal_amount": "1",
+                    "max_withdrawal_amount": "5000000",
+                    "network_confirmations": null,
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             }
         },
@@ -411,7 +543,8 @@
             "max_precision": "0.01",
             "convertible_to": [
                 "USDC",
-                "PYUSD"
+                "PYUSD",
+                "USDF"
             ],
             "details": {
                 "type": "fiat",
@@ -490,6 +623,20 @@
             "default_network": "litecoin",
             "supported_networks": [
                 {
+                    "id": "base",
+                    "name": "Base",
+                    "status": "online",
+                    "contract_address": "",
+                    "crypto_address_link": "https://basescan.org/address/{{address}}",
+                    "crypto_transaction_link": "https://basescan.org/tx/{{txId}}",
+                    "min_withdrawal_amount": "0.001",
+                    "max_withdrawal_amount": "54400",
+                    "network_confirmations": null,
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
+                },
+                {
                     "id": "litecoin",
                     "name": "Litecoin",
                     "status": "online",
@@ -499,7 +646,9 @@
                     "min_withdrawal_amount": "0.001",
                     "max_withdrawal_amount": "54400",
                     "network_confirmations": "6",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": false
                 }
             ],
             "display_name": "LTC"
@@ -516,10 +665,44 @@
         "fee": null,
         "fees": {},
         "networks": {
-            "LITECOIN": {
+            "BASE": {
+                "id": "base",
+                "name": "Base",
+                "network": "BASE",
+                "active": true,
+                "withdraw": null,
+                "deposit": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.001,
+                        "max": 54400
+                    }
+                },
+                "contract": null,
+                "info": {
+                    "id": "base",
+                    "name": "Base",
+                    "status": "online",
+                    "contract_address": "",
+                    "crypto_address_link": "https://basescan.org/address/{{address}}",
+                    "crypto_transaction_link": "https://basescan.org/tx/{{txId}}",
+                    "min_withdrawal_amount": "0.001",
+                    "max_withdrawal_amount": "54400",
+                    "network_confirmations": null,
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
+                }
+            },
+            "LTC": {
                 "id": "litecoin",
                 "name": "Litecoin",
+                "network": "LTC",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
@@ -539,7 +722,9 @@
                     "min_withdrawal_amount": "0.001",
                     "max_withdrawal_amount": "54400",
                     "network_confirmations": "6",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": false
                 }
             }
         },
@@ -595,7 +780,9 @@
                     "min_withdrawal_amount": "0.0001",
                     "max_withdrawal_amount": "133",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 },
                 {
                     "id": "base",
@@ -607,7 +794,9 @@
                     "min_withdrawal_amount": "0.0001",
                     "max_withdrawal_amount": "1000",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 },
                 {
                     "id": "ethereum",
@@ -619,7 +808,9 @@
                     "min_withdrawal_amount": "0.0001",
                     "max_withdrawal_amount": "40000",
                     "network_confirmations": "14",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 },
                 {
                     "id": "optimism",
@@ -631,7 +822,9 @@
                     "min_withdrawal_amount": "0.0001",
                     "max_withdrawal_amount": "111",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 },
                 {
                     "id": "polygon",
@@ -643,7 +836,9 @@
                     "min_withdrawal_amount": "0.0001",
                     "max_withdrawal_amount": "30",
                     "network_confirmations": "128",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 },
                 {
                     "id": "unichain",
@@ -653,9 +848,11 @@
                     "crypto_address_link": "https://unichain-d7a86fxp.blockscout.com/address/{{address}}",
                     "crypto_transaction_link": "https://unichain-d7a86fxp.blockscout.com/tx/{{txId}}",
                     "min_withdrawal_amount": "0.0001",
-                    "max_withdrawal_amount": "111",
+                    "max_withdrawal_amount": "300",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             ],
             "display_name": "ETH"
@@ -672,10 +869,13 @@
         "fee": null,
         "fees": {},
         "networks": {
-            "ARBITRUM": {
+            "ARBONE": {
                 "id": "arbitrum",
                 "name": "Arbitrum",
+                "network": "ARBONE",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
@@ -695,13 +895,18 @@
                     "min_withdrawal_amount": "0.0001",
                     "max_withdrawal_amount": "133",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             },
             "BASE": {
                 "id": "base",
                 "name": "Base",
+                "network": "BASE",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
@@ -721,13 +926,18 @@
                     "min_withdrawal_amount": "0.0001",
                     "max_withdrawal_amount": "1000",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             },
-            "ETHEREUM": {
+            "ERC20": {
                 "id": "ethereum",
                 "name": "Ethereum",
+                "network": "ERC20",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
@@ -747,13 +957,18 @@
                     "min_withdrawal_amount": "0.0001",
                     "max_withdrawal_amount": "40000",
                     "network_confirmations": "14",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             },
-            "OPTIMISM": {
+            "OP": {
                 "id": "optimism",
                 "name": "Optimism",
+                "network": "OP",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
@@ -773,13 +988,18 @@
                     "min_withdrawal_amount": "0.0001",
                     "max_withdrawal_amount": "111",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             },
-            "POLYGON": {
+            "MATIC": {
                 "id": "polygon",
                 "name": "Polygon",
+                "network": "MATIC",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
@@ -799,19 +1019,24 @@
                     "min_withdrawal_amount": "0.0001",
                     "max_withdrawal_amount": "30",
                     "network_confirmations": "128",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             },
-            "UNICHAIN": {
+            "unichain": {
                 "id": "unichain",
                 "name": "Unichain",
+                "network": "unichain",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
                     "withdraw": {
                         "min": 0.0001,
-                        "max": 111
+                        "max": 300
                     }
                 },
                 "contract": null,
@@ -823,9 +1048,11 @@
                     "crypto_address_link": "https://unichain-d7a86fxp.blockscout.com/address/{{address}}",
                     "crypto_transaction_link": "https://unichain-d7a86fxp.blockscout.com/tx/{{txId}}",
                     "min_withdrawal_amount": "0.0001",
-                    "max_withdrawal_amount": "111",
+                    "max_withdrawal_amount": "300",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             }
         },
@@ -872,6 +1099,20 @@
             "default_network": "cardano",
             "supported_networks": [
                 {
+                    "id": "base",
+                    "name": "Base",
+                    "status": "online",
+                    "contract_address": "",
+                    "crypto_address_link": "https://basescan.org/address/{{address}}",
+                    "crypto_transaction_link": "https://basescan.org/tx/{{txId}}",
+                    "min_withdrawal_amount": "1",
+                    "max_withdrawal_amount": "5000000",
+                    "network_confirmations": null,
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
+                },
+                {
                     "id": "cardano",
                     "name": "Cardano",
                     "status": "online",
@@ -881,7 +1122,9 @@
                     "min_withdrawal_amount": "1",
                     "max_withdrawal_amount": "5000000",
                     "network_confirmations": "10",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": false
                 }
             ],
             "display_name": "ADA"
@@ -898,10 +1141,44 @@
         "fee": null,
         "fees": {},
         "networks": {
-            "CARDANO": {
+            "BASE": {
+                "id": "base",
+                "name": "Base",
+                "network": "BASE",
+                "active": true,
+                "withdraw": null,
+                "deposit": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 1,
+                        "max": 5000000
+                    }
+                },
+                "contract": null,
+                "info": {
+                    "id": "base",
+                    "name": "Base",
+                    "status": "online",
+                    "contract_address": "",
+                    "crypto_address_link": "https://basescan.org/address/{{address}}",
+                    "crypto_transaction_link": "https://basescan.org/tx/{{txId}}",
+                    "min_withdrawal_amount": "1",
+                    "max_withdrawal_amount": "5000000",
+                    "network_confirmations": null,
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
+                }
+            },
+            "ADA": {
                 "id": "cardano",
                 "name": "Cardano",
+                "network": "ADA",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
@@ -921,7 +1198,9 @@
                     "min_withdrawal_amount": "1",
                     "max_withdrawal_amount": "5000000",
                     "network_confirmations": "10",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": false
                 }
             }
         },
@@ -962,11 +1241,25 @@
                 "group_types": [],
                 "display_name": null,
                 "processing_time_seconds": "600",
-                "min_withdrawal_amount": "1",
+                "min_withdrawal_amount": "0.35",
                 "max_withdrawal_amount": "10000000"
             },
             "default_network": "ripple",
             "supported_networks": [
+                {
+                    "id": "base",
+                    "name": "Base",
+                    "status": "online",
+                    "contract_address": "",
+                    "crypto_address_link": "https://basescan.org/address/{{address}}",
+                    "crypto_transaction_link": "https://basescan.org/tx/{{txId}}",
+                    "min_withdrawal_amount": "1",
+                    "max_withdrawal_amount": "10000000",
+                    "network_confirmations": null,
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
+                },
                 {
                     "id": "ripple",
                     "name": "Ripple",
@@ -974,10 +1267,12 @@
                     "contract_address": null,
                     "crypto_address_link": "https://bithomp.com/explorer/{{address}}",
                     "crypto_transaction_link": "https://bithomp.com/explorer/{{txId}}",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "0.35",
                     "max_withdrawal_amount": "10000000",
                     "network_confirmations": "0",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": "^\\d{1,10}$",
+                    "is_evm_network": false
                 }
             ],
             "display_name": "XRP"
@@ -994,15 +1289,49 @@
         "fee": null,
         "fees": {},
         "networks": {
-            "RIPPLE": {
-                "id": "ripple",
-                "name": "Ripple",
+            "BASE": {
+                "id": "base",
+                "name": "Base",
+                "network": "BASE",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
                     "withdraw": {
                         "min": 1,
+                        "max": 10000000
+                    }
+                },
+                "contract": null,
+                "info": {
+                    "id": "base",
+                    "name": "Base",
+                    "status": "online",
+                    "contract_address": "",
+                    "crypto_address_link": "https://basescan.org/address/{{address}}",
+                    "crypto_transaction_link": "https://basescan.org/tx/{{txId}}",
+                    "min_withdrawal_amount": "1",
+                    "max_withdrawal_amount": "10000000",
+                    "network_confirmations": null,
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
+                }
+            },
+            "XRP": {
+                "id": "ripple",
+                "name": "Ripple",
+                "network": "XRP",
+                "active": true,
+                "withdraw": null,
+                "deposit": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.35,
                         "max": 10000000
                     }
                 },
@@ -1014,10 +1343,12 @@
                     "contract_address": null,
                     "crypto_address_link": "https://bithomp.com/explorer/{{address}}",
                     "crypto_transaction_link": "https://bithomp.com/explorer/{{txId}}",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "0.35",
                     "max_withdrawal_amount": "10000000",
                     "network_confirmations": "0",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": "^\\d{1,10}$",
+                    "is_evm_network": false
                 }
             }
         },
@@ -1027,7 +1358,7 @@
                 "max": null
             },
             "withdraw": {
-                "min": 1,
+                "min": 0.35,
                 "max": 10000000
             },
             "deposit": {
@@ -1045,15 +1376,18 @@
             "message": "",
             "max_precision": "0.000001",
             "convertible_to": [
-                "USD"
+                "USD",
+                "USDF",
+                "USDSL",
+                "ONED"
             ],
             "details": {
                 "type": "crypto",
                 "symbol": null,
                 "network_confirmations": "14",
                 "sort_order": "0",
-                "crypto_address_link": "https://etherscan.io/token/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48?a={{address}}",
-                "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+                "crypto_address_link": "https://etherscan.io/address/{{address}}",
+                "crypto_transaction_link": "https://etherscan.io/tx/{{txId}}",
                 "push_payment_methods": [],
                 "group_types": [],
                 "display_name": null,
@@ -1073,7 +1407,9 @@
                     "min_withdrawal_amount": "1",
                     "max_withdrawal_amount": "100000000",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": false
                 },
                 {
                     "id": "aptos",
@@ -1082,10 +1418,12 @@
                     "contract_address": "",
                     "crypto_address_link": "https://explorer.aptoslabs.com/account/{{address}}",
                     "crypto_transaction_link": "https://explorer.aptoslabs.com/txn/0x{{txId}}",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "0.01",
                     "max_withdrawal_amount": "5000000",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": false
                 },
                 {
                     "id": "arbitrum",
@@ -1094,10 +1432,12 @@
                     "contract_address": "",
                     "crypto_address_link": "https://arbiscan.io/address/{{address}}",
                     "crypto_transaction_link": "https://arbiscan.io/tx/{{txId}}",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "0.01",
                     "max_withdrawal_amount": "5000000",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 },
                 {
                     "id": "avacchain",
@@ -1107,9 +1447,11 @@
                     "crypto_address_link": "https://cchain.explorer.avax.network/address/{{address}}/transactions",
                     "crypto_transaction_link": "https://cchain.explorer.avax.network/tx/{{txId}}/token-transfers",
                     "min_withdrawal_amount": "1",
-                    "max_withdrawal_amount": "500000",
+                    "max_withdrawal_amount": "3500000",
                     "network_confirmations": "1",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 },
                 {
                     "id": "base",
@@ -1118,22 +1460,54 @@
                     "contract_address": "",
                     "crypto_address_link": "https://basescan.org/address/{{address}}",
                     "crypto_transaction_link": "https://basescan.org/tx/{{txId}}",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "0.01",
                     "max_withdrawal_amount": "15000000",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 },
                 {
                     "id": "ethereum",
                     "name": "Ethereum",
                     "status": "online",
                     "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-                    "crypto_address_link": "https://etherscan.io/token/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48?a={{address}}",
-                    "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+                    "crypto_address_link": "https://etherscan.io/address/{{address}}",
+                    "crypto_transaction_link": "https://etherscan.io/tx/{{txId}}",
                     "min_withdrawal_amount": "1",
                     "max_withdrawal_amount": "100000000",
                     "network_confirmations": "14",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
+                },
+                {
+                    "id": "hyperliquid",
+                    "name": "HyperEVM",
+                    "status": "online",
+                    "contract_address": "",
+                    "crypto_address_link": "https://www.hyperscan.com/address/{{address}}",
+                    "crypto_transaction_link": "https://www.hyperscan.com/tx/{{txId}}",
+                    "min_withdrawal_amount": "1",
+                    "max_withdrawal_amount": "10000000",
+                    "network_confirmations": null,
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
+                },
+                {
+                    "id": "monad",
+                    "name": "Monad",
+                    "status": "online",
+                    "contract_address": "",
+                    "crypto_address_link": "https://monadexplorer.com/address/{{address}}",
+                    "crypto_transaction_link": "https://monadexplorer.com/tx/{{txId}}",
+                    "min_withdrawal_amount": "0.01",
+                    "max_withdrawal_amount": "5000000",
+                    "network_confirmations": null,
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 },
                 {
                     "id": "noble",
@@ -1142,10 +1516,12 @@
                     "contract_address": "",
                     "crypto_address_link": "https://www.mintscan.io/noble/address/{{address}}",
                     "crypto_transaction_link": "https://www.mintscan.io/noble/tx/{{txId}}",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "0.01",
                     "max_withdrawal_amount": "2000000",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": "^.{1,256}$",
+                    "is_evm_network": false
                 },
                 {
                     "id": "optimism",
@@ -1154,10 +1530,12 @@
                     "contract_address": "",
                     "crypto_address_link": "https://optimistic.etherscan.io/token/0x7f5c764cbc14f9669b88837ca1490cca17c31607?a={{address}}",
                     "crypto_transaction_link": "https://optimistic.etherscan.io/tx/{{txId}}",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "0.01",
                     "max_withdrawal_amount": "1000000",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 },
                 {
                     "id": "polygon",
@@ -1169,7 +1547,9 @@
                     "min_withdrawal_amount": "1",
                     "max_withdrawal_amount": "5000000",
                     "network_confirmations": "128",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 },
                 {
                     "id": "solana",
@@ -1181,7 +1561,9 @@
                     "min_withdrawal_amount": "1",
                     "max_withdrawal_amount": "10000000",
                     "network_confirmations": "31",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": false
                 },
                 {
                     "id": "sui",
@@ -1190,10 +1572,12 @@
                     "contract_address": "",
                     "crypto_address_link": "https://explorer.sui.io/transaction/{{txId}}?network=mainnet",
                     "crypto_transaction_link": "https://explorer.sui.io/addresses/{{address}}?network=mainnet",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "0.01",
                     "max_withdrawal_amount": "5000000",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": false
                 },
                 {
                     "id": "unichain",
@@ -1202,10 +1586,12 @@
                     "contract_address": "",
                     "crypto_address_link": "https://uniscan.xyz/address/{{address}}",
                     "crypto_transaction_link": "https://uniscan.xyz/tx/{{txId}}",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "0.01",
                     "max_withdrawal_amount": "1000000",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             ],
             "display_name": "USDC"
@@ -1222,10 +1608,13 @@
         "fee": null,
         "fees": {},
         "networks": {
-            "ALGORAND": {
+            "ALGO": {
                 "id": "algorand",
                 "name": "Algorand",
+                "network": "ALGO",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
@@ -1245,18 +1634,23 @@
                     "min_withdrawal_amount": "1",
                     "max_withdrawal_amount": "100000000",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": false
                 }
             },
-            "APTOS": {
+            "APT": {
                 "id": "aptos",
                 "name": "Aptos",
+                "network": "APT",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
                     "withdraw": {
-                        "min": 1,
+                        "min": 0.01,
                         "max": 5000000
                     }
                 },
@@ -1268,21 +1662,26 @@
                     "contract_address": "",
                     "crypto_address_link": "https://explorer.aptoslabs.com/account/{{address}}",
                     "crypto_transaction_link": "https://explorer.aptoslabs.com/txn/0x{{txId}}",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "0.01",
                     "max_withdrawal_amount": "5000000",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": false
                 }
             },
-            "ARBITRUM": {
+            "ARBONE": {
                 "id": "arbitrum",
                 "name": "Arbitrum",
+                "network": "ARBONE",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
                     "withdraw": {
-                        "min": 1,
+                        "min": 0.01,
                         "max": 5000000
                     }
                 },
@@ -1294,22 +1693,27 @@
                     "contract_address": "",
                     "crypto_address_link": "https://arbiscan.io/address/{{address}}",
                     "crypto_transaction_link": "https://arbiscan.io/tx/{{txId}}",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "0.01",
                     "max_withdrawal_amount": "5000000",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             },
-            "AVACCHAIN": {
+            "AVAXC": {
                 "id": "avacchain",
                 "name": "Avalanche C-Chain",
+                "network": "AVAXC",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
                     "withdraw": {
                         "min": 1,
-                        "max": 500000
+                        "max": 3500000
                     }
                 },
                 "contract": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
@@ -1321,20 +1725,25 @@
                     "crypto_address_link": "https://cchain.explorer.avax.network/address/{{address}}/transactions",
                     "crypto_transaction_link": "https://cchain.explorer.avax.network/tx/{{txId}}/token-transfers",
                     "min_withdrawal_amount": "1",
-                    "max_withdrawal_amount": "500000",
+                    "max_withdrawal_amount": "3500000",
                     "network_confirmations": "1",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             },
             "BASE": {
                 "id": "base",
                 "name": "Base",
+                "network": "BASE",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
                     "withdraw": {
-                        "min": 1,
+                        "min": 0.01,
                         "max": 15000000
                     }
                 },
@@ -1346,16 +1755,21 @@
                     "contract_address": "",
                     "crypto_address_link": "https://basescan.org/address/{{address}}",
                     "crypto_transaction_link": "https://basescan.org/tx/{{txId}}",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "0.01",
                     "max_withdrawal_amount": "15000000",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             },
-            "ETHEREUM": {
+            "ERC20": {
                 "id": "ethereum",
                 "name": "Ethereum",
+                "network": "ERC20",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
@@ -1370,23 +1784,90 @@
                     "name": "Ethereum",
                     "status": "online",
                     "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-                    "crypto_address_link": "https://etherscan.io/token/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48?a={{address}}",
-                    "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+                    "crypto_address_link": "https://etherscan.io/address/{{address}}",
+                    "crypto_transaction_link": "https://etherscan.io/tx/{{txId}}",
                     "min_withdrawal_amount": "1",
                     "max_withdrawal_amount": "100000000",
                     "network_confirmations": "14",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             },
-            "NOBLE": {
-                "id": "noble",
-                "name": "Noble",
+            "hyperliquid": {
+                "id": "hyperliquid",
+                "name": "HyperEVM",
+                "network": "hyperliquid",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
                     "withdraw": {
                         "min": 1,
+                        "max": 10000000
+                    }
+                },
+                "contract": null,
+                "info": {
+                    "id": "hyperliquid",
+                    "name": "HyperEVM",
+                    "status": "online",
+                    "contract_address": "",
+                    "crypto_address_link": "https://www.hyperscan.com/address/{{address}}",
+                    "crypto_transaction_link": "https://www.hyperscan.com/tx/{{txId}}",
+                    "min_withdrawal_amount": "1",
+                    "max_withdrawal_amount": "10000000",
+                    "network_confirmations": null,
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
+                }
+            },
+            "monad": {
+                "id": "monad",
+                "name": "Monad",
+                "network": "monad",
+                "active": true,
+                "withdraw": null,
+                "deposit": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.01,
+                        "max": 5000000
+                    }
+                },
+                "contract": null,
+                "info": {
+                    "id": "monad",
+                    "name": "Monad",
+                    "status": "online",
+                    "contract_address": "",
+                    "crypto_address_link": "https://monadexplorer.com/address/{{address}}",
+                    "crypto_transaction_link": "https://monadexplorer.com/tx/{{txId}}",
+                    "min_withdrawal_amount": "0.01",
+                    "max_withdrawal_amount": "5000000",
+                    "network_confirmations": null,
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
+                }
+            },
+            "noble": {
+                "id": "noble",
+                "name": "Noble",
+                "network": "noble",
+                "active": true,
+                "withdraw": null,
+                "deposit": null,
+                "fee": null,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.01,
                         "max": 2000000
                     }
                 },
@@ -1398,21 +1879,26 @@
                     "contract_address": "",
                     "crypto_address_link": "https://www.mintscan.io/noble/address/{{address}}",
                     "crypto_transaction_link": "https://www.mintscan.io/noble/tx/{{txId}}",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "0.01",
                     "max_withdrawal_amount": "2000000",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": "^.{1,256}$",
+                    "is_evm_network": false
                 }
             },
-            "OPTIMISM": {
+            "OP": {
                 "id": "optimism",
                 "name": "Optimism",
+                "network": "OP",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
                     "withdraw": {
-                        "min": 1,
+                        "min": 0.01,
                         "max": 1000000
                     }
                 },
@@ -1424,16 +1910,21 @@
                     "contract_address": "",
                     "crypto_address_link": "https://optimistic.etherscan.io/token/0x7f5c764cbc14f9669b88837ca1490cca17c31607?a={{address}}",
                     "crypto_transaction_link": "https://optimistic.etherscan.io/tx/{{txId}}",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "0.01",
                     "max_withdrawal_amount": "1000000",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             },
-            "POLYGON": {
+            "MATIC": {
                 "id": "polygon",
                 "name": "Polygon",
+                "network": "MATIC",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
@@ -1453,13 +1944,18 @@
                     "min_withdrawal_amount": "1",
                     "max_withdrawal_amount": "5000000",
                     "network_confirmations": "128",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             },
-            "SOLANA": {
+            "SOL": {
                 "id": "solana",
                 "name": "Solana",
+                "network": "SOL",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
@@ -1479,18 +1975,23 @@
                     "min_withdrawal_amount": "1",
                     "max_withdrawal_amount": "10000000",
                     "network_confirmations": "31",
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": false
                 }
             },
             "SUI": {
                 "id": "sui",
                 "name": "Sui",
+                "network": "SUI",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
                     "withdraw": {
-                        "min": 1,
+                        "min": 0.01,
                         "max": 5000000
                     }
                 },
@@ -1502,21 +2003,26 @@
                     "contract_address": "",
                     "crypto_address_link": "https://explorer.sui.io/transaction/{{txId}}?network=mainnet",
                     "crypto_transaction_link": "https://explorer.sui.io/addresses/{{address}}?network=mainnet",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "0.01",
                     "max_withdrawal_amount": "5000000",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": false
                 }
             },
-            "UNICHAIN": {
+            "unichain": {
                 "id": "unichain",
                 "name": "Unichain",
+                "network": "unichain",
                 "active": true,
+                "withdraw": null,
+                "deposit": null,
                 "fee": null,
                 "precision": null,
                 "limits": {
                     "withdraw": {
-                        "min": 1,
+                        "min": 0.01,
                         "max": 1000000
                     }
                 },
@@ -1528,10 +2034,12 @@
                     "contract_address": "",
                     "crypto_address_link": "https://uniscan.xyz/address/{{address}}",
                     "crypto_transaction_link": "https://uniscan.xyz/tx/{{txId}}",
-                    "min_withdrawal_amount": "1",
+                    "min_withdrawal_amount": "0.01",
                     "max_withdrawal_amount": "1000000",
                     "network_confirmations": null,
-                    "processing_time_seconds": null
+                    "processing_time_seconds": null,
+                    "destination_tag_regex": null,
+                    "is_evm_network": true
                 }
             }
         },
@@ -1541,7 +2049,7 @@
                 "max": null
             },
             "withdraw": {
-                "min": 1,
+                "min": 0.01,
                 "max": 100000000
             },
             "deposit": {

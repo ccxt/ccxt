@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Any, Int, OrderBook, Trade
+from ccxt.base.types import Any, Int, Market, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import NotSupported
@@ -53,7 +53,8 @@ class independentreserve(ccxt.async_support.independentreserve):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         url = self.urls['api']['ws'] + '?subscribe=ticker-' + market['base'] + '-' + market['quote']
@@ -94,7 +95,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         #    {
         #        "TradeGuid": "2f316718-0d0b-4e33-a30c-c2c06f3cfb34",
@@ -131,9 +132,10 @@ class independentreserve(ccxt.async_support.independentreserve):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         if limit is None:
@@ -141,7 +143,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         limitString = self.number_to_string(limit)
         url = self.urls['api']['ws'] + '/orderbook/' + limitString + '?subscribe=' + market['base'] + '-' + market['quote']
         messageHash = 'orderbook:' + symbol + ':' + limitString
-        subscription: dict = {
+        subscription = {
             'receivedSnapshot': False,
         }
         orderbook = await self.watch(url, messageHash, None, messageHash, subscription)
@@ -172,6 +174,8 @@ class independentreserve(ccxt.async_support.independentreserve):
         #
         event = self.safe_string(message, 'Event')
         channel = self.safe_string(message, 'Channel')
+        if channel is None:
+            return
         parts = channel.split('/')
         depth = self.safe_string(parts, 1)
         baseId = self.safe_string(parts, 2)
@@ -232,7 +236,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         return result
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta, 'Price', 'Volume')
+        bidAsk = self.parse_order_book_bid_ask(delta, 'Price', 'Volume')
         bookside.storeArray(bidAsk)
 
     def handle_deltas(self, bookside, deltas):
@@ -260,14 +264,14 @@ class independentreserve(ccxt.async_support.independentreserve):
 
     def handle_message(self, client: Client, message):
         event = self.safe_string(message, 'Event')
-        handlers: dict = {
+        handlers = {
             'Subscriptions': self.handle_subscriptions,
             'Heartbeat': self.handle_heartbeat,
             'Trade': self.handle_trades,
             'OrderBookSnapshot': self.handle_order_book,
             'OrderBookChange': self.handle_order_book,
         }
-        handler = self.safe_value(handlers, event)
+        handler = None if (event is None) else self.safe_value(handlers, event)
         if handler is not None:
             handler(client, message)
             return

@@ -26,6 +26,7 @@ interface Exchange {
     v4PublicGetAssets(params?: {}): Promise<implicitReturnType>;
     v4PublicGetCollateralMarkets(params?: {}): Promise<implicitReturnType>;
     v4PublicGetFee(params?: {}): Promise<implicitReturnType>;
+    v4PublicGetFundingHistoryMarket(params?: {}): Promise<implicitReturnType>;
     v4PublicGetOrderbookDepthMarket(params?: {}): Promise<implicitReturnType>;
     v4PublicGetOrderbookMarket(params?: {}): Promise<implicitReturnType>;
     v4PublicGetTicker(params?: {}): Promise<implicitReturnType>;

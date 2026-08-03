@@ -3,6 +3,590 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchMarkets": [
+            {
+                "description": "default",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": [
+                    [
+                        [
+                            "AAVE:USD",
+                            [
+                                null,
+                                null,
+                                null,
+                                "0.02",
+                                "5000.0",
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null
+                            ]
+                        ],
+                        [
+                            "AAVE:UST",
+                            [
+                                null,
+                                null,
+                                null,
+                                "0.02",
+                                "5000.0",
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null
+                            ]
+                        ],
+                        [
+                            "ADABTC",
+                            [
+                                null,
+                                null,
+                                null,
+                                "4.0",
+                                "250000.0",
+                                null,
+                                null,
+                                null,
+                                0.3,
+                                0.15,
+                                null,
+                                null
+                            ]
+                        ],
+                        [
+                            "ADAUSD",
+                            [
+                                null,
+                                null,
+                                null,
+                                "4.0",
+                                "250000.0",
+                                null,
+                                null,
+                                null,
+                                0.3,
+                                0.15,
+                                null,
+                                null
+                            ]
+                        ]
+                    ],
+                    [
+                        [
+                            "AAVEF0:USTF0",
+                            [
+                                null,
+                                null,
+                                null,
+                                "0.02",
+                                "5000.0",
+                                null,
+                                null,
+                                null,
+                                0.01,
+                                0.005
+                            ]
+                        ],
+                        [
+                            "UKOILF0:USTF0",
+                            [
+                                null,
+                                null,
+                                null,
+                                "0.02",
+                                "10000.0",
+                                null,
+                                null,
+                                null,
+                                0.01,
+                                0.005
+                            ]
+                        ]
+                    ],
+                    [
+                        "ALT2612:USD",
+                        "ALT2612:UST",
+                        "BMN2:BTC",
+                        "BMN2:USD",
+                        "TITAN1:GBP",
+                        "TITAN1:USD",
+                        "TITAN2:GBP",
+                        "TITAN2:USD",
+                        "USTBL:USD",
+                        "USTBL:UST"
+                    ],
+                    [
+                        "ADABTC",
+                        "ADAUSD",
+                        "ADAUST",
+                        "ALGUSD",
+                        "APTUSD",
+                        "APTUST",
+                        "ATOUSD",
+                        "ATOUST",
+                        "AVAX:BTC",
+                        "AVAX:USD",
+                        "AVAX:UST",
+                        "BCHN:USD",
+                        "BTCEUR",
+                        "BTCGBP",
+                        "BTCUSD",
+                        "BTCUST",
+                        "DOGE:BTC",
+                        "DOGE:USD",
+                        "DOGE:UST",
+                        "DOTUSD",
+                        "DOTUST",
+                        "DSHBTC",
+                        "DSHUSD",
+                        "ETCBTC",
+                        "ETCUSD",
+                        "ETCUST",
+                        "ETHBTC",
+                        "ETHEUR",
+                        "ETHGBP",
+                        "ETHUSD",
+                        "ETHUST",
+                        "FILUSD",
+                        "FILUST",
+                        "IOTUSD",
+                        "LEOUSD",
+                        "LEOUST",
+                        "LINK:USD",
+                        "LINK:UST",
+                        "LTCBTC",
+                        "LTCUSD",
+                        "LTCUST",
+                        "NEOUSD",
+                        "NEOUST",
+                        "SHIB:USD",
+                        "SHIB:UST",
+                        "SOLBTC",
+                        "SOLUSD",
+                        "SOLUST",
+                        "SUIUSD",
+                        "SUIUST",
+                        "TESTADA:TESTUSD",
+                        "TESTALGO:TESTUSD",
+                        "TESTAPT:TESTUSD",
+                        "TESTAVAX:TESTUSD",
+                        "TESTBTC:TESTUSD",
+                        "TESTBTC:TESTUSDT",
+                        "TESTDOGE:TESTUSD",
+                        "TESTDOT:TESTUSD",
+                        "TESTETH:TESTUSD",
+                        "TESTFIL:TESTUSD",
+                        "TESTLTC:TESTUSD",
+                        "TESTNEAR:TESTUSD",
+                        "TESTSOL:TESTUSD",
+                        "TESTXAUT:TESTUSD",
+                        "TRXUSD",
+                        "TRXUST",
+                        "UNIUSD",
+                        "UNIUST",
+                        "USTUSD",
+                        "XAUT:BTC",
+                        "XAUT:USD",
+                        "XAUT:UST",
+                        "XLMBTC",
+                        "XLMUSD",
+                        "XLMUST",
+                        "XMRBTC",
+                        "XMRUSD",
+                        "XMRUST",
+                        "XRPBTC",
+                        "XRPUSD",
+                        "XRPUST",
+                        "ZECBTC",
+                        "ZECUSD"
+                    ]
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "tAAVE:USD",
+                        "symbol": "AAVE/USD",
+                        "base": "AAVE",
+                        "quote": "USD",
+                        "settle": null,
+                        "baseId": "AAVE",
+                        "quoteId": "USD",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "tradfi": false,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 8,
+                            "price": 5
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0.02,
+                                "max": 5000
+                            },
+                            "price": {
+                                "min": 1e-8,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": [
+                            null,
+                            null,
+                            null,
+                            "0.02",
+                            "5000.0",
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null
+                        ]
+                    },
+                    {
+                        "id": "tAAVE:UST",
+                        "symbol": "AAVE/USDT",
+                        "base": "AAVE",
+                        "quote": "USDT",
+                        "settle": null,
+                        "baseId": "AAVE",
+                        "quoteId": "UST",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "tradfi": false,
+                        "margin": false,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 8,
+                            "price": 5
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0.02,
+                                "max": 5000
+                            },
+                            "price": {
+                                "min": 1e-8,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": [
+                            null,
+                            null,
+                            null,
+                            "0.02",
+                            "5000.0",
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null
+                        ]
+                    },
+                    {
+                        "id": "tADABTC",
+                        "symbol": "ADA/BTC",
+                        "base": "ADA",
+                        "quote": "BTC",
+                        "settle": null,
+                        "baseId": "ADA",
+                        "quoteId": "BTC",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "tradfi": false,
+                        "margin": true,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 8,
+                            "price": 5
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 4,
+                                "max": 250000
+                            },
+                            "price": {
+                                "min": 1e-8,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": [
+                            null,
+                            null,
+                            null,
+                            "4.0",
+                            "250000.0",
+                            null,
+                            null,
+                            null,
+                            0.3,
+                            0.15,
+                            null,
+                            null
+                        ]
+                    },
+                    {
+                        "id": "tADAUSD",
+                        "symbol": "ADA/USD",
+                        "base": "ADA",
+                        "quote": "USD",
+                        "settle": null,
+                        "baseId": "ADA",
+                        "quoteId": "USD",
+                        "settleId": null,
+                        "type": "spot",
+                        "spot": true,
+                        "tradfi": false,
+                        "margin": true,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": false,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 8,
+                            "price": 5
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 4,
+                                "max": 250000
+                            },
+                            "price": {
+                                "min": 1e-8,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": [
+                            null,
+                            null,
+                            null,
+                            "4.0",
+                            "250000.0",
+                            null,
+                            null,
+                            null,
+                            0.3,
+                            0.15,
+                            null,
+                            null
+                        ]
+                    },
+                    {
+                        "id": "tAAVEF0:USTF0",
+                        "symbol": "AAVE/USDT:USDT",
+                        "base": "AAVE",
+                        "quote": "USDT",
+                        "settle": "USDT",
+                        "baseId": "AAVEF0",
+                        "quoteId": "USTF0",
+                        "settleId": "USDT",
+                        "type": "swap",
+                        "spot": false,
+                        "tradfi": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 8,
+                            "price": 5
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0.02,
+                                "max": 5000
+                            },
+                            "price": {
+                                "min": 1e-8,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": [
+                            null,
+                            null,
+                            null,
+                            "0.02",
+                            "5000.0",
+                            null,
+                            null,
+                            null,
+                            0.01,
+                            0.005
+                        ]
+                    },
+                    {
+                        "id": "tUKOILF0:USTF0",
+                        "symbol": "UKOIL/USDT:USDT",
+                        "base": "UKOIL",
+                        "quote": "USDT",
+                        "settle": "USDT",
+                        "baseId": "UKOILF0",
+                        "quoteId": "USTF0",
+                        "settleId": "USDT",
+                        "type": "swap",
+                        "spot": false,
+                        "tradfi": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 8,
+                            "price": 5
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0.02,
+                                "max": 10000
+                            },
+                            "price": {
+                                "min": 1e-8,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": [
+                            null,
+                            null,
+                            null,
+                            "0.02",
+                            "10000.0",
+                            null,
+                            null,
+                            null,
+                            0.01,
+                            0.005
+                        ]
+                    }
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "createOrder",

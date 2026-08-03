@@ -149,6 +149,7 @@ class ImplicitAPI:
     private_inverse_post_future_user_v1_position_margin = privateInversePostFutureUserV1PositionMargin = Entry('future/user/v1/position/margin', ['private', 'inverse'], 'POST', {'cost': 1})
     private_inverse_post_future_user_v1_user_collection_add = privateInversePostFutureUserV1UserCollectionAdd = Entry('future/user/v1/user/collection/add', ['private', 'inverse'], 'POST', {'cost': 1})
     private_inverse_post_future_user_v1_user_collection_cancel = privateInversePostFutureUserV1UserCollectionCancel = Entry('future/user/v1/user/collection/cancel', ['private', 'inverse'], 'POST', {'cost': 1})
+    private_inverse_post_future_user_v1_position_change_type = privateInversePostFutureUserV1PositionChangeType = Entry('future/user/v1/position/change-type', ['private', 'inverse'], 'POST', {'cost': 1})
     private_user_get_user_account = privateUserGetUserAccount = Entry('user/account', ['private', 'user'], 'GET', {'cost': 1})
     private_user_get_user_account_api_key = privateUserGetUserAccountApiKey = Entry('user/account/api-key', ['private', 'user'], 'GET', {'cost': 1})
     private_user_post_user_account = privateUserPostUserAccount = Entry('user/account', ['private', 'user'], 'POST', {'cost': 1})

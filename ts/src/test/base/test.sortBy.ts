@@ -4,7 +4,7 @@
 import ccxt from '../../../ccxt.js';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
-function testSortBy () {
+function testSortBy1 () {
     // todo: other argument checks
 
     const exchange = new ccxt.Exchange ({
@@ -35,6 +35,98 @@ function testSortBy () {
 
     const emptyArray = exchange.sortBy ([], 'x');
     testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy', emptyArray, []);
+}
+
+function testSortBy2 () {
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+    });
+
+    // sort ascending by key1, then key2 (key1 values are all distinct here)
+    const arr = [
+        { 'x': 3, 'y': 1 },
+        { 'x': 1, 'y': 2 },
+        { 'x': 2, 'y': 3 },
+        { 'x': 0, 'y': 4 },
+    ];
+    const sorted = exchange.sortBy2 (arr, 'x', 'y');
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy2', sorted, [
+        { 'x': 0, 'y': 4 },
+        { 'x': 1, 'y': 2 },
+        { 'x': 2, 'y': 3 },
+        { 'x': 3, 'y': 1 },
+    ]);
+
+    // sort descending by key1
+    const arr2 = [
+        { 'x': 3, 'y': 1 },
+        { 'x': 1, 'y': 2 },
+        { 'x': 2, 'y': 3 },
+        { 'x': 0, 'y': 4 },
+    ];
+    const sortedDescending = exchange.sortBy2 (arr2, 'x', 'y', true);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy2', sortedDescending, [
+        { 'x': 3, 'y': 1 },
+        { 'x': 2, 'y': 3 },
+        { 'x': 1, 'y': 2 },
+        { 'x': 0, 'y': 4 },
+    ]);
+
+    // when key1 values are equal, sort by key2 ascending
+    const arr3 = [
+        { 'x': 1, 'y': 5 },
+        { 'x': 1, 'y': 2 },
+        { 'x': 1, 'y': 9 },
+        { 'x': 1, 'y': 1 },
+    ];
+    const sortedByKey2 = exchange.sortBy2 (arr3, 'x', 'y');
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy2', sortedByKey2, [
+        { 'x': 1, 'y': 1 },
+        { 'x': 1, 'y': 2 },
+        { 'x': 1, 'y': 5 },
+        { 'x': 1, 'y': 9 },
+    ]);
+
+    // when key1 values are equal, sort by key2 descending
+    const arr4 = [
+        { 'x': 1, 'y': 5 },
+        { 'x': 1, 'y': 2 },
+        { 'x': 1, 'y': 9 },
+        { 'x': 1, 'y': 1 },
+    ];
+    const sortedByKey2Descending = exchange.sortBy2 (arr4, 'x', 'y', true);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy2', sortedByKey2Descending, [
+        { 'x': 1, 'y': 9 },
+        { 'x': 1, 'y': 5 },
+        { 'x': 1, 'y': 2 },
+        { 'x': 1, 'y': 1 },
+    ]);
+
+    // mixed: sort by key1 first, then key2 as tiebreaker
+    const arr5 = [
+        { 'x': 2, 'y': 3 },
+        { 'x': 1, 'y': 5 },
+        { 'x': 2, 'y': 1 },
+        { 'x': 1, 'y': 2 },
+        { 'x': 2, 'y': 2 },
+    ];
+    const sortedMixed = exchange.sortBy2 (arr5, 'x', 'y');
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy2', sortedMixed, [
+        { 'x': 1, 'y': 2 },
+        { 'x': 1, 'y': 5 },
+        { 'x': 2, 'y': 1 },
+        { 'x': 2, 'y': 2 },
+        { 'x': 2, 'y': 3 },
+    ]);
+
+    // empty array
+    const emptyArray = exchange.sortBy2 ([], 'x', 'y');
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'sortBy2', emptyArray, []);
+}
+
+function testSortBy () {
+    testSortBy1 ();
+    testSortBy2 ();
 }
 
 export default testSortBy;

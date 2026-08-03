@@ -306,6 +306,12 @@ public partial class derive
     /// See <see href="https://docs.derive.xyz/reference/post_private-cancel-all"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint

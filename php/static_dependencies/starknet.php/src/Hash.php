@@ -35,6 +35,11 @@ class Hash
         return Utils::removeLeadingZero(Utils::keccak($name));
     }
 
+    public static function computePoseidonHashOnElements($data)
+    {
+        return '0x' . Utils::removeLeadingZero(Poseidon::hashMany($data)->toHex());
+    }
+
     /**
      * computeAddress
      * 

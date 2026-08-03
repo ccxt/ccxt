@@ -1,3 +1,2 @@
-import { Exchange } from "../../../ccxt.js";
-declare function testSetMarketsFromExchange(exchange: Exchange): Promise<void>;
+declare function testSetMarketsFromExchange(): Promise<void>;
 export default testSetMarketsFromExchange;

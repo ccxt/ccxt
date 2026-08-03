@@ -21,7 +21,7 @@ async def test_watch_my_trades(exchange, skipped_properties, symbol):
     ends = now + 15000
     while now < ends:
         success = True
-        response = None
+        response = []
         try:
             response = await exchange.watch_my_trades(symbol)
         except Exception as e:

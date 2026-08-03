@@ -1,5 +1,4 @@
 import ccxt from '../../js/ccxt.js';
-// AUTO-TRANSPILE //
 async function example() {
     const binance = new ccxt.pro.binance({});
     const symbol = 'BTC/USDT';

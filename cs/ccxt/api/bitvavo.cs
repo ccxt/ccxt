@@ -11,6 +11,46 @@ public partial class bitvavo : Exchange
 {
     public bitvavo (object args = null): base(args) {}
 
+    public async Task<object> publicGetMarketBook (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarketBook",parameters);
+    }
+
+    public async Task<object> publicGetReportMarketBook (object parameters = null)
+    {
+        return await this.callAsync ("publicGetReportMarketBook",parameters);
+    }
+
+    public async Task<object> publicGetMarketTrades (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarketTrades",parameters);
+    }
+
+    public async Task<object> publicGetReportMarketTrades (object parameters = null)
+    {
+        return await this.callAsync ("publicGetReportMarketTrades",parameters);
+    }
+
+    public async Task<object> publicGetTickerPrice (object parameters = null)
+    {
+        return await this.callAsync ("publicGetTickerPrice",parameters);
+    }
+
+    public async Task<object> publicGetTickerBook (object parameters = null)
+    {
+        return await this.callAsync ("publicGetTickerBook",parameters);
+    }
+
+    public async Task<object> publicGetMarketCandles (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarketCandles",parameters);
+    }
+
+    public async Task<object> publicGetTicker24h (object parameters = null)
+    {
+        return await this.callAsync ("publicGetTicker24h",parameters);
+    }
+
     public async Task<object> publicGetTime (object parameters = null)
     {
         return await this.callAsync ("publicGetTime",parameters);
@@ -26,49 +66,9 @@ public partial class bitvavo : Exchange
         return await this.callAsync ("publicGetAssets",parameters);
     }
 
-    public async Task<object> publicGetMarketBook (object parameters = null)
-    {
-        return await this.callAsync ("publicGetMarketBook",parameters);
-    }
-
-    public async Task<object> publicGetMarketTrades (object parameters = null)
-    {
-        return await this.callAsync ("publicGetMarketTrades",parameters);
-    }
-
-    public async Task<object> publicGetMarketCandles (object parameters = null)
-    {
-        return await this.callAsync ("publicGetMarketCandles",parameters);
-    }
-
-    public async Task<object> publicGetTickerPrice (object parameters = null)
-    {
-        return await this.callAsync ("publicGetTickerPrice",parameters);
-    }
-
-    public async Task<object> publicGetTickerBook (object parameters = null)
-    {
-        return await this.callAsync ("publicGetTickerBook",parameters);
-    }
-
-    public async Task<object> publicGetTicker24h (object parameters = null)
-    {
-        return await this.callAsync ("publicGetTicker24h",parameters);
-    }
-
-    public async Task<object> privateGetAccount (object parameters = null)
-    {
-        return await this.callAsync ("privateGetAccount",parameters);
-    }
-
     public async Task<object> privateGetOrder (object parameters = null)
     {
         return await this.callAsync ("privateGetOrder",parameters);
-    }
-
-    public async Task<object> privateGetOrders (object parameters = null)
-    {
-        return await this.callAsync ("privateGetOrders",parameters);
     }
 
     public async Task<object> privateGetOrdersOpen (object parameters = null)
@@ -81,9 +81,9 @@ public partial class bitvavo : Exchange
         return await this.callAsync ("privateGetTrades",parameters);
     }
 
-    public async Task<object> privateGetBalance (object parameters = null)
+    public async Task<object> privateGetOrders (object parameters = null)
     {
-        return await this.callAsync ("privateGetBalance",parameters);
+        return await this.callAsync ("privateGetOrders",parameters);
     }
 
     public async Task<object> privateGetDeposit (object parameters = null)
@@ -99,6 +99,31 @@ public partial class bitvavo : Exchange
     public async Task<object> privateGetWithdrawalHistory (object parameters = null)
     {
         return await this.callAsync ("privateGetWithdrawalHistory",parameters);
+    }
+
+    public async Task<object> privateGetAccount (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccount",parameters);
+    }
+
+    public async Task<object> privateGetBalance (object parameters = null)
+    {
+        return await this.callAsync ("privateGetBalance",parameters);
+    }
+
+    public async Task<object> privateGetStakingBalance (object parameters = null)
+    {
+        return await this.callAsync ("privateGetStakingBalance",parameters);
+    }
+
+    public async Task<object> privateGetAccountFees (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountFees",parameters);
+    }
+
+    public async Task<object> privateGetAccountHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountHistory",parameters);
     }
 
     public async Task<object> privateGetSubaccounts (object parameters = null)
@@ -136,9 +161,19 @@ public partial class bitvavo : Exchange
         return await this.callAsync ("privatePostOrder",parameters);
     }
 
+    public async Task<object> privatePostCancelOrdersAfter (object parameters = null)
+    {
+        return await this.callAsync ("privatePostCancelOrdersAfter",parameters);
+    }
+
     public async Task<object> privatePostWithdrawal (object parameters = null)
     {
         return await this.callAsync ("privatePostWithdrawal",parameters);
+    }
+
+    public async Task<object> privatePostCryptoWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostCryptoWithdrawal",parameters);
     }
 
     public async Task<object> privatePostSubaccounts (object parameters = null)
@@ -164,6 +199,11 @@ public partial class bitvavo : Exchange
     public async Task<object> privateDeleteOrders (object parameters = null)
     {
         return await this.callAsync ("privateDeleteOrders",parameters);
+    }
+
+    public async Task<object> privateDeleteAtomicOrders (object parameters = null)
+    {
+        return await this.callAsync ("privateDeleteAtomicOrders",parameters);
     }
 
     public async Task<object> privateDeleteInstitutionalSubaccountsOrder (object parameters = null)

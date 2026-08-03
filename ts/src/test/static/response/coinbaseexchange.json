@@ -182,10 +182,10 @@
                                     "processing_time_seconds": null
                                 }
                             },
-                            "ETH": {
+                            "ERC20": {
                                 "id": "ethereum",
                                 "name": "Ethereum",
-                                "network": "ETH",
+                                "network": "ERC20",
                                 "active": true,
                                 "withdraw": null,
                                 "deposit": null,

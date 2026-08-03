@@ -16,7 +16,7 @@ public partial class testMainClass : BaseTest
         while (isLessThan(now, ends))
         {
             object success = true;
-            object response = null;
+            object response = new List<object>() {};
             try
             {
                 response = await exchange.watchMyTrades(symbol);

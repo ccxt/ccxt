@@ -11,12 +11,14 @@ use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\InvalidNonce;
-use ccxt\ChecksumError;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class okx extends \ccxt\async\okx {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -116,8 +118,11 @@ class okx extends \ccxt\async\okx {
         ));
     }
 
-    public function get_url(string $channel, $access = 'public') {
+    public function get_url(?string $channel, $access = 'public') {
         // for context => https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-$url
+        if ($channel === null) {
+            throw new ArgumentsRequired($this->id . ' getUrl() requires a $channel argument');
+        }
         $isSandbox = $this->options['sandboxMode'];
         $sandboxSuffix = $isSandbox ? '?brokerId=9999' : '';
         $isBusiness = ($access === 'business');
@@ -131,9 +136,11 @@ class okx extends \ccxt\async\okx {
         return $url . '/private' . $sandboxSuffix;
     }
 
-    public function subscribe_multiple($access, $channel, ?array $symbols = null, $params = array ()) {
+    public function subscribe_multiple($access, $channel, ?array $symbols = null, $params = array()) {
         return Async\async(function () use ($access, $channel, $symbols, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbols === null) {
                 $symbols = $this->symbols;
             }
@@ -141,13 +148,22 @@ class okx extends \ccxt\async\okx {
             $url = $this->get_url($channel, $access);
             $messageHashes = array();
             $args = array();
+            if ($symbols === null) {
+                throw new ArgumentsRequired($this->id . ' subscribeMultiple() $symbols is required');
+            }
             for ($i = 0; $i < count($symbols); $i++) {
+                if ($symbols === null) {
+                    throw new ArgumentsRequired($this->id . ' subscribeMultiple() $symbols is required');
+                }
                 $marketId = $this->market_id($symbols[$i]);
                 $arg = array(
                     'channel' => $channel,
                     'instId' => $marketId,
                 );
                 $args[] = $this->extend($arg, $params);
+                if ($symbols === null) {
+                    throw new ArgumentsRequired($this->id . ' subscribeMultiple() $symbols is required');
+                }
                 $messageHashes[] = $channel . '::' . $symbols[$i];
             }
             $request = array(
@@ -155,12 +171,14 @@ class okx extends \ccxt\async\okx {
                 'args' => $args,
             );
             return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
-        }) ();
+        })();
     }
 
-    public function subscribe($access, $messageHash, $channel, $symbol, $params = array ()) {
+    public function subscribe($access, $messageHash, $channel, $symbol, $params = array()) {
         return Async\async(function () use ($access, $messageHash, $channel, $symbol, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->get_url($channel, $access);
             $firstArgument = array(
                 'channel' => $channel,
@@ -177,28 +195,26 @@ class okx extends \ccxt\async\okx {
                 ),
             );
             return Async\await($this->watch($url, $messageHash, $request, $messageHash));
-        }) ();
+        })();
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             *
-             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel
-             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-all-trades-channel
-             *
-             * get the list of most recent trades for a particular $symbol
-             * @param {string} $symbol unified $symbol of the market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        }) ();
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+        /**
+         *
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-trades-channel
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-all-trades-channel
+         *
+         * get the list of most recent trades for a particular $symbol
+         * @param {string} $symbol unified $symbol of the market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        return $this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params);
     }
 
-    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              *
@@ -217,7 +233,9 @@ class okx extends \ccxt\async\okx {
             if ($symbolsLength === 0) {
                 throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $channel = null;
             list($channel, $params) = $this->handle_option_and_params($params, 'watchTrades', 'channel', 'trades');
@@ -247,13 +265,13 @@ class okx extends \ccxt\async\okx {
             if ($this->newUpdates) {
                 $first = $this->safe_value($trades, 0);
                 $tradeSymbol = $this->safe_string($first, 'symbol');
-                $limit = $trades->getLimit ($tradeSymbol, $limit);
+                $limit = $trades->getLimit($tradeSymbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        })();
     }
 
-    public function un_watch_trades_for_symbols(array $symbols, $params = array ()): PromiseInterface {
+    public function un_watch_trades_for_symbols(array $symbols, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * unWatches from the stream $channel
@@ -262,7 +280,9 @@ class okx extends \ccxt\async\okx {
              * @param {string} [$params->channel] the $channel to subscribe to, trades by default. Can be trades, trades-all
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $channel = null;
             list($channel, $params) = $this->handle_option_and_params($params, 'watchTrades', 'channel', 'trades');
@@ -289,19 +309,17 @@ class okx extends \ccxt\async\okx {
             }
             $url = $this->get_url($channel, $access);
             return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
-        }) ();
+        })();
     }
 
-    public function un_watch_trades(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * unWatches from the stream channel
-             * @param {string} $symbol unified $symbol of the market to fetch trades for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
-        }) ();
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        /**
+         * unWatches from the stream channel
+         * @param {string} $symbol unified $symbol of the market to fetch trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        return $this->un_watch_trades_for_symbols(array( $symbol ), $params);
     }
 
     public function handle_trades(Client $client, $message) {
@@ -348,15 +366,15 @@ class okx extends \ccxt\async\okx {
             $messageHash = $channel . ':' . $symbol;
             $stored = $this->safe_value($this->trades, $symbol);
             if ($stored === null) {
-                $stored = new ArrayCache ($tradesLimit);
+                $stored = new ArrayCache($tradesLimit);
                 $this->trades[$symbol] = $stored;
             }
-            $stored->append ($trade);
-            $client->resolve ($stored, $messageHash);
+            $stored->append($trade);
+            $client->resolve($stored, $messageHash);
         }
     }
 
-    public function watch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_funding_rate(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watch the current funding rate
@@ -370,10 +388,10 @@ class okx extends \ccxt\async\okx {
             $symbol = $this->symbol($symbol);
             $fr = Async\await($this->watch_funding_rates(array( $symbol ), $params));
             return $fr[$symbol];
-        }) ();
+        })();
     }
 
-    public function watch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function watch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watch the funding rate for multiple markets
@@ -387,7 +405,9 @@ class okx extends \ccxt\async\okx {
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' watchFundingRates() requires an array of symbols');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $channel = 'funding-rate';
             $topics = array();
@@ -411,11 +431,13 @@ class okx extends \ccxt\async\okx {
             if ($this->newUpdates) {
                 $symbol = $this->safe_string($fundingRate, 'symbol');
                 $result = array();
-                $result[$symbol] = $fundingRate;
+                if ($symbol !== null) {
+                    $result[$symbol] = $fundingRate;
+                }
                 return $result;
             }
             return $this->filter_by_array($this->fundingRates, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
     public function handle_funding_rate(Client $client, $message) {
@@ -443,12 +465,14 @@ class okx extends \ccxt\async\okx {
             $rawfr = $data[$i];
             $fundingRate = $this->parse_funding_rate($rawfr);
             $symbol = $fundingRate['symbol'];
-            $this->fundingRates[$symbol] = $fundingRate;
-            $client->resolve ($fundingRate, 'funding-rate' . ':' . $fundingRate['symbol']);
+            if ($symbol !== null) {
+                $this->fundingRates[$symbol] = $fundingRate;
+            }
+            $client->resolve($fundingRate, 'funding-rate' . ':' . $fundingRate['symbol']);
         }
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -467,26 +491,24 @@ class okx extends \ccxt\async\okx {
             $symbol = $market['symbol'];
             $ticker = Async\await($this->watch_tickers(array( $symbol ), $params));
             return $this->safe_value($ticker, $symbol);
-        }) ();
+        })();
     }
 
-    public function un_watch_ticker(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
-             *
-             * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            return Async\await($this->un_watch_tickers(array( $symbol ), $params));
-        }) ();
+    public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
+        /**
+         *
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+         *
+         * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        return $this->un_watch_tickers(array( $symbol ), $params);
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
@@ -498,7 +520,9 @@ class okx extends \ccxt\async\okx {
              * @param {string} [$params->channel] the $channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $channel = null;
             list($channel, $params) = $this->handle_option_and_params($params, 'watchTickers', 'channel', 'tickers');
@@ -507,10 +531,10 @@ class okx extends \ccxt\async\okx {
                 return $newTickers;
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function watch_mark_price(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_mark_price(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -529,10 +553,10 @@ class okx extends \ccxt\async\okx {
             $symbol = $market['symbol'];
             $ticker = Async\await($this->watch_mark_prices(array( $symbol ), $params));
             return $ticker[$symbol];
-        }) ();
+        })();
     }
 
-    public function watch_mark_prices(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function watch_mark_prices(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
@@ -544,7 +568,9 @@ class okx extends \ccxt\async\okx {
              * @param {string} [$params->channel] the $channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $channel = null;
             list($channel, $params) = $this->handle_option_and_params($params, 'watchMarkPrices', 'channel', 'mark-price');
@@ -553,10 +579,10 @@ class okx extends \ccxt\async\okx {
                 return $newTickers;
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function un_watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
@@ -568,7 +594,9 @@ class okx extends \ccxt\async\okx {
              * @param {string} [$params->channel] the $channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $channel = null;
             list($channel, $params) = $this->handle_option_and_params($params, 'watchTickers', 'channel', 'tickers');
@@ -590,7 +618,7 @@ class okx extends \ccxt\async\okx {
             );
             $url = $this->get_url($channel, 'public');
             return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
-        }) ();
+        })();
     }
 
     public function handle_ticker(Client $client, $message) {
@@ -633,10 +661,10 @@ class okx extends \ccxt\async\okx {
             $newTickers[$symbol] = $ticker;
         }
         $messageHash = $channel . '::' . $symbol;
-        $client->resolve ($newTickers, $messageHash);
+        $client->resolve($newTickers, $messageHash);
     }
 
-    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
@@ -647,7 +675,9 @@ class okx extends \ccxt\async\okx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $channel = null;
             list($channel, $params) = $this->handle_option_and_params($params, 'watchBidsAsks', 'channel', 'tickers');
@@ -674,7 +704,7 @@ class okx extends \ccxt\async\okx {
                 return $tickers;
             }
             return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
     public function handle_bid_ask(Client $client, $message) {
@@ -707,12 +737,14 @@ class okx extends \ccxt\async\okx {
         $ticker = $this->safe_dict($data, 0, array());
         $parsedTicker = $this->parse_ws_bid_ask($ticker);
         $symbol = $parsedTicker['symbol'];
-        $this->bidsasks[$symbol] = $parsedTicker;
+        if ($symbol !== null) {
+            $this->bidsasks[$symbol] = $parsedTicker;
+        }
         $messageHash = 'bidask::' . $symbol;
-        $client->resolve ($parsedTicker, $messageHash);
+        $client->resolve($parsedTicker, $messageHash);
     }
 
-    public function parse_ws_bid_ask($ticker, $market = null) {
+    public function parse_ws_bid_ask($ticker, ?array $market = null) {
         $marketId = $this->safe_string($ticker, 'instId');
         $market = $this->safe_market($marketId, $market);
         $symbol = $this->safe_string($market, 'symbol');
@@ -729,7 +761,7 @@ class okx extends \ccxt\async\okx {
         ), $market);
     }
 
-    public function watch_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watch the public liquidations of a trading pair
@@ -742,7 +774,9 @@ class okx extends \ccxt\async\okx {
              * @param {array} [$params] exchange specific parameters for the okx api endpoint
              * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true);
             $messageHash = 'liquidations';
             $messageHashes = array();
@@ -763,6 +797,9 @@ class okx extends \ccxt\async\okx {
             } elseif ($type === 'future') {
                 $type = 'futures';
             }
+            if ($type === null) {
+                throw new ArgumentsRequired($this->id . ' watchLiquidationsForSymbols() $type is required');
+            }
             $uppercaseType = strtoupper($type);
             $request = array(
                 'op' => 'subscribe',
@@ -779,7 +816,7 @@ class okx extends \ccxt\async\okx {
                 return $newLiquidations;
             }
             return $this->filter_by_symbols_since_limit($this->liquidations, $symbols, $since, $limit, true);
-        }) ();
+        })();
     }
 
     public function handle_liquidation(Client $client, $message) {
@@ -817,16 +854,16 @@ class okx extends \ccxt\async\okx {
             $symbol = $this->safe_string($liquidation, 'symbol');
             if ($this->liquidations === null) {
                 $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
-                $this->liquidations = new ArrayCache ($limit);
+                $this->liquidations = new ArrayCache($limit);
             }
             $cache = $this->liquidations;
-            $cache->append ($liquidation);
-            $client->resolve (array( $liquidation ), 'liquidations');
-            $client->resolve (array( $liquidation ), 'liquidations::' . $symbol);
+            $cache->append($liquidation);
+            $client->resolve(array( $liquidation ), 'liquidations');
+            $client->resolve(array( $liquidation ), 'liquidations::' . $symbol);
         }
     }
 
-    public function watch_my_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_my_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * watch the private liquidations of a trading pair
@@ -839,7 +876,9 @@ class okx extends \ccxt\async\okx {
              * @param {array} [$params] exchange specific parameters for the okx api endpoint
              * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $isTrigger = $this->safe_value_2($params, 'stop', 'trigger', false);
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             Async\await($this->authenticate(array( 'access' => $isTrigger ? 'business' : 'private' )));
@@ -869,7 +908,7 @@ class okx extends \ccxt\async\okx {
                 return $newLiquidations;
             }
             return $this->filter_by_symbols_since_limit($this->liquidations, $symbols, $since, $limit, true);
-        }) ();
+        })();
     }
 
     public function handle_my_liquidation(Client $client, $message) {
@@ -918,16 +957,16 @@ class okx extends \ccxt\async\okx {
             $symbol = $this->safe_string($liquidation, 'symbol');
             if ($this->liquidations === null) {
                 $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
-                $this->liquidations = new ArrayCache ($limit);
+                $this->liquidations = new ArrayCache($limit);
             }
             $cache = $this->liquidations;
-            $cache->append ($liquidation);
-            $client->resolve (array( $liquidation ), 'myLiquidations');
-            $client->resolve (array( $liquidation ), 'myLiquidations::' . $symbol);
+            $cache->append($liquidation);
+            $client->resolve(array( $liquidation ), 'myLiquidations');
+            $client->resolve(array( $liquidation ), 'myLiquidations::' . $symbol);
         }
     }
 
-    public function parse_ws_my_liquidation($liquidation, $market = null) {
+    public function parse_ws_my_liquidation($liquidation, ?array $market = null) {
         //
         //    {
         //        "pTime" => "1597026383085",
@@ -974,7 +1013,7 @@ class okx extends \ccxt\async\okx {
         ));
     }
 
-    public function parse_ws_liquidation($liquidation, $market = null) {
+    public function parse_ws_liquidation($liquidation, ?array $market = null) {
         //
         // public $liquidation
         //    {
@@ -1014,10 +1053,13 @@ class okx extends \ccxt\async\okx {
         ));
     }
 
-    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             *
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel
+             *
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1025,36 +1067,41 @@ class okx extends \ccxt\async\okx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $name = 'candle' . $interval;
             $ohlcv = Async\await($this->subscribe('public', $name, $name, $symbol, $params));
             if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
+                $limit = $ohlcv->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
+        })();
     }
 
-    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            Async\await($this->load_markets());
-            return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
-        }) ();
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
+        /**
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         *
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel
+         *
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        return $this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params);
     }
 
-    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             *
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-$channel
+             *
              * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of $candles to fetch
@@ -1065,7 +1112,9 @@ class okx extends \ccxt\async\okx {
             if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
                 throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $topics = array();
             $messageHashes = array();
             for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
@@ -1089,17 +1138,20 @@ class okx extends \ccxt\async\okx {
             $url = $this->get_url('candle', 'public');
             list($symbol, $timeframe, $candles) = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
             if ($this->newUpdates) {
-                $limit = $candles->getLimit ($symbol, $limit);
+                $limit = $candles->getLimit($symbol, $limit);
             }
             $filtered = $this->filter_by_since_limit($candles, $since, $limit, 0, true);
             return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
-        }) ();
+        })();
     }
 
-    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array ()): PromiseInterface {
+    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbolsAndTimeframes, $params) {
             /**
              * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             *
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-$channel
+             *
              * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
@@ -1108,7 +1160,9 @@ class okx extends \ccxt\async\okx {
             if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
                 throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $topics = array();
             $messageHashes = array();
             for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
@@ -1131,7 +1185,7 @@ class okx extends \ccxt\async\okx {
             );
             $url = $this->get_url('candle', 'public');
             return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
-        }) ();
+        })();
     }
 
     public function handle_ohlcv(Client $client, $message) {
@@ -1153,6 +1207,9 @@ class okx extends \ccxt\async\okx {
         //
         $arg = $this->safe_value($message, 'arg', array());
         $channel = $this->safe_string($arg, 'channel');
+        if ($channel === null) {
+            return;
+        }
         $data = $this->safe_value($message, 'data', array());
         $marketId = $this->safe_string($arg, 'instId');
         $market = $this->safe_market($marketId);
@@ -1163,64 +1220,64 @@ class okx extends \ccxt\async\okx {
         for ($i = 0; $i < count($data); $i++) {
             $parsed = $this->parse_ohlcv($data[$i], $market);
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-            $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+            $stored = $this->safe_value($this->safe_value($this->ohlcvs, $symbol), $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                $stored = new ArrayCacheByTimestamp ($limit);
-                $this->ohlcvs[$symbol][$timeframe] = $stored;
+                $stored = new ArrayCacheByTimestamp($limit);
+                if ($symbol !== null && $timeframe !== null) {
+                    $this->ohlcvs[$symbol][$timeframe] = $stored;
+                }
             }
-            $stored->append ($parsed);
+            $stored->append($parsed);
             $messageHash = $channel . ':' . $market['id'];
-            $client->resolve ($stored, $messageHash);
+            $client->resolve($stored, $messageHash);
             // for multiOHLCV we need special object, to other "multi"
             // methods, because OHLCV response item does not contain $symbol
             // or $timeframe, thus otherwise it would be unrecognizable
             $messageHashForMulti = 'multi:' . $channel . ':' . $symbol;
-            $client->resolve (array( $symbol, $timeframe, $stored ), $messageHashForMulti);
+            $client->resolve(array( $symbol, $timeframe, $stored ), $messageHashForMulti);
         }
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             *
-             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
-             *
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string} $symbol unified $symbol of the market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
-             */
-            //
-            // bbo-tbt
-            // 1. Newly added channel that sends tick-by-tick Level 1 data
-            // 2. All API users can subscribe
-            // 3. Public depth channel, verification not required
-            //
-            // books-l2-tbt
-            // 1. Only users who're VIP5 and above can subscribe
-            // 2. Identity verification required before subscription
-            //
-            // books50-l2-tbt
-            // 1. Only users who're VIP4 and above can subscribe
-            // 2. Identity verification required before subscription
-            //
-            // books
-            // 1. All API users can subscribe
-            // 2. Public depth channel, verification not required
-            //
-            // books5
-            // 1. All API users can subscribe
-            // 2. Public depth channel, verification not required
-            // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
-            //
-            return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
-        }) ();
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
+        /**
+         *
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
+         *
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        //
+        // bbo-tbt
+        // 1. Newly added channel that sends tick-by-tick Level 1 data
+        // 2. All API users can subscribe
+        // 3. Public depth channel, verification not required
+        //
+        // books-l2-tbt
+        // 1. Only users who're VIP5 and above can subscribe
+        // 2. Identity verification required before subscription
+        //
+        // books50-l2-tbt
+        // 1. Only users who're VIP4 and above can subscribe
+        // 2. Identity verification required before subscription
+        //
+        // books
+        // 1. All API users can subscribe
+        // 2. Public depth channel, verification not required
+        //
+        // books5
+        // 1. All API users can subscribe
+        // 2. Public depth channel, verification not required
+        // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
+        //
+        return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
     }
 
-    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              *
@@ -1231,9 +1288,11 @@ class okx extends \ccxt\async\okx {
              * @param {int} [$limit] 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->depth] okx order book $depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbols
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $depth = null;
             list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'depth', 'books');
@@ -1272,11 +1331,11 @@ class okx extends \ccxt\async\okx {
             );
             $url = $this->get_url($depth, 'public');
             $orderbook = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
-    public function un_watch_order_book_for_symbols(array $symbols, $params = array ()): PromiseInterface {
+    public function un_watch_order_book_for_symbols(array $symbols, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
@@ -1287,9 +1346,11 @@ class okx extends \ccxt\async\okx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->limit] the maximum amount of order book entries to return
              * @param {string} [$params->depth] okx order book $depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $depth = null;
             list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'depth', 'books');
@@ -1325,24 +1386,22 @@ class okx extends \ccxt\async\okx {
             );
             $url = $this->get_url($depth, 'public');
             return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
-        }) ();
+        })();
     }
 
-    public function un_watch_order_book(string $symbol, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             *
-             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
-             *
-             * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string} $symbol unified array of symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->limit] the maximum amount of order book entries to return
-             * @param {string} [$params->depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
-             */
-            return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $params));
-        }) ();
+    public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
+        /**
+         *
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
+         *
+         * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified array of symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->limit] the maximum amount of order book entries to return
+         * @param {string} [$params->depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         */
+        return $this->un_watch_order_book_for_symbols(array( $symbol ), $params);
     }
 
     public function handle_delta($bookside, $delta) {
@@ -1356,7 +1415,7 @@ class okx extends \ccxt\async\okx {
         //
         $price = $this->safe_float($delta, 0);
         $amount = $this->safe_float($delta, 1);
-        $bookside->store ($price, $amount);
+        $bookside->store($price, $amount);
     }
 
     public function handle_deltas($bookside, $deltas) {
@@ -1365,7 +1424,7 @@ class okx extends \ccxt\async\okx {
         }
     }
 
-    public function handle_order_book_message(Client $client, $message, $orderbook, $messageHash, $market = null) {
+    public function handle_order_book_message(Client $client, $message, $orderbook, $messageHash, ?array $market = null) {
         //
         //     {
         //         "asks" => array(
@@ -1393,41 +1452,19 @@ class okx extends \ccxt\async\okx {
         $this->handle_deltas($storedBids, $bids);
         $marketId = $this->safe_string($message, 'instId');
         $symbol = $this->safe_symbol($marketId, $market);
-        $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
         $seqId = $this->safe_integer($message, 'seqId');
-        if ($checksum) {
-            $prevSeqId = $this->safe_integer($message, 'prevSeqId');
-            $nonce = $orderbook['nonce'];
-            $asksLength = count($storedAsks);
-            $bidsLength = count($storedBids);
-            $payloadArray = array();
-            for ($i = 0; $i < 25; $i++) {
-                if ($i < $bidsLength) {
-                    $payloadArray[] = $this->number_to_string($storedBids[$i][0]);
-                    $payloadArray[] = $this->number_to_string($storedBids[$i][1]);
-                }
-                if ($i < $asksLength) {
-                    $payloadArray[] = $this->number_to_string($storedAsks[$i][0]);
-                    $payloadArray[] = $this->number_to_string($storedAsks[$i][1]);
-                }
+        $prevSeqId = $this->safe_integer($message, 'prevSeqId');
+        $nonce = $orderbook['nonce'];
+        $error = null;
+        if ($prevSeqId !== null && $prevSeqId !== -1 && $nonce !== $prevSeqId) {
+            $error = new InvalidNonce($this->id . ' watchOrderBook received invalid nonce');
+        }
+        if ($error !== null) {
+            unset($client->subscriptions[$messageHash]);
+            if ($symbol !== null) {
+                unset($this->orderbooks[$symbol]);
             }
-            $payload = implode(':', $payloadArray);
-            $responseChecksum = $this->safe_integer($message, 'checksum');
-            $localChecksum = $this->crc32($payload, true);
-            $error = null;
-            if ($prevSeqId !== -1 && $nonce !== $prevSeqId) {
-                $error = new InvalidNonce ($this->id . ' watchOrderBook received invalid nonce');
-            }
-            if ($responseChecksum !== $localChecksum) {
-                $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
-            }
-            if ($error !== null) {
-                unset($client->subscriptions[$messageHash]);
-                if ($symbol !== null) {
-                    unset($this->orderbooks[$symbol]);
-                }
-                $client->reject ($error, $messageHash);
-            }
+            $client->reject($error, $messageHash);
         }
         $timestamp = $this->safe_integer($message, 'ts');
         $orderbook['nonce'] = $seqId;
@@ -1545,19 +1582,19 @@ class okx extends \ccxt\async\okx {
                 $this->orderbooks[$symbol] = $orderbook;
                 $orderbook['symbol'] = $symbol;
                 $this->handle_order_book_message($client, $update, $orderbook, $messageHash);
-                $client->resolve ($orderbook, $messageHash);
+                $client->resolve($orderbook, $messageHash);
             }
         } elseif ($action === 'update') {
-            if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+            if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
                 $orderbook = $this->orderbooks[$symbol];
                 for ($i = 0; $i < count($data); $i++) {
                     $update = $data[$i];
                     $this->handle_order_book_message($client, $update, $orderbook, $messageHash, $market);
-                    $client->resolve ($orderbook, $messageHash);
+                    $client->resolve($orderbook, $messageHash);
                 }
             }
         } elseif (($channel === 'books5') || ($channel === 'bbo-tbt')) {
-            if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             }
             $orderbook = $this->orderbooks[$symbol];
@@ -1565,14 +1602,14 @@ class okx extends \ccxt\async\okx {
                 $update = $data[$i];
                 $timestamp = $this->safe_integer($update, 'ts');
                 $snapshot = $this->parse_order_book($update, $symbol, $timestamp, 'bids', 'asks', 0, 1);
-                $orderbook->reset ($snapshot);
-                $client->resolve ($orderbook, $messageHash);
+                $orderbook->reset($snapshot);
+                $client->resolve($orderbook, $messageHash);
             }
         }
         return $message;
     }
 
-    public function authenticate($params = array ()) {
+    public function authenticate($params = array()) {
         return Async\async(function () use ($params) {
             $this->check_required_credentials();
             $access = $this->safe_string($params, 'access', 'private');
@@ -1580,7 +1617,7 @@ class okx extends \ccxt\async\okx {
             $url = $this->get_url('users', $access);
             $messageHash = 'authenticated';
             $client = $this->client($url);
-            $future = $client->reusableFuture ($messageHash);
+            $future = $client->reusableFuture($messageHash);
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $timestamp = (string) $this->seconds();
@@ -1601,26 +1638,31 @@ class okx extends \ccxt\async\okx {
                     ),
                 );
                 // Only add $params['access'] to prevent sending custom parameters, such.
-                if (is_array($params) && array_key_exists('access', $params)) {
+                if (is_array($params) && array_key_exists('access' ?? '', $params)) {
                     $request['access'] = $params['access'];
                 }
                 $this->watch($url, $messageHash, $request, $messageHash);
             }
             return Async\await($future);
-        }) ();
+        })();
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
+    public function watch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             *
+             * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-account-channel
+             *
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             return Async\await($this->subscribe('private', 'account', 'account', null, $params));
-        }) ();
+        })();
     }
 
     public function handle_balance_and_position(Client $client, $message) {
@@ -1630,58 +1672,102 @@ class okx extends \ccxt\async\okx {
     public function handle_balance(Client $client, $message) {
         //
         //     {
-        //         "arg" => array( $channel => "account" ),
-        //         "data" => array(
+        //         $arg => array(
+        //             $channel => 'account',
+        //             uid => '158635852459810816'
+        //         ),
+        //         eventType => 'snapshot',
+        //         curPage => 1,
+        //         lastPage => true,
+        //         data => array(
         //             {
-        //                 "adjEq" => '',
-        //                 "details" => array(
-        //                     array(
-        //                         "availBal" => '',
-        //                         "availEq" => "8.21009913",
-        //                         "cashBal" => "8.21009913",
-        //                         "ccy" => "USDT",
-        //                         "coinUsdPrice" => "0.99994",
-        //                         "crossLiab" => '',
-        //                         "disEq" => "8.2096065240522",
-        //                         "eq" => "8.21009913",
-        //                         "eqUsd" => "8.2096065240522",
-        //                         "frozenBal" => "0",
-        //                         "interest" => '',
-        //                         "isoEq" => "0",
-        //                         "isoLiab" => '',
-        //                         "liab" => '',
-        //                         "maxLoan" => '',
-        //                         "mgnRatio" => '',
-        //                         "notionalLever" => "0",
-        //                         "ordFrozen" => "0",
-        //                         "twap" => "0",
-        //                         "uTime" => "1621927314996",
-        //                         "upl" => "0"
-        //                     ),
+        //                 adjEq => '100942.13298468884',
+        //                 availEq => '98461.99074635761',
+        //                 borrowFroz => '409.3702076072169',
+        //                 delta => '',
+        //                 deltaLever => '',
+        //                 deltaNeutralStatus => '',
+        //                 details => array(
+        //                     {
+        //                         accAvgPx => '',
+        //                         autoLendAmt => '0',
+        //                         autoLendMtAmt => '0',
+        //                         autoLendStatus => 'unsupported',
+        //                         autoStakingStatus => 'unsupported',
+        //                         availBal => '2900',
+        //                         availEq => '2900',
+        //                         borrowFroz => '0',
+        //                         cashBal => '2900',
+        //                         ccy => 'TUSD',
+        //                         clSpotInUseAmt => '',
+        //                         coinUsdPrice => '200.026',
+        //                         colBorrAutoConversion => '0',
+        //                         colRes => '0',
+        //                         collateralEnabled => false,
+        //                         collateralRestrict => false,
+        //                         crossLiab => '0',
+        //                         disEq => '0',
+        //                         eq => '2900',
+        //                         eqUsd => '580075.4',
+        //                         fixedBal => '0',
+        //                         frozenBal => '0',
+        //                         frpType => '0',
+        //                         imr => '',
+        //                         interest => '0',
+        //                         isoEq => '0',
+        //                         isoLiab => '0',
+        //                         isoUpl => '0',
+        //                         liab => '0',
+        //                         maxLoan => '0',
+        //                         maxSpotInUseAmt => '',
+        //                         mgnRatio => '',
+        //                         mmr => '',
+        //                         notionalLever => '',
+        //                         openAvgPx => '',
+        //                         ordFrozen => '0',
+        //                         rewardBal => '',
+        //                         smtSyncEq => '0',
+        //                         spotBal => '',
+        //                         spotCopyTradingEq => '0',
+        //                         spotInUseAmt => '',
+        //                         spotIsoBal => '0',
+        //                         spotUpl => '',
+        //                         spotUplRatio => '',
+        //                         stgyEq => '0',
+        //                         totalPnl => '',
+        //                         totalPnlRatio => '',
+        //                         twap => '0',
+        //                         uTime => '1752243427083',
+        //                         upl => '0',
+        //                         uplLiab => '0'
+        //                     }
         //                 ),
-        //                 "imr" => '',
-        //                 "isoEq" => "0",
-        //                 "mgnRatio" => '',
-        //                 "mmr" => '',
-        //                 "notionalUsd" => '',
-        //                 "ordFroz" => '',
-        //                 "totalEq" => "22.1930992296832",
-        //                 "uTime" => "1626692120916"
+        //                 imr => '2480.1422383312265',
+        //                 isoEq => '0',
+        //                 mgnRatio => '1814.5924297007082',
+        //                 mmr => '52.196024182958055',
+        //                 notionalUsd => '4634.0971302081125',
+        //                 notionalUsdForBorrow => '2046.8510380360844',
+        //                 notionalUsdForFutures => '101.11322817202809',
+        //                 notionalUsdForOption => '0',
+        //                 notionalUsdForSwap => '2486.1328640000006',
+        //                 ordFroz => '1208.3566666666668',
+        //                 totalEq => '711018.8951315446',
+        //                 uTime => '1773837554158',
+        //                 upl => '9.244336372701904'
         //             }
         //         )
         //     }
         //
         $arg = $this->safe_value($message, 'arg', array());
         $channel = $this->safe_string($arg, 'channel');
-        $type = 'spot';
-        $balance = $this->parseTradingBalance ($message);
-        $oldBalance = $this->safe_value($this->balance, $type, array());
-        $newBalance = $this->deep_extend($oldBalance, $balance);
-        $this->balance[$type] = $this->safe_balance($newBalance);
-        $client->resolve ($this->balance[$type], $channel);
+        $balance = $this->parseTradingBalance($message);
+        $newBalance = $this->deep_extend($this->balance, $balance);
+        $this->balance = $this->safe_balance($newBalance);
+        $client->resolve($this->balance, $channel);
     }
 
-    public function order_to_trade($order, $market = null) {
+    public function order_to_trade($order, ?array $market = null) {
         $info = $this->safe_value($order, 'info', array());
         $timestamp = $this->safe_integer($info, 'fillTime');
         $feeMarketId = $this->safe_string($info, 'fillFeeCcy');
@@ -1706,7 +1792,7 @@ class okx extends \ccxt\async\okx {
         ), $market);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple trades made by the user
@@ -1727,7 +1813,9 @@ class okx extends \ccxt\async\okx {
             list($type, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'type', 'ANY');
             $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
             $params = $this->omit($params, array( 'trigger', 'stop' ));
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate(array( 'access' => $isTrigger ? 'business' : 'private' )));
             $channel = $isTrigger ? 'orders-algo' : 'orders';
             $messageHash = $channel . '::myTrades';
@@ -1740,6 +1828,9 @@ class okx extends \ccxt\async\okx {
             }
             if ($type === 'future') {
                 $type = 'futures';
+            }
+            if ($type === null) {
+                throw new ArgumentsRequired($this->id . ' watchMyTrades() $type is required');
             }
             $uppercaseType = strtoupper($type);
             $marginMode = null;
@@ -1754,26 +1845,28 @@ class okx extends \ccxt\async\okx {
             );
             $orders = Async\await($this->subscribe('private', $messageHash, $channel, null, $this->extend($request, $params)));
             if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
+                $limit = $orders->getLimit($symbol, $limit);
             }
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        }) ();
+        })();
     }
 
-    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              *
              * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-$channel
              *
              * watch all open positions
-             * @param {string[]|null} $symbols list of unified market $symbols
-             * @param $since
-             * @param $limit
-             * @param {array} $params extra parameters specific to the exchange API endpoint
+             * @param {string[]} [$symbols] list of unified market $symbols
+             * @param {int} [$since] timestamp in ms of the earliest position to fetch
+             * @param {int} [$limit] the maximum number of positions to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate($params));
             $symbols = $this->market_symbols($symbols);
             $request = array(
@@ -1797,10 +1890,10 @@ class okx extends \ccxt\async\okx {
                 $newPositions = Async\await($this->subscribe_multiple('private', $channel, $symbols, $this->extend($request, $params)));
             }
             if ($this->newUpdates) {
-                return $newPositions;
+                return ($newPositions === null) ? array() : $newPositions;
             }
             return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
-        }) ();
+        })();
     }
 
     public function handle_positions($client, $message) {
@@ -1877,7 +1970,7 @@ class okx extends \ccxt\async\okx {
         $channel = $this->safe_string($arg, 'channel', '');
         $data = $this->safe_value($message, 'data', array());
         if ($this->positions === null) {
-            $this->positions = new ArrayCacheBySymbolBySide ();
+            $this->positions = new ArrayCacheBySymbolBySide();
         }
         $cache = $this->positions;
         $newPositions = array();
@@ -1888,20 +1981,20 @@ class okx extends \ccxt\async\okx {
                 $position['side'] = 'long';
                 $shortPosition = $this->clone($position);
                 $shortPosition['side'] = 'short';
-                $cache->append ($shortPosition);
+                $cache->append($shortPosition);
                 $newPositions[] = $shortPosition;
             }
             $newPositions[] = $position;
-            $cache->append ($position);
+            $cache->append($position);
         }
         $messageHash = $channel;
         if ($symbol !== null) {
             $messageHash = $channel . '::' . $symbol;
         }
-        $client->resolve ($newPositions, $messageHash);
+        $client->resolve($newPositions, $messageHash);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -1922,7 +2015,9 @@ class okx extends \ccxt\async\okx {
             list($type, $params) = $this->handle_option_and_params($params, 'watchOrders', 'type', 'ANY');
             $isTrigger = $this->safe_value_2($params, 'stop', 'trigger', false);
             $params = $this->omit($params, array( 'stop', 'trigger' ));
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate(array( 'access' => $isTrigger ? 'business' : 'private' )));
             $market = null;
             if ($symbol !== null) {
@@ -1932,6 +2027,9 @@ class okx extends \ccxt\async\okx {
             }
             if ($type === 'future') {
                 $type = 'futures';
+            }
+            if ($type === null) {
+                throw new ArgumentsRequired($this->id . ' watchOrders() $type is required');
             }
             $uppercaseType = strtoupper($type);
             $marginMode = null;
@@ -1947,10 +2045,10 @@ class okx extends \ccxt\async\okx {
             $channel = $isTrigger ? 'orders-algo' : 'orders';
             $orders = Async\await($this->subscribe('private', $channel, $channel, $symbol, $this->extend($request, $params)));
             if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
+                $limit = $orders->getLimit($symbol, $limit);
             }
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        }) ();
+        })();
     }
 
     public function handle_orders(Client $client, $message) {
@@ -2016,23 +2114,23 @@ class okx extends \ccxt\async\okx {
         if ($ordersLength > 0) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             if ($this->orders === null) {
-                $this->orders = new ArrayCacheBySymbolById ($limit);
-                $this->triggerOrders = new ArrayCacheBySymbolById ($limit);
+                $this->orders = new ArrayCacheBySymbolById($limit);
+                $this->triggerOrders = new ArrayCacheBySymbolById($limit);
             }
             $stored = ($channel === 'orders-algo') ? $this->triggerOrders : $this->orders;
             $marketIds = array();
             $parsed = $this->parse_orders($orders);
             for ($i = 0; $i < count($parsed); $i++) {
                 $order = $parsed[$i];
-                $stored->append ($order);
+                $stored->append($order);
                 $symbol = $order['symbol'];
                 $market = $this->market($symbol);
                 $marketIds[] = $market['id'];
             }
-            $client->resolve ($stored, $channel);
+            $client->resolve($stored, $channel);
             for ($i = 0; $i < count($marketIds); $i++) {
                 $messageHash = $channel . ':' . $marketIds[$i];
-                $client->resolve ($stored, $messageHash);
+                $client->resolve($stored, $messageHash);
             }
         }
     }
@@ -2111,23 +2209,25 @@ class okx extends \ccxt\async\okx {
         }
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $this->myTrades = new ArrayCacheBySymbolById ($limit);
+            $this->myTrades = new ArrayCacheBySymbolById($limit);
         }
         $myTrades = $this->myTrades;
         $symbols = array();
         for ($i = 0; $i < count($filteredOrders); $i++) {
             $rawTrade = $filteredOrders[$i];
             $trade = $this->order_to_trade($rawTrade);
-            $myTrades->append ($trade);
+            $myTrades->append($trade);
             $symbol = $trade['symbol'];
-            $symbols[$symbol] = true;
+            if ($symbol !== null) {
+                $symbols[$symbol] = true;
+            }
         }
         $messageHash = $channel . '::myTrades';
-        $client->resolve ($this->myTrades, $messageHash);
+        $client->resolve($this->myTrades, $messageHash);
         $tradeSymbols = is_array($symbols) ? array_keys($symbols) : array();
         for ($i = 0; $i < count($tradeSymbols); $i++) {
             $symbolMessageHash = $messageHash . '::' . $tradeSymbols[$i];
-            $client->resolve ($this->myTrades, $symbolMessageHash);
+            $client->resolve($this->myTrades, $symbolMessageHash);
         }
     }
 
@@ -2138,7 +2238,7 @@ class okx extends \ccxt\async\okx {
         return $ts . $randomPart;
     }
 
-    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              *
@@ -2154,7 +2254,9 @@ class okx extends \ccxt\async\okx {
              * @param {boolean} $params->test test order, default false
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
             $messageHash = $this->request_id();
@@ -2180,7 +2282,7 @@ class okx extends \ccxt\async\okx {
                 'args' => array( $args ),
             );
             return Async\await($this->watch($url, $messageHash, $request, $messageHash));
-        }) ();
+        })();
     }
 
     public function handle_place_orders(Client $client, $message) {
@@ -2214,10 +2316,10 @@ class okx extends \ccxt\async\okx {
         }
         $orders = $this->parse_orders($args, null, null, null);
         $first = $this->safe_dict($orders, 0, array());
-        $client->resolve ($first, $messageHash);
+        $client->resolve($first, $messageHash);
     }
 
-    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): PromiseInterface {
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -2234,7 +2336,9 @@ class okx extends \ccxt\async\okx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
             $messageHash = $this->request_id();
@@ -2253,14 +2357,14 @@ class okx extends \ccxt\async\okx {
                 'args' => array( $args ),
             );
             return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
-        }) ();
+        })();
     }
 
-    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              *
-             * @see https://okx-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-cancel-order
              *
              * cancel multiple orders
              * @param {string} $id order $id
@@ -2272,7 +2376,9 @@ class okx extends \ccxt\async\okx {
             if ($symbol === null) {
                 throw new BadRequest($this->id . ' cancelOrderWs() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
             $messageHash = $this->request_id();
@@ -2294,14 +2400,14 @@ class okx extends \ccxt\async\okx {
                 'args' => array( $this->extend($arg, $params) ),
             );
             return Async\await($this->watch($url, $messageHash, $request, $messageHash));
-        }) ();
+        })();
     }
 
-    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              *
-             * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-cancel-multiple-orders
              *
              * cancel multiple orders
              * @param {string[]} $ids order $ids
@@ -2316,7 +2422,9 @@ class okx extends \ccxt\async\okx {
             if ($symbol === null) {
                 throw new BadRequest($this->id . ' cancelOrdersWs() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
             $messageHash = $this->request_id();
@@ -2338,14 +2446,14 @@ class okx extends \ccxt\async\okx {
                 'args' => $args,
             );
             return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders_ws(?string $symbol = null, $params = array ()): PromiseInterface {
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
-             * @see https://docs.okx.com/websockets/#message-cancelAll
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
              *
              * cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
@@ -2355,7 +2463,9 @@ class okx extends \ccxt\async\okx {
             if ($symbol === null) {
                 throw new BadRequest($this->id . ' cancelAllOrdersWs() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $market = $this->market($symbol);
             if ($market['type'] !== 'option') {
@@ -2366,13 +2476,13 @@ class okx extends \ccxt\async\okx {
             $request = array(
                 'id' => $messageHash,
                 'op' => 'mass-cancel',
-                'args' => [ $this->extend(array(
+                'args' => array( $this->extend(array(
                     'instType' => 'OPTION',
                     'instFamily' => $market['id'],
-                ), $params) ],
+                ), $params) ),
             );
             return Async\await($this->watch($url, $messageHash, $request, $messageHash));
-        }) ();
+        })();
     }
 
     public function handle_cancel_all_orders(Client $client, $message) {
@@ -2391,7 +2501,7 @@ class okx extends \ccxt\async\okx {
         //
         $messageHash = $this->safe_string($message, 'id');
         $data = $this->safe_value($message, 'data', array());
-        $client->resolve ($data, $messageHash);
+        $client->resolve($data, $messageHash);
     }
 
     public function handle_subscription_status(Client $client, $message) {
@@ -2408,7 +2518,7 @@ class okx extends \ccxt\async\okx {
         //     array( event => "login", success => true )
         //
         $future = $this->safe_value($client->futures, 'authenticated');
-        $future->resolve (true);
+        $future->resolve(true);
     }
 
     public function ping(Client $client) {
@@ -2422,7 +2532,7 @@ class okx extends \ccxt\async\okx {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message): Bool {
+    public function handle_error_message(Client $client, $message): ?bool {
         //
         //     array( event => 'error', $msg => "Illegal request => array("op":"subscribe","args":["spot/ticker:BTC-USDT"])", code => "60012" )
         //     array( event => 'error", $msg => "channel:ticker,instId:BTC-USDT doesn"t exist", code => "60018" )
@@ -2446,7 +2556,7 @@ class okx extends \ccxt\async\okx {
                         if ($errorCode !== null) {
                             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
                         }
-                        $messageString = $this->safe_value($message, 'sMsg');
+                        $messageString = $this->safe_value($d, 'sMsg');
                         if ($messageString !== null) {
                             $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
                         }
@@ -2468,10 +2578,10 @@ class okx extends \ccxt\async\okx {
                 }
             }
             if ($id !== null) {
-                $client->reject ($e, $id);
+                $client->reject($e, $id);
                 return false;
             }
-            $client->reject ($e);
+            $client->reject($e);
             return false;
         }
         return true;
@@ -2548,6 +2658,9 @@ class okx extends \ccxt\async\okx {
         } else {
             $arg = $this->safe_value($message, 'arg', array());
             $channel = $this->safe_string($arg, 'channel');
+            if ($channel === null) {
+                return;
+            }
             $methods = array(
                 'bbo-tbt' => array($this, 'handle_order_book'), // newly added $channel that sends tick-by-tick Level 1 data, all API users can subscribe, public depth $channel, verification not required
                 'books' => array($this, 'handle_order_book'), // all API users can subscribe, public depth $channel, verification not required
@@ -2585,7 +2698,7 @@ class okx extends \ccxt\async\okx {
         $subMessageHash = $channel . ':' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+        if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
             unset($this->trades[$symbol]);
         }
     }
@@ -2594,7 +2707,7 @@ class okx extends \ccxt\async\okx {
         $subMessageHash = $channel . ':' . $symbol;
         $messageHash = 'unsubscribe:orderbook:' . $symbol;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+        if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
     }
@@ -2602,10 +2715,13 @@ class okx extends \ccxt\async\okx {
     public function handle_unsubscription_ohlcv(Client $client, string $symbol, string $channel) {
         $tf = str_replace('candle', '', $channel);
         $timeframe = $this->find_timeframe($tf);
+        if ($timeframe === null) {
+            return;
+        }
         $subMessageHash = 'multi:' . $channel . ':' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+        if (($symbol !== null) && ($timeframe !== null) && (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             unset($this->ohlcvs[$symbol][$timeframe]);
         }
     }
@@ -2614,7 +2730,7 @@ class okx extends \ccxt\async\okx {
         $subMessageHash = $channel . '::' . $symbol;
         $messageHash = 'unsubscribe:ticker:' . $symbol;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->tickers) && array_key_exists($symbol, $this->tickers)) {
+        if (is_array($this->tickers) && array_key_exists($symbol ?? '', $this->tickers)) {
             unset($this->tickers[$symbol]);
         }
     }

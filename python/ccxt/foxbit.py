@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.foxbit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -378,28 +378,29 @@ class foxbit(Exchange, ImplicitAPI):
         #   ]
         # }
         data = self.safe_list(response, 'data', [])
-        result: dict = {}
-        for i in range(0, len(data)):
-            currency = data[i]
-            precision = self.safe_integer(currency, 'precision')
-            currencyId = self.safe_string(currency, 'symbol')
-            name = self.safe_string(currency, 'name')
-            code = self.safe_currency_code(currencyId)
-            depositInfo = self.safe_dict(currency, 'deposit_info')
-            withdrawInfo = self.safe_dict(currency, 'withdraw_info')
-            networks = self.safe_list(currency, 'networks', [])
-            type = self.safe_string_lower(currency, 'type')
-            parsedNetworks: dict = {}
-            for j in range(0, len(networks)):
-                network = networks[j]
-                networkId = self.safe_string(network, 'code')
-                networkCode = self.network_id_to_code(networkId, code)
-                networkWithdrawInfo = self.safe_dict(network, 'withdraw_info')
-                networkDepositInfo = self.safe_dict(network, 'deposit_info')
-                isWithdrawEnabled = self.safe_string(networkWithdrawInfo, 'status') == 'ENABLED'
-                isDepositEnabled = self.safe_string(networkDepositInfo, 'status') == 'ENABLED'
+        return self.parse_currencies(data)
+
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+        precision = self.safe_integer(rawCurrency, 'precision')
+        currencyId = self.safe_string(rawCurrency, 'symbol')
+        name = self.safe_string(rawCurrency, 'name')
+        code = self.safe_currency_code(currencyId)
+        depositInfo = self.safe_dict(rawCurrency, 'deposit_info')
+        withdrawInfo = self.safe_dict(rawCurrency, 'withdraw_info')
+        networks = self.safe_list(rawCurrency, 'networks', [])
+        type = self.safe_string_lower(rawCurrency, 'type')
+        parsedNetworks = {}
+        for j in range(0, len(networks)):
+            network = networks[j]
+            networkId = self.safe_string(network, 'code')
+            networkCode = self.network_id_to_code(networkId, code)
+            networkWithdrawInfo = self.safe_dict(network, 'withdraw_info')
+            networkDepositInfo = self.safe_dict(network, 'deposit_info')
+            isWithdrawEnabled = self.safe_string(networkWithdrawInfo, 'status') == 'ENABLED'
+            isDepositEnabled = self.safe_string(networkDepositInfo, 'status') == 'ENABLED'
+            if networkCode is not None:
                 parsedNetworks[networkCode] = {
-                    'info': currency,
+                    'info': rawCurrency,
                     'id': networkId,
                     'network': networkCode,
                     'name': self.safe_string(network, 'name'),
@@ -423,35 +424,33 @@ class foxbit(Exchange, ImplicitAPI):
                         },
                     },
                 }
-            if self.safe_dict(result, code) is None:
-                result[code] = self.safe_currency_structure({
-                    'id': currencyId,
-                    'code': code,
-                    'info': currency,
-                    'name': name,
-                    'active': True,
-                    'type': type,
-                    'deposit': self.safe_bool(depositInfo, 'enabled', False),
-                    'withdraw': self.safe_bool(withdrawInfo, 'enabled', False),
-                    'fee': self.safe_number(withdrawInfo, 'fee'),
-                    'precision': precision,
-                    'limits': {
-                        'amount': {
-                            'min': None,
-                            'max': None,
-                        },
-                        'deposit': {
-                            'min': self.safe_number(depositInfo, 'min_amount'),
-                            'max': None,
-                        },
-                        'withdraw': {
-                            'min': self.safe_number(withdrawInfo, 'min_amount'),
-                            'max': None,
-                        },
-                    },
-                    'networks': parsedNetworks,
-                })
-        return result
+        return self.safe_currency_structure({
+            'id': currencyId,
+            'code': code,
+            'info': rawCurrency,
+            'name': name,
+            'active': True,
+            'type': type,
+            'deposit': self.safe_bool(depositInfo, 'enabled', False),
+            'withdraw': self.safe_bool(withdrawInfo, 'enabled', False),
+            'fee': self.safe_number(withdrawInfo, 'fee'),
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': self.safe_number(depositInfo, 'min_amount'),
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': self.safe_number(withdrawInfo, 'min_amount'),
+                    'max': None,
+                },
+            },
+            'networks': parsedNetworks,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -570,9 +569,10 @@ class foxbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         response = self.v3PublicGetMarketsMarketTicker24hr(self.extend(request, params))
@@ -621,7 +621,8 @@ class foxbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.v3PublicGetMarketsTicker24hr(params)
         #  {
@@ -657,7 +658,8 @@ class foxbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.v3PrivateGetMeFeesTrading(params)
         # [
         #     {
@@ -685,12 +687,13 @@ class foxbit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return, the maximum is 100
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         defaultLimit = 20
-        request: dict = {
+        request = {
             'market': market['id'],
             'depth': defaultLimit if (limit is None) else limit,
         }
@@ -734,9 +737,10 @@ class foxbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'market': market['id'],
         }
         if limit is not None:
@@ -769,10 +773,11 @@ class foxbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
-        request: dict = {
+        request = {
             'market': market['id'],
             'interval': interval,
         }
@@ -809,7 +814,8 @@ class foxbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.v3PrivateGetAccounts(params)
         # {
         #     "data": [
@@ -822,7 +828,7 @@ class foxbit(Exchange, ImplicitAPI):
         #     ]
         # }
         accounts = self.safe_list(response, 'data', [])
-        result: dict = {
+        result = {
             'info': response,
         }
         for i in range(0, len(accounts)):
@@ -837,7 +843,8 @@ class foxbit(Exchange, ImplicitAPI):
                 'used': used,
                 'total': total,
             }
-            result[currencyCode] = balanceObj
+            if currencyCode is not None:
+                result[currencyCode] = balanceObj
         return self.safe_balance(result)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -872,9 +879,10 @@ class foxbit(Exchange, ImplicitAPI):
         return self.fetch_orders_by_status('CANCELED', symbol, since, limit, params)
 
     def fetch_orders_by_status(self, status: Str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
-        request: dict = {
+        request = {
             'state': status,
         }
         if symbol is not None:
@@ -908,7 +916,8 @@ class foxbit(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: a unique identifier for the order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         type = type.upper()
         if type != 'LIMIT' and type != 'MARKET' and type != 'STOP_MARKET' and type != 'STOP_LIMIT' and type != 'INSTANT':
@@ -916,7 +925,9 @@ class foxbit(Exchange, ImplicitAPI):
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         postOnly = self.safe_bool(params, 'postOnly', False)
         triggerPrice = self.safe_number(params, 'triggerPrice')
-        request: dict = {
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        request = {
             'market_symbol': market['id'],
             'side': side.upper(),
             'type': type,
@@ -961,7 +972,8 @@ class foxbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
             order = self.safe_dict(orders, i)
@@ -974,7 +986,7 @@ class foxbit(Exchange, ImplicitAPI):
             timeInForce = self.safe_string_upper(orderParams, 'timeInForce')
             postOnly = self.safe_bool(orderParams, 'postOnly', False)
             triggerPrice = self.safe_number(orderParams, 'triggerPrice')
-            request: dict = {
+            request = {
                 'market_symbol': market['id'],
                 'side': self.safe_string_upper(order, 'side'),
                 'type': type,
@@ -1032,8 +1044,9 @@ class foxbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'id': self.parse_number(id),
             'type': 'ID',
         }
@@ -1056,12 +1069,13 @@ class foxbit(Exchange, ImplicitAPI):
 
         https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel
 
-        :param str symbol: unified market symbol of the market to cancel orders in
+        :param str [symbol]: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'type': 'ALL',
         }
         if symbol is not None:
@@ -1092,8 +1106,9 @@ class foxbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             'id': id,
         }
         response = self.v3PrivateGetOrdersByOrderIdId(self.extend(request, params))
@@ -1116,7 +1131,7 @@ class foxbit(Exchange, ImplicitAPI):
         #     "remark": "A remarkable note for the order.",
         #     "funds_received": "290.0"
         # }
-        return self.parse_order(response, None)
+        return self.parse_order(response)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -1132,9 +1147,10 @@ class foxbit(Exchange, ImplicitAPI):
         :param str [params.side]: Enum: BUY, SELL
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['market_symbol'] = market['id']
@@ -1185,7 +1201,8 @@ class foxbit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'market_symbol': market['id'],
@@ -1225,9 +1242,10 @@ class foxbit(Exchange, ImplicitAPI):
         :param str [params.networkCode]: the blockchain network to create a deposit address on
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency_symbol': currency['id'],
         }
         networkCode, paramsOmited = self.handle_network_code_and_params(params)
@@ -1258,8 +1276,9 @@ class foxbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -1301,8 +1320,9 @@ class foxbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -1425,9 +1445,12 @@ class foxbit(Exchange, ImplicitAPI):
         type = type.upper()
         if type != 'LIMIT' and type != 'MARKET' and type != 'STOP_MARKET' and type != 'INSTANT':
             raise InvalidOrder('Invalid order type: ' + type + '. Must be one of: LIMIT, MARKET, STOP_MARKET, INSTANT.')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        if side is None:
+            raise ArgumentsRequired(self.id + ' editOrder() requires a side argument')
+        request = {
             'mode': 'ALLOW_FAILURE',
             'cancel': {
                 'type': 'ID',
@@ -1474,9 +1497,10 @@ class foxbit(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'currency_symbol': currency['id'],
             'amount': self.number_to_string(amount),
             'destination_address': address,
@@ -1486,7 +1510,7 @@ class foxbit(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['network_code'] = self.network_code_to_id(networkCode)
+            request['network_code'] = self.network_code_to_id(networkCode, code)
         response = self.v3PrivatePostWithdrawals(self.extend(request, params))
         # {
         #     "amount": "2",
@@ -1509,8 +1533,9 @@ class foxbit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchLedger() requires a code argument')
         if limit is not None:
@@ -1593,7 +1618,7 @@ class foxbit(Exchange, ImplicitAPI):
     def parse_trading_fee(self, entry: dict, market: Market = None) -> TradingFeeInterface:
         return {
             'info': entry,
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'maker': self.safe_number(entry, 'maker'),
             'taker': self.safe_number(entry, 'taker'),
             'percentage': True,
@@ -1642,7 +1667,7 @@ class foxbit(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 6),
         ]
 
-    def parse_trade(self, trade, market=None) -> Trade:
+    def parse_trade(self, trade, market: Market = None) -> Trade:
         timestamp = self.parse_date(self.safe_string(trade, 'created_at'))
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'volume', self.safe_string(trade, 'quantity'))
@@ -1659,7 +1684,7 @@ class foxbit(Exchange, ImplicitAPI):
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'order': None,
             'type': None,
             'side': side,
@@ -1671,7 +1696,7 @@ class foxbit(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'PARTIALLY_CANCELED': 'open',
             'ACTIVE': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -1681,7 +1706,7 @@ class foxbit(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market=None) -> Order:
+    def parse_order(self, order, market: Market = None) -> Order:
         symbol = self.safe_string(order, 'market_symbol')
         if market is None and symbol is not None:
             market = self.market(symbol)
@@ -1748,7 +1773,7 @@ class foxbit(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             # BOTH
             'SUBMITTING': 'pending',
             'SUBMITTED': 'pending',
@@ -1816,7 +1841,7 @@ class foxbit(Exchange, ImplicitAPI):
         }
 
     def parse_ledger_entry_type(self, type):
-        types: dict = {
+        types = {
             'DEPOSITING': 'transaction',
             'WITHDRAWING': 'transaction',
             'TRADING': 'trade',
@@ -1852,9 +1877,17 @@ class foxbit(Exchange, ImplicitAPI):
             'cost': self.safe_number(item, 'fee'),
             'currency': currencySymbol,
         }
+        if amount is None:
+            raise ArgumentsRequired(self.id + ' parseLedgerEntry() requires a amount argument')
         if amount < 0:
             direction = 'out'
+            if amount is None:
+                raise ArgumentsRequired(self.id + ' parseLedgerEntry() requires a amount argument')
             realAmount = amount * -1
+        if balance is None:
+            raise ExchangeError(self.id + ' parseLedgerEntry() missing balance')
+        if amount is None:
+            raise ArgumentsRequired(self.id + ' parseLedgerEntry() requires a amount argument')
         return {
             'id': id,
             'info': item,
@@ -1873,7 +1906,7 @@ class foxbit(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = [], method='GET', params={}, headers: dict = None, body: Str = None):
         version = api[0]
         urlPath = api[1]
         fullPath = '/rest/' + version + '/' + self.implode_params(path, params)

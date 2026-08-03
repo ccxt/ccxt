@@ -2,13 +2,19 @@
 //  ---------------------------------------------------------------------------
 
 import binance from './binance.js';
+import binanceusdmRest from '../binanceusdm.js';
 import { InvalidOrder } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
 
 export default class binanceusdm extends binance {
     describe (): any {
-        return this.deepExtend (super.describe (), {
+        // eslint-disable-next-line new-cap
+        const restInstance = new binanceusdmRest ();
+        const restDescribe = restInstance.describe ();
+        const parentWsDescribe = super.describeData ();
+        const extended = this.deepExtend (restDescribe, parentWsDescribe);
+        return this.deepExtend (extended, {
             'id': 'binanceusdm',
             'name': 'Binance USDⓈ-M',
             'urls': {

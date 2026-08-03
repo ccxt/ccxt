@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
 
-orjson = None
-try:
-    import orjson as orjson
-except ImportError:
-    pass
-
 import json
+
+# use orjson if importable, otherwise default to the stdlib json
+try:
+    import orjson as json_parser
+
+    def json_dumps(message):
+        return json_parser.dumps(message).decode('utf-8')
+except ImportError:
+    json_parser = json
+
+    def json_dumps(message):
+        return json.dumps(message, separators=(',', ':'))
 
 from asyncio import sleep, ensure_future, wait_for, TimeoutError, BaseEventLoop, Future as asyncioFuture
 from .functions import milliseconds, iso8601, deep_extend, is_json_encoded_object
@@ -72,7 +78,10 @@ class Client(object):
             else:
                 setattr(self, key, settings[key])
         # connection-related Future
-        self.options = config
+        if "options" in config:
+            self.options = config["options"]
+        else:
+            self.options = config
         self.connected = Future()
 
     def future(self, message_hash):
@@ -134,6 +143,11 @@ class Client(object):
             task = self.asyncio_loop.create_task(self.receive())
 
             def after_interrupt(resolved: asyncioFuture):
+                if resolved.cancelled():
+                    # the receive task was cancelled, e.g. during shutdown or a
+                    # reconnect, calling exception() on a cancelled task would
+                    # raise CancelledError inside this callback, so just stop
+                    return
                 exception = resolved.exception()
                 if exception is None:
                     self.handle_message(resolved.result())
@@ -240,10 +254,7 @@ class Client(object):
         # decoded = json.loads(data) if is_json_encoded_object(data) else data
         decode = None
         if is_json_encoded_object(data):
-            if orjson is None:
-                decode = json.loads(data)
-            else:
-                decode = orjson.loads(data)
+            decode = json_parser.loads(data)
         else:
             decode = data
         self.on_message_callback(self, decode)
@@ -293,9 +304,14 @@ class Client(object):
         if 'cookies' in self.options:
             for key, value in self.options['cookies'].items():
                 session.cookie_jar.update_cookies({key: value})
+        # offer permessage-deflate (RFC 7692) by default, matching the JS `ws` client and
+        # browsers - some gateways (e.g. nado behind cloudflare) 403 handshakes without the
+        # Sec-WebSocket-Extensions offer; servers that don't support it simply ignore it.
+        # can be disabled per exchange via options['ws'] = {'compress': 0}
+        compress = self.options.get('compress', 15)
         if (self.proxy):
-            return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), proxy=self.proxy, max_msg_size=10485760).__aenter__()
-        return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), max_msg_size=10485760).__aenter__()
+            return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), compress=compress, proxy=self.proxy, max_msg_size=10485760).__aenter__()
+        return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), compress=compress, max_msg_size=10485760).__aenter__()
 
     async def send(self, message):
         if self.verbose:
@@ -304,10 +320,7 @@ class Client(object):
         if isinstance(message, str):
             send_msg = message
         else:
-            if orjson is None:
-                send_msg = json.dumps(message, separators=(',', ':'))
-            else:
-                send_msg = orjson.dumps(message).decode('utf-8')
+            send_msg = json_dumps(message)
         if self.closed():
             raise ConnectionError('Cannot Send Message: Connection closed before send')
         return await self.connection.send_str(send_msg)
@@ -331,6 +344,11 @@ class Client(object):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'ping loop')
         while self.keepAlive and not self.closed():
+            # sleep BEFORE the first (and every) ping so the initial subscribe goes out first —
+            # this matches the JS client (setInterval fires after one keepAlive, not immediately).
+            # some servers (e.g. Polymarket) close the connection if a ping arrives before the
+            # subscribe frame, which is why the first ping must not be sent on connect.
+            await sleep(self.keepAlive / 1000)
             now = milliseconds()
             self.lastPong = now if self.lastPong is None else self.lastPong
             if (self.lastPong + self.keepAlive * self.maxPingPongMisses) < now:
@@ -347,4 +365,3 @@ class Client(object):
                         self.on_error(e)
                 else:
                     await self.connection.ping()
-            await sleep(self.keepAlive / 1000)

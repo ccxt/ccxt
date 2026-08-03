@@ -2516,6 +2516,11 @@ public partial class binanceus : binance
         return await this.callAsync ("dapiPrivateGetOpenOrders",parameters);
     }
 
+    public async Task<object> dapiPrivateGetOpenAlgoOrders (object parameters = null)
+    {
+        return await this.callAsync ("dapiPrivateGetOpenAlgoOrders",parameters);
+    }
+
     public async Task<object> dapiPrivateGetAllOrders (object parameters = null)
     {
         return await this.callAsync ("dapiPrivateGetAllOrders",parameters);
@@ -2621,6 +2626,11 @@ public partial class binanceus : binance
         return await this.callAsync ("dapiPrivatePostOrder",parameters);
     }
 
+    public async Task<object> dapiPrivatePostAlgoOrder (object parameters = null)
+    {
+        return await this.callAsync ("dapiPrivatePostAlgoOrder",parameters);
+    }
+
     public async Task<object> dapiPrivatePostBatchOrders (object parameters = null)
     {
         return await this.callAsync ("dapiPrivatePostBatchOrders",parameters);
@@ -2669,6 +2679,11 @@ public partial class binanceus : binance
     public async Task<object> dapiPrivateDeleteOrder (object parameters = null)
     {
         return await this.callAsync ("dapiPrivateDeleteOrder",parameters);
+    }
+
+    public async Task<object> dapiPrivateDeleteAlgoOrder (object parameters = null)
+    {
+        return await this.callAsync ("dapiPrivateDeleteAlgoOrder",parameters);
     }
 
     public async Task<object> dapiPrivateDeleteAllOpenOrders (object parameters = null)
@@ -4129,6 +4144,11 @@ public partial class binanceus : binance
     public async Task<object> papiPostUmFeeBurn (object parameters = null)
     {
         return await this.callAsync ("papiPostUmFeeBurn",parameters);
+    }
+
+    public async Task<object> papiPostUmStockContract (object parameters = null)
+    {
+        return await this.callAsync ("papiPostUmStockContract",parameters);
     }
 
     public async Task<object> papiPutListenKey (object parameters = null)

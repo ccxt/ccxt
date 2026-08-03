@@ -16,6 +16,9 @@ abstract class ndax extends \ccxt\Exchange {
     public function public_get_authenticateuser($params = array()) {
         return $this->request('AuthenticateUser', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_enablexp2fa($params = array()) {
+        return $this->request('EnableXP2FA', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_get_getl2snapshot($params = array()) {
         return $this->request('GetL2Snapshot', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -43,14 +46,32 @@ abstract class ndax extends \ccxt\Exchange {
     public function public_get_getinstruments($params = array()) {
         return $this->request('GetInstruments', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function public_get_getearliestticktime($params = array()) {
+        return $this->request('GetEarliestTickTime', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function public_get_ping($params = array()) {
         return $this->request('Ping', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_assets($params = array()) {
+        return $this->request('assets', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_orderbook($params = array()) {
+        return $this->request('orderbook', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_ticker($params = array()) {
+        return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_summary($params = array()) {
+        return $this->request('summary', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_trades($params = array()) {
         return $this->request('trades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_getlasttrades($params = array()) {
         return $this->request('GetLastTrades', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_confirmwithdraw($params = array()) {
+        return $this->request('ConfirmWithdraw', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_subscribelevel1($params = array()) {
         return $this->request('SubscribeLevel1', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -205,11 +226,23 @@ abstract class ndax extends \ccxt\Exchange {
     public function private_get_getwithdrawticket($params = array()) {
         return $this->request('GetWithdrawTicket', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_getwithdrawticketattachment($params = array()) {
+        return $this->request('GetWithdrawTicketAttachment', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_getwithdrawtickets($params = array()) {
         return $this->request('GetWithdrawTickets', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_getdepositticketattachment($params = array()) {
+        return $this->request('GetDepositTicketAttachment', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_post_adduseraffiliatetag($params = array()) {
         return $this->request('AddUserAffiliateTag', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_adddepositticketattachment($params = array()) {
+        return $this->request('AddDepositTicketAttachment', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_addwithdrawticketattachment($params = array()) {
+        return $this->request('AddWithdrawTicketAttachment', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_canceluserreport($params = array()) {
         return $this->request('CancelUserReport', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -295,6 +328,9 @@ abstract class ndax extends \ccxt\Exchange {
     public function publicGetAuthenticateUser($params = array()) {
         return $this->request('AuthenticateUser', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function publicGetEnableXP2FA($params = array()) {
+        return $this->request('EnableXP2FA', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function publicGetGetL2Snapshot($params = array()) {
         return $this->request('GetL2Snapshot', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -322,14 +358,32 @@ abstract class ndax extends \ccxt\Exchange {
     public function publicGetGetInstruments($params = array()) {
         return $this->request('GetInstruments', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function publicGetGetEarliestTickTime($params = array()) {
+        return $this->request('GetEarliestTickTime', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function publicGetPing($params = array()) {
         return $this->request('Ping', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetAssets($params = array()) {
+        return $this->request('assets', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetOrderbook($params = array()) {
+        return $this->request('orderbook', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetTicker($params = array()) {
+        return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetSummary($params = array()) {
+        return $this->request('summary', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetTrades($params = array()) {
         return $this->request('trades', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetGetLastTrades($params = array()) {
         return $this->request('GetLastTrades', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetConfirmWithdraw($params = array()) {
+        return $this->request('ConfirmWithdraw', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetSubscribeLevel1($params = array()) {
         return $this->request('SubscribeLevel1', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -484,11 +538,23 @@ abstract class ndax extends \ccxt\Exchange {
     public function privateGetGetWithdrawTicket($params = array()) {
         return $this->request('GetWithdrawTicket', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetGetWithdrawTicketAttachment($params = array()) {
+        return $this->request('GetWithdrawTicketAttachment', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetGetWithdrawTickets($params = array()) {
         return $this->request('GetWithdrawTickets', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetGetDepositTicketAttachment($params = array()) {
+        return $this->request('GetDepositTicketAttachment', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privatePostAddUserAffiliateTag($params = array()) {
         return $this->request('AddUserAffiliateTag', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostAddDepositTicketAttachment($params = array()) {
+        return $this->request('AddDepositTicketAttachment', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostAddWithdrawTicketAttachment($params = array()) {
+        return $this->request('AddWithdrawTicketAttachment', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostCancelUserReport($params = array()) {
         return $this->request('CancelUserReport', 'private', 'POST', $params, null, null, array("cost" => 1));

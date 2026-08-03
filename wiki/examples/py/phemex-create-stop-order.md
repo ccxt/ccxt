@@ -1,8 +1,5 @@
-- [Phemex Create Stop Order](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -42,5 +39,5 @@ params = {
 }
 
 stop_limit = exchange.create_order(symbol, type, side, amount, price, params)
-print(stop_limit) 
+print(stop_limit)
 ```

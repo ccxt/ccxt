@@ -1,11 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/coinspot.js';
-import { ExchangeError, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Dict, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Dict, Fee, int, Int, Market, Num, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, NullableDict } from './base/types.js';
 import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
@@ -312,7 +312,9 @@ export default class coinspot extends Exchange {
                     const code = this.safeCurrencyCode (currencyId);
                     const account = this.account ();
                     account['total'] = this.safeString (balance, 'balance');
-                    result[code] = account;
+                    if (code !== undefined) {
+                        result[code] = account;
+                    }
                 }
             }
         } else {
@@ -322,7 +324,9 @@ export default class coinspot extends Exchange {
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
                 account['total'] = this.safeString (balances, currencyId);
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance (result);
@@ -337,7 +341,9 @@ export default class coinspot extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const method = this.safeString (this.options, 'fetchBalance', 'private_post_my_balances');
         const response = await this[method] (params);
         //
@@ -367,10 +373,12 @@ export default class coinspot extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'cointype': market['id'],
@@ -425,10 +433,12 @@ export default class coinspot extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const response = await this.publicGetLatest (params);
-        let id = market['id'];
+        let id = this.safeString (market, 'id', '');
         id = id.toLowerCase ();
         const prices = this.safeDict (response, 'prices', {});
         //
@@ -443,7 +453,7 @@ export default class coinspot extends Exchange {
         //         }
         //     }
         //
-        const ticker = this.safeDict (prices, id);
+        const ticker = this.safeDict (prices, id, {});
         return this.parseTicker (ticker, market);
     }
 
@@ -457,7 +467,9 @@ export default class coinspot extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.publicGetLatest (params);
         //
         //    {
@@ -503,7 +515,9 @@ export default class coinspot extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'cointype': market['id'],
@@ -533,9 +547,11 @@ export default class coinspot extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -607,9 +623,9 @@ export default class coinspot extends Exchange {
         //       "side": "buy",
         //       "price": 0.5168600000125209
         //     }
-        let timestamp = undefined;
-        let priceString = undefined;
-        let fee = undefined;
+        let timestamp: Int = undefined;
+        let priceString: Str = undefined;
+        let fee: Fee = undefined;
         const audTotal = this.safeString (trade, 'audtotal');
         const costString = this.safeString (trade, 'total', audTotal);
         const side = this.safeString (trade, 'side');
@@ -665,8 +681,13 @@ export default class coinspot extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
-        const method = 'privatePostMy' + this.capitalize (side);
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
+        }
+        const sideUpper = side.toUpperCase ();
         if (type === 'market') {
             throw new ExchangeError (this.id + ' createOrder() allows limit orders only');
         }
@@ -676,8 +697,20 @@ export default class coinspot extends Exchange {
             'amount': amount,
             'rate': price,
         };
-        const response = await this[method] (this.extend (request, params));
-        return this.parseOrder (response);
+        let response: Dict;
+        if (sideUpper === 'BUY') {
+            response = await this.privatePostMyBuy (this.extend (request, params));
+        } else if (sideUpper === 'SELL') {
+            response = await this.privatePostMySell (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' createOrder only support buy/sell side');
+        }
+        //
+        // status - ok, error
+        //
+        return this.safeOrder ({
+            'info': response,
+        });
     }
 
     /**
@@ -687,7 +720,7 @@ export default class coinspot extends Exchange {
      * @see https://www.coinspot.com.au/api#cancelbuyorder
      * @see https://www.coinspot.com.au/api#cancelsellorder
      * @param {string} id order id
-     * @param {string} symbol not used by coinspot cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -700,7 +733,7 @@ export default class coinspot extends Exchange {
         const request: Dict = {
             'id': id,
         };
-        let response = undefined;
+        let response: Dict;
         if (side === 'buy') {
             response = await this.privatePostMyBuyCancel (this.extend (request, params));
         } else {
@@ -714,9 +747,26 @@ export default class coinspot extends Exchange {
         });
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const url = this.urls['api'][api] + '/' + path;
-        if (api === 'private') {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        if (!response) {
+            return undefined; // fallback to default error handler
+        }
+        const status = this.safeString (response, 'status');
+        if (status === 'error') {
+            const feedback = this.id + ' ' + this.json (response);
+            throw new ExchangeError (feedback);
+        }
+        return undefined;
+    }
+
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+        const isVersionedApi = Array.isArray (api);
+        const version = isVersionedApi ? api[0] : undefined;
+        const accessType = isVersionedApi ? api[1] : api;
+        const endpoint = '/' + this.implodeParams (path, params);
+        const fullPath = (version !== undefined) ? '/' + version + endpoint : endpoint;
+        const url = this.urls['api'][accessType] + fullPath;
+        if (accessType === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ();
             body = this.json (this.extend ({ 'nonce': nonce }, params));

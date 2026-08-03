@@ -1,11 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha512 } from '@noble/hashes/sha2.js';
 import exmoRest from '../exmo.js';
 import { NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, OrderBook, Trade, Ticker, Balances, Market, Dict, Strings, Tickers, Order } from '../base/types.js';
+import type { Int, List, Str, OrderBook, Trade, Ticker, Balances, Market, Dict, Strings, Tickers, Order, NullableList } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -124,6 +124,9 @@ export default class exmo extends exmoRest {
         //     }
         //
         const topic = this.safeString (message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split ('/');
         const type = this.safeString (parts, 0);
         if (type === 'spot') {
@@ -163,7 +166,9 @@ export default class exmo extends exmoRest {
                 const account = this.account ();
                 account['free'] = this.safeString (balances, currencyId);
                 account['used'] = this.safeString (reserved, currencyId);
-                this.balance[code] = account;
+                if (code !== undefined) {
+                    this.balance[code] = account;
+                }
             }
         } else if (event === 'update') {
             const currencyId = this.safeString (data, 'currency');
@@ -171,7 +176,9 @@ export default class exmo extends exmoRest {
             const account = this.account ();
             account['free'] = this.safeString (data, 'balance');
             account['used'] = this.safeString (data, 'reserved');
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
         this.balance = this.safeBalance (this.balance);
     }
@@ -202,7 +209,9 @@ export default class exmo extends exmoRest {
             account['free'] = this.safeString (wallet, 'free');
             account['used'] = this.safeString (wallet, 'used');
             account['total'] = this.safeString (wallet, 'balance');
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
             this.balance = this.safeBalance (this.balance);
         }
     }
@@ -217,7 +226,9 @@ export default class exmo extends exmoRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'];
@@ -243,10 +254,12 @@ export default class exmo extends exmoRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
-        const messageHashes = [];
-        const args = [];
+        const messageHashes: List = [];
+        const args: List = [];
         for (let i = 0; i < symbols.length; i++) {
             const market = this.market (symbols[i]);
             messageHashes.push ('ticker:' + market['symbol']);
@@ -284,6 +297,9 @@ export default class exmo extends exmoRest {
         //      }
         //
         const topic = this.safeString (message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const topicParts = topic.split (':');
         const marketId = this.safeString (topicParts, 1);
         const symbol = this.safeSymbol (marketId);
@@ -306,7 +322,9 @@ export default class exmo extends exmoRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'];
@@ -340,6 +358,9 @@ export default class exmo extends exmoRest {
         //      }
         //
         const topic = this.safeString (message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split (':');
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId);
@@ -372,11 +393,13 @@ export default class exmo extends exmoRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate (params);
         const [ type, query ] = this.handleMarketTypeAndParams ('watchMyTrades', undefined, params);
         const url = this.urls['api']['ws'][type];
-        let messageHash = undefined;
+        let messageHash: Str = undefined;
         if (symbol === undefined) {
             messageHash = 'myTrades:' + type;
         } else {
@@ -455,12 +478,15 @@ export default class exmo extends exmoRest {
         //     }
         //
         const topic = this.safeString (message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split ('/');
         const type = this.safeString (parts, 0);
         const messageHash = 'myTrades:' + type;
         const event = this.safeString (message, 'event');
-        let rawTrades = [];
-        let myTrades = undefined;
+        let rawTrades: List = [];
+        let myTrades: ArrayCache | undefined = undefined;
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             myTrades = new ArrayCacheBySymbolById (limit);
@@ -479,7 +505,9 @@ export default class exmo extends exmoRest {
         for (let j = 0; j < trades.length; j++) {
             const trade = trades[j];
             myTrades.append (trade);
-            symbols[trade['symbol']] = true;
+            if (trade['symbol'] !== undefined) {
+                symbols[trade['symbol']] = true;
+            }
         }
         const symbolKeys = Object.keys (symbols);
         for (let i = 0; i < symbolKeys.length; i++) {
@@ -497,10 +525,12 @@ export default class exmo extends exmoRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'];
@@ -553,6 +583,9 @@ export default class exmo extends exmoRest {
         //     }
         //
         const topic = this.safeString (message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split (':');
         const marketId = this.safeString (parts, 1);
         const symbol = this.safeSymbol (marketId);
@@ -579,7 +612,7 @@ export default class exmo extends exmoRest {
     }
 
     handleDelta (bookside, delta) {
-        const bidAsk = this.parseBidAsk (delta, 0, 1);
+        const bidAsk = this.parseOrderBookBidAsk (delta, 0, 1);
         bookside.storeArray (bidAsk);
     }
 
@@ -602,11 +635,13 @@ export default class exmo extends exmoRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate (params);
         const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', undefined, params);
         const url = this.urls['api']['ws'][type];
-        let messageHash = undefined;
+        let messageHash: Str = undefined;
         if (symbol === undefined) {
             messageHash = 'orders:' + type;
         } else {
@@ -683,6 +718,9 @@ export default class exmo extends exmoRest {
         // }
         //
         const topic = this.safeString (message, 'topic');
+        if (topic === undefined) {
+            return;
+        }
         const parts = topic.split ('/');
         const type = this.safeString (parts, 0);
         const messageHash = 'orders:' + type;
@@ -692,7 +730,7 @@ export default class exmo extends exmoRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const cachedOrders = this.orders;
-        let rawOrders = [];
+        let rawOrders: List = [];
         if (event === 'snapshot') {
             rawOrders = this.safeValue (message, 'data', []);
         } else if (event === 'update') {
@@ -703,7 +741,9 @@ export default class exmo extends exmoRest {
         for (let j = 0; j < rawOrders.length; j++) {
             const order = this.parseWsOrder (rawOrders[j]);
             cachedOrders.append (order);
-            symbols[order['symbol']] = true;
+            if (order['symbol'] !== undefined) {
+                symbols[order['symbol']] = true;
+            }
         }
         const symbolKeys = Object.keys (symbols);
         for (let i = 0; i < symbolKeys.length; i++) {
@@ -745,11 +785,11 @@ export default class exmo extends exmoRest {
         const price = this.safeString (order, 'price');
         const clientOrderId = this.omitZero (this.safeString (order, 'client_id'));
         const triggerPrice = this.omitZero (this.safeString (order, 'stop_price'));
-        let type = undefined;
+        let type: Str = undefined;
         if ((orderType !== 'buy') && (orderType !== 'sell')) {
             type = orderType;
         }
-        let trades = undefined;
+        let trades: NullableList = undefined;
         if ('last_trade_id' in order) {
             const trade = this.parseWsTrade (order, market);
             trades = [ trade ];
@@ -787,7 +827,7 @@ export default class exmo extends exmoRest {
         const marketId = this.safeString (trade, 'pair');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        let type = undefined;
+        let type: Str = undefined;
         if ((orderType !== 'buy') && (orderType !== 'sell')) {
             type = orderType;
         }

@@ -1,8 +1,5 @@
-- [Huobi Fetch Balance](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -28,5 +25,5 @@ try {
 }
 
 ?>
- 
+
 ```

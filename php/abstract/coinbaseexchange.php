@@ -205,6 +205,9 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
     public function private_post_position_close($params = array()) {
         return $this->request('position/close', 'private', 'POST', $params, null, null, array());
     }
+    public function private_post_profiles($params = array()) {
+        return $this->request('profiles', 'private', 'POST', $params, null, null, array());
+    }
     public function private_post_profiles_margin_transfer($params = array()) {
         return $this->request('profiles/margin-transfer', 'private', 'POST', $params, null, null, array());
     }
@@ -243,6 +246,12 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
     }
     public function private_delete_orders_id($params = array()) {
         return $this->request('orders/{id}', 'private', 'DELETE', $params, null, null, array());
+    }
+    public function private_put_profiles_id_deactivate($params = array()) {
+        return $this->request('profiles/{id}/deactivate', 'private', 'PUT', $params, null, null, array());
+    }
+    public function private_put_profiles_id($params = array()) {
+        return $this->request('profiles/{id}', 'private', 'PUT', $params, null, null, array());
     }
     public function publicGetCurrencies($params = array()) {
         return $this->request('currencies', 'public', 'GET', $params, null, null, array());
@@ -442,6 +451,9 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
     public function privatePostPositionClose($params = array()) {
         return $this->request('position/close', 'private', 'POST', $params, null, null, array());
     }
+    public function privatePostProfiles($params = array()) {
+        return $this->request('profiles', 'private', 'POST', $params, null, null, array());
+    }
     public function privatePostProfilesMarginTransfer($params = array()) {
         return $this->request('profiles/margin-transfer', 'private', 'POST', $params, null, null, array());
     }
@@ -480,5 +492,11 @@ abstract class coinbaseexchange extends \ccxt\Exchange {
     }
     public function privateDeleteOrdersId($params = array()) {
         return $this->request('orders/{id}', 'private', 'DELETE', $params, null, null, array());
+    }
+    public function privatePutProfilesIdDeactivate($params = array()) {
+        return $this->request('profiles/{id}/deactivate', 'private', 'PUT', $params, null, null, array());
+    }
+    public function privatePutProfilesId($params = array()) {
+        return $this->request('profiles/{id}', 'private', 'PUT', $params, null, null, array());
     }
 }

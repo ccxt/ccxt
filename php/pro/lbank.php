@@ -7,11 +7,13 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class lbank extends \ccxt\async\lbank {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -67,7 +69,7 @@ class lbank extends \ccxt\async\lbank {
         return $newValue;
     }
 
-    public function fetch_ohlcv_ws(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv_ws(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -81,7 +83,9 @@ class lbank extends \ccxt\async\lbank {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $watchOHLCVOptions = $this->safe_value($this->options, 'watchOHLCV', array());
@@ -103,10 +107,10 @@ class lbank extends \ccxt\async\lbank {
             $request = $this->deep_extend($message, $params);
             $requestId = $this->request_id();
             return Async\await($this->watch($url, $messageHash, $request, $requestId, $request));
-        }) ();
+        })();
     }
 
-    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              *
@@ -120,7 +124,9 @@ class lbank extends \ccxt\async\lbank {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $watchOHLCVOptions = $this->safe_value($this->options, 'watchOHLCV', array());
             $timeframes = $this->safe_value($watchOHLCVOptions, 'timeframes', array());
@@ -136,10 +142,10 @@ class lbank extends \ccxt\async\lbank {
             $request = $this->deep_extend($subscribe, $params);
             $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash));
             if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
+                $limit = $ohlcv->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
+        })();
     }
 
     public function handle_ohlcv($client, $message) {
@@ -215,12 +221,12 @@ class lbank extends \ccxt\async\lbank {
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                $stored = new ArrayCacheByTimestamp ($limit);
+                $stored = new ArrayCacheByTimestamp($limit);
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
-            $stored->append ($parsed);
+            $stored->append($parsed);
             $messageHash = 'fetchOHLCV:' . $symbol . ':' . $timeframeId;
-            $client->resolve ($stored, $messageHash);
+            $client->resolve($stored, $messageHash);
         } else {  // from subscription
             $rawOHLCV = $this->safe_value($message, 'kbar', array());
             $timeframeId = $this->safe_string($rawOHLCV, 'slot');
@@ -238,16 +244,16 @@ class lbank extends \ccxt\async\lbank {
             $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-                $stored = new ArrayCacheByTimestamp ($limit);
+                $stored = new ArrayCacheByTimestamp($limit);
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
             }
-            $stored->append ($parsed);
+            $stored->append($parsed);
             $messageHash = 'ohlcv:' . $symbol . ':' . $timeframeId;
-            $client->resolve ($stored, $messageHash);
+            $client->resolve($stored, $messageHash);
         }
     }
 
-    public function fetch_ticker_ws(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker_ws(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -255,10 +261,12 @@ class lbank extends \ccxt\async\lbank {
              *
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = 'fetchTicker:' . $market['symbol'];
@@ -270,10 +278,10 @@ class lbank extends \ccxt\async\lbank {
             $request = $this->deep_extend($message, $params);
             $requestId = $this->request_id();
             return Async\await($this->watch($url, $messageHash, $request, $requestId, $request));
-        }) ();
+        })();
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
@@ -281,10 +289,12 @@ class lbank extends \ccxt\async\lbank {
              *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} $params extra parameters specific to the lbank api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = 'ticker:' . $market['symbol'];
@@ -295,7 +305,7 @@ class lbank extends \ccxt\async\lbank {
             );
             $request = $this->deep_extend($message, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
-        }) ();
+        })();
     }
 
     public function handle_ticker($client, $message) {
@@ -326,12 +336,12 @@ class lbank extends \ccxt\async\lbank {
         $parsedTicker = $this->parse_ws_ticker($message, $market);
         $this->tickers[$symbol] = $parsedTicker;
         $messageHash = 'ticker:' . $symbol;
-        $client->resolve ($parsedTicker, $messageHash);
+        $client->resolve($parsedTicker, $messageHash);
         $messageHash = 'fetchTicker:' . $symbol;
-        $client->resolve ($parsedTicker, $messageHash);
+        $client->resolve($parsedTicker, $messageHash);
     }
 
-    public function parse_ws_ticker($ticker, $market = null) {
+    public function parse_ws_ticker($ticker, ?array $market = null) {
         //
         //     {
         //         "tick":array(
@@ -381,7 +391,7 @@ class lbank extends \ccxt\async\lbank {
         ), $market);
     }
 
-    public function fetch_trades_ws(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades_ws(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -394,7 +404,9 @@ class lbank extends \ccxt\async\lbank {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = 'fetchTrades:' . $market['symbol'];
@@ -410,10 +422,10 @@ class lbank extends \ccxt\async\lbank {
             $request = $this->deep_extend($message, $params);
             $requestId = $this->request_id();
             return Async\await($this->watch($url, $messageHash, $request, $requestId, $request));
-        }) ();
+        })();
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -426,7 +438,9 @@ class lbank extends \ccxt\async\lbank {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = 'trades:' . $market['symbol'];
@@ -439,7 +453,7 @@ class lbank extends \ccxt\async\lbank {
             $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
             $result = $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
             return $this->sort_by($result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
-        }) ();
+        })();
     }
 
     public function handle_trades($client, $message) {
@@ -475,7 +489,7 @@ class lbank extends \ccxt\async\lbank {
         $stored = $this->safe_value($this->trades, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $stored = new ArrayCache ($limit);
+            $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
         $rawTrade = $this->safe_value($message, 'trade');
@@ -483,16 +497,16 @@ class lbank extends \ccxt\async\lbank {
         for ($i = 0; $i < count($rawTrades); $i++) {
             $trade = $this->parse_ws_trade($rawTrades[$i], $market);
             $trade['symbol'] = $symbol;
-            $stored->append ($trade);
+            $stored->append($trade);
         }
         $this->trades[$symbol] = $stored;
         $messageHash = 'trades:' . $symbol;
-        $client->resolve ($this->trades[$symbol], $messageHash);
+        $client->resolve($this->trades[$symbol], $messageHash);
         $messageHash = 'fetchTrades:' . $symbol;
-        $client->resolve ($this->trades[$symbol], $messageHash);
+        $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         // request
         //    array( 'timestamp', 'price', 'volume', 'direction' )
@@ -536,7 +550,7 @@ class lbank extends \ccxt\async\lbank {
         ), $market);
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -546,10 +560,12 @@ class lbank extends \ccxt\async\lbank {
              * @param {string} [$symbol] unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
-             * @param {array} $params extra parameters specific to the lbank api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $key = Async\await($this->authenticate($params));
             $url = $this->urls['api']['ws'];
             $messageHash = null;
@@ -571,7 +587,7 @@ class lbank extends \ccxt\async\lbank {
             $request = $this->deep_extend($message, $params);
             $orders = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        }) ();
+        })();
     }
 
     public function handle_orders($client, $message) {
@@ -595,22 +611,23 @@ class lbank extends \ccxt\async\lbank {
         //
         $marketId = $this->safe_string($message, 'pair');
         $symbol = $this->safe_symbol($marketId, null, '_');
-        $myOrders = null;
+        $myOrders = $this->orders;
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $myOrders = new ArrayCacheBySymbolById ($limit);
-        } else {
-            $myOrders = $this->orders;
+            $myOrders = new ArrayCacheBySymbolById($limit);
         }
         $order = $this->parse_ws_order($message);
-        $myOrders->append ($order);
+        if ($myOrders === null) {
+            return;
+        }
+        $myOrders->append($order);
         $this->orders = $myOrders;
-        $client->resolve ($myOrders, 'orders');
+        $client->resolve($myOrders, 'orders');
         $messageHash = 'orders:' . $symbol;
-        $client->resolve ($myOrders, $messageHash);
+        $client->resolve($myOrders, $messageHash);
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         //     {
         //         "orderUpdate":array(
@@ -705,7 +722,7 @@ class lbank extends \ccxt\async\lbank {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
+    public function watch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
@@ -715,7 +732,9 @@ class lbank extends \ccxt\async\lbank {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $key = Async\await($this->authenticate($params));
             $url = $this->urls['api']['ws'];
             $messageHash = 'balance';
@@ -726,7 +745,7 @@ class lbank extends \ccxt\async\lbank {
             );
             $request = $this->deep_extend($message, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
-        }) ();
+        })();
     }
 
     public function handle_balance(Client $client, $message) {
@@ -757,12 +776,14 @@ class lbank extends \ccxt\async\lbank {
         $account['free'] = $this->safe_string($data, 'free');
         $account['used'] = $this->safe_string($data, 'freeze');
         $account['total'] = $this->safe_string($data, 'asset');
-        $this->balance[$code] = $account;
+        if ($code !== null) {
+            $this->balance[$code] = $account;
+        }
         $this->balance = $this->safe_balance($this->balance);
-        $client->resolve ($this->balance, 'balance');
+        $client->resolve($this->balance, 'balance');
     }
 
-    public function fetch_order_book_ws(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book_ws(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
@@ -771,10 +792,12 @@ class lbank extends \ccxt\async\lbank {
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the lbank api endpoint
+             * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = 'fetchOrderbook:' . $market['symbol'];
@@ -789,11 +812,11 @@ class lbank extends \ccxt\async\lbank {
             );
             $request = $this->deep_extend($subscribe, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
@@ -802,10 +825,12 @@ class lbank extends \ccxt\async\lbank {
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
-             * @param {array} $params extra parameters specific to the lbank api endpoint
-             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             * @param {array} $params extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $url = $this->urls['api']['ws'];
             $messageHash = 'orderbook:' . $market['symbol'];
@@ -821,8 +846,8 @@ class lbank extends \ccxt\async\lbank {
             );
             $request = $this->deep_extend($subscribe, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
     public function handle_order_book($client, $message) {
@@ -888,16 +913,16 @@ class lbank extends \ccxt\async\lbank {
         $datetime = $this->safe_string($message, 'TS');
         $timestamp = $this->parse8601($datetime);
         // $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book(array());
         }
         $orderbook = $this->orderbooks[$symbol];
         $snapshot = $this->parse_order_book($orderBook, $symbol, $timestamp, 'bids', 'asks');
-        $orderbook->reset ($snapshot);
+        $orderbook->reset($snapshot);
         $messageHash = 'orderbook:' . $symbol;
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
         $messageHash = 'fetchOrderbook:' . $symbol;
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
     public function handle_error_message($client, $message) {
@@ -910,8 +935,8 @@ class lbank extends \ccxt\async\lbank {
         //    }
         //
         $errMsg = $this->safe_string($message, 'message', '');
-        $error = new ExchangeError ($this->id . ' ' . $errMsg);
-        $client->reject ($error);
+        $error = new ExchangeError($this->id . ' ' . $errMsg);
+        $client->reject($error);
     }
 
     public function handle_ping(Client $client, $message) {
@@ -921,14 +946,14 @@ class lbank extends \ccxt\async\lbank {
             //
             $pingId = $this->safe_string($message, 'ping');
             try {
-                Async\await($client->send (array(
+                Async\await($client->send(array(
                     'action' => 'pong',
                     'pong' => $pingId,
                 )));
             } catch (Exception $e) {
                 $this->on_error($client, $e);
             }
-        }) ();
+        })();
     }
 
     public function handle_message($client, $message) {
@@ -956,10 +981,10 @@ class lbank extends \ccxt\async\lbank {
         }
     }
 
-    public function authenticate($params = array ()) {
+    public function authenticate($params = array()) {
         return Async\async(function () use ($params) {
             // when we implement more private streams, we need to refactor the authentication
-            // to be concurent-safe and respect the same authentication token
+            // to be concurrent-safe and respect the same authentication token
             $url = $this->urls['api']['ws'];
             $client = $this->client($url);
             $now = $this->milliseconds();
@@ -967,7 +992,7 @@ class lbank extends \ccxt\async\lbank {
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $this->check_required_credentials();
-                $response = Async\await($this->spotPrivatePostSubscribeGetKey ($params));
+                $response = Async\await($this->spotPrivatePostSubscribeGetKey($params));
                 //
                 // array("result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198)
                 //
@@ -985,7 +1010,7 @@ class lbank extends \ccxt\async\lbank {
                     $request = array(
                         'subscribeKey' => $authenticated['key'],
                     );
-                    $response = Async\await($this->spotPrivatePostSubscribeRefreshKey ($this->extend($request, $params)));
+                    $response = Async\await($this->spotPrivatePostSubscribeRefreshKey($this->extend($request, $params)));
                     //
                     //    array("result" => "true")
                     //
@@ -997,6 +1022,6 @@ class lbank extends \ccxt\async\lbank {
                 }
             }
             return $client->subscriptions['authenticated']['key'];
-        }) ();
+        })();
     }
 }

@@ -146,9 +146,10 @@ public partial class independentreserve : Exchange
                         { "takeProfitPrice", false },
                         { "attachedStopLossTakeProfit", null },
                         { "timeInForce", new Dictionary<string, object>() {
-                            { "IOC", false },
-                            { "FOK", false },
-                            { "PO", false },
+                            { "GTC", true },
+                            { "IOC", true },
+                            { "FOK", true },
+                            { "PO", true },
                             { "GTD", false },
                         } },
                         { "hedged", false },
@@ -368,7 +369,10 @@ public partial class independentreserve : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "AvailableBalance");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "TotalBalance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -383,7 +387,10 @@ public partial class independentreserve : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostGetAccounts(parameters);
         return this.parseBalance(response);
     }
@@ -395,12 +402,15 @@ public partial class independentreserve : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "primaryCurrencyCode", getValue(market, "baseId") },
@@ -472,7 +482,10 @@ public partial class independentreserve : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "primaryCurrencyCode", getValue(market, "baseId") },
@@ -598,7 +611,7 @@ public partial class independentreserve : Exchange
             { "lastTradeTimestamp", null },
             { "symbol", symbol },
             { "type", orderType },
-            { "timeInForce", null },
+            { "timeInForce", this.parseTimeInForce(this.safeString(order, "TimeInForce")) },
             { "postOnly", null },
             { "side", side },
             { "price", this.safeString(order, "Price") },
@@ -628,8 +641,20 @@ public partial class independentreserve : Exchange
             { "Cancelled", "canceled" },
             { "PartiallyFilledAndExpired", "canceled" },
             { "Expired", "canceled" },
+            { "Failed", "canceled" },
         };
         return this.safeString(statuses, status, status);
+    }
+
+    public virtual object parseTimeInForce(object timeInForce)
+    {
+        object timeInForces = new Dictionary<string, object>() {
+            { "Gtc", "GTC" },
+            { "Moc", "PO" },
+            { "Fok", "FOK" },
+            { "Ioc", "IOC" },
+        };
+        return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
     /**
@@ -644,7 +669,10 @@ public partial class independentreserve : Exchange
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostGetOrderDetails(this.extend(new Dictionary<string, object>() {
             { "orderGuid", id },
         }, parameters));
@@ -669,8 +697,11 @@ public partial class independentreserve : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object request = this.ordered(new Dictionary<string, object>() {});
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -702,8 +733,11 @@ public partial class independentreserve : Exchange
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object request = this.ordered(new Dictionary<string, object>() {});
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -736,16 +770,19 @@ public partial class independentreserve : Exchange
     {
         limit ??= 50;
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object pageIndex = this.safeInteger(parameters, "pageIndex", 1);
         if (isTrue(isEqual(limit, null)))
         {
             limit = 50;
         }
-        object request = this.ordered(new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "pageIndex", pageIndex },
             { "pageSize", limit },
-        });
+        };
         object response = await this.privatePostGetTrades(this.extend(request, parameters));
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -814,7 +851,10 @@ public partial class independentreserve : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "primaryCurrencyCode", getValue(market, "baseId") },
@@ -835,7 +875,10 @@ public partial class independentreserve : Exchange
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostGetBrokerageFees(parameters);
         //
         //     [
@@ -853,15 +896,19 @@ public partial class independentreserve : Exchange
             object currencyId = this.safeString(fee, "CurrencyCode");
             object code = this.safeCurrencyCode(currencyId);
             object tradingFee = this.safeNumber(fee, "Fee");
-            ((IDictionary<string,object>)fees)[(string)code] = new Dictionary<string, object>() {
-                { "info", fee },
-                { "fee", tradingFee },
-            };
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)fees)[(string)code] = new Dictionary<string, object>() {
+                    { "info", fee },
+                    { "fee", tradingFee },
+                };
+            }
         }
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object fee = this.safeValue(fees, getValue(market, "base"), new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -891,15 +938,18 @@ public partial class independentreserve : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object orderType = this.capitalize(type);
         orderType = add(orderType, ((bool) isTrue((isEqual(side, "sell")))) ? "Offer" : "Bid");
-        object request = this.ordered(new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "primaryCurrencyCode", getValue(market, "baseId") },
             { "secondaryCurrencyCode", getValue(market, "quoteId") },
             { "orderType", orderType },
-        });
+        };
         object response = null;
         ((IDictionary<string,object>)request)["volume"] = amount;
         if (isTrue(isEqual(type, "limit")))
@@ -929,7 +979,10 @@ public partial class independentreserve : Exchange
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "orderGuid", id },
         };
@@ -964,7 +1017,10 @@ public partial class independentreserve : Exchange
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "primaryCurrencyCode", getValue(currency, "id") },
@@ -1023,7 +1079,10 @@ public partial class independentreserve : Exchange
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "primaryCurrencyCode", getValue(currency, "id") },
@@ -1143,7 +1202,7 @@ public partial class independentreserve : Exchange
             }
             object message = String.Join(",", ((IList<object>)auth).ToArray());
             object signature = this.hmac(this.encode(message), this.encode(this.secret), sha256);
-            object query = this.ordered(new Dictionary<string, object>() {});
+            object query = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)query)["apiKey"] = this.apiKey;
             ((IDictionary<string,object>)query)["nonce"] = nonce;
             ((IDictionary<string,object>)query)["signature"] = ((string)signature).ToUpper();

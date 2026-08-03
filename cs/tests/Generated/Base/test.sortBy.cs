@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class BaseTest
 {
-        public void testSortBy()
+        public void testSortBy1()
         {
             // todo: other argument checks
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
@@ -56,5 +56,165 @@ public partial class BaseTest
         }});
             object emptyArray = exchange.sortBy(new List<object>() {}, "x");
             AssertDeepEqual(exchange, null, "sortBy", emptyArray, new List<object>() {});
+        }
+        public void testSortBy2()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+            });
+            // sort ascending by key1, then key2 (key1 values are all distinct here)
+            object arr = new List<object>() {new Dictionary<string, object>() {
+            { "x", 3 },
+            { "y", 1 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 2 },
+        }, new Dictionary<string, object>() {
+            { "x", 2 },
+            { "y", 3 },
+        }, new Dictionary<string, object>() {
+            { "x", 0 },
+            { "y", 4 },
+        }};
+            object sorted = exchange.sortBy2(arr, "x", "y");
+            AssertDeepEqual(exchange, null, "sortBy2", sorted, new List<object>() {new Dictionary<string, object>() {
+            { "x", 0 },
+            { "y", 4 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 2 },
+        }, new Dictionary<string, object>() {
+            { "x", 2 },
+            { "y", 3 },
+        }, new Dictionary<string, object>() {
+            { "x", 3 },
+            { "y", 1 },
+        }});
+            // sort descending by key1
+            object arr2 = new List<object>() {new Dictionary<string, object>() {
+            { "x", 3 },
+            { "y", 1 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 2 },
+        }, new Dictionary<string, object>() {
+            { "x", 2 },
+            { "y", 3 },
+        }, new Dictionary<string, object>() {
+            { "x", 0 },
+            { "y", 4 },
+        }};
+            object sortedDescending = exchange.sortBy2(arr2, "x", "y", true);
+            AssertDeepEqual(exchange, null, "sortBy2", sortedDescending, new List<object>() {new Dictionary<string, object>() {
+            { "x", 3 },
+            { "y", 1 },
+        }, new Dictionary<string, object>() {
+            { "x", 2 },
+            { "y", 3 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 2 },
+        }, new Dictionary<string, object>() {
+            { "x", 0 },
+            { "y", 4 },
+        }});
+            // when key1 values are equal, sort by key2 ascending
+            object arr3 = new List<object>() {new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 5 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 2 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 9 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 1 },
+        }};
+            object sortedByKey2 = exchange.sortBy2(arr3, "x", "y");
+            AssertDeepEqual(exchange, null, "sortBy2", sortedByKey2, new List<object>() {new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 1 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 2 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 5 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 9 },
+        }});
+            // when key1 values are equal, sort by key2 descending
+            object arr4 = new List<object>() {new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 5 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 2 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 9 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 1 },
+        }};
+            object sortedByKey2Descending = exchange.sortBy2(arr4, "x", "y", true);
+            AssertDeepEqual(exchange, null, "sortBy2", sortedByKey2Descending, new List<object>() {new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 9 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 5 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 2 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 1 },
+        }});
+            // mixed: sort by key1 first, then key2 as tiebreaker
+            object arr5 = new List<object>() {new Dictionary<string, object>() {
+            { "x", 2 },
+            { "y", 3 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 5 },
+        }, new Dictionary<string, object>() {
+            { "x", 2 },
+            { "y", 1 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 2 },
+        }, new Dictionary<string, object>() {
+            { "x", 2 },
+            { "y", 2 },
+        }};
+            object sortedMixed = exchange.sortBy2(arr5, "x", "y");
+            AssertDeepEqual(exchange, null, "sortBy2", sortedMixed, new List<object>() {new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 2 },
+        }, new Dictionary<string, object>() {
+            { "x", 1 },
+            { "y", 5 },
+        }, new Dictionary<string, object>() {
+            { "x", 2 },
+            { "y", 1 },
+        }, new Dictionary<string, object>() {
+            { "x", 2 },
+            { "y", 2 },
+        }, new Dictionary<string, object>() {
+            { "x", 2 },
+            { "y", 3 },
+        }});
+            // empty array
+            object emptyArray = exchange.sortBy2(new List<object>() {}, "x", "y");
+            AssertDeepEqual(exchange, null, "sortBy2", emptyArray, new List<object>() {});
+        }
+        public void testSortBy()
+        {
+            testSortBy1();
+            testSortBy2();
         }
 }

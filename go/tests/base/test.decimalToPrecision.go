@@ -8,9 +8,9 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestDecimalToPrecision() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "regirock",
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	// ----------------------------------------------------------------------------
 	// Truncate To N Digits After Dot
 	Assert(ccxt.IsEqual(exchange.DecimalToPrecision("12.3456000", ccxt.TRUNCATE, 100, ccxt.DECIMAL_PLACES), "12.3456"))
@@ -220,7 +220,7 @@ func TestDecimalToPrecision() {
 	//
 	// throws (() =>
 	//     decimalToPrecision ('0.01', ccxt.TRUNCATE, -1, ccxt.TICK_SIZE),
-	//         "ccxt.TICK_SIZE cant be used with negative numPrecisionDigits")
+	//         "TICK_SIZE cant be used with negative numPrecisionDigits")
 	// ----------------------------------------------------------------------------
 	// Additional Edge Cases
 	// Zero handling variations

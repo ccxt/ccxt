@@ -51,4 +51,7 @@ class myokx(okx, ImplicitAPI):
                     'inverse': None,
                 },
             },
+            'options': {
+                'mica': True,
+            },
         })

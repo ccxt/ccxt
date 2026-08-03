@@ -1,8 +1,5 @@
-- [Watch Tickers](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -20,19 +17,18 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 function example() {
     return Async\async(function () {
         $binance = new \ccxt\pro\binance(array());
         $symbols = ['BTC/USDT', 'ETH/USDT', 'DOGE/USDT'];
         while (true) {
-            $tickers = Async\await($binance->watch_tickers($symbols));
+            $tickers = \React\Async\await($binance->watch_tickers($symbols));
             var_dump($tickers['BTC/USDT'], $tickers['ETH/USDT'], $tickers['DOGE/USDT']);
         }
     }) ();
 }
 
 
-Async\await(example());
- 
+\React\Async\await(example());
+
 ```

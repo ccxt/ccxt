@@ -5,15 +5,15 @@ Object.defineProperty(exports, '__esModule', { value: true });
 require('../utils/base58.js');
 var data = require('../utils/data.js');
 require('../utils/errors.js');
-require('../utils/events.js');
 require('../utils/fixednumber.js');
 require('../utils/maths.js');
 require('../utils/utf8.js');
 require('../../../base/functions/platform.js');
 require('../../../base/functions/encode.js');
 require('../../../base/functions/crypto.js');
-require('../../noble-hashes/sha3.js');
-require('../../noble-hashes/sha256.js');
+require('../../../base/functions/io.js');
+require('@noble/hashes/sha3.js');
+require('@noble/hashes/sha2.js');
 var abstractCoder = require('./abstract-coder.js');
 
 // ----------------------------------------------------------------------------

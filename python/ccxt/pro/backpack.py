@@ -62,10 +62,11 @@ class backpack(ccxt.async_support.backpack):
         })
 
     async def watch_public(self, topics, messageHashes, params={}, unwatch=False):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']['public']
         method = 'UNSUBSCRIBE' if unwatch else 'SUBSCRIBE'
-        request: dict = {
+        request = {
             'method': method,
             'params': topics,
         }
@@ -86,7 +87,7 @@ class backpack(ccxt.async_support.backpack):
         secretBytes = self.base64_to_binary(self.secret)
         seed = self.array_slice(secretBytes, 0, 32)
         signature = self.eddsa(self.encode(payload), seed, 'ed25519')
-        request: dict = {
+        request = {
             'method': method,
             'params': topics,
             'signature': [self.apiKey, signature, ts, recvWindow],
@@ -116,7 +117,7 @@ class backpack(ccxt.async_support.backpack):
                 splitHashes = messageHash.split(':')
                 symbol = self.safe_string(splitHashes, 2)
                 timeframe = self.safe_string(splitHashes, 3)
-                if symbol in self.ohlcvs:
+                if (symbol is not None) and (timeframe is not None) and (symbol in self.ohlcvs):
                     if timeframe in self.ohlcvs[symbol]:
                         del self.ohlcvs[symbol][timeframe]
             elif messageHash.find('orderbook') >= 0:
@@ -130,13 +131,14 @@ class backpack(ccxt.async_support.backpack):
             elif messageHash.find('orders') >= 0:
                 if messageHash == 'unsubscribe:orders':
                     cache = self.orders
-                    keys = list(cache.keys())
-                    for j in range(0, len(keys)):
-                        symbol = keys[j]
-                        del self.orders[symbol]
+                    if cache is not None:
+                        keys = list(cache.keys())
+                        for j in range(0, len(keys)):
+                            symbol = keys[j]
+                            del cache[symbol]
                 else:
                     symbol = messageHash.replace('unsubscribe:orders:', '')
-                    if symbol in self.orders:
+                    if (self.orders is not None) and (symbol in self.orders):
                         del self.orders[symbol]
             elif messageHash.find('positions') >= 0:
                 if messageHash == 'unsubscribe:positions':
@@ -160,14 +162,15 @@ class backpack(ccxt.async_support.backpack):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         topic = 'ticker' + '.' + market['id']
         messageHash = 'ticker' + ':' + symbol
         return await self.watch_public([topic], [messageHash], params)
 
-    async def un_watch_ticker(self, symbol: str, params={}) -> Any:
+    def un_watch_ticker(self, symbol: str, params={}) -> Any:
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -177,7 +180,7 @@ class backpack(ccxt.async_support.backpack):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.un_watch_tickers([symbol], params)
+        return self.un_watch_tickers([symbol], params)
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -189,7 +192,8 @@ class backpack(ccxt.async_support.backpack):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         messageHashes = []
         topics = []
@@ -211,7 +215,8 @@ class backpack(ccxt.async_support.backpack):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         topics = []
         messageHashes = []
@@ -264,7 +269,7 @@ class backpack(ccxt.async_support.backpack):
         #         v: '5542.3911'
         #     }
         #
-        microseconds = self.safe_integer(ticker, 'E')
+        microseconds = self.safe_integer(ticker, 'E', 0)
         timestamp = self.parse_to_int(microseconds / 1000)
         marketId = self.safe_string(ticker, 's')
         market = self.safe_market(marketId, market)
@@ -304,7 +309,8 @@ class backpack(ccxt.async_support.backpack):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         topics = []
         messageHashes = []
@@ -323,7 +329,8 @@ class backpack(ccxt.async_support.backpack):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         topics = []
         messageHashes = []
@@ -359,7 +366,7 @@ class backpack(ccxt.async_support.backpack):
         self.bidsasks[symbol] = parsedBidAsk
         client.resolve(parsedBidAsk, messageHash)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         #
         #     {
         #         A: '0.4087',
@@ -376,7 +383,7 @@ class backpack(ccxt.async_support.backpack):
         marketId = self.safe_string(ticker, 's')
         market = self.safe_market(marketId, market)
         symbol = self.safe_string(market, 'symbol')
-        microseconds = self.safe_integer(ticker, 'E')
+        microseconds = self.safe_integer(ticker, 'E', 0)
         timestamp = self.parse_to_int(microseconds / 1000)
         ask = self.safe_string(ticker, 'a')
         askVolume = self.safe_string(ticker, 'A')
@@ -409,7 +416,7 @@ class backpack(ccxt.async_support.backpack):
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return result[symbol][timeframe]
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
+    def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -420,7 +427,7 @@ class backpack(ccxt.async_support.backpack):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        return await self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
+        return self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
         """
@@ -437,7 +444,8 @@ class backpack(ccxt.async_support.backpack):
         symbolsLength = len(symbolsAndTimeframes)
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
             raise ArgumentsRequired(self.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         topics = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
@@ -467,7 +475,8 @@ class backpack(ccxt.async_support.backpack):
         symbolsLength = len(symbolsAndTimeframes)
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
             raise ArgumentsRequired(self.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         topics = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
@@ -504,9 +513,9 @@ class backpack(ccxt.async_support.backpack):
         marketId = self.safe_string(data, 's')
         market = self.market(marketId)
         symbol = market['symbol']
-        stream = self.safe_string(message, 'stream')
+        stream = self.safe_string(message, 'stream', '')
         parts = stream.split('.')
-        timeframe = self.safe_string(parts, 1)
+        timeframe = self.safe_string(parts, 1, '')
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
         if not (timeframe in self.ohlcvs[symbol]):
@@ -519,7 +528,7 @@ class backpack(ccxt.async_support.backpack):
         messageHash = 'candles:' + symbol + ':' + timeframe
         client.resolve([symbol, timeframe, ohlcv], messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ws_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     {
         #         E: '1754519557526056',
@@ -545,7 +554,7 @@ class backpack(ccxt.async_support.backpack):
             self.safe_number(ohlcv, 'v'),
         ]
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made in a market
 
@@ -557,9 +566,9 @@ class backpack(ccxt.async_support.backpack):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+        return self.watch_trades_for_symbols([symbol], since, limit, params)
 
-    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+    def un_watch_trades(self, symbol: str, params={}) -> Any:
         """
         unWatches from the stream channel
 
@@ -569,7 +578,7 @@ class backpack(ccxt.async_support.backpack):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        return await self.un_watch_trades_for_symbols([symbol], params)
+        return self.un_watch_trades_for_symbols([symbol], params)
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -583,7 +592,8 @@ class backpack(ccxt.async_support.backpack):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         symbolsLength = len(symbols)
         if symbolsLength == 0:
@@ -613,7 +623,8 @@ class backpack(ccxt.async_support.backpack):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         symbolsLength = len(symbols)
         if symbolsLength == 0:
@@ -660,7 +671,7 @@ class backpack(ccxt.async_support.backpack):
         client.resolve(cache, messageHash)
         client.resolve(cache, 'trades')
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
         #
         #     {
         #         E: '1754601477746429',
@@ -675,14 +686,20 @@ class backpack(ccxt.async_support.backpack):
         #         t: 10782547
         #     }
         #
-        microseconds = self.safe_integer(trade, 'E')
+        microseconds = self.safe_integer(trade, 'E', 0)
         timestamp = self.parse_to_int(microseconds / 1000)
         id = self.safe_string(trade, 't')
         marketId = self.safe_string(trade, 's')
         market = self.safe_market(marketId, market)
-        isMaker = self.safe_bool(trade, 'm')
-        side = 'sell' if isMaker else 'buy'
-        takerOrMaker = 'maker' if isMaker else 'taker'
+        isBuyerMaker = self.safe_bool(trade, 'm')
+        side = None
+        takerOrMaker = None
+        if isBuyerMaker is not None:
+            takerOrMaker = 'taker'
+            if isBuyerMaker:
+                side = 'sell'
+            else:
+                side = 'buy'
         price = self.safe_string(trade, 'p')
         amount = self.safe_string(trade, 'q')
         orderId = None
@@ -709,7 +726,7 @@ class backpack(ccxt.async_support.backpack):
             },
         }, market)
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -718,9 +735,9 @@ class backpack(ccxt.async_support.backpack):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return await self.watch_order_book_for_symbols([symbol], limit, params)
+        return self.watch_order_book_for_symbols([symbol], limit, params)
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
@@ -732,9 +749,10 @@ class backpack(ccxt.async_support.backpack):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         marketIds = self.market_ids(symbols)
         messageHashes = []
@@ -748,14 +766,14 @@ class backpack(ccxt.async_support.backpack):
         orderbook = await self.watch_public(topics, messageHashes, params)
         return orderbook.limit()  # todo check if limit is needed
 
-    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+    def un_watch_order_book(self, symbol: str, params={}) -> Any:
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        return await self.un_watch_order_book_for_symbols([symbol], params)
+        return self.un_watch_order_book_for_symbols([symbol], params)
 
     async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}) -> Any:
         """
@@ -763,9 +781,10 @@ class backpack(ccxt.async_support.backpack):
         :param str[] symbols: unified array of symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         marketIds = self.market_ids(symbols)
         messageHashes = []
@@ -815,13 +834,13 @@ class backpack(ccxt.async_support.backpack):
                 self.spawn(self.load_order_book, client, messageHash, symbol, None, {})
             storedOrderBook.cache.append(data)
             return
-        elif nonce > deltaNonce:
+        elif (deltaNonce is not None) and (nonce > deltaNonce):
             return
         self.handle_delta(storedOrderBook, data)
         client.resolve(storedOrderBook, messageHash)
 
     def handle_delta(self, orderbook, delta):
-        timestamp = self.parse_to_int(self.safe_integer(delta, 'T') / 1000)
+        timestamp = self.parse_to_int(self.safe_integer(delta, 'T', 0) / 1000)
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
         orderbook['nonce'] = self.safe_integer(delta, 'u')
@@ -834,7 +853,7 @@ class backpack(ccxt.async_support.backpack):
 
     def handle_bid_asks(self, bookSide, bidAsks):
         for i in range(0, len(bidAsks)):
-            bidAsk = self.parse_bid_ask(bidAsks[i])
+            bidAsk = self.parse_order_book_bid_ask(bidAsks[i])
             bookSide.storeArray(bidAsk)
 
     def get_cache_index(self, orderbook, cache):
@@ -843,12 +862,18 @@ class backpack(ccxt.async_support.backpack):
         firstDelta = self.safe_dict(cache, 0)
         nonce = self.safe_integer(orderbook, 'nonce')
         firstDeltaStart = self.safe_integer(firstDelta, 'U')
+        if nonce is None:
+            return len(cache)
+        if firstDeltaStart is None:
+            return -1
         if nonce < firstDeltaStart - 1:
             return -1
         for i in range(0, len(cache)):
             delta = cache[i]
             deltaStart = self.safe_integer(delta, 'U')
             deltaEnd = self.safe_integer(delta, 'u')
+            if (deltaStart is None) or (deltaEnd is None):
+                return len(cache)
             if (nonce >= deltaStart - 1) and (nonce < deltaEnd):
                 return i
         return len(cache)
@@ -865,7 +890,8 @@ class backpack(ccxt.async_support.backpack):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -890,7 +916,8 @@ class backpack(ccxt.async_support.backpack):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -943,7 +970,7 @@ class backpack(ccxt.async_support.backpack):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(orders, symbolSpecificMessageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None) -> Order:
         #
         #     {
         #         E: '1754939110175879',
@@ -972,7 +999,7 @@ class backpack(ccxt.async_support.backpack):
         #
         id = self.safe_string(order, 'i')
         clientOrderId = self.safe_string(order, 'c')
-        microseconds = self.safe_integer(order, 'E')
+        microseconds = self.safe_integer(order, 'E', 0)
         timestamp = self.parse_to_int(microseconds / 1000)
         status = self.parse_ws_order_status(self.safe_string(order, 'X'), market)
         marketId = self.safe_string(order, 's')
@@ -1017,8 +1044,8 @@ class backpack(ccxt.async_support.backpack):
             'info': order,
         }, market)
 
-    def parse_ws_order_status(self, status, market=None):
-        statuses: dict = {
+    def parse_ws_order_status(self, status: Str, market: Market = None):
+        statuses = {
             'New': 'open',
             'Filled': 'closed',
             'Cancelled': 'canceled',
@@ -1030,7 +1057,7 @@ class backpack(ccxt.async_support.backpack):
         return self.safe_string(statuses, status, status)
 
     def parse_ws_order_side(self, side: Str):
-        sides: dict = {
+        sides = {
             'Bid': 'buy',
             'Ask': 'sell',
         }
@@ -1048,7 +1075,8 @@ class backpack(ccxt.async_support.backpack):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         messageHashes = []
         topics = []
@@ -1075,7 +1103,8 @@ class backpack(ccxt.async_support.backpack):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         messageHashes = []
         topics = []
@@ -1119,7 +1148,7 @@ class backpack(ccxt.async_support.backpack):
             self.positions = ArrayCacheBySymbolById()
         cache = self.positions
         parsedPosition = self.parse_ws_position(data)
-        microseconds = self.safe_integer(data, 'E')
+        microseconds = self.safe_integer(data, 'E', 0)
         timestamp = self.parse_to_int(microseconds / 1000)
         parsedPosition['timestamp'] = timestamp
         parsedPosition['datetime'] = self.iso8601(timestamp)
@@ -1128,7 +1157,7 @@ class backpack(ccxt.async_support.backpack):
         client.resolve([parsedPosition], messageHash)
         client.resolve([parsedPosition], symbolSpecificMessageHash)
 
-    def parse_ws_position(self, position, market=None):
+    def parse_ws_position(self, position, market: Market = None):
         #
         #     {
         #         B: '4236.36',
@@ -1151,8 +1180,9 @@ class backpack(ccxt.async_support.backpack):
         #
         id = self.safe_string(position, 'i')
         marketId = self.safe_string(position, 's')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        market = marketResolved
+        symbol = marketResolved['symbol']
         notional = self.safe_string(position, 'n')
         liquidationPrice = self.safe_string(position, 'l')
         entryPrice = self.safe_string(position, 'b')
@@ -1163,12 +1193,13 @@ class backpack(ccxt.async_support.backpack):
         netQuantity = self.safe_number(position, 'q')
         hedged = False
         side = 'long'
-        if netQuantity < 0:
-            side = 'short'
-        if netQuantity is None:
+        if netQuantity is not None:
+            if netQuantity < 0:
+                side = 'short'
+        else:
             hedged = None
             side = None
-        microseconds = self.safe_integer(position, 'E')
+        microseconds = self.safe_integer(position, 'E', 0)
         timestamp = self.parse_to_int(microseconds / 1000)
         maintenanceMarginPercentage = self.safe_number(position, 'm')
         initialMarginPercentage = self.safe_number(position, 'f')

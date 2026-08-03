@@ -1,4 +1,4 @@
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 import testMarginMode from './base/test.marginMode.js';
 
 async function testFetchMarginMode (exchange: Exchange, skippedProperties: object, symbol: string) {

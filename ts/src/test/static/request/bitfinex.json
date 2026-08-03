@@ -5,11 +5,21 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchMarkets": [
+            {
+                "disabledGO": true,
+                "description": "default",
+                "method": "fetchMarkets",
+                "url": "https://api-pub.bitfinex.com/v2/conf/pub:info:pair,pub:info:pair:futures,pub:list:pair:securities,pub:list:pair:margin",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchCurrencies": [
             {
-                "description": "currencies",
+                "description": "default",
                 "method": "fetchCurrencies",
-                "url": "https://api-pub.bitfinex.com/v2/conf/pub:list:currency,pub:map:currency:sym,pub:map:currency:label,pub:map:currency:unit,pub:map:currency:undl,pub:map:currency:pool,pub:map:currency:explorer,pub:map:currency:tx:fee,pub:map:tx:method,pub:info:tx:status",
+                "url": "https://api-pub.bitfinex.com/v2/conf/pub:list:currency,pub:map:currency:sym,pub:map:currency:label,pub:map:currency:unit,pub:map:currency:undl,pub:map:currency:pool,pub:map:currency:explorer,pub:map:currency:tx:fee,pub:map:tx:method,pub:info:tx:status,pub:list:currency:margin",
                 "input": [],
                 "output": null
             }

@@ -147,6 +147,11 @@
             "min_order_amount": "1",
             "open_max_limits": [
                 {
+                    "leverage": "200",
+                    "maint_margin_ratio": "0.0025",
+                    "max_limit": "5000"
+                },
+                {
                     "leverage": "100",
                     "maint_margin_ratio": "0.005",
                     "max_limit": "3000000"
@@ -360,7 +365,7 @@
                 "max": null
             },
             "amount": {
-                "min": 2,
+                "min": 1,
                 "max": null
             },
             "price": {
@@ -386,7 +391,7 @@
             "minimum_value": "2",
             "amount_precision": "0",
             "status": "TRADING",
-            "minimum_amount": "2",
+            "minimum_amount": "1",
             "symbol": "XRP_USDT",
             "is_allow": "1",
             "zone": "MAIN",
@@ -876,7 +881,7 @@
                 "max": null
             },
             "cost": {
-                "min": 2,
+                "min": 1.2,
                 "max": null
             }
         },
@@ -891,7 +896,7 @@
                 "MARKET"
             ],
             "quote_asset": "USDT",
-            "minimum_value": "2",
+            "minimum_value": "1.2",
             "amount_precision": "4",
             "status": "TRADING",
             "minimum_amount": "0.0006",
@@ -905,7 +910,7 @@
         "percentage": true
     },
     "ETH/USDT:USDT": {
-        "id": "ETHUSDTPERP",
+        "id": "BETHUSDTPERP",
         "lowercaseId": null,
         "symbol": "ETH/USDT:USDT",
         "base": "ETH",
@@ -928,7 +933,7 @@
         "subType": "linear",
         "taker": 0.002,
         "maker": 0.002,
-        "contractSize": 0.01,
+        "contractSize": 0.001,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
@@ -961,13 +966,13 @@
         },
         "created": null,
         "info": {
-            "instrument_id": "ETHUSDTPERP",
+            "instrument_id": "BETHUSDTPERP",
             "type": "REAL",
             "contract_type": "PERPETUAL",
             "base_currency": "ETH",
             "quote_currency": "USDT",
             "clear_currency": "USDT",
-            "contract_value": "0.01",
+            "contract_value": "0.001",
             "contract_value_currency": "ETH",
             "is_inverse": false,
             "is_trading": true,
@@ -976,6 +981,11 @@
             "tick_size": "0.01",
             "min_order_amount": "1",
             "open_max_limits": [
+                {
+                    "leverage": "200",
+                    "maint_margin_ratio": "0.0025",
+                    "max_limit": "5000"
+                },
                 {
                     "leverage": "100",
                     "maint_margin_ratio": "0.005",

@@ -4,7 +4,7 @@ namespace ccxt;
 // Exchange Types that are used in the Exchange.Wrappers.cs file to type the generic methods
 //
 
-// public partial class Exchange
+// public partial class BaseExchange
 // {
 
 class Helper
@@ -1487,6 +1487,29 @@ public struct OrderRequest
     }
 }
 
+// prediction-market order request — carries an `outcome` handle instead of a `symbol`
+public struct PredictionOrderRequest
+{
+
+    public string? outcome;
+    public string? type;
+    public string? side;
+    public double? amount;
+    public double? price;
+    public Dictionary<string, object>? parameters;
+
+
+    public PredictionOrderRequest(object request)
+    {
+        amount = Exchange.SafeFloat(request, "amount");
+        price = Exchange.SafeFloat(request, "price");
+        type = Exchange.SafeString(request, "type");
+        side = Exchange.SafeString(request, "side");
+        outcome = Exchange.SafeString(request, "outcome");
+        parameters = Exchange.SafeValue(request, "parameters") != null ? (Dictionary<string, object>)Exchange.SafeValue(request, "parameters") : null;
+    }
+}
+
 public struct CancellationRequest
 {
 
@@ -1680,6 +1703,9 @@ public struct MarketInterface
 
     public Int64? created;
 
+    public Precision? precision;
+    public MarketMarginModes? marginModes;
+
     public MarketInterface(object market)
     {
         info = Helper.GetInfo(market);
@@ -1711,7 +1737,10 @@ public struct MarketInterface
         taker = Exchange.SafeFloat(market, "taker");
         maker = Exchange.SafeFloat(market, "maker");
         created = Exchange.SafeInteger(market, "created");
-        limits = (market as IDictionary<string, object>).ContainsKey("limits") ? new Limits((market as IDictionary<string, object>)["limits"]) : null;
+        precision = Exchange.SafeValue(market, "precision") != null ? new Precision(Exchange.SafeValue(market, "precision")) : null;
+        marginModes = Exchange.SafeValue(market, "marginModes") != null ? new MarketMarginModes(Exchange.SafeValue(market, "marginModes")) : null;
+        limits = Exchange.SafeValue(market, "limits") != null ? new Limits(Exchange.SafeValue(market, "limits")) : null;
+
     }
 
 }

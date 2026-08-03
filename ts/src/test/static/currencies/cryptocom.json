@@ -19,24 +19,9 @@
                     "min_withdrawal_amount": "9.12E-6",
                     "deposit_enabled": true,
                     "confirmation_required": "15"
-                },
-                {
-                    "network_id": "ETH",
-                    "withdrawal_fee": "0.00006700",
-                    "withdraw_enabled": true,
-                    "min_withdrawal_amount": "1.34E-4",
-                    "deposit_enabled": true,
-                    "confirmation_required": "32"
-                },
-                {
-                    "network_id": "SOL",
-                    "withdrawal_fee": "0.00001900",
-                    "withdraw_enabled": true,
-                    "min_withdrawal_amount": "3.8E-5",
-                    "deposit_enabled": true,
-                    "confirmation_required": "1"
                 }
-            ]
+            ],
+            "_coin_id": "BTC"
         },
         "id": "BTC",
         "numericId": null,
@@ -73,7 +58,7 @@
                     }
                 }
             },
-            "CRONOS": {
+            "CRC20": {
                 "info": {
                     "network_id": "CRONOS",
                     "withdrawal_fee": "0E-8",
@@ -83,7 +68,7 @@
                     "confirmation_required": "15"
                 },
                 "id": "CRONOS",
-                "network": "CRONOS",
+                "network": "CRC20",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -92,52 +77,6 @@
                 "limits": {
                     "withdraw": {
                         "min": 0.00000912,
-                        "max": null
-                    }
-                }
-            },
-            "ERC20": {
-                "info": {
-                    "network_id": "ETH",
-                    "withdrawal_fee": "0.00006700",
-                    "withdraw_enabled": true,
-                    "min_withdrawal_amount": "1.34E-4",
-                    "deposit_enabled": true,
-                    "confirmation_required": "32"
-                },
-                "id": "ETH",
-                "network": "ERC20",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.000067,
-                "precision": null,
-                "limits": {
-                    "withdraw": {
-                        "min": 0.000134,
-                        "max": null
-                    }
-                }
-            },
-            "SOL": {
-                "info": {
-                    "network_id": "SOL",
-                    "withdrawal_fee": "0.00001900",
-                    "withdraw_enabled": true,
-                    "min_withdrawal_amount": "3.8E-5",
-                    "deposit_enabled": true,
-                    "confirmation_required": "1"
-                },
-                "id": "SOL",
-                "network": "SOL",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.000019,
-                "precision": null,
-                "limits": {
-                    "withdraw": {
-                        "min": 0.000038,
                         "max": null
                     }
                 }
@@ -181,11 +120,11 @@
                 },
                 {
                     "network_id": "SOL",
-                    "withdrawal_fee": "5.29000000",
+                    "withdrawal_fee": "0.69804000",
                     "withdraw_enabled": true,
-                    "min_withdrawal_amount": "10.58",
+                    "min_withdrawal_amount": "1.39608",
                     "deposit_enabled": true,
-                    "confirmation_required": "1"
+                    "confirmation_required": "300"
                 },
                 {
                     "network_id": "MATIC",
@@ -193,7 +132,7 @@
                     "withdraw_enabled": true,
                     "min_withdrawal_amount": "1.6",
                     "deposit_enabled": true,
-                    "confirmation_required": "256"
+                    "confirmation_required": "100"
                 },
                 {
                     "network_id": "ARB",
@@ -210,8 +149,33 @@
                     "min_withdrawal_amount": "2.5",
                     "deposit_enabled": true,
                     "confirmation_required": "100"
+                },
+                {
+                    "network_id": "APT",
+                    "withdrawal_fee": "0.01100000",
+                    "withdraw_enabled": true,
+                    "min_withdrawal_amount": "0.022",
+                    "deposit_enabled": true,
+                    "confirmation_required": "120"
+                },
+                {
+                    "network_id": "DOT",
+                    "withdrawal_fee": "0.77000000",
+                    "withdraw_enabled": true,
+                    "min_withdrawal_amount": "1.54",
+                    "deposit_enabled": true,
+                    "confirmation_required": "10"
+                },
+                {
+                    "network_id": "XPL",
+                    "withdrawal_fee": "0.01300000",
+                    "withdraw_enabled": true,
+                    "min_withdrawal_amount": "0.026",
+                    "deposit_enabled": true,
+                    "confirmation_required": "120"
                 }
-            ]
+            ],
+            "_coin_id": "USDT"
         },
         "id": "USDT",
         "numericId": null,
@@ -222,7 +186,7 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.18,
+        "fee": 0.011,
         "fees": {},
         "networks": {
             "ERC20": {
@@ -248,7 +212,7 @@
                     }
                 }
             },
-            "CRONOS": {
+            "CRC20": {
                 "info": {
                     "network_id": "CRONOS",
                     "withdrawal_fee": "0.18000000",
@@ -258,7 +222,7 @@
                     "confirmation_required": "15"
                 },
                 "id": "CRONOS",
-                "network": "CRONOS",
+                "network": "CRC20",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -274,22 +238,22 @@
             "SOL": {
                 "info": {
                     "network_id": "SOL",
-                    "withdrawal_fee": "5.29000000",
+                    "withdrawal_fee": "0.69804000",
                     "withdraw_enabled": true,
-                    "min_withdrawal_amount": "10.58",
+                    "min_withdrawal_amount": "1.39608",
                     "deposit_enabled": true,
-                    "confirmation_required": "1"
+                    "confirmation_required": "300"
                 },
                 "id": "SOL",
                 "network": "SOL",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 5.29,
+                "fee": 0.69804,
                 "precision": null,
                 "limits": {
                     "withdraw": {
-                        "min": 10.58,
+                        "min": 1.39608,
                         "max": null
                     }
                 }
@@ -301,7 +265,7 @@
                     "withdraw_enabled": true,
                     "min_withdrawal_amount": "1.6",
                     "deposit_enabled": true,
-                    "confirmation_required": "256"
+                    "confirmation_required": "100"
                 },
                 "id": "MATIC",
                 "network": "MATIC",
@@ -362,6 +326,75 @@
                         "max": null
                     }
                 }
+            },
+            "APT": {
+                "info": {
+                    "network_id": "APT",
+                    "withdrawal_fee": "0.01100000",
+                    "withdraw_enabled": true,
+                    "min_withdrawal_amount": "0.022",
+                    "deposit_enabled": true,
+                    "confirmation_required": "120"
+                },
+                "id": "APT",
+                "network": "APT",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.011,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.022,
+                        "max": null
+                    }
+                }
+            },
+            "DOT": {
+                "info": {
+                    "network_id": "DOT",
+                    "withdrawal_fee": "0.77000000",
+                    "withdraw_enabled": true,
+                    "min_withdrawal_amount": "1.54",
+                    "deposit_enabled": true,
+                    "confirmation_required": "10"
+                },
+                "id": "DOT",
+                "network": "DOT",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.77,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 1.54,
+                        "max": null
+                    }
+                }
+            },
+            "XPL": {
+                "info": {
+                    "network_id": "XPL",
+                    "withdrawal_fee": "0.01300000",
+                    "withdraw_enabled": true,
+                    "min_withdrawal_amount": "0.026",
+                    "deposit_enabled": true,
+                    "confirmation_required": "120"
+                },
+                "id": "XPL",
+                "network": "XPL",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.013,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.026,
+                        "max": null
+                    }
+                }
             }
         },
         "limits": {
@@ -374,7 +407,7 @@
                 "max": null
             },
             "withdraw": {
-                "min": 0.36,
+                "min": 0.022,
                 "max": null
             }
         }
@@ -412,7 +445,7 @@
                     "withdraw_enabled": true,
                     "min_withdrawal_amount": "0.004",
                     "deposit_enabled": true,
-                    "confirmation_required": "4"
+                    "confirmation_required": "30"
                 },
                 {
                     "network_id": "CRONOS",
@@ -422,7 +455,8 @@
                     "deposit_enabled": true,
                     "confirmation_required": "15"
                 }
-            ]
+            ],
+            "_coin_id": "LTC"
         },
         "id": "LTC",
         "numericId": null,
@@ -443,7 +477,7 @@
                     "withdraw_enabled": true,
                     "min_withdrawal_amount": "0.004",
                     "deposit_enabled": true,
-                    "confirmation_required": "4"
+                    "confirmation_required": "30"
                 },
                 "id": "LTC",
                 "network": "LTC",
@@ -459,7 +493,7 @@
                     }
                 }
             },
-            "CRONOS": {
+            "CRC20": {
                 "info": {
                     "network_id": "CRONOS",
                     "withdrawal_fee": "0.00300000",
@@ -469,7 +503,7 @@
                     "confirmation_required": "15"
                 },
                 "id": "CRONOS",
-                "network": "CRONOS",
+                "network": "CRC20",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -533,7 +567,7 @@
                     "withdraw_enabled": true,
                     "min_withdrawal_amount": "7.0E-5",
                     "deposit_enabled": true,
-                    "confirmation_required": "256"
+                    "confirmation_required": "100"
                 },
                 {
                     "network_id": "OP",
@@ -553,9 +587,9 @@
                 },
                 {
                     "network_id": "BASE",
-                    "withdrawal_fee": "0.00011000",
+                    "withdrawal_fee": "0.00005500",
                     "withdraw_enabled": true,
-                    "min_withdrawal_amount": "2.2E-4",
+                    "min_withdrawal_amount": "1.1E-4",
                     "deposit_enabled": true,
                     "confirmation_required": "64"
                 },
@@ -575,7 +609,8 @@
                     "deposit_enabled": true,
                     "confirmation_required": "10"
                 }
-            ]
+            ],
+            "_coin_id": "ETH"
         },
         "id": "ETH",
         "numericId": null,
@@ -635,7 +670,7 @@
                     }
                 }
             },
-            "CRONOS": {
+            "CRC20": {
                 "info": {
                     "network_id": "CRONOS",
                     "withdrawal_fee": "0.00008000",
@@ -645,7 +680,7 @@
                     "confirmation_required": "15"
                 },
                 "id": "CRONOS",
-                "network": "CRONOS",
+                "network": "CRC20",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -665,7 +700,7 @@
                     "withdraw_enabled": true,
                     "min_withdrawal_amount": "7.0E-5",
                     "deposit_enabled": true,
-                    "confirmation_required": "256"
+                    "confirmation_required": "100"
                 },
                 "id": "MATIC",
                 "network": "MATIC",
@@ -730,9 +765,9 @@
             "BASE": {
                 "info": {
                     "network_id": "BASE",
-                    "withdrawal_fee": "0.00011000",
+                    "withdrawal_fee": "0.00005500",
                     "withdraw_enabled": true,
-                    "min_withdrawal_amount": "2.2E-4",
+                    "min_withdrawal_amount": "1.1E-4",
                     "deposit_enabled": true,
                     "confirmation_required": "64"
                 },
@@ -741,11 +776,11 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.00011,
+                "fee": 0.000055,
                 "precision": null,
                 "limits": {
                     "withdraw": {
-                        "min": 0.00022,
+                        "min": 0.00011,
                         "max": null
                     }
                 }
@@ -821,9 +856,9 @@
                     "network_id": "ADA",
                     "withdrawal_fee": "0.50000000",
                     "withdraw_enabled": true,
-                    "min_withdrawal_amount": "1.8",
+                    "min_withdrawal_amount": "2.3",
                     "deposit_enabled": true,
-                    "confirmation_required": "15"
+                    "confirmation_required": "30"
                 },
                 {
                     "network_id": "CRONOS",
@@ -841,7 +876,8 @@
                     "deposit_enabled": true,
                     "confirmation_required": "1"
                 }
-            ]
+            ],
+            "_coin_id": "ADA"
         },
         "id": "ADA",
         "numericId": null,
@@ -860,9 +896,9 @@
                     "network_id": "ADA",
                     "withdrawal_fee": "0.50000000",
                     "withdraw_enabled": true,
-                    "min_withdrawal_amount": "1.8",
+                    "min_withdrawal_amount": "2.3",
                     "deposit_enabled": true,
-                    "confirmation_required": "15"
+                    "confirmation_required": "30"
                 },
                 "id": "ADA",
                 "network": "ADA",
@@ -873,12 +909,12 @@
                 "precision": null,
                 "limits": {
                     "withdraw": {
-                        "min": 1.8,
+                        "min": 2.3,
                         "max": null
                     }
                 }
             },
-            "CRONOS": {
+            "CRC20": {
                 "info": {
                     "network_id": "CRONOS",
                     "withdrawal_fee": "0.30000000",
@@ -888,7 +924,7 @@
                     "confirmation_required": "15"
                 },
                 "id": "CRONOS",
-                "network": "CRONOS",
+                "network": "CRC20",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
@@ -951,7 +987,7 @@
                     "withdraw_enabled": true,
                     "min_withdrawal_amount": "11.0",
                     "deposit_enabled": true,
-                    "confirmation_required": "12"
+                    "confirmation_required": "1"
                 },
                 {
                     "network_id": "CRONOS",
@@ -961,7 +997,8 @@
                     "deposit_enabled": true,
                     "confirmation_required": "15"
                 }
-            ]
+            ],
+            "_coin_id": "XRP"
         },
         "id": "XRP",
         "numericId": null,
@@ -982,7 +1019,7 @@
                     "withdraw_enabled": true,
                     "min_withdrawal_amount": "11.0",
                     "deposit_enabled": true,
-                    "confirmation_required": "12"
+                    "confirmation_required": "1"
                 },
                 "id": "XRP",
                 "network": "XRP",
@@ -998,7 +1035,7 @@
                     }
                 }
             },
-            "CRONOS": {
+            "CRC20": {
                 "info": {
                     "network_id": "CRONOS",
                     "withdrawal_fee": "0.30000000",
@@ -1008,7 +1045,7 @@
                     "confirmation_required": "15"
                 },
                 "id": "CRONOS",
-                "network": "CRONOS",
+                "network": "CRC20",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,

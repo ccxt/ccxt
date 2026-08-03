@@ -12,7 +12,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_market.php';
 function test_fetch_markets($exchange, $skipped_properties) {
     $method = 'fetchMarkets';
     $markets = $exchange->fetch_markets();
-    assert(is_array($markets), $exchange->id . ' ' . $method . ' must return an object. ' . $exchange->json($markets));
+    assert($exchange->is_dictionary($markets), $exchange->id . ' ' . $method . ' must return a dict. ' . $exchange->json($markets));
     $market_values = is_array($markets) ? array_values($markets) : array();
     assert_non_emtpy_array($exchange, $skipped_properties, $method, $market_values);
     for ($i = 0; $i < count($market_values); $i++) {

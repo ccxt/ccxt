@@ -12,6 +12,7 @@ import (
 	"time"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
+	ccxtprediction "github.com/ccxt/ccxt/go/v4/prediction"
 	ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
 )
 
@@ -52,10 +53,12 @@ func benchmarks(exchangeName string) {
 	tradesContent := IoFileRead(tradesFile, true)
 
 	var exchange ccxt.ICoreExchange
-	settings := make(map[string]interface{})
-	settings["markets"] = marketsContent.(map[string]interface{})
+	settings := make(map[string]any)
+	settings["markets"] = marketsContent.(map[string]any)
 	suc := true
-	if slices.Contains(ccxtpro.Exchanges, exchangeName) {
+	if isPredictionExchange(exchangeName) {
+		exchange, suc = ccxtprediction.DynamicallyCreateInstance(exchangeName, settings)
+	} else if slices.Contains(ccxtpro.Exchanges, exchangeName) {
 		exchange, suc = ccxtpro.DynamicallyCreateInstance(exchangeName, settings)
 	} else {
 		exchange, suc = ccxt.DynamicallyCreateInstance(exchangeName, settings)
@@ -65,7 +68,7 @@ func benchmarks(exchangeName string) {
 	}
 	var derivedExchange ccxt.IDerivedExchange
 	derivedExchange = exchange.(ccxt.IDerivedExchange)
-	// exchange.Markets = exchange.MapToSafeMap(marketsContent.(map[string]interface{}))
+	// exchange.Markets = exchange.MapToSafeMap(marketsContent.(map[string]any))
 
 	beforeTickerNs := time.Now().UnixNano()
 	_ = derivedExchange.ParseTickers(tickersContent)
@@ -88,7 +91,7 @@ func benchmarks(exchangeName string) {
 	fmt.Println("| [1000]  parseTrades:    ", afterTrades-afterOrderBook, "ns ", tradesNs/1000000, "ms")
 	fmt.Println("|--------------------------------------------|")
 
-	testMap := map[string]interface{}{
+	testMap := map[string]any{
 		"first":  1,
 		"second": "2",
 		"third":  3.0,
@@ -96,15 +99,15 @@ func benchmarks(exchangeName string) {
 
 	testMapKeys := []string{"first", "second", "third"}
 
-	toExtendMap := map[string]interface{}{
+	toExtendMap := map[string]any{
 		"fourth": 4,
 		"first":  2,
-		"third": map[string]interface{}{
+		"third": map[string]any{
 			"nested": 3,
 		},
 	}
 
-	testArr := []interface{}{
+	testArr := []any{
 		1,
 		"2",
 		3.0,
@@ -267,7 +270,7 @@ func benchmarks(exchangeName string) {
 	fmt.Println("|--------------------------------------------|")
 }
 
-func contains(arr []interface{}, item interface{}) bool {
+func contains(arr []any, item any) bool {
 	for _, a := range arr {
 		if a == item {
 			return true
@@ -285,9 +288,9 @@ func containsStr(arr []string, item string) bool {
 	return false
 }
 
-func JsonParse(jsonStr2 interface{}) interface{} {
+func JsonParse(jsonStr2 any) any {
 	jsonStr := jsonStr2.(string)
-	var result interface{}
+	var result any
 	err := json.Unmarshal([]byte(jsonStr), &result)
 	if err != nil {
 		return nil
@@ -307,7 +310,7 @@ func GetRootDir() string {
 	return res
 }
 
-func IoFileRead(path interface{}, decode ...interface{}) interface{} {
+func IoFileRead(path any, decode ...any) any {
 	var shouldDecode bool
 	if len(decode) > 0 {
 		shouldDecode = decode[0].(bool)
@@ -321,7 +324,7 @@ func IoFileRead(path interface{}, decode ...interface{}) interface{} {
 		}
 
 		if shouldDecode {
-			var result interface{}
+			var result any
 			err := json.Unmarshal(content, &result)
 			if err != nil {
 				log.Fatal(err)
@@ -337,7 +340,7 @@ func IoFileRead(path interface{}, decode ...interface{}) interface{} {
 	}
 }
 
-func IoFileExists(path interface{}) bool {
+func IoFileExists(path any) bool {
 	switch p := path.(type) {
 	case string:
 		_, err := os.Stat(p)
@@ -348,8 +351,8 @@ func IoFileExists(path interface{}) bool {
 	}
 }
 
-func InitOptions(flags []string) map[string]interface{} {
-	settings := make(map[string]interface{})
+func InitOptions(flags []string) map[string]any {
+	settings := make(map[string]any)
 	if containsStr(flags, "--verbose") {
 		settings["verbose"] = true
 	}
@@ -359,7 +362,7 @@ func InitOptions(flags []string) map[string]interface{} {
 	}
 
 	if containsStr(flags, "--sandbox") {
-		settings["options"] = map[string]interface{}{
+		settings["options"] = map[string]any{
 			"sandbox": true,
 		}
 	}
@@ -371,7 +374,7 @@ func InitOptions(flags []string) map[string]interface{} {
 	return settings
 }
 
-func PrettyPrintData(data interface{}) {
+func PrettyPrintData(data any) {
 	if prettyOutput, err := json.MarshalIndent(data, "", "  "); err == nil {
 		fmt.Println(Blue + string(prettyOutput) + Reset)
 	} else {
@@ -411,6 +414,19 @@ func SetCredentials(instance ccxt.ICoreExchange) {
 	}
 }
 
+// isPredictionExchange reports whether id should resolve from the prediction namespace:
+// regular ids win for ids present in both (e.g. hyperliquid); --prediction / -p forces
+// the prediction namespace, and prediction is the fallback for prediction-only ids
+func isPredictionExchange(exchangeName string) bool {
+	if !slices.Contains(ccxtprediction.Exchanges, exchangeName) {
+		return false
+	}
+	if containsStr(os.Args, "--prediction") || containsStr(os.Args, "-p") {
+		return true
+	}
+	return !slices.Contains(ccxt.Exchanges, exchangeName)
+}
+
 func main() {
 
 	args := os.Args
@@ -432,10 +448,14 @@ func main() {
 	}
 
 	exchangeIds := IoFileRead(exchangeFile, true)
-	exchangeIdsMap := exchangeIds.(map[string]interface{})
-	exchangeIdsList := exchangeIdsMap["ids"].([]interface{})
+	exchangeIdsMap := exchangeIds.(map[string]any)
+	exchangeIdsList := exchangeIdsMap["ids"].([]any)
+	predictionIdsList := []any{}
+	if predictionRaw, ok := exchangeIdsMap["prediction"]; ok {
+		predictionIdsList = predictionRaw.([]any)
+	}
 
-	if !contains(exchangeIdsList, exchangeName) {
+	if !contains(exchangeIdsList, exchangeName) && !contains(predictionIdsList, exchangeName) {
 		panic(Red + "Exchange not found in exchanges.json" + Reset)
 	}
 
@@ -451,7 +471,7 @@ func main() {
 		}
 	}
 
-	var parameters []interface{}
+	var parameters []any
 	for _, arg := range args[3:] {
 		if !strings.HasPrefix(arg, "--") {
 			// parameters = append(parameters, arg)
@@ -471,7 +491,7 @@ func main() {
 		}
 	}
 
-	var settings interface{}
+	var settings any
 	keyFile := rootDir + "keys.local.json"
 	if IoFileExists(keyFile) {
 		settings = IoFileRead(keyFile)
@@ -481,8 +501,8 @@ func main() {
 			settings = IoFileRead(keyFile)
 		}
 	}
-	settingsMap := settings.(map[string]interface{})
-	exchangeSettings, hasSettings := settingsMap[exchangeName].(map[string]interface{})
+	settingsMap := settings.(map[string]any)
+	exchangeSettings, hasSettings := settingsMap[exchangeName].(map[string]any)
 	if !hasSettings {
 		exchangeSettings = nil
 	}
@@ -491,7 +511,9 @@ func main() {
 	cmdSettings := InitOptions(flags)
 	var instance ccxt.ICoreExchange
 	suc := true
-	if slices.Contains(ccxtpro.Exchanges, exchangeName) {
+	if isPredictionExchange(exchangeName) {
+		instance, suc = ccxtprediction.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
+	} else if slices.Contains(ccxtpro.Exchanges, exchangeName) {
 		instance, suc = ccxtpro.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
 	} else {
 		instance, suc = ccxt.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))

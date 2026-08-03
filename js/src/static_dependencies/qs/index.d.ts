@@ -1,19 +1,26 @@
-declare namespace _default {
-    export { formats };
-    export { parse };
-    export { stringify };
-}
+import stringify from './stringify.js';
+import parse from './parse.js';
+declare var formats: {
+    default: string;
+    formatters: {
+        RFC1738: (value: any) => string;
+        RFC3986: (value: any) => any;
+    };
+    RFC1738: string;
+    RFC3986: string;
+};
+export { formats, parse, stringify };
+declare const _default: {
+    formats: {
+        default: string;
+        formatters: {
+            RFC1738: (value: any) => string;
+            RFC3986: (value: any) => any;
+        };
+        RFC1738: string;
+        RFC3986: string;
+    };
+    parse: typeof parse;
+    stringify: typeof stringify;
+};
 export default _default;
-export namespace formats {
-    export { defaultFormat as default };
-    export { formatters };
-    export { RFC1738 };
-    export { RFC3986 };
-}
-import parse from "./parse.js";
-import stringify from "./stringify.js";
-import defaultFormat from "./formats.js";
-import { formatters } from "./formats.js";
-import { RFC1738 } from "./formats.js";
-import { RFC3986 } from "./formats.js";
-export { parse, stringify };

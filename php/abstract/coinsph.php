@@ -136,6 +136,9 @@ abstract class coinsph extends \ccxt\Exchange {
     public function private_post_openapi_v1_order($params = array()) {
         return $this->request('openapi/v1/order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_openapi_v1_order_cancelreplace($params = array()) {
+        return $this->request('openapi/v1/order/cancelReplace', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_post_openapi_v1_capital_withdraw_apply($params = array()) {
         return $this->request('openapi/v1/capital/withdraw/apply', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -166,11 +169,26 @@ abstract class coinsph extends \ccxt\Exchange {
     public function private_post_openapi_convert_v1_get_quote($params = array()) {
         return $this->request('openapi/convert/v1/get-quote', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function private_post_openapi_convert_v1_accpet_quote($params = array()) {
-        return $this->request('openapi/convert/v1/accpet-quote', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function private_post_openapi_convert_v1_accept_quote($params = array()) {
+        return $this->request('openapi/convert/v1/accept-quote', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_openapi_convert_v1_query_order_history($params = array()) {
         return $this->request('openapi/convert/v1/query-order-history', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_openapi_otc_trade_v1_get_supported_trading_pairs($params = array()) {
+        return $this->request('openapi/otc-trade/v1/get-supported-trading-pairs', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_openapi_otc_trade_v1_create_rfq($params = array()) {
+        return $this->request('openapi/otc-trade/v1/create-rfq', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_openapi_otc_trade_v1_accept_rfq($params = array()) {
+        return $this->request('openapi/otc-trade/v1/accept-rfq', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_openapi_otc_trade_v1_manual_settle($params = array()) {
+        return $this->request('openapi/otc-trade/v1/manual-settle', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_openapi_otc_trade_v1_query_order_history($params = array()) {
+        return $this->request('openapi/otc-trade/v1/query-order-history', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_openapi_fiat_v1_support_channel($params = array()) {
         return $this->request('openapi/fiat/v1/support-channel', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -189,6 +207,9 @@ abstract class coinsph extends \ccxt\Exchange {
     }
     public function private_post_openapi_transfer_v3_transfers($params = array()) {
         return $this->request('openapi/transfer/v3/transfers', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_openapi_transfer_v4_transfers($params = array()) {
+        return $this->request('openapi/transfer/v4/transfers', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_openapi_v1_sub_account_create($params = array()) {
         return $this->request('openapi/v1/sub-account/create', 'private', 'POST', $params, null, null, array("cost" => 30));
@@ -349,6 +370,9 @@ abstract class coinsph extends \ccxt\Exchange {
     public function privatePostOpenapiV1Order($params = array()) {
         return $this->request('openapi/v1/order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function privatePostOpenapiV1OrderCancelReplace($params = array()) {
+        return $this->request('openapi/v1/order/cancelReplace', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function privatePostOpenapiV1CapitalWithdrawApply($params = array()) {
         return $this->request('openapi/v1/capital/withdraw/apply', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -379,11 +403,26 @@ abstract class coinsph extends \ccxt\Exchange {
     public function privatePostOpenapiConvertV1GetQuote($params = array()) {
         return $this->request('openapi/convert/v1/get-quote', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
-    public function privatePostOpenapiConvertV1AccpetQuote($params = array()) {
-        return $this->request('openapi/convert/v1/accpet-quote', 'private', 'POST', $params, null, null, array("cost" => 1));
+    public function privatePostOpenapiConvertV1AcceptQuote($params = array()) {
+        return $this->request('openapi/convert/v1/accept-quote', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostOpenapiConvertV1QueryOrderHistory($params = array()) {
         return $this->request('openapi/convert/v1/query-order-history', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostOpenapiOtcTradeV1GetSupportedTradingPairs($params = array()) {
+        return $this->request('openapi/otc-trade/v1/get-supported-trading-pairs', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostOpenapiOtcTradeV1CreateRfq($params = array()) {
+        return $this->request('openapi/otc-trade/v1/create-rfq', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostOpenapiOtcTradeV1AcceptRfq($params = array()) {
+        return $this->request('openapi/otc-trade/v1/accept-rfq', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostOpenapiOtcTradeV1ManualSettle($params = array()) {
+        return $this->request('openapi/otc-trade/v1/manual-settle', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostOpenapiOtcTradeV1QueryOrderHistory($params = array()) {
+        return $this->request('openapi/otc-trade/v1/query-order-history', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostOpenapiFiatV1SupportChannel($params = array()) {
         return $this->request('openapi/fiat/v1/support-channel', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -402,6 +441,9 @@ abstract class coinsph extends \ccxt\Exchange {
     }
     public function privatePostOpenapiTransferV3Transfers($params = array()) {
         return $this->request('openapi/transfer/v3/transfers', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostOpenapiTransferV4Transfers($params = array()) {
+        return $this->request('openapi/transfer/v4/transfers', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostOpenapiV1SubAccountCreate($params = array()) {
         return $this->request('openapi/v1/sub-account/create', 'private', 'POST', $params, null, null, array("cost" => 30));

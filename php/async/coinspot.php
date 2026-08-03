@@ -9,12 +9,14 @@ use Exception; // a common import
 use ccxt\async\abstract\coinspot as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\NotSupported;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+
+use const ccxt\TICK_SIZE;
 
 class coinspot extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinspot',
@@ -312,7 +314,9 @@ class coinspot extends Exchange {
                     $code = $this->safe_currency_code($currencyId);
                     $account = $this->account();
                     $account['total'] = $this->safe_string($balance, 'balance');
-                    $result[$code] = $account;
+                    if ($code !== null) {
+                        $result[$code] = $account;
+                    }
                 }
             }
         } else {
@@ -322,13 +326,15 @@ class coinspot extends Exchange {
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['total'] = $this->safe_string($balances, $currencyId);
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             }
         }
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -338,9 +344,11 @@ class coinspot extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $method = $this->safe_string($this->options, 'fetchBalance', 'private_post_my_balances');
-            $response = Async\await($this->$method ($params));
+            $response = Async\await($this->$method($params));
             //
             // read-write api keys
             //
@@ -358,10 +366,10 @@ class coinspot extends Exchange {
             //     }
             //
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -371,16 +379,18 @@ class coinspot extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'cointype' => $market['id'],
             );
-            $orderbook = Async\await($this->privatePostOrders ($this->extend($request, $params)));
+            $orderbook = Async\await($this->privatePostOrders($this->extend($request, $params)));
             return $this->parse_order_book($orderbook, $market['symbol'], null, 'buyorders', 'sellorders', 'rate', 'amount');
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -419,7 +429,7 @@ class coinspot extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -430,10 +440,12 @@ class coinspot extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?$id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
-            $response = Async\await($this->publicGetLatest ($params));
-            $id = $market['id'];
+            $response = Async\await($this->publicGetLatest($params));
+            $id = $this->safe_string($market, 'id', '');
             $id = strtolower($id);
             $prices = $this->safe_dict($response, 'prices', array());
             //
@@ -448,12 +460,12 @@ class coinspot extends Exchange {
             //         }
             //     }
             //
-            $ticker = $this->safe_dict($prices, $id);
+            $ticker = $this->safe_dict($prices, $id, array());
             return $this->parse_ticker($ticker, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
@@ -464,8 +476,10 @@ class coinspot extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?$id=$ticker-structure $ticker structures~
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->publicGetLatest ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->publicGetLatest($params));
             //
             //    {
             //        "status" => "ok",
@@ -496,10 +510,10 @@ class coinspot extends Exchange {
                 }
             }
             return $this->filter_by_array_tickers($result, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -512,12 +526,14 @@ class coinspot extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'cointype' => $market['id'],
             );
-            $response = Async\await($this->privatePostOrdersHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOrdersHistory($this->extend($request, $params)));
             //
             //     {
             //         "status":"ok",
@@ -528,10 +544,10 @@ class coinspot extends Exchange {
             //
             $trades = $this->safe_list($response, 'orders', array());
             return $this->parse_trades($trades, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
@@ -544,7 +560,9 @@ class coinspot extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = null;
             if ($symbol !== null) {
@@ -553,7 +571,7 @@ class coinspot extends Exchange {
             if ($since !== null) {
                 $request['startdate'] = $this->yyyymmdd($since);
             }
-            $response = Async\await($this->privatePostRoMyTransactions ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostRoMyTransactions($this->extend($request, $params)));
             //  {
             //      "status" => "ok",
             //      "buyorders" => array(
@@ -590,7 +608,7 @@ class coinspot extends Exchange {
             }
             $trades = $this->array_concat($buyTrades, $sellTrades);
             return $this->parse_trades($trades, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -663,7 +681,7 @@ class coinspot extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -678,8 +696,13 @@ class coinspot extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
-            $method = 'privatePostMy' . $this->capitalize($side);
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            if ($side === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            }
+            $sideUpper = strtoupper($side);
             if ($type === 'market') {
                 throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
             }
@@ -689,12 +712,23 @@ class coinspot extends Exchange {
                 'amount' => $amount,
                 'rate' => $price,
             );
-            $response = Async\await($this->$method ($this->extend($request, $params)));
-            return $this->parse_order($response);
-        }) ();
+            if ($sideUpper === 'BUY') {
+                $response = Async\await($this->privatePostMyBuy($this->extend($request, $params)));
+            } elseif ($sideUpper === 'SELL') {
+                $response = Async\await($this->privatePostMySell($this->extend($request, $params)));
+            } else {
+                throw new NotSupported($this->id . ' createOrder only support buy/sell side');
+            }
+            //
+            // status - ok, error
+            //
+            return $this->safe_order(array(
+                'info' => $response,
+            ));
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -703,7 +737,7 @@ class coinspot extends Exchange {
              * @see https://www.coinspot.com.au/api#cancelsellorder
              *
              * @param {string} $id order $id
-             * @param {string} $symbol not used by coinspot cancelOrder ()
+             * @param {string} $symbol not used by cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
@@ -715,11 +749,10 @@ class coinspot extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = null;
             if ($side === 'buy') {
-                $response = Async\await($this->privatePostMyBuyCancel ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostMyBuyCancel($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privatePostMySellCancel ($this->extend($request, $params)));
+                $response = Async\await($this->privatePostMySellCancel($this->extend($request, $params)));
             }
             //
             // status - ok, error
@@ -727,12 +760,29 @@ class coinspot extends Exchange {
             return $this->safe_order(array(
                 'info' => $response,
             ));
-        }) ();
+        })();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$api] . '/' . $path;
-        if ($api === 'private') {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+        if (!$response) {
+            return null; // fallback to default error handler
+        }
+        $status = $this->safe_string($response, 'status');
+        if ($status === 'error') {
+            $feedback = $this->id . ' ' . $this->json($response);
+            throw new ExchangeError($feedback);
+        }
+        return null;
+    }
+
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+        $isVersionedApi = (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api)));
+        $version = $isVersionedApi ? $api[0] : null;
+        $accessType = $isVersionedApi ? $api[1] : $api;
+        $endpoint = '/' . $this->implode_params($path, $params);
+        $fullPath = ($version !== null) ? '/' . $version . $endpoint : $endpoint;
+        $url = $this->urls['api'][$accessType] . $fullPath;
+        if ($accessType === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce();
             $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));

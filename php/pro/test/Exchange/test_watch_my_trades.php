@@ -18,9 +18,9 @@ function test_watch_my_trades($exchange, $skipped_properties, $symbol) {
         $ends = $now + 15000;
         while ($now < $ends) {
             $success = true;
-            $response = null;
+            $response = [];
             try {
-                $response = Async\await($exchange->watch_my_trades($symbol));
+                $response = \React\Async\await($exchange->watch_my_trades($symbol));
             } catch(\Throwable $e) {
                 if (!is_temporary_failure($e)) {
                     throw $e;

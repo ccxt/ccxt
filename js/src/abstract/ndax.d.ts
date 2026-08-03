@@ -4,6 +4,7 @@ interface Exchange {
     publicGetActivate2FA(params?: {}): Promise<implicitReturnType>;
     publicGetAuthenticate2FA(params?: {}): Promise<implicitReturnType>;
     publicGetAuthenticateUser(params?: {}): Promise<implicitReturnType>;
+    publicGetEnableXP2FA(params?: {}): Promise<implicitReturnType>;
     publicGetGetL2Snapshot(params?: {}): Promise<implicitReturnType>;
     publicGetGetLevel1(params?: {}): Promise<implicitReturnType>;
     publicGetGetValidate2FARequiredEndpoints(params?: {}): Promise<implicitReturnType>;
@@ -13,9 +14,15 @@ interface Exchange {
     publicGetGetProducts(params?: {}): Promise<implicitReturnType>;
     publicGetGetInstrument(params?: {}): Promise<implicitReturnType>;
     publicGetGetInstruments(params?: {}): Promise<implicitReturnType>;
+    publicGetGetEarliestTickTime(params?: {}): Promise<implicitReturnType>;
     publicGetPing(params?: {}): Promise<implicitReturnType>;
+    publicGetAssets(params?: {}): Promise<implicitReturnType>;
+    publicGetOrderbook(params?: {}): Promise<implicitReturnType>;
+    publicGetTicker(params?: {}): Promise<implicitReturnType>;
+    publicGetSummary(params?: {}): Promise<implicitReturnType>;
     publicGetTrades(params?: {}): Promise<implicitReturnType>;
     publicGetGetLastTrades(params?: {}): Promise<implicitReturnType>;
+    publicGetConfirmWithdraw(params?: {}): Promise<implicitReturnType>;
     publicGetSubscribeLevel1(params?: {}): Promise<implicitReturnType>;
     publicGetSubscribeLevel2(params?: {}): Promise<implicitReturnType>;
     publicGetSubscribeTicker(params?: {}): Promise<implicitReturnType>;
@@ -67,8 +74,12 @@ interface Exchange {
     privateGetGetWithdrawTemplate(params?: {}): Promise<implicitReturnType>;
     privateGetGetWithdrawTemplateTypes(params?: {}): Promise<implicitReturnType>;
     privateGetGetWithdrawTicket(params?: {}): Promise<implicitReturnType>;
+    privateGetGetWithdrawTicketAttachment(params?: {}): Promise<implicitReturnType>;
     privateGetGetWithdrawTickets(params?: {}): Promise<implicitReturnType>;
+    privateGetGetDepositTicketAttachment(params?: {}): Promise<implicitReturnType>;
     privatePostAddUserAffiliateTag(params?: {}): Promise<implicitReturnType>;
+    privatePostAddDepositTicketAttachment(params?: {}): Promise<implicitReturnType>;
+    privatePostAddWithdrawTicketAttachment(params?: {}): Promise<implicitReturnType>;
     privatePostCancelUserReport(params?: {}): Promise<implicitReturnType>;
     privatePostRegisterNewDevice(params?: {}): Promise<implicitReturnType>;
     privatePostSubscribeAccountEvents(params?: {}): Promise<implicitReturnType>;

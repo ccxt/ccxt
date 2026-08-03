@@ -1,8 +1,5 @@
-- [Gdax Fetch My Trades Pagination](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -42,5 +39,5 @@ while True:
 
 for trade in allMyTrades:
     print(trade)
- 
+
 ```

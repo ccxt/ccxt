@@ -8,33 +8,33 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestFilterBy() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	var sampleArray interface{} = []interface{}{map[string]interface{}{
+	}, map[string]any{}, exchange)
+	var sampleArray any = []any{map[string]any{
 		"foo": "a",
-	}, map[string]interface{}{
+	}, map[string]any{
 		"foo": nil,
-	}, map[string]interface{}{
+	}, map[string]any{
 		"foo": "b",
-	}, map[string]interface{}{
+	}, map[string]any{
 		"foo": "a",
 		"bar": "b",
-	}, map[string]interface{}{
+	}, map[string]any{
 		"foo": "c",
-	}, map[string]interface{}{
+	}, map[string]any{
 		"foo": "d",
-	}, map[string]interface{}{
+	}, map[string]any{
 		"foo": "b",
-	}, map[string]interface{}{
+	}, map[string]any{
 		"foo": "c",
-	}, map[string]interface{}{
+	}, map[string]any{
 		"foo": "c",
 	}}
-	var currentValue interface{} = exchange.FilterBy(sampleArray, "foo", "a")
-	var storedValue interface{} = []interface{}{map[string]interface{}{
+	var currentValue any = exchange.FilterBy(sampleArray, "foo", "a")
+	var storedValue any = []any{map[string]any{
 		"foo": "a",
-	}, map[string]interface{}{
+	}, map[string]any{
 		"foo": "a",
 		"bar": "b",
 	}}

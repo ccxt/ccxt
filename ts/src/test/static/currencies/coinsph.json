@@ -20,9 +20,9 @@
                     "unLockConfirm": "2",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.00015",
+                    "withdrawFee": "0.00002",
                     "withdrawIntegerMultiple": "0.00000001",
-                    "withdrawMax": "5",
+                    "withdrawMax": "9",
                     "withdrawMin": "0.0005",
                     "sameAddress": false
                 },
@@ -68,9 +68,9 @@
                     "unLockConfirm": "2",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.00015",
+                    "withdrawFee": "0.00002",
                     "withdrawIntegerMultiple": "0.00000001",
-                    "withdrawMax": "5",
+                    "withdrawMax": "9",
                     "withdrawMin": "0.0005",
                     "sameAddress": false
                 },
@@ -79,12 +79,12 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.00015,
+                "fee": 0.00002,
                 "precision": 1e-8,
                 "limits": {
                     "withdraw": {
                         "min": 0.0005,
-                        "max": 5
+                        "max": 9
                     },
                     "deposit": {
                         "min": null,
@@ -135,7 +135,7 @@
             },
             "withdraw": {
                 "min": 0.0001,
-                "max": 5
+                "max": 9
             }
         }
     },
@@ -152,7 +152,7 @@
             "networkList": [
                 {
                     "addressRegex": "^0x[0-9a-fA-F]{40}$",
-                    "memoRegex": " ",
+                    "memoRegex": "",
                     "network": "ETH",
                     "name": "Ethereum (ERC20)",
                     "depositEnable": true,
@@ -160,9 +160,9 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "6",
+                    "withdrawFee": "0.4",
                     "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "500000",
+                    "withdrawMax": "2500000",
                     "withdrawMin": "10",
                     "sameAddress": false
                 },
@@ -178,7 +178,7 @@
                     "withdrawEnable": true,
                     "withdrawFee": "3",
                     "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "1000000",
+                    "withdrawMax": "2600000",
                     "withdrawMin": "20",
                     "sameAddress": false
                 },
@@ -192,9 +192,9 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
-                    "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "300000",
+                    "withdrawFee": "0.5",
+                    "withdrawIntegerMultiple": "0.00000001",
+                    "withdrawMax": "1000000",
                     "withdrawMin": "10",
                     "sameAddress": false
                 },
@@ -208,14 +208,14 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.01",
                     "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "30000",
+                    "withdrawMax": "50000",
                     "withdrawMin": "10",
                     "sameAddress": false
                 },
                 {
-                    "addressRegex": "^[1-9A-HJ-NP-Za-km-z]{32,44}$",
+                    "addressRegex": "^(?!T)[1-9A-HJ-NP-Za-km-z]{43,44}$",
                     "memoRegex": "",
                     "network": "SOL",
                     "name": "Solana",
@@ -224,9 +224,9 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.0081",
                     "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "300000",
+                    "withdrawMax": "500000",
                     "withdrawMin": "10",
                     "sameAddress": false
                 },
@@ -240,7 +240,7 @@
                     "unLockConfirm": "1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.01",
                     "withdrawIntegerMultiple": "0.000001",
                     "withdrawMax": "50000",
                     "withdrawMin": "10",
@@ -252,14 +252,78 @@
                     "network": "POL",
                     "name": "Polygon",
                     "depositEnable": true,
-                    "minConfirm": "200",
-                    "unLockConfirm": "300",
+                    "minConfirm": "3",
+                    "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.01",
                     "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "70000",
+                    "withdrawMax": "500000",
                     "withdrawMin": "10",
+                    "sameAddress": false
+                },
+                {
+                    "addressRegex": "^(1)[0-9a-z-A-Z]{44,50}$",
+                    "memoRegex": "",
+                    "network": "ASSETHUB",
+                    "name": "Asset Hub (Polkadot)",
+                    "depositEnable": true,
+                    "minConfirm": "3",
+                    "unLockConfirm": "5",
+                    "withdrawDesc": "",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.01",
+                    "withdrawIntegerMultiple": "0.000001",
+                    "withdrawMax": "50000",
+                    "withdrawMin": "10",
+                    "sameAddress": false
+                },
+                {
+                    "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+                    "memoRegex": "",
+                    "network": "KAIA",
+                    "name": "Kaia",
+                    "depositEnable": true,
+                    "minConfirm": "1",
+                    "unLockConfirm": "-1",
+                    "withdrawDesc": "",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.01",
+                    "withdrawIntegerMultiple": "0.000001",
+                    "withdrawMax": "100000",
+                    "withdrawMin": "0.015772",
+                    "sameAddress": false
+                },
+                {
+                    "addressRegex": "^(0x)[0-9A-Za-z]{62,64}$",
+                    "memoRegex": "",
+                    "network": "APT",
+                    "name": "APT",
+                    "depositEnable": true,
+                    "minConfirm": "1",
+                    "unLockConfirm": "-1",
+                    "withdrawDesc": "",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.01",
+                    "withdrawIntegerMultiple": "0.000001",
+                    "withdrawMax": "1000000",
+                    "withdrawMin": "0.063261",
+                    "sameAddress": false
+                },
+                {
+                    "addressRegex": "^0x[0-9a-fA-F]{40}$",
+                    "memoRegex": "",
+                    "network": "XPL",
+                    "name": "Plasma",
+                    "depositEnable": true,
+                    "minConfirm": "12",
+                    "unLockConfirm": "-1",
+                    "withdrawDesc": "",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.01",
+                    "withdrawIntegerMultiple": "0.000001",
+                    "withdrawMax": "500000",
+                    "withdrawMin": "0.07059",
                     "sameAddress": false
                 }
             ],
@@ -274,13 +338,13 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 2,
+        "fee": 0.0081,
         "fees": null,
         "networks": {
             "ERC20": {
                 "info": {
                     "addressRegex": "^0x[0-9a-fA-F]{40}$",
-                    "memoRegex": " ",
+                    "memoRegex": "",
                     "network": "ETH",
                     "name": "Ethereum (ERC20)",
                     "depositEnable": true,
@@ -288,9 +352,9 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "6",
+                    "withdrawFee": "0.4",
                     "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "500000",
+                    "withdrawMax": "2500000",
                     "withdrawMin": "10",
                     "sameAddress": false
                 },
@@ -299,12 +363,12 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 6,
+                "fee": 0.4,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
                         "min": 10,
-                        "max": 500000
+                        "max": 2500000
                     },
                     "deposit": {
                         "min": null,
@@ -325,7 +389,7 @@
                     "withdrawEnable": true,
                     "withdrawFee": "3",
                     "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "1000000",
+                    "withdrawMax": "2600000",
                     "withdrawMin": "20",
                     "sameAddress": false
                 },
@@ -339,7 +403,7 @@
                 "limits": {
                     "withdraw": {
                         "min": 20,
-                        "max": 1000000
+                        "max": 2600000
                     },
                     "deposit": {
                         "min": null,
@@ -358,9 +422,9 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
-                    "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "300000",
+                    "withdrawFee": "0.5",
+                    "withdrawIntegerMultiple": "0.00000001",
+                    "withdrawMax": "1000000",
                     "withdrawMin": "10",
                     "sameAddress": false
                 },
@@ -369,12 +433,12 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 2,
-                "precision": 0.000001,
+                "fee": 0.5,
+                "precision": 1e-8,
                 "limits": {
                     "withdraw": {
                         "min": 10,
-                        "max": 300000
+                        "max": 1000000
                     },
                     "deposit": {
                         "min": null,
@@ -393,9 +457,9 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.01",
                     "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "30000",
+                    "withdrawMax": "50000",
                     "withdrawMin": "10",
                     "sameAddress": false
                 },
@@ -404,12 +468,12 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 2,
+                "fee": 0.01,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
                         "min": 10,
-                        "max": 30000
+                        "max": 50000
                     },
                     "deposit": {
                         "min": null,
@@ -419,7 +483,7 @@
             },
             "SOL": {
                 "info": {
-                    "addressRegex": "^[1-9A-HJ-NP-Za-km-z]{32,44}$",
+                    "addressRegex": "^(?!T)[1-9A-HJ-NP-Za-km-z]{43,44}$",
                     "memoRegex": "",
                     "network": "SOL",
                     "name": "Solana",
@@ -428,9 +492,9 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.0081",
                     "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "300000",
+                    "withdrawMax": "500000",
                     "withdrawMin": "10",
                     "sameAddress": false
                 },
@@ -439,12 +503,12 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 2,
+                "fee": 0.0081,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
                         "min": 10,
-                        "max": 300000
+                        "max": 500000
                     },
                     "deposit": {
                         "min": null,
@@ -463,7 +527,7 @@
                     "unLockConfirm": "1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.01",
                     "withdrawIntegerMultiple": "0.000001",
                     "withdrawMax": "50000",
                     "withdrawMin": "10",
@@ -474,7 +538,7 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 2,
+                "fee": 0.01,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
@@ -494,13 +558,13 @@
                     "network": "POL",
                     "name": "Polygon",
                     "depositEnable": true,
-                    "minConfirm": "200",
-                    "unLockConfirm": "300",
+                    "minConfirm": "3",
+                    "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.01",
                     "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "70000",
+                    "withdrawMax": "500000",
                     "withdrawMin": "10",
                     "sameAddress": false
                 },
@@ -509,12 +573,152 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 2,
+                "fee": 0.01,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
                         "min": 10,
-                        "max": 70000
+                        "max": 500000
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "ASSETHUB": {
+                "info": {
+                    "addressRegex": "^(1)[0-9a-z-A-Z]{44,50}$",
+                    "memoRegex": "",
+                    "network": "ASSETHUB",
+                    "name": "Asset Hub (Polkadot)",
+                    "depositEnable": true,
+                    "minConfirm": "3",
+                    "unLockConfirm": "5",
+                    "withdrawDesc": "",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.01",
+                    "withdrawIntegerMultiple": "0.000001",
+                    "withdrawMax": "50000",
+                    "withdrawMin": "10",
+                    "sameAddress": false
+                },
+                "id": "ASSETHUB",
+                "network": "ASSETHUB",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.01,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 10,
+                        "max": 50000
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "KAIA": {
+                "info": {
+                    "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+                    "memoRegex": "",
+                    "network": "KAIA",
+                    "name": "Kaia",
+                    "depositEnable": true,
+                    "minConfirm": "1",
+                    "unLockConfirm": "-1",
+                    "withdrawDesc": "",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.01",
+                    "withdrawIntegerMultiple": "0.000001",
+                    "withdrawMax": "100000",
+                    "withdrawMin": "0.015772",
+                    "sameAddress": false
+                },
+                "id": "KAIA",
+                "network": "KAIA",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.01,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.015772,
+                        "max": 100000
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "APT": {
+                "info": {
+                    "addressRegex": "^(0x)[0-9A-Za-z]{62,64}$",
+                    "memoRegex": "",
+                    "network": "APT",
+                    "name": "APT",
+                    "depositEnable": true,
+                    "minConfirm": "1",
+                    "unLockConfirm": "-1",
+                    "withdrawDesc": "",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.01",
+                    "withdrawIntegerMultiple": "0.000001",
+                    "withdrawMax": "1000000",
+                    "withdrawMin": "0.063261",
+                    "sameAddress": false
+                },
+                "id": "APT",
+                "network": "APT",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.01,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.063261,
+                        "max": 1000000
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "XPL": {
+                "info": {
+                    "addressRegex": "^0x[0-9a-fA-F]{40}$",
+                    "memoRegex": "",
+                    "network": "XPL",
+                    "name": "Plasma",
+                    "depositEnable": true,
+                    "minConfirm": "12",
+                    "unLockConfirm": "-1",
+                    "withdrawDesc": "",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.01",
+                    "withdrawIntegerMultiple": "0.000001",
+                    "withdrawMax": "500000",
+                    "withdrawMin": "0.07059",
+                    "sameAddress": false
+                },
+                "id": "XPL",
+                "network": "XPL",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.01,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.07059,
+                        "max": 500000
                     },
                     "deposit": {
                         "min": null,
@@ -529,8 +733,8 @@
                 "max": null
             },
             "withdraw": {
-                "min": 10,
-                "max": 1000000
+                "min": 0.015772,
+                "max": 2600000
             }
         }
     },
@@ -555,9 +759,9 @@
                     "unLockConfirm": "4",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.075",
+                    "withdrawFee": "0.00042",
                     "withdrawIntegerMultiple": "0.001",
-                    "withdrawMax": "200",
+                    "withdrawMax": "600",
                     "withdrawMin": "0.1",
                     "sameAddress": false
                 }
@@ -573,7 +777,7 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.075,
+        "fee": 0.00042,
         "fees": null,
         "networks": {
             "LTC": {
@@ -587,9 +791,9 @@
                     "unLockConfirm": "4",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.075",
+                    "withdrawFee": "0.00042",
                     "withdrawIntegerMultiple": "0.001",
-                    "withdrawMax": "200",
+                    "withdrawMax": "600",
                     "withdrawMin": "0.1",
                     "sameAddress": false
                 },
@@ -598,12 +802,12 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.075,
+                "fee": 0.00042,
                 "precision": 0.001,
                 "limits": {
                     "withdraw": {
                         "min": 0.1,
-                        "max": 200
+                        "max": 600
                     },
                     "deposit": {
                         "min": null,
@@ -619,7 +823,7 @@
             },
             "withdraw": {
                 "min": 0.1,
-                "max": 200
+                "max": 600
             }
         }
     },
@@ -636,7 +840,7 @@
             "networkList": [
                 {
                     "addressRegex": "^0x[0-9a-fA-F]{40}$",
-                    "memoRegex": " ",
+                    "memoRegex": "",
                     "network": "ETH",
                     "name": "Ethereum (ERC20)",
                     "depositEnable": true,
@@ -644,10 +848,10 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.003",
+                    "withdrawFee": "0.00018",
                     "withdrawIntegerMultiple": "0.00000001",
-                    "withdrawMax": "50",
-                    "withdrawMin": "0.01",
+                    "withdrawMax": "55",
+                    "withdrawMin": "0.008",
                     "sameAddress": false
                 },
                 {
@@ -660,9 +864,9 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.000525",
+                    "withdrawFee": "0.00015",
                     "withdrawIntegerMultiple": "0.00000001",
-                    "withdrawMax": "30",
+                    "withdrawMax": "90",
                     "withdrawMin": "0.001",
                     "sameAddress": false
                 },
@@ -676,9 +880,9 @@
                     "unLockConfirm": "100",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.0001",
+                    "withdrawFee": "0.00004",
                     "withdrawIntegerMultiple": "0.00000001",
-                    "withdrawMax": "10",
+                    "withdrawMax": "20",
                     "withdrawMin": "0.001",
                     "sameAddress": false
                 }
@@ -694,13 +898,13 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.0001,
+        "fee": 0.00004,
         "fees": null,
         "networks": {
             "ERC20": {
                 "info": {
                     "addressRegex": "^0x[0-9a-fA-F]{40}$",
-                    "memoRegex": " ",
+                    "memoRegex": "",
                     "network": "ETH",
                     "name": "Ethereum (ERC20)",
                     "depositEnable": true,
@@ -708,10 +912,10 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.003",
+                    "withdrawFee": "0.00018",
                     "withdrawIntegerMultiple": "0.00000001",
-                    "withdrawMax": "50",
-                    "withdrawMin": "0.01",
+                    "withdrawMax": "55",
+                    "withdrawMin": "0.008",
                     "sameAddress": false
                 },
                 "id": "ETH",
@@ -719,12 +923,12 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.003,
+                "fee": 0.00018,
                 "precision": 1e-8,
                 "limits": {
                     "withdraw": {
-                        "min": 0.01,
-                        "max": 50
+                        "min": 0.008,
+                        "max": 55
                     },
                     "deposit": {
                         "min": null,
@@ -743,9 +947,9 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.000525",
+                    "withdrawFee": "0.00015",
                     "withdrawIntegerMultiple": "0.00000001",
-                    "withdrawMax": "30",
+                    "withdrawMax": "90",
                     "withdrawMin": "0.001",
                     "sameAddress": false
                 },
@@ -754,12 +958,12 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.000525,
+                "fee": 0.00015,
                 "precision": 1e-8,
                 "limits": {
                     "withdraw": {
                         "min": 0.001,
-                        "max": 30
+                        "max": 90
                     },
                     "deposit": {
                         "min": null,
@@ -778,9 +982,9 @@
                     "unLockConfirm": "100",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.0001",
+                    "withdrawFee": "0.00004",
                     "withdrawIntegerMultiple": "0.00000001",
-                    "withdrawMax": "10",
+                    "withdrawMax": "20",
                     "withdrawMin": "0.001",
                     "sameAddress": false
                 },
@@ -789,12 +993,12 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.0001,
+                "fee": 0.00004,
                 "precision": 1e-8,
                 "limits": {
                     "withdraw": {
                         "min": 0.001,
-                        "max": 10
+                        "max": 20
                     },
                     "deposit": {
                         "min": null,
@@ -810,7 +1014,7 @@
             },
             "withdraw": {
                 "min": 0.001,
-                "max": 50
+                "max": 90
             }
         }
     },
@@ -835,7 +1039,7 @@
                     "unLockConfirm": "1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.3",
+                    "withdrawFee": "0.01",
                     "withdrawIntegerMultiple": "0.000001",
                     "withdrawMax": "100000",
                     "withdrawMin": "10",
@@ -853,7 +1057,7 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.3,
+        "fee": 0.01,
         "fees": null,
         "networks": {
             "XRP": {
@@ -867,7 +1071,7 @@
                     "unLockConfirm": "1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.3",
+                    "withdrawFee": "0.01",
                     "withdrawIntegerMultiple": "0.000001",
                     "withdrawMax": "100000",
                     "withdrawMin": "10",
@@ -878,7 +1082,7 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.3,
+                "fee": 0.01,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
@@ -916,7 +1120,7 @@
             "networkList": [
                 {
                     "addressRegex": "^0x[0-9a-fA-F]{40}$",
-                    "memoRegex": " ",
+                    "memoRegex": "",
                     "network": "ETH",
                     "name": "Ethereum (ERC20)",
                     "depositEnable": true,
@@ -924,9 +1128,9 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "6",
+                    "withdrawFee": "0.4",
                     "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "500000",
+                    "withdrawMax": "2600000",
                     "withdrawMin": "5",
                     "sameAddress": false
                 },
@@ -940,9 +1144,9 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.5",
                     "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "300000",
+                    "withdrawMax": "1400000",
                     "withdrawMin": "10",
                     "sameAddress": false
                 },
@@ -954,9 +1158,9 @@
                     "depositEnable": true,
                     "minConfirm": "12",
                     "unLockConfirm": "-1",
-                    "withdrawDesc": "Coins supports the native Arbitrum One USDC contract ending with e5831 in Aribitrum Network. Transfering other tokens may result in loss of asset. ",
+                    "withdrawDesc": "Coins supports the native Arbitrum One USDC contract ending with e5831 in Arbitrum Network. Transfering other tokens may result in loss of asset. ",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.008",
                     "withdrawIntegerMultiple": "0.000001",
                     "withdrawMax": "50000",
                     "withdrawMin": "10",
@@ -972,10 +1176,10 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": false,
-                    "withdrawFee": "3",
+                    "withdrawFee": "3.280145",
                     "withdrawIntegerMultiple": "0.000001",
                     "withdrawMax": "100000000",
-                    "withdrawMin": "5",
+                    "withdrawMin": "4.920218",
                     "sameAddress": false
                 },
                 {
@@ -988,10 +1192,10 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.01",
                     "withdrawIntegerMultiple": "0.000001",
                     "withdrawMax": "10000",
-                    "withdrawMin": "20",
+                    "withdrawMin": "0.002936",
                     "sameAddress": false
                 },
                 {
@@ -1004,9 +1208,9 @@
                     "unLockConfirm": "1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.01",
                     "withdrawIntegerMultiple": "0.0000001",
-                    "withdrawMax": "20000",
+                    "withdrawMax": "1000000",
                     "withdrawMin": "20",
                     "sameAddress": true
                 },
@@ -1020,10 +1224,10 @@
                     "unLockConfirm": "100",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.01",
                     "withdrawIntegerMultiple": "0.000001",
                     "withdrawMax": "20000",
-                    "withdrawMin": "10",
+                    "withdrawMin": "1",
                     "sameAddress": false
                 },
                 {
@@ -1032,18 +1236,18 @@
                     "network": "POL",
                     "name": "Polygon",
                     "depositEnable": true,
-                    "minConfirm": "200",
-                    "unLockConfirm": "300",
+                    "minConfirm": "3",
+                    "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.01",
                     "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "30000",
-                    "withdrawMin": "10",
+                    "withdrawMax": "150000",
+                    "withdrawMin": "5",
                     "sameAddress": false
                 },
                 {
-                    "addressRegex": "^[1-9A-HJ-NP-Za-km-z]{32,44}$",
+                    "addressRegex": "^(?!T)[1-9A-HJ-NP-Za-km-z]{43,44}$",
                     "memoRegex": "",
                     "network": "SOL",
                     "name": "Solana",
@@ -1052,10 +1256,58 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.0081",
                     "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "100000",
+                    "withdrawMax": "5000000",
                     "withdrawMin": "10",
+                    "sameAddress": false
+                },
+                {
+                    "addressRegex": "^(1)[0-9a-z-A-Z]{44,50}$",
+                    "memoRegex": "",
+                    "network": "ASSETHUB",
+                    "name": "Asset Hub (Polkadot)",
+                    "depositEnable": true,
+                    "minConfirm": "3",
+                    "unLockConfirm": "5",
+                    "withdrawDesc": "",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.01",
+                    "withdrawIntegerMultiple": "0.000001",
+                    "withdrawMax": "30000",
+                    "withdrawMin": "10",
+                    "sameAddress": false
+                },
+                {
+                    "addressRegex": "^(0x)[0-9A-Za-z]{62,64}$",
+                    "memoRegex": "",
+                    "network": "APT",
+                    "name": "APT",
+                    "depositEnable": true,
+                    "minConfirm": "1",
+                    "unLockConfirm": "-1",
+                    "withdrawDesc": "",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.01",
+                    "withdrawIntegerMultiple": "0.000001",
+                    "withdrawMax": "500000",
+                    "withdrawMin": "0.063329",
+                    "sameAddress": false
+                },
+                {
+                    "addressRegex": "^0x[0-9a-fA-F]{40}$",
+                    "memoRegex": "",
+                    "network": "MON",
+                    "name": "Monad",
+                    "depositEnable": false,
+                    "minConfirm": "12",
+                    "unLockConfirm": "-1",
+                    "withdrawDesc": "",
+                    "withdrawEnable": false,
+                    "withdrawFee": "0",
+                    "withdrawIntegerMultiple": "0.000001",
+                    "withdrawMax": "100",
+                    "withdrawMin": "0",
                     "sameAddress": false
                 }
             ],
@@ -1070,13 +1322,13 @@
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "fee": 2,
+        "fee": 0,
         "fees": null,
         "networks": {
             "ERC20": {
                 "info": {
                     "addressRegex": "^0x[0-9a-fA-F]{40}$",
-                    "memoRegex": " ",
+                    "memoRegex": "",
                     "network": "ETH",
                     "name": "Ethereum (ERC20)",
                     "depositEnable": true,
@@ -1084,9 +1336,9 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "6",
+                    "withdrawFee": "0.4",
                     "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "500000",
+                    "withdrawMax": "2600000",
                     "withdrawMin": "5",
                     "sameAddress": false
                 },
@@ -1095,12 +1347,12 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 6,
+                "fee": 0.4,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
                         "min": 5,
-                        "max": 500000
+                        "max": 2600000
                     },
                     "deposit": {
                         "min": null,
@@ -1119,9 +1371,9 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.5",
                     "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "300000",
+                    "withdrawMax": "1400000",
                     "withdrawMin": "10",
                     "sameAddress": false
                 },
@@ -1130,12 +1382,12 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 2,
+                "fee": 0.5,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
                         "min": 10,
-                        "max": 300000
+                        "max": 1400000
                     },
                     "deposit": {
                         "min": null,
@@ -1152,9 +1404,9 @@
                     "depositEnable": true,
                     "minConfirm": "12",
                     "unLockConfirm": "-1",
-                    "withdrawDesc": "Coins supports the native Arbitrum One USDC contract ending with e5831 in Aribitrum Network. Transfering other tokens may result in loss of asset. ",
+                    "withdrawDesc": "Coins supports the native Arbitrum One USDC contract ending with e5831 in Arbitrum Network. Transfering other tokens may result in loss of asset. ",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.008",
                     "withdrawIntegerMultiple": "0.000001",
                     "withdrawMax": "50000",
                     "withdrawMin": "10",
@@ -1165,7 +1417,7 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 2,
+                "fee": 0.008,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
@@ -1189,10 +1441,10 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": false,
-                    "withdrawFee": "3",
+                    "withdrawFee": "3.280145",
                     "withdrawIntegerMultiple": "0.000001",
                     "withdrawMax": "100000000",
-                    "withdrawMin": "5",
+                    "withdrawMin": "4.920218",
                     "sameAddress": false
                 },
                 "id": "TRX",
@@ -1200,11 +1452,11 @@
                 "active": false,
                 "deposit": false,
                 "withdraw": false,
-                "fee": 3,
+                "fee": 3.280145,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 5,
+                        "min": 4.920218,
                         "max": 100000000
                     },
                     "deposit": {
@@ -1224,10 +1476,10 @@
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.01",
                     "withdrawIntegerMultiple": "0.000001",
                     "withdrawMax": "10000",
-                    "withdrawMin": "20",
+                    "withdrawMin": "0.002936",
                     "sameAddress": false
                 },
                 "id": "RON",
@@ -1235,11 +1487,11 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 2,
+                "fee": 0.01,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 20,
+                        "min": 0.002936,
                         "max": 10000
                     },
                     "deposit": {
@@ -1259,9 +1511,9 @@
                     "unLockConfirm": "1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.01",
                     "withdrawIntegerMultiple": "0.0000001",
-                    "withdrawMax": "20000",
+                    "withdrawMax": "1000000",
                     "withdrawMin": "20",
                     "sameAddress": true
                 },
@@ -1270,12 +1522,12 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 2,
+                "fee": 0.01,
                 "precision": 1e-7,
                 "limits": {
                     "withdraw": {
                         "min": 20,
-                        "max": 20000
+                        "max": 1000000
                     },
                     "deposit": {
                         "min": null,
@@ -1294,10 +1546,10 @@
                     "unLockConfirm": "100",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.01",
                     "withdrawIntegerMultiple": "0.000001",
                     "withdrawMax": "20000",
-                    "withdrawMin": "10",
+                    "withdrawMin": "1",
                     "sameAddress": false
                 },
                 "id": "BASE",
@@ -1305,11 +1557,11 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 2,
+                "fee": 0.01,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 10,
+                        "min": 1,
                         "max": 20000
                     },
                     "deposit": {
@@ -1325,14 +1577,14 @@
                     "network": "POL",
                     "name": "Polygon",
                     "depositEnable": true,
-                    "minConfirm": "200",
-                    "unLockConfirm": "300",
+                    "minConfirm": "3",
+                    "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.01",
                     "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "30000",
-                    "withdrawMin": "10",
+                    "withdrawMax": "150000",
+                    "withdrawMin": "5",
                     "sameAddress": false
                 },
                 "id": "POL",
@@ -1340,7 +1592,77 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 2,
+                "fee": 0.01,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 5,
+                        "max": 150000
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "SOL": {
+                "info": {
+                    "addressRegex": "^(?!T)[1-9A-HJ-NP-Za-km-z]{43,44}$",
+                    "memoRegex": "",
+                    "network": "SOL",
+                    "name": "Solana",
+                    "depositEnable": true,
+                    "minConfirm": "1",
+                    "unLockConfirm": "-1",
+                    "withdrawDesc": "",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.0081",
+                    "withdrawIntegerMultiple": "0.000001",
+                    "withdrawMax": "5000000",
+                    "withdrawMin": "10",
+                    "sameAddress": false
+                },
+                "id": "SOL",
+                "network": "SOL",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.0081,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 10,
+                        "max": 5000000
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "ASSETHUB": {
+                "info": {
+                    "addressRegex": "^(1)[0-9a-z-A-Z]{44,50}$",
+                    "memoRegex": "",
+                    "network": "ASSETHUB",
+                    "name": "Asset Hub (Polkadot)",
+                    "depositEnable": true,
+                    "minConfirm": "3",
+                    "unLockConfirm": "5",
+                    "withdrawDesc": "",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.01",
+                    "withdrawIntegerMultiple": "0.000001",
+                    "withdrawMax": "30000",
+                    "withdrawMin": "10",
+                    "sameAddress": false
+                },
+                "id": "ASSETHUB",
+                "network": "ASSETHUB",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.01,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
@@ -1353,34 +1675,69 @@
                     }
                 }
             },
-            "SOL": {
+            "APT": {
                 "info": {
-                    "addressRegex": "^[1-9A-HJ-NP-Za-km-z]{32,44}$",
+                    "addressRegex": "^(0x)[0-9A-Za-z]{62,64}$",
                     "memoRegex": "",
-                    "network": "SOL",
-                    "name": "Solana",
+                    "network": "APT",
+                    "name": "APT",
                     "depositEnable": true,
                     "minConfirm": "1",
                     "unLockConfirm": "-1",
                     "withdrawDesc": "",
                     "withdrawEnable": true,
-                    "withdrawFee": "2",
+                    "withdrawFee": "0.01",
                     "withdrawIntegerMultiple": "0.000001",
-                    "withdrawMax": "100000",
-                    "withdrawMin": "10",
+                    "withdrawMax": "500000",
+                    "withdrawMin": "0.063329",
                     "sameAddress": false
                 },
-                "id": "SOL",
-                "network": "SOL",
+                "id": "APT",
+                "network": "APT",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 2,
+                "fee": 0.01,
                 "precision": 0.000001,
                 "limits": {
                     "withdraw": {
-                        "min": 10,
-                        "max": 100000
+                        "min": 0.063329,
+                        "max": 500000
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "MON": {
+                "info": {
+                    "addressRegex": "^0x[0-9a-fA-F]{40}$",
+                    "memoRegex": "",
+                    "network": "MON",
+                    "name": "Monad",
+                    "depositEnable": false,
+                    "minConfirm": "12",
+                    "unLockConfirm": "-1",
+                    "withdrawDesc": "",
+                    "withdrawEnable": false,
+                    "withdrawFee": "0",
+                    "withdrawIntegerMultiple": "0.000001",
+                    "withdrawMax": "100",
+                    "withdrawMin": "0",
+                    "sameAddress": false
+                },
+                "id": "MON",
+                "network": "MON",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 0,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": 0,
+                        "max": 100
                     },
                     "deposit": {
                         "min": null,
@@ -1395,7 +1752,7 @@
                 "max": null
             },
             "withdraw": {
-                "min": 5,
+                "min": 0,
                 "max": 100000000
             }
         }

@@ -14,7 +14,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_order.php';
 function test_fetch_orders($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchOrders';
-        $orders = Async\await($exchange->fetch_orders($symbol));
+        $orders = \React\Async\await($exchange->fetch_orders($symbol));
         assert(gettype($orders) === 'array' && array_is_list($orders), $exchange->id . ' ' . $method . ' must return an array, returned ' . $exchange->json($orders));
         assert_non_emtpy_array($exchange, $skipped_properties, $method, $orders, $symbol);
         $now = $exchange->milliseconds();

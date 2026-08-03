@@ -1,13 +1,13 @@
 
 // ---------------------------------------------------------------------------
 
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/dydx.js';
 import { ArgumentsRequired, NotSupported, ExchangeError, InsufficientFunds, InvalidOrder, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
-import type { Int, Market, Dict, int, Trade, OHLCV, Balances, Str, FundingRateHistory, Order, OrderSide, OrderType, Strings, Num, Position, OrderBook, Currency, LedgerEntry, TransferEntry, Transaction, Account } from './base/types.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
+import type { Account, Balances, Currency, Dict, FundingRateHistory, Int, LedgerEntry, List, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, int } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 
 // ---------------------------------------------------------------------------
@@ -130,7 +130,7 @@ export default class dydx extends Exchange {
                 '1d': '1DAY',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/617ea0c1-f05a-4d26-9fcb-a0d1d4091ae1',
+                'logo': 'https://github.com/user-attachments/assets/def0a54a-020a-4286-ba95-0f84e50a944d',
                 'api': {
                     'indexer': 'https://indexer.dydx.trade/v4',
                     'nodeRpc': 'https://dydx-ops-rpc.kingnodes.com',
@@ -148,7 +148,7 @@ export default class dydx extends Exchange {
                 'fees': [
                     'https://docs.dydx.exchange/introduction-trading_fees',
                 ],
-                'referral': 'dydx.trade?ref=ccxt',
+                'referral': 'https://dydx.trade?ref=ccxt',
             },
             'api': {
                 'indexer': {
@@ -235,7 +235,7 @@ export default class dydx extends Exchange {
                 'privateKey': false,
             },
             'options': {
-                'mnemonic': undefined, // specify mnemonic, copy secret phrase from UI
+                'privateKey': undefined, // specify a hex-encoded secp256k1 private key
                 'chainName': 'dydx-mainnet-1',
                 'chainId': 1,
                 'sandboxMode': false,
@@ -505,6 +505,9 @@ export default class dydx extends Exchange {
         //
         const quoteId = 'USDC';
         const marketId = this.safeString (market, 'ticker');
+        if (marketId === undefined) {
+            throw new ExchangeError (this.id + ' parseMarket() missing marketId');
+        }
         const parts = marketId.split ('-');
         const baseName = this.safeString (parts, 0);
         const baseId = this.safeString (market, 'baseId', baseName); // idk where 'baseId' comes from, but leaving as is
@@ -579,7 +582,7 @@ export default class dydx extends Exchange {
     /**
      * @method
      * @name dydx#fetchMarkets
-     * @description retrieves data on all markets for hyperliquid
+     * @description retrieves data on all markets for dydx
      * @see https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -637,7 +640,7 @@ export default class dydx extends Exchange {
         // }
         //
         const timestamp = this.parse8601 (this.safeString (trade, 'createdAt'));
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'size');
         const side = this.safeStringLower (trade, 'side');
@@ -663,7 +666,7 @@ export default class dydx extends Exchange {
      * @method
      * @name dydx#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
+     * @see https://docs.dydx.xyz/indexer-client/http#get-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -671,13 +674,15 @@ export default class dydx extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 1000);
         }
         const response = await this.indexerGetTradesPerpetualMarketMarket (this.extend (request, params));
         //
@@ -695,7 +700,7 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        const rows = this.safeList (response, 'trades', []);
+        const rows = this.safeList (response, 'trades', []) as List;
         return this.parseTrades (rows, market, since, limit);
     }
 
@@ -741,7 +746,9 @@ export default class dydx extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -780,7 +787,7 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        const rows = this.safeList (response, 'candles', []);
+        const rows = this.safeList (response, 'candles', []) as List;
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
@@ -800,7 +807,9 @@ export default class dydx extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -826,7 +835,7 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        const rates = [];
+        const rates: List = [];
         const rows = this.safeList (response, 'historicalFunding', []);
         for (let i = 0; i < rows.length; i++) {
             const entry = rows[i];
@@ -844,8 +853,8 @@ export default class dydx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    handlePublicAddress (methodName: string, params: Dict) {
-        let userAux = undefined;
+    handlePublicAddress (methodName: Str, params: Dict): [Str, Dict] {
+        let userAux: Str = undefined;
         [ userAux, params ] = this.handleOptionAndParams (params, methodName, 'user');
         let user = userAux;
         [ user, params ] = this.handleOptionAndParams (params, methodName, 'address', userAux);
@@ -956,7 +965,9 @@ export default class dydx extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'orderId': id,
         };
@@ -978,16 +989,18 @@ export default class dydx extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        let userAddress = undefined;
-        let subAccountNumber = undefined;
+        let userAddress: Str = undefined;
+        let subAccountNumber: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOrders', params);
         [ subAccountNumber, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subAccountNumber', '0');
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['ticker'] = market['id'];
@@ -1151,11 +1164,13 @@ export default class dydx extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        let userAddress = undefined;
-        let subAccountNumber = undefined;
+        let userAddress: Str = undefined;
+        let subAccountNumber: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchPositions', params);
         [ subAccountNumber, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'subAccountNumber', '0');
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,
@@ -1186,7 +1201,7 @@ export default class dydx extends Exchange {
         //     ]
         // }
         //
-        const rows = this.safeList (response, 'positions', []);
+        const rows = this.safeList (response, 'positions', []) as List;
         return this.parsePositions (rows, symbols);
     }
 
@@ -1229,7 +1244,7 @@ export default class dydx extends Exchange {
         return signature;
     }
 
-    signDydxTx (privateKey: string, message: any, memo: string, chainId: string, account: any, authenticators: any, fee = undefined): string {
+    signDydxTx (privateKey: Str, message: any, memo: Str, chainId: Str, account: any, authenticators: any, fee: any = undefined): string {
         const [ encodedTx, signDoc ] = this.encodeDydxTxForSigning (message, memo, chainId, account, authenticators, fee);
         const signature = this.signHash (encodedTx, privateKey);
         return this.encodeDydxTxRaw (signDoc, signature['r'] + signature['s']);
@@ -1240,12 +1255,12 @@ export default class dydx extends Exchange {
         if (credentials !== undefined) {
             return credentials;
         }
-        let entropy = this.safeString (this.options, 'mnemonic');
-        if (entropy === undefined) {
+        let privateKey = this.safeString (this.options, 'privateKey');
+        if (privateKey === undefined) {
             const signature = this.signOnboardingAction ();
-            entropy = this.hashMessage (this.base16ToBinary (signature['r'] + signature['s']));
+            privateKey = this.hashMessage (this.base16ToBinary (signature['r'] + signature['s']));
         }
-        credentials = this.retrieveDydxCredentials (entropy);
+        credentials = this.retrieveDydxCredentials (privateKey);
         credentials['privateKey'] = this.binaryToBase16 (credentials['privateKey']);
         credentials['publicKey'] = this.binaryToBase16 (credentials['publicKey']);
         this.options['dydxCredentials'] = credentials;
@@ -1282,7 +1297,7 @@ export default class dydx extends Exchange {
         // }
         //
         const response = await this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress (request);
-        const account = this.safeDict (response, 'info');
+        const account = this.safeDict (response, 'info', {});
         account['pub_key'] = {
             // encode with binary key would fail in python
             'key': account['pub_key']['key'],
@@ -1291,7 +1306,7 @@ export default class dydx extends Exchange {
         return account;
     }
 
-    pow (n: string, m: string) {
+    pow (n: string, m: Str) {
         let r = Precise.stringMul (n, '1');
         const c = this.parseToInt (m);
         // TODO: cap
@@ -1301,10 +1316,19 @@ export default class dydx extends Exchange {
         return r;
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a side argument');
+        }
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false);
         const orderType = type.toUpperCase ();
         const market = this.market (symbol);
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrderRequest() requires a side argument');
+        }
         const orderSide = side.toUpperCase ();
         let subaccountId = 0;
         [ subaccountId, params ] = this.handleOptionAndParams (params, 'createOrder', 'subAccountId', subaccountId);
@@ -1317,7 +1341,7 @@ export default class dydx extends Exchange {
         const postOnly = this.isPostOnly (isMarket, undefined, params);
         const amountStr = this.amountToPrecision (symbol, amount);
         const priceStr = this.priceToPrecision (symbol, price);
-        const marketInfo = this.safeDict (market, 'info');
+        const marketInfo = this.safeDict (market, 'info', {});
         const atomicResolution = marketInfo['atomicResolution'];
         const quantumScale = this.pow ('10', Precise.stringNeg (atomicResolution));
         const quantums = Precise.stringMul (amountStr, quantumScale);
@@ -1326,9 +1350,9 @@ export default class dydx extends Exchange {
         const subticks = Precise.stringMul (priceStr, priceScale);
         let clientMetadata = 0;
         let conditionalType = 0;
-        let conditionalOrderTriggerSubticks = '0';
-        let orderFlag = undefined;
-        let timeInForceNumber = undefined;
+        let conditionalOrderTriggerSubticks: Str = '0';
+        let orderFlag: Int = undefined;
+        let timeInForceNumber: Int = undefined;
         if (timeInForce === 'FOK') {
             throw new InvalidOrder (this.id + ' timeInForce fok has been deprecated');
         }
@@ -1372,12 +1396,15 @@ export default class dydx extends Exchange {
         }
         const latestBlockHeight = this.safeInteger (params, 'latestBlockHeight');
         let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
-        let goodTillBlockTime = undefined;
+        let goodTillBlockTime: Num = undefined;
         let goodTillBlockTimeInSeconds = 2592000;
         [ goodTillBlockTimeInSeconds, params ] = this.handleOptionAndParams (params, 'createOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
         if (orderFlag === 0) {
             if (goodTillBlock === undefined) {
                 // short term order
+                if (latestBlockHeight === undefined) {
+                    throw new ExchangeError (this.id + ' method() missing latestBlockHeight');
+                }
                 goodTillBlock = latestBlockHeight + 20;
             }
         } else {
@@ -1418,7 +1445,13 @@ export default class dydx extends Exchange {
             'value': orderPayload,
         };
         params = this.omit (params, [ 'reduceOnly', 'reduce_only', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit', 'latestBlockHeight', 'goodTillBlock', 'goodTillBlockTimeInSeconds', 'subaccountId' ]);
-        const orderId = this.createOrderIdFromParts (this.getWalletAddress (), subaccountId, clientOrderId, orderFlag, marketInfo['clobPairId']);
+        const walletAddress = this.getWalletAddress ();
+        const clobPairId = this.safeInteger (marketInfo, 'clobPairId', 0);
+        const subaccountIdValue = (subaccountId === undefined) ? 0 : subaccountId;
+        const clientOrderIdValue = (clientOrderId === undefined) ? 0 : clientOrderId;
+        const orderFlagValue = (orderFlag === undefined) ? 0 : orderFlag;
+        const clobPairIdValue = (clobPairId === undefined) ? 0 : clobPairId;
+        const orderId = this.createOrderIdFromParts (walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue);
         return [ orderId, this.extend (signingPayload, params) ];
     }
 
@@ -1448,7 +1481,11 @@ export default class dydx extends Exchange {
         //
         const result = this.safeDict (response, 'result');
         const info = this.safeDict (result, 'response');
-        return this.safeInteger (info, 'last_block_height');
+        const height = this.safeInteger (info, 'last_block_height');
+        if (height === undefined) {
+            throw new ExchangeError (this.id + ' fetchLatestBlockHeight() could not parse last_block_height');
+        }
+        return height;
     }
 
     /**
@@ -1474,7 +1511,9 @@ export default class dydx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const credentials = this.retrieveCredentials ();
         const account = await this.fetchDydxAccount ();
         const lastBlockHeight = await this.fetchLatestBlockHeight ();
@@ -1533,7 +1572,9 @@ export default class dydx extends Exchange {
         if (!isTrigger && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market: Market = this.market (symbol);
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'clientId', id);
         if (clientOrderId === undefined) {
@@ -1546,7 +1587,7 @@ export default class dydx extends Exchange {
         let goodTillBlock = this.safeInteger (params, 'goodTillBlock');
         let goodTillBlockTimeInSeconds = 2592000;
         [ goodTillBlockTimeInSeconds, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'goodTillBlockTimeInSeconds', goodTillBlockTimeInSeconds); // default is 30 days
-        let goodTillBlockTime = undefined;
+        let goodTillBlockTime: Num = undefined;
         const defaultOrderFlags = (isTrigger) ? 32 : 64;
         const orderFlags = this.safeInteger (params, 'orderFlags', defaultOrderFlags);
         let subAccountId = 0;
@@ -1626,7 +1667,9 @@ export default class dydx extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market: Market = this.market (symbol);
         const clientOrderIds = this.safeList (params, 'clientOrderIds');
         if (!clientOrderIds) {
@@ -1692,10 +1735,12 @@ export default class dydx extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -1744,7 +1789,7 @@ export default class dydx extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         currency = this.safeCurrency (currencyId, currency);
         const type = this.safeStringUpper (item, 'type');
-        let direction = undefined;
+        let direction: Str = undefined;
         if (type !== undefined) {
             if (type === 'TRANSFER_IN' || type === 'DEPOSIT') {
                 direction = 'in';
@@ -1782,7 +1827,7 @@ export default class dydx extends Exchange {
             'DEPOSIT': 'deposit',
             'WITHDRAWAL': 'withdrawal',
         };
-        return this.safeString (ledgerType, type, type);
+        return this.safeString (ledgerType, (type as string), type);
     }
 
     /**
@@ -1799,8 +1844,10 @@ export default class dydx extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
-        await this.loadMarkets ();
-        let currency = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1808,7 +1855,7 @@ export default class dydx extends Exchange {
         return this.parseLedger (response, currency, since, limit);
     }
 
-    async estimateTxFee (message: any, memo: string, account: any): Promise<any> {
+    async estimateTxFee (message: any, memo: Str, account: any): Promise<any> {
         const txBytes = this.encodeDydxTxForSimulation (message, memo, account['sequence'], account['pub_key']);
         const request = {
             'txBytes': txBytes,
@@ -1832,9 +1879,9 @@ export default class dydx extends Exchange {
         }
         const defaultFeeDenom = this.safeString (this.options, 'defaultFeeDenom');
         const defaultFeeMultiplier = this.safeString (this.options, 'defaultFeeMultiplier');
-        const feeDenom = this.safeDict (this.options, 'feeDenom');
-        let gasPrice = undefined;
-        let denom = undefined;
+        const feeDenom = this.safeDict (this.options, 'feeDenom', {});
+        let gasPrice: Str = undefined;
+        let denom: Str = undefined;
         if (defaultFeeDenom === 'uusdc') {
             gasPrice = feeDenom['USDC_GAS_PRICE'];
             denom = feeDenom['USDC_DENOM'];
@@ -1844,6 +1891,9 @@ export default class dydx extends Exchange {
         }
         const gasLimit = Math.ceil (this.parseToNumeric (Precise.stringMul (gasUsed, defaultFeeMultiplier)));
         let feeAmount = Precise.stringMul (this.numberToString (gasLimit), gasPrice);
+        if (feeAmount === undefined) {
+            throw new ExchangeError (this.id + ' estimateTxFee() missing feeAmount');
+        }
         if (feeAmount.indexOf ('.') >= 0) {
             feeAmount = this.numberToString (Math.ceil (this.parseToNumeric (feeAmount)));
         }
@@ -1873,11 +1923,13 @@ export default class dydx extends Exchange {
         if (code !== 'USDC') {
             throw new NotSupported (this.id + ' transfer() only support USDC');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const fromSubaccountId = this.safeInteger (params, 'fromSubaccountId');
         const toSubaccountId = this.safeInteger (params, 'toSubaccountId');
         if (fromAccount !== 'main') {
-            // throw error if from subaccount id is undefind
+            // throw error if from subaccount id is undefined
             if (fromAccount === undefined) {
                 throw new NotSupported (this.id + ' transfer only support main > subaccount and subaccount <> subaccount.');
             }
@@ -1889,8 +1941,8 @@ export default class dydx extends Exchange {
         const credentials = this.retrieveCredentials ();
         const account = await this.fetchDydxAccount ();
         const usd = this.parseToInt (Precise.stringMul (this.numberToString (amount), '1000000'));
-        let payload = undefined;
-        let signingPayload = undefined;
+        let payload: NullableDict = undefined;
+        let signingPayload: NullableDict = undefined;
         if (fromAccount === 'main') {
             // deposit to subaccount
             if (toSubaccountId === undefined) {
@@ -2009,14 +2061,16 @@ export default class dydx extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
-        await this.loadMarkets ();
-        let currency = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
         const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchTransfers' }));
-        const transferIn = this.filterBy (response, 'type', 'TRANSFER_IN');
-        const transferOut = this.filterBy (response, 'type', 'TRANSFER_OUT');
+        const transferIn: List = this.filterBy (response, 'type', 'TRANSFER_IN');
+        const transferOut: List = this.filterBy (response, 'type', 'TRANSFER_OUT');
         const rows = this.arrayConcat (transferIn, transferOut);
         return this.parseTransfers (rows, currency, since, limit);
     }
@@ -2090,7 +2144,9 @@ export default class dydx extends Exchange {
         if (code !== 'USDC') {
             throw new NotSupported (this.id + ' withdraw() only support USDC');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         this.checkAddress (address);
         const subaccountId = this.safeInteger (params, 'subaccountId');
         if (subaccountId === undefined) {
@@ -2135,7 +2191,7 @@ export default class dydx extends Exchange {
         //     }
         // }
         //
-        const data = this.safeDict (response, 'result', {});
+        const data = this.safeDict (response, 'result', {}) as Dict;
         return this.parseTransaction (data, currency);
     }
 
@@ -2153,13 +2209,15 @@ export default class dydx extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
-        let currency = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
         const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchWithdrawals' }));
-        const rows = this.filterBy (response, 'type', 'WITHDRAWAL');
+        const rows = this.filterBy (response, 'type', 'WITHDRAWAL') as List;
         return this.parseTransactions (rows, currency, since, limit);
     }
 
@@ -2177,13 +2235,15 @@ export default class dydx extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
-        let currency = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
         const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchDeposits' }));
-        const rows = this.filterBy (response, 'type', 'DEPOSIT');
+        const rows = this.filterBy (response, 'type', 'DEPOSIT') as List;
         return this.parseTransactions (rows, currency, since, limit);
     }
 
@@ -2201,14 +2261,16 @@ export default class dydx extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
-        let currency = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
         const response = await this.fetchTransactionsHelper (code, since, limit, this.extend (params, { 'methodName': 'fetchDepositsWithdrawals' }));
-        const withdrawals = this.filterBy (response, 'type', 'WITHDRAWAL');
-        const deposits = this.filterBy (response, 'type', 'DEPOSIT');
+        const withdrawals: List = this.filterBy (response, 'type', 'WITHDRAWAL');
+        const deposits: List = this.filterBy (response, 'type', 'DEPOSIT');
         const rows = this.arrayConcat (withdrawals, deposits);
         return this.parseTransactions (rows, currency, since, limit);
     }
@@ -2216,8 +2278,8 @@ export default class dydx extends Exchange {
     async fetchTransactionsHelper (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const methodName = this.safeString (params, 'methodName');
         params = this.omit (params, 'methodName');
-        let userAddress = undefined;
-        let subAccountNumber = undefined;
+        let userAddress: Str = undefined;
+        let subAccountNumber: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress (methodName, params);
         [ subAccountNumber, params ] = this.handleOptionAndParams (params, methodName, 'subAccountNumber', '0');
         const request: Dict = {
@@ -2261,7 +2323,7 @@ export default class dydx extends Exchange {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts (params = {}): Promise<Account[]> {
-        let userAddress = undefined;
+        let userAddress: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchAccounts', params);
         const request: Dict = {
             'address': userAddress,
@@ -2312,7 +2374,7 @@ export default class dydx extends Exchange {
         // }
         //
         const rows = this.safeList (response, 'subaccounts', []);
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < rows.length; i++) {
             const account = rows[i];
             const accountId = this.safeString (account, 'subaccountNumber');
@@ -2336,10 +2398,12 @@ export default class dydx extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
-        let userAddress = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let userAddress: Str = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchAccounts', params);
-        let subaccountNumber = undefined;
+        let subaccountNumber: Int = undefined;
         [ subaccountNumber, params ] = this.handleOptionAndParams (params, 'fetchAccounts', 'subaccountNumber', 0);
         const request: Dict = {
             'address': userAddress,
@@ -2439,9 +2503,9 @@ export default class dydx extends Exchange {
         throw new ArgumentsRequired (this.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.');
     }
 
-    sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, section = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const pathWithParams = this.implodeParams (path, params);
-        let url = this.implodeHostname (this.urls['api'][section]);
+        let url = this.urls['api'][section];
         params = this.omit (params, this.extractParams (path));
         params = this.keysort (params);
         url += '/' + pathWithParams;

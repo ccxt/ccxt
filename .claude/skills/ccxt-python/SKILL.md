@@ -1016,6 +1016,36 @@ print(exchange.last_http_response)
 print(exchange.last_json_response)
 ```
 
+## Prediction Markets
+
+CCXT supports prediction-market exchanges (Polymarket, Kalshi, Limitless, Myriad, Hyperliquid) under a dedicated `ccxt.prediction` namespace (**async-only** in Python — `ccxt.prediction.<id>` IS the async class). They use the same unified API, but prices are quoted **0–1** (USDC per outcome share) and the tradeable unit is an **outcome** (e.g. a market's YES/NO token), not a regular market symbol.
+
+```python
+import asyncio
+import ccxt.prediction  # async-only
+
+async def main():
+    exchange = ccxt.prediction.polymarket()
+    await exchange.load_markets()
+    # discover events -> markets -> outcomes
+    events = await exchange.fetch_events({'query': 'Trump'})
+    outcome = events[0]['markets'][0]['outcomes'][0]
+    # each outcome has: outcome (handle, e.g. 'TRUMP_OUT_PRESIDENT_2027:YES'),
+    # outcomeId, market, label ('YES'/'NO')
+    handle = outcome['outcome']
+    ticker = await exchange.fetch_ticker(handle)
+    book = await exchange.fetch_order_book(handle)
+    # limit buy 5 YES shares @ 0.40 USDC (price is 0..1 per share)
+    order = await exchange.create_order(handle, 'limit', 'buy', 5, 0.40)
+    await exchange.cancel_order(order['id'], handle)
+    await exchange.close()
+
+asyncio.run(main())
+```
+
+- Price/trade methods (`fetch_ticker`, `fetch_order_book`, `fetch_ohlcv`, `fetch_trades`, `create_order`, `cancel_order`, …) take an **outcome handle or outcomeId** (the `outcome` / `outcomes` parameter), not `symbol`.
+- Check support with `exchange.has['prediction']`; discover markets via `fetch_events` / `fetch_event` (or `load_markets`).
+
 ## Learn More
 
 - [CCXT Manual](https://docs.ccxt.com/)

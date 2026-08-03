@@ -3,6 +3,7 @@ from ccxt.base.types import Entry
 
 class ImplicitAPI:
     public_get_exchange_orders_rate = publicGetExchangeOrdersRate = Entry('exchange/orders/rate', 'public', 'GET', {})
+    public_get_exchange_status = publicGetExchangeStatus = Entry('exchange_status', 'public', 'GET', {})
     public_get_order_books = publicGetOrderBooks = Entry('order_books', 'public', 'GET', {})
     public_get_rate_pair = publicGetRatePair = Entry('rate/{pair}', 'public', 'GET', {})
     public_get_ticker = publicGetTicker = Entry('ticker', 'public', 'GET', {})
@@ -12,7 +13,9 @@ class ImplicitAPI:
     private_get_accounts_leverage_balance = privateGetAccountsLeverageBalance = Entry('accounts/leverage_balance', 'private', 'GET', {})
     private_get_bank_accounts = privateGetBankAccounts = Entry('bank_accounts', 'private', 'GET', {})
     private_get_deposit_money = privateGetDepositMoney = Entry('deposit_money', 'private', 'GET', {})
+    private_get_exchange_orders_id = privateGetExchangeOrdersId = Entry('exchange/orders/{id}', 'private', 'GET', {})
     private_get_exchange_orders_opens = privateGetExchangeOrdersOpens = Entry('exchange/orders/opens', 'private', 'GET', {})
+    private_get_exchange_orders_cancel_status = privateGetExchangeOrdersCancelStatus = Entry('exchange/orders/cancel_status', 'private', 'GET', {})
     private_get_exchange_orders_transactions = privateGetExchangeOrdersTransactions = Entry('exchange/orders/transactions', 'private', 'GET', {})
     private_get_exchange_orders_transactions_pagination = privateGetExchangeOrdersTransactionsPagination = Entry('exchange/orders/transactions_pagination', 'private', 'GET', {})
     private_get_exchange_leverage_positions = privateGetExchangeLeveragePositions = Entry('exchange/leverage/positions', 'private', 'GET', {})

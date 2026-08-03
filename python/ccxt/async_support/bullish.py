@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bullish import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, OpenInterest, Trade, Transaction, FundingRateHistory, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -43,7 +43,7 @@ class bullish(Exchange, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': False,
-                'swap': False,
+                'swap': True,
                 'future': False,
                 'option': False,
                 'addMargin': False,
@@ -100,7 +100,9 @@ class bullish(Exchange, ImplicitAPI):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': False,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -249,7 +251,7 @@ class bullish(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             # exchange-specific options
             'options': {
-                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'networks': {
                     'BTC': 'BTC',
@@ -528,31 +530,30 @@ class bullish(Exchange, ImplicitAPI):
         #         }, ...
         #     ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            currency = response[i]
-            id = self.safe_string(currency, 'symbol')
-            code = self.safe_currency_code(id)
-            name = self.safe_string(currency, 'name')
-            precision = self.safe_string(currency, 'precision')
-            result[code] = {
-                'id': id,
-                'code': code,
-                'name': name,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': self.safe_number(currency, 'minFee'),
-                'precision': self.parse_number(self.parse_precision(precision)),
-                'limits': {
-                    'amount': {'min': None, 'max': None},
-                    'withdraw': {'min': None, 'max': None},
-                },
-                'networks': {},
-                'type': 'crypto',
-                'info': currency,
-            }
-        return result
+        return self.parse_currencies(response)
+
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
+        id = self.safe_string(rawCurrency, 'symbol')
+        code = self.safe_currency_code(id)
+        name = self.safe_string(rawCurrency, 'name')
+        precision = self.safe_string(rawCurrency, 'precision')
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'name': name,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': self.safe_number(rawCurrency, 'minFee'),
+            'precision': self.parse_number(self.parse_precision(precision)),
+            'limits': {
+                'amount': {'min': None, 'max': None},
+                'withdraw': {'min': None, 'max': None},
+            },
+            'networks': {},
+            'type': 'crypto',
+            'info': rawCurrency,
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -804,18 +805,18 @@ class bullish(Exchange, ImplicitAPI):
         settleId = self.safe_string(market, 'settlementAssetSymbol')
         settle = self.safe_currency_code(settleId)
         type = self.parse_market_type(self.safe_string(market, 'marketType'), 'spot')
-        spot: Bool = False
-        swap: Bool = False
-        future: Bool = False
-        option: Bool = False
-        contract: Bool = True
-        linear: Bool = None
-        inverse: Bool = None
-        expiryDatetime: Str = None
-        contractSize: Num = None
-        optionType: Str = None
-        strike: Num = None
-        margin: Bool = False
+        spot = False
+        swap = False
+        future = False
+        option = False
+        contract = True
+        linear = None
+        inverse = None
+        expiryDatetime = None
+        contractSize = None
+        optionType = None
+        strike = None
+        margin = False
         if type == 'spot':
             spot = True
             contract = False
@@ -831,7 +832,8 @@ class bullish(Exchange, ImplicitAPI):
                 expiryDatetime = self.safe_string(market, 'expiryDatetime')
                 idParts = id.split('-')
                 datePart = self.safe_string(idParts, 2)
-                symbol += '-' + datePart
+                dateYmd = datePart[2:]
+                symbol += '-' + dateYmd
                 if type == 'future':
                     future = True
                 elif type == 'option':
@@ -894,7 +896,7 @@ class bullish(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def parse_market_type(self, type: str, defaultType: Str = None) -> str:
+    def parse_market_type(self, type: Str = None, defaultType: Str = None) -> Str:
         types = {
             'SPOT': 'spot',
             'PERPETUAL': 'swap',
@@ -912,11 +914,12 @@ class bullish(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(not used by bullish)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.publicGetV1MarketsSymbolOrderbookHybrid(self.extend(request, params))
@@ -957,7 +960,8 @@ class bullish(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         maxLimit = 100
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
@@ -965,7 +969,7 @@ class bullish(Exchange, ImplicitAPI):
             params = self.handle_pagination_params('fetchTrades', since, params)
             return await self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params, maxLimit)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         params = self.handle_since_and_until(since, params)
@@ -1007,15 +1011,15 @@ class bullish(Exchange, ImplicitAPI):
         """
         await asyncio.gather(*[self.load_markets(), self.handle_token()])
         tradingAccountId = await self.load_account(params)
-        request: dict = {
+        request = {
             'tradingAccountId': tradingAccountId,
         }
-        market: Market = None
+        market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         clientOrderId = self.safe_string(params, 'clientOrderId')
-        response = None
+        response: List
         if clientOrderId is not None:
             response = await self.privateGetV1TradesClientOrderIdClientOrderId(self.extend(request, params))
         else:
@@ -1064,7 +1068,8 @@ class bullish(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: the client order id to fetch trades for
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is None:
             params = self.extend({'orderId': id}, params)
@@ -1166,9 +1171,10 @@ class bullish(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.publicGetV1MarketsSymbolTick(self.extend(request, params))
@@ -1314,14 +1320,15 @@ class bullish(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         maxLimit = 100
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'timeBucket': self.safe_string(self.timeframes, timeframe, timeframe),
             '_pageSize': maxLimit,
@@ -1382,7 +1389,8 @@ class bullish(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         maxLimit = 100
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
@@ -1392,7 +1400,7 @@ class bullish(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['swap']:
             raise BadRequest(self.id + ' fetchFundingRateHistory() supports swap markets only')
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -1452,7 +1460,7 @@ class bullish(Exchange, ImplicitAPI):
             params = self.handle_pagination_params('fetchOrders', since, params)
             return await self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params, 100)
         market = None
-        request: dict = {
+        request = {
             'tradingAccountId': tradingAccountId,
         }
         if symbol is not None:
@@ -1463,7 +1471,7 @@ class bullish(Exchange, ImplicitAPI):
             request['_pageSize'] = self.get_closest_limit(limit)
         method = 'privateGetV2HistoryOrders'
         method, params = self.handle_option_and_params(params, 'fetchOrders', 'method', method)
-        response = None
+        response = []
         if method == 'privateGetV2Orders':
             #
             #     [
@@ -1555,7 +1563,7 @@ class bullish(Exchange, ImplicitAPI):
         :param str params['tradingAccountId']: the trading account id(mandatory parameter)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'status': 'OPEN',
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1573,9 +1581,9 @@ class bullish(Exchange, ImplicitAPI):
         :param str [params.tradingAccountId]: the trading account id(mandatory parameter)
         :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'status': 'CANCELLED',
-            'method': 'privateGetV2Orders',  # current endpoint distinquishes between CLOSED and CANCELLED orders
+            'method': 'privateGetV2Orders',  # current endpoint distinguishes between CLOSED and CANCELLED orders
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
@@ -1592,9 +1600,9 @@ class bullish(Exchange, ImplicitAPI):
         :param str params['tradingAccountId']: the trading account id(mandatory parameter)
         :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'status': 'CLOSED',
-            'method': 'privateGetV2Orders',  # current endpoint distinquishes between CLOSED and CANCELLED orders
+            'method': 'privateGetV2Orders',  # current endpoint distinguishes between CLOSED and CANCELLED orders
         }
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
@@ -1611,7 +1619,7 @@ class bullish(Exchange, ImplicitAPI):
         :param str [params.tradingAccountId]: the trading account id(mandatory parameter)
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'status': 'CLOSED',
             'method': 'privateGetV2HistoryOrders',  # current endpoint returns both CLOSED and CANCELLED orders
         }
@@ -1634,7 +1642,7 @@ class bullish(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {
+        request = {
             'orderId': id,
             'tradingAccountId': tradingAccountId,
         }
@@ -1691,7 +1699,7 @@ class bullish(Exchange, ImplicitAPI):
         await asyncio.gather(*[self.load_markets(), self.handle_token()])
         tradingAccountId = await self.load_account(params)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'commandType': 'V3CreateOrder',
             'symbol': market['id'],
             'side': side.upper(),
@@ -1748,7 +1756,7 @@ class bullish(Exchange, ImplicitAPI):
         await asyncio.gather(*[self.load_markets(), self.handle_token()])
         tradingAccountId = await self.load_account(params)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'commandType': 'V1AmendOrder',
             'symbol': market['id'],
             'tradingAccountId': tradingAccountId,
@@ -1787,7 +1795,7 @@ class bullish(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'tradingAccountId': tradingAccountId,
             'commandType': self.safe_string(params, 'commandType', 'V3CancelOrder'),
@@ -1817,7 +1825,7 @@ class bullish(Exchange, ImplicitAPI):
         """
         await asyncio.gather(*[self.load_markets(), self.handle_token()])
         tradingAccountId = await self.load_account(params)
-        request: dict = {
+        request = {
             'tradingAccountId': tradingAccountId,
         }
         market = None
@@ -1937,7 +1945,7 @@ class bullish(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'OPEN': 'open',
             'CLOSED': 'closed',
             'CANCELLED': 'canceled',
@@ -1946,7 +1954,7 @@ class bullish(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, type: Str):
-        types: dict = {
+        types = {
             'LMT': 'limit',
             'MKT': 'market',
             'POST_ONLY': 'limit',
@@ -1967,7 +1975,7 @@ class bullish(Exchange, ImplicitAPI):
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await asyncio.gather(*[self.load_markets(), self.handle_token()])
-        request: dict = {}
+        request = {}
         request, params = self.handle_until_option('createdAtDatetime[lte]', request, params)
         until = self.safe_integer(request, 'createdAtDatetime[lte]')
         if until is not None:
@@ -2034,7 +2042,7 @@ class bullish(Exchange, ImplicitAPI):
         await asyncio.gather(*[self.load_markets(), self.handle_token()])
         # todo check self method properly
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'command': {
                 'commandType': 'V1Withdraw',
                 'destinationId': address,
@@ -2042,10 +2050,10 @@ class bullish(Exchange, ImplicitAPI):
                 'quantity': self.currency_to_precision(code, amount),
             },
         }
-        networkCode: Str = None
+        networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['network'] = self.network_code_to_id(networkCode)
+            request['network'] = self.network_code_to_id(networkCode, code)
         else:
             raise ArgumentsRequired(self.id + ' withdraw() requires a network parameter')
         response = await self.privatePostV1WalletsWithdrawal(self.extend(request, params))
@@ -2116,7 +2124,7 @@ class bullish(Exchange, ImplicitAPI):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': self.network_id_to_code(network),
+            'network': self.network_id_to_code(network, code),
             'addressFrom': sourceAddress,
             'address': address,
             'addressTo': address,
@@ -2135,14 +2143,14 @@ class bullish(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_type(self, type):
-        types: dict = {
+        types = {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
         }
         return self.safe_string(types, type, type)
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'COMPLETE': 'ok',
             'FAILED': 'failed',
             'PENDING': 'pending',
@@ -2151,7 +2159,7 @@ class bullish(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     async def load_account(self, params={}):
-        tradingAccountId: Str = None
+        tradingAccountId = None
         tradingAccountId, params = self.handle_option_and_params(params, 'fetchMyTrades', 'tradingAccountId')
         if tradingAccountId is None:
             response = await self.privateGetV1AccountsTradingAccounts(params)
@@ -2279,7 +2287,7 @@ class bullish(Exchange, ImplicitAPI):
         """
         await asyncio.gather(*[self.load_markets(), self.handle_token()])
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'symbol': currency['id'],
         }
         response = await self.privateGetV1WalletsDepositInstructionsCryptoSymbol(self.extend(request, params))
@@ -2308,7 +2316,7 @@ class bullish(Exchange, ImplicitAPI):
                 for i in range(0, len(safeResponse)):
                     entry = self.safe_dict(safeResponse, i, {})
                     networkId = self.safe_string(entry, 'network')
-                    networkCode = self.network_id_to_code(networkId)
+                    networkCode = self.network_id_to_code(networkId, code)
                     if network == networkCode:
                         data = entry
                         break
@@ -2319,10 +2327,11 @@ class bullish(Exchange, ImplicitAPI):
     def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
         id = self.safe_string(depositAddress, 'symbol')
         network = self.safe_string(depositAddress, 'network')
+        code = self.safe_currency_code(id, currency)
         return {
             'info': depositAddress,
-            'currency': self.safe_currency_code(id, currency),
-            'network': self.network_id_to_code(network),
+            'currency': code,
+            'network': self.network_id_to_code(network, code),
             'address': self.safe_string(depositAddress, 'address'),
             'tag': None,
         }
@@ -2341,7 +2350,7 @@ class bullish(Exchange, ImplicitAPI):
         """
         await asyncio.gather(*[self.load_markets(), self.handle_token()])
         tradingAccountId = await self.load_account(params)
-        request: dict = {
+        request = {
             'tradingAccountId': tradingAccountId,
         }
         response = None
@@ -2371,7 +2380,7 @@ class bullish(Exchange, ImplicitAPI):
             return self.parse_balance(response)
 
     def parse_balance_for_single_currency(self, response, code: Str) -> Balances:
-        result: dict = {'info': response}
+        result = {'info': response}
         account = self.account()
         account['free'] = self.safe_string(response, 'availableQuantity')
         account['used'] = self.safe_string(response, 'lockedQuantity')
@@ -2379,7 +2388,7 @@ class bullish(Exchange, ImplicitAPI):
         return self.safe_balance(result)
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {
+        result = {
             'info': response,
         }
         for i in range(0, len(response)):
@@ -2389,7 +2398,8 @@ class bullish(Exchange, ImplicitAPI):
             account = self.account()
             account['total'] = self.safe_string(balance, 'availableQuantity')
             account['used'] = self.safe_string(balance, 'lockedQuantity')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
@@ -2405,7 +2415,7 @@ class bullish(Exchange, ImplicitAPI):
         """
         await asyncio.gather(*[self.load_markets(), self.handle_token()])
         tradingAccountId = await self.load_account(params)
-        request: dict = {
+        request = {
             'tradingAccountId': tradingAccountId,
         }
         response = await self.privateGetV1DerivativesPositions(self.extend(request, params))
@@ -2490,7 +2500,7 @@ class bullish(Exchange, ImplicitAPI):
         })
 
     def parse_position_side(self, side: Str):
-        sides: dict = {
+        sides = {
             'BUY': 'long',
             'SELL': 'short',
         }
@@ -2518,10 +2528,10 @@ class bullish(Exchange, ImplicitAPI):
         if paginate:
             params = self.handle_pagination_params('fetchTransfers', since, params)
             return await self.fetch_paginated_call_dynamic('fetchTransfers', code, since, limit, params, maxLimit)
-        request: dict = {
+        request = {
             'tradingAccountId': tradingAccountId,
         }
-        currency: Currency = None
+        currency = None
         if code is not None:
             currency = self.currency(code)
             request['assetSymbol'] = currency['id']
@@ -2568,7 +2578,7 @@ class bullish(Exchange, ImplicitAPI):
         await asyncio.gather(*[self.load_markets(), self.handle_token()])
         # todo check self method properly
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'commandType': 'V2TransferAsset',
             'assetSymbol': currency['id'],
             'quantity': self.currency_to_precision(code, amount),
@@ -2632,7 +2642,7 @@ class bullish(Exchange, ImplicitAPI):
         }
 
     def parse_transfer_status(self, status):
-        statuses: dict = {
+        statuses = {
             'CLOSED': 'ok',
             'OPEN': 'pending',
             'REJECTED': 'failed',
@@ -2657,7 +2667,7 @@ class bullish(Exchange, ImplicitAPI):
         await asyncio.gather(*[self.load_markets(), self.handle_token()])
         tradingAccountId = await self.load_account(params)
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'assetSymbol': currency['id'],
             'tradingAccountId': tradingAccountId,
         }
@@ -2712,7 +2722,115 @@ class bullish(Exchange, ImplicitAPI):
     def get_timestamp(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    async def fetch_open_interest(self, symbol: str, params={}) -> OpenInterest:
+        """
+        fetches the open interest of a specific market
+
+        https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#get-/v1/markets/-symbol-/tick
+
+        :param str symbol: unified symbol of the market to fetch the open interest for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `open interest structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicGetV1MarketsSymbolTick(self.extend(request, params))
+        #
+        #     {
+        #         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
+        #         "createdAtTimestamp": "1621490985000",
+        #         "high": "1.00000000",
+        #         "low": "1.00000000",
+        #         "bestBid": "1.00000000",
+        #         "bidVolume": "1.00000000",
+        #         "bestAsk": "1.00000000",
+        #         "askVolume": "1.00000000",
+        #         "vwap": "1.00000000",
+        #         "open": "1.00000000",
+        #         "close": "1.00000000",
+        #         "last": "1.00000000",
+        #         "change": "1.00000000",
+        #         "percentage": "1.00000000",
+        #         "average": "1.00000000",
+        #         "baseVolume": "1.00000000",
+        #         "quoteVolume": "1.00000000",
+        #         "bancorPrice": "1.00000000",
+        #         "markPrice": "19999.00",
+        #         "fundingRate": "0.01",
+        #         "openInterest": "100000.32452",
+        #         "lastTradeDatetime": "2021-05-20T01:01:01.000Z",
+        #         "lastTradeTimestamp": "1621490985000",
+        #         "lastTradeQuantity": "1.00000000",
+        #         "ammData": [
+        #             {
+        #                 "feeTierId": "1",
+        #                 "bidSpreadFee": "0.00040000",
+        #                 "askSpreadFee": "0.00040000",
+        #                 "baseReservesQuantity": "245.56257825",
+        #                 "quoteReservesQuantity": "3424383.3629",
+        #                 "currentPrice": "16856.0000"
+        #             }
+        #         ]
+        #     }
+        #
+        return self.parse_open_interest(response, market)
+
+    def parse_open_interest(self, interest, market: Market = None):
+        #
+        #     {
+        #         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
+        #         "createdAtTimestamp": "1621490985000",
+        #         "high": "1.00000000",
+        #         "low": "1.00000000",
+        #         "bestBid": "1.00000000",
+        #         "bidVolume": "1.00000000",
+        #         "bestAsk": "1.00000000",
+        #         "askVolume": "1.00000000",
+        #         "vwap": "1.00000000",
+        #         "open": "1.00000000",
+        #         "close": "1.00000000",
+        #         "last": "1.00000000",
+        #         "change": "1.00000000",
+        #         "percentage": "1.00000000",
+        #         "average": "1.00000000",
+        #         "baseVolume": "1.00000000",
+        #         "quoteVolume": "1.00000000",
+        #         "bancorPrice": "1.00000000",
+        #         "markPrice": "19999.00",
+        #         "fundingRate": "0.01",
+        #         "openInterest": "100000.32452",
+        #         "lastTradeDatetime": "2021-05-20T01:01:01.000Z",
+        #         "lastTradeTimestamp": "1621490985000",
+        #         "lastTradeQuantity": "1.00000000",
+        #         "ammData": [
+        #             {
+        #                 "feeTierId": "1",
+        #                 "bidSpreadFee": "0.00040000",
+        #                 "askSpreadFee": "0.00040000",
+        #                 "baseReservesQuantity": "245.56257825",
+        #                 "quoteReservesQuantity": "3424383.3629",
+        #                 "currentPrice": "16856.0000"
+        #             }
+        #         ]
+        #     }
+        #
+        openInterest = self.safe_string(interest, 'openInterest')
+        return self.safe_open_interest({
+            'info': interest,
+            'symbol': self.safe_string(market, 'symbol'),
+            'openInterestAmount': openInterest,
+            'openInterestValue': None,
+            'timestamp': self.safe_string(interest, 'createdAtTimestamp'),
+            'datetime': self.safe_string(interest, 'createdAtDatetime'),
+            'baseVolume': openInterest,
+            'quoteVolume': None,
+        }, market)
+
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = self.omit(params, self.extract_params(path))
         endpoint = '/' + self.implode_params(path, params)
         url = self.urls['api'][api] + endpoint
@@ -2744,11 +2862,13 @@ class bullish(Exchange, ImplicitAPI):
                 if rateLimitToken is not None:
                     headers['BX-RATE-LIMIT-TOKEN'] = rateLimitToken
             if path == 'v1/users/hmac/login':
+                headers = {} if (headers is None) else headers
                 headers['BX-PUBLIC-KEY'] = self.apiKey
             else:
                 token = self.token
                 if (token is None):
                     raise AuthenticationError(self.id + ' requires a token, please call signIn() first')
+                headers = {} if (headers is None) else headers
                 headers['Authorization'] = 'Bearer ' + token
                 # headers['BX-NONCE-WINDOW-ENABLED'] = 'false'  # default is False
         if method == 'GET':

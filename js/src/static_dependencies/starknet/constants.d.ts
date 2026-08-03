@@ -35,14 +35,14 @@ export declare enum NetworkName {
     SN_SEPOLIA = "SN_SEPOLIA"
 }
 export declare enum StarknetChainId {
-    SN_MAIN = "0x534e5f4d41494e",
+    SN_MAIN = "0x534e5f4d41494e",// encodeShortString('SN_MAIN'),
     SN_SEPOLIA = "0x534e5f5345504f4c4941"
 }
 export declare enum TransactionHashPrefix {
-    DECLARE = "0x6465636c617265",
-    DEPLOY = "0x6465706c6f79",
-    DEPLOY_ACCOUNT = "0x6465706c6f795f6163636f756e74",
-    INVOKE = "0x696e766f6b65",
+    DECLARE = "0x6465636c617265",// encodeShortString('declare'),
+    DEPLOY = "0x6465706c6f79",// encodeShortString('deploy'),
+    DEPLOY_ACCOUNT = "0x6465706c6f795f6163636f756e74",// encodeShortString('deploy_account'),
+    INVOKE = "0x696e766f6b65",// encodeShortString('invoke'),
     L1_HANDLER = "0x6c315f68616e646c6572"
 }
 export declare const enum feeMarginPercentage {

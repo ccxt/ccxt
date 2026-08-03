@@ -6,11 +6,11 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
 
 class ndax extends \ccxt\async\ndax {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -43,7 +43,7 @@ class ndax extends \ccxt\async\ndax {
         return $requestId;
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -55,7 +55,9 @@ class ndax extends \ccxt\async\ndax {
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $name = 'SubscribeLevel1';
             $messageHash = $name . ':' . $market['id'];
@@ -63,7 +65,7 @@ class ndax extends \ccxt\async\ndax {
             $requestId = $this->request_id();
             $payload = array(
                 'OMSId' => $omsId,
-                'InstrumentId' => intval($market['id']), // conditionally optional
+                'InstrumentId' => $this->safe_integer($market, 'id'), // conditionally optional
                 // 'Symbol' => $market['info']['symbol'], // conditionally optional
             );
             $request = array(
@@ -74,7 +76,7 @@ class ndax extends \ccxt\async\ndax {
             );
             $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
-        }) ();
+        })();
     }
 
     public function handle_ticker(Client $client, $message) {
@@ -107,13 +109,15 @@ class ndax extends \ccxt\async\ndax {
         $ticker = $this->parse_ticker($payload);
         $symbol = $ticker['symbol'];
         $market = $this->market($symbol);
-        $this->tickers[$symbol] = $ticker;
+        if ($symbol !== null) {
+            $this->tickers[$symbol] = $ticker;
+        }
         $name = 'SubscribeLevel1';
         $messageHash = $name . ':' . $market['id'];
-        $client->resolve ($ticker, $messageHash);
+        $client->resolve($ticker, $messageHash);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -127,7 +131,9 @@ class ndax extends \ccxt\async\ndax {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $name = 'SubscribeTrades';
@@ -136,7 +142,7 @@ class ndax extends \ccxt\async\ndax {
             $requestId = $this->request_id();
             $payload = array(
                 'OMSId' => $omsId,
-                'InstrumentId' => intval($market['id']), // conditionally optional
+                'InstrumentId' => $this->safe_integer($market, 'id'), // conditionally optional
                 'IncludeLastCount' => 100, // the number of previous $trades to retrieve in the immediate snapshot, 100 by default
             );
             $request = array(
@@ -148,10 +154,10 @@ class ndax extends \ccxt\async\ndax {
             $message = $this->extend($request, $params);
             $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        })();
     }
 
     public function handle_trades(Client $client, $message) {
@@ -180,14 +186,18 @@ class ndax extends \ccxt\async\ndax {
         for ($i = 0; $i < count($payload); $i++) {
             $trade = $this->parse_trade($payload[$i]);
             $symbol = $trade['symbol'];
-            $tradesArray = $this->safe_value($this->trades, $symbol);
+            $tradesArray = ($symbol === null) ? null : $this->safe_value($this->trades, $symbol);
             if ($tradesArray === null) {
                 $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-                $tradesArray = new ArrayCache ($limit);
+                $tradesArray = new ArrayCache($limit);
             }
-            $tradesArray->append ($trade);
-            $this->trades[$symbol] = $tradesArray;
-            $updates[$symbol] = true;
+            $tradesArray->append($trade);
+            if ($symbol !== null) {
+                $this->trades[$symbol] = $tradesArray;
+            }
+            if ($symbol !== null) {
+                $updates[$symbol] = true;
+            }
         }
         $symbols = is_array($updates) ? array_keys($updates) : array();
         for ($i = 0; $i < count($symbols); $i++) {
@@ -195,11 +205,11 @@ class ndax extends \ccxt\async\ndax {
             $market = $this->market($symbol);
             $messageHash = $name . ':' . $market['id'];
             $tradesArray = $this->safe_value($this->trades, $symbol);
-            $client->resolve ($tradesArray, $messageHash);
+            $client->resolve($tradesArray, $messageHash);
         }
     }
 
-    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -214,7 +224,9 @@ class ndax extends \ccxt\async\ndax {
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $name = 'SubscribeTicker';
@@ -223,7 +235,7 @@ class ndax extends \ccxt\async\ndax {
             $requestId = $this->request_id();
             $payload = array(
                 'OMSId' => $omsId,
-                'InstrumentId' => intval($market['id']), // conditionally optional
+                'InstrumentId' => $this->safe_integer($market, 'id'), // conditionally optional
                 'Interval' => intval($this->safe_string($this->timeframes, $timeframe, $timeframe)),
                 'IncludeLastCount' => 100, // the number of previous candles to retrieve in the immediate snapshot, 100 by default
             );
@@ -236,10 +248,10 @@ class ndax extends \ccxt\async\ndax {
             $message = $this->extend($request, $params);
             $ohlcv = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
+                $limit = $ohlcv->getLimit($symbol, $limit);
             }
             return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        }) ();
+        })();
     }
 
     public function handle_ohlcv(Client $client, $message) {
@@ -274,7 +286,9 @@ class ndax extends \ccxt\async\ndax {
             $marketId = $this->safe_string($ohlcv, 8);
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
-            $updates[$marketId] = array();
+            if ($marketId !== null) {
+                $updates[$marketId] = array();
+            }
             $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
             $keys = is_array($this->timeframes) ? array_keys($this->timeframes) : array();
             for ($j = 0; $j < count($keys); $j++) {
@@ -282,6 +296,9 @@ class ndax extends \ccxt\async\ndax {
                 $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
                 $duration = intval($interval) * 1000;
                 $timestamp = $this->safe_integer($ohlcv, 0);
+                if ($timestamp === null) {
+                    continue;
+                }
                 $parsed = array(
                     $this->parse_to_int(($timestamp / $duration) * $duration),
                     $this->safe_float($ohlcv, 3),
@@ -294,17 +311,31 @@ class ndax extends \ccxt\async\ndax {
                 $length = count($stored);
                 if ($length && ($parsed[0] === $stored[$length - 1][0])) {
                     $previous = $stored[$length - 1];
-                    $stored[$length - 1] = [
+                    $high = $parsed[1];
+                    if ($parsed[1] === null) {
+                        $high = $previous[1];
+                    } elseif ($previous[1] !== null) {
+                        $high = max($parsed[1], $previous[1]);
+                    }
+                    $low = $parsed[2];
+                    if ($parsed[2] === null) {
+                        $low = $previous[2];
+                    } elseif ($previous[2] !== null) {
+                        $low = min($parsed[2], $previous[2]);
+                    }
+                    $stored[$length - 1] = array(
                         $parsed[0],
                         $previous[1],
-                        max ($parsed[1], $previous[1]),
-                        min ($parsed[2], $previous[2]),
+                        $high,
+                        $low,
                         $parsed[4],
                         $this->sum($parsed[5], $previous[5]),
-                    ];
-                    $updates[$marketId][$timeframe] = true;
+                    );
+                    if (($marketId !== null) && ($timeframe !== null)) {
+                        $updates[$marketId][$timeframe] = true;
+                    }
                 } else {
-                    if ($length && ($parsed[0] < $stored[$length - 1][0])) {
+                    if ($length && ($this->parse_to_int($parsed[0]) < $this->parse_to_int($stored[$length - 1][0]))) {
                         continue;
                     } else {
                         $stored[] = $parsed;
@@ -312,7 +343,9 @@ class ndax extends \ccxt\async\ndax {
                         if ($length >= $limit) {
                             array_shift($stored);
                         }
-                        $updates[$marketId][$timeframe] = true;
+                        if (($marketId !== null) && ($timeframe !== null)) {
+                            $updates[$marketId][$timeframe] = true;
+                        }
                     }
                 }
                 $this->ohlcvs[$symbol][$timeframe] = $stored;
@@ -329,12 +362,12 @@ class ndax extends \ccxt\async\ndax {
                 $market = $this->safe_market($marketId);
                 $symbol = $market['symbol'];
                 $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe, array());
-                $client->resolve ($stored, $messageHash);
+                $client->resolve($stored, $messageHash);
             }
         }
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -344,10 +377,12 @@ class ndax extends \ccxt\async\ndax {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $name = 'SubscribeLevel2';
@@ -357,7 +392,7 @@ class ndax extends \ccxt\async\ndax {
             $limit = ($limit === null) ? 100 : $limit;
             $payload = array(
                 'OMSId' => $omsId,
-                'InstrumentId' => intval($market['id']), // conditionally optional
+                'InstrumentId' => $this->safe_integer($market, 'id'), // conditionally optional
                 // 'Symbol' => $market['info']['symbol'], // conditionally optional
                 'Depth' => $limit, // default 100
             );
@@ -379,8 +414,8 @@ class ndax extends \ccxt\async\ndax {
             );
             $message = $this->extend($request, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
     public function handle_order_book(Client $client, $message) {
@@ -426,13 +461,17 @@ class ndax extends \ccxt\async\ndax {
                 $timestamp = $this->safe_integer($bidask, 2);
             } else {
                 $newTimestamp = $this->safe_integer($bidask, 2);
-                $timestamp = max ($timestamp, $newTimestamp);
+                $currentTimestampValue = ($timestamp === null) ? 0 : $timestamp;
+                $newTimestampValue = ($newTimestamp === null) ? 0 : $newTimestamp;
+                $timestamp = max($currentTimestampValue, $newTimestampValue);
             }
             if ($nonce === null) {
                 $nonce = $this->safe_integer($bidask, 0);
             } else {
                 $newNonce = $this->safe_integer($bidask, 0);
-                $nonce = max ($nonce, $newNonce);
+                $currentNonceValue = ($nonce === null) ? 0 : $nonce;
+                $newNonceValue = ($newNonce === null) ? 0 : $newNonce;
+                $nonce = max($currentNonceValue, $newNonceValue);
             }
             // 0 new, 1 update, 2 remove
             $type = $this->safe_integer($bidask, 3);
@@ -443,11 +482,11 @@ class ndax extends \ccxt\async\ndax {
             $orderbookSide = ($side === 0) ? $orderbook['bids'] : $orderbook['asks'];
             // 0 new, 1 update, 2 remove
             if ($type === 0) {
-                $orderbookSide->store ($price, $amount);
+                $orderbookSide->store($price, $amount);
             } elseif ($type === 1) {
-                $orderbookSide->store ($price, $amount);
+                $orderbookSide->store($price, $amount);
             } elseif ($type === 2) {
-                $orderbookSide->store ($price, 0);
+                $orderbookSide->store($price, 0);
             }
         }
         $orderbook['nonce'] = $nonce;
@@ -456,7 +495,7 @@ class ndax extends \ccxt\async\ndax {
         $name = 'SubscribeLevel2';
         $messageHash = $name . ':' . $marketId;
         $this->orderbooks[$symbol] = $orderbook;
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
     public function handle_order_book_subscription(Client $client, $message, $subscription) {
@@ -489,9 +528,11 @@ class ndax extends \ccxt\async\ndax {
         $snapshot = $this->parse_order_book($payload, $symbol);
         $limit = $this->safe_integer($subscription, 'limit');
         $orderbook = $this->order_book($snapshot, $limit);
-        $this->orderbooks[$symbol] = $orderbook;
+        if ($symbol !== null) {
+            $this->orderbooks[$symbol] = $orderbook;
+        }
         $messageHash = $this->safe_string($subscription, 'messageHash');
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
     public function handle_subscription_status(Client $client, $message) {
@@ -505,7 +546,7 @@ class ndax extends \ccxt\async\ndax {
         //
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $id = $this->safe_integer($message, 'i');
-        $subscription = $this->safe_value($subscriptionsById, $id);
+        $subscription = ($id === null) ? null : $this->safe_value($subscriptionsById, $id);
         if ($subscription !== null) {
             $method = $this->safe_value($subscription, 'method');
             if ($method !== null) {
@@ -553,7 +594,7 @@ class ndax extends \ccxt\async\ndax {
             'TickerDataUpdateEvent' => array($this, 'handle_ohlcv'),
         );
         $event = $this->safe_string($message, 'n');
-        $method = $this->safe_value($methods, $event);
+        $method = ($event === null) ? null : $this->safe_value($methods, $event);
         if ($method !== null) {
             $method($client, $message);
         }

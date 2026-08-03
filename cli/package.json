@@ -1,6 +1,6 @@
 {
   "name": "ccxt-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CLI for the CCXT package",
   "main": "./js/cli.js",
   "type": "module",

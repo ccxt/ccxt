@@ -711,6 +711,18 @@
                     }
                 ]
             }
+        ],
+        "closePosition": [
+            {
+                "description": "linear swap sell close position",
+                "method": "closePosition",
+                "url": "https://testnet.bitmex.com/api/v1/order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "sell"
+                ],
+                "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"execInst\":\"Close\"}"
+            }
         ]
     }
 }

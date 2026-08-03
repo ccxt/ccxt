@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -27,7 +27,7 @@ class phemex(ccxt.async_support.phemex):
                 'watchOrderBook': True,
                 'watchOHLCV': True,
                 'watchPositions': None,  # TODO
-                # mutli-endpoints are not supported: https://github.com/ccxt/ccxt/pull/21490
+                # multi-endpoints are not supported: https://github.com/ccxt/ccxt/pull/21490
                 'watchOrderBookForSymbols': False,
                 'watchTradesForSymbols': False,
                 'watchOHLCVForSymbols': False,
@@ -58,17 +58,17 @@ class phemex(ccxt.async_support.phemex):
         precise.reduce()
         return str(precise)
 
-    def from_ep(self, ep, market=None):
+    def from_ep(self, ep, market: Market = None):
         if (ep is None) or (market is None):
             return ep
         return self.from_en(ep, self.safe_integer(market, 'priceScale'))
 
-    def from_ev(self, ev, market=None):
+    def from_ev(self, ev, market: Market = None):
         if (ev is None) or (market is None):
             return ev
         return self.from_en(ev, self.safe_integer(market, 'valueScale'))
 
-    def from_er(self, er, market=None):
+    def from_er(self, er, market: Market = None):
         if (er is None) or (market is None):
             return er
         return self.from_en(er, self.safe_integer(market, 'ratioScale'))
@@ -80,7 +80,7 @@ class phemex(ccxt.async_support.phemex):
         self.unlock_id()
         return requestId
 
-    def parse_swap_ticker(self, ticker, market=None):
+    def parse_swap_ticker(self, ticker, market: Market = None):
         #
         #     {
         #         "close": 442800,
@@ -98,8 +98,9 @@ class phemex(ccxt.async_support.phemex):
         #     }
         #
         marketId = self.safe_string(ticker, 'symbol')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        market = marketResolved
+        symbol = marketResolved['symbol']
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.000001)
         lastString = self.from_ep(self.safe_string(ticker, 'close'), market)
         last = self.parse_number(lastString)
@@ -139,7 +140,7 @@ class phemex(ccxt.async_support.phemex):
             'info': ticker,
         })
 
-    def parse_perpetual_ticker(self, ticker, market=None):
+    def parse_perpetual_ticker(self, ticker, market: Market = None):
         #
         #    [
         #        "STXUSDT",
@@ -157,8 +158,9 @@ class phemex(ccxt.async_support.phemex):
         #    ]
         #
         marketId = self.safe_string(ticker, 0)
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        market = marketResolved
+        symbol = marketResolved['symbol']
         lastString = self.from_ep(self.safe_string(ticker, 4), market)
         last = self.parse_number(lastString)
         quoteVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 6), market))
@@ -304,7 +306,8 @@ class phemex(ccxt.async_support.phemex):
         :param str [params.settle]: set to USDT to use hedged perpetual api
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         usePerpetualApi = self.safe_string(params, 'settle') == 'USDT'
@@ -377,7 +380,8 @@ class phemex(ccxt.async_support.phemex):
                 total = self.from_en(totalEv, scale)
             account['used'] = used
             account['total'] = total
-            self.balance[code] = account
+            if code is not None:
+                self.balance[code] = account
             self.balance = self.safe_balance(self.balance)
         messageHash = type + ':balance'
         client.resolve(self.balance, messageHash)
@@ -468,7 +472,7 @@ class phemex(ccxt.async_support.phemex):
             messageHash = 'kline:' + timeframe + ':' + symbol
             ohlcvs = self.parse_ohlcvs(candles, market)
             self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-            stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+            stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
             if stored is None:
                 limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
                 stored = ArrayCacheByTimestamp(limit)
@@ -490,7 +494,8 @@ class phemex(ccxt.async_support.phemex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         isSwap = market['swap']
@@ -502,7 +507,7 @@ class phemex(ccxt.async_support.phemex):
         requestId = self.request_id()
         subscriptionHash = name + '.subscribe'
         messageHash = 'ticker:' + symbol
-        subscribe: dict = {
+        subscribe = {
             'method': subscriptionHash,
             'id': requestId,
             'params': [],
@@ -523,7 +528,8 @@ class phemex(ccxt.async_support.phemex):
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         first = symbols[0]
         market = self.market(first)
@@ -538,7 +544,7 @@ class phemex(ccxt.async_support.phemex):
         messageHashes = []
         for i in range(0, len(symbols)):
             messageHashes.append('ticker:' + symbols[i])
-        subscribe: dict = {
+        subscribe = {
             'method': subscriptionHash,
             'id': requestId,
             'params': [],
@@ -546,7 +552,7 @@ class phemex(ccxt.async_support.phemex):
         request = self.deep_extend(subscribe, params)
         ticker = await self.watch_multiple(url, messageHashes, request, messageHashes)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -565,7 +571,8 @@ class phemex(ccxt.async_support.phemex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         url = self.urls['api']['ws']
@@ -575,7 +582,7 @@ class phemex(ccxt.async_support.phemex):
         name = 'trade_p' if (isSwap and settleIsUSDT) else 'trade'
         messageHash = 'trade:' + symbol
         method = name + '.subscribe'
-        subscribe: dict = {
+        subscribe = {
             'method': method,
             'id': requestId,
             'params': [
@@ -600,9 +607,10 @@ class phemex(ccxt.async_support.phemex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         url = self.urls['api']['ws']
@@ -612,7 +620,7 @@ class phemex(ccxt.async_support.phemex):
         name = 'orderbook_p' if (isSwap and settleIsUSDT) else 'orderbook'
         messageHash = 'orderbook:' + symbol
         method = name + '.subscribe'
-        subscribe: dict = {
+        subscribe = {
             'method': method,
             'id': requestId,
             'params': [
@@ -638,7 +646,8 @@ class phemex(ccxt.async_support.phemex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         url = self.urls['api']['ws']
@@ -648,7 +657,7 @@ class phemex(ccxt.async_support.phemex):
         name = 'kline_p' if (isSwap and settleIsUSDT) else 'kline'
         messageHash = 'kline:' + timeframe + ':' + symbol
         method = name + '.subscribe'
-        subscribe: dict = {
+        subscribe = {
             'method': method,
             'id': requestId,
             'params': [
@@ -662,11 +671,11 @@ class phemex(ccxt.async_support.phemex):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def custom_handle_delta(self, bookside, delta, market=None):
+    def custom_handle_delta(self, bookside, delta, market: Market = None):
         bidAsk = self.custom_parse_bid_ask(delta, 0, 1, market)
         bookside.storeArray(bidAsk)
 
-    def custom_handle_deltas(self, bookside, deltas, market=None):
+    def custom_handle_deltas(self, bookside, deltas, market: Market = None):
         for i in range(0, len(deltas)):
             self.custom_handle_delta(bookside, deltas[i], market)
 
@@ -753,7 +762,8 @@ class phemex(ccxt.async_support.phemex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         type = None
         messageHash = 'trades:'
@@ -875,7 +885,7 @@ class phemex(ccxt.async_support.phemex):
         if cachedTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             cachedTrades = ArrayCacheBySymbolById(limit)
-        marketIds: dict = {}
+        marketIds = {}
         type = None
         for i in range(0, len(message)):
             rawTrade = message[i]
@@ -886,7 +896,8 @@ class phemex(ccxt.async_support.phemex):
             symbol = parsed['symbol']
             if type is None:
                 type = 'perpetual' if (market['settle'] == 'USDT') else market['type']
-            marketIds[symbol] = True
+            if symbol is not None:
+                marketIds[symbol] = True
         keys = list(marketIds.keys())
         for i in range(0, len(keys)):
             market = keys[i]
@@ -905,7 +916,8 @@ class phemex(ccxt.async_support.phemex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'orders:'
         market = None
         type = None
@@ -1112,7 +1124,7 @@ class phemex(ccxt.async_support.phemex):
                 parsedOrders.append(parsedOrder)
         self.handle_my_trades(client, trades)
         limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-        marketIds: dict = {}
+        marketIds = {}
         if self.orders is None:
             self.orders = ArrayCacheBySymbolById(limit)
         type = None
@@ -1134,7 +1146,7 @@ class phemex(ccxt.async_support.phemex):
         messageHash = 'orders:' + type
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_swap_order(self, order, market=None):
+    def parse_ws_swap_order(self, order, market: Market = None):
         #
         # swap
         #    {
@@ -1262,8 +1274,9 @@ class phemex(ccxt.async_support.phemex):
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None
         marketId = self.safe_string(order, 'symbol')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        market = marketResolved
+        symbol = marketResolved['symbol']
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         side = self.safe_string_lower(order, 'side')
         type = self.parseOrderType(self.safe_string(order, 'ordType'))
@@ -1400,9 +1413,9 @@ class phemex(ccxt.async_support.phemex):
         #       }
         #     ]
         # }
-        id = self.safe_string(message, 'id')
+        id = self.safe_string(message, 'id', '')
         if id in client.subscriptions:
-            method = client.subscriptions[id]
+            method = self.safe_value(client.subscriptions, id)
             del client.subscriptions[id]
             if method is not True:
                 method(client, message)
@@ -1452,7 +1465,8 @@ class phemex(ccxt.async_support.phemex):
                 del client.subscriptions[messageHash]
 
     async def subscribe_private(self, type, messageHash, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         url = self.urls['api']['ws']
         requestId = self.seconds()
@@ -1484,7 +1498,7 @@ class phemex(ccxt.async_support.phemex):
             payload = self.apiKey + str(expiration)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
             method = 'user.auth'
-            request: dict = {
+            request = {
                 'method': method,
                 'params': ['API', self.apiKey, signature, expiration],
                 'id': requestId,

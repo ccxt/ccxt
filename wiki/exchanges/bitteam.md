@@ -35,11 +35,11 @@ retrieves data on all markets for bitteam
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitteam.fetchMarkets ([params])
+bitteam.fetchMarkets (params?)
 ```
 
 
@@ -55,11 +55,11 @@ fetches all available currencies on an exchange
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitteam.fetchCurrencies ([params])
+bitteam.fetchCurrencies (params?)
 ```
 
 
@@ -78,11 +78,11 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitteam.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bitteam.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -92,7 +92,7 @@ bitteam.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitteam</code>](#bitteam)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://bit.team/trade/api/documentation#/CMC/getTradeApiCmcOrderbookPair  
 
@@ -100,11 +100,11 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return (default 100, max 200) |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitteam.fetchOrderBook (symbol[, limit, params])
+bitteam.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -123,12 +123,12 @@ fetches information on multiple orders made by the user
 | symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of  orde structures to retrieve (default 10) |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | the status of the order - 'active', 'closed', 'cancelled', 'all', 'history' (default 'all') |
 
 
 ```javascript
-bitteam.fetchOrders (symbol[, since, limit, params])
+bitteam.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -145,12 +145,12 @@ fetches information on an order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>int</code>, <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by bitteam fetchOrder () |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| symbol | <code>string</code> | Yes | not used by fetchOrder () |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitteam.fetchOrder (id, symbol[, params])
+bitteam.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -169,11 +169,11 @@ fetch all unfilled currently open orders
 | symbol | <code>string</code> | Yes | unified market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
 | limit | <code>int</code> | No | the maximum number of open order structures to retrieve (default 10) |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitteam.fetchOpenOrders (symbol[, since, limit, params])
+bitteam.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -192,11 +192,11 @@ fetches information on multiple closed orders made by the user
 | symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of closed order structures to retrieve (default 10) |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitteam.fetchClosedOrders (symbol[, since, limit, params])
+bitteam.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -215,11 +215,11 @@ fetches information on multiple canceled orders made by the user
 | symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of canceled order structures to retrieve (default 10) |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitteam.fetchCanceledOrders (symbol[, since, limit, params])
+bitteam.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -240,11 +240,11 @@ create a trade order
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitteam.createOrder (symbol, type, side, amount[, price, params])
+bitteam.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -261,12 +261,12 @@ cancels an open order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
-| symbol | <code>string</code> | Yes | not used by bitteam cancelOrder () |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| symbol | <code>string</code> | Yes | not used by cancelOrder () |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitteam.cancelOrder (id, symbol[, params])
+bitteam.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -282,12 +282,12 @@ cancel open orders of market
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| symbol | <code>string</code> | No | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitteam.cancelAllOrders (symbol[, params])
+bitteam.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -304,11 +304,11 @@ fetches price tickers for multiple markets, statistical calculations with the in
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitteam.fetchTickers (symbols[, params])
+bitteam.fetchTickers (symbols, params?)
 ```
 
 
@@ -325,11 +325,11 @@ fetches a price ticker, a statistical calculation with the information calculate
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitteam.fetchTicker (symbol[, params])
+bitteam.fetchTicker (symbol, params?)
 ```
 
 
@@ -348,11 +348,11 @@ get the list of most recent trades for a particular symbol
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch trades for |
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
 | limit | <code>int</code> | No | the maximum amount of trades to fetch |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitteam.fetchTrades (symbol[, since, limit, params])
+bitteam.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -371,11 +371,11 @@ fetch all trades made by the user
 | symbol | <code>string</code> | Yes | unified market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch trades for |
 | limit | <code>int</code> | No | the maximum number of trades structures to retrieve (default 10) |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitteam.fetchMyTrades (symbol[, since, limit, params])
+bitteam.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -394,10 +394,10 @@ fetch history of deposits and withdrawals from external wallets and between Coin
 | code | <code>string</code> | No | unified currency code for the currency of the deposit/withdrawals |
 | since | <code>int</code> | No | timestamp in ms of the earliest deposit/withdrawal |
 | limit | <code>int</code> | No | max number of deposit/withdrawals to return (default 10) |
-| params | <code>object</code> | No | extra parameters specific to the bitteam api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitteam.fetchDepositsWithdrawals ([code, since, limit, params])
+bitteam.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 

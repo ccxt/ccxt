@@ -17,9 +17,10 @@ from ccxt.test.exchange.base import test_market  # noqa E402
 async def test_load_markets(exchange, skipped_properties):
     method = 'loadMarkets'
     markets = await exchange.load_markets()
-    assert isinstance(exchange.markets, dict), '.markets is not an object'
+    assert exchange.is_dictionary(exchange.markets), '.markets is not a dict'
     assert isinstance(exchange.symbols, list), '.symbols is not an array'
     symbols_length = len(exchange.symbols)
+    assert exchange.markets is not None, '.markets is undefined'
     market_keys = list(exchange.markets.keys())
     market_keys_length = len(market_keys)
     assert symbols_length > 0, '.symbols count <= 0 (less than or equal to zero)'

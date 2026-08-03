@@ -14,7 +14,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_borrow_interest.php';
 function test_fetch_borrow_interest($exchange, $skipped_properties, $code, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $code, $symbol) {
         $method = 'fetchBorrowInterest';
-        $borrow_interest = Async\await($exchange->fetch_borrow_interest($code, $symbol));
+        $borrow_interest = \React\Async\await($exchange->fetch_borrow_interest($code, $symbol));
         assert_non_emtpy_array($exchange, $skipped_properties, $method, $borrow_interest, $code);
         for ($i = 0; $i < count($borrow_interest); $i++) {
             test_borrow_interest($exchange, $skipped_properties, $method, $borrow_interest[$i], $code, $symbol);

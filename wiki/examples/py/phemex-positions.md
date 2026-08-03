@@ -1,8 +1,5 @@
-- [Phemex Positions](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -54,5 +51,5 @@ print('------------------------------------------------------------')
 # https://github.com/ccxt/ccxt/wiki/Manual#implicit-api-methods
 response = exchange.private_get_accounts_accountpositions({'currency': 'BTC'})
 pprint(response['data']['positions'])
- 
+
 ```

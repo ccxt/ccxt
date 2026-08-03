@@ -15,18 +15,6 @@
  *
  *  @_subsection api/abi:Interfaces  [interfaces]
  */
-var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (receiver, state, value, kind, f) {
-    if (kind === "m") throw new TypeError("Private method is not writable");
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-};
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
-var _Interface_instances, _Interface_errors, _Interface_events, _Interface_functions, _Interface_abiCoder, _Interface_getFunction, _Interface_getEvent;
 import { id, keccak256 } from "./utils/index.js";
 import { concat, dataSlice, getBigInt, getBytes, getBytesCopy, hexlify, zeroPadBytes, zeroPadValue, isHexString, defineProperties, assertArgument, toBeHex, assert } from "./utils/index.js";
 import { AbiCoder } from "./abi-coder.js";
@@ -88,18 +76,18 @@ export class ErrorDescription {
  */
 export class Indexed {
     /**
-     *  @_ignore:
-     */
-    constructor(hash) {
-        defineProperties(this, { hash, _isIndexed: true });
-    }
-    /**
      *  Returns ``true`` if %%value%% is an **Indexed**.
      *
      *  This provides a Type Guard for property access.
      */
     static isIndexed(value) {
         return !!(value && value._isIndexed);
+    }
+    /**
+     *  @_ignore:
+     */
+    constructor(hash) {
+        defineProperties(this, { hash, _isIndexed: true });
     }
 }
 // https://docs.soliditylang.org/en/v0.8.13/control-structures.html?highlight=panic#panic-via-assert-and-error-via-require
@@ -148,16 +136,15 @@ const BuiltinErrors = {
  *  The ABI can be specified by [any supported format](InterfaceAbi).
  */
 export class Interface {
+    #errors;
+    #events;
+    #functions;
+    //    #structs: Map<string, StructFragment>;
+    #abiCoder;
     /**
      *  Create a new Interface for the %%fragments%%.
      */
     constructor(fragments) {
-        _Interface_instances.add(this);
-        _Interface_errors.set(this, void 0);
-        _Interface_events.set(this, void 0);
-        _Interface_functions.set(this, void 0);
-        //    #structs: Map<string, StructFragment>;
-        _Interface_abiCoder.set(this, void 0);
         let abi = [];
         if (typeof (fragments) === "string") {
             abi = JSON.parse(fragments);
@@ -165,9 +152,9 @@ export class Interface {
         else {
             abi = fragments;
         }
-        __classPrivateFieldSet(this, _Interface_functions, new Map(), "f");
-        __classPrivateFieldSet(this, _Interface_errors, new Map(), "f");
-        __classPrivateFieldSet(this, _Interface_events, new Map(), "f");
+        this.#functions = new Map();
+        this.#errors = new Map();
+        this.#events = new Map();
         //        this.#structs = new Map();
         const frags = [];
         for (const a of abi) {
@@ -183,7 +170,7 @@ export class Interface {
         });
         let fallback = null;
         let receive = false;
-        __classPrivateFieldSet(this, _Interface_abiCoder, this.getAbiCoder(), "f");
+        this.#abiCoder = this.getAbiCoder();
         // Add all fragments by their signature
         this.fragments.forEach((fragment, index) => {
             let bucket;
@@ -209,14 +196,14 @@ export class Interface {
                 case "function":
                     //checkNames(fragment, "input", fragment.inputs);
                     //checkNames(fragment, "output", (<FunctionFragment>fragment).outputs);
-                    bucket = __classPrivateFieldGet(this, _Interface_functions, "f");
+                    bucket = this.#functions;
                     break;
                 case "event":
                     //checkNames(fragment, "input", fragment.inputs);
-                    bucket = __classPrivateFieldGet(this, _Interface_events, "f");
+                    bucket = this.#events;
                     break;
                 case "error":
-                    bucket = __classPrivateFieldGet(this, _Interface_errors, "f");
+                    bucket = this.#errors;
                     break;
                 default:
                     return;
@@ -262,12 +249,96 @@ export class Interface {
     getAbiCoder() {
         return AbiCoder.defaultAbiCoder();
     }
+    // Find a function definition by any means necessary (unless it is ambiguous)
+    #getFunction(key, values, forceUnique) {
+        // Selector
+        if (isHexString(key)) {
+            const selector = key.toLowerCase();
+            for (const fragment of this.#functions.values()) {
+                if (selector === fragment.selector) {
+                    return fragment;
+                }
+            }
+            return null;
+        }
+        // It is a bare name, look up the function (will return null if ambiguous)
+        if (key.indexOf("(") === -1) {
+            const matching = [];
+            for (const [name, fragment] of this.#functions) {
+                if (name.split("(" /* fix:) */)[0] === key) {
+                    matching.push(fragment);
+                }
+            }
+            if (values) {
+                const lastValue = (values.length > 0) ? values[values.length - 1] : null;
+                let valueLength = values.length;
+                let allowOptions = true;
+                if (Typed.isTyped(lastValue) && lastValue.type === "overrides") {
+                    allowOptions = false;
+                    valueLength--;
+                }
+                // Remove all matches that don't have a compatible length. The args
+                // may contain an overrides, so the match may have n or n - 1 parameters
+                for (let i = matching.length - 1; i >= 0; i--) {
+                    const inputs = matching[i].inputs.length;
+                    if (inputs !== valueLength && (!allowOptions || inputs !== valueLength - 1)) {
+                        matching.splice(i, 1);
+                    }
+                }
+                // Remove all matches that don't match the Typed signature
+                for (let i = matching.length - 1; i >= 0; i--) {
+                    const inputs = matching[i].inputs;
+                    for (let j = 0; j < values.length; j++) {
+                        // Not a typed value
+                        if (!Typed.isTyped(values[j])) {
+                            continue;
+                        }
+                        // We are past the inputs
+                        if (j >= inputs.length) {
+                            if (values[j].type === "overrides") {
+                                continue;
+                            }
+                            matching.splice(i, 1);
+                            break;
+                        }
+                        // Make sure the value type matches the input type
+                        if (values[j].type !== inputs[j].baseType) {
+                            matching.splice(i, 1);
+                            break;
+                        }
+                    }
+                }
+            }
+            // We found a single matching signature with an overrides, but the
+            // last value is something that cannot possibly be an options
+            if (matching.length === 1 && values && values.length !== matching[0].inputs.length) {
+                const lastArg = values[values.length - 1];
+                if (lastArg == null || Array.isArray(lastArg) || typeof (lastArg) !== "object") {
+                    matching.splice(0, 1);
+                }
+            }
+            if (matching.length === 0) {
+                return null;
+            }
+            if (matching.length > 1 && forceUnique) {
+                const matchStr = matching.map((m) => JSON.stringify(m.format())).join(", ");
+                assertArgument(false, `ambiguous function description (i.e. matches ${matchStr})`, "key", key);
+            }
+            return matching[0];
+        }
+        // Normalize the signature and lookup the function
+        const result = this.#functions.get(FunctionFragment.from(key).format());
+        if (result) {
+            return result;
+        }
+        return null;
+    }
     /**
      *  Get the function name for %%key%%, which may be a function selector,
      *  function name or function signature that belongs to the ABI.
      */
     getFunctionName(key) {
-        const fragment = __classPrivateFieldGet(this, _Interface_instances, "m", _Interface_getFunction).call(this, key, null, false);
+        const fragment = this.#getFunction(key, null, false);
         assertArgument(fragment, "no matching function", "key", key);
         return fragment.name;
     }
@@ -279,7 +350,7 @@ export class Interface {
      *  accessing the [[FunctionFragment]] may require refinement.
      */
     hasFunction(key) {
-        return !!__classPrivateFieldGet(this, _Interface_instances, "m", _Interface_getFunction).call(this, key, null, false);
+        return !!this.#getFunction(key, null, false);
     }
     /**
      *  Get the [[FunctionFragment]] for %%key%%, which may be a function
@@ -292,25 +363,84 @@ export class Interface {
      *  the ABI, this will throw.
      */
     getFunction(key, values) {
-        return __classPrivateFieldGet(this, _Interface_instances, "m", _Interface_getFunction).call(this, key, values || null, true);
+        return this.#getFunction(key, values || null, true);
     }
     /**
      *  Iterate over all functions, calling %%callback%%, sorted by their name.
      */
     forEachFunction(callback) {
-        const names = Array.from(__classPrivateFieldGet(this, _Interface_functions, "f").keys());
+        const names = Array.from(this.#functions.keys());
         names.sort((a, b) => a.localeCompare(b));
         for (let i = 0; i < names.length; i++) {
             const name = names[i];
-            callback((__classPrivateFieldGet(this, _Interface_functions, "f").get(name)), i);
+            callback((this.#functions.get(name)), i);
         }
+    }
+    // Find an event definition by any means necessary (unless it is ambiguous)
+    #getEvent(key, values, forceUnique) {
+        // EventTopic
+        if (isHexString(key)) {
+            const eventTopic = key.toLowerCase();
+            for (const fragment of this.#events.values()) {
+                if (eventTopic === fragment.topicHash) {
+                    return fragment;
+                }
+            }
+            return null;
+        }
+        // It is a bare name, look up the function (will return null if ambiguous)
+        if (key.indexOf("(") === -1) {
+            const matching = [];
+            for (const [name, fragment] of this.#events) {
+                if (name.split("(" /* fix:) */)[0] === key) {
+                    matching.push(fragment);
+                }
+            }
+            if (values) {
+                // Remove all matches that don't have a compatible length.
+                for (let i = matching.length - 1; i >= 0; i--) {
+                    if (matching[i].inputs.length < values.length) {
+                        matching.splice(i, 1);
+                    }
+                }
+                // Remove all matches that don't match the Typed signature
+                for (let i = matching.length - 1; i >= 0; i--) {
+                    const inputs = matching[i].inputs;
+                    for (let j = 0; j < values.length; j++) {
+                        // Not a typed value
+                        if (!Typed.isTyped(values[j])) {
+                            continue;
+                        }
+                        // Make sure the value type matches the input type
+                        if (values[j].type !== inputs[j].baseType) {
+                            matching.splice(i, 1);
+                            break;
+                        }
+                    }
+                }
+            }
+            if (matching.length === 0) {
+                return null;
+            }
+            if (matching.length > 1 && forceUnique) {
+                const matchStr = matching.map((m) => JSON.stringify(m.format())).join(", ");
+                assertArgument(false, `ambiguous event description (i.e. matches ${matchStr})`, "key", key);
+            }
+            return matching[0];
+        }
+        // Normalize the signature and lookup the function
+        const result = this.#events.get(EventFragment.from(key).format());
+        if (result) {
+            return result;
+        }
+        return null;
     }
     /**
      *  Get the event name for %%key%%, which may be a topic hash,
      *  event name or event signature that belongs to the ABI.
      */
     getEventName(key) {
-        const fragment = __classPrivateFieldGet(this, _Interface_instances, "m", _Interface_getEvent).call(this, key, null, false);
+        const fragment = this.#getEvent(key, null, false);
         assertArgument(fragment, "no matching event", "key", key);
         return fragment.name;
     }
@@ -322,7 +452,7 @@ export class Interface {
      *  accessing the [[EventFragment]] may require refinement.
      */
     hasEvent(key) {
-        return !!__classPrivateFieldGet(this, _Interface_instances, "m", _Interface_getEvent).call(this, key, null, false);
+        return !!this.#getEvent(key, null, false);
     }
     /**
      *  Get the [[EventFragment]] for %%key%%, which may be a topic hash,
@@ -335,17 +465,17 @@ export class Interface {
      *  the ABI, this will throw.
      */
     getEvent(key, values) {
-        return __classPrivateFieldGet(this, _Interface_instances, "m", _Interface_getEvent).call(this, key, values || null, true);
+        return this.#getEvent(key, values || null, true);
     }
     /**
      *  Iterate over all events, calling %%callback%%, sorted by their name.
      */
     forEachEvent(callback) {
-        const names = Array.from(__classPrivateFieldGet(this, _Interface_events, "f").keys());
+        const names = Array.from(this.#events.keys());
         names.sort((a, b) => a.localeCompare(b));
         for (let i = 0; i < names.length; i++) {
             const name = names[i];
-            callback((__classPrivateFieldGet(this, _Interface_events, "f").get(name)), i);
+            callback((this.#events.get(name)), i);
         }
     }
     /**
@@ -364,7 +494,7 @@ export class Interface {
             if (BuiltinErrors[selector]) {
                 return ErrorFragment.from(BuiltinErrors[selector].signature);
             }
-            for (const fragment of __classPrivateFieldGet(this, _Interface_errors, "f").values()) {
+            for (const fragment of this.#errors.values()) {
                 if (selector === fragment.selector) {
                     return fragment;
                 }
@@ -374,7 +504,7 @@ export class Interface {
         // It is a bare name, look up the function (will return null if ambiguous)
         if (key.indexOf("(") === -1) {
             const matching = [];
-            for (const [name, fragment] of __classPrivateFieldGet(this, _Interface_errors, "f")) {
+            for (const [name, fragment] of this.#errors) {
                 if (name.split("(" /* fix:) */)[0] === key) {
                     matching.push(fragment);
                 }
@@ -402,7 +532,7 @@ export class Interface {
         if (key === "Panic(uint256)") {
             return ErrorFragment.from("error Panic(uint256)");
         }
-        const result = __classPrivateFieldGet(this, _Interface_errors, "f").get(key);
+        const result = this.#errors.get(key);
         if (result) {
             return result;
         }
@@ -412,11 +542,11 @@ export class Interface {
      *  Iterate over all errors, calling %%callback%%, sorted by their name.
      */
     forEachError(callback) {
-        const names = Array.from(__classPrivateFieldGet(this, _Interface_errors, "f").keys());
+        const names = Array.from(this.#errors.keys());
         names.sort((a, b) => a.localeCompare(b));
         for (let i = 0; i < names.length; i++) {
             const name = names[i];
-            callback((__classPrivateFieldGet(this, _Interface_errors, "f").get(name)), i);
+            callback((this.#errors.get(name)), i);
         }
     }
     // Get the 4-byte selector used by Solidity to identify a function
@@ -448,10 +578,10 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
     }
     */
     _decodeParams(params, data) {
-        return __classPrivateFieldGet(this, _Interface_abiCoder, "f").decode(params, data);
+        return this.#abiCoder.decode(params, data);
     }
     _encodeParams(params, values) {
-        return __classPrivateFieldGet(this, _Interface_abiCoder, "f").encode(params, values);
+        return this.#abiCoder.encode(params, values);
     }
     /**
      *  Encodes a ``tx.data`` object for deploying the Contract with
@@ -549,7 +679,7 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
         const bytes = getBytesCopy(data);
         if ((bytes.length % 32) === 0) {
             try {
-                return __classPrivateFieldGet(this, _Interface_abiCoder, "f").decode(fragment.outputs, bytes);
+                return this.#abiCoder.decode(fragment.outputs, bytes);
             }
             catch (error) {
                 message = "could not decode result data";
@@ -575,7 +705,7 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
             assertArgument(f, "unknown function", "fragment", fragment);
             fragment = f;
         }
-        return hexlify(__classPrivateFieldGet(this, _Interface_abiCoder, "f").encode(fragment.outputs, values || []));
+        return hexlify(this.#abiCoder.encode(fragment.outputs, values || []));
     }
     /*
         spelunk(inputs: Array<ParamType>, values: ReadonlyArray<any>, processfunc: (type: string, value: any) => Promise<any>): Promise<Array<any>> {
@@ -638,7 +768,7 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
             }
             else if (param.type === "address") {
                 // Check addresses are valid
-                __classPrivateFieldGet(this, _Interface_abiCoder, "f").encode(["address"], [value]);
+                this.#abiCoder.encode(["address"], [value]);
             }
             return zeroPadValue(hexlify(value), 32);
         };
@@ -694,7 +824,7 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
                     throw new Error("not implemented");
                 }
                 else {
-                    topics.push(__classPrivateFieldGet(this, _Interface_abiCoder, "f").encode([param.type], [value]));
+                    topics.push(this.#abiCoder.encode([param.type], [value]));
                 }
             }
             else {
@@ -703,7 +833,7 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
             }
         });
         return {
-            data: __classPrivateFieldGet(this, _Interface_abiCoder, "f").encode(dataTypes, dataValues),
+            data: this.#abiCoder.encode(dataTypes, dataValues),
             topics: topics
         };
     }
@@ -738,8 +868,8 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
                 dynamic.push(false);
             }
         });
-        const resultIndexed = (topics != null) ? __classPrivateFieldGet(this, _Interface_abiCoder, "f").decode(indexed, concat(topics)) : null;
-        const resultNonIndexed = __classPrivateFieldGet(this, _Interface_abiCoder, "f").decode(nonIndexed, data, true);
+        const resultIndexed = (topics != null) ? this.#abiCoder.decode(indexed, concat(topics)) : null;
+        const resultNonIndexed = this.#abiCoder.decode(nonIndexed, data, true);
         //const result: (Array<any> & { [ key: string ]: any }) = [ ];
         const values = [];
         const keys = [];
@@ -788,7 +918,7 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
         if (!fragment) {
             return null;
         }
-        const args = __classPrivateFieldGet(this, _Interface_abiCoder, "f").decode(fragment.inputs, data.slice(4));
+        const args = this.#abiCoder.decode(fragment.inputs, data.slice(4));
         return new TransactionDescription(fragment, fragment.selector, args, value);
     }
     parseCallResult(data) {
@@ -822,7 +952,7 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
         if (!fragment) {
             return null;
         }
-        const args = __classPrivateFieldGet(this, _Interface_abiCoder, "f").decode(fragment.inputs, dataSlice(hexData, 4));
+        const args = this.#abiCoder.decode(fragment.inputs, dataSlice(hexData, 4));
         return new ErrorDescription(fragment, fragment.selector, args);
     }
     /**
@@ -848,143 +978,3 @@ getSelector(fragment: ErrorFragment | FunctionFragment): string {
         return new Interface(value);
     }
 }
-_Interface_errors = new WeakMap(), _Interface_events = new WeakMap(), _Interface_functions = new WeakMap(), _Interface_abiCoder = new WeakMap(), _Interface_instances = new WeakSet(), _Interface_getFunction = function _Interface_getFunction(key, values, forceUnique) {
-    // Selector
-    if (isHexString(key)) {
-        const selector = key.toLowerCase();
-        for (const fragment of __classPrivateFieldGet(this, _Interface_functions, "f").values()) {
-            if (selector === fragment.selector) {
-                return fragment;
-            }
-        }
-        return null;
-    }
-    // It is a bare name, look up the function (will return null if ambiguous)
-    if (key.indexOf("(") === -1) {
-        const matching = [];
-        for (const [name, fragment] of __classPrivateFieldGet(this, _Interface_functions, "f")) {
-            if (name.split("(" /* fix:) */)[0] === key) {
-                matching.push(fragment);
-            }
-        }
-        if (values) {
-            const lastValue = (values.length > 0) ? values[values.length - 1] : null;
-            let valueLength = values.length;
-            let allowOptions = true;
-            if (Typed.isTyped(lastValue) && lastValue.type === "overrides") {
-                allowOptions = false;
-                valueLength--;
-            }
-            // Remove all matches that don't have a compatible length. The args
-            // may contain an overrides, so the match may have n or n - 1 parameters
-            for (let i = matching.length - 1; i >= 0; i--) {
-                const inputs = matching[i].inputs.length;
-                if (inputs !== valueLength && (!allowOptions || inputs !== valueLength - 1)) {
-                    matching.splice(i, 1);
-                }
-            }
-            // Remove all matches that don't match the Typed signature
-            for (let i = matching.length - 1; i >= 0; i--) {
-                const inputs = matching[i].inputs;
-                for (let j = 0; j < values.length; j++) {
-                    // Not a typed value
-                    if (!Typed.isTyped(values[j])) {
-                        continue;
-                    }
-                    // We are past the inputs
-                    if (j >= inputs.length) {
-                        if (values[j].type === "overrides") {
-                            continue;
-                        }
-                        matching.splice(i, 1);
-                        break;
-                    }
-                    // Make sure the value type matches the input type
-                    if (values[j].type !== inputs[j].baseType) {
-                        matching.splice(i, 1);
-                        break;
-                    }
-                }
-            }
-        }
-        // We found a single matching signature with an overrides, but the
-        // last value is something that cannot possibly be an options
-        if (matching.length === 1 && values && values.length !== matching[0].inputs.length) {
-            const lastArg = values[values.length - 1];
-            if (lastArg == null || Array.isArray(lastArg) || typeof (lastArg) !== "object") {
-                matching.splice(0, 1);
-            }
-        }
-        if (matching.length === 0) {
-            return null;
-        }
-        if (matching.length > 1 && forceUnique) {
-            const matchStr = matching.map((m) => JSON.stringify(m.format())).join(", ");
-            assertArgument(false, `ambiguous function description (i.e. matches ${matchStr})`, "key", key);
-        }
-        return matching[0];
-    }
-    // Normalize the signature and lookup the function
-    const result = __classPrivateFieldGet(this, _Interface_functions, "f").get(FunctionFragment.from(key).format());
-    if (result) {
-        return result;
-    }
-    return null;
-}, _Interface_getEvent = function _Interface_getEvent(key, values, forceUnique) {
-    // EventTopic
-    if (isHexString(key)) {
-        const eventTopic = key.toLowerCase();
-        for (const fragment of __classPrivateFieldGet(this, _Interface_events, "f").values()) {
-            if (eventTopic === fragment.topicHash) {
-                return fragment;
-            }
-        }
-        return null;
-    }
-    // It is a bare name, look up the function (will return null if ambiguous)
-    if (key.indexOf("(") === -1) {
-        const matching = [];
-        for (const [name, fragment] of __classPrivateFieldGet(this, _Interface_events, "f")) {
-            if (name.split("(" /* fix:) */)[0] === key) {
-                matching.push(fragment);
-            }
-        }
-        if (values) {
-            // Remove all matches that don't have a compatible length.
-            for (let i = matching.length - 1; i >= 0; i--) {
-                if (matching[i].inputs.length < values.length) {
-                    matching.splice(i, 1);
-                }
-            }
-            // Remove all matches that don't match the Typed signature
-            for (let i = matching.length - 1; i >= 0; i--) {
-                const inputs = matching[i].inputs;
-                for (let j = 0; j < values.length; j++) {
-                    // Not a typed value
-                    if (!Typed.isTyped(values[j])) {
-                        continue;
-                    }
-                    // Make sure the value type matches the input type
-                    if (values[j].type !== inputs[j].baseType) {
-                        matching.splice(i, 1);
-                        break;
-                    }
-                }
-            }
-        }
-        if (matching.length === 0) {
-            return null;
-        }
-        if (matching.length > 1 && forceUnique) {
-            const matchStr = matching.map((m) => JSON.stringify(m.format())).join(", ");
-            assertArgument(false, `ambiguous event description (i.e. matches ${matchStr})`, "key", key);
-        }
-        return matching[0];
-    }
-    // Normalize the signature and lookup the function
-    const result = __classPrivateFieldGet(this, _Interface_events, "f").get(EventFragment.from(key).format());
-    if (result) {
-        return result;
-    }
-    return null;
-};

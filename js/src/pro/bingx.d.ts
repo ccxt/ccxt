@@ -1,5 +1,5 @@
 import bingxRest from '../bingx.js';
-import type { Int, Market, OHLCV, Str, OrderBook, Order, Trade, Balances, Ticker, Dict } from '../base/types.js';
+import type { Int, Market, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Position, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bingx extends bingxRest {
     describe(): any;
@@ -29,7 +29,7 @@ export default class bingx extends bingxRest {
      */
     unWatchTicker(symbol: string, params?: {}): Promise<any>;
     handleTicker(client: Client, message: any): void;
-    parseWsTicker(message: any, market?: any): Ticker;
+    parseWsTicker(message: any, market?: Market): Ticker;
     getOrderBookLimitByMarketType(marketType: string, limit?: Int): number;
     getMessageHash(unifiedChannel: string, symbol?: Str, extra?: Str): string;
     /**
@@ -70,7 +70,7 @@ export default class bingx extends bingxRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -82,12 +82,12 @@ export default class bingx extends bingxRest {
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%20Limited%20Depth
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleOrderBook(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
+    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     handleOHLCV(client: Client, message: any): void;
     /**
      * @method
@@ -158,6 +158,22 @@ export default class bingx extends bingxRest {
     watchBalance(params?: {}): Promise<Balances>;
     setBalanceCache(client: Client, type: any, subType: any, subscriptionHash: any, params: any): void;
     loadBalanceSnapshot(client: any, messageHash: any, type: any, subType: any): Promise<void>;
+    /**
+     * @method
+     * @name bingx#watchPositions
+     * @description watch all open positions
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+     * @param {string[]|undefined} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of position structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    setPositionsCache(client: Client, type: any, symbols?: Strings): void;
+    loadPositionsSnapshot(client: any, messageHash: any, type: any): Promise<void>;
+    parseWsPosition(position: any, market?: Market): Position;
+    handlePositions(client: Client, message: any): void;
     handleErrorMessage(client: any, message: any): boolean;
     keepAliveListenKey(params?: {}): Promise<void>;
     authenticate(params?: {}): Promise<void>;

@@ -9,7 +9,12 @@ public partial class binanceusdm : binance
 {
     public override object describe()
     {
-        return this.deepExtend(base.describe(), new Dictionary<string, object>() {
+        // eslint-disable-next-line new-cap
+        var restInstance = new ccxt.binanceusdm();
+        object restDescribe = restInstance.describe();
+        object parentWsDescribe = base.describeData();
+        object extended = this.deepExtend(restDescribe, parentWsDescribe);
+        return this.deepExtend(extended, new Dictionary<string, object>() {
             { "id", "binanceusdm" },
             { "name", "Binance USDⓈ-M" },
             { "urls", new Dictionary<string, object>() {

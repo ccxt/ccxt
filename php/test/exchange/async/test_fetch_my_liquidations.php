@@ -17,7 +17,7 @@ function test_fetch_my_liquidations($exchange, $skipped_properties, $code) {
         if (!$exchange->has['fetchMyLiquidations']) {
             return true;
         }
-        $items = Async\await($exchange->fetch_my_liquidations($code));
+        $items = \React\Async\await($exchange->fetch_my_liquidations($code));
         assert(gettype($items) === 'array' && array_is_list($items), $exchange->id . ' ' . $method . ' ' . $code . ' must return an array. ' . $exchange->json($items));
         // const now = exchange.milliseconds ();
         for ($i = 0; $i < count($items); $i++) {

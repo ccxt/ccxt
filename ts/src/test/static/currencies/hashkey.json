@@ -9,11 +9,12 @@
             "allowDeposit": true,
             "status": "1",
             "tokenType": "CHAIN_TOKEN",
+            "cmcId": "",
             "chainTypes": [
                 {
                     "chainType": "Bitcoin",
-                    "withdrawFee": "0.0005",
-                    "minWithdrawQuantity": "0.002",
+                    "withdrawFee": "0.00008",
+                    "minWithdrawQuantity": "0.0004",
                     "maxWithdrawQuantity": "0",
                     "minDepositQuantity": "0.0005",
                     "allowDeposit": true,
@@ -36,7 +37,7 @@
         "precision": null,
         "type": "crypto",
         "name": "Bitcoin",
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": 0.00001,
@@ -47,7 +48,7 @@
                 "network": "Bitcoin",
                 "limits": {
                     "withdraw": {
-                        "min": 0.002,
+                        "min": 0.0004,
                         "max": null
                     },
                     "deposit": {
@@ -55,15 +56,15 @@
                         "max": null
                     }
                 },
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.0005,
+                "fee": 0.00008,
                 "precision": null,
                 "info": {
                     "chainType": "Bitcoin",
-                    "withdrawFee": "0.0005",
-                    "minWithdrawQuantity": "0.002",
+                    "withdrawFee": "0.00008",
+                    "minWithdrawQuantity": "0.0004",
                     "maxWithdrawQuantity": "0",
                     "minDepositQuantity": "0.0005",
                     "allowDeposit": true,
@@ -83,7 +84,7 @@
                         "max": null
                     }
                 },
-                "active": false,
+                "active": null,
                 "deposit": false,
                 "withdraw": false,
                 "fee": 0.00001,
@@ -120,11 +121,12 @@
             "allowDeposit": true,
             "status": "1",
             "tokenType": "ERC20_TOKEN",
+            "cmcId": "",
             "chainTypes": [
                 {
                     "chainType": "ETH",
-                    "withdrawFee": "0.0023",
-                    "minWithdrawQuantity": "0.04",
+                    "withdrawFee": "0.0008",
+                    "minWithdrawQuantity": "0.004",
                     "maxWithdrawQuantity": "0",
                     "minDepositQuantity": "0.01",
                     "allowDeposit": true,
@@ -201,7 +203,7 @@
         "precision": null,
         "type": "crypto",
         "name": "Ethereum",
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": 0,
@@ -212,7 +214,7 @@
                 "network": "ETH",
                 "limits": {
                     "withdraw": {
-                        "min": 0.04,
+                        "min": 0.004,
                         "max": null
                     },
                     "deposit": {
@@ -220,15 +222,15 @@
                         "max": null
                     }
                 },
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.0023,
+                "fee": 0.0008,
                 "precision": null,
                 "info": {
                     "chainType": "ETH",
-                    "withdrawFee": "0.0023",
-                    "minWithdrawQuantity": "0.04",
+                    "withdrawFee": "0.0008",
+                    "minWithdrawQuantity": "0.004",
                     "maxWithdrawQuantity": "0",
                     "minDepositQuantity": "0.01",
                     "allowDeposit": true,
@@ -248,7 +250,7 @@
                         "max": null
                     }
                 },
-                "active": false,
+                "active": null,
                 "deposit": false,
                 "withdraw": false,
                 "fee": 0.008,
@@ -276,7 +278,7 @@
                         "max": null
                     }
                 },
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.0002,
@@ -304,7 +306,7 @@
                         "max": null
                     }
                 },
-                "active": false,
+                "active": null,
                 "deposit": false,
                 "withdraw": false,
                 "fee": 0.00008,
@@ -332,7 +334,7 @@
                         "max": null
                     }
                 },
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.00002,
@@ -360,7 +362,7 @@
                         "max": null
                     }
                 },
-                "active": false,
+                "active": null,
                 "deposit": false,
                 "withdraw": false,
                 "fee": 0.001,
@@ -388,7 +390,7 @@
                         "max": null
                     }
                 },
-                "active": false,
+                "active": null,
                 "deposit": false,
                 "withdraw": false,
                 "fee": 0.0003,
@@ -416,7 +418,7 @@
                         "max": null
                     }
                 },
-                "active": false,
+                "active": null,
                 "deposit": false,
                 "withdraw": false,
                 "fee": 0,
@@ -453,10 +455,11 @@
             "allowDeposit": true,
             "status": "1",
             "tokenType": "ERC20_TOKEN",
+            "cmcId": "",
             "chainTypes": [
                 {
                     "chainType": "ETH",
-                    "withdrawFee": "8",
+                    "withdrawFee": "2.4",
                     "minWithdrawQuantity": "25",
                     "maxWithdrawQuantity": "0",
                     "minDepositQuantity": "1",
@@ -475,7 +478,7 @@
                 {
                     "chainType": "Arbitrum",
                     "withdrawFee": "0.3",
-                    "minWithdrawQuantity": "1",
+                    "minWithdrawQuantity": "0.7",
                     "maxWithdrawQuantity": "0",
                     "minDepositQuantity": "1",
                     "allowDeposit": true,
@@ -483,7 +486,7 @@
                 },
                 {
                     "chainType": "BSC(BEP20)",
-                    "withdrawFee": "0",
+                    "withdrawFee": "1",
                     "minWithdrawQuantity": "1",
                     "maxWithdrawQuantity": "0",
                     "minDepositQuantity": "1",
@@ -501,7 +504,7 @@
                 },
                 {
                     "chainType": "Solana",
-                    "withdrawFee": "2",
+                    "withdrawFee": "1",
                     "minWithdrawQuantity": "1",
                     "maxWithdrawQuantity": "0",
                     "minDepositQuantity": "1",
@@ -510,7 +513,7 @@
                 },
                 {
                     "chainType": "Scroll",
-                    "withdrawFee": "0",
+                    "withdrawFee": "0.2",
                     "minWithdrawQuantity": "1",
                     "maxWithdrawQuantity": "0",
                     "minDepositQuantity": "1",
@@ -525,6 +528,15 @@
                     "minDepositQuantity": "1",
                     "allowDeposit": true,
                     "allowWithdraw": true
+                },
+                {
+                    "chainType": "Plasma",
+                    "withdrawFee": "0",
+                    "minWithdrawQuantity": "1",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
                 }
             ]
         },
@@ -534,7 +546,7 @@
         "precision": null,
         "type": "crypto",
         "name": "Tether",
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": 0,
@@ -553,14 +565,14 @@
                         "max": null
                     }
                 },
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 8,
+                "fee": 2.4,
                 "precision": null,
                 "info": {
                     "chainType": "ETH",
-                    "withdrawFee": "8",
+                    "withdrawFee": "2.4",
                     "minWithdrawQuantity": "25",
                     "maxWithdrawQuantity": "0",
                     "minDepositQuantity": "1",
@@ -581,7 +593,7 @@
                         "max": null
                     }
                 },
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 1,
@@ -601,7 +613,7 @@
                 "network": "Arbitrum",
                 "limits": {
                     "withdraw": {
-                        "min": 1,
+                        "min": 0.7,
                         "max": null
                     },
                     "deposit": {
@@ -609,7 +621,7 @@
                         "max": null
                     }
                 },
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.3,
@@ -617,7 +629,7 @@
                 "info": {
                     "chainType": "Arbitrum",
                     "withdrawFee": "0.3",
-                    "minWithdrawQuantity": "1",
+                    "minWithdrawQuantity": "0.7",
                     "maxWithdrawQuantity": "0",
                     "minDepositQuantity": "1",
                     "allowDeposit": true,
@@ -637,14 +649,14 @@
                         "max": null
                     }
                 },
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0,
+                "fee": 1,
                 "precision": null,
                 "info": {
                     "chainType": "BSC(BEP20)",
-                    "withdrawFee": "0",
+                    "withdrawFee": "1",
                     "minWithdrawQuantity": "1",
                     "maxWithdrawQuantity": "0",
                     "minDepositQuantity": "1",
@@ -665,7 +677,7 @@
                         "max": null
                     }
                 },
-                "active": false,
+                "active": null,
                 "deposit": false,
                 "withdraw": false,
                 "fee": 1,
@@ -693,14 +705,14 @@
                         "max": null
                     }
                 },
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 2,
+                "fee": 1,
                 "precision": null,
                 "info": {
                     "chainType": "Solana",
-                    "withdrawFee": "2",
+                    "withdrawFee": "1",
                     "minWithdrawQuantity": "1",
                     "maxWithdrawQuantity": "0",
                     "minDepositQuantity": "1",
@@ -721,14 +733,14 @@
                         "max": null
                     }
                 },
-                "active": false,
+                "active": null,
                 "deposit": false,
                 "withdraw": false,
-                "fee": 0,
+                "fee": 0.2,
                 "precision": null,
                 "info": {
                     "chainType": "Scroll",
-                    "withdrawFee": "0",
+                    "withdrawFee": "0.2",
                     "minWithdrawQuantity": "1",
                     "maxWithdrawQuantity": "0",
                     "minDepositQuantity": "1",
@@ -749,7 +761,7 @@
                         "max": null
                     }
                 },
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.2,
@@ -757,6 +769,34 @@
                 "info": {
                     "chainType": "HashKey",
                     "withdrawFee": "0.2",
+                    "minWithdrawQuantity": "1",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "Plasma": {
+                "id": "Plasma",
+                "network": "Plasma",
+                "limits": {
+                    "withdraw": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    }
+                },
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0,
+                "precision": null,
+                "info": {
+                    "chainType": "Plasma",
+                    "withdrawFee": "0",
                     "minWithdrawQuantity": "1",
                     "maxWithdrawQuantity": "0",
                     "minDepositQuantity": "1",
@@ -786,6 +826,7 @@
             "allowDeposit": true,
             "status": "1",
             "tokenType": "ERC20_TOKEN",
+            "cmcId": "",
             "chainTypes": [
                 {
                     "chainType": "ETH",
@@ -813,7 +854,7 @@
         "precision": null,
         "type": "crypto",
         "name": "USD Coin",
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": 1,
@@ -832,7 +873,7 @@
                         "max": null
                     }
                 },
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 8,
@@ -860,7 +901,7 @@
                         "max": null
                     }
                 },
-                "active": false,
+                "active": null,
                 "deposit": false,
                 "withdraw": false,
                 "fee": 1,
@@ -897,6 +938,7 @@
             "allowDeposit": true,
             "status": "1",
             "tokenType": "CHAIN_TOKEN",
+            "cmcId": "",
             "chainTypes": [
                 {
                     "chainType": "Litecoin",
@@ -915,7 +957,7 @@
         "precision": null,
         "type": "crypto",
         "name": "Litecoin",
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": 0.0002,
@@ -934,7 +976,7 @@
                         "max": null
                     }
                 },
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.0002,
@@ -971,6 +1013,7 @@
             "allowDeposit": true,
             "status": "1",
             "tokenType": "CHAIN_TOKEN",
+            "cmcId": "",
             "chainTypes": [
                 {
                     "chainType": "Dogecoin",
@@ -989,7 +1032,7 @@
         "precision": null,
         "type": "crypto",
         "name": "Dogecoin",
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
         "fee": 8,
@@ -1008,7 +1051,7 @@
                         "max": null
                     }
                 },
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
                 "fee": 8,

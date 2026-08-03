@@ -1,6 +1,6 @@
 namespace ccxt;
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     public Int64 milliseconds()
@@ -24,6 +24,18 @@ public partial class Exchange
         // return res;
 
 
+    }
+
+    public virtual void setLastRestRequestTimestamp()
+    {
+        this.lastRestRequestTimestamp = this.milliseconds();
+    }
+
+    public virtual void setLastRequest(object request)
+    {
+        this.last_request_headers = getValue(request, "headers");
+        this.last_request_body = getValue(request, "body");
+        this.last_request_url = getValue(request, "url");
     }
 
     public long microseconds()
@@ -123,7 +135,7 @@ public partial class Exchange
     {
         if (infix == null)
         {
-            infix = "-";
+            infix = "";
         }
         // check this
         if (ts == null)
@@ -132,16 +144,9 @@ public partial class Exchange
         }
         object startdatetime = null;
         var date = "";
-        try
-        {
-            startdatetime = Convert.ToInt64(ts);
-            var tmp = (new DateTime(1970, 1, 1)).AddMilliseconds((Int64)startdatetime);
-            date = tmp.ToString("yy" + infix + "MM" + infix + "dd");
-        }
-        catch (Exception e)
-        {
-
-        }
+        startdatetime = Convert.ToInt64(ts);
+        var tmp = (new DateTime(1970, 1, 1)).AddMilliseconds((Int64)startdatetime);
+        date = tmp.ToString("yy" + infix.ToString () + "MM" + infix.ToString () + "dd");
         return date;
     }
 

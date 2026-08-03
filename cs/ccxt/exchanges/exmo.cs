@@ -243,13 +243,16 @@ public partial class exmo : Exchange
     public async virtual Task<object> modifyMarginHelper(object symbol, object amount, object type, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "position_id", getValue(market, "id") },
             { "quantity", amount },
         };
-        object response = null;
+        object response = new Dictionary<string, object>() {};
         if (isTrue(isEqual(type, "add")))
         {
             response = await this.privatePostMarginUserPositionMarginAdd(this.extend(request, parameters));
@@ -341,16 +344,17 @@ public partial class exmo : Exchange
         if (isTrue(isEqual(method, "fetchPrivateTradingFees")))
         {
             return await this.fetchPrivateTradingFees(parameters);
-        } else
-        {
-            return await this.fetchPublicTradingFees(parameters);
         }
+        return await this.fetchPublicTradingFees(parameters);
     }
 
     public async virtual Task<object> fetchPrivateTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostMarginPairList(parameters);
         //
         //     {
@@ -407,7 +411,10 @@ public partial class exmo : Exchange
     public async virtual Task<object> fetchPublicTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetPairSettings(parameters);
         //
         //     {
@@ -425,9 +432,10 @@ public partial class exmo : Exchange
         //     }
         //
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object fee = this.safeValue(response, getValue(market, "id"), new Dictionary<string, object>() {});
             object makerString = this.safeString(fee, "commission_maker_percent");
@@ -480,7 +488,10 @@ public partial class exmo : Exchange
     public async override Task<object> fetchTransactionFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object cryptoList = await this.publicGetPaymentsProvidersCryptoList(parameters);
         //
         //     {
@@ -538,7 +549,10 @@ public partial class exmo : Exchange
                 object typeInner = this.safeString(provider, "type");
                 object commissionDesc = this.safeString(provider, "commission_desc");
                 object fee = this.parseFixedFloatValue(commissionDesc);
-                ((IDictionary<string,object>)getValue(result, code))[(string)typeInner] = fee;
+                if (isTrue(isTrue(!isEqual(code, null)) && isTrue(!isEqual(typeInner, null))))
+                {
+                    ((IDictionary<string,object>)getValue(result, code))[(string)typeInner] = fee;
+                }
             }
             ((IDictionary<string,object>)getValue(result, code))["info"] = providers;
         }
@@ -559,7 +573,10 @@ public partial class exmo : Exchange
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetPaymentsProvidersCryptoList(parameters);
         //
         //    {
@@ -610,7 +627,10 @@ public partial class exmo : Exchange
             object provider = getValue(fee, i);
             object type = this.safeString(provider, "type");
             object networkId = this.safeString(provider, "name");
-            object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
+            object currencyId = this.safeString(provider, "currency_name");
+            currency = this.safeCurrency(currencyId, currency);
+            object code = this.safeString(currency, "code");
+            object networkCode = this.networkIdToCode(networkId, code);
             object commissionDesc = this.safeString(provider, "commission_desc");
             object splitCommissionDesc = new List<object>() {};
             object percentage = null;
@@ -623,21 +643,27 @@ public partial class exmo : Exchange
             object network = this.safeValue(getValue(result, "networks"), networkCode);
             if (isTrue(isEqual(network, null)))
             {
-                ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "fee", null },
-                        { "percentage", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "fee", null },
-                        { "percentage", null },
-                    } },
+                if (isTrue(!isEqual(networkCode, null)))
+                {
+                    ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "fee", null },
+                            { "percentage", null },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "fee", null },
+                            { "percentage", null },
+                        } },
+                    };
+                }
+            }
+            if (isTrue(isTrue((!isEqual(networkCode, null))) && isTrue((!isEqual(type, null)))))
+            {
+                ((IDictionary<string,object>)getValue(getValue(result, "networks"), networkCode))[(string)type] = new Dictionary<string, object>() {
+                    { "fee", this.parseFixedFloatValue(this.safeString(splitCommissionDesc, 0)) },
+                    { "percentage", percentage },
                 };
             }
-            ((IDictionary<string,object>)getValue(getValue(result, "networks"), networkCode))[(string)type] = new Dictionary<string, object>() {
-                { "fee", this.parseFixedFloatValue(this.safeString(splitCommissionDesc, 0)) },
-                { "percentage", percentage },
-            };
         }
         return this.assignDefaultDepositWithdrawFees(result);
     }
@@ -693,31 +719,50 @@ public partial class exmo : Exchange
         object responses = await promiseAll(promises);
         object currencyList = getValue(responses, 0);
         object cryptoList = getValue(responses, 1);
-        object result = new Dictionary<string, object>() {};
+        object newArray = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currencyList)); postFixIncrement(ref i))
         {
             object currency = getValue(currencyList, i);
             object currencyId = this.safeString(currency, "name");
-            object code = this.safeCurrencyCode(currencyId);
-            object type = "crypto";
-            object networks = new Dictionary<string, object>() {};
             object providers = this.safeList(cryptoList, currencyId);
-            if (isTrue(isEqual(providers, null)))
+            ((IList<object>)newArray).Add(new Dictionary<string, object>() {
+                { "currency", currency },
+                { "providers", providers },
+            });
+        }
+        return this.parseCurrencies(newArray);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object currency = this.safeDict(rawCurrency, "currency", new Dictionary<string, object>() {});
+        object providers = this.safeList(rawCurrency, "providers", new List<object>() {});
+        object currencyId = this.safeString(currency, "name");
+        object code = this.safeCurrencyCode(currencyId);
+        object type = "crypto";
+        object networks = new Dictionary<string, object>() {};
+        if (isTrue(isEqual(providers, null)))
+        {
+            type = "fiat";
+        } else
+        {
+            for (object j = 0; isLessThan(j, getArrayLength(providers)); postFixIncrement(ref j))
             {
-                type = "fiat";
-            } else
-            {
-                for (object j = 0; isLessThan(j, getArrayLength(providers)); postFixIncrement(ref j))
+                object provider = getValue(providers, j);
+                object name = this.safeString(provider, "name");
+                // get network-id by removing extra things
+                if (isTrue(isEqual(name, null)))
                 {
-                    object provider = getValue(providers, j);
-                    object name = this.safeString(provider, "name");
-                    // get network-id by removing extra things
-                    object networkId = ((string)name).Replace((string)add(currencyId, " "), (string)"");
-                    networkId = ((string)networkId).Replace((string)"(", (string)"");
-                    object replaceChar = ")"; // transpiler trick
-                    networkId = ((string)networkId).Replace((string)replaceChar, (string)"");
-                    object networkCode = this.networkIdToCode(networkId);
-                    if (!isTrue((inOp(networks, networkCode))))
+                    throw new ExchangeError ((string)add(this.id, " parseCurrency() missing name")) ;
+                }
+                object networkId = ((string)name).Replace((string)add(currencyId, " "), (string)"");
+                networkId = ((string)networkId).Replace((string)"(", (string)"");
+                object replaceChar = ")"; // transpiler trick
+                networkId = ((string)networkId).Replace((string)replaceChar, (string)"");
+                object networkCode = this.networkIdToCode(networkId, code);
+                if (isTrue(isTrue((isEqual(networkCode, null))) || !isTrue((inOp(networks, networkCode)))))
+                {
+                    if (isTrue(!isEqual(networkCode, null)))
                     {
                         ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                             { "id", networkId },
@@ -739,56 +784,58 @@ public partial class exmo : Exchange
                             { "info", new List<object>() {} },
                         };
                     }
-                    object typeInner = this.safeString(provider, "type");
-                    object minValue = this.safeString(provider, "min");
-                    object maxValue = this.safeString(provider, "max");
-                    object activeProvider = this.safeBool(provider, "enabled");
-                    object networkEntry = getValue(networks, networkCode);
-                    if (isTrue(isEqual(typeInner, "deposit")))
-                    {
-                        ((IDictionary<string,object>)networkEntry)["deposit"] = activeProvider;
-                        ((IDictionary<string,object>)getValue(getValue(networkEntry, "limits"), "deposit"))["min"] = minValue;
-                        ((IDictionary<string,object>)getValue(getValue(networkEntry, "limits"), "deposit"))["max"] = maxValue;
-                    } else if (isTrue(isEqual(typeInner, "withdraw")))
-                    {
-                        ((IDictionary<string,object>)networkEntry)["withdraw"] = activeProvider;
-                        ((IDictionary<string,object>)getValue(getValue(networkEntry, "limits"), "withdraw"))["min"] = minValue;
-                        ((IDictionary<string,object>)getValue(getValue(networkEntry, "limits"), "withdraw"))["max"] = maxValue;
-                    }
-                    object info = this.safeList(networkEntry, "info");
-                    ((IList<object>)info).Add(provider);
-                    ((IDictionary<string,object>)networkEntry)["info"] = info;
+                }
+                object typeInner = this.safeString(provider, "type");
+                object minValue = this.safeString(provider, "min");
+                object maxValue = this.safeString(provider, "max");
+                object activeProvider = this.safeBool(provider, "enabled");
+                object networkEntry = this.safeValue(networks, networkCode);
+                if (isTrue(isEqual(typeInner, "deposit")))
+                {
+                    ((IDictionary<string,object>)networkEntry)["deposit"] = activeProvider;
+                    ((IDictionary<string,object>)getValue(getValue(networkEntry, "limits"), "deposit"))["min"] = minValue;
+                    ((IDictionary<string,object>)getValue(getValue(networkEntry, "limits"), "deposit"))["max"] = maxValue;
+                } else if (isTrue(isEqual(typeInner, "withdraw")))
+                {
+                    ((IDictionary<string,object>)networkEntry)["withdraw"] = activeProvider;
+                    ((IDictionary<string,object>)getValue(getValue(networkEntry, "limits"), "withdraw"))["min"] = minValue;
+                    ((IDictionary<string,object>)getValue(getValue(networkEntry, "limits"), "withdraw"))["max"] = maxValue;
+                }
+                object info = this.safeList(networkEntry, "info", new List<object>() {});
+                ((IList<object>)info).Add(provider);
+                ((IDictionary<string,object>)networkEntry)["info"] = info;
+                if (isTrue(!isEqual(networkCode, null)))
+                {
                     ((IDictionary<string,object>)networks)[(string)networkCode] = networkEntry;
                 }
             }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", currencyId },
-                { "code", code },
-                { "name", this.safeString(currency, "description") },
-                { "type", type },
-                { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", this.parseNumber("1e-8") },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                } },
-                { "info", new Dictionary<string, object>() {
-                    { "currency", currency },
-                    { "providers", providers },
-                } },
-                { "networks", networks },
-            });
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", currencyId },
+            { "code", code },
+            { "name", this.safeString(currency, "description") },
+            { "type", type },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", this.parseNumber("1e-8") },
+            { "limits", new Dictionary<string, object>() {
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "info", new Dictionary<string, object>() {
+                { "currency", currency },
+                { "providers", providers },
+            } },
+            { "networks", networks },
+        });
     }
 
     /**
@@ -922,7 +969,10 @@ public partial class exmo : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object until = this.safeIntegerProduct(parameters, "until", 0.001);
         object untilIsDefined = (!isEqual(until, null));
@@ -1012,7 +1062,10 @@ public partial class exmo : Exchange
                 ((IDictionary<string,object>)account)["used"] = this.safeString(item, "used");
                 ((IDictionary<string,object>)account)["free"] = this.safeString(item, "free");
                 ((IDictionary<string,object>)account)["total"] = this.safeString(item, "balance");
-                ((IDictionary<string,object>)result)[(string)currency] = account;
+                if (isTrue(!isEqual(currency, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)currency] = account;
+                }
             }
         } else
         {
@@ -1032,7 +1085,10 @@ public partial class exmo : Exchange
                 {
                     ((IDictionary<string,object>)account)["used"] = this.safeString(used, currencyId);
                 }
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -1051,7 +1107,10 @@ public partial class exmo : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -1079,12 +1138,15 @@ public partial class exmo : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -1111,21 +1173,28 @@ public partial class exmo : Exchange
     public async override Task<object> fetchOrderBooks(object symbols = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object ids = null;
         if (isTrue(isEqual(symbols, null)))
         {
-            ids = String.Join(",", ((IList<object>)this.ids).ToArray());
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (isTrue(isGreaterThan(getArrayLength(ids), 2048)))
+            object allIds = this.ids;
+            if (isTrue(!isEqual(allIds, null)))
             {
-                object numIds = getArrayLength(this.ids);
-                throw new ExchangeError ((string)add(add(add(this.id, " fetchOrderBooks() has "), ((object)numIds).ToString()), " symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks")) ;
+                ids = String.Join(",", ((IList<object>)allIds).ToArray());
+                // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
+                if (isTrue(isGreaterThan(((string)ids).Length, 2048)))
+                {
+                    object numIds = getArrayLength(allIds);
+                    throw new ExchangeError ((string)add(add(add(this.id, " fetchOrderBooks() has "), ((object)numIds).ToString()), " symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks")) ;
+                }
             }
         } else
         {
-            ids = this.marketIds(symbols);
-            ids = String.Join(",", ((IList<object>)ids).ToArray());
+            object requestedIds = this.marketIds(symbols);
+            ids = String.Join(",", ((IList<object>)requestedIds).ToArray());
         }
         object request = new Dictionary<string, object>() {
             { "pair", ids },
@@ -1200,7 +1269,10 @@ public partial class exmo : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object response = await this.publicGetTicker(parameters);
         //
@@ -1243,10 +1315,13 @@ public partial class exmo : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetTicker(parameters);
         object market = this.market(symbol);
-        return this.parseTicker(getValue(response, getValue(market, "id")), market);
+        return this.parseTicker(this.safeValue(response, getValue(market, "id")), market);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1358,7 +1433,10 @@ public partial class exmo : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -1420,7 +1498,10 @@ public partial class exmo : Exchange
         {
             throw new BadRequest ((string)add(this.id, " only isolated margin is supported")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object pair = getValue(market, "id");
         object isSpot = !isEqual(marginMode, "isolated");
@@ -1496,7 +1577,10 @@ public partial class exmo : Exchange
     public async override Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "cost", cost },
         });
@@ -1516,7 +1600,10 @@ public partial class exmo : Exchange
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "cost", cost },
         });
@@ -1536,7 +1623,10 @@ public partial class exmo : Exchange
     public async override Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "cost", cost },
         });
@@ -1565,7 +1655,10 @@ public partial class exmo : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object isMarket = isTrue((isEqual(type, "market"))) && isTrue((isEqual(price, null)));
         object marginMode = null;
@@ -1689,7 +1782,7 @@ public partial class exmo : Exchange
      * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#a4d0aae8-28f7-41ac-94fd-c4030130453d  // stop market
      * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#705dfec5-2b35-4667-862b-faf54eca6209  // margin
      * @param {string} id order id
-     * @param {string} symbol not used by exmo cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true to cancel a trigger order
      * @param {string} [params.marginMode] set to 'cross' or 'isolated' to cancel a margin order
@@ -1698,7 +1791,10 @@ public partial class exmo : Exchange
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object trigger = this.safeValue2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
@@ -1743,7 +1839,10 @@ public partial class exmo : Exchange
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "order_id", ((object)id).ToString() },
         };
@@ -1816,7 +1915,12 @@ public partial class exmo : Exchange
             response = await this.privatePostOrderTrades(this.extend(request, parameters));
         }
         object trades = this.safeList(response, "trades");
-        return this.parseTrades(trades, market, since, limit);
+        object tradesList = new List<object>() {};
+        if (isTrue(!isEqual(trades, null)))
+        {
+            tradesList = trades;
+        }
+        return this.parseTrades(tradesList, market, since, limit);
     }
 
     /**
@@ -1835,7 +1939,10 @@ public partial class exmo : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -2119,7 +2226,10 @@ public partial class exmo : Exchange
     public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrders", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -2170,46 +2280,20 @@ public partial class exmo : Exchange
                 { "status", "canceled" },
             });
             return this.parseOrders(response, market, since, limit, parameters);
-        } else
-        {
-            object responseSwap = await this.privatePostMarginUserOrderHistory(this.extend(request, parameters));
-            //
-            //    {
-            //        "items": [
-            //            {
-            //                "event_id": "692862104574106858",
-            //                "event_time": "1694116400173489405",
-            //                "event_type": "OrderCancelStarted",
-            //                "order_id": "692862104561289319",
-            //                "order_type": "stop_limit_sell",
-            //                "order_status": "cancel_started",
-            //                "trade_id": "0",
-            //                "trade_type":"",
-            //                "trade_quantity": "0",
-            //                "trade_price": "0",
-            //                "pair": "ADA_USDT",
-            //                "quantity": "12",
-            //                "price": "0.23",
-            //                "stop_price": "0.22",
-            //                "distance": "0"
-            //            }
-            //            ...
-            //        ]
-            //    }
-            //
-            object items = this.safeValue(responseSwap, "items");
-            object orders = this.parseOrders(items, market, since, limit, parameters);
-            object result = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
-            {
-                object order = getValue(orders, i);
-                if (isTrue(isEqual(getValue(order, "status"), "canceled")))
-                {
-                    ((IList<object>)result).Add(order);
-                }
-            }
-            return result;
         }
+        object responseSwap = await this.privatePostMarginUserOrderHistory(this.extend(request, parameters));
+        object items = this.safeValue(responseSwap, "items");
+        object orders = this.parseOrders(items, market, since, limit, parameters);
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        {
+            object order = getValue(orders, i);
+            if (isTrue(isEqual(getValue(order, "status"), "canceled")))
+            {
+                ((IList<object>)result).Add(order);
+            }
+        }
+        return result;
     }
 
     /**
@@ -2236,7 +2320,10 @@ public partial class exmo : Exchange
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("editOrder", parameters);
@@ -2279,7 +2366,10 @@ public partial class exmo : Exchange
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostDepositAddress(parameters);
         //
         //     {
@@ -2317,7 +2407,7 @@ public partial class exmo : Exchange
         object numSymbols = getArrayLength(symbols);
         if (isTrue(isEqual(numSymbols, 1)))
         {
-            return getValue(this.markets, getValue(symbols, 0));
+            return this.market(getValue(symbols, 0));
         }
         return null;
     }
@@ -2340,7 +2430,10 @@ public partial class exmo : Exchange
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "amount", amount },
@@ -2463,7 +2556,10 @@ public partial class exmo : Exchange
                 if (isTrue(isEqual(numParts, 2)))
                 {
                     address = this.safeString(parts, 1);
-                    address = ((string)address).Replace((string)" ", (string)"");
+                    if (isTrue(!isEqual(address, null)))
+                    {
+                        address = ((string)address).Replace((string)" ", (string)"");
+                    }
                 }
             }
         }
@@ -2538,7 +2634,10 @@ public partial class exmo : Exchange
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(since, null)))
         {
@@ -2597,7 +2696,10 @@ public partial class exmo : Exchange
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {
             { "type", "withdraw" },
@@ -2655,7 +2757,10 @@ public partial class exmo : Exchange
     public async virtual Task<object> fetchWithdrawal(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {
             { "order_id", id },
@@ -2711,7 +2816,10 @@ public partial class exmo : Exchange
     public async virtual Task<object> fetchDeposit(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {
             { "order_id", id },
@@ -2768,7 +2876,10 @@ public partial class exmo : Exchange
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {
             { "type", "deposit" },
@@ -2898,6 +3009,10 @@ public partial class exmo : Exchange
             {
                 object code = null;
                 object message = this.safeString2(response, "error", "errmsg");
+                if (isTrue(isEqual(message, null)))
+                {
+                    throw new ExchangeError ((string)add(this.id, " handleErrors() missing message")) ;
+                }
                 object errorParts = ((string)message).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
                 object numParts = getArrayLength(errorParts);
                 if (isTrue(isGreaterThan(numParts, 1)))

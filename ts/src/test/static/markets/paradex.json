@@ -1,6 +1,7 @@
 {
     "BTC/USD:USDC": {
         "id": "BTC-USD-PERP",
+        "lowercaseId": null,
         "symbol": "BTC/USD:USDC",
         "base": "BTC",
         "quote": "USD",
@@ -10,62 +11,118 @@
         "settleId": "USDC",
         "type": "swap",
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": true,
         "linear": true,
+        "inverse": false,
         "subType": "linear",
         "taker": 0.0003,
         "maker": -0.00005,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 0.001,
+            "amount": 0.00001,
             "price": 0.1
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
+                "min": null,
                 "max": 100
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
-                "min": 500
+                "min": 10,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "symbol": "BTC-USD-PERP",
             "base_currency": "BTC",
             "quote_currency": "USD",
             "settlement_currency": "USDC",
-            "order_size_increment": "0.001",
+            "order_size_increment": "0.00001",
             "price_tick_size": "0.1",
-            "min_notional": "500",
+            "min_notional": "10",
             "open_at": "1696431006398",
             "expiry_at": "0",
             "asset_kind": "PERP",
             "market_kind": "cross",
-            "position_limit": "100",
+            "position_limit": "300",
             "price_bands_width": "0.05",
-            "max_open_orders": "100",
+            "max_slippage": "0.001",
+            "max_open_orders": "150",
             "max_funding_rate": "0.02",
             "delta1_cross_margin_params": {
                 "imf_base": "0.02",
-                "imf_shift": "180000",
-                "imf_factor": "0.00007",
+                "imf_shift": "0",
+                "imf_factor": "0",
                 "mmf_factor": "0.5"
             },
             "price_feed_id": "GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU",
-            "oracle_ewma_factor": "0.20000046249626113",
+            "oracle_ewma_factor": "0.12945779635696708",
             "max_order_size": "100",
             "max_funding_rate_change": "0.0002",
-            "max_tob_spread": "0.1",
+            "max_tob_spread": "0.01",
             "interest_rate": "0.0001",
-            "clamp_rate": "0.0005"
-        }
+            "clamp_rate": "0.0005",
+            "funding_period_hours": "8",
+            "funding_multiplier": "1",
+            "tags": [
+                "LAYER-1"
+            ],
+            "fee_config": {
+                "interactive_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.000075"
+                    }
+                },
+                "api_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.0002"
+                    }
+                },
+                "rpi_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.0002"
+                    }
+                }
+            }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "SOL/USD:USDC": {
         "id": "SOL-USD-PERP",
+        "lowercaseId": null,
         "symbol": "SOL/USD:USDC",
         "base": "SOL",
         "quote": "USD",
@@ -75,62 +132,118 @@
         "settleId": "USDC",
         "type": "swap",
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": true,
         "linear": true,
+        "inverse": false,
         "subType": "linear",
         "taker": 0.0003,
         "maker": -0.00005,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 0.1,
+            "amount": 0.01,
             "price": 0.001
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
+                "min": null,
                 "max": 10000
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
-                "min": 200
+                "min": 10,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "symbol": "SOL-USD-PERP",
             "base_currency": "SOL",
             "quote_currency": "USD",
             "settlement_currency": "USDC",
-            "order_size_increment": "0.1",
+            "order_size_increment": "0.01",
             "price_tick_size": "0.001",
-            "min_notional": "200",
+            "min_notional": "10",
             "open_at": "1697783400000",
             "expiry_at": "0",
             "asset_kind": "PERP",
             "market_kind": "cross",
-            "position_limit": "20000",
-            "price_bands_width": "0.1",
-            "max_open_orders": "100",
-            "max_funding_rate": "0.05",
+            "position_limit": "100000",
+            "price_bands_width": "0.05",
+            "max_slippage": "0.001",
+            "max_open_orders": "150",
+            "max_funding_rate": "0.02",
             "delta1_cross_margin_params": {
-                "imf_base": "0.05",
-                "imf_shift": "200000",
-                "imf_factor": "0.0002",
+                "imf_base": "0.02",
+                "imf_shift": "0",
+                "imf_factor": "0",
                 "mmf_factor": "0.5"
             },
             "price_feed_id": "H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG",
-            "oracle_ewma_factor": "0.20000046249626113",
+            "oracle_ewma_factor": "0.12945779635696708",
             "max_order_size": "10000",
             "max_funding_rate_change": "0.0002",
-            "max_tob_spread": "0.1",
+            "max_tob_spread": "0.01",
             "interest_rate": "0.0001",
-            "clamp_rate": "0.0005"
-        }
+            "clamp_rate": "0.0005",
+            "funding_period_hours": "8",
+            "funding_multiplier": "1",
+            "tags": [
+                "LAYER-1"
+            ],
+            "fee_config": {
+                "interactive_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.000075"
+                    }
+                },
+                "api_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.0002"
+                    }
+                },
+                "rpi_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.0002"
+                    }
+                }
+            }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "ETH/USD:USDC": {
-        "id": "ETH-USD-PERP",
+        "id": "ETH-USD",
+        "lowercaseId": null,
         "symbol": "ETH/USD:USDC",
         "base": "ETH",
         "quote": "USD",
@@ -140,62 +253,112 @@
         "settleId": "USDC",
         "type": "swap",
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": true,
         "linear": true,
+        "inverse": false,
         "subType": "linear",
         "taker": 0.0003,
         "maker": -0.00005,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 0.001,
+            "amount": 0.0001,
             "price": 0.01
         },
         "limits": {
-            "leverage": {},
-            "amount": {
-                "max": 1000
+            "leverage": {
+                "min": null,
+                "max": null
             },
-            "price": {},
+            "amount": {
+                "min": null,
+                "max": 20
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
-                "min": 500
+                "min": 10,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
-            "symbol": "ETH-USD-PERP",
+            "symbol": "ETH-USD",
             "base_currency": "ETH",
             "quote_currency": "USD",
             "settlement_currency": "USDC",
-            "order_size_increment": "0.001",
+            "order_size_increment": "0.0001",
             "price_tick_size": "0.01",
-            "min_notional": "500",
-            "open_at": "1692576000000",
+            "min_notional": "10",
+            "open_at": "1770278700000",
             "expiry_at": "0",
-            "asset_kind": "PERP",
+            "asset_kind": "SPOT",
             "market_kind": "cross",
-            "position_limit": "2000",
+            "position_limit": "0",
             "price_bands_width": "0.05",
-            "max_open_orders": "100",
-            "max_funding_rate": "0.02",
-            "delta1_cross_margin_params": {
-                "imf_base": "0.02",
-                "imf_shift": "180000",
-                "imf_factor": "0.00007",
-                "mmf_factor": "0.5"
-            },
+            "max_slippage": "0.001",
+            "max_open_orders": "50",
+            "max_funding_rate": "0",
             "price_feed_id": "JBu1AL4obBcCMqKBBxhpWCNUt136ijcuMZLFvTP7iWdB",
-            "oracle_ewma_factor": "0.20000046249626113",
-            "max_order_size": "1000",
-            "max_funding_rate_change": "0.0002",
-            "max_tob_spread": "0.1",
-            "interest_rate": "0.0001",
-            "clamp_rate": "0.0005"
-        }
+            "oracle_ewma_factor": "0.043647610787352464",
+            "max_order_size": "20",
+            "max_funding_rate_change": "0",
+            "max_tob_spread": "0.05",
+            "interest_rate": "0",
+            "clamp_rate": "0",
+            "funding_period_hours": "0",
+            "funding_multiplier": "0",
+            "tags": [
+                "LAYER-1"
+            ],
+            "fee_config": {
+                "interactive_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.000075"
+                    }
+                },
+                "api_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.0002"
+                    }
+                },
+                "rpi_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.0002"
+                    }
+                }
+            }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "TON/USD:USDC": {
         "id": "TON-USD-PERP",
+        "lowercaseId": null,
         "symbol": "TON/USD:USDC",
         "base": "TON",
         "quote": "USD",
@@ -205,29 +368,50 @@
         "settleId": "USDC",
         "type": "swap",
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": true,
         "linear": true,
+        "inverse": false,
         "subType": "linear",
         "taker": 0.0003,
         "maker": -0.00005,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.1,
             "price": 0.0001
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
+                "min": null,
                 "max": 90000
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
-                "min": 200
+                "min": 10,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "symbol": "TON-USD-PERP",
             "base_currency": "TON",
@@ -235,32 +419,67 @@
             "settlement_currency": "USDC",
             "order_size_increment": "0.1",
             "price_tick_size": "0.0001",
-            "min_notional": "200",
+            "min_notional": "10",
             "open_at": "1714374000000",
             "expiry_at": "0",
             "asset_kind": "PERP",
             "market_kind": "cross",
-            "position_limit": "350000",
-            "price_bands_width": "0.1",
-            "max_open_orders": "50",
+            "position_limit": "960000",
+            "price_bands_width": "0.15",
+            "max_slippage": "0.002",
+            "max_open_orders": "75",
             "max_funding_rate": "0.05",
             "delta1_cross_margin_params": {
                 "imf_base": "0.1",
-                "imf_shift": "180000",
-                "imf_factor": "0.00035",
+                "imf_shift": "0",
+                "imf_factor": "0",
                 "mmf_factor": "0.5"
             },
             "price_feed_id": "AFJXXYuniABNnoEE7DLtkxwqLDkcda4xG5k2F4FB86hj",
-            "oracle_ewma_factor": "0.20000046249626113",
+            "oracle_ewma_factor": "0.06696700846319259",
             "max_order_size": "90000",
             "max_funding_rate_change": "0.0005",
-            "max_tob_spread": "0.2",
+            "max_tob_spread": "0.02",
             "interest_rate": "0.0001",
-            "clamp_rate": "0.0005"
-        }
+            "clamp_rate": "0.0005",
+            "funding_period_hours": "8",
+            "funding_multiplier": "1",
+            "tags": [
+                "LAYER-1"
+            ],
+            "fee_config": {
+                "interactive_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.000075"
+                    }
+                },
+                "api_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.0002"
+                    }
+                },
+                "rpi_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.0002"
+                    }
+                }
+            }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "XRP/USD:USDC": {
         "id": "XRP-USD-PERP",
+        "lowercaseId": null,
         "symbol": "XRP/USD:USDC",
         "base": "XRP",
         "quote": "USD",
@@ -270,59 +489,114 @@
         "settleId": "USDC",
         "type": "swap",
         "spot": false,
+        "margin": null,
         "swap": true,
         "future": false,
         "option": false,
+        "index": null,
+        "active": null,
         "contract": true,
         "linear": true,
+        "inverse": false,
         "subType": "linear",
         "taker": 0.0003,
         "maker": -0.00005,
         "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
-            "amount": 1,
-            "price": 0.00001
+            "amount": 0.1,
+            "price": 0.0001
         },
         "limits": {
-            "leverage": {},
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
+                "min": null,
                 "max": 1000000
             },
-            "price": {},
+            "price": {
+                "min": null,
+                "max": null
+            },
             "cost": {
-                "min": 200
+                "min": 10,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "symbol": "XRP-USD-PERP",
             "base_currency": "XRP",
             "quote_currency": "USD",
             "settlement_currency": "USDC",
-            "order_size_increment": "1",
-            "price_tick_size": "0.00001",
-            "min_notional": "200",
+            "order_size_increment": "0.1",
+            "price_tick_size": "0.0001",
+            "min_notional": "10",
             "open_at": "1715925600000",
             "expiry_at": "0",
             "asset_kind": "PERP",
             "market_kind": "cross",
             "position_limit": "1000000",
-            "price_bands_width": "0.1",
-            "max_open_orders": "50",
+            "price_bands_width": "0.15",
+            "max_slippage": "0.002",
+            "max_open_orders": "75",
             "max_funding_rate": "0.05",
             "delta1_cross_margin_params": {
-                "imf_base": "0.1",
-                "imf_shift": "180000",
-                "imf_factor": "0.00035",
+                "imf_base": "0.02",
+                "imf_shift": "0",
+                "imf_factor": "0",
                 "mmf_factor": "0.5"
             },
             "price_feed_id": "Guffb8DAAxNH6kdoawYjPXTbwUhjmveh8R4LM6uEqRV1",
-            "oracle_ewma_factor": "0.20000046249626113",
+            "oracle_ewma_factor": "0.06696700846319259",
             "max_order_size": "1000000",
             "max_funding_rate_change": "0.0005",
-            "max_tob_spread": "0.2",
+            "max_tob_spread": "0.02",
             "interest_rate": "0.0001",
-            "clamp_rate": "0.0005"
-        }
+            "clamp_rate": "0.0005",
+            "funding_period_hours": "8",
+            "funding_multiplier": "1",
+            "tags": [
+                "LAYER-1"
+            ],
+            "fee_config": {
+                "interactive_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.000075"
+                    }
+                },
+                "api_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.0002"
+                    }
+                },
+                "rpi_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.0002"
+                    }
+                }
+            }
+        },
+        "tierBased": null,
+        "percentage": null
     },
     "BTC/USD:USDC-117000-P": {
         "id": "BTC-USD-117000-P",
@@ -438,7 +712,7 @@
         "optionType": null,
         "precision": {
             "amount": 1,
-            "price": 0.000001
+            "price": 0.0001
         },
         "limits": {
             "leverage": {
@@ -454,7 +728,7 @@
                 "max": null
             },
             "cost": {
-                "min": 50,
+                "min": 10,
                 "max": null
             }
         },
@@ -469,14 +743,15 @@
             "quote_currency": "USD",
             "settlement_currency": "USDC",
             "order_size_increment": "1",
-            "price_tick_size": "0.000001",
-            "min_notional": "50",
+            "price_tick_size": "0.0001",
+            "min_notional": "10",
             "open_at": "1715925600000",
             "expiry_at": "0",
             "asset_kind": "PERP",
             "market_kind": "cross",
             "position_limit": "6500000",
             "price_bands_width": "0.1",
+            "max_slippage": "0.002",
             "max_open_orders": "75",
             "max_funding_rate": "0.05",
             "delta1_cross_margin_params": {
@@ -486,16 +761,43 @@
                 "mmf_factor": "0.5"
             },
             "price_feed_id": "3pyn4svBbxJ9Wnn3RVeafyLWfzie6yC5eTig2S62v9SC",
-            "oracle_ewma_factor": "0.20000046249626113",
+            "oracle_ewma_factor": "0.06696700846319259",
             "max_order_size": "2100000",
             "max_funding_rate_change": "0.0005",
             "max_tob_spread": "0.02",
             "interest_rate": "0.0001",
             "clamp_rate": "0.0005",
             "funding_period_hours": "8",
+            "funding_multiplier": "1",
             "tags": [
                 "LAYER-1"
-            ]
+            ],
+            "fee_config": {
+                "interactive_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.000075"
+                    }
+                },
+                "api_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.0002"
+                    }
+                },
+                "rpi_fee": {
+                    "maker_fee": {
+                        "fee": "0"
+                    },
+                    "taker_fee": {
+                        "fee": "0.0002"
+                    }
+                }
+            }
         },
         "tierBased": null,
         "percentage": null

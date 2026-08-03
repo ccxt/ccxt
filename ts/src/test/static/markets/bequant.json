@@ -1,38 +1,60 @@
 {
     "BTC/USD": {
         "id": "BTCUSD",
+        "lowercaseId": null,
         "symbol": "BTC/USD",
         "base": "BTC",
         "quote": "USD",
+        "settle": null,
         "baseId": "BTC",
         "quoteId": "USD",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": false,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": false,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.002,
+        "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.00001,
             "price": 0.01
         },
         "limits": {
-            "amount": {
-                "min": 0.00001
-            },
-            "price": {
-                "min": 0.01
-            },
-            "cost": {
-                "min": 1e-7
-            },
             "leverage": {
                 "min": 1,
                 "max": 1
+            },
+            "amount": {
+                "min": 0.00001,
+                "max": null
+            },
+            "price": {
+                "min": 0.01,
+                "max": null
+            },
+            "cost": {
+                "min": 1e-7,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "type": "spot",
             "base_currency": "BTC",
@@ -40,14 +62,13 @@
             "status": "working",
             "quantity_increment": "0.00001",
             "tick_size": "0.01",
-            "take_rate": "0.001",
-            "make_rate": "0.0001",
-            "fee_currency": "USD"
+            "take_rate": "0.002",
+            "make_rate": "0.001",
+            "fee_currency": "USD",
+            "instruments_tab_name": "FIAT"
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.001,
-        "maker": 0.0001,
         "tiers": {
             "maker": [
                 [
@@ -138,38 +159,60 @@
     },
     "BTC/EUR": {
         "id": "BTCEUR",
+        "lowercaseId": null,
         "symbol": "BTC/EUR",
         "base": "BTC",
         "quote": "EUR",
+        "settle": null,
         "baseId": "BTC",
         "quoteId": "EUR",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": false,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": false,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.002,
+        "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.00001,
             "price": 0.01
         },
         "limits": {
-            "amount": {
-                "min": 0.00001
-            },
-            "price": {
-                "min": 0.01
-            },
-            "cost": {
-                "min": 1e-7
-            },
             "leverage": {
                 "min": 1,
                 "max": 1
+            },
+            "amount": {
+                "min": 0.00001,
+                "max": null
+            },
+            "price": {
+                "min": 0.01,
+                "max": null
+            },
+            "cost": {
+                "min": 1e-7,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "type": "spot",
             "base_currency": "BTC",
@@ -177,14 +220,13 @@
             "status": "working",
             "quantity_increment": "0.00001",
             "tick_size": "0.01",
-            "take_rate": "0.001",
-            "make_rate": "0.0001",
-            "fee_currency": "EUR"
+            "take_rate": "0.002",
+            "make_rate": "0.001",
+            "fee_currency": "EUR",
+            "instruments_tab_name": "FIAT"
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.001,
-        "maker": 0.0001,
         "tiers": {
             "maker": [
                 [
@@ -275,38 +317,60 @@
     },
     "ETH/USD": {
         "id": "ETHUSD",
+        "lowercaseId": null,
         "symbol": "ETH/USD",
         "base": "ETH",
         "quote": "USD",
+        "settle": null,
         "baseId": "ETH",
         "quoteId": "USD",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": false,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": false,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.002,
+        "maker": 0.001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.0001,
             "price": 0.001
         },
         "limits": {
-            "amount": {
-                "min": 0.0001
-            },
-            "price": {
-                "min": 0.001
-            },
-            "cost": {
-                "min": 1e-7
-            },
             "leverage": {
                 "min": 1,
                 "max": 1
+            },
+            "amount": {
+                "min": 0.0001,
+                "max": null
+            },
+            "price": {
+                "min": 0.001,
+                "max": null
+            },
+            "cost": {
+                "min": 1e-7,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "type": "spot",
             "base_currency": "ETH",
@@ -314,14 +378,13 @@
             "status": "working",
             "quantity_increment": "0.0001",
             "tick_size": "0.001",
-            "take_rate": "0.001",
-            "make_rate": "0.0001",
-            "fee_currency": "USD"
+            "take_rate": "0.002",
+            "make_rate": "0.001",
+            "fee_currency": "USD",
+            "instruments_tab_name": "FIAT"
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.001,
-        "maker": 0.0001,
         "tiers": {
             "maker": [
                 [
@@ -412,38 +475,60 @@
     },
     "BTC/USDT": {
         "id": "BTCUSDT",
+        "lowercaseId": null,
         "symbol": "BTC/USDT",
         "base": "BTC",
         "quote": "USDT",
+        "settle": null,
         "baseId": "BTC",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": false,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": true,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.001,
+        "maker": 0.0001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.00001,
             "price": 0.01
         },
         "limits": {
-            "amount": {
-                "min": 0.00001
-            },
-            "price": {
-                "min": 0.01
-            },
-            "cost": {
-                "min": 1e-7
-            },
             "leverage": {
                 "min": 1,
-                "max": 25
+                "max": 1
+            },
+            "amount": {
+                "min": 0.00001,
+                "max": null
+            },
+            "price": {
+                "min": 0.01,
+                "max": null
+            },
+            "cost": {
+                "min": 1e-7,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "type": "spot",
             "base_currency": "BTC",
@@ -453,14 +538,10 @@
             "tick_size": "0.01",
             "take_rate": "0.001",
             "make_rate": "0.0001",
-            "fee_currency": "USDT",
-            "margin_trading": true,
-            "max_initial_leverage": "25.00"
+            "fee_currency": "USDT"
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.001,
-        "maker": 0.0001,
         "tiers": {
             "maker": [
                 [
@@ -551,38 +632,60 @@
     },
     "LTC/USDT": {
         "id": "LTCUSDT",
+        "lowercaseId": null,
         "symbol": "LTC/USDT",
         "base": "LTC",
         "quote": "USDT",
+        "settle": null,
         "baseId": "LTC",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": false,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": true,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.001,
+        "maker": 0.0001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.001,
             "price": 0.0001
         },
         "limits": {
-            "amount": {
-                "min": 0.001
-            },
-            "price": {
-                "min": 0.0001
-            },
-            "cost": {
-                "min": 1e-7
-            },
             "leverage": {
                 "min": 1,
-                "max": 20
+                "max": 1
+            },
+            "amount": {
+                "min": 0.001,
+                "max": null
+            },
+            "price": {
+                "min": 0.0001,
+                "max": null
+            },
+            "cost": {
+                "min": 1e-7,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "type": "spot",
             "base_currency": "LTC",
@@ -592,14 +695,10 @@
             "tick_size": "0.0001",
             "take_rate": "0.001",
             "make_rate": "0.0001",
-            "fee_currency": "USDT",
-            "margin_trading": true,
-            "max_initial_leverage": "20.00"
+            "fee_currency": "USDT"
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.001,
-        "maker": 0.0001,
         "tiers": {
             "maker": [
                 [
@@ -690,38 +789,60 @@
     },
     "ADA/USDT": {
         "id": "ADAUSDT",
+        "lowercaseId": null,
         "symbol": "ADA/USDT",
         "base": "ADA",
         "quote": "USDT",
+        "settle": null,
         "baseId": "ADA",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": false,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": true,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.001,
+        "maker": 0.0001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 1e-7
         },
         "limits": {
-            "amount": {
-                "min": 1
-            },
-            "price": {
-                "min": 1e-7
-            },
-            "cost": {
-                "min": 1e-7
-            },
             "leverage": {
                 "min": 1,
-                "max": 10
+                "max": 1
+            },
+            "amount": {
+                "min": 1,
+                "max": null
+            },
+            "price": {
+                "min": 1e-7,
+                "max": null
+            },
+            "cost": {
+                "min": 1e-7,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "type": "spot",
             "base_currency": "ADA",
@@ -731,14 +852,10 @@
             "tick_size": "0.0000001",
             "take_rate": "0.001",
             "make_rate": "0.0001",
-            "fee_currency": "USDT",
-            "margin_trading": true,
-            "max_initial_leverage": "10.00"
+            "fee_currency": "USDT"
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.001,
-        "maker": 0.0001,
         "tiers": {
             "maker": [
                 [
@@ -829,38 +946,60 @@
     },
     "XRP/USDT": {
         "id": "XRPUSDT",
+        "lowercaseId": null,
         "symbol": "XRP/USDT",
         "base": "XRP",
         "quote": "USDT",
+        "settle": null,
         "baseId": "XRP",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": false,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": false,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.001,
+        "maker": 0.0001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.1,
             "price": 0.000001
         },
         "limits": {
-            "amount": {
-                "min": 0.1
-            },
-            "price": {
-                "min": 0.000001
-            },
-            "cost": {
-                "min": 1e-7
-            },
             "leverage": {
                 "min": 1,
                 "max": 1
+            },
+            "amount": {
+                "min": 0.1,
+                "max": null
+            },
+            "price": {
+                "min": 0.000001,
+                "max": null
+            },
+            "cost": {
+                "min": 1e-7,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "type": "spot",
             "base_currency": "XRP",
@@ -874,8 +1013,6 @@
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.001,
-        "maker": 0.0001,
         "tiers": {
             "maker": [
                 [
@@ -966,38 +1103,60 @@
     },
     "SOL/USDT": {
         "id": "SOLUSDT",
+        "lowercaseId": null,
         "symbol": "SOL/USDT",
         "base": "SOL",
         "quote": "USDT",
+        "settle": null,
         "baseId": "SOL",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": false,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": false,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.001,
+        "maker": 0.0001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.001,
             "price": 0.0001
         },
         "limits": {
-            "amount": {
-                "min": 0.001
-            },
-            "price": {
-                "min": 0.0001
-            },
-            "cost": {
-                "min": 1e-7
-            },
             "leverage": {
                 "min": 1,
                 "max": 1
+            },
+            "amount": {
+                "min": 0.001,
+                "max": null
+            },
+            "price": {
+                "min": 0.0001,
+                "max": null
+            },
+            "cost": {
+                "min": 1e-7,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "type": "spot",
             "base_currency": "SOL",
@@ -1011,8 +1170,6 @@
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.001,
-        "maker": 0.0001,
         "tiers": {
             "maker": [
                 [
@@ -1103,38 +1260,60 @@
     },
     "TRX/USDT": {
         "id": "TRXUSDT",
+        "lowercaseId": null,
         "symbol": "TRX/USDT",
         "base": "TRX",
         "quote": "USDT",
+        "settle": null,
         "baseId": "TRX",
         "quoteId": "USDT",
-        "active": true,
+        "settleId": null,
         "type": "spot",
         "spot": true,
+        "margin": false,
         "swap": false,
         "future": false,
         "option": false,
-        "margin": true,
+        "index": null,
+        "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.001,
+        "maker": 0.0001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 1,
             "price": 1e-7
         },
         "limits": {
-            "amount": {
-                "min": 1
-            },
-            "price": {
-                "min": 1e-7
-            },
-            "cost": {
-                "min": 1e-7
-            },
             "leverage": {
                 "min": 1,
-                "max": 10
+                "max": 1
+            },
+            "amount": {
+                "min": 1,
+                "max": null
+            },
+            "price": {
+                "min": 1e-7,
+                "max": null
+            },
+            "cost": {
+                "min": 1e-7,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "type": "spot",
             "base_currency": "TRX",
@@ -1144,14 +1323,10 @@
             "tick_size": "0.0000001",
             "take_rate": "0.001",
             "make_rate": "0.0001",
-            "fee_currency": "USDT",
-            "margin_trading": true,
-            "max_initial_leverage": "10.00"
+            "fee_currency": "USDT"
         },
         "tierBased": true,
         "percentage": true,
-        "taker": 0.001,
-        "maker": 0.0001,
         "tiers": {
             "maker": [
                 [
@@ -1242,21 +1417,33 @@
     },
     "ETH/USDT": {
         "id": "ETHUSDT",
+        "lowercaseId": null,
         "symbol": "ETH/USDT",
         "base": "ETH",
         "quote": "USDT",
+        "settle": null,
         "baseId": "ETH",
         "quoteId": "USDT",
+        "settleId": null,
         "type": "spot",
         "spot": true,
-        "margin": true,
+        "margin": false,
         "swap": false,
         "future": false,
         "option": false,
+        "index": null,
         "active": true,
         "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
         "taker": 0.001,
         "maker": 0.0001,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
         "precision": {
             "amount": 0.0001,
             "price": 0.001
@@ -1264,18 +1451,26 @@
         "limits": {
             "leverage": {
                 "min": 1,
-                "max": 20
+                "max": 1
             },
             "amount": {
-                "min": 0.0001
+                "min": 0.0001,
+                "max": null
             },
             "price": {
-                "min": 0.001
+                "min": 0.001,
+                "max": null
             },
             "cost": {
-                "min": 1e-7
+                "min": 1e-7,
+                "max": null
             }
         },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
         "info": {
             "type": "spot",
             "base_currency": "ETH",
@@ -1285,9 +1480,7 @@
             "tick_size": "0.001",
             "take_rate": "0.001",
             "make_rate": "0.0001",
-            "fee_currency": "USDT",
-            "margin_trading": true,
-            "max_initial_leverage": "20.00"
+            "fee_currency": "USDT"
         },
         "tierBased": true,
         "percentage": true,

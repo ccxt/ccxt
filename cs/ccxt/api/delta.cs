@@ -151,6 +151,11 @@ public partial class delta : Exchange
         return await this.callAsync ("privateGetProfile",parameters);
     }
 
+    public async Task<object> privateGetRateLimitsQuota (object parameters = null)
+    {
+        return await this.callAsync ("privateGetRateLimitsQuota",parameters);
+    }
+
     public async Task<object> privateGetHeartbeat (object parameters = null)
     {
         return await this.callAsync ("privateGetHeartbeat",parameters);
@@ -244,6 +249,11 @@ public partial class delta : Exchange
     public async Task<object> privatePutUsersResetMmp (object parameters = null)
     {
         return await this.callAsync ("privatePutUsersResetMmp",parameters);
+    }
+
+    public async Task<object> privatePutUsersMarginMode (object parameters = null)
+    {
+        return await this.callAsync ("privatePutUsersMarginMode",parameters);
     }
 
     public async Task<object> privateDeleteOrders (object parameters = null)

@@ -94,7 +94,9 @@ class paradex extends paradex$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'trades.';
         if (symbol !== undefined) {
             const market = this.market(symbol);
@@ -158,10 +160,12 @@ class paradex extends paradex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'order_book.' + market['id'] + '.snapshot@15@100ms';
         const url = this.urls['api']['ws'];
@@ -233,7 +237,7 @@ class paradex extends paradex$1["default"] {
         }
         const orderbook = this.orderbooks[symbol];
         const snapshot = this.parseOrderBook(orderbookData, symbol, timestamp, 'bids', 'asks');
-        snapshot['nonce'] = this.safeNumber(data, 'seq_no');
+        snapshot['nonce'] = this.safeInteger(data, 'seq_no');
         orderbook.reset(snapshot);
         const messageHash = this.safeString(params, 'channel');
         client.resolve(orderbook, messageHash);
@@ -248,7 +252,9 @@ class paradex extends paradex$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const channel = 'markets_summary';
         const url = this.urls['api']['ws'];
@@ -272,7 +278,9 @@ class paradex extends paradex$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const channel = 'markets_summary';
         const url = this.urls['api']['ws'];
@@ -284,7 +292,7 @@ class paradex extends paradex$1["default"] {
             },
         };
         const messageHashes = [];
-        if (Array.isArray(symbols)) {
+        if (symbols !== undefined && Array.isArray(symbols)) {
             for (let i = 0; i < symbols.length; i++) {
                 const messageHash = channel + '.' + symbols[i];
                 messageHashes.push(messageHash);
@@ -293,10 +301,10 @@ class paradex extends paradex$1["default"] {
         else {
             messageHashes.push(channel);
         }
-        const newTickers = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes);
+        const newTicker = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes);
         if (this.newUpdates) {
             const result = {};
-            result[newTickers['symbol']] = newTickers;
+            result[newTicker['symbol']] = newTicker;
             return result;
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
@@ -313,7 +321,9 @@ class paradex extends paradex$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         let messageHash = 'orders';
         let channel = 'orders.';
@@ -432,7 +442,9 @@ class paradex extends paradex$1["default"] {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async watchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const channel = 'funding_data';
         const url = this.urls['api']['ws'];
@@ -456,7 +468,9 @@ class paradex extends paradex$1["default"] {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async watchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const channel = 'funding_data';
         const url = this.urls['api']['ws'];

@@ -75,7 +75,10 @@ public partial class whitebit : ccxt.whitebit
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
@@ -152,12 +155,15 @@ public partial class whitebit : ccxt.whitebit
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (isTrue(isEqual(limit, null)))
         {
@@ -270,7 +276,10 @@ public partial class whitebit : ccxt.whitebit
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object method = "market_subscribe";
@@ -291,7 +300,10 @@ public partial class whitebit : ccxt.whitebit
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object method = "market_subscribe";
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -336,7 +348,7 @@ public partial class whitebit : ccxt.whitebit
         //
         object tickers = this.safeValue(message, "params", new List<object>() {});
         object marketId = this.safeString(tickers, 0);
-        object market = this.safeMarket(marketId, null);
+        object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object rawTicker = this.safeValue(tickers, 1, new Dictionary<string, object>() {});
         object messageHash = add(add("ticker", ":"), symbol);
@@ -380,7 +392,10 @@ public partial class whitebit : ccxt.whitebit
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add(add("trades", ":"), symbol);
@@ -459,7 +474,10 @@ public partial class whitebit : ccxt.whitebit
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchMyTrades() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
@@ -486,7 +504,10 @@ public partial class whitebit : ccxt.whitebit
         //         "56.78",
         //         "0.16717",
         //         "0.0094919126",
-        //         ''
+        //         '',
+        //         "2",
+        //         "2",
+        //         "LTC"
         //       ],
         //       "id": null
         //   }
@@ -516,7 +537,10 @@ public partial class whitebit : ccxt.whitebit
         //         "56.78", // price
         //         "0.16717", // amount
         //         "0.0094919126", // fee
-        //         '' // client order id
+        //         '', // client order id
+        //         "2", // side, 1 = sell, 2 = buy
+        //         "2", // role, 1 = maker, 2 = taker
+        //         "LTC" // fee asset
         //    ]
         //
         object orderId = this.safeString(trade, 3);
@@ -530,10 +554,30 @@ public partial class whitebit : ccxt.whitebit
         object feeCost = this.safeString(trade, 6);
         if (isTrue(!isEqual(feeCost, null)))
         {
+            object feeCurrencyId = this.safeString(trade, 10);
+            object feeCurrencyCode = ((bool) isTrue((!isEqual(feeCurrencyId, null)))) ? this.safeCurrencyCode(feeCurrencyId) : getValue(market, "quote");
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
-                { "currency", getValue(market, "quote") },
+                { "currency", feeCurrencyCode },
             };
+        }
+        object rawSide = this.safeInteger(trade, 8);
+        object side = null;
+        if (isTrue(isEqual(rawSide, 1)))
+        {
+            side = "sell";
+        } else if (isTrue(isEqual(rawSide, 2)))
+        {
+            side = "buy";
+        }
+        object role = this.safeInteger(trade, 9);
+        object takerOrMaker = null;
+        if (isTrue(isEqual(role, 1)))
+        {
+            takerOrMaker = "maker";
+        } else if (isTrue(isEqual(role, 2)))
+        {
+            takerOrMaker = "taker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
@@ -543,8 +587,8 @@ public partial class whitebit : ccxt.whitebit
             { "symbol", getValue(market, "symbol") },
             { "order", orderId },
             { "type", null },
-            { "side", null },
-            { "takerOrMaker", null },
+            { "side", side },
+            { "takerOrMaker", takerOrMaker },
             { "price", price },
             { "amount", amount },
             { "cost", null },
@@ -570,7 +614,10 @@ public partial class whitebit : ccxt.whitebit
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
@@ -759,7 +806,10 @@ public partial class whitebit : ccxt.whitebit
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
@@ -796,6 +846,10 @@ public partial class whitebit : ccxt.whitebit
         //   }
         //
         object method = this.safeString(message, "method");
+        if (isTrue(isEqual(method, null)))
+        {
+            return;
+        }
         object data = this.safeValue(message, "params");
         object balanceDict = this.safeValue(data, 0);
         ((IDictionary<string,object>)this.balance)["info"] = balanceDict;
@@ -806,7 +860,10 @@ public partial class whitebit : ccxt.whitebit
         object account = this.account();
         ((IDictionary<string,object>)account)["free"] = this.safeString(rawBalance, "available");
         ((IDictionary<string,object>)account)["used"] = this.safeString(rawBalance, "freeze");
-        ((IDictionary<string,object>)this.balance)[(string)code] = account;
+        if (isTrue(!isEqual(code, null)))
+        {
+            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+        }
         this.balance = this.safeBalance(this.balance);
         object messageHash = "wallet:";
         if (isTrue(isGreaterThanOrEqual(getIndexOf(method, "Spot"), 0)))
@@ -838,7 +895,10 @@ public partial class whitebit : ccxt.whitebit
     {
         isNested ??= false;
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = getValue(getValue(this.urls, "api"), "ws");
         object id = this.nonce();
         var client = this.safeValue(this.clients, url);
@@ -849,7 +909,10 @@ public partial class whitebit : ccxt.whitebit
             object subscription = new Dictionary<string, object>() {};
             object market = this.market(symbol);
             object marketId = getValue(market, "id");
-            ((IDictionary<string,object>)subscription)[(string)marketId] = true;
+            if (isTrue(!isEqual(marketId, null)))
+            {
+                ((IDictionary<string,object>)subscription)[(string)marketId] = true;
+            }
             marketIds = new List<object>() {marketId};
             if (isTrue(isNested))
             {
@@ -871,7 +934,10 @@ public partial class whitebit : ccxt.whitebit
             object isSubscribed = this.safeBool(subscription, marketId, false);
             if (!isTrue(isSubscribed))
             {
-                ((IDictionary<string,object>)subscription)[(string)marketId] = true;
+                if (isTrue(!isEqual(marketId, null)))
+                {
+                    ((IDictionary<string,object>)subscription)[(string)marketId] = true;
+                }
                 hasSymbolSubscription = false;
             }
             if (isTrue(hasSymbolSubscription))
@@ -998,7 +1064,7 @@ public partial class whitebit : ccxt.whitebit
                 return false;
             }
         }
-        return message;
+        return true;
     }
 
     public override void handleMessage(WebSocketClient client, object message)
@@ -1053,7 +1119,7 @@ public partial class whitebit : ccxt.whitebit
         object values = new List<object>(((IDictionary<string,object>)subs).Values);
         for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
         {
-            object subscription = ((object)getValue(values, i));
+            object subscription = getValue(values, i);
             if (isTrue(!isEqual(subscription, true)))
             {
                 object subId = this.safeInteger(subscription, "id");

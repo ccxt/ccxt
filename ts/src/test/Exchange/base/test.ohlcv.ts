@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Exchange } from "../../../../ccxt";
+import { Exchange } from "../../../../ccxt.js";
 import testSharedMethods from './test.sharedMethods.js';
 
 function testOHLCV (exchange: Exchange, skippedProperties: object, method: string, entry: number[], symbol: string, now: number) {

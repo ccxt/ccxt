@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bybit.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, AccountSuspended, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, MarginModeAlreadySet, NoChange, ManualInteractionNeeded, BadSymbol, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
 //  ---------------------------------------------------------------------------
 /**
@@ -21,11 +21,11 @@ export default class bybit extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'bybit',
             'name': 'Bybit',
-            'countries': ['VG'],
+            'countries': ['VG'], // British Virgin Islands
             'version': 'v5',
             'userAgent': undefined,
             'rateLimit': 20,
-            'hostname': 'bybit.com',
+            'hostname': 'bybit.com', // bybit.com, bytick.com, bybit.nl, bybit.com.hk
             'pro': true,
             'certified': true,
             'has': {
@@ -63,7 +63,7 @@ export default class bybit extends Exchange {
                 'fetchAllGreeks': true,
                 'fetchBalance': true,
                 'fetchBidsAsks': 'emulated',
-                'fetchBorrowInterest': false,
+                'fetchBorrowInterest': false, // temporarily disabled, as it doesn't work
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchCanceledAndClosedOrders': true,
@@ -85,7 +85,7 @@ export default class bybit extends Exchange {
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
-                'fetchFundingRate': 'emulated',
+                'fetchFundingRate': 'emulated', // emulated in exchange
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchGreeks': true,
@@ -118,12 +118,13 @@ export default class bybit extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositionADLRank': true,
-                'fetchPositionsADLRank': true,
                 'fetchPositionHistory': 'emulated',
                 'fetchPositions': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositionsHistory': true,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -223,7 +224,8 @@ export default class bybit extends Exchange {
                         'derivatives/v3/public/open-interest': 1,
                         'derivatives/v3/public/insurance': 1,
                         // v5
-                        'v5/announcements/index': 5,
+                        'v5/announcements/index': 5, // 10/s = 1000 / (20 * 5)
+                        'v5/system/status': 5,
                         // market
                         'v5/market/time': 5,
                         'v5/market/kline': 5,
@@ -232,6 +234,8 @@ export default class bybit extends Exchange {
                         'v5/market/premium-index-price-kline': 5,
                         'v5/market/instruments-info': 5,
                         'v5/market/orderbook': 5,
+                        'v5/market/rpi_orderbook': 5,
+                        'v5/market/full_orderbook': 5,
                         'v5/market/tickers': 5,
                         'v5/market/funding/history': 5,
                         'v5/market/recent-trade': 5,
@@ -240,7 +244,12 @@ export default class bybit extends Exchange {
                         'v5/market/insurance': 5,
                         'v5/market/risk-limit': 5,
                         'v5/market/delivery-price': 5,
+                        'v5/market/new-delivery-price': 5,
                         'v5/market/account-ratio': 5,
+                        'v5/market/index-price-components': 5,
+                        'v5/market/price-limit': 5,
+                        'v5/market/adlAlert': 5,
+                        'v5/market/fee-group-info': 5,
                         // spot leverage token
                         'v5/spot-lever-token/info': 5,
                         'v5/spot-lever-token/reference': 5,
@@ -269,7 +278,7 @@ export default class bybit extends Exchange {
                     'get': {
                         'v5/market/instruments-info': 5,
                         // Legacy inverse swap
-                        'v2/private/wallet/fund/records': 25,
+                        'v2/private/wallet/fund/records': 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
                         // spot
                         'spot/v3/private/order': 2.5,
                         'spot/v3/private/open-orders': 2.5,
@@ -286,16 +295,16 @@ export default class bybit extends Exchange {
                         'spot/v3/private/margin-repaid-infos': 10,
                         'spot/v3/private/margin-ltv': 10,
                         // account
-                        'asset/v3/private/transfer/inter-transfer/list/query': 50,
+                        'asset/v3/private/transfer/inter-transfer/list/query': 50, // 60 per minute = 1 per second => cost = 50 / 1 = 50
                         'asset/v3/private/transfer/sub-member/list/query': 50,
                         'asset/v3/private/transfer/sub-member-transfer/list/query': 50,
                         'asset/v3/private/transfer/universal-transfer/list/query': 25,
-                        'asset/v3/private/coin-info/query': 25,
+                        'asset/v3/private/coin-info/query': 25, // 2/s
                         'asset/v3/private/deposit/address/query': 10,
-                        'contract/v3/private/copytrading/order/list': 30,
-                        'contract/v3/private/copytrading/position/list': 40,
-                        'contract/v3/private/copytrading/wallet/balance': 25,
-                        'contract/v3/private/position/limit-info': 25,
+                        'contract/v3/private/copytrading/order/list': 30, // 100 req/min = 1000 / (20 * 30) = 1.66666666667/s
+                        'contract/v3/private/copytrading/position/list': 40, // 75 req/min = 1000 / (20 * 40) = 1.25/s
+                        'contract/v3/private/copytrading/wallet/balance': 25, // 120 req/min = 1000 / (20 * 25) = 2/s
+                        'contract/v3/private/position/limit-info': 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
                         'contract/v3/private/order/unfilled-orders': 1,
                         'contract/v3/private/order/list': 1,
                         'contract/v3/private/position/list': 1,
@@ -316,27 +325,29 @@ export default class bybit extends Exchange {
                         'unified/v3/private/account/borrow-history': 1,
                         'unified/v3/private/account/borrow-rate': 1,
                         'unified/v3/private/account/info': 1,
-                        'user/v3/private/frozen-sub-member': 10,
-                        'user/v3/private/query-sub-members': 5,
-                        'user/v3/private/query-api': 5,
+                        'user/v3/private/frozen-sub-member': 10, // 5/s
+                        'user/v3/private/query-sub-members': 5, // 10/s
+                        'user/v3/private/query-api': 5, // 10/s
                         'user/v3/private/get-member-type': 1,
                         'asset/v3/private/transfer/transfer-coin/list/query': 50,
                         'asset/v3/private/transfer/account-coin/balance/query': 50,
                         'asset/v3/private/transfer/account-coins/balance/query': 25,
                         'asset/v3/private/transfer/asset-info/query': 50,
-                        'asset/v3/public/deposit/allowed-deposit-list/query': 0.17,
+                        'asset/v3/public/deposit/allowed-deposit-list/query': 0.17, // 300/s
                         'asset/v3/private/deposit/record/query': 10,
                         'asset/v3/private/withdraw/record/query': 10,
                         // v5
                         // trade
-                        'v5/order/realtime': 5,
-                        'v5/order/history': 5,
-                        'v5/order/spot-borrow-check': 1,
+                        'v5/order/realtime': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/history': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/spot-borrow-check': 1, // 50/s = 1000 / (20 * 1)
                         // position
-                        'v5/position/list': 5,
-                        'v5/execution/list': 5,
-                        'v5/position/closed-pnl': 5,
-                        'v5/position/move-history': 5,
+                        'v5/position/list': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/execution/list': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/closed-pnl': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/get-closed-positions': 5,
+                        'v5/position/move-history': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/symbol-info': 5,
                         // pre-upgrade
                         'v5/pre-upgrade/order/history': 5,
                         'v5/pre-upgrade/execution/list': 5,
@@ -349,70 +360,89 @@ export default class bybit extends Exchange {
                         'v5/account/borrow-history': 1,
                         'v5/account/instruments-info': 1,
                         'v5/account/collateral-info': 1,
+                        'v5/account/option-asset-info': 1,
                         'v5/asset/coin-greeks': 1,
-                        'v5/account/fee-rate': 10,
+                        'v5/account/fee-rate': 10, // 5/s = 1000 / (20 * 10)
                         'v5/account/info': 5,
-                        'v5/account/transaction-log': 1.66,
-                        'v5/account/contract-transaction-log': 1,
+                        'v5/account/transaction-log': 1.66, // 30/s = 50 / 30
+                        'v5/account/contract-transaction-log': 1, // deprecated
+                        'v5/account/query-dcp-info': 5,
+                        'v5/account/user-setting-config': 5,
+                        'v5/account/pay-info': 5,
+                        'v5/account/trade-info-for-analysis': 5,
                         'v5/account/smp-group': 1,
                         'v5/account/mmp-state': 5,
                         'v5/account/withdrawal': 5,
                         // asset
-                        'v5/asset/exchange/query-coin-list': 0.5,
-                        'v5/asset/exchange/convert-result-query': 0.5,
-                        'v5/asset/exchange/query-convert-history': 0.5,
-                        'v5/asset/exchange/order-record': 5,
+                        'v5/asset/asset-overview': 5,
+                        'v5/asset/exchange/query-coin-list': 0.5, // 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/convert-result-query': 0.5, // 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/query-convert-history': 0.5, // 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/order-record': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/asset/fundinghistory': 5,
+                        'v5/asset/portfolio-margin': 5,
+                        'v5/asset/total-members-assets': 5,
                         'v5/asset/delivery-record': 5,
                         'v5/asset/settlement-record': 5,
-                        'v5/asset/transfer/query-asset-info': 50,
-                        'v5/asset/transfer/query-account-coins-balance': 25,
-                        'v5/asset/transfer/query-account-coin-balance': 50,
-                        'v5/asset/transfer/query-transfer-coin-list': 50,
-                        'v5/asset/transfer/query-inter-transfer-list': 50,
-                        'v5/asset/transfer/query-sub-member-list': 50,
-                        'v5/asset/transfer/query-universal-transfer-list': 25,
+                        'v5/asset/transfer/query-asset-info': 50, // deprecated, 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-account-coins-balance': 25, // 2/s => cost = 50 / 2 = 25
+                        'v5/asset/transfer/query-account-coin-balance': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-transfer-coin-list': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-inter-transfer-list': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-sub-member-list': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-universal-transfer-list': 25, // 2/s => cost = 50 / 2 = 25
                         'v5/asset/deposit/query-allowed-list': 5,
-                        'v5/asset/deposit/query-record': 10,
-                        'v5/asset/deposit/query-sub-member-record': 10,
+                        'v5/asset/deposit/query-record': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/asset/deposit/query-sub-member-record': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/query-internal-record': 5,
-                        'v5/asset/deposit/query-address': 10,
-                        'v5/asset/deposit/query-sub-member-address': 10,
-                        'v5/asset/coin/query-info': 28,
+                        'v5/asset/deposit/query-address': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/asset/deposit/query-sub-member-address': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/asset/coin/query-info': 28, // should be 25 but exceeds ratelimit unless the weight is 28 or higher
                         'v5/asset/withdraw/query-address': 10,
-                        'v5/asset/withdraw/query-record': 10,
+                        'v5/asset/withdraw/query-record': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/withdraw/withdrawable-amount': 5,
                         'v5/asset/withdraw/vasp/list': 5,
-                        'v5/asset/convert/small-balance-list': 5,
-                        'v5/asset/convert/small-balance-history': 5,
+                        'v5/asset/covert/small-balance-list': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/asset/covert/small-balance-history': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/asset/convert/small-balance-list': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/asset/convert/small-balance-history': 5, // 10/s => cost = 50 / 10 = 5
                         'v5/fiat/query-coin-list': 5,
                         'v5/fiat/reference-price': 5,
                         'v5/fiat/trade-query': 5,
                         'v5/fiat/query-trade-history': 5,
                         'v5/fiat/balance-query': 5,
                         // user
-                        'v5/user/query-sub-members': 5,
-                        'v5/user/query-api': 5,
+                        'v5/user/query-sub-members': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/user/query-api': 5, // 10/s => cost = 50 / 10 = 5
                         'v5/user/sub-apikeys': 5,
                         'v5/user/get-member-type': 5,
                         'v5/user/aff-customer-info': 5,
                         'v5/user/del-submember': 5,
                         'v5/user/submembers': 5,
+                        'v5/user/escrow_sub_members': 5,
+                        'v5/user/invitation/referrals': 5,
                         // affilate
                         'v5/affiliate/aff-user-list': 5,
+                        'v5/affiliate/affiliate-sub-list': 5,
                         // spot leverage token
-                        'v5/spot-lever-token/order-record': 1,
+                        'v5/spot-lever-token/order-record': 1, // 50/s => cost = 50 / 50 = 1
                         // spot margin trade
                         'v5/spot-margin-trade/interest-rate-history': 5,
                         'v5/spot-margin-trade/state': 5,
                         'v5/spot-margin-trade/max-borrowable': 5,
                         'v5/spot-margin-trade/position-tiers': 5,
                         'v5/spot-margin-trade/coinstate': 5,
+                        'v5/spot-margin-trade/currency-data': 5,
+                        'v5/spot-margin-trade/fixedborrow-contract-info': 5,
+                        'v5/spot-margin-trade/fixedborrow-order-info': 5,
+                        'v5/spot-margin-trade/fixedborrow-order-quote': 5,
+                        'v5/spot-margin-trade/liability': 5,
                         'v5/spot-margin-trade/repayment-available-amount': 5,
                         'v5/spot-margin-trade/get-auto-repay-mode': 5,
-                        'v5/spot-cross-margin-trade/loan-info': 1,
-                        'v5/spot-cross-margin-trade/account': 1,
-                        'v5/spot-cross-margin-trade/orders': 1,
-                        'v5/spot-cross-margin-trade/repay-history': 1,
+                        'v5/spot-cross-margin-trade/loan-info': 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/account': 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/orders': 1, // 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/repay-history': 1, // 50/s => cost = 50 / 50 = 1
                         // crypto loan
                         'v5/crypto-loan/borrowable-collateralisable-number': 5,
                         'v5/crypto-loan/ongoing-orders': 5,
@@ -421,30 +451,33 @@ export default class bybit extends Exchange {
                         'v5/crypto-loan/max-collateral-amount': 5,
                         'v5/crypto-loan/adjustment-history': 5,
                         // crypto loan (new)
-                        'v5/crypto-loan-common/max-collateral-amount': 10,
-                        'v5/crypto-loan-common/adjustment-history': 10,
-                        'v5/crypto-loan-common/position': 10,
-                        'v5/crypto-loan-flexible/ongoing-coin': 10,
-                        'v5/crypto-loan-flexible/borrow-history': 10,
-                        'v5/crypto-loan-flexible/repayment-history': 10,
-                        'v5/crypto-loan-fixed/borrow-contract-info': 10,
-                        'v5/crypto-loan-fixed/supply-contract-info': 10,
-                        'v5/crypto-loan-fixed/borrow-order-info': 10,
-                        'v5/crypto-loan-fixed/renew-info': 10,
-                        'v5/crypto-loan-fixed/supply-order-info': 10,
-                        'v5/crypto-loan-fixed/repayment-history': 10,
+                        'v5/crypto-loan-common/max-collateral-amount': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-common/adjustment-history': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-common/position': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/ongoing-coin': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/borrow-history': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/repayment-history': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/borrow-contract-info': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/supply-contract-info': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/borrow-order-info': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/renew-info': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/supply-order-info': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/repayment-history': 10, // 5/s => cost = 50 / 5 = 10
                         // institutional lending
                         'v5/ins-loan/product-infos': 5,
+                        'v5/ins-loan/ensure-tokens': 5, // deprecated
                         'v5/ins-loan/ensure-tokens-convert': 5,
                         'v5/ins-loan/loan-order': 5,
                         'v5/ins-loan/repaid-history': 5,
+                        'v5/ins-loan/ltv': 5, // deprecated
                         'v5/ins-loan/ltv-convert': 5,
+                        'v5/ins-loan/coin-delta-amount': 5,
                         // c2c lending
-                        'v5/lending/info': 5,
-                        'v5/lending/history-order': 5,
-                        'v5/lending/account': 5,
+                        'v5/lending/info': 5, // deprecated
+                        'v5/lending/history-order': 5, // deprecated
+                        'v5/lending/account': 5, // deprecated
                         // broker
-                        'v5/broker/earning-record': 5,
+                        'v5/broker/earning-record': 5, // deprecated
                         'v5/broker/earnings-info': 5,
                         'v5/broker/account-info': 5,
                         'v5/broker/asset/query-sub-member-deposit-record': 10,
@@ -466,25 +499,25 @@ export default class bybit extends Exchange {
                         'spot/v3/private/cross-margin-loan': 10,
                         'spot/v3/private/cross-margin-repay': 10,
                         // account
-                        'asset/v3/private/transfer/inter-transfer': 150,
+                        'asset/v3/private/transfer/inter-transfer': 150, // 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
                         'asset/v3/private/withdraw/create': 300,
                         'asset/v3/private/withdraw/cancel': 50,
                         'asset/v3/private/transfer/sub-member-transfer': 150,
                         'asset/v3/private/transfer/transfer-sub-member-save': 150,
-                        'asset/v3/private/transfer/universal-transfer': 10,
-                        'user/v3/private/create-sub-member': 10,
-                        'user/v3/private/create-sub-api': 10,
-                        'user/v3/private/update-api': 10,
-                        'user/v3/private/delete-api': 10,
-                        'user/v3/private/update-sub-api': 10,
-                        'user/v3/private/delete-sub-api': 10,
+                        'asset/v3/private/transfer/universal-transfer': 10, // 5/s
+                        'user/v3/private/create-sub-member': 10, // 5/s
+                        'user/v3/private/create-sub-api': 10, // 5/s
+                        'user/v3/private/update-api': 10, // 5/s
+                        'user/v3/private/delete-api': 10, // 5/s
+                        'user/v3/private/update-sub-api': 10, // 5/s
+                        'user/v3/private/delete-sub-api': 10, // 5/s
                         // contract
-                        'contract/v3/private/copytrading/order/create': 30,
+                        'contract/v3/private/copytrading/order/create': 30, // 100 req/min = 1000 / (20 * 30) = 1.66666666667/s
                         'contract/v3/private/copytrading/order/cancel': 30,
                         'contract/v3/private/copytrading/order/close': 30,
-                        'contract/v3/private/copytrading/position/close': 40,
+                        'contract/v3/private/copytrading/position/close': 40, // 75 req/min = 1000 / (20 * 40) = 1.25/s
                         'contract/v3/private/copytrading/position/set-leverage': 40,
-                        'contract/v3/private/copytrading/wallet/transfer': 25,
+                        'contract/v3/private/copytrading/wallet/transfer': 25, // 120 req/min = 1000 / (20 * 25) = 2/s
                         'contract/v3/private/copytrading/order/trading-stop': 2.5,
                         'contract/v3/private/order/create': 1,
                         'contract/v3/private/order/cancel': 1,
@@ -499,7 +532,7 @@ export default class bybit extends Exchange {
                         'contract/v3/private/position/set-risk-limit': 1,
                         'contract/v3/private/account/setMarginMode': 1,
                         // derivative
-                        'unified/v3/private/order/create': 30,
+                        'unified/v3/private/order/create': 30, // 100 req/min (shared) = 1000 / (20 * 30) = 1.66666666667/s
                         'unified/v3/private/order/replace': 30,
                         'unified/v3/private/order/cancel': 30,
                         'unified/v3/private/order/create-batch': 30,
@@ -519,21 +552,22 @@ export default class bybit extends Exchange {
                         'fht/compliance/tax/v3/private/url': 50,
                         // v5
                         // trade
-                        'v5/order/create': 2.5,
-                        'v5/order/amend': 5,
+                        'v5/order/create': 2.5, // 20/s = 1000 / (20 * 2.5)
+                        'v5/order/amend': 5, // 10/s => cost = 50 / 10 = 5
                         'v5/order/cancel': 2.5,
-                        'v5/order/cancel-all': 50,
-                        'v5/order/create-batch': 5,
-                        'v5/order/amend-batch': 5,
-                        'v5/order/cancel-batch': 5,
+                        'v5/order/cancel-all': 50, // 1/s = 1000 / (20 * 50)
+                        'v5/order/create-batch': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/amend-batch': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/order/cancel-batch': 5, // 10/s => cost = 50 / 10 = 5
                         'v5/order/disconnected-cancel-all': 5,
+                        'v5/order/pre-check': 5,
                         // position
-                        'v5/position/set-leverage': 5,
-                        'v5/position/switch-isolated': 5,
-                        'v5/position/set-tpsl-mode': 5,
+                        'v5/position/set-leverage': 5, // 10/s => cost = 50 / 10 = 5
+                        'v5/position/switch-isolated': 5, // deprecated
+                        'v5/position/set-tpsl-mode': 5, // deprecated, 10/s => cost = 50 / 10 = 5
                         'v5/position/switch-mode': 5,
-                        'v5/position/set-risk-limit': 5,
-                        'v5/position/trading-stop': 5,
+                        'v5/position/set-risk-limit': 5, // deprecated, 10/s => cost = 50 / 10 = 5
+                        'v5/position/trading-stop': 5, // 10/s => cost = 50 / 10 = 5
                         'v5/position/set-auto-add-margin': 5,
                         'v5/position/add-margin': 5,
                         'v5/position/move-positions': 5,
@@ -549,61 +583,67 @@ export default class bybit extends Exchange {
                         'v5/account/repay': 5,
                         'v5/account/no-convert-repay': 5,
                         'v5/account/set-limit-px-action': 5,
+                        'v5/account/set-delta-mode': 5,
                         // asset
-                        'v5/asset/exchange/quote-apply': 1,
-                        'v5/asset/exchange/convert-execute': 1,
-                        'v5/asset/transfer/inter-transfer': 50,
-                        'v5/asset/transfer/save-transfer-sub-member': 150,
-                        'v5/asset/transfer/universal-transfer': 10,
+                        'v5/asset/exchange/quote-apply': 1, // 50/s
+                        'v5/asset/exchange/convert-execute': 1, // 50/s
+                        'v5/asset/transfer/inter-transfer': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/save-transfer-sub-member': 150, // deprecated, 1/3/s => cost = 50 / 1/3 = 150
+                        'v5/asset/transfer/universal-transfer': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/asset/deposit/deposit-to-account': 5,
-                        'v5/asset/withdraw/create': 50,
-                        'v5/asset/withdraw/cancel': 50,
-                        'v5/asset/covert/get-quote': 10,
-                        'v5/asset/covert/small-balance-execute': 10,
+                        'v5/asset/travel-rule/deposit/submit': 5,
+                        'v5/asset/withdraw/create': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/withdraw/cancel': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/asset/covert/get-quote': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/asset/covert/small-balance-execute': 10, // 5/s => cost = 50 / 5 = 10
                         'v5/fiat/quote-apply': 10,
                         'v5/fiat/trade-execute': 10,
                         // user
-                        'v5/user/create-sub-member': 10,
-                        'v5/user/create-sub-api': 10,
-                        'v5/user/frozen-sub-member': 10,
-                        'v5/user/update-api': 10,
-                        'v5/user/update-sub-api': 10,
-                        'v5/user/delete-api': 10,
-                        'v5/user/delete-sub-api': 10,
+                        'v5/user/create-sub-member': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/create-sub-api': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/frozen-sub-member': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/update-api': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/update-sub-api': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/delete-api': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/delete-sub-api': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/agreement': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/user/create-demo-member': 10, // 5/s => cost = 50 / 5 = 10
                         // spot leverage token
-                        'v5/spot-lever-token/purchase': 2.5,
-                        'v5/spot-lever-token/redeem': 2.5,
+                        'v5/spot-lever-token/purchase': 2.5, // 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-lever-token/redeem': 2.5, // 20/s => cost = 50 / 20 = 2.5
                         // spot margin trade
                         'v5/spot-margin-trade/switch-mode': 5,
                         'v5/spot-margin-trade/set-leverage': 5,
                         'v5/spot-margin-trade/set-auto-repay-mode': 5,
-                        'v5/spot-cross-margin-trade/loan': 2.5,
-                        'v5/spot-cross-margin-trade/repay': 2.5,
-                        'v5/spot-cross-margin-trade/switch': 2.5,
+                        'v5/spot-margin-trade/fixedborrow': 5,
+                        'v5/spot-margin-trade/fixedborrow-renew': 5,
+                        'v5/spot-cross-margin-trade/loan': 2.5, // 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/repay': 2.5, // 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/switch': 2.5, // 20/s => cost = 50 / 20 = 2.5
                         // crypto loan
                         'v5/crypto-loan/borrow': 5,
                         'v5/crypto-loan/repay': 5,
                         'v5/crypto-loan/adjust-ltv': 5,
                         // crypto loan (new)
-                        'v5/crypto-loan-common/adjust-ltv': 50,
-                        'v5/crypto-loan-common/max-loan': 10,
-                        'v5/crypto-loan-flexible/borrow': 50,
-                        'v5/crypto-loan-flexible/repay': 50,
-                        'v5/crypto-loan-flexible/repay-collateral': 50,
-                        'v5/crypto-loan-fixed/borrow': 50,
-                        'v5/crypto-loan-fixed/renew': 50,
-                        'v5/crypto-loan-fixed/supply': 50,
-                        'v5/crypto-loan-fixed/borrow-order-cancel': 50,
-                        'v5/crypto-loan-fixed/supply-order-cancel': 50,
-                        'v5/crypto-loan-fixed/fully-repay': 50,
-                        'v5/crypto-loan-fixed/repay-collateral': 50,
+                        'v5/crypto-loan-common/adjust-ltv': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-common/max-loan': 10, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/borrow': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-flexible/repay': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-flexible/repay-collateral': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/borrow': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/renew': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/supply': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/borrow-order-cancel': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/supply-order-cancel': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/fully-repay': 50, // 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/repay-collateral': 50, // 1/s => cost = 50 / 1 = 50
                         // institutional lending
                         'v5/ins-loan/association-uid': 5,
                         'v5/ins-loan/repay-loan': 5,
                         // c2c lending
-                        'v5/lending/purchase': 5,
-                        'v5/lending/redeem': 5,
-                        'v5/lending/redeem-cancel': 5,
+                        'v5/lending/purchase': 5, // deprecated
+                        'v5/lending/redeem': 5, // deprecated
+                        'v5/lending/redeem-cancel': 5, // deprecated
                         'v5/account/set-collateral-switch': 5,
                         'v5/account/set-collateral-switch-batch': 5,
                         // demo trading
@@ -627,459 +667,459 @@ export default class bybit extends Exchange {
                 // - ob: order balance - the total cost of current open orders
                 // - ab: available balance
                 'exact': {
-                    '-10009': BadRequest,
-                    '-1004': BadRequest,
-                    '-1021': BadRequest,
-                    '-1103': BadRequest,
-                    '-1140': InvalidOrder,
-                    '-1197': InvalidOrder,
-                    '-2013': InvalidOrder,
-                    '-2015': AuthenticationError,
-                    '-6017': BadRequest,
-                    '-6025': BadRequest,
-                    '-6029': BadRequest,
-                    '5004': ExchangeError,
-                    '7001': BadRequest,
-                    '10001': BadRequest,
-                    '10002': InvalidNonce,
-                    '10003': AuthenticationError,
-                    '10004': AuthenticationError,
-                    '10005': PermissionDenied,
-                    '10006': RateLimitExceeded,
-                    '10007': AuthenticationError,
-                    '10008': AccountSuspended,
-                    '10009': AuthenticationError,
-                    '10010': PermissionDenied,
-                    '10014': BadRequest,
-                    '10016': ExchangeError,
-                    '10017': BadRequest,
-                    '10018': RateLimitExceeded,
-                    '10020': PermissionDenied,
-                    '10024': PermissionDenied,
-                    '10027': PermissionDenied,
-                    '10028': PermissionDenied,
-                    '10029': PermissionDenied,
-                    '12137': InvalidOrder,
-                    '12201': BadRequest,
-                    '12141': BadRequest,
-                    '100028': PermissionDenied,
-                    '110001': OrderNotFound,
-                    '110003': InvalidOrder,
-                    '110004': InsufficientFunds,
-                    '110005': InvalidOrder,
-                    '110006': InsufficientFunds,
-                    '110007': InsufficientFunds,
-                    '110008': InvalidOrder,
-                    '110009': InvalidOrder,
-                    '110010': InvalidOrder,
-                    '110011': InvalidOrder,
-                    '110012': InsufficientFunds,
-                    '110013': BadRequest,
-                    '110014': InsufficientFunds,
-                    '110015': BadRequest,
-                    '110016': InvalidOrder,
-                    '110017': InvalidOrder,
-                    '110018': BadRequest,
-                    '110019': InvalidOrder,
-                    '110020': InvalidOrder,
-                    '110021': InvalidOrder,
-                    '110022': InvalidOrder,
-                    '110023': InvalidOrder,
-                    '110024': BadRequest,
-                    '110025': NoChange,
-                    '110026': MarginModeAlreadySet,
-                    '110027': NoChange,
-                    '110028': BadRequest,
-                    '110029': BadRequest,
-                    '110030': InvalidOrder,
-                    '110031': InvalidOrder,
-                    '110032': InvalidOrder,
-                    '110033': InvalidOrder,
-                    '110034': InvalidOrder,
-                    '110035': InvalidOrder,
-                    '110036': InvalidOrder,
-                    '110037': InvalidOrder,
-                    '110038': InvalidOrder,
-                    '110039': InvalidOrder,
-                    '110040': InvalidOrder,
-                    '110041': InvalidOrder,
-                    '110042': InvalidOrder,
-                    '110043': BadRequest,
-                    '110044': InsufficientFunds,
-                    '110045': InsufficientFunds,
-                    '110046': BadRequest,
-                    '110047': BadRequest,
-                    '110048': BadRequest,
-                    '110049': BadRequest,
-                    '110050': BadRequest,
-                    '110051': InsufficientFunds,
-                    '110052': InsufficientFunds,
-                    '110053': InsufficientFunds,
-                    '110054': InvalidOrder,
-                    '110055': InvalidOrder,
-                    '110056': InvalidOrder,
-                    '110057': InvalidOrder,
-                    '110058': InvalidOrder,
-                    '110059': InvalidOrder,
-                    '110060': BadRequest,
-                    '110061': BadRequest,
-                    '110062': BadRequest,
-                    '110063': ExchangeError,
-                    '110064': InvalidOrder,
-                    '110065': PermissionDenied,
-                    '110066': ExchangeError,
-                    '110067': PermissionDenied,
-                    '110068': PermissionDenied,
-                    '110069': PermissionDenied,
-                    '110070': InvalidOrder,
-                    '110071': ExchangeError,
-                    '110072': InvalidOrder,
-                    '110073': ExchangeError,
-                    '110092': InvalidOrder,
-                    '110093': InvalidOrder,
-                    '110094': InvalidOrder,
-                    '130006': InvalidOrder,
-                    '130021': InsufficientFunds,
-                    '130074': InvalidOrder,
-                    '131001': InsufficientFunds,
-                    '131084': ExchangeError,
-                    '131200': ExchangeError,
-                    '131201': ExchangeError,
-                    '131202': BadRequest,
-                    '131203': BadRequest,
-                    '131204': BadRequest,
-                    '131205': BadRequest,
-                    '131206': ExchangeError,
-                    '131207': BadRequest,
-                    '131208': ExchangeError,
-                    '131209': BadRequest,
-                    '131210': BadRequest,
-                    '131211': BadRequest,
-                    '131212': InsufficientFunds,
-                    '131213': BadRequest,
-                    '131214': BadRequest,
-                    '131215': BadRequest,
-                    '131216': ExchangeError,
-                    '131217': ExchangeError,
-                    '131231': NotSupported,
-                    '131232': NotSupported,
-                    '131002': BadRequest,
-                    '131003': ExchangeError,
-                    '131004': AuthenticationError,
-                    '131085': InsufficientFunds,
-                    '131086': BadRequest,
-                    '131088': BadRequest,
-                    '131089': BadRequest,
-                    '131090': ExchangeError,
-                    '131091': ExchangeError,
-                    '131092': ExchangeError,
-                    '131093': ExchangeError,
-                    '131094': BadRequest,
-                    '131095': BadRequest,
-                    '131096': BadRequest,
-                    '131097': ExchangeError,
-                    '131098': ExchangeError,
-                    '131099': ExchangeError,
-                    '140001': OrderNotFound,
-                    '140003': InvalidOrder,
-                    '140004': InsufficientFunds,
-                    '140005': InvalidOrder,
-                    '140006': InsufficientFunds,
-                    '140007': InsufficientFunds,
-                    '140008': InvalidOrder,
-                    '140009': InvalidOrder,
-                    '140010': InvalidOrder,
-                    '140011': InvalidOrder,
-                    '140012': InsufficientFunds,
-                    '140013': BadRequest,
-                    '140014': InsufficientFunds,
-                    '140015': InvalidOrder,
-                    '140016': InvalidOrder,
-                    '140017': InvalidOrder,
-                    '140018': BadRequest,
-                    '140019': InvalidOrder,
-                    '140020': InvalidOrder,
-                    '140021': InvalidOrder,
-                    '140022': InvalidOrder,
-                    '140023': InvalidOrder,
-                    '140024': BadRequest,
-                    '140025': BadRequest,
-                    '140026': BadRequest,
-                    '140027': BadRequest,
-                    '140028': InvalidOrder,
-                    '140029': BadRequest,
-                    '140030': InvalidOrder,
-                    '140031': BadRequest,
-                    '140032': InvalidOrder,
-                    '140033': InvalidOrder,
-                    '140034': InvalidOrder,
-                    '140035': InvalidOrder,
-                    '140036': BadRequest,
-                    '140037': InvalidOrder,
-                    '140038': BadRequest,
-                    '140039': BadRequest,
-                    '140040': InvalidOrder,
-                    '140041': InvalidOrder,
-                    '140042': InvalidOrder,
-                    '140043': BadRequest,
-                    '140044': InsufficientFunds,
-                    '140045': InsufficientFunds,
-                    '140046': BadRequest,
-                    '140047': BadRequest,
-                    '140048': BadRequest,
-                    '140049': BadRequest,
-                    '140050': InvalidOrder,
-                    '140051': InsufficientFunds,
-                    '140052': InsufficientFunds,
-                    '140053': InsufficientFunds,
-                    '140054': InvalidOrder,
-                    '140055': InvalidOrder,
-                    '140056': InvalidOrder,
-                    '140057': InvalidOrder,
-                    '140058': InvalidOrder,
-                    '140059': InvalidOrder,
-                    '140060': BadRequest,
-                    '140061': BadRequest,
-                    '140062': BadRequest,
-                    '140063': ExchangeError,
-                    '140064': InvalidOrder,
-                    '140065': PermissionDenied,
-                    '140066': ExchangeError,
-                    '140067': PermissionDenied,
-                    '140068': PermissionDenied,
-                    '140069': PermissionDenied,
-                    '140070': InvalidOrder,
-                    '170001': ExchangeError,
-                    '170005': InvalidOrder,
-                    '170007': RequestTimeout,
-                    '170010': InvalidOrder,
-                    '170011': InvalidOrder,
-                    '170019': InvalidOrder,
-                    '170031': ExchangeError,
-                    '170032': ExchangeError,
-                    '170033': InsufficientFunds,
-                    '170034': InsufficientFunds,
-                    '170035': BadRequest,
-                    '170036': BadRequest,
-                    '170037': BadRequest,
-                    '170105': BadRequest,
-                    '170115': InvalidOrder,
-                    '170116': InvalidOrder,
-                    '170117': InvalidOrder,
-                    '170121': InvalidOrder,
-                    '170124': InvalidOrder,
-                    '170130': BadRequest,
-                    '170131': InsufficientFunds,
-                    '170132': InvalidOrder,
-                    '170133': InvalidOrder,
-                    '170134': InvalidOrder,
-                    '170135': InvalidOrder,
-                    '170136': InvalidOrder,
-                    '170137': InvalidOrder,
-                    '170139': InvalidOrder,
-                    '170140': InvalidOrder,
-                    '170141': InvalidOrder,
-                    '170142': InvalidOrder,
-                    '170143': InvalidOrder,
-                    '170144': InvalidOrder,
-                    '170145': InvalidOrder,
-                    '170146': InvalidOrder,
-                    '170147': InvalidOrder,
-                    '170148': InvalidOrder,
-                    '170149': ExchangeError,
-                    '170150': ExchangeError,
-                    '170151': InvalidOrder,
-                    '170157': InvalidOrder,
-                    '170159': InvalidOrder,
-                    '170190': InvalidOrder,
-                    '170191': InvalidOrder,
-                    '170192': InvalidOrder,
-                    '170193': InvalidOrder,
-                    '170194': InvalidOrder,
-                    '170195': InvalidOrder,
-                    '170196': InvalidOrder,
-                    '170197': InvalidOrder,
-                    '170198': InvalidOrder,
-                    '170199': InvalidOrder,
-                    '170200': InvalidOrder,
-                    '170201': PermissionDenied,
-                    '170202': InvalidOrder,
-                    '170203': InvalidOrder,
-                    '170204': InvalidOrder,
-                    '170206': InvalidOrder,
-                    '170209': RestrictedLocation,
-                    '170210': InvalidOrder,
-                    '170213': OrderNotFound,
-                    '170217': InvalidOrder,
-                    '170218': InvalidOrder,
-                    '170221': BadRequest,
-                    '170222': RateLimitExceeded,
-                    '170223': InsufficientFunds,
-                    '170224': PermissionDenied,
-                    '170226': InsufficientFunds,
-                    '170227': ExchangeError,
-                    '170228': InvalidOrder,
-                    '170229': InvalidOrder,
-                    '170234': ExchangeError,
-                    '170241': ManualInteractionNeeded,
-                    '170371': InvalidOrder,
-                    '170372': InvalidOrder,
-                    '175000': InvalidOrder,
-                    '175001': InvalidOrder,
-                    '175002': InvalidOrder,
-                    '175003': InsufficientFunds,
-                    '175004': InvalidOrder,
-                    '175005': InvalidOrder,
-                    '175006': InsufficientFunds,
-                    '175007': InvalidOrder,
-                    '175008': InvalidOrder,
-                    '175009': InvalidOrder,
-                    '175010': PermissionDenied,
-                    '175012': InvalidOrder,
-                    '175013': InvalidOrder,
-                    '175014': InvalidOrder,
-                    '175015': InvalidOrder,
-                    '175016': InvalidOrder,
-                    '175017': InvalidOrder,
-                    '175027': ExchangeError,
-                    '176002': BadRequest,
-                    '176004': BadRequest,
-                    '176003': BadRequest,
-                    '176006': BadRequest,
-                    '176005': BadRequest,
-                    '176008': BadRequest,
-                    '176007': BadRequest,
-                    '176010': BadRequest,
-                    '176009': BadRequest,
-                    '176012': BadRequest,
-                    '176011': BadRequest,
-                    '176014': BadRequest,
-                    '176013': BadRequest,
-                    '176015': InsufficientFunds,
-                    '176016': BadRequest,
-                    '176017': BadRequest,
-                    '176018': BadRequest,
-                    '176019': BadRequest,
-                    '176020': BadRequest,
-                    '176021': BadRequest,
-                    '176022': BadRequest,
-                    '176023': BadRequest,
-                    '176024': BadRequest,
-                    '176025': BadRequest,
-                    '176026': BadRequest,
-                    '176027': BadRequest,
-                    '176028': BadRequest,
-                    '176029': BadRequest,
-                    '176030': BadRequest,
-                    '176031': BadRequest,
-                    '176034': BadRequest,
-                    '176035': PermissionDenied,
-                    '176036': PermissionDenied,
-                    '176037': PermissionDenied,
-                    '176038': BadRequest,
-                    '176039': BadRequest,
-                    '176040': BadRequest,
-                    '181000': BadRequest,
-                    '181001': BadRequest,
-                    '181002': InvalidOrder,
-                    '181003': InvalidOrder,
-                    '181004': InvalidOrder,
-                    '182000': InvalidOrder,
-                    '181017': BadRequest,
-                    '20001': OrderNotFound,
-                    '20003': InvalidOrder,
-                    '20004': InvalidOrder,
-                    '20005': InvalidOrder,
-                    '20006': InvalidOrder,
-                    '20007': InvalidOrder,
-                    '20008': InvalidOrder,
-                    '20009': InvalidOrder,
-                    '20010': InvalidOrder,
-                    '20011': InvalidOrder,
-                    '20012': InvalidOrder,
-                    '20013': InvalidOrder,
-                    '20014': InvalidOrder,
-                    '20015': InvalidOrder,
-                    '20016': InvalidOrder,
-                    '20017': InvalidOrder,
-                    '20018': InvalidOrder,
-                    '20019': InvalidOrder,
-                    '20020': InvalidOrder,
-                    '20021': InvalidOrder,
-                    '20022': BadRequest,
-                    '20023': BadRequest,
-                    '20031': BadRequest,
-                    '20070': BadRequest,
-                    '20071': BadRequest,
-                    '20084': BadRequest,
-                    '30001': BadRequest,
-                    '30003': InvalidOrder,
-                    '30004': InvalidOrder,
-                    '30005': InvalidOrder,
-                    '30007': InvalidOrder,
-                    '30008': InvalidOrder,
-                    '30009': ExchangeError,
-                    '30010': InsufficientFunds,
-                    '30011': PermissionDenied,
-                    '30012': PermissionDenied,
-                    '30013': PermissionDenied,
-                    '30014': InvalidOrder,
-                    '30015': InvalidOrder,
-                    '30016': ExchangeError,
-                    '30017': InvalidOrder,
-                    '30018': InvalidOrder,
-                    '30019': InvalidOrder,
-                    '30020': InvalidOrder,
-                    '30021': InvalidOrder,
-                    '30022': InvalidOrder,
-                    '30023': InvalidOrder,
-                    '30024': InvalidOrder,
-                    '30025': InvalidOrder,
-                    '30026': InvalidOrder,
-                    '30027': InvalidOrder,
-                    '30028': InvalidOrder,
-                    '30029': InvalidOrder,
-                    '30030': InvalidOrder,
-                    '30031': InsufficientFunds,
-                    '30032': InvalidOrder,
-                    '30033': RateLimitExceeded,
-                    '30034': OrderNotFound,
-                    '30035': RateLimitExceeded,
-                    '30036': ExchangeError,
-                    '30037': InvalidOrder,
-                    '30041': ExchangeError,
-                    '30042': InsufficientFunds,
-                    '30043': InvalidOrder,
-                    '30044': InvalidOrder,
-                    '30045': InvalidOrder,
-                    '30049': InsufficientFunds,
-                    '30050': ExchangeError,
-                    '30051': ExchangeError,
-                    '30052': ExchangeError,
-                    '30054': ExchangeError,
-                    '30057': ExchangeError,
-                    '30063': ExchangeError,
-                    '30067': InsufficientFunds,
-                    '30068': ExchangeError,
-                    '30074': InvalidOrder,
-                    '30075': InvalidOrder,
-                    '30078': ExchangeError,
+                    '-10009': BadRequest, // {"ret_code":-10009,"ret_msg":"Invalid period!","result":null,"token":null}
+                    '-1004': BadRequest, // {"ret_code":-1004,"ret_msg":"Missing required parameter \u0027symbol\u0027","ext_code":null,"ext_info":null,"result":null}
+                    '-1021': BadRequest, // {"ret_code":-1021,"ret_msg":"Timestamp for this request is outside of the recvWindow.","ext_code":null,"ext_info":null,"result":null}
+                    '-1103': BadRequest, // An unknown parameter was sent.
+                    '-1140': InvalidOrder, // {"ret_code":-1140,"ret_msg":"Transaction amount lower than the minimum.","result":{},"ext_code":"","ext_info":null,"time_now":"1659204910.248576"}
+                    '-1197': InvalidOrder, // {"ret_code":-1197,"ret_msg":"Your order quantity to buy is too large. The filled price may deviate significantly from the market price. Please try again","result":{},"ext_code":"","ext_info":null,"time_now":"1659204531.979680"}
+                    '-2013': InvalidOrder, // {"ret_code":-2013,"ret_msg":"Order does not exist.","ext_code":null,"ext_info":null,"result":null}
+                    '-2015': AuthenticationError, // Invalid API-key, IP, or permissions for action.
+                    '-6017': BadRequest, // Repayment amount has exceeded the total liability
+                    '-6025': BadRequest, // Amount to borrow cannot be lower than the min. amount to borrow (per transaction)
+                    '-6029': BadRequest, // Amount to borrow has exceeded the user's estimated max amount to borrow
+                    '5004': ExchangeError, // {"retCode":5004,"retMsg":"Server Timeout","result":null,"retExtInfo":{},"time":1667577060106}
+                    '7001': BadRequest, // {"retCode":7001,"retMsg":"request params type error"}
+                    '10001': BadRequest, // parameter error
+                    '10002': InvalidNonce, // request expired, check your timestamp and recv_window
+                    '10003': AuthenticationError, // Invalid apikey
+                    '10004': AuthenticationError, // invalid sign
+                    '10005': PermissionDenied, // permission denied for current apikey
+                    '10006': RateLimitExceeded, // too many requests
+                    '10007': AuthenticationError, // api_key not found in your request parameters
+                    '10008': AccountSuspended, // User had been banned
+                    '10009': AuthenticationError, // IP had been banned
+                    '10010': PermissionDenied, // request ip mismatch
+                    '10014': BadRequest, // Request is duplicate
+                    '10016': ExchangeError, // {"retCode":10016,"retMsg":"System error. Please try again later."}
+                    '10017': BadRequest, // request path not found or request method is invalid
+                    '10018': RateLimitExceeded, // exceed ip rate limit
+                    '10020': PermissionDenied, // {"retCode":10020,"retMsg":"your account is not a unified margin account, please update your account","result":null,"retExtInfo":null,"time":1664783731123}
+                    '10024': PermissionDenied, // Compliance rules triggered
+                    '10027': PermissionDenied, // Trading Banned
+                    '10028': PermissionDenied, // The API can only be accessed by unified account users.
+                    '10029': PermissionDenied, // The requested symbol is invalid, please check symbol whitelist
+                    '12137': InvalidOrder, // {"retCode":12137,"retMsg":"Order quantity has too many decimals.","result":{},"retExtInfo":{},"time":1695900943033}
+                    '12201': BadRequest, // {"retCode":12201,"retMsg":"Invalid orderCategory parameter.","result":{},"retExtInfo":null,"time":1666699391220}
+                    '12141': BadRequest, // "retCode":12141,"retMsg":"Duplicate clientOrderId.","result":{},"retExtInfo":{},"time":1686134298989}
+                    '100028': PermissionDenied, // The API cannot be accessed by unified account users.
+                    '110001': OrderNotFound, // Order does not exist
+                    '110003': InvalidOrder, // Order price is out of permissible range
+                    '110004': InsufficientFunds, // Insufficient wallet balance
+                    '110005': InvalidOrder, // position status
+                    '110006': InsufficientFunds, // cannot afford estimated position_margin
+                    '110007': InsufficientFunds, // {"retCode":110007,"retMsg":"ab not enough for new order","result":{},"retExtInfo":{},"time":1668838414793}
+                    '110008': InvalidOrder, // Order has been finished or canceled
+                    '110009': InvalidOrder, // The number of stop orders exceeds maximum limit allowed
+                    '110010': InvalidOrder, // Order already cancelled
+                    '110011': InvalidOrder, // Any adjustments made will trigger immediate liquidation
+                    '110012': InsufficientFunds, // Available balance not enough
+                    '110013': BadRequest, // Due to risk limit, cannot set leverage
+                    '110014': InsufficientFunds, // Available balance not enough to add margin
+                    '110015': BadRequest, // the position is in cross_margin
+                    '110016': InvalidOrder, // Requested quantity of contracts exceeds risk limit, please adjust your risk limit level before trying again
+                    '110017': InvalidOrder, // Reduce-only rule not satisfied
+                    '110018': BadRequest, // userId illegal
+                    '110019': InvalidOrder, // orderId illegal
+                    '110020': InvalidOrder, // number of active orders greater than 500
+                    '110021': InvalidOrder, // Open Interest exceeded
+                    '110022': InvalidOrder, // qty has been limited, cannot modify the order to add qty
+                    '110023': InvalidOrder, // This contract only supports position reduction operation, please contact customer service for details
+                    '110024': BadRequest, // You have an existing position, so position mode cannot be switched
+                    '110025': NoChange, // Position mode is not modified
+                    '110026': MarginModeAlreadySet, // Cross/isolated margin mode is not modified
+                    '110027': NoChange, // Margin is not modified
+                    '110028': BadRequest, // Open orders exist, so you cannot change position mode
+                    '110029': BadRequest, // Hedge mode is not available for this symbol
+                    '110030': InvalidOrder, // Duplicate orderId
+                    '110031': InvalidOrder, // risk limit info does not exists
+                    '110032': InvalidOrder, // Illegal order
+                    '110033': InvalidOrder, // Margin cannot be set without open position
+                    '110034': InvalidOrder, // There is no net position
+                    '110035': InvalidOrder, // Cancel order is not completed before liquidation
+                    '110036': InvalidOrder, // Cross margin mode is not allowed to change leverage
+                    '110037': InvalidOrder, // User setting list does not have this symbol
+                    '110038': InvalidOrder, // Portfolio margin mode is not allowed to change leverage
+                    '110039': InvalidOrder, // Maintain margin rate is too high, which may trigger liquidation
+                    '110040': InvalidOrder, // Order will trigger forced liquidation, please resubmit the order
+                    '110041': InvalidOrder, // Skip liquidation is not allowed when a position or maker order exists
+                    '110042': InvalidOrder, // Pre-delivery status can only reduce positions
+                    '110043': BadRequest, // Set leverage not modified
+                    '110044': InsufficientFunds, // Insufficient available margin
+                    '110045': InsufficientFunds, // Insufficient wallet balance
+                    '110046': BadRequest, // Any adjustments made will trigger immediate liquidation
+                    '110047': BadRequest, // Risk limit cannot be adjusted due to insufficient available margin
+                    '110048': BadRequest, // Risk limit cannot be adjusted as the current/expected position value held exceeds the revised risk limit
+                    '110049': BadRequest, // Tick notes can only be numbers
+                    '110050': BadRequest, // Coin is not in the range of selected
+                    '110051': InsufficientFunds, // The user's available balance cannot cover the lowest price of the current market
+                    '110052': InsufficientFunds, // User's available balance is insufficient to set a price
+                    '110053': InsufficientFunds, // The user's available balance cannot cover the current market price and upper limit price
+                    '110054': InvalidOrder, // This position has at least one take profit link order, so the take profit and stop loss mode cannot be switched
+                    '110055': InvalidOrder, // This position has at least one stop loss link order, so the take profit and stop loss mode cannot be switched
+                    '110056': InvalidOrder, // This position has at least one trailing stop link order, so the take profit and stop loss mode cannot be switched
+                    '110057': InvalidOrder, // Conditional order or limit order contains TP/SL related params
+                    '110058': InvalidOrder, // Insufficient number of remaining position size to set take profit and stop loss
+                    '110059': InvalidOrder, // In the case of partial filled of the open order, it is not allowed to modify the take profit and stop loss settings of the open order
+                    '110060': BadRequest, // Under full TP/SL mode, it is not allowed to modify TP/SL
+                    '110061': BadRequest, // Under partial TP/SL mode, TP/SL set more than 20
+                    '110062': BadRequest, // Institution MMP profile not found.
+                    '110063': ExchangeError, // Settlement in progress! xxx not available for trades.
+                    '110064': InvalidOrder, // The number of contracts modified cannot be less than or equal to the filled quantity
+                    '110065': PermissionDenied, // MMP hasn't yet been enabled for your account. Please contact your BD manager.
+                    '110066': ExchangeError, // No trading is allowed at the current time
+                    '110067': PermissionDenied, // unified account is not support
+                    '110068': PermissionDenied, // Leveraged user trading is not allowed
+                    '110069': PermissionDenied, // Do not allow OTC lending users to trade
+                    '110070': InvalidOrder, // ETP symbols are not allowed to be traded
+                    '110071': ExchangeError, // Sorry, we're revamping the Unified Margin Account! Currently, new upgrades are not supported. If you have any questions, please contact our 24/7 customer support.
+                    '110072': InvalidOrder, // OrderLinkedID is duplicate
+                    '110073': ExchangeError, // Set margin mode failed
+                    '110092': InvalidOrder, // expect Rising, but trigger_price[XXXXX] <= current[XXXXX]
+                    '110093': InvalidOrder, // expect Falling, but trigger_price[XXXXX] >= current[XXXXX]
+                    '110094': InvalidOrder, // Order notional value below the lower limit
+                    '130006': InvalidOrder, // {"ret_code":130006,"ret_msg":"The number of contracts exceeds maximum limit allowed: too large","ext_code":"","ext_info":"","result":null,"time_now":"1658397095.099030","rate_limit_status":99,"rate_limit_reset_ms":1658397095097,"rate_limit":100}
+                    '130021': InsufficientFunds, // {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100} |  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100} caused issues/9149#issuecomment-1146559498
+                    '130074': InvalidOrder, // {"ret_code":130074,"ret_msg":"expect Rising, but trigger_price[190000000] \u003c= current[211280000]??LastPrice","ext_code":"","ext_info":"","result":null,"time_now":"1655386638.067076","rate_limit_status":97,"rate_limit_reset_ms":1655386638065,"rate_limit":100}
+                    '131001': InsufficientFunds, // {"retCode":131001,"retMsg":"the available balance is not sufficient to cover the handling fee","result":{},"retExtInfo":{},"time":1666892821245}
+                    '131084': ExchangeError, // Withdraw failed because of Uta Upgrading
+                    '131200': ExchangeError, // Service error
+                    '131201': ExchangeError, // Internal error
+                    '131202': BadRequest, // Invalid memberId
+                    '131203': BadRequest, // Request parameter error
+                    '131204': BadRequest, // Account info error
+                    '131205': BadRequest, // Query transfer error
+                    '131206': ExchangeError, // Fail to transfer
+                    '131207': BadRequest, // Account not exist
+                    '131208': ExchangeError, // Forbid transfer
+                    '131209': BadRequest, // Get subMember relation error
+                    '131210': BadRequest, // Amount accuracy error
+                    '131211': BadRequest, // fromAccountType can't be the same as toAccountType
+                    '131212': InsufficientFunds, // Insufficient balance
+                    '131213': BadRequest, // TransferLTV check error
+                    '131214': BadRequest, // TransferId exist
+                    '131215': BadRequest, // Amount error
+                    '131216': ExchangeError, // Query balance error
+                    '131217': ExchangeError, // Risk check error
+                    '131231': NotSupported, // Transfers into this account are not supported
+                    '131232': NotSupported, // Transfers out this account are not supported
+                    '131002': BadRequest, // Parameter error
+                    '131003': ExchangeError, // Interal error
+                    '131004': AuthenticationError, // KYC needed
+                    '131085': InsufficientFunds, // Withdrawal amount is greater than your availale balance (the deplayed withdrawal is triggered)
+                    '131086': BadRequest, // Withdrawal amount exceeds risk limit (the risk limit of margin trade is triggered)
+                    '131088': BadRequest, // The withdrawal amount exceeds the remaining withdrawal limit of your identity verification level. The current available amount for withdrawal : %s
+                    '131089': BadRequest, // User sensitive operation, withdrawal is prohibited within 24 hours
+                    '131090': ExchangeError, // User withdraw has been banned
+                    '131091': ExchangeError, // Blocked login status does not allow withdrawals
+                    '131092': ExchangeError, // User status is abnormal
+                    '131093': ExchangeError, // The withdrawal address is not in the whitelist
+                    '131094': BadRequest, // UserId is not in the whitelist
+                    '131095': BadRequest, // Withdrawl amount exceeds the 24 hour platform limit
+                    '131096': BadRequest, // Withdraw amount does not satify the lower limit or upper limit
+                    '131097': ExchangeError, // Withdrawal of this currency has been closed
+                    '131098': ExchangeError, // Withdrawal currently is not availble from new address
+                    '131099': ExchangeError, // Hot wallet status can cancel the withdraw
+                    '140001': OrderNotFound, // Order does not exist
+                    '140003': InvalidOrder, // Order price is out of permissible range
+                    '140004': InsufficientFunds, // Insufficient wallet balance
+                    '140005': InvalidOrder, // position status
+                    '140006': InsufficientFunds, // cannot afford estimated position_margin
+                    '140007': InsufficientFunds, // Insufficient available balance
+                    '140008': InvalidOrder, // Order has been finished or canceled
+                    '140009': InvalidOrder, // The number of stop orders exceeds maximum limit allowed
+                    '140010': InvalidOrder, // Order already cancelled
+                    '140011': InvalidOrder, // Any adjustments made will trigger immediate liquidation
+                    '140012': InsufficientFunds, // Available balance not enough
+                    '140013': BadRequest, // Due to risk limit, cannot set leverage
+                    '140014': InsufficientFunds, // Available balance not enough to add margin
+                    '140015': InvalidOrder, // the position is in cross_margin
+                    '140016': InvalidOrder, // Requested quantity of contracts exceeds risk limit, please adjust your risk limit level before trying again
+                    '140017': InvalidOrder, // Reduce-only rule not satisfied
+                    '140018': BadRequest, // userId illegal
+                    '140019': InvalidOrder, // orderId illegal
+                    '140020': InvalidOrder, // number of active orders greater than 500
+                    '140021': InvalidOrder, // Open Interest exceeded
+                    '140022': InvalidOrder, // qty has been limited, cannot modify the order to add qty
+                    '140023': InvalidOrder, // This contract only supports position reduction operation, please contact customer service for details
+                    '140024': BadRequest, // You have an existing position, so position mode cannot be switched
+                    '140025': BadRequest, // Position mode is not modified
+                    '140026': BadRequest, // Cross/isolated margin mode is not modified
+                    '140027': BadRequest, // Margin is not modified
+                    '140028': InvalidOrder, // Open orders exist, so you cannot change position mode
+                    '140029': BadRequest, // Hedge mode is not available for this symbol
+                    '140030': InvalidOrder, // Duplicate orderId
+                    '140031': BadRequest, // risk limit info does not exists
+                    '140032': InvalidOrder, // Illegal order
+                    '140033': InvalidOrder, // Margin cannot be set without open position
+                    '140034': InvalidOrder, // There is no net position
+                    '140035': InvalidOrder, // Cancel order is not completed before liquidation
+                    '140036': BadRequest, // Cross margin mode is not allowed to change leverage
+                    '140037': InvalidOrder, // User setting list does not have this symbol
+                    '140038': BadRequest, // Portfolio margin mode is not allowed to change leverage
+                    '140039': BadRequest, // Maintain margin rate is too high, which may trigger liquidation
+                    '140040': InvalidOrder, // Order will trigger forced liquidation, please resubmit the order
+                    '140041': InvalidOrder, // Skip liquidation is not allowed when a position or maker order exists
+                    '140042': InvalidOrder, // Pre-delivery status can only reduce positions
+                    '140043': BadRequest, // Set leverage not modified
+                    '140044': InsufficientFunds, // Insufficient available margin
+                    '140045': InsufficientFunds, // Insufficient wallet balance
+                    '140046': BadRequest, // Any adjustments made will trigger immediate liquidation
+                    '140047': BadRequest, // Risk limit cannot be adjusted due to insufficient available margin
+                    '140048': BadRequest, // Risk limit cannot be adjusted as the current/expected position value held exceeds the revised risk limit
+                    '140049': BadRequest, // Tick notes can only be numbers
+                    '140050': InvalidOrder, // Coin is not in the range of selected
+                    '140051': InsufficientFunds, // The user's available balance cannot cover the lowest price of the current market
+                    '140052': InsufficientFunds, // User's available balance is insufficient to set a price
+                    '140053': InsufficientFunds, // The user's available balance cannot cover the current market price and upper limit price
+                    '140054': InvalidOrder, // This position has at least one take profit link order, so the take profit and stop loss mode cannot be switched
+                    '140055': InvalidOrder, // This position has at least one stop loss link order, so the take profit and stop loss mode cannot be switched
+                    '140056': InvalidOrder, // This position has at least one trailing stop link order, so the take profit and stop loss mode cannot be switched
+                    '140057': InvalidOrder, // Conditional order or limit order contains TP/SL related params
+                    '140058': InvalidOrder, // Insufficient number of remaining position size to set take profit and stop loss
+                    '140059': InvalidOrder, // In the case of partial filled of the open order, it is not allowed to modify the take profit and stop loss settings of the open order
+                    '140060': BadRequest, // Under full TP/SL mode, it is not allowed to modify TP/SL
+                    '140061': BadRequest, // Under partial TP/SL mode, TP/SL set more than 20
+                    '140062': BadRequest, // Institution MMP profile not found.
+                    '140063': ExchangeError, // Settlement in progress! xxx not available for trades.
+                    '140064': InvalidOrder, // The number of contracts modified cannot be less than or equal to the filled quantity
+                    '140065': PermissionDenied, // MMP hasn't yet been enabled for your account. Please contact your BD manager.
+                    '140066': ExchangeError, // No trading is allowed at the current time
+                    '140067': PermissionDenied, // unified account is not support
+                    '140068': PermissionDenied, // Leveraged user trading is not allowed
+                    '140069': PermissionDenied, // Do not allow OTC lending users to trade
+                    '140070': InvalidOrder, // ETP symbols are not allowed to be traded
+                    '170001': ExchangeError, // Internal error.
+                    '170005': InvalidOrder, // Too many new orders; current limit is %s orders per %s.
+                    '170007': RequestTimeout, // Timeout waiting for response from backend server.
+                    '170010': InvalidOrder, // Purchase failed: Exceed the maximum position limit of leveraged tokens, the current available limit is %s USDT
+                    '170011': InvalidOrder, // "Purchase failed: Exceed the maximum position limit of innovation tokens,
+                    '170019': InvalidOrder, // the current available limit is replaceKey0 USDT"
+                    '170031': ExchangeError, // The feature has been suspended
+                    '170032': ExchangeError, // Network error. Please try again later
+                    '170033': InsufficientFunds, // margin Insufficient account balance
+                    '170034': InsufficientFunds, // Liability over flow in spot leverage trade!
+                    '170035': BadRequest, // Submitted to the system for processing!
+                    '170036': BadRequest, // You haven't enabled Cross Margin Trading yet. To do so, please head to the PC trading site or the Bybit app
+                    '170037': BadRequest, // Cross Margin Trading not yet supported by the selected coin
+                    '170105': BadRequest, // Parameter '%s' was empty.
+                    '170115': InvalidOrder, // Invalid timeInForce.
+                    '170116': InvalidOrder, // Invalid orderType.
+                    '170117': InvalidOrder, // Invalid side.
+                    '170121': InvalidOrder, // Invalid symbol.
+                    '170124': InvalidOrder, // Order amount too large.
+                    '170130': BadRequest, // Data sent for paramter '%s' is not valid.
+                    '170131': InsufficientFunds, // Balance insufficient
+                    '170132': InvalidOrder, // Order price too high.
+                    '170133': InvalidOrder, // Order price lower than the minimum.
+                    '170134': InvalidOrder, // Order price decimal too long.
+                    '170135': InvalidOrder, // Order quantity too large.
+                    '170136': InvalidOrder, // Order quantity lower than the minimum.
+                    '170137': InvalidOrder, // Order volume decimal too long
+                    '170139': InvalidOrder, // Order has been filled.
+                    '170140': InvalidOrder, // Transaction amount lower than the minimum.
+                    '170141': InvalidOrder, // Duplicate clientOrderId
+                    '170142': InvalidOrder, // Order has been canceled
+                    '170143': InvalidOrder, // Cannot be found on order book
+                    '170144': InvalidOrder, // Order has been locked
+                    '170145': InvalidOrder, // This order type does not support cancellation
+                    '170146': InvalidOrder, // Order creation timeout
+                    '170147': InvalidOrder, // Order cancellation timeout
+                    '170148': InvalidOrder, // Market order amount decimal too long
+                    '170149': ExchangeError, // Create order failed
+                    '170150': ExchangeError, // Cancel order failed
+                    '170151': InvalidOrder, // The trading pair is not open yet
+                    '170157': InvalidOrder, // The trading pair is not available for api trading
+                    '170159': InvalidOrder, // Market Order is not supported within the first %s minutes of newly launched pairs due to risk control.
+                    '170190': InvalidOrder, // Cancel order has been finished
+                    '170191': InvalidOrder, // Can not cancel order, please try again later
+                    '170192': InvalidOrder, // Order price cannot be higher than %s .
+                    '170193': InvalidOrder, // Buy order price cannot be higher than %s.
+                    '170194': InvalidOrder, // Sell order price cannot be lower than %s.
+                    '170195': InvalidOrder, // Please note that your order may not be filled
+                    '170196': InvalidOrder, // Please note that your order may not be filled
+                    '170197': InvalidOrder, // Your order quantity to buy is too large. The filled price may deviate significantly from the market price. Please try again
+                    '170198': InvalidOrder, // Your order quantity to sell is too large. The filled price may deviate significantly from the market price. Please try again
+                    '170199': InvalidOrder, // Your order quantity to buy is too large. The filled price may deviate significantly from the nav. Please try again.
+                    '170200': InvalidOrder, // Your order quantity to sell is too large. The filled price may deviate significantly from the nav. Please try again.
+                    '170201': PermissionDenied, // Your account has been restricted for trades. If you have any questions, please email us at support@bybit.com
+                    '170202': InvalidOrder, // Invalid orderFilter parameter.
+                    '170203': InvalidOrder, // Please enter the TP/SL price.
+                    '170204': InvalidOrder, // trigger price cannot be higher than 110% price.
+                    '170206': InvalidOrder, // trigger price cannot be lower than 90% of qty.
+                    '170209': RestrictedLocation, // {"retCode":170209,"retMsg":"This trading pair is only available to the Brunei,Kampuchea (Cambodia ],Indonesia,Laos,Malaysia,Burma,Philippines,Thailand,Timor-Leste,Vietnam region.","result":{},"retExtInfo":{},"time":1769526868171}
+                    '170210': InvalidOrder, // New order rejected.
+                    '170213': OrderNotFound, // Order does not exist.
+                    '170217': InvalidOrder, // Only LIMIT-MAKER order is supported for the current pair.
+                    '170218': InvalidOrder, // The LIMIT-MAKER order is rejected due to invalid price.
+                    '170221': BadRequest, // This coin does not exist.
+                    '170222': RateLimitExceeded, // Too many requests in this time frame.
+                    '170223': InsufficientFunds, // Your Spot Account with Institutional Lending triggers an alert or liquidation.
+                    '170224': PermissionDenied, // You're not a user of the Innovation Zone.
+                    '170226': InsufficientFunds, // Your Spot Account for Margin Trading is being liquidated.
+                    '170227': ExchangeError, // This feature is not supported.
+                    '170228': InvalidOrder, // The purchase amount of each order exceeds the estimated maximum purchase amount.
+                    '170229': InvalidOrder, // The sell quantity per order exceeds the estimated maximum sell quantity.
+                    '170234': ExchangeError, // System Error
+                    '170241': ManualInteractionNeeded, // To proceed with trading, users must read through and confirm that they fully understand the project's risk disclosure document.
+                    '170371': InvalidOrder, // {"retCode":170371,"retMsg":"Order price cannot be lower than 0.0025, the price limitation.","result":{},"retExtInfo":{},"time":1766500057720}
+                    '170372': InvalidOrder, // {"retCode":170372,"retMsg":"Order price cannot be higher than 24.2175, the price limitation","result":{},"retExtInfo":{},"time":1766500129105}
+                    '175000': InvalidOrder, // The serialNum is already in use.
+                    '175001': InvalidOrder, // Daily purchase limit has been exceeded. Please try again later.
+                    '175002': InvalidOrder, // There's a large number of purchase orders. Please try again later.
+                    '175003': InsufficientFunds, // Insufficient available balance. Please make a deposit and try again.
+                    '175004': InvalidOrder, // Daily redemption limit has been exceeded. Please try again later.
+                    '175005': InvalidOrder, // There's a large number of redemption orders. Please try again later.
+                    '175006': InsufficientFunds, // Insufficient available balance. Please make a deposit and try again.
+                    '175007': InvalidOrder, // Order not found.
+                    '175008': InvalidOrder, // Purchase period hasn't started yet.
+                    '175009': InvalidOrder, // Purchase amount has exceeded the upper limit.
+                    '175010': PermissionDenied, // You haven't passed the quiz yet! To purchase and/or redeem an LT, please complete the quiz first.
+                    '175012': InvalidOrder, // Redemption period hasn't started yet.
+                    '175013': InvalidOrder, // Redemption amount has exceeded the upper limit.
+                    '175014': InvalidOrder, // Purchase of the LT has been temporarily suspended.
+                    '175015': InvalidOrder, // Redemption of the LT has been temporarily suspended.
+                    '175016': InvalidOrder, // Invalid format. Please check the length and numeric precision.
+                    '175017': InvalidOrder, // Failed to place order：Exceed the maximum position limit of leveraged tokens, the current available limit is XXXX USDT
+                    '175027': ExchangeError, // Subscriptions and redemptions are temporarily unavailable while account upgrade is in progress
+                    '176002': BadRequest, // Query user account info error
+                    '176004': BadRequest, // Query order history start time exceeds end time
+                    '176003': BadRequest, // Query user loan history error
+                    '176006': BadRequest, // Repayment Failed
+                    '176005': BadRequest, // Failed to borrow
+                    '176008': BadRequest, // You haven't enabled Cross Margin Trading yet. To do so
+                    '176007': BadRequest, // User not found
+                    '176010': BadRequest, // Failed to locate the coins to borrow
+                    '176009': BadRequest, // You haven't enabled Cross Margin Trading yet. To do so
+                    '176012': BadRequest, // Pair not available
+                    '176011': BadRequest, // Cross Margin Trading not yet supported by the selected coin
+                    '176014': BadRequest, // Repeated repayment requests
+                    '176013': BadRequest, // Cross Margin Trading not yet supported by the selected pair
+                    '176015': InsufficientFunds, // Insufficient available balance
+                    '176016': BadRequest, // No repayment required
+                    '176017': BadRequest, // Repayment amount has exceeded the total liability
+                    '176018': BadRequest, // Settlement in progress
+                    '176019': BadRequest, // Liquidation in progress
+                    '176020': BadRequest, // Failed to locate repayment history
+                    '176021': BadRequest, // Repeated borrowing requests
+                    '176022': BadRequest, // Coins to borrow not generally available yet
+                    '176023': BadRequest, // Pair to borrow not generally available yet
+                    '176024': BadRequest, // Invalid user status
+                    '176025': BadRequest, // Amount to borrow cannot be lower than the min. amount to borrow (per transaction)
+                    '176026': BadRequest, // Amount to borrow cannot be larger than the max. amount to borrow (per transaction)
+                    '176027': BadRequest, // Amount to borrow cannot be higher than the max. amount to borrow per user
+                    '176028': BadRequest, // Amount to borrow has exceeded Bybit's max. amount to borrow
+                    '176029': BadRequest, // Amount to borrow has exceeded the user's estimated max. amount to borrow
+                    '176030': BadRequest, // Query user loan info error
+                    '176031': BadRequest, // Number of decimals has exceeded the maximum precision
+                    '176034': BadRequest, // The leverage ratio is out of range
+                    '176035': PermissionDenied, // Failed to close the leverage switch during liquidation
+                    '176036': PermissionDenied, // Failed to adjust leverage switch during forced liquidation
+                    '176037': PermissionDenied, // For non-unified transaction users, the operation failed
+                    '176038': BadRequest, // The spot leverage is closed and the current operation is not allowed
+                    '176039': BadRequest, // Borrowing, current operation is not allowed
+                    '176040': BadRequest, // There is a spot leverage order, and the adjustment of the leverage switch failed!
+                    '181000': BadRequest, // category is null
+                    '181001': BadRequest, // category only support linear or option or spot.
+                    '181002': InvalidOrder, // symbol is null.
+                    '181003': InvalidOrder, // side is null.
+                    '181004': InvalidOrder, // side only support Buy or Sell.
+                    '182000': InvalidOrder, // symbol related quote price is null
+                    '181017': BadRequest, // OrderStatus must be final status
+                    '20001': OrderNotFound, // Order not exists
+                    '20003': InvalidOrder, // missing parameter side
+                    '20004': InvalidOrder, // invalid parameter side
+                    '20005': InvalidOrder, // missing parameter symbol
+                    '20006': InvalidOrder, // invalid parameter symbol
+                    '20007': InvalidOrder, // missing parameter order_type
+                    '20008': InvalidOrder, // invalid parameter order_type
+                    '20009': InvalidOrder, // missing parameter qty
+                    '20010': InvalidOrder, // qty must be greater than 0
+                    '20011': InvalidOrder, // qty must be an integer
+                    '20012': InvalidOrder, // qty must be greater than zero and less than 1 million
+                    '20013': InvalidOrder, // missing parameter price
+                    '20014': InvalidOrder, // price must be greater than 0
+                    '20015': InvalidOrder, // missing parameter time_in_force
+                    '20016': InvalidOrder, // invalid value for parameter time_in_force
+                    '20017': InvalidOrder, // missing parameter order_id
+                    '20018': InvalidOrder, // invalid date format
+                    '20019': InvalidOrder, // missing parameter stop_px
+                    '20020': InvalidOrder, // missing parameter base_price
+                    '20021': InvalidOrder, // missing parameter stop_order_id
+                    '20022': BadRequest, // missing parameter leverage
+                    '20023': BadRequest, // leverage must be a number
+                    '20031': BadRequest, // leverage must be greater than zero
+                    '20070': BadRequest, // missing parameter margin
+                    '20071': BadRequest, // margin must be greater than zero
+                    '20084': BadRequest, // order_id or order_link_id is required
+                    '30001': BadRequest, // order_link_id is repeated
+                    '30003': InvalidOrder, // qty must be more than the minimum allowed
+                    '30004': InvalidOrder, // qty must be less than the maximum allowed
+                    '30005': InvalidOrder, // price exceeds maximum allowed
+                    '30007': InvalidOrder, // price exceeds minimum allowed
+                    '30008': InvalidOrder, // invalid order_type
+                    '30009': ExchangeError, // no position found
+                    '30010': InsufficientFunds, // insufficient wallet balance
+                    '30011': PermissionDenied, // operation not allowed as position is undergoing liquidation
+                    '30012': PermissionDenied, // operation not allowed as position is undergoing ADL
+                    '30013': PermissionDenied, // position is in liq or adl status
+                    '30014': InvalidOrder, // invalid closing order, qty should not greater than size
+                    '30015': InvalidOrder, // invalid closing order, side should be opposite
+                    '30016': ExchangeError, // TS and SL must be cancelled first while closing position
+                    '30017': InvalidOrder, // estimated fill price cannot be lower than current Buy liq_price
+                    '30018': InvalidOrder, // estimated fill price cannot be higher than current Sell liq_price
+                    '30019': InvalidOrder, // cannot attach TP/SL params for non-zero position when placing non-opening position order
+                    '30020': InvalidOrder, // position already has TP/SL params
+                    '30021': InvalidOrder, // cannot afford estimated position_margin
+                    '30022': InvalidOrder, // estimated buy liq_price cannot be higher than current mark_price
+                    '30023': InvalidOrder, // estimated sell liq_price cannot be lower than current mark_price
+                    '30024': InvalidOrder, // cannot set TP/SL/TS for zero-position
+                    '30025': InvalidOrder, // trigger price should bigger than 10% of last price
+                    '30026': InvalidOrder, // price too high
+                    '30027': InvalidOrder, // price set for Take profit should be higher than Last Traded Price
+                    '30028': InvalidOrder, // price set for Stop loss should be between Liquidation price and Last Traded Price
+                    '30029': InvalidOrder, // price set for Stop loss should be between Last Traded Price and Liquidation price
+                    '30030': InvalidOrder, // price set for Take profit should be lower than Last Traded Price
+                    '30031': InsufficientFunds, // insufficient available balance for order cost
+                    '30032': InvalidOrder, // order has been filled or cancelled
+                    '30033': RateLimitExceeded, // The number of stop orders exceeds maximum limit allowed
+                    '30034': OrderNotFound, // no order found
+                    '30035': RateLimitExceeded, // too fast to cancel
+                    '30036': ExchangeError, // the expected position value after order execution exceeds the current risk limit
+                    '30037': InvalidOrder, // order already cancelled
+                    '30041': ExchangeError, // no position found
+                    '30042': InsufficientFunds, // insufficient wallet balance
+                    '30043': InvalidOrder, // operation not allowed as position is undergoing liquidation
+                    '30044': InvalidOrder, // operation not allowed as position is undergoing AD
+                    '30045': InvalidOrder, // operation not allowed as position is not normal status
+                    '30049': InsufficientFunds, // insufficient available balance
+                    '30050': ExchangeError, // any adjustments made will trigger immediate liquidation
+                    '30051': ExchangeError, // due to risk limit, cannot adjust leverage
+                    '30052': ExchangeError, // leverage can not less than 1
+                    '30054': ExchangeError, // position margin is invalid
+                    '30057': ExchangeError, // requested quantity of contracts exceeds risk limit
+                    '30063': ExchangeError, // reduce-only rule not satisfied
+                    '30067': InsufficientFunds, // insufficient available balance
+                    '30068': ExchangeError, // exit value must be positive
+                    '30074': InvalidOrder, // can't create the stop order, because you expect the order will be triggered when the LastPrice(or IndexPrice、 MarkPrice, determined by trigger_by) is raising to stop_px, but the LastPrice(or IndexPrice、 MarkPrice) is already equal to or greater than stop_px, please adjust base_price or stop_px
+                    '30075': InvalidOrder, // can't create the stop order, because you expect the order will be triggered when the LastPrice(or IndexPrice、 MarkPrice, determined by trigger_by) is falling to stop_px, but the LastPrice(or IndexPrice、 MarkPrice) is already equal to or less than stop_px, please adjust base_price or stop_px
+                    '30078': ExchangeError, // {"ret_code":30078,"ret_msg":"","ext_code":"","ext_info":"","result":null,"time_now":"1644853040.916000","rate_limit_status":73,"rate_limit_reset_ms":1644853040912,"rate_limit":75}
                     // '30084': BadRequest, // Isolated not modified, see handleErrors below
-                    '33004': AuthenticationError,
-                    '34026': ExchangeError,
-                    '34036': BadRequest,
-                    '35015': BadRequest,
-                    '340099': ExchangeError,
-                    '3400045': ExchangeError,
-                    '3100116': BadRequest,
-                    '3100198': BadRequest,
+                    '33004': AuthenticationError, // apikey already expired
+                    '34026': ExchangeError, // the limit is no change
+                    '34036': BadRequest, // {"ret_code":34036,"ret_msg":"leverage not modified","ext_code":"","ext_info":"","result":null,"time_now":"1652376449.258918","rate_limit_status":74,"rate_limit_reset_ms":1652376449255,"rate_limit":75}
+                    '35015': BadRequest, // {"ret_code":35015,"ret_msg":"Qty not in range","ext_code":"","ext_info":"","result":null,"time_now":"1652277215.821362","rate_limit_status":99,"rate_limit_reset_ms":1652277215819,"rate_limit":100}
+                    '340099': ExchangeError, // Server error
+                    '3400045': ExchangeError, // Set margin mode failed
+                    '3100116': BadRequest, // {"retCode":3100116,"retMsg":"Order quantity below the lower limit 0.01.","result":null,"retExtMap":{"key0":"0.01"}}
+                    '3100198': BadRequest, // {"retCode":3100198,"retMsg":"orderLinkId can not be empty.","result":null,"retExtMap":{}}
                     '3200300': InsufficientFunds, // {"retCode":3200300,"retMsg":"Insufficient margin balance.","result":null,"retExtMap":{}}
                 },
                 'broad': {
-                    'Not supported symbols': BadSymbol,
-                    'Request timeout': RequestTimeout,
-                    'unknown orderInfo': OrderNotFound,
-                    'invalid api_key': AuthenticationError,
+                    'Not supported symbols': BadSymbol, // {"retCode":10001,"retMsg":"Not supported symbols","result":{},"retExtInfo":{},"time":1726147060461}
+                    'Request timeout': RequestTimeout, // {"retCode":10016,"retMsg":"Request timeout, please try again later","result":{},"retExtInfo":{},"time":1675307914985}
+                    'unknown orderInfo': OrderNotFound, // {"ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100}
+                    'invalid api_key': AuthenticationError, // {"ret_code":10003,"ret_msg":"invalid api_key","ext_code":"","ext_info":"","result":null,"time_now":"1599547085.415797"}
                     // the below two issues are caused as described: issues/9149#issuecomment-1146559498, when response is such:  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100}
                     'oc_diff': InsufficientFunds,
                     'new_oc': InsufficientFunds,
@@ -1088,26 +1128,28 @@ export default class bybit extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'usePrivateInstrumentsInfo': false,
                 'enableDemoTrading': false,
                 'fetchMarkets': {
+                    'usePrivateInstrumentsInfo': false,
                     'types': ['spot', 'linear', 'inverse', 'option'],
                     'options': ['BTC', 'ETH', 'SOL', 'XRP', 'MNT', 'DOGE'],
+                    'loadAllOptions': false, // load all possible option markets, adds significant load time
+                    'loadExpiredOptions': false, // loads expired options, to load all possible expired options set loadAllOptions to true
                 },
                 'enableUnifiedMargin': undefined,
                 'enableUnifiedAccount': undefined,
                 'unifiedMarginStatus': undefined,
-                'createMarketBuyOrderRequiresPrice': false,
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': false, // only true for classic accounts
+                },
                 'createUnifiedMarginAccount': false,
-                'defaultType': 'swap',
-                'defaultSubType': 'linear',
-                'defaultSettle': 'USDT',
+                'defaultType': 'swap', // 'swap', 'future', 'option', 'spot'
+                'defaultSubType': 'linear', // 'linear', 'inverse'
+                'defaultSettle': 'USDT', // USDC for USDC settled markets
                 'code': 'BTC',
-                'recvWindow': 5 * 1000,
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
-                'loadAllOptions': false,
-                'loadExpiredOptions': false,
+                'recvWindow': 5 * 1000, // 5 sec default
+                'timeDifference': 0, // the difference between system clock and exchange server clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'brokerId': 'CCXT',
                 'accountsByType': {
                     'spot': 'SPOT',
@@ -1131,88 +1173,84 @@ export default class bybit extends Exchange {
                     'FUND': 'fund',
                 },
                 'networks': {
+                    'BTC': 'BTC',
+                    'BRC20': 'BTC',
+                    'ETH': 'ETH',
                     'ERC20': 'ETH',
+                    'TRX': 'TRX',
                     'TRC20': 'TRX',
+                    'BSC': 'BSC',
                     'BEP20': 'BSC',
                     'SOL': 'SOL',
                     'ACA': 'ACA',
                     'ADA': 'ADA',
                     'ALGO': 'ALGO',
                     'APT': 'APTOS',
-                    'AR': 'AR',
                     'ARBONE': 'ARBI',
+                    'ARBNOVA': 'ARBINOVA',
                     'AVAXC': 'CAVAX',
                     'AVAXX': 'XAVAX',
+                    'COSMOS': 'ATOM',
                     'ATOM': 'ATOM',
                     'BCH': 'BCH',
                     'BEP2': 'BNB',
-                    'CHZ': 'CHZ',
-                    'DCR': 'DCR',
-                    'DGB': 'DGB',
                     'DOGE': 'DOGE',
                     'DOT': 'DOT',
                     'EGLD': 'EGLD',
                     'EOS': 'EOS',
                     'ETC': 'ETC',
-                    'ETHF': 'ETHF',
                     'ETHW': 'ETHW',
                     'FIL': 'FIL',
                     'STEP': 'FITFI',
-                    'FLOW': 'FLOW',
-                    'FTM': 'FTM',
+                    'SONIC': 'SONIC', // previously fantom & FTM
                     'GLMR': 'GLMR',
                     'HBAR': 'HBAR',
-                    'HNT': 'HNT',
                     'ICP': 'ICP',
-                    'ICX': 'ICX',
-                    'KDA': 'KDA',
                     'KLAY': 'KLAY',
-                    'KMA': 'KMA',
-                    'KSM': 'KSM',
                     'LTC': 'LTC',
                     // 'TERRA': 'LUNANEW',
                     // 'TERRACLASSIC': 'LUNA',
+                    'POLYGON': 'MATIC',
                     'MATIC': 'MATIC',
-                    'MINA': 'MINA',
-                    'MOVR': 'MOVR',
                     'NEAR': 'NEAR',
-                    'NEM': 'NEM',
                     'OASYS': 'OAS',
                     'OASIS': 'ROSE',
-                    'OMNI': 'OMNI',
-                    'ONE': 'ONE',
-                    'OPTIMISM': 'OP',
-                    'POKT': 'POKT',
-                    'QTUM': 'QTUM',
-                    'RVN': 'RVN',
-                    'SC': 'SC',
+                    'ONE': 'ONE', // harmony one
+                    'OP': 'OP', // 'OPTIMISM'
                     'SCRT': 'SCRT',
                     'STX': 'STX',
-                    'THETA': 'THETA',
                     'TON': 'TON',
-                    'WAVES': 'WAVES',
                     'WAX': 'WAXP',
-                    'XDC': 'XDC',
                     'XEC': 'XEC',
                     'XLM': 'XLM',
                     'XRP': 'XRP',
                     'XTZ': 'XTZ',
-                    'XYM': 'XYM',
-                    'ZEN': 'ZEN',
                     'ZIL': 'ZIL',
-                    'ZKSYNC': 'ZKSYNC',
-                    // todo: uncomment after consensus
-                    // 'CADUCEUS': 'CMP',
-                    // 'KON': 'KON', // konpay, "konchain"
-                    // 'AURORA': 'AURORA',
-                    // 'BITCOINGOLD': 'BTG',
+                    'ZKSYNCLITE': 'ZKSYNC',
+                    'ZKSYNCERA': 'ZKV2',
+                    '0G': 'ZEROGRAVITY',
+                    'MANTLE': 'MANTLE',
+                    'CHZ': 'CHILIZ',
+                    'BASE': 'BASE',
+                    'CELO': 'CELO',
+                    'SCROLL': 'SCROLL',
+                    'SUI': 'SUI',
+                    // 'SEI': 'SEI', SEIEVM ?
+                    'DYDX': 'DYDX',
+                    'HUMANITY': 'HUMANITY',
+                    'HYPER': 'HYPEREVM',
+                    // 'KAVA': 'KAVA',  KAVAEVM ?
+                    'MONAD': 'MONAD',
+                    'MOVE': 'MOVE',
+                    // 'LUNA2': 'LUNANEW' (Terra)
+                    // 'LUNA1': 'LUNA' (Terra)
                 },
                 'networksById': {
                     'ETH': 'ERC20',
                     'TRX': 'TRC20',
                     'BSC': 'BEP20',
-                    'OMNI': 'OMNI',
-                    'SPL': 'SOL',
+                    'OP': 'OP',
+                    'MATIC': 'MATIC',
                 },
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
@@ -1257,7 +1295,7 @@ export default class bybit extends Exchange {
                             'GTD': false,
                         },
                         'hedged': true,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo: implement
                         'trailing': true,
                         'iceberg': false,
                         'leverage': false,
@@ -1270,8 +1308,8 @@ export default class bybit extends Exchange {
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 100,
-                        'daysBack': 365 * 2,
-                        'untilDays': 7,
+                        'daysBack': 365 * 2, // 2 years
+                        'untilDays': 7, // days between start-end
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -1291,7 +1329,7 @@ export default class bybit extends Exchange {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 50,
-                        'daysBack': 365 * 2,
+                        'daysBack': 365 * 2, // 2 years
                         'daysBackCanceled': 1,
                         'untilDays': 7,
                         'trigger': true,
@@ -1352,6 +1390,7 @@ export default class bybit extends Exchange {
                     'deposit': {},
                 },
             },
+            'rollingWindowSize': 5000.0, // According to the docs (https://bybit-exchange.github.io/docs/v5/rate-limit), tested with 90000.0 with no errors
         });
     }
     /**
@@ -1506,6 +1545,9 @@ export default class bybit extends Exchange {
             base = this.safeString(symbolBase, 0);
             expiry = this.safeString(optionParts, 1);
             const symbolQuoteAndSettle = this.safeString(symbolBase, 1);
+            if (symbolQuoteAndSettle === undefined) {
+                throw new ExchangeError(this.id + ' createExpiredOptionMarket() missing symbolQuoteAndSettle');
+            }
             const splitQuote = symbolQuoteAndSettle.split(':');
             const quoteAndSettle = this.safeString(splitQuote, 0);
             quote = quoteAndSettle;
@@ -1542,8 +1584,9 @@ export default class bybit extends Exchange {
             amountPrecision = this.parseNumber('1');
             pricePrecision = this.parseNumber('0.01');
         }
+        const convertedExpireDate = this.convertExpireDateToMarketIdDate(expiry);
         return {
-            'id': base + '-' + this.convertExpireDateToMarketIdDate(expiry) + '-' + strike + '-' + optionType,
+            'id': base + '-' + convertedExpireDate + '-' + strike + '-' + optionType,
             'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
             'base': base,
             'quote': quote,
@@ -1553,8 +1596,9 @@ export default class bybit extends Exchange {
             'settleId': settle,
             'active': false,
             'type': 'option',
-            'linear': undefined,
-            'inverse': undefined,
+            'subType': (base === settle) ? 'inverse' : 'linear',
+            'linear': (base !== settle),
+            'inverse': (base === settle),
             'spot': false,
             'swap': false,
             'future': false,
@@ -1589,7 +1633,7 @@ export default class bybit extends Exchange {
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const isOption = (marketId !== undefined) && ((marketId.indexOf('-C') > -1) || (marketId.indexOf('-P') > -1));
-        if (isOption && !(marketId in this.markets_by_id)) {
+        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
@@ -1634,6 +1678,68 @@ export default class bybit extends Exchange {
             return this.costToPrecision(symbol, cost);
         }
         return cost;
+    }
+    /**
+     * @method
+     * @name bybit#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://bybit-exchange.github.io/docs/v5/system-status
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+     */
+    async fetchStatus(params = {}) {
+        const response = await this.publicGetV5SystemStatus(params);
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "id": "f9d6842d-5331-11f0-8fd3-c241b123dd9e",
+        //                     "title": "t01",
+        //                     "state": "completed",
+        //                     "begin": "1751012688000",
+        //                     "end": "1751012760000",
+        //                     "href": "",
+        //                     "serviceTypes": [ 1, 2, 3, 4, 5 ],
+        //                     "product": [ 1, 2, 3, 4 ],
+        //                     "uidSuffix": [],
+        //                     "maintainType": 3,
+        //                     "env": 2
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1751858399649
+        //     }
+        //
+        const result = this.safeDict(response, 'result', {});
+        const list = this.safeList(result, 'list', []);
+        let status = 'ok';
+        let eta = undefined;
+        let url = undefined;
+        for (let i = 0; i < list.length; i++) {
+            const event = list[i];
+            const state = this.safeString(event, 'state');
+            if (state === 'ongoing') {
+                status = 'maintenance';
+                eta = this.safeInteger(event, 'end');
+                url = this.safeString(event, 'href');
+                break;
+            }
+            else if (state === 'scheduled') {
+                eta = this.safeInteger(event, 'begin');
+                url = this.safeString(event, 'href');
+            }
+        }
+        return {
+            'status': status,
+            'updated': undefined,
+            'eta': eta,
+            'url': url,
+            'info': response,
+        };
     }
     /**
      * @method
@@ -1707,18 +1813,19 @@ export default class bybit extends Exchange {
         //
         const data = this.safeDict(response, 'result', {});
         const rows = this.safeList(data, 'rows', []);
-        const result = {};
-        for (let i = 0; i < rows.length; i++) {
-            const currency = rows[i];
-            const currencyId = this.safeString(currency, 'coin');
-            const code = this.safeCurrencyCode(currencyId);
-            const name = this.safeString(currency, 'name');
-            const chains = this.safeList(currency, 'chains', []);
-            const networks = {};
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString(chain, 'chain');
-                const networkCode = this.networkIdToCode(networkId);
+        return this.parseCurrencies(rows);
+    }
+    parseCurrency(currency) {
+        const currencyId = this.safeString(currency, 'coin');
+        const code = this.safeCurrencyCode(currencyId);
+        const name = this.safeString(currency, 'name');
+        const chains = this.safeList(currency, 'chains', []);
+        const networks = {};
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString(chain, 'chain');
+            const networkCode = this.networkIdToCode(networkId, code);
+            if (networkCode !== undefined) {
                 networks[networkCode] = {
                     'info': chain,
                     'id': networkId,
@@ -1740,35 +1847,34 @@ export default class bybit extends Exchange {
                     },
                 };
             }
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'code': code,
-                'id': currencyId,
-                'name': name,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'networks': networks,
-                'type': 'crypto', // atm exchange api provides only cryptos
-            });
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'info': currency,
+            'code': code,
+            'id': currencyId,
+            'name': name,
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': undefined,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+            'type': 'crypto', // atm exchange api provides only cryptos
+        });
     }
     /**
      * @method
@@ -1838,8 +1944,8 @@ export default class bybit extends Exchange {
         const request = {
             'category': 'spot',
         };
-        const usePrivateInstrumentsInfo = this.safeBool(this.options, 'usePrivateInstrumentsInfo', false);
-        let response = undefined;
+        const usePrivateInstrumentsInfo = this.handleOption('fetchMarkets', 'usePrivateInstrumentsInfo', false);
+        let response;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo(this.extend(request, params));
         }
@@ -1952,11 +2058,11 @@ export default class bybit extends Exchange {
         }
         return result;
     }
-    async fetchFutureMarkets(params) {
-        params = this.extend(params);
+    async fetchFutureMarkets(params = {}) {
+        params = this.extend(params, {});
         params['limit'] = 1000; // minimize number of requests
         let preLaunchMarkets = [];
-        const usePrivateInstrumentsInfo = this.safeBool(this.options, 'usePrivateInstrumentsInfo', false);
+        const usePrivateInstrumentsInfo = this.handleOption('fetchMarkets', 'usePrivateInstrumentsInfo', false);
         let response = undefined;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo(params);
@@ -1976,7 +2082,7 @@ export default class bybit extends Exchange {
         if (paginationCursor !== undefined) {
             while (paginationCursor !== undefined) {
                 params['cursor'] = paginationCursor;
-                let responseInner = undefined;
+                let responseInner;
                 if (usePrivateInstrumentsInfo) {
                     responseInner = await this.privateGetV5MarketInstrumentsInfo(params);
                 }
@@ -2096,7 +2202,7 @@ export default class bybit extends Exchange {
                 symbol = symbol + '-' + this.yymmdd(expiry);
             }
             const contractSize = inverse ? this.safeNumber2(lotSizeFilter, 'minTradingQty', 'minOrderQty') : this.parseNumber('1');
-            result.push(this.safeMarketStructure({
+            const parsedMarket = this.safeMarketStructure({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -2146,7 +2252,8 @@ export default class bybit extends Exchange {
                 },
                 'created': this.safeInteger(market, 'launchTime'),
                 'info': market,
-            }));
+            });
+            result.push(parsedMarket);
         }
         return result;
     }
@@ -2154,8 +2261,8 @@ export default class bybit extends Exchange {
         const request = {
             'category': 'option',
         };
-        const usePrivateInstrumentsInfo = this.safeBool(this.options, 'usePrivateInstrumentsInfo', false);
-        let response = undefined;
+        const usePrivateInstrumentsInfo = this.handleOption('fetchMarkets', 'usePrivateInstrumentsInfo', false);
+        let response;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo(this.extend(request, params));
         }
@@ -2164,13 +2271,14 @@ export default class bybit extends Exchange {
         }
         const data = this.safeDict(response, 'result', {});
         let markets = this.safeList(data, 'list', []);
-        if (this.options['loadAllOptions']) {
+        const loadAllOptions = this.handleOption('fetchMarkets', 'loadAllOptions');
+        if (loadAllOptions) {
             request['limit'] = 1000;
             let paginationCursor = this.safeString(data, 'nextPageCursor');
             if (paginationCursor !== undefined) {
                 while (paginationCursor !== undefined) {
                     request['cursor'] = paginationCursor;
-                    let responseInner = undefined;
+                    let responseInner;
                     if (usePrivateInstrumentsInfo) {
                         responseInner = await this.privateGetV5MarketInstrumentsInfo(this.extend(request, params));
                     }
@@ -2237,12 +2345,16 @@ export default class bybit extends Exchange {
             const priceFilter = this.safeDict(market, 'priceFilter', {});
             const status = this.safeString(market, 'status');
             const expiry = this.safeInteger(market, 'deliveryTime');
+            if (id === undefined) {
+                throw new ExchangeError(this.id + ' method() missing id');
+            }
             const splitId = id.split('-');
             const strike = this.safeString(splitId, 2);
             const optionLetter = this.safeString(splitId, 3);
             const isActive = (status === 'Trading');
             const isInverse = base === settle;
-            if (isActive || (this.options['loadAllOptions']) || (this.options['loadExpiredOptions'])) {
+            const loadExpiredOptions = this.handleOption('fetchMarkets', 'loadExpiredOptions');
+            if (isActive || loadAllOptions || loadExpiredOptions) {
                 result.push(this.safeMarketStructure({
                     'id': id,
                     'symbol': base + '/' + quote + ':' + settle + '-' + this.yymmdd(expiry) + '-' + strike + '-' + optionLetter,
@@ -2431,7 +2543,9 @@ export default class bybit extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchTicker() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2482,7 +2596,7 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict(response, 'result', {});
         const tickers = this.safeList(result, 'list', []);
-        const rawTicker = this.safeDict(tickers, 0);
+        const rawTicker = this.safeDict(tickers, 0, {});
         return this.parseTicker(rawTicker, market);
     }
     /**
@@ -2497,7 +2611,9 @@ export default class bybit extends Exchange {
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let code = this.safeStringN(params, ['code', 'currency', 'baseCoin']);
         let market = undefined;
         let parsedSymbols = undefined;
@@ -2505,7 +2621,7 @@ export default class bybit extends Exchange {
             parsedSymbols = [];
             const marketTypeInfo = this.handleMarketTypeAndParams('fetchTickers', undefined, params);
             const defaultType = marketTypeInfo[0]; // don't omit here
-            // we can't use marketSymbols here due to the conflicing ids between markets
+            // we can't use marketSymbols here due to the conflicting ids between markets
             let currentType = undefined;
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
@@ -2620,7 +2736,8 @@ export default class bybit extends Exchange {
         //         "2.4343353100000003"
         //     ]
         //
-        const volumeIndex = (market['inverse']) ? 6 : 5;
+        const isInverse = this.safeBool(market, 'inverse');
+        const volumeIndex = (isInverse) ? 6 : 5;
         return [
             this.safeInteger(ohlcv, 0),
             this.safeNumber(ohlcv, 1),
@@ -2651,7 +2768,9 @@ export default class bybit extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOHLCV() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
         if (paginate) {
@@ -2665,14 +2784,22 @@ export default class bybit extends Exchange {
             limit = 200; // default is 200 when requested with `since`
         }
         if (since !== undefined) {
-            request['start'] = since;
+            // bybit returns the candle that contains `start`, whose timestamp is
+            // before a mid-interval `since` and gets dropped by the client-side
+            // since-filter, emptying a limit=1 request entirely, see issue
+            // https://github.com/ccxt/ccxt/issues/26736 - align the requested
+            // start up to the interval boundary so that the exchange returns
+            // candles from the first bucket at or after `since`
+            const duration = this.parseTimeframe(timeframe) * 1000;
+            const rounded = this.parseToInt(since / duration) * duration;
+            request['start'] = (rounded === since) ? since : this.sum(rounded, duration);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // max 1000, default 1000
         }
         [request, params] = this.handleUntilOption('end', request, params);
         request['interval'] = this.safeString(this.timeframes, timeframe, timeframe);
-        let response = undefined;
+        let response;
         if (market['spot']) {
             request['category'] = 'spot';
             response = await this.publicGetV5MarketKline(this.extend(request, params));
@@ -2819,7 +2946,9 @@ export default class bybit extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbols !== undefined) {
@@ -2902,7 +3031,9 @@ export default class bybit extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -2968,7 +3099,7 @@ export default class bybit extends Exchange {
         //
         const rates = [];
         const result = this.safeDict(response, 'result');
-        const resultList = this.safeList(result, 'list');
+        const resultList = this.safeList(result, 'list', []);
         for (let i = 0; i < resultList.length; i++) {
             const entry = resultList[i];
             const timestamp = this.safeInteger(entry, 'fundingRateTimestamp');
@@ -3242,7 +3373,9 @@ export default class bybit extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -3292,13 +3425,15 @@ export default class bybit extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOrderBook() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -3478,7 +3613,7 @@ export default class bybit extends Exchange {
                 const entry = currencyList[i];
                 const accountType = this.safeString(entry, 'accountType');
                 if (accountType === 'UNIFIED' || accountType === 'CONTRACT' || accountType === 'SPOT') {
-                    const coins = this.safeList(entry, 'coin');
+                    const coins = this.safeList(entry, 'coin', []);
                     for (let j = 0; j < coins.length; j++) {
                         const account = this.account();
                         const coinEntry = coins[j];
@@ -3503,7 +3638,9 @@ export default class bybit extends Exchange {
                         // account['used'] = this.safeString (coinEntry, 'locked');
                         const currencyId = this.safeString(coinEntry, 'coin');
                         const code = this.safeCurrencyCode(currencyId);
-                        result[code] = account;
+                        if (code !== undefined) {
+                            result[code] = account;
+                        }
                     }
                 }
                 else {
@@ -3518,7 +3655,9 @@ export default class bybit extends Exchange {
                     account['used'] = this.safeString(entry, 'locked');
                     const currencyId = this.safeStringN(entry, ['tokenId', 'coin', 'currencyCoin']);
                     const code = this.safeCurrencyCode(currencyId);
-                    result[code] = account;
+                    if (code !== undefined) {
+                        result[code] = account;
+                    }
                 }
             }
         }
@@ -3536,7 +3675,9 @@ export default class bybit extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
@@ -3577,7 +3718,7 @@ export default class bybit extends Exchange {
         const unifiedType = this.safeStringUpper(accountTypes, type, type);
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
-        let response = undefined;
+        let response;
         if (isSpot && (marginMode !== undefined)) {
             response = await this.privateGetV5SpotCrossMarginTradeAccount(this.extend(request, params));
         }
@@ -3705,13 +3846,13 @@ export default class bybit extends Exchange {
             'PENDING_CANCEL': 'open',
             'PENDING_NEW': 'open',
             'REJECTED': 'rejected',
-            'PARTIALLY_FILLED_CANCELLED': 'closed',
+            'PARTIALLY_FILLED_CANCELLED': 'closed', // context: https://github.com/ccxt/ccxt/issues/18685
             // v3 contract / unified margin / unified account
             'Created': 'open',
             'New': 'open',
-            'Rejected': 'rejected',
+            'Rejected': 'rejected', // order is triggered but failed upon being placed
             'PartiallyFilled': 'open',
-            'PartiallyFilledCanceled': 'closed',
+            'PartiallyFilledCanceled': 'closed', // context: https://github.com/ccxt/ccxt/issues/18685
             'Filled': 'closed',
             'PendingCancel': 'open',
             'Cancelled': 'canceled',
@@ -3964,7 +4105,9 @@ export default class bybit extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -3985,7 +4128,9 @@ export default class bybit extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketSellOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const types = await this.isUnifiedEnabled();
         const enableUnifiedAccount = types[1];
         if (!enableUnifiedAccount) {
@@ -4036,7 +4181,9 @@ export default class bybit extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const parts = await this.isUnifiedEnabled();
         const enableUnifiedAccount = parts[1];
@@ -4054,7 +4201,7 @@ export default class bybit extends Exchange {
         }
         let method = undefined;
         [method, params] = this.handleOptionAndParams(params, 'createOrder', 'method', defaultMethod);
-        let response = undefined;
+        let response;
         if (method === 'privatePostV5PositionTradingStop') {
             response = await this.privatePostV5PositionTradingStop(orderRequest);
         }
@@ -4077,6 +4224,12 @@ export default class bybit extends Exchange {
         return this.parseOrder(order, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}, isUTA = true) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const lowerCaseType = type.toLowerCase();
@@ -4396,7 +4549,9 @@ export default class bybit extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const accounts = await this.isUnifiedEnabled();
         const isUta = accounts[1];
         const ordersRequests = [];
@@ -4479,6 +4634,12 @@ export default class bybit extends Exchange {
         return this.parseOrders(data);
     }
     editOrderRequest(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -4574,7 +4735,9 @@ export default class bybit extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' editOrder() requires a symbol argument');
         }
@@ -4610,7 +4773,9 @@ export default class bybit extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         let orderSymbols = [];
         for (let i = 0; i < orders.length; i++) {
@@ -4729,7 +4894,9 @@ export default class bybit extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const requestExtended = this.cancelOrderRequest(id, symbol, params);
         const response = await this.privatePostV5OrderCancel(requestExtended);
@@ -4763,7 +4930,9 @@ export default class bybit extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const types = await this.isUnifiedEnabled();
         const enableUnifiedAccount = types[1];
@@ -4845,7 +5014,12 @@ export default class bybit extends Exchange {
      * @returns {object} the api result
      */
     async cancelAllOrdersAfter(timeout, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        if (timeout === undefined) {
+            throw new ExchangeError(this.id + ' cancelAllOrdersAfter() missing timeout');
+        }
         const request = {
             'timeWindow': this.parseToInt(timeout / 1000),
         };
@@ -4877,7 +5051,9 @@ export default class bybit extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrdersForSymbols(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const types = await this.isUnifiedEnabled();
         const enableUnifiedAccount = types[1];
         if (!enableUnifiedAccount) {
@@ -4952,14 +5128,14 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict(response, 'result', {});
         const row = this.safeList(result, 'list', []);
-        return this.parseOrders(row, undefined);
+        return this.parseOrders(row);
     }
     /**
      * @method
      * @name bybit#cancelAllOrders
      * @description cancel all open orders
      * @see https://bybit-exchange.github.io/docs/v5/order/cancel-all
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if trigger order
      * @param {boolean} [params.stop] alias for trigger
@@ -4970,7 +5146,9 @@ export default class bybit extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         let market = undefined;
@@ -5047,7 +5225,9 @@ export default class bybit extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (market['spot']) {
             throw new NotSupported(this.id + ' fetchOrder() is not supported for spot markets');
@@ -5058,7 +5238,7 @@ export default class bybit extends Exchange {
         const result = await this.fetchOrders(symbol, undefined, undefined, this.extend(request, params));
         const length = result.length;
         if (length === 0) {
-            const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+            const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
             const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
         }
@@ -5079,7 +5259,9 @@ export default class bybit extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         if (!isUnifiedAccount) {
@@ -5207,7 +5389,9 @@ export default class bybit extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrdersClassic(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
         if (paginate) {
@@ -5225,7 +5409,7 @@ export default class bybit extends Exchange {
             throw new NotSupported(this.id + ' fetchOrders() is not supported for spot markets');
         }
         request['category'] = type;
-        const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         params = this.omit(params, ['trigger', 'stop']);
         if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
@@ -5312,14 +5496,16 @@ export default class bybit extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'orderId': id,
         };
         const result = await this.fetchClosedOrders(symbol, undefined, undefined, this.extend(request, params));
         const length = result.length;
         if (length === 0) {
-            const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+            const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
             const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
         }
@@ -5346,14 +5532,16 @@ export default class bybit extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'orderId': id,
         };
         const result = await this.fetchOpenOrders(symbol, undefined, undefined, this.extend(request, params));
         const length = result.length;
         if (length === 0) {
-            const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+            const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
             const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
             throw new OrderNotFound('Order ' + id.toString() + ' was not found.' + extra);
         }
@@ -5381,7 +5569,9 @@ export default class bybit extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchCanceledAndClosedOrders', 'paginate');
         if (paginate) {
@@ -5396,7 +5586,7 @@ export default class bybit extends Exchange {
         let type = undefined;
         [type, params] = this.getBybitType('fetchCanceledAndClosedOrders', market, params);
         request['category'] = type;
-        const isTrigger = this.safeBoolN(params, ['trigger', 'stop'], false);
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
         params = this.omit(params, ['trigger', 'stop']);
         if (isTrigger) {
             request['orderFilter'] = 'StopOrder';
@@ -5500,7 +5690,9 @@ export default class bybit extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'orderStatus': 'Filled',
         };
@@ -5525,7 +5717,9 @@ export default class bybit extends Exchange {
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'orderStatus': 'Cancelled',
         };
@@ -5551,7 +5745,9 @@ export default class bybit extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'paginate');
         if (paginate) {
@@ -5689,7 +5885,9 @@ export default class bybit extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -5788,8 +5986,10 @@ export default class bybit extends Exchange {
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
     async fetchDepositAddressesByNetwork(code, params = {}) {
-        await this.loadMarkets();
-        let currency = this.currency(code);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
         };
@@ -5821,9 +6021,9 @@ export default class bybit extends Exchange {
         const result = this.safeDict(response, 'result', {});
         const chains = this.safeList(result, 'chains', []);
         const coin = this.safeString(result, 'coin');
-        currency = this.currency(coin);
-        const parsed = this.parseDepositAddresses(chains, [currency['code']], false, {
-            'currency': currency['code'],
+        const currencyFromResponse = this.currency(coin);
+        const parsed = this.parseDepositAddresses(chains, [currencyFromResponse['code']], false, {
+            'currency': currencyFromResponse['code'],
         });
         return this.indexBy(parsed, 'network');
     }
@@ -5837,12 +6037,14 @@ export default class bybit extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const [networkCode, paramsOmited] = this.handleNetworkCodeAndParams(params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork(code, paramsOmited);
         const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks(currency['code'], networkCode, indexedAddresses);
-        return indexedAddresses[selectedNetworkCode];
+        return this.safeValue(indexedAddresses, selectedNetworkCode);
     }
     /**
      * @method
@@ -5860,7 +6062,9 @@ export default class bybit extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'paginate');
         if (paginate) {
@@ -5928,7 +6132,9 @@ export default class bybit extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
@@ -6077,7 +6283,7 @@ export default class bybit extends Exchange {
             'txid': this.safeString(transaction, 'txID'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(this.safeString(transaction, 'chain')),
+            'network': this.networkIdToCode(this.safeString(transaction, 'chain'), code),
             'address': undefined,
             'addressTo': toAddress,
             'addressFrom': undefined,
@@ -6109,7 +6315,9 @@ export default class bybit extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
         if (paginate) {
@@ -6157,7 +6365,7 @@ export default class bybit extends Exchange {
         }
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchLedger', undefined, params);
-        let response = undefined;
+        let response;
         if (enableUnified[1]) {
             const unifiedMarginStatus = this.safeInteger(this.options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
             if (subType === 'inverse' && (unifiedMarginStatus < 5)) {
@@ -6360,7 +6568,7 @@ export default class bybit extends Exchange {
             'RealisedPNL': 'trade',
             'Commission': 'fee',
             'Refund': 'cashback',
-            'Prize': 'prize',
+            'Prize': 'prize', // ?
             'ExchangeOrderWithdraw': 'transaction',
             'ExchangeOrderDeposit': 'transaction',
             // v5
@@ -6400,7 +6608,9 @@ export default class bybit extends Exchange {
         if (accountType === undefined) {
             accountType = isUta ? 'UTA' : 'SPOT';
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         this.checkAddress(address);
         const currency = this.currency(code);
         const request = {
@@ -6414,7 +6624,7 @@ export default class bybit extends Exchange {
             request['tag'] = tag;
         }
         const [networkCode, query] = this.handleNetworkCodeAndParams(params);
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, code);
         if (networkId !== undefined) {
             request['chain'] = networkId.toUpperCase();
         }
@@ -6446,7 +6656,9 @@ export default class bybit extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchPosition() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -6520,7 +6732,9 @@ export default class bybit extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchPositions', 'paginate');
         if (paginate) {
@@ -6792,10 +7006,10 @@ export default class bybit extends Exchange {
         const unrealisedPnl = this.omitZero(this.safeString(position, 'unrealisedPnl'));
         let initialMarginString = this.safeString2(position, 'positionIM', 'cumEntryValue');
         let maintenanceMarginString = this.safeString(position, 'positionMM');
-        const timestamp = this.safeIntegerN(position, ['createdTime', 'createdAt']);
+        const timestamp = this.safeInteger2(position, 'createdTime', 'createdAt');
         let lastUpdateTimestamp = this.parse8601(this.safeString(position, 'updated_at'));
         if (lastUpdateTimestamp === undefined) {
-            lastUpdateTimestamp = this.safeIntegerN(position, ['updatedTime', 'updatedAt', 'updatedTime']);
+            lastUpdateTimestamp = this.safeInteger2(position, 'updatedTime', 'updatedAt');
         }
         let collateralString = this.safeString(position, 'positionBalance');
         const entryPrice = this.omitZero(this.safeStringN(position, ['entryPrice', 'avgPrice', 'avgEntryPrice']));
@@ -6855,14 +7069,14 @@ export default class bybit extends Exchange {
             'leverage': this.parseNumber(leverage),
             'unrealizedPnl': this.parseNumber(unrealisedPnl),
             'realizedPnl': this.safeNumber2(position, 'curRealisedPnl', 'closedPnl'),
-            'contracts': this.parseNumber(size),
+            'contracts': this.parseNumber(size), // in USD for inverse swaps
             'contractSize': this.safeNumber(market, 'contractSize'),
             'marginRatio': this.parseNumber(marginRatio),
             'liquidationPrice': this.parseNumber(liquidationPrice),
             'markPrice': this.parseNumber(markPrice),
             'lastPrice': this.safeNumber(position, 'avgExitPrice'),
             'collateral': this.parseNumber(collateralString),
-            'marginMode': undefined,
+            'marginMode': undefined, // tradeMode was deprecated
             'side': side,
             'percentage': undefined,
             'stopLossPrice': this.safeNumber2(position, 'stop_loss', 'stopLoss'),
@@ -6880,7 +7094,9 @@ export default class bybit extends Exchange {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const position = await this.fetchPosition(symbol, params);
         return this.parseLeverage(position, market);
@@ -6909,11 +7125,13 @@ export default class bybit extends Exchange {
      * @returns {object} response from the exchange
      */
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         let market = undefined;
-        let response = undefined;
+        let response;
         if (isUnifiedAccount) {
             if (marginMode === 'isolated') {
                 marginMode = 'ISOLATED_MARGIN';
@@ -7016,7 +7234,9 @@ export default class bybit extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
@@ -7053,7 +7273,9 @@ export default class bybit extends Exchange {
      * @returns {object} response from the exchange
      */
     async setPositionMode(hedged, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -7072,10 +7294,10 @@ export default class bybit extends Exchange {
             request['coin'] = 'USDT';
         }
         else {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         if (symbol !== undefined) {
-            request['category'] = market['linear'] ? 'linear' : 'inverse';
+            request['category'] = this.safeBool(market, 'linear') ? 'linear' : 'inverse';
         }
         else {
             let type = undefined;
@@ -7096,8 +7318,10 @@ export default class bybit extends Exchange {
         return response;
     }
     async fetchDerivativesOpenInterestHistory(symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
-        let market = this.market(symbol);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
         const subType = market['linear'] ? 'linear' : 'inverse';
         const category = this.safeString(params, 'category', subType);
         const intervals = this.safeDict(this.options, 'intervals');
@@ -7148,8 +7372,8 @@ export default class bybit extends Exchange {
         const result = this.safeDict(response, 'result', {});
         const data = this.addPaginationCursorToResult(response);
         const id = this.safeString(result, 'symbol');
-        market = this.safeMarket(id, market, undefined, 'contract');
-        return this.parseOpenInterestsHistory(data, market, since, limit);
+        const safeMarketObj = this.safeMarket(id, market, undefined, 'contract');
+        return this.parseOpenInterestsHistory(data, safeMarketObj, since, limit);
     }
     /**
      * @method
@@ -7163,8 +7387,10 @@ export default class bybit extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
-        await this.loadMarkets();
-        let market = this.market(symbol);
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
         if (!market['contract']) {
             throw new BadRequest(this.id + ' fetchOpenInterest() supports contract markets only');
         }
@@ -7207,9 +7433,9 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict(response, 'result', {});
         const id = this.safeString(result, 'symbol');
-        market = this.safeMarket(id, market, undefined, 'contract');
+        const safeMarketObj = this.safeMarket(id, market, undefined, 'contract');
         const data = this.addPaginationCursorToResult(response);
-        return this.parseOpenInterest(data[0], market);
+        return this.parseOpenInterest(data[0], safeMarketObj);
     }
     /**
      * @method
@@ -7228,7 +7454,9 @@ export default class bybit extends Exchange {
         if (timeframe === '1m') {
             throw new BadRequest(this.id + ' fetchOpenInterestHistory cannot use the 1m timeframe');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const paginate = this.safeBool(params, 'paginate');
         if (paginate) {
             params = this.omit(params, 'paginate');
@@ -7257,10 +7485,10 @@ export default class bybit extends Exchange {
         const timestamp = this.safeInteger(interest, 'timestamp');
         const openInterest = this.safeNumber2(interest, 'open_interest', 'openInterest');
         // the openInterest is in the base asset for linear and quote asset for inverse
-        const amount = market['linear'] ? openInterest : undefined;
-        const value = market['inverse'] ? openInterest : undefined;
+        const amount = this.safeBool(market, 'linear') ? openInterest : undefined;
+        const value = this.safeBool(market, 'inverse') ? openInterest : undefined;
         return this.safeOpenInterest({
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'openInterestAmount': amount,
             'openInterestValue': value,
             'timestamp': timestamp,
@@ -7278,7 +7506,9 @@ export default class bybit extends Exchange {
      * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     async fetchCrossBorrowRate(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -7328,7 +7558,7 @@ export default class bybit extends Exchange {
         return {
             'currency': this.safeCurrencyCode(currencyId, currency),
             'rate': this.safeNumber(info, 'interestRate', hourlyBorrowRate),
-            'period': period,
+            'period': period, // Daily
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': info,
@@ -7347,7 +7577,9 @@ export default class bybit extends Exchange {
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
     async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const response = await this.privateGetV5SpotCrossMarginTradeAccount(this.extend(request, params));
         //
@@ -7377,7 +7609,7 @@ export default class bybit extends Exchange {
         //
         const data = this.safeDict(response, 'result', {});
         const rows = this.safeList(data, 'loanAccountList', []);
-        const interest = this.parseBorrowInterests(rows, undefined);
+        const interest = this.parseBorrowInterests(rows);
         return this.filterByCurrencySinceLimit(interest, code, since, limit);
     }
     /**
@@ -7393,7 +7625,9 @@ export default class bybit extends Exchange {
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     async fetchBorrowRateHistory(code, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
@@ -7468,7 +7702,9 @@ export default class bybit extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const transferId = this.safeString(params, 'transferId', this.uuid());
         const accountTypes = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountTypes, fromAccount, fromAccount);
@@ -7496,7 +7732,7 @@ export default class bybit extends Exchange {
         //
         const timestamp = this.safeInteger(response, 'time');
         const transfer = this.safeDict(response, 'result', {});
-        const statusRaw = this.safeStringN(response, ['retCode', 'retMsg']);
+        const statusRaw = this.safeString2(response, 'retCode', 'retMsg');
         const status = this.parseTransferStatus(statusRaw);
         return this.extend(this.parseTransfer(transfer, currency), {
             'timestamp': timestamp,
@@ -7521,7 +7757,9 @@ export default class bybit extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTransfers', 'paginate');
         if (paginate) {
@@ -7577,7 +7815,9 @@ export default class bybit extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async borrowCrossMargin(code, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -7610,7 +7850,9 @@ export default class bybit extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async repayCrossMargin(code, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -7708,7 +7950,9 @@ export default class bybit extends Exchange {
         };
     }
     async fetchDerivativesMarketLeverageTiers(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -7757,7 +8001,9 @@ export default class bybit extends Exchange {
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
     async fetchMarketLeverageTiers(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         market = this.market(symbol);
@@ -7797,7 +8043,9 @@ export default class bybit extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -7838,7 +8086,9 @@ export default class bybit extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let type = undefined;
         [type, params] = this.handleOptionAndParams(params, 'fetchTradingFees', 'type', 'future');
         if (type === 'spot') {
@@ -7868,7 +8118,9 @@ export default class bybit extends Exchange {
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee(fees[i]);
             const symbol = fee['symbol'];
-            result[symbol] = fee;
+            if (symbol !== undefined) {
+                result[symbol] = fee;
+            }
         }
         return result;
     }
@@ -7913,10 +8165,12 @@ export default class bybit extends Exchange {
                 const networkId = this.safeString(chain, 'chain');
                 const currencyCode = this.safeString(currency, 'code');
                 const networkCode = this.networkIdToCode(networkId, currencyCode);
-                result['networks'][networkCode] = {
-                    'deposit': { 'fee': undefined, 'percentage': undefined },
-                    'withdraw': { 'fee': this.safeNumber(chain, 'withdrawFee'), 'percentage': false },
-                };
+                if (networkCode !== undefined) {
+                    result['networks'][networkCode] = {
+                        'deposit': { 'fee': undefined, 'percentage': undefined },
+                        'withdraw': { 'fee': this.safeNumber(chain, 'withdrawFee'), 'percentage': false },
+                    };
+                }
                 if (chainsLength === 1) {
                     result['withdraw']['fee'] = this.safeNumber(chain, 'withdrawFee');
                     result['withdraw']['percentage'] = false;
@@ -7936,7 +8190,9 @@ export default class bybit extends Exchange {
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetV5AssetCoinQueryInfo(params);
         //
         //     {
@@ -7986,7 +8242,9 @@ export default class bybit extends Exchange {
      * @returns {object[]} a list of [settlement history objects]
      */
     async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -8026,7 +8284,7 @@ export default class bybit extends Exchange {
         const data = this.safeList(result, 'list', []);
         const settlements = this.parseSettlements(data, market);
         const sorted = this.sortBy(settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, 'symbol'), since, limit);
     }
     /**
      * @method
@@ -8042,7 +8300,9 @@ export default class bybit extends Exchange {
      * @returns {object[]} a list of [settlement history objects]
      */
     async fetchMySettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -8087,7 +8347,7 @@ export default class bybit extends Exchange {
         const data = this.safeList(result, 'list', []);
         const settlements = this.parseSettlements(data, market);
         const sorted = this.sortBy(settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
+        return this.filterBySymbolSinceLimit(sorted, this.safeString(market, 'symbol'), since, limit);
     }
     parseSettlement(settlement, market) {
         //
@@ -8166,7 +8426,9 @@ export default class bybit extends Exchange {
      * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
      */
     async fetchVolatilityHistory(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'category': 'option',
@@ -8221,7 +8483,9 @@ export default class bybit extends Exchange {
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     async fetchGreeks(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -8288,7 +8552,9 @@ export default class bybit extends Exchange {
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     async fetchAllGreeks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const baseCoin = this.safeString(params, 'baseCoin', 'BTC');
         const request = {
@@ -8417,7 +8683,9 @@ export default class bybit extends Exchange {
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     async fetchMyLiquidations(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyLiquidations', 'paginate');
         if (paginate) {
@@ -8534,7 +8802,9 @@ export default class bybit extends Exchange {
         });
     }
     async getLeverageTiersPaginated(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -8554,7 +8824,7 @@ export default class bybit extends Exchange {
         const first = this.safeDict(result, 0);
         const total = result.length;
         const lastIndex = total - 1;
-        const last = this.safeDict(result, lastIndex);
+        const last = this.safeDict(result, lastIndex, {});
         const cursorValue = this.safeString(first, 'nextPageCursor');
         last['info'] = {
             'nextPageCursor': cursorValue,
@@ -8574,7 +8844,9 @@ export default class bybit extends Exchange {
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
     async fetchLeverageTiers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         let symbol = undefined;
         if (symbols !== undefined) {
@@ -8604,8 +8876,9 @@ export default class bybit extends Exchange {
         //
         const tiers = {};
         const marketIds = this.marketIds(symbols);
-        const filteredResults = this.filterByArray(response, marketIdKey, marketIds, false);
-        const grouped = this.groupBy(filteredResults, marketIdKey);
+        const idKey = (marketIdKey === undefined) ? 'symbol' : marketIdKey;
+        const filteredResults = this.filterByArray(response, idKey, marketIds, false);
+        const grouped = this.groupBy(filteredResults, idKey);
         const keys = Object.keys(grouped);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
@@ -8669,7 +8942,9 @@ export default class bybit extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
@@ -8687,7 +8962,7 @@ export default class bybit extends Exchange {
         [type, params] = this.getBybitType('fetchFundingHistory', market, params);
         request['category'] = type;
         if (symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -8766,7 +9041,9 @@ export default class bybit extends Exchange {
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
     async fetchOption(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'category': 'option',
@@ -8828,7 +9105,9 @@ export default class bybit extends Exchange {
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
     async fetchOptionChain(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'category': 'option',
@@ -8939,13 +9218,15 @@ export default class bybit extends Exchange {
      * @param {string[]} symbols a list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
      * @param {int} [limit] the maximum amount of records to fetch, default=50, max=100
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days
      * @param {string} [params.subType] 'linear' or 'inverse'
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         let subType = undefined;
         let symbolsLength = 0;
@@ -8962,7 +9243,7 @@ export default class bybit extends Exchange {
             'category': subType,
         };
         if ((symbols !== undefined) && (symbolsLength === 1)) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -9009,7 +9290,11 @@ export default class bybit extends Exchange {
         //
         const result = this.safeDict(response, 'result');
         const rawPositions = this.safeList(result, 'list');
-        const positions = this.parsePositions(rawPositions, symbols, params);
+        let rawPositionsList = [];
+        if (rawPositions !== undefined) {
+            rawPositionsList = rawPositions;
+        }
+        const positions = this.parsePositions(rawPositionsList, symbols, params);
         return this.filterBySinceLimit(positions, since, limit);
     }
     /**
@@ -9022,7 +9307,9 @@ export default class bybit extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchConvertCurrencies(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let accountType = undefined;
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
@@ -9075,34 +9362,36 @@ export default class bybit extends Exchange {
             const disableTo = this.safeBool(entry, 'disableTo');
             const inactive = (disableFrom || disableTo);
             const code = this.safeCurrencyCode(id);
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': undefined,
-                'type': this.safeString(entry, 'coinType'),
-                'name': this.safeString(entry, 'fullName'),
-                'active': !inactive,
-                'deposit': undefined,
-                'withdraw': this.safeNumber(entry, 'balance'),
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber(entry, 'singleFromMinLimit'),
-                        'max': this.safeNumber(entry, 'singleFromMaxLimit'),
+            if (code !== undefined) {
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': undefined,
+                    'type': this.safeString(entry, 'coinType'),
+                    'name': this.safeString(entry, 'fullName'),
+                    'active': !inactive,
+                    'deposit': undefined,
+                    'withdraw': this.safeNumber(entry, 'balance'),
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'amount': {
+                            'min': this.safeNumber(entry, 'singleFromMinLimit'),
+                            'max': this.safeNumber(entry, 'singleFromMaxLimit'),
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-                'created': undefined,
-            };
+                    'created': undefined,
+                };
+            }
         }
         return result;
     }
@@ -9119,7 +9408,9 @@ export default class bybit extends Exchange {
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertQuote(fromCode, toCode, amount = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let accountType = undefined;
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
@@ -9173,7 +9464,9 @@ export default class bybit extends Exchange {
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'quoteTxId': id,
         };
@@ -9205,7 +9498,9 @@ export default class bybit extends Exchange {
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertTrade(id, code = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let accountType = undefined;
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
@@ -9268,7 +9563,9 @@ export default class bybit extends Exchange {
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     async fetchConvertTradeHistory(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -9378,7 +9675,9 @@ export default class bybit extends Exchange {
      * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
      */
     async fetchLongShortRatioHistory(symbol = undefined, timeframe = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let type = undefined;
         [type, params] = this.getBybitType('fetchLongShortRatioHistory', market, params);
@@ -9454,7 +9753,9 @@ export default class bybit extends Exchange {
         if (symbols === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchPositionsADLRank() requires a symbols argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols(symbols);
         const request = {};
@@ -9584,7 +9885,9 @@ export default class bybit extends Exchange {
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     async fetchMarginMode(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const response = await this.privateGetV5AccountInfo(params);
         //
@@ -9727,6 +10030,7 @@ export default class bybit extends Exchange {
         if (method === 'POST') {
             const brokerId = this.safeString(this.options, 'brokerId');
             if (brokerId !== undefined) {
+                headers = (headers === undefined) ? {} : headers;
                 headers['Referer'] = brokerId;
             }
         }

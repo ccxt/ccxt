@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Exchange } from "../../../ccxt";
+import { Exchange } from "../../../ccxt.js";
 import testLeverageTier from './base/test.leverageTier.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
@@ -11,7 +11,7 @@ async function testFetchLeverageTiers (exchange: Exchange, skippedProperties: ob
     //       {},
     //     ],
     // };
-    assert (typeof tiers === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (tiers));
+    assert (exchange.isDictionary (tiers), exchange.id + ' ' + method + ' ' + symbol + ' must return a dict. ' + exchange.json (tiers));
     const tierKeys = Object.keys (tiers);
     testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, tierKeys, symbol);
     for (let i = 0; i < tierKeys.length; i++) {

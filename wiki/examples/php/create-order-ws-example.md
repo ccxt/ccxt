@@ -1,8 +1,5 @@
-- [Create Order Ws Example](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -20,7 +17,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 function example() {
     return Async\async(function () {
         $exchange = new \ccxt\pro\binance(array(
@@ -30,7 +26,7 @@ function example() {
         $exchange->set_sandbox_mode(true);
         $exchange->verbose = true; // uncomment for debugging purposes if necessary
         // load markets
-        Async\await($exchange->load_markets());
+        \React\Async\await($exchange->load_markets());
         $symbol = 'ETH/USDT';
         $type = 'limit';
         $side = 'buy';
@@ -38,7 +34,7 @@ function example() {
         $price = 1000;
         $orders = [];
         for ($i = 1; $i < 5; $i++) {
-            $response = Async\await($exchange->create_order_ws($symbol, $type, $side, $amount, $price));
+            $response = \React\Async\await($exchange->create_order_ws($symbol, $type, $side, $amount, $price));
             $price += $i;
             $orders[] = $response;
         }
@@ -47,6 +43,6 @@ function example() {
 }
 
 
-Async\await(example());
- 
+\React\Async\await(example());
+
 ```

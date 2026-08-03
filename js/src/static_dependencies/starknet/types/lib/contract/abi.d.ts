@@ -1,10 +1,10 @@
 /** ABI */
-export declare type Abi = ReadonlyArray<FunctionAbi | EventAbi | StructAbi | InterfaceAbi | any>;
-export declare type AbiEntry = {
+export type Abi = ReadonlyArray<FunctionAbi | EventAbi | StructAbi | InterfaceAbi | any>;
+export type AbiEntry = {
     name: string;
     type: 'felt' | 'felt*' | string;
 };
-export declare type EventEntry = {
+export type EventEntry = {
     name: string;
     type: 'felt' | 'felt*' | string;
     kind: 'key' | 'data';
@@ -14,7 +14,7 @@ declare enum FunctionAbiType {
     'l1_handler' = 1,
     'constructor' = 2
 }
-export declare type FunctionAbi = {
+export type FunctionAbi = {
     inputs: AbiEntry[];
     name: string;
     outputs: AbiEntry[];
@@ -22,10 +22,10 @@ export declare type FunctionAbi = {
     state_mutability?: string;
     type: FunctionAbiType;
 };
-export declare type AbiStructs = {
+export type AbiStructs = {
     [name: string]: StructAbi;
 };
-export declare type StructAbi = {
+export type StructAbi = {
     members: (AbiEntry & {
         offset: number;
     })[];
@@ -33,18 +33,18 @@ export declare type StructAbi = {
     size: number;
     type: 'struct';
 };
-export declare type AbiInterfaces = {
+export type AbiInterfaces = {
     [name: string]: InterfaceAbi;
 };
-export declare type InterfaceAbi = {
+export type InterfaceAbi = {
     items: FunctionAbi[];
     name: string;
     type: 'interface';
 };
-export declare type AbiEnums = {
+export type AbiEnums = {
     [name: string]: EnumAbi;
 };
-export declare type EnumAbi = {
+export type EnumAbi = {
     variants: (AbiEntry & {
         offset: number;
     })[];
@@ -52,17 +52,17 @@ export declare type EnumAbi = {
     size: number;
     type: 'enum/index.js';
 };
-export declare type AbiEvents = {
+export type AbiEvents = {
     [hash: string]: EventAbi;
 };
-export declare type EventAbi = Cairo1Event | LegacyEvent;
-export declare type Cairo1Event = {
+export type EventAbi = Cairo1Event | LegacyEvent;
+export type Cairo1Event = {
     name: string;
     members: EventEntry[];
     kind: 'struct';
     type: 'event';
 };
-export declare type LegacyEvent = {
+export type LegacyEvent = {
     name: string;
     type: 'event';
     data: EventEntry[];

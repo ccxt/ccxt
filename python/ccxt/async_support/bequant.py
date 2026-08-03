@@ -16,8 +16,16 @@ class bequant(hitbtc, ImplicitAPI):
             'name': 'Bequant',
             'pro': True,
             'countries': ['MT'],  # Malta
+            'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': False,
+                'future': None,
+                'option': None,
+            },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/0583ef1f-29fe-4b7c-8189-63565a0e2867',
+                'logo': 'https://github.com/user-attachments/assets/01e199a6-5c65-4b03-83ab-7f9827c140f9',
                 'api': {
                     # v3
                     'public': 'https://api.bequant.io/api/3',

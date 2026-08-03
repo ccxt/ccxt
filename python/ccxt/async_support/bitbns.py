@@ -358,11 +358,12 @@ class bitbns(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -453,7 +454,8 @@ class bitbns(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.wwwGetOrderFetchTickers(params)
         #
         #     {
@@ -491,7 +493,7 @@ class bitbns(Exchange, ImplicitAPI):
 
     def parse_balance(self, response) -> Balances:
         timestamp = None
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -511,7 +513,8 @@ class bitbns(Exchange, ImplicitAPI):
                 if currencyId == 'Money':
                     currencyId = 'INR'
                 code = self.safe_currency_code(currencyId)
-                result[code] = account
+                if code is not None:
+                    result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -520,7 +523,8 @@ class bitbns(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.v1PostCurrentCoinBalanceEVERYTHING(params)
         #
         #     {
@@ -542,7 +546,7 @@ class bitbns(Exchange, ImplicitAPI):
         return self.parse_balance(response)
 
     def parse_status(self, status):
-        statuses: dict = {
+        statuses = {
             '-1': 'cancelled',
             '0': 'open',
             '1': 'open',
@@ -651,13 +655,16 @@ class bitbns(Exchange, ImplicitAPI):
         :param float [params.trail_rate]: *requires params.target_rate when set, type must be 'limit'* a bracket order is placed when set
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 't_rate'])
         targetRate = self.safe_string(params, 'target_rate')
         trailRate = self.safe_string(params, 'trail_rate')
         params = self.omit(params, ['triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate'])
-        request: dict = {
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
+        request = {
             'side': side.upper(),
             'symbol': market['uppercaseId'],
             'quantity': self.amount_to_precision(symbol, amount),
@@ -687,7 +694,8 @@ class bitbns(Exchange, ImplicitAPI):
         #         "code":200
         #     }
         #
-        return self.parse_order(response, market)
+        parsed = {} if (response is None) else response
+        return self.parse_order(parsed, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -704,11 +712,12 @@ class bitbns(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
-        request: dict = {
+        request = {
             'entry_id': id,
             'symbol': market['uppercaseId'],
         }
@@ -718,7 +727,8 @@ class bitbns(Exchange, ImplicitAPI):
         quoteSide += tail
         request['side'] = quoteSide
         response = await self.v2PostCancel(self.extend(request, params))
-        return self.parse_order(response, market)
+        parsed = {} if (response is None) else response
+        return self.parse_order(parsed, market)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -733,9 +743,10 @@ class bitbns(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'entry_id': id,
         }
@@ -769,7 +780,7 @@ class bitbns(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'data', [])
-        first = self.safe_dict(data, 0)
+        first = self.safe_dict(data, 0, {})
         return self.parse_order(first, market)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -788,12 +799,13 @@ class bitbns(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
         quoteSide = 'usdtListOpen' if (market['quoteId'] == 'USDT') else 'listOpen'
-        request: dict = {
+        request = {
             'symbol': market['uppercaseId'],
             'page': 0,
             'side': (quoteSide + 'StopOrders') if isTrigger else (quoteSide + 'Orders'),
@@ -909,9 +921,10 @@ class bitbns(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'page': 0,
         }
@@ -973,9 +986,10 @@ class bitbns(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchTrades() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'coin': market['baseId'],
             'market': market['quoteId'],
         }
@@ -1000,9 +1014,10 @@ class bitbns(Exchange, ImplicitAPI):
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'symbol': currency['id'],
             'page': 0,
         }
@@ -1044,9 +1059,10 @@ class bitbns(Exchange, ImplicitAPI):
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'symbol': currency['id'],
             'page': 0,
         }
@@ -1057,8 +1073,8 @@ class bitbns(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit)
 
-    def parse_transaction_status_by_type(self, status, type=None):
-        statusesByType: dict = {
+    def parse_transaction_status_by_type(self, status, type: Str = None):
+        statusesByType = {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
@@ -1147,9 +1163,10 @@ class bitbns(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'symbol': currency['id'],
         }
         response = await self.v1PostGetCoinAddressSymbol(self.extend(request, params))
@@ -1178,7 +1195,7 @@ class bitbns(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='www', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'www', method='GET', params={}, headers: dict = None, body: Str = None):
         urls = self.urls
         if not (api in urls['api']):
             raise ExchangeError(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
@@ -1199,12 +1216,13 @@ class bitbns(Exchange, ImplicitAPI):
                 body = self.json(query)
             else:
                 body = '{}'
-            auth: dict = {
+            auth = {
                 'timeStamp_nonce': nonce,
                 'body': body,
             }
             payload = self.string_to_base64(self.json(auth))
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
+            headers = {} if (headers is None) else headers
             headers['X-BITBNS-PAYLOAD'] = payload
             headers['X-BITBNS-SIGNATURE'] = signature
             headers['Content-Type'] = 'application/x-www-form-urlencoded'

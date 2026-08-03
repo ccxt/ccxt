@@ -1,8 +1,5 @@
-- [Okx Transfer](./examples/py/)
-
-
- ```python
- import ccxt
+```python
+import ccxt
 from pprint import pprint
 
 
@@ -40,5 +37,5 @@ try:
     pprint(response)
 except Exception as e:
     print(type(e).__name__, str(e))
- 
+
 ```

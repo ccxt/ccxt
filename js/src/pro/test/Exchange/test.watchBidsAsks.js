@@ -20,7 +20,7 @@ async function testWatchBidsAsksHelper(exchange, skippedProperties, argSymbols, 
     while (now < ends) {
         let success = true;
         let shouldReturn = false;
-        let response = undefined;
+        let response = {};
         try {
             response = await exchange.watchBidsAsks(argSymbols, argParams);
         }
@@ -44,7 +44,7 @@ async function testWatchBidsAsksHelper(exchange, skippedProperties, argSymbols, 
             return false;
         }
         if (success === true) {
-            assert(typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json(argSymbols) + ' must return an object. ' + exchange.json(response));
+            assert(exchange.isDictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(argSymbols) + ' must return a dictionary. ' + exchange.json(response));
             const values = Object.values(response);
             let checkedSymbol = undefined;
             if (argSymbols !== undefined && argSymbols.length === 1) {

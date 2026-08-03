@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { Exchange } from '../../ccxt.js';
 declare const AuthenticationError: typeof import("../base/errors.js").AuthenticationError;
 declare const NotSupported: typeof import("../base/errors.js").NotSupported;
@@ -43,6 +42,9 @@ declare function getRootDir(): string;
 declare function getEnvVars(): NodeJS.ProcessEnv;
 declare function getLang(): string;
 declare function getExt(): string;
-export { AuthenticationError, NotSupported, ExchangeError, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, getCliArgValue, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, isNullValue, close, getRootDir, argvExchange, argvSymbol, argvMethod, isSync, LANG, ENV_VARS, NEW_LINE, EXT, getEnvVars, getLang, getExt };
+declare function isWindows(): boolean;
+declare function isLinux(): boolean;
+declare function isAmd64(): boolean;
+export { AuthenticationError, NotSupported, ExchangeError, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, getCliArgValue, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, isNullValue, close, getRootDir, argvExchange, argvSymbol, argvMethod, isSync, LANG, ENV_VARS, NEW_LINE, EXT, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, };
 declare const _default: {};
 export default _default;

@@ -177,7 +177,7 @@ public partial class bydfi : Exchange
                 { "ws", true },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/bfffb73d-29bd-465d-b75b-98e210491769" },
+                { "logo", "https://github.com/user-attachments/assets/0e9319dc-b5f5-458b-bcfd-b21b50e162ea" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.bydfi.com/api" },
                     { "private", "https://api.bydfi.com/api" },
@@ -191,16 +191,16 @@ public partial class bydfi : Exchange
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "v1/public/api_limits", 1 },
-                        { "v1/swap/market/exchange_info", 1 },
-                        { "v1/swap/market/depth", 1 },
-                        { "v1/swap/market/trades", 1 },
-                        { "v1/swap/market/klines", 1 },
-                        { "v1/swap/market/ticker/24hr", 1 },
-                        { "v1/swap/market/ticker/price", 1 },
-                        { "v1/swap/market/mark_price", 1 },
-                        { "v1/swap/market/funding_rate", 1 },
-                        { "v1/swap/market/funding_rate_history", 1 },
-                        { "v1/swap/market/risk_limit", 1 },
+                        { "v1/fapi/market/exchange_info", 1 },
+                        { "v1/fapi/market/depth", 1 },
+                        { "v1/fapi/market/trades", 1 },
+                        { "v1/fapi/market/klines", 1 },
+                        { "v1/fapi/market/ticker/24hr", 1 },
+                        { "v1/fapi/market/ticker/price", 1 },
+                        { "v1/fapi/market/mark_price", 1 },
+                        { "v1/fapi/market/funding_rate", 1 },
+                        { "v1/fapi/market/funding_rate_history", 1 },
+                        { "v1/fapi/market/risk_limit", 1 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -209,16 +209,16 @@ public partial class bydfi : Exchange
                         { "v1/account/transfer_records", 1 },
                         { "v1/spot/deposit_records", 1 },
                         { "v1/spot/withdraw_records", 1 },
-                        { "v1/swap/trade/open_order", 1 },
-                        { "v1/swap/trade/plan_order", 1 },
-                        { "v1/swap/trade/leverage", 1 },
-                        { "v1/swap/trade/history_order", 1 },
-                        { "v1/swap/trade/history_trade", 1 },
-                        { "v1/swap/trade/position_history", 1 },
-                        { "v1/swap/trade/positions", 1 },
-                        { "v1/swap/account/balance", 1 },
-                        { "v1/swap/user_data/assets_margin", 1 },
-                        { "v1/swap/user_data/position_side/dual", 1 },
+                        { "v1/fapi/trade/open_order", 1 },
+                        { "v1/fapi/trade/plan_order", 1 },
+                        { "v1/fapi/trade/leverage", 1 },
+                        { "v1/fapi/trade/history_order", 1 },
+                        { "v1/fapi/trade/history_trade", 1 },
+                        { "v1/fapi/trade/position_history", 1 },
+                        { "v1/fapi/trade/positions", 1 },
+                        { "v1/fapi/account/balance", 1 },
+                        { "v1/fapi/user_data/assets_margin", 1 },
+                        { "v1/fapi/user_data/position_side/dual", 1 },
                         { "v1/agent/teams", 1 },
                         { "v1/agent/agent_links", 1 },
                         { "v1/agent/regular_overview", 1 },
@@ -231,15 +231,15 @@ public partial class bydfi : Exchange
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "v1/account/transfer", 1 },
-                        { "v1/swap/trade/place_order", 1 },
-                        { "v1/swap/trade/batch_place_order", 1 },
-                        { "v1/swap/trade/edit_order", 1 },
-                        { "v1/swap/trade/batch_edit_order", 1 },
-                        { "v1/swap/trade/cancel_all_order", 1 },
-                        { "v1/swap/trade/leverage", 1 },
-                        { "v1/swap/trade/batch_leverage_margin", 1 },
-                        { "v1/swap/user_data/margin_type", 1 },
-                        { "v1/swap/user_data/position_side/dual", 1 },
+                        { "v1/fapi/trade/place_order", 1 },
+                        { "v1/fapi/trade/batch_place_order", 1 },
+                        { "v1/fapi/trade/edit_order", 1 },
+                        { "v1/fapi/trade/batch_edit_order", 1 },
+                        { "v1/fapi/trade/cancel_all_order", 1 },
+                        { "v1/fapi/trade/leverage", 1 },
+                        { "v1/fapi/trade/batch_leverage_margin", 1 },
+                        { "v1/fapi/user_data/margin_type", 1 },
+                        { "v1/fapi/user_data/position_side/dual", 1 },
                         { "v1/agent/internal_withdrawal", 1 },
                     } },
                 } },
@@ -371,13 +371,15 @@ public partial class bydfi : Exchange
                 } },
                 { "accountsByType", new Dictionary<string, object>() {
                     { "spot", "SPOT" },
-                    { "swap", "SWAP" },
-                    { "funding", "FUND" },
+                    { "swap", "UMFUTURE" },
+                    { "funding", "FUNDING" },
+                    { "inverse", "CMFUTURE" },
                 } },
                 { "accountsById", new Dictionary<string, object>() {
                     { "SPOT", "spot" },
-                    { "SWAP", "swap" },
-                    { "FUND", "funding" },
+                    { "UMFUTURE", "swap" },
+                    { "FUNDING", "funding" },
+                    { "CMFUTURE", "inverse" },
                 } },
             } },
         });
@@ -387,14 +389,14 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#fetchMarkets
      * @description retrieves data on all markets for bydfi
-     * @see https://developers.bydfi.com/en/swap/market#fetching-trading-rules-and-pairs
+     * @see https://developers.bydfi.com/en/futures/market#fetching-trading-rules-and-pairs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.publicGetV1SwapMarketExchangeInfo(parameters);
+        object response = await this.publicGetV1FapiMarketExchangeInfo(parameters);
         //
         //     {
         //         "code": "200",
@@ -552,17 +554,20 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://developers.bydfi.com/en/swap/market#depth-information
+     * @see https://developers.bydfi.com/en/futures/market#depth-information
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000 (default 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -571,7 +576,7 @@ public partial class bydfi : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = this.getClosestLimit(limit);
         }
-        object response = await this.publicGetV1SwapMarketDepth(this.extend(request, parameters));
+        object response = await this.publicGetV1FapiMarketDepth(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -611,6 +616,10 @@ public partial class bydfi : Exchange
         object result = 1000;
         for (object i = 0; isLessThan(i, getArrayLength(limits)); postFixIncrement(ref i))
         {
+            if (isTrue(isEqual(limit, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " getClosestLimit() requires a limit argument")) ;
+            }
             if (isTrue(isLessThanOrEqual(limit, getValue(limits, i))))
             {
                 result = getValue(limits, i);
@@ -624,7 +633,7 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://developers.bydfi.com/en/swap/market#recent-trades
+     * @see https://developers.bydfi.com/en/futures/market#recent-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch (default 500, max 1000)
@@ -635,16 +644,19 @@ public partial class bydfi : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
-        object response = await this.publicGetV1SwapMarketTrades(this.extend(request, parameters));
+        object response = await this.publicGetV1FapiMarketTrades(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -670,7 +682,7 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://developers.bydfi.com/en/swap/trade#historical-trades-query
+     * @see https://developers.bydfi.com/en/futures/trade#historical-trades-query
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -684,7 +696,10 @@ public partial class bydfi : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = this.safeBool(parameters, "paginate", false);
         if (isTrue(paginate))
         {
@@ -714,7 +729,7 @@ public partial class bydfi : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.privateGetV1SwapTradeHistoryTrade(this.extend(request, parameters));
+        object response = await this.privateGetV1FapiTradeHistoryTrade(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -821,19 +836,19 @@ public partial class bydfi : Exchange
             { "2", "market" },
             { "3", "liquidation" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     /**
      * @method
      * @name bydfi#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://developers.bydfi.com/en/swap/market#candlestick-data
+     * @see https://developers.bydfi.com/en/futures/market#candlestick-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (max 500)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
@@ -841,7 +856,10 @@ public partial class bydfi : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object maxLimit = 500; // docs says max 1500, but in practice only 500 works
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
@@ -872,6 +890,10 @@ public partial class bydfi : Exchange
             until = now;
         } else if (isTrue(isEqual(until, null)))
         {
+            if (isTrue(isEqual(startTime, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchOHLCV() requires a since or until argument")) ;
+            }
             until = add(startTime, timeDelta);
             if (isTrue(isGreaterThan(until, now)))
             {
@@ -887,7 +909,7 @@ public partial class bydfi : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.publicGetV1SwapMarketKlines(this.extend(request, parameters));
+        object response = await this.publicGetV1FapiMarketKlines(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -930,7 +952,7 @@ public partial class bydfi : Exchange
     /**
      * @method
      * @name bydfi#fetchTickers
-     * @see https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics
+     * @see https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -939,8 +961,11 @@ public partial class bydfi : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object response = await this.publicGetV1SwapMarketTicker24hr(parameters);
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object response = await this.publicGetV1FapiMarketTicker24hr(parameters);
         //
         //     {
         //         "code": 200,
@@ -967,7 +992,7 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://developers.bydfi.com/en/swap/market#24hr-price-change-statistics
+     * @see https://developers.bydfi.com/en/futures/market#24hr-price-change-statistics
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -975,12 +1000,15 @@ public partial class bydfi : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await this.publicGetV1SwapMarketTicker24hr(this.extend(request, parameters));
+        object response = await this.publicGetV1FapiMarketTicker24hr(this.extend(request, parameters));
         object data = this.safeList(response, "data", new List<object>() {});
         object ticker = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseTicker(ticker, market);
@@ -1034,7 +1062,7 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://developers.bydfi.com/en/swap/market#recent-funding-rate
+     * @see https://developers.bydfi.com/en/futures/market#recent-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1042,12 +1070,15 @@ public partial class bydfi : Exchange
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await this.publicGetV1SwapMarketFundingRate(this.extend(request, parameters));
+        object response = await this.publicGetV1FapiMarketFundingRate(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -1105,7 +1136,7 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://developers.bydfi.com/en/swap/market#historical-funding-rates
+     * @see https://developers.bydfi.com/en/futures/market#historical-funding-rates
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1120,7 +1151,10 @@ public partial class bydfi : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1141,7 +1175,7 @@ public partial class bydfi : Exchange
         {
             ((IDictionary<string,object>)request)["endTime"] = until;
         }
-        object response = await this.publicGetV1SwapMarketFundingRateHistory(this.extend(request, parameters));
+        object response = await this.publicGetV1FapiMarketFundingRateHistory(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -1186,7 +1220,7 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#createOrder
      * @description create a trade order
-     * @see https://developers.bydfi.com/en/swap/trade#placing-an-order
+     * @see https://developers.bydfi.com/en/futures/trade#placing-an-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1210,7 +1244,10 @@ public partial class bydfi : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object wallet = "W001";
@@ -1220,7 +1257,7 @@ public partial class bydfi : Exchange
         orderRequest = this.extend(orderRequest, new Dictionary<string, object>() {
             { "wallet", wallet },
         });
-        object response = await this.privatePostV1SwapTradePlaceOrder(orderRequest);
+        object response = await this.privatePostV1FapiTradePlaceOrder(orderRequest);
         //
         //     {
         //         "code": 200,
@@ -1258,7 +1295,19 @@ public partial class bydfi : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrderRequest() requires a side argument")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", ((string)side).ToUpper() },
@@ -1388,7 +1437,7 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#createOrders
      * @description create a list of trade orders
-     * @see https://developers.bydfi.com/en/swap/trade#batch-order-placement
+     * @see https://developers.bydfi.com/en/futures/trade#batch-order-placement
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -1397,7 +1446,10 @@ public partial class bydfi : Exchange
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object length = getArrayLength(orders);
         if (isTrue(isGreaterThan(length, 5)))
         {
@@ -1424,7 +1476,7 @@ public partial class bydfi : Exchange
             { "wallet", wallet },
             { "orders", ordersRequests },
         };
-        object response = await this.privatePostV1SwapTradeBatchPlaceOrder(this.extend(request, parameters));
+        object response = await this.privatePostV1FapiTradeBatchPlaceOrder(this.extend(request, parameters));
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data);
     }
@@ -1433,7 +1485,7 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#editOrder
      * @description edit a trade order
-     * @see https://developers.bydfi.com/en/swap/trade#order-modification
+     * @see https://developers.bydfi.com/en/futures/trade#order-modification
      * @param {string} id order id (mandatory if params.clientOrderId is not provided)
      * @param {string} [symbol] unified symbol of the market to create an order in
      * @param {string} [type] not used by bydfi editOrder
@@ -1448,14 +1500,17 @@ public partial class bydfi : Exchange
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = this.createEditOrderRequest(id, symbol, "limit", side, amount, price, parameters);
         object wallet = "W001";
         var walletparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "wallet", wallet);
         wallet = ((IList<object>)walletparametersVariable)[0];
         parameters = ((IList<object>)walletparametersVariable)[1];
         ((IDictionary<string,object>)request)["wallet"] = wallet;
-        object response = await this.privatePostV1SwapTradeEditOrder(request);
+        object response = await this.privatePostV1FapiTradeEditOrder(request);
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data);
     }
@@ -1464,7 +1519,7 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#editOrders
      * @description edit a list of trade orders
-     * @see https://developers.bydfi.com/en/swap/trade#batch-order-modification
+     * @see https://developers.bydfi.com/en/futures/trade#batch-order-modification
      * @param {Array} orders list of orders to edit, each object should contain the parameters required by editOrder, namely id, symbol, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -1473,7 +1528,10 @@ public partial class bydfi : Exchange
     public async override Task<object> editOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object length = getArrayLength(orders);
         if (isTrue(isGreaterThan(length, 5)))
         {
@@ -1500,7 +1558,7 @@ public partial class bydfi : Exchange
             { "wallet", wallet },
             { "editOrders", ordersRequests },
         };
-        object response = await this.privatePostV1SwapTradeBatchEditOrder(this.extend(request, parameters));
+        object response = await this.privatePostV1FapiTradeBatchEditOrder(this.extend(request, parameters));
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data);
     }
@@ -1538,7 +1596,7 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://developers.bydfi.com/en/swap/trade#complete-order-cancellation
+     * @see https://developers.bydfi.com/en/futures/trade#complete-order-cancellation
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -1551,7 +1609,10 @@ public partial class bydfi : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelAllOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object wallet = "W001";
         var walletparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrders", "wallet", wallet);
@@ -1561,7 +1622,7 @@ public partial class bydfi : Exchange
             { "symbol", getValue(market, "id") },
             { "wallet", wallet },
         };
-        object response = await this.privatePostV1SwapTradeCancelAllOrder(this.extend(request, parameters));
+        object response = await this.privatePostV1FapiTradeCancelAllOrder(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -1602,8 +1663,8 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://developers.bydfi.com/en/swap/trade#pending-order-query
-     * @see https://developers.bydfi.com/en/swap/trade#planned-order-query
+     * @see https://developers.bydfi.com/en/futures/trade#pending-order-query
+     * @see https://developers.bydfi.com/en/futures/trade#planned-order-query
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1619,7 +1680,10 @@ public partial class bydfi : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object wallet = "W001";
         var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "wallet", wallet);
@@ -1668,10 +1732,10 @@ public partial class bydfi : Exchange
             //         "success": true
             //     }
             //
-            response = await this.privateGetV1SwapTradeOpenOrder(this.extend(request, parameters));
+            response = await this.privateGetV1FapiTradeOpenOrder(this.extend(request, parameters));
         } else
         {
-            response = await this.privateGetV1SwapTradePlanOrder(this.extend(request, parameters));
+            response = await this.privateGetV1FapiTradePlanOrder(this.extend(request, parameters));
         }
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
@@ -1681,8 +1745,8 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#fetchOpenOrder
      * @description fetch an open order by the id
-     * @see https://developers.bydfi.com/en/swap/trade#pending-order-query
-     * @see https://developers.bydfi.com/en/swap/trade#planned-order-query
+     * @see https://developers.bydfi.com/en/futures/trade#pending-order-query
+     * @see https://developers.bydfi.com/en/futures/trade#planned-order-query
      * @param {string} id order id (mandatory if params.clientOrderId is not provided)
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1698,7 +1762,10 @@ public partial class bydfi : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1723,10 +1790,10 @@ public partial class bydfi : Exchange
         parameters = ((IList<object>)triggerparametersVariable)[1];
         if (!isTrue(trigger))
         {
-            response = await this.privateGetV1SwapTradeOpenOrder(this.extend(request, parameters));
+            response = await this.privateGetV1FapiTradeOpenOrder(this.extend(request, parameters));
         } else
         {
-            response = await this.privateGetV1SwapTradePlanOrder(this.extend(request, parameters));
+            response = await this.privateGetV1FapiTradePlanOrder(this.extend(request, parameters));
         }
         object data = this.safeList(response, "data", new List<object>() {});
         object order = this.safeDict(data, 0, new Dictionary<string, object>() {});
@@ -1737,7 +1804,7 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#fetchCanceledAndClosedOrders
      * @description fetches information on multiple canceled and closed orders made by the user
-     * @see https://developers.bydfi.com/en/swap/trade#historical-orders-query
+     * @see https://developers.bydfi.com/en/futures/trade#historical-orders-query
      * @param {string} symbol unified market symbol of the closed orders
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the max number of closed orders to return
@@ -1751,7 +1818,10 @@ public partial class bydfi : Exchange
     public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = this.safeBool(parameters, "paginate", false);
         if (isTrue(paginate))
         {
@@ -1781,7 +1851,7 @@ public partial class bydfi : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.privateGetV1SwapTradeHistoryOrder(this.extend(request, parameters));
+        object response = await this.privateGetV1FapiTradeHistoryOrder(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -2000,7 +2070,7 @@ public partial class bydfi : Exchange
             { "TAKE_PROFIT_MARKET", "market" },
             { "TRAILING_STOP_MARKET", "market" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public virtual object parseOrderTimeInForce(object timeInForce)
@@ -2034,7 +2104,7 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#setLeverage
      * @description set the level of leverage for a market
-     * @see https://developers.bydfi.com/en/swap/trade#set-leverage-for-single-trading-pair
+     * @see https://developers.bydfi.com/en/futures/trade#set-leverage-for-single-trading-pair
      * @param {float} leverage the rate of leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2048,7 +2118,10 @@ public partial class bydfi : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " setLeverage() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object wallet = "W001";
         var walletparametersVariable = this.handleOptionAndParams(parameters, "setLeverage", "wallet", wallet);
@@ -2059,7 +2132,7 @@ public partial class bydfi : Exchange
             { "leverage", leverage },
             { "wallet", wallet },
         };
-        object response = await this.privatePostV1SwapTradeLeverage(this.extend(request, parameters));
+        object response = await this.privatePostV1FapiTradeLeverage(this.extend(request, parameters));
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return data;
     }
@@ -2068,7 +2141,7 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://developers.bydfi.com/en/swap/trade#get-leverage-for-single-trading-pair
+     * @see https://developers.bydfi.com/en/futures/trade#get-leverage-for-single-trading-pair
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2081,7 +2154,10 @@ public partial class bydfi : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchLeverage() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object wallet = "W001";
         var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchLeverage", "wallet", wallet);
@@ -2091,7 +2167,7 @@ public partial class bydfi : Exchange
             { "symbol", getValue(market, "id") },
             { "wallet", wallet },
         };
-        object response = await this.privateGetV1SwapTradeLeverage(this.extend(request, parameters));
+        object response = await this.privateGetV1FapiTradeLeverage(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -2124,7 +2200,7 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#fetchPositions
      * @description fetch all open positions
-     * @see https://developers.bydfi.com/en/swap/trade#positions-query
+     * @see https://developers.bydfi.com/en/futures/trade#positions-query
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
@@ -2134,7 +2210,10 @@ public partial class bydfi : Exchange
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object contractType = "FUTURE";
         var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "contractType", contractType);
         contractType = ((IList<object>)contractTypeparametersVariable)[0];
@@ -2142,7 +2221,7 @@ public partial class bydfi : Exchange
         object request = new Dictionary<string, object>() {
             { "contractType", contractType },
         };
-        object response = await this.privateGetV1SwapTradePositions(this.extend(request, parameters));
+        object response = await this.privateGetV1FapiTradePositions(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -2173,7 +2252,7 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#fetchPositionsForSymbol
      * @description fetch open positions for a single market
-     * @see https://developers.bydfi.com/en/swap/trade#positions-query
+     * @see https://developers.bydfi.com/en/futures/trade#positions-query
      * @description fetch all open positions for specific symbol
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2183,7 +2262,10 @@ public partial class bydfi : Exchange
     public async override Task<object> fetchPositionsForSymbol(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object contractType = "FUTURE";
         var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "contractType", contractType);
@@ -2193,7 +2275,7 @@ public partial class bydfi : Exchange
             { "contractType", contractType },
             { "symbol", getValue(market, "id") },
         };
-        object response = await this.privateGetV1SwapTradePositions(this.extend(request, parameters));
+        object response = await this.privateGetV1FapiTradePositions(this.extend(request, parameters));
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parsePositions(data, new List<object>() {getValue(market, "symbol")});
     }
@@ -2321,11 +2403,11 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#fetchPositionHistory
      * @description fetches historical positions
-     * @see https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
+     * @see https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records
      * @param {string} symbol a unified market symbol
      * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
      * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2334,7 +2416,10 @@ public partial class bydfi : Exchange
     public async override Task<object> fetchPositionHistory(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object contractType = "FUTURE";
         var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsHistory", "contractType", contractType);
@@ -2349,7 +2434,7 @@ public partial class bydfi : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.privateGetV1SwapTradePositionHistory(this.extend(request, parameters));
+        object response = await this.privateGetV1FapiTradePositionHistory(this.extend(request, parameters));
         //
         //
         object data = this.safeList(response, "data", new List<object>() {});
@@ -2361,11 +2446,11 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#fetchPositionsHistory
      * @description fetches historical positions
-     * @see https://developers.bydfi.com/en/swap/trade#query-historical-position-profit-and-loss-records
+     * @see https://developers.bydfi.com/en/futures/trade#query-historical-position-profit-and-loss-records
      * @param {string[]} symbols a list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch , params["until"] - since <= 7 days
      * @param {int} [limit] the maximum amount of records to fetch (default 500, max 500)
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch , params["until"] - since <= 7 days
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2374,7 +2459,10 @@ public partial class bydfi : Exchange
     public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object contractType = "FUTURE";
         var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsHistory", "contractType", contractType);
         contractType = ((IList<object>)contractTypeparametersVariable)[0];
@@ -2387,7 +2475,7 @@ public partial class bydfi : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.privateGetV1SwapTradePositionHistory(this.extend(request, parameters));
+        object response = await this.privateGetV1FapiTradePositionHistory(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -2439,7 +2527,7 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#fetchMarginMode
      * @description fetches the margin mode of a trading pair
-     * @see https://developers.bydfi.com/en/swap/user#margin-mode-query
+     * @see https://developers.bydfi.com/en/futures/user#margin-mode-query
      * @param {string} symbol unified symbol of the market to fetch the margin mode for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
@@ -2449,7 +2537,10 @@ public partial class bydfi : Exchange
     public async override Task<object> fetchMarginMode(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object contractType = "FUTURE";
         var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchMarginMode", "contractType", contractType);
@@ -2464,7 +2555,7 @@ public partial class bydfi : Exchange
             { "symbol", getValue(market, "id") },
             { "wallet", wallet },
         };
-        object response = await this.privateGetV1SwapUserDataAssetsMargin(this.extend(request, parameters));
+        object response = await this.privateGetV1FapiUserDataAssetsMargin(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -2495,7 +2586,7 @@ public partial class bydfi : Exchange
      * @method
      * @name bydfi#setMarginMode
      * @description set margin mode to 'cross' or 'isolated'
-     * @see https://developers.bydfi.com/en/swap/user#change-margin-type-cross-margin
+     * @see https://developers.bydfi.com/en/futures/user#change-margin-type-cross-margin
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2515,7 +2606,10 @@ public partial class bydfi : Exchange
         {
             throw new BadRequest ((string)add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object contractType = "FUTURE";
         var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchMarginMode", "contractType", contractType);
@@ -2531,16 +2625,16 @@ public partial class bydfi : Exchange
             { "marginType", ((string)marginMode).ToUpper() },
             { "wallet", wallet },
         };
-        return await this.privatePostV1SwapUserDataMarginType(this.extend(request, parameters));
+        return await this.privatePostV1FapiUserDataMarginType(this.extend(request, parameters));
     }
 
     /**
      * @method
      * @name bydfi#setPositionMode
      * @description set hedged to true or false for a market, hedged for bydfi is set identically for all markets with same settle currency
-     * @see https://developers.bydfi.com/en/swap/user#change-position-mode-dual
+     * @see https://developers.bydfi.com/en/futures/user#change-position-mode-dual
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} [symbol] not used by bydfi setPositionMode ()
+     * @param {string} [symbol] not used by setPositionMode ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
      * @param {string} [params.wallet] The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
@@ -2554,7 +2648,10 @@ public partial class bydfi : Exchange
         {
             throw new NotSupported ((string)add(this.id, " setPositionMode() does not support a symbol argument. The position mode is set identically for all markets with same settle currency")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object positionType = ((bool) isTrue(hedged)) ? "HEDGE" : "ONEWAY";
         object wallet = "W001";
         var walletparametersVariable = this.handleOptionAndParams(parameters, "setPositionMode", "wallet", wallet);
@@ -2581,14 +2678,14 @@ public partial class bydfi : Exchange
         //         "success": true
         //     }
         //
-        return await this.privatePostV1SwapUserDataPositionSideDual(this.extend(request, parameters));
+        return await this.privatePostV1FapiUserDataPositionSideDual(this.extend(request, parameters));
     }
 
     /**
      * @method
      * @name bydfi#fetchPositionMode
      * @description fetchs the position mode, hedged or one way, hedged for bydfi is set identically for all markets with same settle currency
-     * @see https://developers.bydfi.com/en/swap/user#get-position-mode
+     * @see https://developers.bydfi.com/en/futures/user#get-position-mode
      * @param {string} [symbol] unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.contractType] FUTURE or DELIVERY, default is FUTURE
@@ -2599,7 +2696,10 @@ public partial class bydfi : Exchange
     public async override Task<object> fetchPositionMode(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object wallet = "W001";
         var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionMode", "wallet", wallet);
         wallet = ((IList<object>)walletparametersVariable)[0];
@@ -2624,7 +2724,7 @@ public partial class bydfi : Exchange
             { "settleCoin", settleCoin },
             { "wallet", wallet },
         };
-        object response = await this.privateGetV1SwapUserDataPositionSideDual(this.extend(request, parameters));
+        object response = await this.privateGetV1FapiUserDataPositionSideDual(this.extend(request, parameters));
         //
         //     {
         //         "code": 200,
@@ -2655,9 +2755,9 @@ public partial class bydfi : Exchange
      * @name bydfi#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://developers.bydfi.com/en/account#asset-inquiry
-     * @see https://developers.bydfi.com/en/swap/user#asset-query
+     * @see https://developers.bydfi.com/en/futures/user#asset-query
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.accountType] the type of account to fetch the balance for, either 'spot' or 'swap'  or 'funding' (default is 'spot')
+     * @param {string} [params.account] the type of account to fetch the balance for, either 'SPOT' or 'UMFUTURE'  or 'CMFUTURE'  or 'COPY'  or 'GRID'  or 'FUNDING' (default is 'SPOT')
      * @param {string} [params.wallet] *swap only* The unique code of a sub-wallet. W001 is the default wallet and the main wallet code of the contract
      * @param {string} [params.asset] currency id for the balance to fetch
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -2665,17 +2765,24 @@ public partial class bydfi : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
-        object accountType = "spot";
-        var accountTypeparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "accountType", "type", accountType);
-        accountType = ((IList<object>)accountTypeparametersVariable)[0];
-        parameters = ((IList<object>)accountTypeparametersVariable)[1];
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object wallet = null;
+        var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "wallet");
+        wallet = ((IList<object>)walletparametersVariable)[0];
+        parameters = ((IList<object>)walletparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
         object response = null;
-        if (isTrue(!isEqual(accountType, "swap")))
+        if (isTrue(isEqual(wallet, null)))
         {
             object options = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
-            object parsedAccountType = this.safeString(options, accountType, accountType);
+            object parsedAccountType = this.safeStringUpper(options, type, type);
             ((IDictionary<string,object>)request)["walletType"] = parsedAccountType;
             //
             //     {
@@ -2696,10 +2803,6 @@ public partial class bydfi : Exchange
             response = await this.privateGetV1AccountAssets(this.extend(request, parameters));
         } else
         {
-            object wallet = "W001";
-            var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "wallet", wallet);
-            wallet = ((IList<object>)walletparametersVariable)[0];
-            parameters = ((IList<object>)walletparametersVariable)[1];
             ((IDictionary<string,object>)request)["wallet"] = wallet;
             //
             //     {
@@ -2729,7 +2832,7 @@ public partial class bydfi : Exchange
             //         ],
             //         "success": true
             //     }
-            response = await this.privateGetV1SwapAccountBalance(this.extend(request, parameters));
+            response = await this.privateGetV1FapiAccountBalance(this.extend(request, parameters));
         }
         object data = this.safeList(response, "data", new List<object>() {});
         return this.parseBalance(data);
@@ -2751,7 +2854,10 @@ public partial class bydfi : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString2(balance, "total", "balance");
             ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "available", "availableBalance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2771,7 +2877,10 @@ public partial class bydfi : Exchange
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -2825,7 +2934,10 @@ public partial class bydfi : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchTransfers() requires a code argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object paginate = this.safeBool(parameters, "paginate", false);
         if (isTrue(paginate))
@@ -2977,7 +3089,10 @@ public partial class bydfi : Exchange
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a code argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object paginate = this.safeBool(parameters, "paginate", false);
         if (isTrue(paginate))
@@ -3106,7 +3221,7 @@ public partial class bydfi : Exchange
             { "txid", this.safeString(transaction, "txId") },
             { "type", null },
             { "currency", code },
-            { "network", this.networkIdToCode(this.safeString(transaction, "network")) },
+            { "network", this.networkIdToCode(this.safeString(transaction, "network"), code) },
             { "amount", this.safeNumber(transaction, "amount") },
             { "status", this.parseTransactionStatus(rawStatus) },
             { "timestamp", timestamp },

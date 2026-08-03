@@ -48,6 +48,9 @@ class myokx extends okx["default"] {
                     'inverse': undefined,
                 },
             },
+            'options': {
+                'mica': true,
+            },
         });
     }
 }

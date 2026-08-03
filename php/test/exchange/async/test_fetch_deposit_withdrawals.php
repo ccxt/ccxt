@@ -14,7 +14,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_deposit_withdrawal.php';
 function test_fetch_deposit_withdrawals($exchange, $skipped_properties, $code) {
     return Async\async(function () use ($exchange, $skipped_properties, $code) {
         $method = 'fetchTransactions';
-        $transactions = Async\await($exchange->fetch_transactions($code));
+        $transactions = \React\Async\await($exchange->fetch_transactions($code));
         assert_non_emtpy_array($exchange, $skipped_properties, $method, $transactions, $code);
         $now = $exchange->milliseconds();
         for ($i = 0; $i < count($transactions); $i++) {

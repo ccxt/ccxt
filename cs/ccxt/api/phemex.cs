@@ -261,6 +261,11 @@ public partial class phemex : Exchange
         return await this.callAsync ("privateGetApiDataFuturesV2TradeAccountDetail",parameters);
     }
 
+    public async Task<object> privateGetApiDataGFuturesClosedPosition (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiDataGFuturesClosedPosition",parameters);
+    }
+
     public async Task<object> privateGetGOrdersActiveList (object parameters = null)
     {
         return await this.callAsync ("privateGetGOrdersActiveList",parameters);

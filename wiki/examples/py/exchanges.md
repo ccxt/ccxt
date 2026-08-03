@@ -1,8 +1,5 @@
-- [Exchanges](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -61,5 +58,5 @@ for (id, params) in tuples:
     exchange = exchanges[id]
     website = exchange.urls['www'][0] if type(exchange.urls['www']) is list else exchange.urls['www']
     log('{:<15} {:<15} {:<15}'.format(exchange.id, exchange.name, website))
- 
+
 ```

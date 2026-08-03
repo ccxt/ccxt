@@ -4,7 +4,7 @@
 import bitstampRest from '../bitstamp.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Dict, Bool } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Dict, Market, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 
@@ -54,10 +54,12 @@ export default class bitstamp extends bitstampRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
@@ -99,6 +101,9 @@ export default class bitstamp extends bitstampRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const parts = channel.split ('_');
         const marketId = this.safeString (parts, 3);
         const symbol = this.safeSymbol (marketId);
@@ -106,6 +111,9 @@ export default class bitstamp extends bitstampRest {
         const nonce = this.safeValue (storedOrderBook, 'nonce');
         const delta = this.safeValue (message, 'data');
         const deltaNonce = this.safeInteger (delta, 'microtimestamp');
+        if (deltaNonce === undefined) {
+            return;
+        }
         const messageHash = 'orderbook:' + symbol;
         if (nonce === undefined) {
             const cacheLength = storedOrderBook.cache.length;
@@ -139,7 +147,7 @@ export default class bitstamp extends bitstampRest {
 
     handleBidAsks (bookSide, bidAsks) {
         for (let i = 0; i < bidAsks.length; i++) {
-            const bidAsk = this.parseBidAsk (bidAsks[i]);
+            const bidAsk = this.parseOrderBookBidAsk (bidAsks[i]);
             bookSide.storeArray (bidAsk);
         }
     }
@@ -148,8 +156,11 @@ export default class bitstamp extends bitstampRest {
         // we will consider it a fail
         const firstElement = deltas[0];
         const firstElementNonce = this.safeInteger (firstElement, 'microtimestamp');
+        if (firstElementNonce === undefined) {
+            return -1;
+        }
         const nonce = this.safeInteger (orderbook, 'nonce');
-        if (nonce < firstElementNonce) {
+        if ((nonce === undefined) || (nonce < firstElementNonce)) {
             return -1;
         }
         for (let i = 0; i < deltas.length; i++) {
@@ -173,7 +184,9 @@ export default class bitstamp extends bitstampRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'trades:' + symbol;
@@ -193,7 +206,7 @@ export default class bitstamp extends bitstampRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    parseWsTrade (trade, market = undefined) {
+    parseWsTrade (trade, market: Market = undefined): Trade {
         //
         //     {
         //         "buy_order_id": 1211625836466176,
@@ -208,11 +221,14 @@ export default class bitstamp extends bitstampRest {
         //         "price": 6294.77
         //     }
         //
-        const microtimestamp = this.safeInteger (trade, 'microtimestamp');
+        const microtimestamp = this.safeInteger (trade, 'microtimestamp', 0);
         const id = this.safeString (trade, 'id');
         const timestamp = this.parseToInt (microtimestamp / 1000);
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'amount');
+        if (market === undefined) {
+            market = this.safeMarket (undefined, market);
+        }
         const symbol = market['symbol'];
         const sideRaw = this.safeInteger (trade, 'type');
         const side = (sideRaw === 0) ? 'buy' : 'sell';
@@ -255,6 +271,9 @@ export default class bitstamp extends bitstampRest {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
         const channel = this.safeString (message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const parts = channel.split ('_');
         const marketId = this.safeString (parts, 2);
         const market = this.safeMarket (marketId);
@@ -286,7 +305,9 @@ export default class bitstamp extends bitstampRest {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const channel = 'private-my_orders';
@@ -329,7 +350,7 @@ export default class bitstamp extends bitstampRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const stored = this.orders;
-        const subscription = this.safeValue (client.subscriptions, channel);
+        const subscription = (channel === undefined) ? undefined : this.safeValue (client.subscriptions, channel);
         const symbol = this.safeString (subscription, 'symbol');
         const market = this.market (symbol);
         order['event'] = this.safeString (message, 'event');
@@ -338,7 +359,7 @@ export default class bitstamp extends bitstampRest {
         client.resolve (this.orders, channel);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsOrder (order, market: Market = undefined) {
         //
         //    {
         //        "id": "1894876776091648",
@@ -381,7 +402,7 @@ export default class bitstamp extends bitstampRest {
         const amount = this.safeString (order, 'amount_str');
         const filled = this.safeString (order, 'amount_traded');
         const event = this.safeString (order, 'event');
-        let status = undefined;
+        let status: Str = undefined;
         if (Precise.stringEq (filled, amount)) {
             status = 'closed';
         } else if (event === 'order_deleted') {
@@ -418,6 +439,9 @@ export default class bitstamp extends bitstampRest {
 
     handleOrderBookSubscription (client: Client, message) {
         const channel = this.safeString (message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const parts = channel.split ('_');
         const marketId = this.safeString (parts, 3);
         const symbol = this.safeSymbol (marketId);
@@ -438,6 +462,9 @@ export default class bitstamp extends bitstampRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         if (channel.indexOf ('order_book') > -1) {
             this.handleOrderBookSubscription (client, message);
         }
@@ -482,6 +509,9 @@ export default class bitstamp extends bitstampRest {
         //     }
         //
         const channel = this.safeString (message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const methods: Dict = {
             'live_trades': this.handleTrade,
             'diff_order_book': this.handleOrderBook,

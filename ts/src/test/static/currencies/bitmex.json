@@ -1,8 +1,7 @@
 {
     "BTC": {
-        "id": "XBt",
-        "code": "BTC",
         "info": {
+            "assetID": "2605748620",
             "asset": "XBT",
             "currency": "XBt",
             "majorCurrency": "XBT",
@@ -14,42 +13,37 @@
             "minDepositAmount": "10000",
             "minWithdrawalAmount": "1000",
             "maxWithdrawalAmount": "100000000000000",
+            "memoRequired": false,
             "networks": [
                 {
                     "asset": "btc",
-                    "tokenAddress": "",
                     "depositEnabled": true,
                     "withdrawalEnabled": true,
-                    "withdrawalFee": "20000",
-                    "minFee": "31016",
+                    "withdrawalFee": "1000",
+                    "minFee": "3000",
                     "maxFee": "10000000"
                 }
             ]
         },
+        "id": "XBt",
+        "numericId": null,
+        "code": "BTC",
+        "precision": 1e-8,
+        "type": "crypto",
         "name": "Bitcoin",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "precision": 1e-8,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": 0.00001,
-                "max": 1000000
-            },
-            "deposit": {
-                "min": 0.0001
-            }
-        },
+        "fee": 0.00001,
+        "fees": {},
         "networks": {
             "BTC": {
                 "info": {
                     "asset": "btc",
-                    "tokenAddress": "",
                     "depositEnabled": true,
                     "withdrawalEnabled": true,
-                    "withdrawalFee": "20000",
-                    "minFee": "31016",
+                    "withdrawalFee": "1000",
+                    "minFee": "3000",
                     "maxFee": "10000000"
                 },
                 "id": "btc",
@@ -57,18 +51,38 @@
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.0002,
+                "fee": 0.00001,
+                "precision": null,
                 "limits": {
-                    "withdraw": {},
-                    "deposit": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.00001,
+                "max": 1000000
+            },
+            "deposit": {
+                "min": 0.0001,
+                "max": null
             }
         }
     },
     "USDT": {
-        "id": "USDt",
-        "code": "USDT",
         "info": {
+            "assetID": "2945020447",
             "asset": "USDT",
             "currency": "USDt",
             "majorCurrency": "USDT",
@@ -77,27 +91,28 @@
             "scale": "6",
             "enabled": true,
             "isMarginCurrency": true,
-            "minDepositAmount": "1000000",
-            "minWithdrawalAmount": "10000000",
+            "minDepositAmount": "10000000",
+            "minWithdrawalAmount": "1000000",
             "maxWithdrawalAmount": "100000000000000",
+            "memoRequired": false,
             "networks": [
                 {
-                    "asset": "eth",
-                    "tokenAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                    "asset": "optimism",
+                    "tokenAddress": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
                     "depositEnabled": true,
                     "withdrawalEnabled": true,
-                    "withdrawalFee": "10000000",
-                    "minFee": "10000000",
-                    "maxFee": "10000000"
+                    "withdrawalFee": "100000",
+                    "minFee": "100000",
+                    "maxFee": "100000"
                 },
                 {
-                    "asset": "tron",
-                    "tokenAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                    "asset": "arbitrum",
+                    "tokenAddress": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
                     "depositEnabled": true,
                     "withdrawalEnabled": true,
-                    "withdrawalFee": "1000000",
-                    "minFee": "1000000",
-                    "maxFee": "1000000"
+                    "withdrawalFee": "50000",
+                    "minFee": "50000",
+                    "maxFee": "50000"
                 },
                 {
                     "asset": "sol",
@@ -107,48 +122,8 @@
                     "withdrawalFee": "1000000",
                     "minFee": "1000000",
                     "maxFee": "1000000"
-                }
-            ]
-        },
-        "name": "USD Tether",
-        "active": true,
-        "deposit": true,
-        "withdraw": true,
-        "precision": 0.000001,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": 10,
-                "max": 100000000
-            },
-            "deposit": {
-                "min": 1
-            }
-        },
-        "networks": {
-            "ERC20": {
-                "info": {
-                    "asset": "eth",
-                    "tokenAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-                    "depositEnabled": true,
-                    "withdrawalEnabled": true,
-                    "withdrawalFee": "10000000",
-                    "minFee": "10000000",
-                    "maxFee": "10000000"
                 },
-                "id": "eth",
-                "network": "ERC20",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 10,
-                "limits": {
-                    "withdraw": {},
-                    "deposit": {}
-                }
-            },
-            "TRC20": {
-                "info": {
+                {
                     "asset": "tron",
                     "tokenAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
                     "depositEnabled": true,
@@ -157,15 +132,92 @@
                     "minFee": "1000000",
                     "maxFee": "1000000"
                 },
-                "id": "tron",
-                "network": "TRC20",
+                {
+                    "asset": "bsc",
+                    "tokenAddress": "0x55d398326f99059fF775485246999027B3197955",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "1000000",
+                    "minFee": "1000000",
+                    "maxFee": "1000000"
+                },
+                {
+                    "asset": "eth",
+                    "tokenAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "500000",
+                    "minFee": "500000",
+                    "maxFee": "500000"
+                }
+            ]
+        },
+        "id": "USDt",
+        "numericId": null,
+        "code": "USDT",
+        "precision": 0.000001,
+        "type": "crypto",
+        "name": "USD Tether",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.05,
+        "fees": {},
+        "networks": {
+            "optimism": {
+                "info": {
+                    "asset": "optimism",
+                    "tokenAddress": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "100000",
+                    "minFee": "100000",
+                    "maxFee": "100000"
+                },
+                "id": "optimism",
+                "network": "optimism",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 1,
+                "fee": 0.1,
+                "precision": null,
                 "limits": {
-                    "withdraw": {},
-                    "deposit": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "arbitrum": {
+                "info": {
+                    "asset": "arbitrum",
+                    "tokenAddress": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "50000",
+                    "minFee": "50000",
+                    "maxFee": "50000"
+                },
+                "id": "arbitrum",
+                "network": "arbitrum",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.05,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
             },
             "SOL": {
@@ -184,17 +236,121 @@
                 "deposit": true,
                 "withdraw": true,
                 "fee": 1,
+                "precision": null,
                 "limits": {
-                    "withdraw": {},
-                    "deposit": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
+            },
+            "TRC20": {
+                "info": {
+                    "asset": "tron",
+                    "tokenAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "1000000",
+                    "minFee": "1000000",
+                    "maxFee": "1000000"
+                },
+                "id": "tron",
+                "network": "TRC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "BEP20": {
+                "info": {
+                    "asset": "bsc",
+                    "tokenAddress": "0x55d398326f99059fF775485246999027B3197955",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "1000000",
+                    "minFee": "1000000",
+                    "maxFee": "1000000"
+                },
+                "id": "bsc",
+                "network": "BEP20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "ERC20": {
+                "info": {
+                    "asset": "eth",
+                    "tokenAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "500000",
+                    "minFee": "500000",
+                    "maxFee": "500000"
+                },
+                "id": "eth",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.5,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 1,
+                "max": 100000000
+            },
+            "deposit": {
+                "min": 10,
+                "max": null
             }
         }
     },
     "LTC": {
-        "id": "LTc",
-        "code": "LTC",
         "info": {
+            "assetID": "2046279107",
             "asset": "LTC",
             "currency": "LTc",
             "majorCurrency": "LTC",
@@ -204,63 +360,78 @@
             "enabled": true,
             "isMarginCurrency": false,
             "minDepositAmount": "800000",
-            "minWithdrawalAmount": "800000",
+            "minWithdrawalAmount": "20000",
             "maxWithdrawalAmount": "80000000000000",
+            "memoRequired": false,
             "networks": [
                 {
                     "asset": "ltc",
-                    "tokenAddress": "",
                     "depositEnabled": true,
                     "withdrawalEnabled": true,
-                    "withdrawalFee": "800000",
-                    "minFee": "800000",
-                    "maxFee": "800000"
+                    "withdrawalFee": "20000",
+                    "minFee": "20000",
+                    "maxFee": "20000"
                 }
             ]
         },
+        "id": "LTc",
+        "numericId": null,
+        "code": "LTC",
+        "precision": 1e-8,
+        "type": "crypto",
         "name": "Litecoin",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "precision": 1e-8,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": 0.008,
-                "max": 800000
-            },
-            "deposit": {
-                "min": 0.008
-            }
-        },
+        "fee": 0.0002,
+        "fees": {},
         "networks": {
             "ltc": {
                 "info": {
                     "asset": "ltc",
-                    "tokenAddress": "",
                     "depositEnabled": true,
                     "withdrawalEnabled": true,
-                    "withdrawalFee": "800000",
-                    "minFee": "800000",
-                    "maxFee": "800000"
+                    "withdrawalFee": "20000",
+                    "minFee": "20000",
+                    "maxFee": "20000"
                 },
                 "id": "ltc",
                 "network": "ltc",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.008,
+                "fee": 0.0002,
+                "precision": null,
                 "limits": {
-                    "withdraw": {},
-                    "deposit": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.0002,
+                "max": 800000
+            },
+            "deposit": {
+                "min": 0.008,
+                "max": null
             }
         }
     },
     "ETH": {
-        "id": "Gwei",
-        "code": "ETH",
         "info": {
+            "assetID": "982943839",
             "asset": "ETH",
             "currency": "Gwei",
             "majorCurrency": "ETH",
@@ -268,65 +439,222 @@
             "currencyType": "Crypto",
             "scale": "9",
             "enabled": true,
-            "isMarginCurrency": true,
-            "minDepositAmount": "10000000",
-            "minWithdrawalAmount": "10000000",
-            "maxWithdrawalAmount": "100000000000000000",
+            "isMarginCurrency": false,
+            "minDepositAmount": "500000",
+            "minWithdrawalAmount": "500000",
+            "maxWithdrawalAmount": "100000000000000",
+            "memoRequired": false,
             "networks": [
                 {
+                    "asset": "bsc",
+                    "tokenAddress": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+                    "depositEnabled": false,
+                    "withdrawalEnabled": false,
+                    "withdrawalFee": "5",
+                    "minFee": "5",
+                    "maxFee": "5"
+                },
+                {
                     "asset": "eth",
-                    "tokenAddress": "",
                     "depositEnabled": true,
                     "withdrawalEnabled": true,
-                    "withdrawalFee": "5000000",
-                    "minFee": "5000000",
-                    "maxFee": "5000000"
+                    "withdrawalFee": "250000",
+                    "minFee": "250000",
+                    "maxFee": "250000"
+                },
+                {
+                    "asset": "optimism",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "50000",
+                    "minFee": "50000",
+                    "maxFee": "50000"
+                },
+                {
+                    "asset": "arbitrum",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "50000",
+                    "minFee": "50000",
+                    "maxFee": "50000"
+                },
+                {
+                    "asset": "base",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "50000",
+                    "minFee": "50000",
+                    "maxFee": "50000"
                 }
             ]
         },
+        "id": "Gwei",
+        "numericId": null,
+        "code": "ETH",
+        "precision": 1e-9,
+        "type": "crypto",
         "name": "Ethereum",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "precision": 1e-9,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": 0.01,
-                "max": 100000000
-            },
-            "deposit": {
-                "min": 0.01
-            }
-        },
+        "fee": 5e-9,
+        "fees": {},
         "networks": {
+            "BEP20": {
+                "info": {
+                    "asset": "bsc",
+                    "tokenAddress": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8",
+                    "depositEnabled": false,
+                    "withdrawalEnabled": false,
+                    "withdrawalFee": "5",
+                    "minFee": "5",
+                    "maxFee": "5"
+                },
+                "id": "bsc",
+                "network": "BEP20",
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "fee": 5e-9,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
             "ERC20": {
                 "info": {
                     "asset": "eth",
-                    "tokenAddress": "",
                     "depositEnabled": true,
                     "withdrawalEnabled": true,
-                    "withdrawalFee": "5000000",
-                    "minFee": "5000000",
-                    "maxFee": "5000000"
+                    "withdrawalFee": "250000",
+                    "minFee": "250000",
+                    "maxFee": "250000"
                 },
                 "id": "eth",
                 "network": "ERC20",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.005,
+                "fee": 0.00025,
+                "precision": null,
                 "limits": {
-                    "withdraw": {},
-                    "deposit": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
+            },
+            "optimism": {
+                "info": {
+                    "asset": "optimism",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "50000",
+                    "minFee": "50000",
+                    "maxFee": "50000"
+                },
+                "id": "optimism",
+                "network": "optimism",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.00005,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "arbitrum": {
+                "info": {
+                    "asset": "arbitrum",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "50000",
+                    "minFee": "50000",
+                    "maxFee": "50000"
+                },
+                "id": "arbitrum",
+                "network": "arbitrum",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.00005,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "base": {
+                "info": {
+                    "asset": "base",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "50000",
+                    "minFee": "50000",
+                    "maxFee": "50000"
+                },
+                "id": "base",
+                "network": "base",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.00005,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.0005,
+                "max": 100000
+            },
+            "deposit": {
+                "min": 0.0005,
+                "max": null
             }
         }
     },
     "ADA": {
-        "id": "ADa",
-        "code": "ADA",
         "info": {
+            "assetID": "2063268560",
             "asset": "ADA",
             "currency": "ADa",
             "majorCurrency": "ADA",
@@ -338,61 +666,76 @@
             "minDepositAmount": "200000000",
             "minWithdrawalAmount": "200000000",
             "maxWithdrawalAmount": "20000000000000000",
+            "memoRequired": false,
             "networks": [
                 {
                     "asset": "ada",
-                    "tokenAddress": "",
                     "depositEnabled": true,
                     "withdrawalEnabled": true,
-                    "withdrawalFee": "200000000",
-                    "minFee": "200000000",
-                    "maxFee": "200000000"
+                    "withdrawalFee": "100000000",
+                    "minFee": "100000000",
+                    "maxFee": "100000000"
                 }
             ]
         },
+        "id": "ADa",
+        "numericId": null,
+        "code": "ADA",
+        "precision": 1e-8,
+        "type": "crypto",
         "name": "Cardano",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "precision": 1e-8,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": 2,
-                "max": 200000000
-            },
-            "deposit": {
-                "min": 2
-            }
-        },
+        "fee": 1,
+        "fees": {},
         "networks": {
             "ADA": {
                 "info": {
                     "asset": "ada",
-                    "tokenAddress": "",
                     "depositEnabled": true,
                     "withdrawalEnabled": true,
-                    "withdrawalFee": "200000000",
-                    "minFee": "200000000",
-                    "maxFee": "200000000"
+                    "withdrawalFee": "100000000",
+                    "minFee": "100000000",
+                    "maxFee": "100000000"
                 },
                 "id": "ada",
                 "network": "ADA",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 2,
+                "fee": 1,
+                "precision": null,
                 "limits": {
-                    "withdraw": {},
-                    "deposit": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 2,
+                "max": 200000000
+            },
+            "deposit": {
+                "min": 2,
+                "max": null
             }
         }
     },
     "USDC": {
-        "id": "USDc",
-        "code": "USDC",
         "info": {
+            "assetID": "11441541",
             "asset": "USDC",
             "currency": "USDc",
             "majorCurrency": "USDC",
@@ -401,57 +744,260 @@
             "scale": "6",
             "enabled": true,
             "isMarginCurrency": false,
-            "minDepositAmount": "10000000",
-            "minWithdrawalAmount": "10000000",
+            "minDepositAmount": "1000000",
+            "minWithdrawalAmount": "1000000",
             "maxWithdrawalAmount": "100000000000000",
+            "memoRequired": false,
             "networks": [
+                {
+                    "asset": "base",
+                    "tokenAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "100000",
+                    "minFee": "100000",
+                    "maxFee": "100000"
+                },
+                {
+                    "asset": "optimism",
+                    "tokenAddress": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "100000",
+                    "minFee": "100000",
+                    "maxFee": "100000"
+                },
+                {
+                    "asset": "arbitrum",
+                    "tokenAddress": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "50000",
+                    "minFee": "50000",
+                    "maxFee": "50000"
+                },
+                {
+                    "asset": "sol",
+                    "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "1000000",
+                    "minFee": "1000000",
+                    "maxFee": "1000000"
+                },
                 {
                     "asset": "eth",
                     "tokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
                     "depositEnabled": true,
                     "withdrawalEnabled": true,
-                    "withdrawalFee": "25000000",
-                    "minFee": "25000000",
-                    "maxFee": "25000000"
+                    "withdrawalFee": "500000",
+                    "minFee": "500000",
+                    "maxFee": "500000"
+                },
+                {
+                    "asset": "avax",
+                    "tokenAddress": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "70000",
+                    "minFee": "70000",
+                    "maxFee": "70000"
                 }
             ]
         },
+        "id": "USDc",
+        "numericId": null,
+        "code": "USDC",
+        "precision": 0.000001,
+        "type": "crypto",
         "name": "USD Coin",
         "active": true,
         "deposit": true,
         "withdraw": true,
-        "precision": 0.000001,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": 10,
-                "max": 100000000
-            },
-            "deposit": {
-                "min": 10
-            }
-        },
+        "fee": 0.05,
+        "fees": {},
         "networks": {
+            "base": {
+                "info": {
+                    "asset": "base",
+                    "tokenAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "100000",
+                    "minFee": "100000",
+                    "maxFee": "100000"
+                },
+                "id": "base",
+                "network": "base",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.1,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "optimism": {
+                "info": {
+                    "asset": "optimism",
+                    "tokenAddress": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "100000",
+                    "minFee": "100000",
+                    "maxFee": "100000"
+                },
+                "id": "optimism",
+                "network": "optimism",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.1,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "arbitrum": {
+                "info": {
+                    "asset": "arbitrum",
+                    "tokenAddress": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "50000",
+                    "minFee": "50000",
+                    "maxFee": "50000"
+                },
+                "id": "arbitrum",
+                "network": "arbitrum",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.05,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "SOL": {
+                "info": {
+                    "asset": "sol",
+                    "tokenAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "1000000",
+                    "minFee": "1000000",
+                    "maxFee": "1000000"
+                },
+                "id": "sol",
+                "network": "SOL",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
             "ERC20": {
                 "info": {
                     "asset": "eth",
                     "tokenAddress": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
                     "depositEnabled": true,
                     "withdrawalEnabled": true,
-                    "withdrawalFee": "25000000",
-                    "minFee": "25000000",
-                    "maxFee": "25000000"
+                    "withdrawalFee": "500000",
+                    "minFee": "500000",
+                    "maxFee": "500000"
                 },
                 "id": "eth",
                 "network": "ERC20",
                 "active": true,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 25,
+                "fee": 0.5,
+                "precision": null,
                 "limits": {
-                    "withdraw": {},
-                    "deposit": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
                 }
+            },
+            "AVAXC": {
+                "info": {
+                    "asset": "avax",
+                    "tokenAddress": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+                    "depositEnabled": true,
+                    "withdrawalEnabled": true,
+                    "withdrawalFee": "70000",
+                    "minFee": "70000",
+                    "maxFee": "70000"
+                },
+                "id": "avax",
+                "network": "AVAXC",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.07,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 1,
+                "max": 100000000
+            },
+            "deposit": {
+                "min": 1,
+                "max": null
             }
         }
     }

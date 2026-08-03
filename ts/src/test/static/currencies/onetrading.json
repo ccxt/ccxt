@@ -129,7 +129,7 @@
             "precision": "2",
             "unified_cryptoasset_id": "0",
             "name": "Euro",
-            "collateral_percentage": "100"
+            "collateral_percentage": "99"
         },
         "id": "EUR",
         "numericId": null,

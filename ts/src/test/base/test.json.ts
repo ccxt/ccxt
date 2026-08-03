@@ -22,7 +22,7 @@ function testJson () {
     assert (listJson === "[1,2]");
 
     // todo: exceptions are not jsonable in other langs
-    // assert ('GO_SKIP_START');
+    // @SKIP_START_GO
     // // Test: can serialize errors
     // try {
     //     throw new BadRequest ("some error");
@@ -30,7 +30,7 @@ function testJson () {
     //     const errString = exchange.json (e);
     //     assert (errString === "{\"name\":\"BadRequest\"}");
     // }
-    // assert ('GO_SKIP_END');
+    // @SKIP_END_GO
 
     // // Test: json a string
     // const str = "ccxt, rocks!";

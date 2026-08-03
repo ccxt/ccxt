@@ -12,11 +12,12 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
+
+use const ccxt\TICK_SIZE;
 
 class onetrading extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'onetrading',
@@ -30,7 +31,7 @@ class onetrading extends Exchange {
                 'CORS' => null,
                 'spot' => true,
                 'margin' => false,
-                'swap' => false,
+                'swap' => true,
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
@@ -153,7 +154,7 @@ class onetrading extends Exchange {
                 '1M' => '1/MONTHS',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c',
+                'logo' => 'https://github.com/user-attachments/assets/341a1b01-7660-402a-9a2b-876391e52f15',
                 'api' => array(
                     'public' => 'https://api.onetrading.com/fast',
                     'private' => 'https://api.onetrading.com/fast',
@@ -183,9 +184,10 @@ class onetrading extends Exchange {
                         'account/fees',
                         'account/orders',
                         'account/orders/{order_id}',
+                        'account/orders/client/{client_id}',
                         'account/orders/{order_id}/trades',
                         'account/trades',
-                        'account/trades/{trade_id}',
+                        'account/trade/{trade_id}',
                     ),
                     'post' => array(
                         'account/orders',
@@ -322,6 +324,7 @@ class onetrading extends Exchange {
             ),
             // exchange-specific options
             'options' => array(
+                'mica' => true,
                 'fetchTradingFees' => array(
                     'method' => 'fetchPrivateTradingFees', // or 'fetchPublicTradingFees'
                 ),
@@ -400,7 +403,7 @@ class onetrading extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -410,7 +413,7 @@ class onetrading extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->publicGetTime ($params));
+            $response = Async\await($this->publicGetTime($params));
             //
             //     {
             //         "iso" => "2020-07-10T05:17:26.716Z",
@@ -418,10 +421,10 @@ class onetrading extends Exchange {
             //     }
             //
             return $this->safe_integer($response, 'epoch_millis');
-        }) ();
+        })();
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
+    public function fetch_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -431,7 +434,7 @@ class onetrading extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
-            $response = Async\await($this->publicGetCurrencies ($params));
+            $response = Async\await($this->publicGetCurrencies($params));
             //
             //     array(
             //         array(
@@ -443,33 +446,32 @@ class onetrading extends Exchange {
             //         ),
             //     )
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $currency = $response[$i];
-                $id = $this->safe_string($currency, 'code');
-                $code = $this->safe_currency_code($id);
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'code' => $code,
-                    'name' => $this->safe_string($currency, 'name'),
-                    'info' => $currency,
-                    'active' => null,
-                    'fee' => null,
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
-                    'withdraw' => null,
-                    'deposit' => null,
-                    'limits' => array(
-                        'amount' => array( 'min' => null, 'max' => null ),
-                        'withdraw' => array( 'min' => null, 'max' => null ),
-                    ),
-                    'networks' => array(),
-                ));
-            }
-            return $result;
-        }) ();
+            return $this->parse_currencies($response);
+        })();
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'code');
+        $code = $this->safe_currency_code($id);
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'name' => $this->safe_string($rawCurrency, 'name'),
+            'info' => $rawCurrency,
+            'active' => null,
+            'fee' => null,
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'precision'))),
+            'withdraw' => null,
+            'deposit' => null,
+            'limits' => array(
+                'amount' => array( 'min' => null, 'max' => null ),
+                'withdraw' => array( 'min' => null, 'max' => null ),
+            ),
+            'networks' => array(),
+        ));
+    }
+
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for onetrading
@@ -479,7 +481,7 @@ class onetrading extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */
-            $response = Async\await($this->publicGetInstruments ($params));
+            $response = Async\await($this->publicGetInstruments($params));
             //
             //     array(
             //         {
@@ -493,7 +495,7 @@ class onetrading extends Exchange {
             //     )
             //
             return $this->parse_markets($response);
-        }) ();
+        })();
     }
 
     public function parse_market(array $market): array {
@@ -551,7 +553,7 @@ class onetrading extends Exchange {
         if ($isPerp) {
             $symbol = $symbol . ':' . $quote;
         }
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
@@ -599,10 +601,10 @@ class onetrading extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
-    public function fetch_trading_fees($params = array ()): PromiseInterface {
+    public function fetch_trading_fees($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading fees for multiple markets
@@ -627,13 +629,15 @@ class onetrading extends Exchange {
             } else {
                 throw new NotSupported($this->id . ' fetchTradingFees() does not support ' . $method . ', fetchPrivateTradingFees and fetchPublicTradingFees are supported');
             }
-        }) ();
+        })();
     }
 
-    public function fetch_public_trading_fees($params = array ()) {
+    public function fetch_public_trading_fees($params = array()) {
         return Async\async(function () use ($params) {
-            Async\await($this->load_markets());
-            $response = Async\await($this->publicGetFees ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->publicGetFees($params));
             //
             // array(
             //     array(
@@ -685,8 +689,9 @@ class onetrading extends Exchange {
             $firstSpotTier = $this->safe_dict($spotTiers, 0, array());
             $firstFuturesTier = $this->safe_dict($futuresTiers, 0, array());
             $result = array();
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
+            $symbols = $this->symbols;
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
                 $market = $this->market($symbol);
                 $tierObject = ($market['spot']) ? $firstSpotTier : $firstFuturesTier;
                 $result[$symbol] = array(
@@ -700,13 +705,15 @@ class onetrading extends Exchange {
                 );
             }
             return $result;
-        }) ();
+        })();
     }
 
-    public function fetch_private_trading_fees($params = array ()) {
+    public function fetch_private_trading_fees($params = array()) {
         return Async\async(function () use ($params) {
-            Async\await($this->load_markets());
-            $response = Async\await($this->privateGetAccountFees ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->privateGetAccountFees($params));
             //
             // {
             //    "account_id":"b7f4e27e-b34a-493a-b0d4-4bd341a3f2e0",
@@ -752,8 +759,9 @@ class onetrading extends Exchange {
             $futuresTakerFee = Precise::string_div($futuresTakerFee, '100');
             $result = array();
             // $tiers = $this->parse_fee_tiers($feeTiers);
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
+            $symbols = $this->symbols;
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
                 $market = $this->market($symbol);
                 $makerFee = ($market['spot']) ? $spotMakerFee : $futuresMakerFee;
                 $takerFee = ($market['spot']) ? $spotTakerFee : $futuresTakerFee;
@@ -768,7 +776,7 @@ class onetrading extends Exchange {
                 );
             }
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_fee_tiers($feeTiers, ?array $market = null) {
@@ -843,7 +851,7 @@ class onetrading extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -854,12 +862,14 @@ class onetrading extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instrument_code' => $market['id'],
             );
-            $response = Async\await($this->publicGetMarketTickerInstrumentCode ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetMarketTickerInstrumentCode($this->extend($request, $params)));
             //
             //     {
             //         "instrument_code":"BTC_EUR",
@@ -879,10 +889,10 @@ class onetrading extends Exchange {
             //     }
             //
             return $this->parse_ticker($response, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -893,9 +903,11 @@ class onetrading extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->publicGetMarketTicker ($params));
+            $response = Async\await($this->publicGetMarketTicker($params));
             //
             //     array(
             //         {
@@ -920,13 +932,15 @@ class onetrading extends Exchange {
             for ($i = 0; $i < count($response); $i++) {
                 $ticker = $this->parse_ticker($response[$i]);
                 $symbol = $ticker['symbol'];
-                $result[$symbol] = $ticker;
+                if ($symbol !== null) {
+                    $result[$symbol] = $ticker;
+                }
             }
             return $this->filter_by_array_tickers($result, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -936,9 +950,11 @@ class onetrading extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instrument_code' => $market['id'],
@@ -952,7 +968,7 @@ class onetrading extends Exchange {
             if ($limit !== null) {
                 $request['depth'] = $limit;
             }
-            $response = Async\await($this->publicGetOrderBookInstrumentCode ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetOrderBookInstrumentCode($this->extend($request, $params)));
             //
             // level 1
             //
@@ -1010,7 +1026,7 @@ class onetrading extends Exchange {
             //
             $timestamp = $this->parse8601($this->safe_string($response, 'time'));
             return $this->parse_order_book($response, $market['symbol'], $timestamp, 'bids', 'asks', 'price', 'amount');
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -1039,10 +1055,16 @@ class onetrading extends Exchange {
             'MONTHS' => 'M',
         );
         $lowercaseUnit = $this->safe_string($units, $unit);
+        if (($period === null) || ($lowercaseUnit === null)) {
+            throw new ExchangeError($this->id . ' parseOHLCV() missing period/unit');
+        }
         $timeframe = $period . $lowercaseUnit;
         $durationInSeconds = $this->parse_timeframe($timeframe);
         $duration = $durationInSeconds * 1000;
         $timestamp = $this->parse8601($this->safe_string($ohlcv, 'time'));
+        if ($timestamp === null) {
+            throw new ExchangeError($this->id . ' parseOHLCV() missing timestamp');
+        }
         $alignedTimestamp = $duration * $this->parse_to_int($timestamp / $duration);
         $options = $this->safe_value($this->options, 'fetchOHLCV', array());
         $volumeField = $this->safe_string($options, 'volume', 'total_amount');
@@ -1056,7 +1078,7 @@ class onetrading extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1070,9 +1092,14 @@ class onetrading extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $periodUnit = $this->safe_string($this->timeframes, $timeframe);
+            if ($periodUnit === null) {
+                throw new ExchangeError($this->id . ' fetchOHLCV() missing periodUnit');
+            }
             list($period, $unit) = explode('/', $periodUnit);
             $durationInSeconds = $this->parse_timeframe($timeframe);
             $duration = $durationInSeconds * 1000;
@@ -1094,7 +1121,7 @@ class onetrading extends Exchange {
                 $request['from'] = $this->iso8601($since);
                 $request['to'] = $this->iso8601($this->sum($since, $limit * $duration));
             }
-            $response = Async\await($this->publicGetCandlesticksInstrumentCode ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetCandlesticksInstrumentCode($this->extend($request, $params)));
             //
             //     array(
             //         array("instrument_code":"BTC_EUR","granularity":array("unit":"HOURS","period":1),"high":"9252.65","low":"9115.27","open":"9250.0","close":"9132.35","total_amount":"33.85924","volume":"311958.9635744","time":"2020-05-08T22:59:59.999Z","last_sequence":461123),
@@ -1104,7 +1131,7 @@ class onetrading extends Exchange {
             //
             $ohlcv = $this->safe_list($response, 'candlesticks');
             return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1199,12 +1226,14 @@ class onetrading extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'available');
             $account['used'] = $this->safe_string($balance, 'locked');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1214,8 +1243,10 @@ class onetrading extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->privateGetAccountBalances ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->privateGetAccountBalances($params));
             //
             //     {
             //         "account_id":"4b95934f-55f1-460c-a525-bd5afc0cf071",
@@ -1233,7 +1264,7 @@ class onetrading extends Exchange {
             //     }
             //
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
     public function parse_order_status(?string $status) {
@@ -1377,7 +1408,7 @@ class onetrading extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1393,9 +1424,14 @@ class onetrading extends Exchange {
              * @param {float} [$params->triggerPrice] onetrading only does stop limit orders and does not do stop $market
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $uppercaseType = strtoupper($type);
+            if ($side === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            }
             $request = array(
                 'instrument_code' => $market['id'],
                 'type' => $uppercaseType, // LIMIT, MARKET, STOP
@@ -1434,7 +1470,7 @@ class onetrading extends Exchange {
             $timeInForce = $this->safe_string_2($params, 'timeInForce', 'time_in_force', 'GOOD_TILL_CANCELLED');
             $params = $this->omit($params, 'timeInForce');
             $request['time_in_force'] = $timeInForce;
-            $response = Async\await($this->privatePostAccountOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostAccountOrders($this->extend($request, $params)));
             //
             //     {
             //         "order_id" => "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
@@ -1451,10 +1487,10 @@ class onetrading extends Exchange {
             //     }
             //
             return $this->parse_order($response, $market);
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1463,11 +1499,13 @@ class onetrading extends Exchange {
              * @see https://docs.onetrading.com/rest/trading/cancel-order-client-$id
              *
              * @param {string} $id order $id
-             * @param {string} $symbol not used by bitmex cancelOrder ()
+             * @param {string} $symbol not used by cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_id');
             $params = $this->omit($params, array( 'clientOrderId', 'client_id' ));
             $method = 'privateDeleteAccountOrdersOrderId';
@@ -1480,45 +1518,47 @@ class onetrading extends Exchange {
             }
             $response = null;
             if ($method === 'privateDeleteAccountOrdersOrderId') {
-                $response = Async\await($this->privateDeleteAccountOrdersOrderId ($this->extend($request, $params)));
+                $response = Async\await($this->privateDeleteAccountOrdersOrderId($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privateDeleteAccountOrdersClientClientId ($this->extend($request, $params)));
+                $response = Async\await($this->privateDeleteAccountOrdersClientClientId($this->extend($request, $params)));
             }
             //
             // responds with an empty body
             //
             return $this->parse_order($response);
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
              *
              * @see https://docs.onetrading.com/rest/trading/cancel-all-orders
              *
-             * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['instrument_code'] = $market['id'];
             }
-            $response = Async\await($this->privateDeleteAccountOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteAccountOrders($this->extend($request, $params)));
             //
             //     array(
             //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
             //     )
             //
             return array( $this->safe_order(array( 'info' => $response )) );
-        }) ();
+        })();
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
@@ -1530,11 +1570,13 @@ class onetrading extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'ids' => implode(',', $ids),
             );
-            $response = Async\await($this->privateDeleteAccountOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteAccountOrders($this->extend($request, $params)));
             //
             //     array(
             //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
@@ -1542,10 +1584,10 @@ class onetrading extends Exchange {
             //
             $order = $this->safe_order(array( 'info' => $response ));
             return array( $order );
-        }) ();
+        })();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -1557,11 +1599,13 @@ class onetrading extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'order_id' => $id,
             );
-            $response = Async\await($this->privateGetAccountOrdersOrderId ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetAccountOrdersOrderId($this->extend($request, $params)));
             //
             //     {
             //         "order" => array(
@@ -1604,10 +1648,10 @@ class onetrading extends Exchange {
             //     }
             //
             return $this->parse_order($response);
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1620,14 +1664,16 @@ class onetrading extends Exchange {
              * @param {array} [$params] extra parameters specific $to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 // 'from' => $this->iso8601($since),
                 // 'to' => $this->iso8601($this->milliseconds()), // max range is 100 days
                 // 'instrument_code' => $market['id'],
                 // 'with_cancelled_and_rejected' => false, // default is false, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
                 // 'with_just_filled_inactive' => false, // orders which have been filled and are no longer open, use of "with_cancelled_and_rejected" extends "with_just_filled_inactive" and in case both are specified the latter is ignored
-                // 'with_just_orders' => false, // do not return any trades corresponsing $to the orders, it may be significanly faster and should be used if user is not interesting in trade information
+                // 'with_just_orders' => false, // do not return any trades corresponding $to the orders, it may be significantly faster and should be used if user is not interesting in trade information
                 // 'max_page_size' => 100,
                 // 'cursor' => 'string', // pointer specifying the position from which the next pages should be returned
             );
@@ -1646,7 +1692,7 @@ class onetrading extends Exchange {
             if ($limit !== null) {
                 $request['max_page_size'] = $limit;
             }
-            $response = Async\await($this->privateGetAccountOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetAccountOrders($this->extend($request, $params)));
             //
             //     {
             //         "order_history" => array(
@@ -1728,10 +1774,10 @@ class onetrading extends Exchange {
             //
             $orderHistory = $this->safe_list($response, 'order_history', array());
             return $this->parse_orders($orderHistory, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -1748,10 +1794,10 @@ class onetrading extends Exchange {
                 'with_cancelled_and_rejected' => true, // default is false, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
             );
             return Async\await($this->fetch_open_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
@@ -1765,7 +1811,9 @@ class onetrading extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'order_id' => $id,
                 // 'max_page_size' => 100,
@@ -1774,7 +1822,7 @@ class onetrading extends Exchange {
             if ($limit !== null) {
                 $request['max_page_size'] = $limit;
             }
-            $response = Async\await($this->privateGetAccountOrdersOrderIdTrades ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetAccountOrdersOrderIdTrades($this->extend($request, $params)));
             //
             //     {
             //         "trade_history" => array(
@@ -1811,10 +1859,10 @@ class onetrading extends Exchange {
                 $market = $this->market($symbol);
             }
             return $this->parse_trades($tradeHistory, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
@@ -1827,7 +1875,9 @@ class onetrading extends Exchange {
              * @param {array} [$params] extra parameters specific $to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 // 'from' => $this->iso8601($since),
                 // 'to' => $this->iso8601($this->milliseconds()), // max range is 100 days
@@ -1850,7 +1900,7 @@ class onetrading extends Exchange {
             if ($limit !== null) {
                 $request['max_page_size'] = $limit;
             }
-            $response = Async\await($this->privateGetAccountTrades ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetAccountTrades($this->extend($request, $params)));
             //
             //     {
             //         "trade_history" => array(
@@ -1883,10 +1933,10 @@ class onetrading extends Exchange {
             //
             $tradeHistory = $this->safe_list($response, 'trade_history', array());
             return $this->parse_trades($tradeHistory, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {

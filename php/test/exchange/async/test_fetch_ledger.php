@@ -14,7 +14,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_ledger_entry.php';
 function test_fetch_ledger($exchange, $skipped_properties, $code) {
     return Async\async(function () use ($exchange, $skipped_properties, $code) {
         $method = 'fetchLedger';
-        $items = Async\await($exchange->fetch_ledger($code));
+        $items = \React\Async\await($exchange->fetch_ledger($code));
         assert_non_emtpy_array($exchange, $skipped_properties, $method, $items, $code);
         $now = $exchange->milliseconds();
         for ($i = 0; $i < count($items); $i++) {

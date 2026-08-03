@@ -4,7 +4,7 @@
     "methods": {
         "fetchCurrencies": [
             {
-                "description": "fetchCurrencies",
+                "description": "default",
                 "method": "fetchCurrencies",
                 "input": [],
                 "httpResponse": {
@@ -12,13 +12,13 @@
                     "result": [
                         {
                             "currency_code": "USDT",
-                            "network_code": "ton",
+                            "network_code": "polygon",
                             "can_withdraw": true,
                             "can_deposit": true,
-                            "min_withdraw": "1.00000000",
-                            "max_withdraw": "10000000.00000000",
-                            "max_deposit": "10000000.00000000",
-                            "min_deposit": "1.00000000"
+                            "min_withdraw": "0.50000000",
+                            "max_withdraw": "1000000.00000000",
+                            "max_deposit": "1000000.00000000",
+                            "min_deposit": "0.50000000"
                         },
                         {
                             "currency_code": "USDT",
@@ -26,16 +26,6 @@
                             "can_withdraw": true,
                             "can_deposit": true,
                             "min_withdraw": "1.00000000",
-                            "max_withdraw": "1000000.00000000",
-                            "max_deposit": "1000000.00000000",
-                            "min_deposit": "1.00000000"
-                        },
-                        {
-                            "currency_code": "USDT",
-                            "network_code": "sol",
-                            "can_withdraw": true,
-                            "can_deposit": true,
-                            "min_withdraw": "10.00000000",
                             "max_withdraw": "1000000.00000000",
                             "max_deposit": "1000000.00000000",
                             "min_deposit": "1.00000000"
@@ -52,13 +42,13 @@
                         },
                         {
                             "currency_code": "USDT",
-                            "network_code": "polygon",
+                            "network_code": "sol",
                             "can_withdraw": true,
                             "can_deposit": true,
-                            "min_withdraw": "0.50000000",
+                            "min_withdraw": "10.00000000",
                             "max_withdraw": "1000000.00000000",
                             "max_deposit": "1000000.00000000",
-                            "min_deposit": "0.50000000"
+                            "min_deposit": "1.00000000"
                         },
                         {
                             "currency_code": "USDT",
@@ -82,6 +72,16 @@
                         },
                         {
                             "currency_code": "USDT",
+                            "network_code": "ton",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "1.00000000",
+                            "max_withdraw": "10000000.00000000",
+                            "max_deposit": "10000000.00000000",
+                            "min_deposit": "1.00000000"
+                        },
+                        {
+                            "currency_code": "USDT",
                             "network_code": "eth",
                             "can_withdraw": true,
                             "can_deposit": true,
@@ -112,6 +112,16 @@
                         },
                         {
                             "currency_code": "USDT",
+                            "network_code": "avalanche",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "1.00000000",
+                            "max_withdraw": "1000000.00000000",
+                            "max_deposit": "1000000.00000000",
+                            "min_deposit": "1.00000000"
+                        },
+                        {
+                            "currency_code": "USDT",
                             "network_code": "polygon",
                             "can_withdraw": true,
                             "can_deposit": true,
@@ -119,6 +129,16 @@
                             "max_withdraw": "1000000.00000000",
                             "max_deposit": "1000000.00000000",
                             "min_deposit": "0.50000000"
+                        },
+                        {
+                            "currency_code": "USDT",
+                            "network_code": "ton",
+                            "can_withdraw": true,
+                            "can_deposit": true,
+                            "min_withdraw": "1.00000000",
+                            "max_withdraw": "10000000.00000000",
+                            "max_deposit": "10000000.00000000",
+                            "min_deposit": "1.00000000"
                         },
                         {
                             "currency_code": "USDT",
@@ -136,26 +156,6 @@
                             "can_withdraw": true,
                             "can_deposit": true,
                             "min_withdraw": "10.00000000",
-                            "max_withdraw": "1000000.00000000",
-                            "max_deposit": "1000000.00000000",
-                            "min_deposit": "1.00000000"
-                        },
-                        {
-                            "currency_code": "USDT",
-                            "network_code": "ton",
-                            "can_withdraw": true,
-                            "can_deposit": true,
-                            "min_withdraw": "1.00000000",
-                            "max_withdraw": "10000000.00000000",
-                            "max_deposit": "10000000.00000000",
-                            "min_deposit": "1.00000000"
-                        },
-                        {
-                            "currency_code": "USDT",
-                            "network_code": "avalanche",
-                            "can_withdraw": true,
-                            "can_deposit": true,
-                            "min_withdraw": "1.00000000",
                             "max_withdraw": "1000000.00000000",
                             "max_deposit": "1000000.00000000",
                             "min_deposit": "1.00000000"
@@ -177,13 +177,13 @@
                         "info": [
                             {
                                 "currency_code": "USDT",
-                                "network_code": "ton",
+                                "network_code": "polygon",
                                 "can_withdraw": true,
                                 "can_deposit": true,
-                                "min_withdraw": "1.00000000",
-                                "max_withdraw": "10000000.00000000",
-                                "max_deposit": "10000000.00000000",
-                                "min_deposit": "1.00000000"
+                                "min_withdraw": "0.50000000",
+                                "max_withdraw": "1000000.00000000",
+                                "max_deposit": "1000000.00000000",
+                                "min_deposit": "0.50000000"
                             },
                             {
                                 "currency_code": "USDT",
@@ -191,16 +191,6 @@
                                 "can_withdraw": true,
                                 "can_deposit": true,
                                 "min_withdraw": "1.00000000",
-                                "max_withdraw": "1000000.00000000",
-                                "max_deposit": "1000000.00000000",
-                                "min_deposit": "1.00000000"
-                            },
-                            {
-                                "currency_code": "USDT",
-                                "network_code": "sol",
-                                "can_withdraw": true,
-                                "can_deposit": true,
-                                "min_withdraw": "10.00000000",
                                 "max_withdraw": "1000000.00000000",
                                 "max_deposit": "1000000.00000000",
                                 "min_deposit": "1.00000000"
@@ -217,13 +207,13 @@
                             },
                             {
                                 "currency_code": "USDT",
-                                "network_code": "polygon",
+                                "network_code": "sol",
                                 "can_withdraw": true,
                                 "can_deposit": true,
-                                "min_withdraw": "0.50000000",
+                                "min_withdraw": "10.00000000",
                                 "max_withdraw": "1000000.00000000",
                                 "max_deposit": "1000000.00000000",
-                                "min_deposit": "0.50000000"
+                                "min_deposit": "1.00000000"
                             },
                             {
                                 "currency_code": "USDT",
@@ -247,6 +237,16 @@
                             },
                             {
                                 "currency_code": "USDT",
+                                "network_code": "ton",
+                                "can_withdraw": true,
+                                "can_deposit": true,
+                                "min_withdraw": "1.00000000",
+                                "max_withdraw": "10000000.00000000",
+                                "max_deposit": "10000000.00000000",
+                                "min_deposit": "1.00000000"
+                            },
+                            {
+                                "currency_code": "USDT",
                                 "network_code": "eth",
                                 "can_withdraw": true,
                                 "can_deposit": true,
@@ -277,6 +277,16 @@
                             },
                             {
                                 "currency_code": "USDT",
+                                "network_code": "avalanche",
+                                "can_withdraw": true,
+                                "can_deposit": true,
+                                "min_withdraw": "1.00000000",
+                                "max_withdraw": "1000000.00000000",
+                                "max_deposit": "1000000.00000000",
+                                "min_deposit": "1.00000000"
+                            },
+                            {
+                                "currency_code": "USDT",
                                 "network_code": "polygon",
                                 "can_withdraw": true,
                                 "can_deposit": true,
@@ -284,6 +294,16 @@
                                 "max_withdraw": "1000000.00000000",
                                 "max_deposit": "1000000.00000000",
                                 "min_deposit": "0.50000000"
+                            },
+                            {
+                                "currency_code": "USDT",
+                                "network_code": "ton",
+                                "can_withdraw": true,
+                                "can_deposit": true,
+                                "min_withdraw": "1.00000000",
+                                "max_withdraw": "10000000.00000000",
+                                "max_deposit": "10000000.00000000",
+                                "min_deposit": "1.00000000"
                             },
                             {
                                 "currency_code": "USDT",
@@ -301,26 +321,6 @@
                                 "can_withdraw": true,
                                 "can_deposit": true,
                                 "min_withdraw": "10.00000000",
-                                "max_withdraw": "1000000.00000000",
-                                "max_deposit": "1000000.00000000",
-                                "min_deposit": "1.00000000"
-                            },
-                            {
-                                "currency_code": "USDT",
-                                "network_code": "ton",
-                                "can_withdraw": true,
-                                "can_deposit": true,
-                                "min_withdraw": "1.00000000",
-                                "max_withdraw": "10000000.00000000",
-                                "max_deposit": "10000000.00000000",
-                                "min_deposit": "1.00000000"
-                            },
-                            {
-                                "currency_code": "USDT",
-                                "network_code": "avalanche",
-                                "can_withdraw": true,
-                                "can_deposit": true,
-                                "min_withdraw": "1.00000000",
                                 "max_withdraw": "1000000.00000000",
                                 "max_deposit": "1000000.00000000",
                                 "min_deposit": "1.00000000"
@@ -342,39 +342,39 @@
                         "precision": null,
                         "type": null,
                         "name": null,
-                        "active": true,
+                        "active": null,
                         "deposit": true,
                         "withdraw": true,
                         "fee": null,
                         "fees": {},
                         "networks": {
-                            "TON": {
-                                "id": "ton",
-                                "network": "TON",
+                            "POLYGON": {
+                                "id": "polygon",
+                                "network": "POLYGON",
                                 "limits": {
                                     "withdraw": {
-                                        "min": 1,
-                                        "max": 10000000
+                                        "min": 0.5,
+                                        "max": 1000000
                                     },
                                     "deposit": {
-                                        "min": 1,
-                                        "max": 10000000
+                                        "min": 0.5,
+                                        "max": 1000000
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
                                 "precision": null,
                                 "info": {
                                     "currency_code": "USDT",
-                                    "network_code": "ton",
+                                    "network_code": "polygon",
                                     "can_withdraw": true,
                                     "can_deposit": true,
-                                    "min_withdraw": "1.00000000",
-                                    "max_withdraw": "10000000.00000000",
-                                    "max_deposit": "10000000.00000000",
-                                    "min_deposit": "1.00000000"
+                                    "min_withdraw": "0.50000000",
+                                    "max_withdraw": "1000000.00000000",
+                                    "max_deposit": "1000000.00000000",
+                                    "min_deposit": "0.50000000"
                                 }
                             },
                             "AVAX": {
@@ -390,7 +390,7 @@
                                         "max": 1000000
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
@@ -398,6 +398,35 @@
                                 "info": {
                                     "currency_code": "USDT",
                                     "network_code": "avalanche",
+                                    "can_withdraw": true,
+                                    "can_deposit": true,
+                                    "min_withdraw": "1.00000000",
+                                    "max_withdraw": "1000000.00000000",
+                                    "max_deposit": "1000000.00000000",
+                                    "min_deposit": "1.00000000"
+                                }
+                            },
+                            "TRC20": {
+                                "id": "tron",
+                                "network": "TRC20",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": 1000000
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": 1000000
+                                    }
+                                },
+                                "active": null,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": null,
+                                "info": {
+                                    "currency_code": "USDT",
+                                    "network_code": "tron",
                                     "can_withdraw": true,
                                     "can_deposit": true,
                                     "min_withdraw": "1.00000000",
@@ -419,7 +448,7 @@
                                         "max": 1000000
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
@@ -435,64 +464,6 @@
                                     "min_deposit": "1.00000000"
                                 }
                             },
-                            "TRC20": {
-                                "id": "tron",
-                                "network": "TRC20",
-                                "limits": {
-                                    "withdraw": {
-                                        "min": 1,
-                                        "max": 1000000
-                                    },
-                                    "deposit": {
-                                        "min": 1,
-                                        "max": 1000000
-                                    }
-                                },
-                                "active": true,
-                                "deposit": true,
-                                "withdraw": true,
-                                "fee": null,
-                                "precision": null,
-                                "info": {
-                                    "currency_code": "USDT",
-                                    "network_code": "tron",
-                                    "can_withdraw": true,
-                                    "can_deposit": true,
-                                    "min_withdraw": "1.00000000",
-                                    "max_withdraw": "1000000.00000000",
-                                    "max_deposit": "1000000.00000000",
-                                    "min_deposit": "1.00000000"
-                                }
-                            },
-                            "POLYGON": {
-                                "id": "polygon",
-                                "network": "POLYGON",
-                                "limits": {
-                                    "withdraw": {
-                                        "min": 0.5,
-                                        "max": 1000000
-                                    },
-                                    "deposit": {
-                                        "min": 0.5,
-                                        "max": 1000000
-                                    }
-                                },
-                                "active": true,
-                                "deposit": true,
-                                "withdraw": true,
-                                "fee": null,
-                                "precision": null,
-                                "info": {
-                                    "currency_code": "USDT",
-                                    "network_code": "polygon",
-                                    "can_withdraw": true,
-                                    "can_deposit": true,
-                                    "min_withdraw": "0.50000000",
-                                    "max_withdraw": "1000000.00000000",
-                                    "max_deposit": "1000000.00000000",
-                                    "min_deposit": "0.50000000"
-                                }
-                            },
                             "BEP20": {
                                 "id": "bsc",
                                 "network": "BEP20",
@@ -506,7 +477,7 @@
                                         "max": 1000000
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
@@ -535,7 +506,7 @@
                                         "max": 1000000
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
@@ -548,6 +519,35 @@
                                     "min_withdraw": "1.00000000",
                                     "max_withdraw": "1000000.00000000",
                                     "max_deposit": "1000000.00000000",
+                                    "min_deposit": "1.00000000"
+                                }
+                            },
+                            "TON": {
+                                "id": "ton",
+                                "network": "TON",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1,
+                                        "max": 10000000
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": 10000000
+                                    }
+                                },
+                                "active": null,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": null,
+                                "info": {
+                                    "currency_code": "USDT",
+                                    "network_code": "ton",
+                                    "can_withdraw": true,
+                                    "can_deposit": true,
+                                    "min_withdraw": "1.00000000",
+                                    "max_withdraw": "10000000.00000000",
+                                    "max_deposit": "10000000.00000000",
                                     "min_deposit": "1.00000000"
                                 }
                             },
@@ -564,7 +564,7 @@
                                         "max": 1000000
                                     }
                                 },
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": null,
@@ -582,11 +582,11 @@
                             }
                         },
                         "limits": {
-                            "withdraw": {
+                            "deposit": {
                                 "min": 0.5,
                                 "max": 10000000
                             },
-                            "deposit": {
+                            "withdraw": {
                                 "min": 0.5,
                                 "max": 10000000
                             }

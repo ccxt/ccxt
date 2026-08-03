@@ -1,3 +1,4 @@
+import type { Market } from './../base/types.js';
 import coinbaseRest from '../coinbase.js';
 import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict } from '../base/types.js';
 export default class coinbase extends coinbaseRest {
@@ -13,7 +14,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    subscribe(name: string, isPrivate: boolean, symbol?: any, params?: {}): Promise<any>;
+    subscribe(name: string, isPrivate: boolean, symbol?: Str | Strings, params?: {}): Promise<any>;
     /**
      * @ignore
      * @method
@@ -25,7 +26,7 @@ export default class coinbase extends coinbaseRest {
      * @param {string} [symbol] unified market symbol
      * @returns {object} subscription to a websocket channel
      */
-    unSubscribe(topic: string, name: string, isPrivate: boolean, symbol?: any): Promise<any>;
+    unSubscribe(topic: string, name: string, isPrivate: boolean, symbol?: Str | Strings): Promise<any>;
     /**
      * @ignore
      * @method
@@ -51,7 +52,7 @@ export default class coinbase extends coinbaseRest {
      * @returns {object} subscription to a websocket channel
      */
     unSubscribeMultiple(topic: string, name: string, isPrivate: boolean, symbols?: Strings, params?: {}): Promise<any>;
-    createWSAuth(name: string, productIds: string[]): Dict;
+    createWSAuth(name: string, productIds: Str[]): Dict;
     /**
      * @method
      * @name coinbase#watchTicker
@@ -93,7 +94,7 @@ export default class coinbase extends coinbaseRest {
      */
     unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
     handleTickers(client: any, message: any): void;
-    parseWsTicker(ticker: any, market?: any): Ticker;
+    parseWsTicker(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name coinbase#watchTrades
@@ -168,7 +169,7 @@ export default class coinbase extends coinbaseRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -178,7 +179,7 @@ export default class coinbase extends coinbaseRest {
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     /**
@@ -189,12 +190,12 @@ export default class coinbase extends coinbaseRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     handleTrade(client: any, message: any): void;
     handleOrder(client: any, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrder(order: any, market?: Market): Order;
     handleOrderBookHelper(orderbook: any, updates: any): void;
     handleOrderBook(client: any, message: any): void;
     tryResolveUsdc(client: any, messageHash: any, result: any): void;

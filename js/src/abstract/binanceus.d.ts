@@ -502,6 +502,7 @@ interface binance {
     dapiPrivateGetOrder(params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetOpenOrder(params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetOpenOrders(params?: {}): Promise<implicitReturnType>;
+    dapiPrivateGetOpenAlgoOrders(params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetAllOrders(params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetBalance(params?: {}): Promise<implicitReturnType>;
     dapiPrivateGetAccount(params?: {}): Promise<implicitReturnType>;
@@ -523,6 +524,7 @@ interface binance {
     dapiPrivateGetPmAccountInfo(params?: {}): Promise<implicitReturnType>;
     dapiPrivatePostPositionSideDual(params?: {}): Promise<implicitReturnType>;
     dapiPrivatePostOrder(params?: {}): Promise<implicitReturnType>;
+    dapiPrivatePostAlgoOrder(params?: {}): Promise<implicitReturnType>;
     dapiPrivatePostBatchOrders(params?: {}): Promise<implicitReturnType>;
     dapiPrivatePostCountdownCancelAll(params?: {}): Promise<implicitReturnType>;
     dapiPrivatePostLeverage(params?: {}): Promise<implicitReturnType>;
@@ -533,6 +535,7 @@ interface binance {
     dapiPrivatePutOrder(params?: {}): Promise<implicitReturnType>;
     dapiPrivatePutBatchOrders(params?: {}): Promise<implicitReturnType>;
     dapiPrivateDeleteOrder(params?: {}): Promise<implicitReturnType>;
+    dapiPrivateDeleteAlgoOrder(params?: {}): Promise<implicitReturnType>;
     dapiPrivateDeleteAllOpenOrders(params?: {}): Promise<implicitReturnType>;
     dapiPrivateDeleteBatchOrders(params?: {}): Promise<implicitReturnType>;
     dapiPrivateDeleteListenKey(params?: {}): Promise<implicitReturnType>;
@@ -825,6 +828,7 @@ interface binance {
     papiPostAssetCollection(params?: {}): Promise<implicitReturnType>;
     papiPostMarginRepayDebt(params?: {}): Promise<implicitReturnType>;
     papiPostUmFeeBurn(params?: {}): Promise<implicitReturnType>;
+    papiPostUmStockContract(params?: {}): Promise<implicitReturnType>;
     papiPutListenKey(params?: {}): Promise<implicitReturnType>;
     papiPutUmOrder(params?: {}): Promise<implicitReturnType>;
     papiPutCmOrder(params?: {}): Promise<implicitReturnType>;

@@ -1,8 +1,5 @@
-- [Binance Fetch All Trades For All Traded Symbols](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -109,5 +106,5 @@ foreach ($unique_symbols as $symbol) {
 
 // do whatever you want with $all_trades_for_all_symbols
 
-?> 
+?>
 ```

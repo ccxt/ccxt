@@ -20,4 +20,6 @@ export * from './functions/throttle.js';
 
 export * from './functions/misc.js';
 
+export * from './functions/io.js';
+
 /*  ------------------------------------------------------------------------ */

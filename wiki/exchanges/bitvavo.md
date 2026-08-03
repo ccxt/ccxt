@@ -12,18 +12,25 @@
 * [fetchTickers](#fetchtickers)
 * [fetchTrades](#fetchtrades)
 * [fetchTradingFees](#fetchtradingfees)
+* [fetchTradingFee](#fetchtradingfee)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchBalance](#fetchbalance)
+* [fetchAccounts](#fetchaccounts)
+* [transfer](#transfer)
+* [fetchTransfers](#fetchtransfers)
+* [fetchTransfer](#fetchtransfer)
 * [fetchDepositAddress](#fetchdepositaddress)
 * [createOrder](#createorder)
 * [editOrder](#editorder)
 * [cancelOrder](#cancelorder)
 * [cancelAllOrders](#cancelallorders)
+* [cancelAllOrdersAfter](#cancelallordersafter)
 * [fetchOrder](#fetchorder)
 * [fetchOrders](#fetchorders)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchMyTrades](#fetchmytrades)
+* [fetchLedger](#fetchledger)
 * [withdraw](#withdraw)
 * [fetchWithdrawals](#fetchwithdrawals)
 * [fetchDeposits](#fetchdeposits)
@@ -61,6 +68,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
+**See**: https://docs.bitvavo.com/docs/rest-api/get-server-time/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -68,7 +76,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-bitvavo.fetchTime ([params])
+bitvavo.fetchTime (params?)
 ```
 
 
@@ -80,7 +88,7 @@ retrieves data on all markets for bitvavo
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
-**See**: https://docs.bitvavo.com/#tag/General/paths/~1markets/get  
+**See**: https://docs.bitvavo.com/docs/rest-api/get-markets/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -88,7 +96,7 @@ retrieves data on all markets for bitvavo
 
 
 ```javascript
-bitvavo.fetchMarkets ([params])
+bitvavo.fetchMarkets (params?)
 ```
 
 
@@ -100,7 +108,7 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
 
-**See**: https://docs.bitvavo.com/#tag/General/paths/~1assets/get  
+**See**: https://docs.bitvavo.com/docs/rest-api/get-asset-data/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -108,7 +116,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bitvavo.fetchCurrencies ([params])
+bitvavo.fetchCurrencies (params?)
 ```
 
 
@@ -120,7 +128,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://docs.bitvavo.com/#tag/Market-Data/paths/~1ticker~124h/get  
+**See**: https://docs.bitvavo.com/docs/rest-api/get-candlestick-data-24-h/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -129,7 +137,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitvavo.fetchTicker (symbol[, params])
+bitvavo.fetchTicker (symbol, params?)
 ```
 
 
@@ -141,6 +149,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
+**See**: https://docs.bitvavo.com/docs/rest-api/get-candlestick-data-24-h/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -149,7 +158,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bitvavo.fetchTickers (symbols[, params])
+bitvavo.fetchTickers (symbols, params?)
 ```
 
 
@@ -161,7 +170,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1trades/get  
+**See**: https://docs.bitvavo.com/docs/rest-api/get-trades/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -174,7 +183,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitvavo.fetchTrades (symbol[, since, limit, params])
+bitvavo.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -186,7 +195,7 @@ fetch the trading fees for multiple markets
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
-**See**: https://docs.bitvavo.com/#tag/Account/paths/~1account/get  
+**See**: https://docs.bitvavo.com/docs/rest-api/get-account-fees/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -194,7 +203,28 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-bitvavo.fetchTradingFees ([params])
+bitvavo.fetchTradingFees (params?)
+```
+
+
+<a name="fetchTradingFee" id="fetchtradingfee"></a>
+
+### fetchTradingFee{docsify-ignore}
+fetch the trading fees for a market
+
+**Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
+
+**See**: https://docs.bitvavo.com/docs/rest-api/get-market-fees/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitvavo.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -204,9 +234,9 @@ bitvavo.fetchTradingFees ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
-**See**: https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1book/get  
+**See**: https://docs.bitvavo.com/docs/rest-api/get-order-book/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -216,7 +246,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitvavo.fetchOrderBook (symbol[, limit, params])
+bitvavo.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -228,7 +258,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://docs.bitvavo.com/#tag/Market-Data/paths/~1{market}~1candles/get  
+**See**: https://docs.bitvavo.com/docs/rest-api/get-candlestick-data/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -242,7 +272,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitvavo.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bitvavo.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -254,7 +284,7 @@ query for balance and get the amount of funds available for trading or funds loc
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://docs.bitvavo.com/#tag/Account/paths/~1balance/get  
+**See**: https://docs.bitvavo.com/docs/rest-api/get-account-balance/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -262,7 +292,100 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitvavo.fetchBalance ([params])
+bitvavo.fetchBalance (params?)
+```
+
+
+<a name="fetchAccounts" id="fetchaccounts"></a>
+
+### fetchAccounts{docsify-ignore}
+fetch all the accounts associated with a profile
+
+**Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [account structures](https://docs.ccxt.com/?id=account-structure)
+
+**See**: https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitvavo.fetchAccounts (params?)
+```
+
+
+<a name="transfer" id="transfer"></a>
+
+### transfer{docsify-ignore}
+transfer currency internally between the master account and a subaccount
+
+**Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://docs.bitvavo.com/docs/institutional-api/create-transfer/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | Yes | unified currency code |
+| amount | <code>float</code> | Yes | amount to transfer |
+| fromAccount | <code>string</code> | Yes | account to transfer from, either 'master' or the subaccount id |
+| toAccount | <code>string</code> | Yes | account to transfer to, either 'master' or the subaccount id |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subaccountId | <code>string</code> | No | the unique identifier for the subaccount |
+| params.clientRequestId | <code>string</code> | No | client defined unique id |
+
+
+```javascript
+bitvavo.transfer (code, amount, fromAccount, toAccount, params?)
+```
+
+
+<a name="fetchTransfers" id="fetchtransfers"></a>
+
+### fetchTransfers{docsify-ignore}
+fetch a history of internal transfers made on an account
+
+**Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://docs.bitvavo.com/docs/institutional-api/get-transfers/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code of the currency transferred |
+| since | <code>int</code> | No | the earliest time in ms to fetch transfers for |
+| limit | <code>int</code> | No | the maximum number of transfers structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subaccountId | <code>string</code> | No | the unique identifier for the subaccount |
+| params.until | <code>int</code> | No | the latest time in ms to fetch transfers for |
+
+
+```javascript
+bitvavo.fetchTransfers (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchTransfer" id="fetchtransfer"></a>
+
+### fetchTransfer{docsify-ignore}
+fetches a transfer
+
+**Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://docs.bitvavo.com/docs/institutional-api/get-transfer/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | transfer id |
+| code | <code>string</code> | No | unified currency code of the currency transferred |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitvavo.fetchTransfer (id, code?, params?)
 ```
 
 
@@ -274,6 +397,7 @@ fetch the deposit address for a currency associated with this account
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
+**See**: https://docs.bitvavo.com/docs/rest-api/get-deposit-data/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -282,7 +406,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bitvavo.fetchDepositAddress (code[, params])
+bitvavo.fetchDepositAddress (code, params?)
 ```
 
 
@@ -294,7 +418,7 @@ create a trade order
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/post  
+**See**: https://docs.bitvavo.com/docs/rest-api/create-order/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -303,7 +427,7 @@ create a trade order
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
 | price | <code>float</code> | Yes | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.timeInForce | <code>string</code> | No | "GTC", "IOC", or "PO" |
 | params.stopPrice | <code>float</code> | No | Alias for triggerPrice |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
@@ -318,7 +442,7 @@ create a trade order
 
 
 ```javascript
-bitvavo.createOrder (symbol, type, side, amount, price[, params])
+bitvavo.createOrder (symbol, type, side, amount, price, params?)
 ```
 
 
@@ -330,7 +454,7 @@ edit a trade order
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.bitvavo.com/#tag/Orders/paths/~1order/put  
+**See**: https://docs.bitvavo.com/docs/rest-api/update-order/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -340,11 +464,11 @@ edit a trade order
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | No | how much of currency you want to trade in units of base currency |
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.editOrder (id, symbol, type, side[, amount, price, params])
+bitvavo.editOrder (id, symbol, type, side, amount?, price?, params?)
 ```
 
 
@@ -356,11 +480,7 @@ cancels an open order
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**
-
-- https://docs.bitvavo.com/#tag/Orders/paths/~1order/delete
-- https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/delete
-
+**See**: https://docs.bitvavo.com/docs/rest-api/cancel-order/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -370,7 +490,7 @@ cancels an open order
 
 
 ```javascript
-bitvavo.cancelOrder (id, symbol[, params])
+bitvavo.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -382,16 +502,38 @@ cancel all open orders
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.bitvavo.com/#tag/Orders/paths/~1orders/delete  
+**See**: https://docs.bitvavo.com/docs/rest-api/cancel-orders/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.cancelAllOrders (symbol[, params])
+bitvavo.cancelAllOrders (symbol?, params?)
+```
+
+
+<a name="cancelAllOrdersAfter" id="cancelallordersafter"></a>
+
+### cancelAllOrdersAfter{docsify-ignore}
+dead man's switch, cancel all orders after the given timeout
+
+**Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
+**Returns**: <code>object</code> - the api result
+
+**See**: https://docs.bitvavo.com/docs/rest-api/cancel-orders-after/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| timeout | <code>number</code> | Yes | time in milliseconds, 0 represents cancel the timer |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.codGroupId | <code>int</code> | No | your identifier for a group of orders, default is 1 |
+
+
+```javascript
+bitvavo.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -403,7 +545,7 @@ fetches information on an order made by the user
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get  
+**See**: https://docs.bitvavo.com/docs/rest-api/get-order/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -413,7 +555,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitvavo.fetchOrder (id, symbol[, params])
+bitvavo.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -425,7 +567,7 @@ fetches information on multiple orders made by the user
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1orders/get  
+**See**: https://docs.bitvavo.com/docs/rest-api/get-orders/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -438,7 +580,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-bitvavo.fetchOrders (symbol[, since, limit, params])
+bitvavo.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -450,7 +592,7 @@ fetch all unfilled currently open orders
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1ordersOpen/get  
+**See**: https://docs.bitvavo.com/docs/rest-api/get-open-orders/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -461,7 +603,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitvavo.fetchOpenOrders (symbol[, since, limit, params])
+bitvavo.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -473,7 +615,7 @@ fetch all trades made by the user
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1trades/get  
+**See**: https://docs.bitvavo.com/docs/rest-api/get-trade-history/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -486,7 +628,32 @@ fetch all trades made by the user
 
 
 ```javascript
-bitvavo.fetchMyTrades (symbol[, since, limit, params])
+bitvavo.fetchMyTrades (symbol, since?, limit?, params?)
+```
+
+
+<a name="fetchLedger" id="fetchledger"></a>
+
+### fetchLedger{docsify-ignore}
+fetch the history of changes, actions done by the user or operations that altered the balance of the user
+
+**Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [ledger structures](https://docs.ccxt.com/?id=ledger)
+
+**See**: https://docs.bitvavo.com/docs/rest-api/get-transaction-history/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code |
+| since | <code>int</code> | No | timestamp in ms of the earliest ledger entry |
+| limit | <code>int</code> | No | max number of ledger entries to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest ledger entry |
+| params.page | <code>int</code> | No | the page number for the transaction history |
+
+
+```javascript
+bitvavo.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -498,6 +665,7 @@ make a withdrawal
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
+**See**: https://docs.bitvavo.com/docs/rest-api/withdraw-assets/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -509,7 +677,7 @@ make a withdrawal
 
 
 ```javascript
-bitvavo.withdraw (code, amount, address, tag[, params])
+bitvavo.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -521,18 +689,18 @@ fetch all withdrawals made from an account
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://docs.bitvavo.com/#tag/Account/paths/~1withdrawalHistory/get  
+**See**: https://docs.bitvavo.com/docs/rest-api/get-withdrawal-history/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
 | limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.fetchWithdrawals (code[, since, limit, params])
+bitvavo.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -544,18 +712,18 @@ fetch all deposits made to an account
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://docs.bitvavo.com/#tag/Account/paths/~1depositHistory/get  
+**See**: https://docs.bitvavo.com/docs/rest-api/get-deposit-history/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
 | limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.fetchDeposits (code[, since, limit, params])
+bitvavo.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -567,7 +735,7 @@ fetch deposit and withdraw fees
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
 **Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
-**See**: https://docs.bitvavo.com/#tag/General/paths/~1assets/get  
+**See**: https://docs.bitvavo.com/docs/rest-api/get-asset-data/  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -576,7 +744,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-bitvavo.fetchDepositWithdrawFees (codes[, params])
+bitvavo.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -597,7 +765,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitvavo.watchTicker (symbol[, params])
+bitvavo.watchTicker (symbol, params?)
 ```
 
 
@@ -618,7 +786,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitvavo.watchTickers ([symbols, params])
+bitvavo.watchTickers (symbols?, params?)
 ```
 
 
@@ -639,7 +807,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-bitvavo.watchBidsAsks (symbols[, params])
+bitvavo.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -661,7 +829,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitvavo.watchTrades (symbol[, since, limit, params])
+bitvavo.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -684,7 +852,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitvavo.watchOHLCV (symbol, timeframe[, since, limit, params])
+bitvavo.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -694,7 +862,7 @@ bitvavo.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -705,7 +873,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitvavo.watchOrderBook (symbol[, limit, params])
+bitvavo.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -727,7 +895,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-bitvavo.watchOrders (symbol[, since, limit, params])
+bitvavo.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -749,7 +917,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-bitvavo.watchMyTrades (symbol[, since, limit, params])
+bitvavo.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -770,7 +938,7 @@ create a trade order
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
 | price | <code>float</code> | Yes | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.timeInForce | <code>string</code> | No | "GTC", "IOC", or "PO" |
 | params.stopPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
 | params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
@@ -785,7 +953,7 @@ create a trade order
 
 
 ```javascript
-bitvavo.createOrderWs (symbol, type, side, amount, price[, params])
+bitvavo.createOrderWs (symbol, type, side, amount, price, params?)
 ```
 
 
@@ -807,11 +975,11 @@ edit a trade order
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | No | how much of currency you want to trade in units of base currency |
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.editOrderWs (id, symbol, type, side[, amount, price, params])
+bitvavo.editOrderWs (id, symbol, type, side, amount?, price?, params?)
 ```
 
 
@@ -829,11 +997,11 @@ cancels an open order
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.cancelOrderWs (id, symbol[, params])
+bitvavo.cancelOrderWs (id, symbol, params?)
 ```
 
 
@@ -850,11 +1018,11 @@ cancel all open orders
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.cancelAllOrdersWs (symbol[, params])
+bitvavo.cancelAllOrdersWs (symbol, params?)
 ```
 
 
@@ -872,11 +1040,11 @@ fetches information on an order made by the user
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | the order id |
 | symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.fetchOrderWs (id, symbol[, params])
+bitvavo.fetchOrderWs (id, symbol, params?)
 ```
 
 
@@ -895,11 +1063,11 @@ fetches information on multiple orders made by the user
 | symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of  orde structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.fetchOrdersWs (symbol[, since, limit, params])
+bitvavo.fetchOrdersWs (symbol, since?, limit?, params?)
 ```
 
 
@@ -917,11 +1085,11 @@ fetch all unfilled currently open orders
 | symbol | <code>string</code> | Yes | unified market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
 | limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.fetchOpenOrdersWs (symbol[, since, limit, params])
+bitvavo.fetchOpenOrdersWs (symbol, since?, limit?, params?)
 ```
 
 
@@ -940,11 +1108,11 @@ fetch all trades made by the user
 | symbol | <code>string</code> | Yes | unified market symbol |
 | since | <code>int</code> | No | the earliest time in ms to fetch trades for |
 | limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.fetchMyTradesWs (symbol[, since, limit, params])
+bitvavo.fetchMyTradesWs (symbol, since?, limit?, params?)
 ```
 
 
@@ -963,11 +1131,11 @@ make a withdrawal
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
 | tag | <code>string</code> | Yes |  |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.withdrawWs (code, amount, address, tag[, params])
+bitvavo.withdrawWs (code, amount, address, tag, params?)
 ```
 
 
@@ -986,11 +1154,11 @@ fetch all withdrawals made from an account
 | code | <code>string</code> | Yes | unified currency code |
 | since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
 | limit | <code>int</code> | No | the maximum number of withdrawals structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.fetchWithdrawalsWs (code[, since, limit, params])
+bitvavo.fetchWithdrawalsWs (code, since?, limit?, params?)
 ```
 
 
@@ -1010,11 +1178,11 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.fetchOHLCVWs (symbol, timeframe[, since, limit, params])
+bitvavo.fetchOHLCVWs (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -1033,11 +1201,11 @@ fetch all deposits made to an account
 | code | <code>string</code> | Yes | unified currency code |
 | since | <code>int</code> | No | the earliest time in ms to fetch deposits for |
 | limit | <code>int</code> | No | the maximum number of deposits structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.fetchDepositsWs (code[, since, limit, params])
+bitvavo.fetchDepositsWs (code, since?, limit?, params?)
 ```
 
 
@@ -1053,11 +1221,11 @@ fetch the trading fees for multiple markets
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.fetchTradingFeesWs ([params])
+bitvavo.fetchTradingFeesWs (params?)
 ```
 
 
@@ -1073,11 +1241,11 @@ retrieves data on all markets for bitvavo
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.fetchMarketsWs ([params])
+bitvavo.fetchMarketsWs (params?)
 ```
 
 
@@ -1093,11 +1261,11 @@ fetches all available currencies on an exchange
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.fetchCurrenciesWs ([params])
+bitvavo.fetchCurrenciesWs (params?)
 ```
 
 
@@ -1113,10 +1281,10 @@ query for balance and get the amount of funds available for trading or funds loc
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-bitvavo.fetchBalanceWs ([params])
+bitvavo.fetchBalanceWs (params?)
 ```
 

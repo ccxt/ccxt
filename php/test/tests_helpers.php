@@ -17,7 +17,7 @@ use Exception; // a common import
 
 error_reporting(E_ALL);
 date_default_timezone_set('UTC');
-ini_set('memory_limit', '512M');
+ini_set('memory_limit', '2048M');
 
 define('rootDir', __DIR__ . '/../../');
 
@@ -90,7 +90,8 @@ define('PROXY_TEST_FILE_NAME', 'proxies');
 define('ROOT_DIR', rootDir);
 define('ENV_VARS', $_ENV);
 define('NEW_LINE', "\n");
-define('LOG_CHARS_LENGTH', 1000000); // no need to trim
+define('LOG_CHARS_LENGTH', 10000); // same limit as in JS/PY/C# tests
+define('MAX_TRACE_FRAMES', 12); // 12 first-party frames are enough for a proper trace
 
 function dump(...$s) {
     $args = array_map(function ($arg) {
@@ -168,32 +169,67 @@ function call_exchange_method_dynamically($exchange, $methodName, $args) {
 function call_exchange_method_dynamically_sync($exchange, $methodName, $args) {
     return $exchange->{$methodName}(... $args);
 }
-function exception_message($exc) {
-    $full_trace = $exc->getTrace();
-    // temporarily disable below line, so we dump whole array
-    // $items = array_slice($full_trace, 0, 12); // 12 members are enough for proper trace
-    $items = $full_trace;
-    $output = '';
-    foreach ($items as $item) {
+function is_vendor_trace_file($file) {
+    $normalized = str_replace('\\', '/', $file);
+    return str_contains($normalized, '/vendor/') || str_contains($normalized, '/node_modules/');
+}
+
+function format_trace_item($item) {
+    $output = $item['file'];
+    if (array_key_exists('line', $item)) {
+        $output .= ':' . $item['line'];
+    }
+    if (array_key_exists('class', $item)) {
+        $output .= ' ::: ' . $item['class'];
+    }
+    if (array_key_exists('function', $item)) {
+        $output .= ' > ' . $item['function'];
+    }
+    return $output;
+}
+
+function filter_trace_frames($frames) {
+    $file_frames = array();
+    foreach ($frames as $item) {
         if (array_key_exists('file', $item)) {
-            $output .= $item['file'];
-            if (array_key_exists('line', $item)) {
-                $output .= ':' . $item['line'];
-            }
-            if (array_key_exists('class', $item)) {
-                $output .= ' ::: ' . $item['class'];
-            }
-            if (array_key_exists('function', $item)) {
-                $output .= ' > ' . $item['function'];
-            }
-            $output .= "\n";
+            $file_frames[] = $item;
         }
     }
-    $output = preg_replace('/(\n(.*?)\/home\/travis\/build\/ccxt\/ccxt\/vendor\/)(.*?)\r/', '', $output); // remove excessive lines like: https://app.travis-ci.com/github/ccxt/ccxt/builds/268171081#L3483
+    // skip third-party frames (react/async fibers, react/promise, react/http, evenement, ...)
+    // otherwise every async assertion failure dumps dozens of unreadable event-loop lines
+    $kept = array();
+    foreach ($file_frames as $item) {
+        if (is_vendor_trace_file($item['file'])) {
+            continue;
+        }
+        $kept[] = $item;
+        if (count($kept) >= MAX_TRACE_FRAMES) {
+            break;
+        }
+    }
+    // if the whole trace was third-party (e.g. a throw from deep inside the event-loop)
+    // then fall back to the innermost frames, so that the failure is still debuggable
+    if (count($kept) === 0) {
+        $kept = array_slice($file_frames, 0, MAX_TRACE_FRAMES);
+    }
+    $lines = array();
+    foreach ($kept as $item) {
+        $lines[] = format_trace_item($item);
+    }
+    $omitted = count($file_frames) - count($kept);
+    if ($omitted > 0) {
+        $lines[] = '... ' . $omitted . ' more frame(s) omitted (library internals) ...';
+    }
+    return $lines;
+}
+
+function exception_message($exc) {
+    $lines = filter_trace_frames($exc->getTrace());
+    $output = count($lines) > 0 ? implode("\n", $lines) . "\n" : '';
     $origin_message = null;
-    try{
+    try {
         $origin_message = $exc->getMessage() . "\n" . $exc->getFile() . ':' . $exc->getLine();
-    } catch (\Throwable $exc) { 
+    } catch (\Throwable $e) {
         $origin_message = '';
     }
     $final_message = '[' . get_class($exc) . '] ' . $origin_message . "\n" . $output;
@@ -261,9 +297,18 @@ function create_dynamic_class ($exchangeId, $originalClass, $args) {
 }
 
 function init_exchange ($exchangeId, $args, $is_ws = false) {
-    $exchangeClassString = '\\ccxt\\' . (IS_SYNCHRONOUS ? '' : 'async\\') . $exchangeId;
-    if ($is_ws) {
+    $regularClassString = '\\ccxt\\' . (IS_SYNCHRONOUS ? '' : 'async\\') . $exchangeId;
+    // prediction-markets exchanges are async-only at \ccxt\prediction\<id> and carry their watch*
+    // methods on that same class (no \ccxt\pro\ variant), so the --prediction flag routes both REST
+    // and WS there for ids present in both (e.g. hyperliquid); otherwise regular ccxt/pro wins
+    $predictionClassString = '\\ccxt\\prediction\\' . $exchangeId;
+    $forcePrediction = get_cli_arg_value('--prediction');
+    if (class_exists($predictionClassString) && ($forcePrediction || !class_exists($regularClassString))) {
+        $exchangeClassString = $predictionClassString;
+    } elseif ($is_ws) {
         $exchangeClassString = '\\ccxt\\pro\\' . $exchangeId;
+    } else {
+        $exchangeClassString = $regularClassString;
     }
     $newClass = create_dynamic_class ($exchangeId, $exchangeClassString, $args);
     return $newClass;
@@ -334,6 +379,25 @@ function get_ext(){
 
 function get_env_vars() {
     return ENV_VARS;
+}
+
+function is_windows(): bool {
+    if (defined('PHP_OS_FAMILY')) {
+        return PHP_OS_FAMILY === 'Windows';
+    }
+    return strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+}
+
+function is_linux(): bool {
+    if (defined('PHP_OS_FAMILY')) {
+        return PHP_OS_FAMILY === 'Linux';
+    }
+    return stripos(PHP_OS, 'Linux') !== false;
+}
+
+function is_amd64(): bool {
+    $m = php_uname('m'); // machine type
+    return $m === 'x86_64' || $m === 'amd64' || $m === 'AMD64';
 }
 
 function set_fetch_response($exchange, $data) {

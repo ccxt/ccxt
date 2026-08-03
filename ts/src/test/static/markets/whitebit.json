@@ -23,7 +23,7 @@
         "subType": null,
         "taker": 0.001,
         "maker": 0.001,
-        "contractSize": 0.000001,
+        "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
@@ -46,7 +46,7 @@
                 "max": null
             },
             "cost": {
-                "min": 5,
+                "min": 1,
                 "max": 10000000
             }
         },
@@ -65,11 +65,12 @@
             "makerFee": "0.1",
             "takerFee": "0.1",
             "minAmount": "0.00001",
-            "minTotal": "5",
+            "minTotal": "1",
             "tradesEnabled": true,
             "type": "spot",
             "isCollateral": true,
-            "maxTotal": "10000000"
+            "maxTotal": "10000000",
+            "isTradFiFutures": false
         },
         "tierBased": false,
         "percentage": true
@@ -98,7 +99,7 @@
         "subType": null,
         "taker": 0.001,
         "maker": 0.001,
-        "contractSize": 0.000001,
+        "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
@@ -121,7 +122,7 @@
                 "max": null
             },
             "cost": {
-                "min": 5,
+                "min": 1,
                 "max": 10000000
             }
         },
@@ -140,11 +141,12 @@
             "makerFee": "0.1",
             "takerFee": "0.1",
             "minAmount": "0.00001",
-            "minTotal": "5",
+            "minTotal": "1",
             "tradesEnabled": true,
             "type": "spot",
             "isCollateral": false,
-            "maxTotal": "10000000"
+            "maxTotal": "10000000",
+            "isTradFiFutures": false
         },
         "tierBased": false,
         "percentage": true
@@ -173,7 +175,7 @@
         "subType": null,
         "taker": 0.001,
         "maker": 0.001,
-        "contractSize": 0.00001,
+        "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
@@ -188,7 +190,7 @@
                 "max": null
             },
             "amount": {
-                "min": 0.001,
+                "min": 0.0001,
                 "max": null
             },
             "price": {
@@ -196,7 +198,7 @@
                 "max": null
             },
             "cost": {
-                "min": 5,
+                "min": 1,
                 "max": 100000000
             }
         },
@@ -214,12 +216,13 @@
             "feePrec": "6",
             "makerFee": "0.1",
             "takerFee": "0.1",
-            "minAmount": "0.001",
-            "minTotal": "5",
+            "minAmount": "0.0001",
+            "minTotal": "1",
             "tradesEnabled": true,
             "type": "spot",
             "isCollateral": true,
-            "maxTotal": "100000000"
+            "maxTotal": "100000000",
+            "isTradFiFutures": false
         },
         "tierBased": false,
         "percentage": true
@@ -248,7 +251,7 @@
         "subType": null,
         "taker": 0.001,
         "maker": 0.001,
-        "contractSize": 0.01,
+        "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
@@ -271,7 +274,7 @@
                 "max": null
             },
             "cost": {
-                "min": 5,
+                "min": 1,
                 "max": 10000000
             }
         },
@@ -290,11 +293,12 @@
             "makerFee": "0.1",
             "takerFee": "0.1",
             "minAmount": "1",
-            "minTotal": "5",
+            "minTotal": "1",
             "tradesEnabled": true,
             "type": "spot",
             "isCollateral": true,
-            "maxTotal": "10000000"
+            "maxTotal": "10000000",
+            "isTradFiFutures": false
         },
         "tierBased": false,
         "percentage": true
@@ -323,7 +327,7 @@
         "subType": null,
         "taker": 0.001,
         "maker": 0.001,
-        "contractSize": 0.00001,
+        "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
@@ -346,7 +350,7 @@
                 "max": null
             },
             "cost": {
-                "min": 5,
+                "min": 1,
                 "max": 100000000
             }
         },
@@ -365,11 +369,12 @@
             "makerFee": "0.1",
             "takerFee": "0.1",
             "minAmount": "0.01",
-            "minTotal": "5",
+            "minTotal": "1",
             "tradesEnabled": true,
             "type": "spot",
             "isCollateral": true,
-            "maxTotal": "100000000"
+            "maxTotal": "100000000",
+            "isTradFiFutures": false
         },
         "tierBased": false,
         "percentage": true
@@ -398,7 +403,7 @@
         "subType": null,
         "taker": 0.001,
         "maker": 0.001,
-        "contractSize": 0.01,
+        "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
@@ -413,7 +418,7 @@
                 "max": null
             },
             "amount": {
-                "min": 1,
+                "min": 0.1,
                 "max": null
             },
             "price": {
@@ -421,7 +426,7 @@
                 "max": null
             },
             "cost": {
-                "min": 5,
+                "min": 1,
                 "max": 100000000
             }
         },
@@ -439,12 +444,13 @@
             "feePrec": "6",
             "makerFee": "0.1",
             "takerFee": "0.1",
-            "minAmount": "1",
-            "minTotal": "5",
+            "minAmount": "0.1",
+            "minTotal": "1",
             "tradesEnabled": true,
             "type": "spot",
             "isCollateral": true,
-            "maxTotal": "100000000"
+            "maxTotal": "100000000",
+            "isTradFiFutures": false
         },
         "tierBased": false,
         "percentage": true
@@ -473,7 +479,7 @@
         "subType": null,
         "taker": 0.001,
         "maker": 0.001,
-        "contractSize": 0.1,
+        "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
@@ -496,7 +502,7 @@
                 "max": null
             },
             "cost": {
-                "min": 5,
+                "min": 1,
                 "max": 10000000
             }
         },
@@ -515,11 +521,12 @@
             "makerFee": "0.1",
             "takerFee": "0.1",
             "minAmount": "10",
-            "minTotal": "5",
+            "minTotal": "1",
             "tradesEnabled": true,
             "type": "spot",
             "isCollateral": true,
-            "maxTotal": "10000000"
+            "maxTotal": "10000000",
+            "isTradFiFutures": false
         },
         "tierBased": false,
         "percentage": true
@@ -548,7 +555,7 @@
         "subType": null,
         "taker": 0.001,
         "maker": 0.001,
-        "contractSize": 0.01,
+        "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
@@ -563,7 +570,7 @@
                 "max": null
             },
             "amount": {
-                "min": 10,
+                "min": 1,
                 "max": null
             },
             "price": {
@@ -571,7 +578,7 @@
                 "max": null
             },
             "cost": {
-                "min": 5,
+                "min": 1,
                 "max": 10000000
             }
         },
@@ -589,12 +596,13 @@
             "feePrec": "6",
             "makerFee": "0.1",
             "takerFee": "0.1",
-            "minAmount": "10",
-            "minTotal": "5",
+            "minAmount": "1",
+            "minTotal": "1",
             "tradesEnabled": true,
             "type": "spot",
             "isCollateral": true,
-            "maxTotal": "10000000"
+            "maxTotal": "10000000",
+            "isTradFiFutures": false
         },
         "tierBased": false,
         "percentage": true
@@ -621,7 +629,7 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.00035,
+        "taker": 0.00055,
         "maker": 0.0001,
         "contractSize": 0.001,
         "expiry": null,
@@ -663,13 +671,14 @@
             "moneyPrec": "1",
             "feePrec": "6",
             "makerFee": "0.01",
-            "takerFee": "0.035",
+            "takerFee": "0.055",
             "minAmount": "0.001",
             "minTotal": "5",
             "tradesEnabled": true,
             "type": "futures",
             "isCollateral": true,
-            "maxTotal": "100000000000"
+            "maxTotal": "100000000000",
+            "isTradFiFutures": false
         },
         "tierBased": false,
         "percentage": true
@@ -696,7 +705,7 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.00035,
+        "taker": 0.00055,
         "maker": 0.0001,
         "contractSize": 0.01,
         "expiry": null,
@@ -738,13 +747,14 @@
             "moneyPrec": "2",
             "feePrec": "6",
             "makerFee": "0.01",
-            "takerFee": "0.035",
+            "takerFee": "0.055",
             "minAmount": "0.01",
             "minTotal": "5",
             "tradesEnabled": true,
             "type": "futures",
             "isCollateral": true,
-            "maxTotal": "100000000000"
+            "maxTotal": "100000000000",
+            "isTradFiFutures": false
         },
         "tierBased": false,
         "percentage": true
@@ -771,7 +781,7 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.00035,
+        "taker": 0.00055,
         "maker": 0.0001,
         "contractSize": 0.1,
         "expiry": null,
@@ -813,13 +823,14 @@
             "moneyPrec": "2",
             "feePrec": "6",
             "makerFee": "0.01",
-            "takerFee": "0.035",
+            "takerFee": "0.055",
             "minAmount": "0.1",
             "minTotal": "5",
             "tradesEnabled": true,
             "type": "futures",
             "isCollateral": true,
-            "maxTotal": "1000000000000"
+            "maxTotal": "1000000000000",
+            "isTradFiFutures": false
         },
         "tierBased": false,
         "percentage": true
@@ -846,15 +857,15 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.00035,
+        "taker": 0.00055,
         "maker": 0.0001,
-        "contractSize": 0.1,
+        "contractSize": 10,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.1,
+            "amount": 10,
             "price": 0.000001
         },
         "limits": {
@@ -888,13 +899,14 @@
             "moneyPrec": "6",
             "feePrec": "6",
             "makerFee": "0.01",
-            "takerFee": "0.035",
+            "takerFee": "0.055",
             "minAmount": "10",
             "minTotal": "5",
             "tradesEnabled": true,
             "type": "futures",
             "isCollateral": true,
-            "maxTotal": "10000000000"
+            "maxTotal": "10000000000",
+            "isTradFiFutures": false
         },
         "tierBased": false,
         "percentage": true
@@ -921,7 +933,7 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.00035,
+        "taker": 0.00055,
         "maker": 0.0001,
         "contractSize": 0.1,
         "expiry": null,
@@ -938,7 +950,7 @@
                 "max": null
             },
             "amount": {
-                "min": 10,
+                "min": 1,
                 "max": null
             },
             "price": {
@@ -947,7 +959,7 @@
             },
             "cost": {
                 "min": 5,
-                "max": 100000000000
+                "max": 1000000000
             }
         },
         "marginModes": {
@@ -959,17 +971,18 @@
             "name": "XRP_PERP",
             "stock": "XRP",
             "money": "USDT",
-            "stockPrec": "-1",
+            "stockPrec": "1",
             "moneyPrec": "5",
             "feePrec": "6",
             "makerFee": "0.01",
-            "takerFee": "0.035",
-            "minAmount": "10",
+            "takerFee": "0.055",
+            "minAmount": "1",
             "minTotal": "5",
             "tradesEnabled": true,
             "type": "futures",
             "isCollateral": true,
-            "maxTotal": "100000000000"
+            "maxTotal": "1000000000",
+            "isTradFiFutures": false
         },
         "tierBased": false,
         "percentage": true
@@ -996,15 +1009,15 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.00035,
+        "taker": 0.00055,
         "maker": 0.0001,
-        "contractSize": 0.1,
+        "contractSize": 1,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.1,
+            "amount": 1,
             "price": 0.000001
         },
         "limits": {
@@ -1013,7 +1026,7 @@
                 "max": null
             },
             "amount": {
-                "min": 100,
+                "min": 10,
                 "max": null
             },
             "price": {
@@ -1022,7 +1035,7 @@
             },
             "cost": {
                 "min": 5,
-                "max": 100000000000
+                "max": 1000000000
             }
         },
         "marginModes": {
@@ -1034,17 +1047,18 @@
             "name": "DOGE_PERP",
             "stock": "DOGE",
             "money": "USDT",
-            "stockPrec": "-2",
+            "stockPrec": "0",
             "moneyPrec": "6",
             "feePrec": "6",
             "makerFee": "0.01",
-            "takerFee": "0.035",
-            "minAmount": "100",
+            "takerFee": "0.055",
+            "minAmount": "10",
             "minTotal": "5",
             "tradesEnabled": true,
             "type": "futures",
             "isCollateral": true,
-            "maxTotal": "100000000000"
+            "maxTotal": "1000000000",
+            "isTradFiFutures": false
         },
         "tierBased": false,
         "percentage": true
@@ -1071,15 +1085,15 @@
         "linear": true,
         "inverse": false,
         "subType": "linear",
-        "taker": 0.00035,
+        "taker": 0.00055,
         "maker": 0.0001,
-        "contractSize": 0.1,
+        "contractSize": 1,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 0.1,
+            "amount": 1,
             "price": 0.000001
         },
         "limits": {
@@ -1088,7 +1102,7 @@
                 "max": null
             },
             "amount": {
-                "min": 100,
+                "min": 10,
                 "max": null
             },
             "price": {
@@ -1097,7 +1111,7 @@
             },
             "cost": {
                 "min": 5,
-                "max": 100000000000
+                "max": 1000000000
             }
         },
         "marginModes": {
@@ -1109,17 +1123,18 @@
             "name": "TRX_PERP",
             "stock": "TRX",
             "money": "USDT",
-            "stockPrec": "-2",
+            "stockPrec": "0",
             "moneyPrec": "6",
             "feePrec": "6",
             "makerFee": "0.01",
-            "takerFee": "0.035",
-            "minAmount": "100",
+            "takerFee": "0.055",
+            "minAmount": "10",
             "minTotal": "5",
             "tradesEnabled": true,
             "type": "futures",
             "isCollateral": true,
-            "maxTotal": "100000000000"
+            "maxTotal": "1000000000",
+            "isTradFiFutures": false
         },
         "tierBased": false,
         "percentage": true

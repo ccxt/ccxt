@@ -6,17 +6,19 @@
 
 //  ---------------------------------------------------------------------------
 import hitbtc from './hitbtc.js';
-import hitbtcRest from '../hitbtc.js';
 import bequantRest from '../bequant.js';
 // ---------------------------------------------------------------------------
 export default class bequant extends hitbtc {
     describe() {
         // eslint-disable-next-line new-cap
-        const describeExtended = this.getDescribeForExtendedWsExchange(new bequantRest(), new hitbtcRest(), super.describe());
-        return this.deepExtend(describeExtended, {
+        const restInstance = new bequantRest();
+        const restDescribe = restInstance.describe();
+        const parentWsDescribe = super.describeData();
+        const extended = this.deepExtend(restDescribe, parentWsDescribe);
+        return this.deepExtend(extended, {
             'id': 'bequant',
             'name': 'Bequant',
-            'countries': ['MT'],
+            'countries': ['MT'], // Malta
             'pro': true,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg',

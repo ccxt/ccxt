@@ -3,6 +3,15 @@
     "skipKeys": ["from", "to"],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://api.bitopro.com/v3/provisioning/currencies",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "spot fetchTrades",
