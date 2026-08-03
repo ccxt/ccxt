@@ -28,7 +28,7 @@ public class TestWatchOrderBook extends BaseTest {
                 response = (exchange.watchOrderBook(symbol)).join();
             } catch(Exception e)
             {
-                if (!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)))
+                if (Helpers.isTrue(!Helpers.isTrue(TestSharedMethods.isTemporaryFailure(e)) && !Helpers.isTrue((Helpers.isInstance(e, InvalidNonce.class)))))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }

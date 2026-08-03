@@ -2163,9 +2163,32 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
-            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+            return;
         }
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        Object messageHash = Helpers.add("orderbook:", symbol);
+        Object maxTimestamp = this.safeString(orderbook, "maxTimestamp");
+        Object lastMaxTimestamp = this.safeString(message, "last_max_timestamp");
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(maxTimestamp, null))) && Helpers.isTrue((!Helpers.isEqual(lastMaxTimestamp, null)))) && Helpers.isTrue((!Helpers.isEqual(maxTimestamp, lastMaxTimestamp)))))
+        {
+            Object subscriptions = Helpers.objectKeys(client.subscriptions);
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subscriptions)); i++)
+            {
+                Object subscriptionHash = Helpers.GetValue(subscriptions, i);
+                Object subscription = this.safeDict(client.subscriptions, subscriptionHash);
+                Object streamType = this.safeString(subscription, "streamType");
+                Object subscriptionSymbol = this.safeString(subscription, "symbol");
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(streamType, "book_depth"))) && Helpers.isTrue((Helpers.isEqual(subscriptionSymbol, symbol)))))
+                {
+                    ((java.util.Map<String,Object>)client.subscriptions).remove((String)subscriptionHash);
+                }
+            }
+            ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+            ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+            var error = new InvalidNonce(Helpers.add(this.id, " watchOrderBook received invalid nonce"));
+            client.reject(error, messageHash);
+            return;
+        }
         Object asks = this.safeList(message, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object bids = this.safeList(message, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
@@ -2175,7 +2198,6 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(orderbook, "maxTimestamp", this.safeString(message, "max_timestamp"));
-        Object messageHash = Helpers.add("orderbook:", symbol);
         client.resolve(orderbook, messageHash);
     }
 
