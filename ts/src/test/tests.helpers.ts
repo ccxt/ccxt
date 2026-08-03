@@ -3,11 +3,9 @@
 import fs from 'fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import assert from 'assert';
 import ccxt, { Exchange } from '../../ccxt.js';
 import errorsHierarchy from '../base/errorHierarchy.js';
 import { unCamelCase } from '../base/functions/string.js';
-import { Str } from '../base/types.js';
 
 // js specific codes //
 const DIR_NAME = path.dirname (fileURLToPath (import.meta.url)) + path.sep;
@@ -80,10 +78,6 @@ function jsonStringify (elem) {
 function convertAscii (input)
 {
     return input; // stub for c#
-}
-
-function getTestName (str) {
-    return str;
 }
 
 function ioFileExists (path) {

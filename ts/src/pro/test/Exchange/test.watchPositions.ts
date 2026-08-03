@@ -3,7 +3,7 @@ import assert from 'assert';
 import testPosition from '../../../test/Exchange/base/test.position.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { Exchange } from '../../../../ccxt.js';
-import type { NullableDict, Position } from '../../../base/types.js';
+import type { NullableDict } from '../../../base/types.js';
 
 async function testWatchPositions (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchPositions';

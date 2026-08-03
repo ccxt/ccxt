@@ -1,6 +1,6 @@
 import assert from 'assert';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
-import ccxt, { Exchange } from '../../../../ccxt.js';
+import { Exchange } from '../../../../ccxt.js';
 import type { NullableDict } from '../../../base/types.js';
 
 async function createOrderAfterDelay (exchange: Exchange) {
