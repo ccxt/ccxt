@@ -1,7 +1,11 @@
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/sxbet.js';
+import { ecdsa } from '../base/functions/crypto.js';
+import { ROUND, DECIMAL_PLACES, TICK_SIZE } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
-import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
-import type { Dict, Int, Market, Num, PredictionEvent, PredictionOrderBook, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams } from '../base/types.js';
+import { ArgumentsRequired, ExchangeError, InvalidOrder } from '../base/errors.js';
+import type { Dict, Int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -25,6 +29,7 @@ export default class sxbet extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'approve': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -87,6 +92,7 @@ export default class sxbet extends Exchange {
                             'orders/cancel/v2': 1,
                             'orders/cancel/event': 1,
                             'orders/cancel/all': 1,
+                            'orders/approve': 1,
                         },
                     },
                 },
@@ -120,6 +126,13 @@ export default class sxbet extends Exchange {
                 'marketsPageSize': 100,
                 'maxMarketsPages': 50,
                 'eventScopeParams': [ 'leagueId', 'sportId' ],
+                // per-chain RPC endpoint for the on-chain reads approve() needs (ERC20 name()/nonces());
+                // sx.bet's own REST API has no RPC proxy, and /metadata carries no rpcUrl field
+                'chains': {
+                    '4162': { 'rpcUrl': 'https://rpc-rollup.sx.technology' },
+                    '79479957': { 'rpcUrl': 'https://rpc-rollup.toronto.sx.technology' },
+                },
+                'approveDeadlineSeconds': 7200,
             },
         });
     }
@@ -513,29 +526,478 @@ export default class sxbet extends Exchange {
     /**
      * @ignore
      * @method
-     * @name sxbet#loadUsdcAddress
-     * @description resolves and caches the USDC token contract address for the current network from /metadata. sx.bet orders can be denominated in USDC or WSX per-order, but every sxbet market's quote/settle is fixed to 'USDC' (see parseSxbetMarket), so ticker/order-book construction only surfaces USDC-denominated liquidity
-     * @returns {string} the USDC token contract address
+     * @name sxbet#loadSxMetadata
+     * @description resolves and caches the network-specific values from /metadata needed to build and sign orders: the USDC token address (sx.bet orders can be denominated in USDC or WSX per-order, but every sxbet market's quote/settle is fixed to 'USDC' — see parseSxbetMarket, so only USDC-denominated liquidity/orders are surfaced), the executor address (maker order signing), the EIP-712 fill domain (chainId/version/verifyingContract) and the odds ladder step
+     * @returns {object} a dict with usdcAddress, executorAddress, chainId, fillVerifyingContract, fillDomainVersion, oddsLadderStepSize
      */
-    async loadUsdcAddress (): Promise<string> {
-        let usdcAddress = this.safeString (this.options, 'usdcAddress');
-        if (usdcAddress !== undefined) {
-            return usdcAddress;
+    async loadSxMetadata (): Promise<Dict> {
+        const cached = this.safeDict (this.options, 'sxMetadata');
+        if (cached !== undefined) {
+            return cached;
         }
         const response = await this.sxbetPublicGetMetadata ();
         const data = this.safeDict (response, 'data', {});
         const addresses = this.safeDict (data, 'addresses', {});
         const addressesKeys = Object.keys (addresses);
         const addressesKeysLength = addressesKeys.length;
+        let usdcAddress: Str = undefined;
+        let chainId: Str = undefined;
         if (addressesKeysLength > 0) {
-            const chainAddresses = this.safeDict (addresses, addressesKeys[0], {});
+            chainId = addressesKeys[0];
+            const chainAddresses = this.safeDict (addresses, chainId, {});
             usdcAddress = this.safeString (chainAddresses, 'USDC');
         }
-        if (usdcAddress === undefined) {
-            throw new ExchangeError (this.id + ' could not resolve the USDC token address from /metadata');
+        const executorAddress = this.safeString (data, 'executorAddress');
+        const fillVerifyingContract = this.safeString (data, 'EIP712FillHasher');
+        const fillDomainVersion = this.safeString (data, 'domainVersion');
+        const oddsLadderStepSize = this.safeString (data, 'oddsLadderStepSize', '125');
+        const tokenTransferProxy = this.safeString (data, 'TokenTransferProxy');
+        if ((usdcAddress === undefined) || (executorAddress === undefined) || (fillVerifyingContract === undefined) || (fillDomainVersion === undefined) || (chainId === undefined) || (tokenTransferProxy === undefined)) {
+            throw new ExchangeError (this.id + ' could not resolve required fields from /metadata');
         }
-        this.options['usdcAddress'] = usdcAddress;
-        return usdcAddress;
+        const metadata: Dict = {
+            'usdcAddress': usdcAddress,
+            'executorAddress': executorAddress,
+            'chainId': chainId,
+            'fillVerifyingContract': fillVerifyingContract,
+            'fillDomainVersion': fillDomainVersion,
+            'oddsLadderStepSize': oddsLadderStepSize,
+            'tokenTransferProxy': tokenTransferProxy,
+        };
+        this.options['sxMetadata'] = metadata;
+        return metadata;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#roundOddsToLadder
+     * @description rounds an implied probability (0-1) to sx.bet's odds ladder (oddsLadderStepSize is in units of 1e-5, e.g. 125 -> a 0.125% step) — a maker's percentageOdds is rejected unless it lands exactly on the ladder
+     * @param {string} probability the implied probability as a decimal string (0-1)
+     * @param {string} oddsLadderStepSize the raw oddsLadderStepSize from /metadata (e.g. '125')
+     * @returns {string} the probability rounded to the nearest ladder step, as a decimal string
+     */
+    roundOddsToLadder (probability: Str, oddsLadderStepSize: string): string {
+        const tickSize = Precise.stringDiv (oddsLadderStepSize, '100000', 10);
+        return this.decimalToPrecision (probability, ROUND, tickSize, TICK_SIZE);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#hashPersonalMessage
+     * @description hashes a binary message with the EIP-191 personal_sign prefix ("\x19Ethereum Signed Message:\n" + byte length), matching wallet.signMessage()/personal_sign used by sx.bet's maker order signature
+     * @param {Uint8Array} binaryMessage the raw bytes to sign
+     * @returns {string} the 32-byte digest to ecdsa-sign, as a '0x'-prefixed hex string
+     */
+    hashPersonalMessage (binaryMessage): string {
+        const binaryMessageLength = this.binaryLength (binaryMessage);
+        const x19 = this.base16ToBinary ('19');
+        const newline = this.base16ToBinary ('0a');
+        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode (this.numberToString (binaryMessageLength)));
+        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#hashEip712Digest
+     * @description hashes an EIP-712 encoded payload (domainSeparator‖structHash, prefixed with 0x1901 by ethEncodeStructuredData) down to the final 32-byte digest to sign, used by sx.bet's taker-fill and cancel signatures
+     * @param {Uint8Array} encoded the output of this.ethEncodeStructuredData (domain, types, message)
+     * @returns {string} the 32-byte digest to ecdsa-sign, as a '0x'-prefixed hex string
+     */
+    hashEip712Digest (encoded): string {
+        return '0x' + this.hash (encoded, keccak, 'hex');
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#signDigest
+     * @description ecdsa-signs a 32-byte digest and assembles the r‖s‖v hex signature sx.bet expects
+     * @param {string} digest the '0x'-prefixed 32-byte digest to sign
+     * @param {string} privateKey the signer's private key
+     * @returns {string} a '0x'-prefixed 65-byte hex signature (r‖s‖v)
+     */
+    signDigest (digest: string, privateKey: string): string {
+        const signature = ecdsa (digest.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        const r = signature['r'].padStart (64, '0');
+        const s = signature['s'].padStart (64, '0');
+        const v = this.intToBase16 (this.sum (27, signature['v']));
+        return '0x' + r + s + v;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#fetchErc20Name
+     * @description reads an ERC20 token's name() via eth_call (needed for the Permit EIP-712 domain — must match the token's real on-chain name or the signature fails verification)
+     * @param {string} rpcUrl the RPC endpoint to call
+     * @param {string} tokenAddress the token contract address
+     * @returns {string} the token's on-chain name
+     */
+    async fetchErc20Name (rpcUrl: Str, tokenAddress: string): Promise<string> {
+        const nameCallData = '0x06fdde03'; // name()
+        const result = await this.ethRpc (rpcUrl, 'eth_call', [ { 'to': tokenAddress, 'data': nameCallData }, 'latest' ]);
+        const hex = this.remove0xPrefix (result);
+        // dynamic ABI string return: [32-byte offset][32-byte length][utf8 bytes, right-padded]
+        const lengthHex = hex.slice (64, 128);
+        const length = parseInt (lengthHex, 16);
+        const dataEnd = this.sum (128, length * 2);
+        const dataHex = hex.slice (128, dataEnd);
+        return this.decode (this.base16ToBinary (dataHex));
+    }
+
+    /**
+     * @method
+     * @name sxbet#approve
+     * @description grants sx.bet's TokenTransferProxy an ERC20 allowance over the wallet's USDC via a gasless EIP-2612 Permit signature (POST /orders/approve) — required once before any order can be placed, otherwise the API rejects orders with an allowance error
+     * @see https://docs.sx.bet/api-reference/post-approve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tokenAddress] the token to approve, defaults to USDC (from /metadata)
+     * @param {string} [params.spender] the address granted the allowance, defaults to TokenTransferProxy (from /metadata)
+     * @param {string} [params.value] the allowance in raw token units, defaults to unlimited (max uint256)
+     * @param {int} [params.deadline] unix seconds the permit signature expires at, defaults to options.approveDeadlineSeconds from now
+     * @param {string} [params.rpcUrl] overrides the chain's default RPC endpoint (see options.chains)
+     * @returns {object} a dict with the raw response and the returned approval tx hash (undefined if the allowance was already set)
+     */
+    async approve (params = {}): Promise<any> {
+        this.checkRequiredCredentials ();
+        if (this.privateKey === undefined) {
+            throw new ArgumentsRequired (this.id + ' approve() requires a privateKey to sign the permit');
+        }
+        const sxMetadata = await this.loadSxMetadata ();
+        const usdcAddress = this.safeString (sxMetadata, 'usdcAddress', '');
+        const tokenTransferProxy = this.safeString (sxMetadata, 'tokenTransferProxy', '');
+        const chainId = this.safeInteger (sxMetadata, 'chainId');
+        const tokenAddress = this.safeString (params, 'tokenAddress', usdcAddress);
+        const spender = this.safeString (params, 'spender', tokenTransferProxy);
+        const chains = this.safeDict (this.options, 'chains', {});
+        const chainConfig = this.safeDict (chains, this.numberToString (chainId), {});
+        const rpcUrl = this.safeString (params, 'rpcUrl', this.safeString (chainConfig, 'rpcUrl'));
+        if (rpcUrl === undefined) {
+            throw new ArgumentsRequired (this.id + ' approve() has no RPC endpoint configured for chainId ' + this.numberToString (chainId) + ' - pass params.rpcUrl');
+        }
+        const owner = this.walletAddress;
+        const nonceCallData = '0x7ecebe00' + this.padHexAddress (owner); // nonces(address)
+        const nonceResult = await this.ethRpc (rpcUrl, 'eth_call', [ { 'to': tokenAddress, 'data': nonceCallData }, 'latest' ]);
+        const nonceHex = this.hexToRlpBytes (nonceResult);
+        const nonce = (nonceHex === '') ? '0' : this.numberToString (parseInt (nonceHex, 16));
+        const tokenName = await this.fetchErc20Name (rpcUrl, tokenAddress);
+        const defaultDeadlineSeconds = this.safeInteger (this.options, 'approveDeadlineSeconds', 7200);
+        const deadline = this.safeInteger (params, 'deadline', this.sum (this.seconds (), defaultDeadlineSeconds));
+        const maxUint256 = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
+        const value = this.safeString (params, 'value', maxUint256);
+        const domain: Dict = { 'name': tokenName, 'version': '1', 'chainId': chainId, 'verifyingContract': tokenAddress };
+        const messageTypes: Dict = {
+            'Permit': [
+                { 'name': 'owner', 'type': 'address' },
+                { 'name': 'spender', 'type': 'address' },
+                { 'name': 'value', 'type': 'uint256' },
+                { 'name': 'nonce', 'type': 'uint256' },
+                { 'name': 'deadline', 'type': 'uint256' },
+            ],
+        };
+        const messageData: Dict = { 'owner': owner, 'spender': spender, 'value': value, 'nonce': nonce, 'deadline': deadline };
+        const encoded = this.ethEncodeStructuredData (domain, messageTypes, messageData);
+        const digest = this.hashEip712Digest (encoded);
+        const signature = this.signDigest (digest, this.privateKey);
+        const request: Dict = {
+            'owner': owner,
+            'spender': spender,
+            'tokenAddress': tokenAddress,
+            'value': value,
+            'deadline': deadline,
+            'signature': signature,
+        };
+        const rest = this.omit (params, [ 'tokenAddress', 'spender', 'value', 'deadline', 'rpcUrl' ]);
+        const response = await this.sxbetPrivatePostOrdersApprove (this.extend (request, rest));
+        const data = this.safeDict (response, 'data', {});
+        return {
+            'info': response,
+            'id': this.safeString (data, 'hash'),
+        };
+    }
+
+    /**
+     * @method
+     * @name sxbet#createOrder
+     * @description places an order on sx.bet — a 'limit' order posts a resting MAKER order (personal_sign, POST /orders/new); a 'market' order immediately fills against resting maker orders as a TAKER (EIP-712 signed, POST /orders/fill/v2). sx.bet has no shares — 'amount' is the USDC stake to risk, and 'price' is the implied probability (0-1) of the requested outcome. 'sell' bets the OPPOSITE outcome of the one requested (sx.bet is bilateral: there is no owned position to sell, only the complementary side of the same market)
+     * @see https://docs.sx.bet/developers/posting-orders
+     * @see https://docs.sx.bet/developers/filling-orders
+     * @param {string} outcome unified outcome handle or outcomeId (marketHash or marketHash + '-2')
+     * @param {string} type 'limit' (resting maker order) or 'market' (immediate taker fill)
+     * @param {string} side 'buy' bets the requested outcome directly; 'sell' bets the complementary outcome of the same market
+     * @param {float} amount the USDC amount to stake/risk
+     * @param {float} [price] implied probability (0-1) of the requested outcome; required for 'limit', optional for 'market' (defaults to the current best fillable price)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.apiExpiry] unix seconds the maker order expires at (limit only), defaults to options.defaultOrderExpirySeconds from now
+     * @param {int} [params.oddsSlippage] percent tolerance (0-100) on the fill price (market only), defaults to options.defaultOddsSlippage
+     * @param {string} [params.salt] overrides the random salt/fillSalt differentiating this order
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async createOrder (outcome: string, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+        this.checkRequiredCredentials ();
+        if (this.privateKey === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a privateKey to sign orders');
+        }
+        await this.loadOutcome (outcome);
+        const outcomeObj = this.outcome (outcome);
+        if (type === 'limit') {
+            return await this.createSxbetMakerOrder (outcomeObj, side, amount, price, params);
+        } else if (type === 'market') {
+            return await this.createSxbetTakerFillOrder (outcomeObj, side, amount, price, params);
+        }
+        throw new InvalidOrder (this.id + " createOrder() type must be 'limit' or 'market', got " + type);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#createSxbetMakerOrder
+     * @description builds, signs (personal_sign) and posts a resting maker order via POST /orders/new
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async createSxbetMakerOrder (outcomeObj: Dict, side: Str, amount: Num, price: Num, params = {}): Promise<PredictionOrder> {
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + " createOrder() requires a price for a 'limit' order");
+        }
+        const marketHash = this.safeString (outcomeObj['info'], 'marketHash', '');
+        const outcomeId = this.safeString (outcomeObj, 'outcomeId');
+        const isOutcomeOne = (outcomeId === marketHash);
+        const isBuy = (side === 'buy');
+        // 'sell' bets the complementary outcome, mirroring the requested outcome's own probability
+        // (same normalize-to-one-book convention used across the prediction venues in this codebase)
+        const isMakerBettingOutcomeOne = isBuy ? isOutcomeOne : !isOutcomeOne;
+        const priceStr = this.numberToString (price);
+        const makerProbability = isBuy ? priceStr : Precise.stringSub ('1', priceStr);
+        const sxMetadata = await this.loadSxMetadata ();
+        const usdcAddress = this.safeString (sxMetadata, 'usdcAddress', '');
+        const executor = this.safeString (sxMetadata, 'executorAddress', '');
+        const oddsLadderStepSize = this.safeString (sxMetadata, 'oddsLadderStepSize', '125');
+        const roundedProbability = this.roundOddsToLadder (makerProbability, oddsLadderStepSize);
+        const percentageOdds = this.decimalToPrecision (Precise.stringMul (roundedProbability, '100000000000000000000'), ROUND, 0, DECIMAL_PLACES);
+        const amountStr = this.numberToString (amount);
+        const totalBetSize = this.decimalToPrecision (Precise.stringMul (amountStr, '1000000'), ROUND, 0, DECIMAL_PLACES);
+        const expiry = '2209006800'; // deprecated field, sx.bet requires this exact hardcoded value
+        const defaultExpirySeconds = this.safeInteger (this.options, 'defaultOrderExpirySeconds', 3600);
+        const apiExpiry = this.safeInteger (params, 'apiExpiry', this.sum (this.seconds (), defaultExpirySeconds));
+        const salt = this.safeString (params, 'salt', this.numberToString (this.milliseconds ()));
+        const maker = this.walletAddress;
+        const orderHash = this.hashSxbetOrder (marketHash, usdcAddress, totalBetSize, percentageOdds, expiry, salt, maker, executor, isMakerBettingOutcomeOne);
+        const digest = this.hashPersonalMessage (this.base16ToBinary (this.remove0xPrefix (orderHash)));
+        const signature = this.signDigest (digest, this.privateKey);
+        const orderRequest: Dict = {
+            'marketHash': marketHash,
+            'maker': maker,
+            'baseToken': usdcAddress,
+            'totalBetSize': totalBetSize,
+            'percentageOdds': percentageOdds,
+            'expiry': this.parseToInt (expiry),
+            'apiExpiry': apiExpiry,
+            'executor': executor,
+            'salt': salt,
+            'isMakerBettingOutcomeOne': isMakerBettingOutcomeOne,
+            'signature': signature,
+        };
+        const rest = this.omit (params, [ 'apiExpiry', 'salt' ]);
+        const response = await this.sxbetPrivatePostOrdersNew (this.extend ({ 'orders': [ orderRequest ] }, rest));
+        const data = this.safeDict (response, 'data', {});
+        const orderHashes = this.safeList (data, 'orders', []);
+        const statuses = this.safeDict (data, 'statuses', {});
+        const returnedId = this.safeString (orderHashes, 0, orderHash);
+        const status = this.safeString (statuses, returnedId, this.safeString (statuses, orderHash));
+        if ((status !== undefined) && (status !== 'OK')) {
+            throw new InvalidOrder (this.id + ' createOrder() rejected: ' + status);
+        }
+        const now = this.milliseconds ();
+        return this.safePredictionOrder ({
+            'id': returnedId,
+            'clientOrderId': undefined,
+            'timestamp': now,
+            'datetime': this.iso8601 (now),
+            'lastTradeTimestamp': undefined,
+            'status': 'open',
+            'type': 'limit',
+            'timeInForce': undefined,
+            'side': side,
+            'price': price,
+            'average': undefined,
+            'amount': amount,
+            'filled': 0,
+            'remaining': amount,
+            'cost': amount,
+            'fee': undefined,
+            'reduceOnly': undefined,
+            'postOnly': undefined,
+            'trades': [],
+            'info': response,
+        }, outcomeObj);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#hashSxbetOrder
+     * @description builds the sx.bet maker order hash: solidity-packed keccak256 of (marketHash, baseToken, totalBetSize, percentageOdds, expiry, salt, maker, executor, isMakerBettingOutcomeOne). Packed manually (bytes32‖address‖uint256 x4‖address‖address‖bool, minimal per-type byte widths) via base primitives ported to every language, rather than the TS-only vendored solidityPackedKeccak256 helper — verified byte-identical against it
+     * @returns {string} the 32-byte order hash, as a '0x'-prefixed hex string
+     */
+    hashSxbetOrder (marketHash: string, baseToken: string, totalBetSize: string, percentageOdds: string, expiry: string, salt: string, maker: string, executor: string, isMakerBettingOutcomeOne: boolean): string {
+        // ternary hoisted to a bare local before base16ToBinary: inlined inside the function call
+        // argument, the regex transpiler mangles it (see the signatureType fix earlier this session)
+        const boolHex = isMakerBettingOutcomeOne ? '01' : '00';
+        const packed = this.binaryConcat (
+            this.base16ToBinary (this.remove0xPrefix (marketHash)),
+            this.base16ToBinary (this.remove0xPrefix (baseToken)),
+            this.numberToBE (totalBetSize as any, 32),
+            this.numberToBE (percentageOdds as any, 32),
+            this.numberToBE (expiry as any, 32),
+            this.numberToBE (salt as any, 32),
+            this.base16ToBinary (this.remove0xPrefix (maker)),
+            this.base16ToBinary (this.remove0xPrefix (executor)),
+            this.base16ToBinary (boolHex)
+        );
+        return '0x' + this.hash (packed, keccak, 'hex');
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#createSxbetTakerFillOrder
+     * @description builds, signs (EIP-712) and posts an immediate taker fill via POST /orders/fill/v2
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    async createSxbetTakerFillOrder (outcomeObj: Dict, side: Str, amount: Num, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+        const marketHash = this.safeString (outcomeObj['info'], 'marketHash', '');
+        const outcomeId = this.safeString (outcomeObj, 'outcomeId');
+        const isOutcomeOne = (outcomeId === marketHash);
+        const isBuy = (side === 'buy');
+        const isTakerBettingOutcomeOne = isBuy ? isOutcomeOne : !isOutcomeOne;
+        let requestedProbability = price;
+        if (requestedProbability === undefined) {
+            const outcomeHandle = this.safeString (outcomeObj, 'outcome');
+            const ticker = await this.fetchTicker (outcomeHandle);
+            requestedProbability = isBuy ? this.safeNumber (ticker, 'ask') : this.safeNumber (ticker, 'bid');
+            if (requestedProbability === undefined) {
+                throw new InvalidOrder (this.id + " createOrder() could not resolve a default price for a 'market' order - no resting liquidity on the opposite side, pass a price explicitly");
+            }
+        }
+        const requestedProbabilityStr = this.numberToString (requestedProbability);
+        const takerProbability = isBuy ? requestedProbabilityStr : Precise.stringSub ('1', requestedProbabilityStr);
+        const desiredOdds = this.decimalToPrecision (Precise.stringMul (takerProbability, '100000000000000000000'), ROUND, 0, DECIMAL_PLACES);
+        const defaultSlippage = this.safeInteger (this.options, 'defaultOddsSlippage', 5);
+        const oddsSlippage = this.safeInteger (params, 'oddsSlippage', defaultSlippage);
+        const sxMetadata = await this.loadSxMetadata ();
+        const usdcAddress = this.safeString (sxMetadata, 'usdcAddress', '');
+        const chainId = this.safeInteger (sxMetadata, 'chainId');
+        const fillVerifyingContract = this.safeString (sxMetadata, 'fillVerifyingContract', '');
+        const fillDomainVersion = this.safeString (sxMetadata, 'fillDomainVersion', '');
+        const amountStr = this.numberToString (amount);
+        const stakeWei = this.decimalToPrecision (Precise.stringMul (amountStr, '1000000'), ROUND, 0, DECIMAL_PLACES);
+        const fillSalt = this.safeString (params, 'salt', this.numberToString (this.milliseconds ()));
+        const taker = this.walletAddress;
+        const zeroAddress = '0x0000000000000000000000000000000000000000';
+        const zeroHash = '0x0000000000000000000000000000000000000000000000000000000000000000';
+        const domain: Dict = {
+            'name': 'SX Bet',
+            'version': fillDomainVersion,
+            'chainId': chainId,
+            'verifyingContract': fillVerifyingContract,
+        };
+        const messageTypes: Dict = {
+            'Details': [
+                { 'name': 'action', 'type': 'string' },
+                { 'name': 'market', 'type': 'string' },
+                { 'name': 'betting', 'type': 'string' },
+                { 'name': 'stake', 'type': 'string' },
+                { 'name': 'worstOdds', 'type': 'string' },
+                { 'name': 'worstReturning', 'type': 'string' },
+                { 'name': 'fills', 'type': 'FillObject' },
+            ],
+            'FillObject': [
+                { 'name': 'stakeWei', 'type': 'string' },
+                { 'name': 'marketHash', 'type': 'string' },
+                { 'name': 'baseToken', 'type': 'string' },
+                { 'name': 'desiredOdds', 'type': 'string' },
+                { 'name': 'oddsSlippage', 'type': 'uint256' },
+                { 'name': 'isTakerBettingOutcomeOne', 'type': 'bool' },
+                { 'name': 'fillSalt', 'type': 'uint256' },
+                { 'name': 'beneficiary', 'type': 'address' },
+                { 'name': 'beneficiaryType', 'type': 'uint8' },
+                { 'name': 'cashOutTarget', 'type': 'bytes32' },
+            ],
+        };
+        const messageData: Dict = {
+            'action': 'N/A',
+            'market': 'N/A',
+            'betting': 'N/A',
+            'stake': 'N/A',
+            'worstOdds': 'N/A',
+            'worstReturning': 'N/A',
+            'fills': {
+                'stakeWei': stakeWei,
+                'marketHash': marketHash,
+                'baseToken': usdcAddress,
+                'desiredOdds': desiredOdds,
+                'oddsSlippage': oddsSlippage,
+                'isTakerBettingOutcomeOne': isTakerBettingOutcomeOne,
+                'fillSalt': fillSalt,
+                'beneficiary': zeroAddress,
+                'beneficiaryType': 0,
+                'cashOutTarget': zeroHash,
+            },
+        };
+        const encoded = this.ethEncodeStructuredData (domain, messageTypes, messageData);
+        const digest = this.hashEip712Digest (encoded);
+        const takerSig = this.signDigest (digest, this.privateKey);
+        const request: Dict = {
+            'market': marketHash,
+            'baseToken': usdcAddress,
+            'isTakerBettingOutcomeOne': isTakerBettingOutcomeOne,
+            'stakeWei': stakeWei,
+            'desiredOdds': desiredOdds,
+            'oddsSlippage': oddsSlippage,
+            'fillSalt': fillSalt,
+            'taker': taker,
+            'takerSig': takerSig,
+        };
+        const rest = this.omit (params, [ 'oddsSlippage', 'salt' ]);
+        const response = await this.sxbetPrivatePostOrdersFillV2 (this.extend (request, rest));
+        const data = this.safeDict (response, 'data', {});
+        const fillHash = this.safeString (data, 'fillHash');
+        const totalFilledStr = this.safeString (data, 'totalFilled', '0');
+        const filled = this.parseNumber (Precise.stringDiv (totalFilledStr, '1000000', 6));
+        const averageOddsStr = this.safeString (data, 'averageOdds');
+        let averagePrice: Num = undefined;
+        if (averageOddsStr !== undefined) {
+            const averageTakerProbability = Precise.stringDiv (averageOddsStr, '100000000000000000000', 10);
+            // ternary hoisted to a bare local before parseNumber (see hashSxbetOrder's comment)
+            const averageOutcomeProbability = isBuy ? averageTakerProbability : Precise.stringSub ('1', averageTakerProbability);
+            averagePrice = this.parseNumber (averageOutcomeProbability);
+        }
+        const now = this.milliseconds ();
+        return this.safePredictionOrder ({
+            'id': fillHash,
+            'clientOrderId': undefined,
+            'timestamp': now,
+            'datetime': this.iso8601 (now),
+            'lastTradeTimestamp': now,
+            'status': 'closed',
+            'type': 'market',
+            'timeInForce': undefined,
+            'side': side,
+            'price': (averagePrice !== undefined) ? averagePrice : requestedProbability,
+            'average': averagePrice,
+            'amount': amount,
+            'filled': filled,
+            'remaining': this.parseNumber (Precise.stringSub (amountStr, this.numberToString (filled))),
+            'cost': filled,
+            'fee': undefined,
+            'reduceOnly': undefined,
+            'postOnly': undefined,
+            'trades': [],
+            'info': response,
+        }, outcomeObj);
     }
 
     /**
@@ -551,7 +1013,8 @@ export default class sxbet extends Exchange {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const marketHash = this.safeString (outcomeObj['info'], 'marketHash');
-        const usdcAddress = await this.loadUsdcAddress ();
+        const sxMetadata = await this.loadSxMetadata ();
+        const usdcAddress = this.safeString (sxMetadata, 'usdcAddress', '');
         const request: Dict = { 'marketHashes': marketHash, 'baseToken': usdcAddress };
         const response = await this.sxbetPublicGetOrdersOddsBest (this.extend (request, params));
         const result = this.safeDict (response, 'data', {});
@@ -592,7 +1055,8 @@ export default class sxbet extends Exchange {
             grouped.push (outcomeObj);
             outcomesByMarketHash[marketHash] = grouped;
         }
-        const usdcAddress = await this.loadUsdcAddress ();
+        const sxMetadata = await this.loadSxMetadata ();
+        const usdcAddress = this.safeString (sxMetadata, 'usdcAddress', '');
         const chunkSize = this.safeInteger (this.options, 'fetchTickersBatchSize', 30);
         const result: PredictionTickers = {};
         const marketHashesLength = marketHashes.length;
@@ -706,7 +1170,8 @@ export default class sxbet extends Exchange {
         const marketHash = this.safeString (outcomeObj['info'], 'marketHash');
         const outcomeId = this.safeString (outcomeObj, 'outcomeId');
         const isOutcomeOne = (outcomeId === marketHash);
-        const usdcAddress = await this.loadUsdcAddress ();
+        const sxMetadata = await this.loadSxMetadata ();
+        const usdcAddress = this.safeString (sxMetadata, 'usdcAddress', '');
         const request: Dict = { 'marketHashes': marketHash };
         const response = await this.sxbetPublicGetOrders (this.extend (request, params));
         const rawOrders = this.safeList (response, 'data', []);
