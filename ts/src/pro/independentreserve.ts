@@ -9,7 +9,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class independentreserve extends independentreserveRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -50,7 +50,7 @@ export default class independentreserve extends independentreserveRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -97,7 +97,7 @@ export default class independentreserve extends independentreserveRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade, market: Market = undefined) {
         //
         //    {
         //        "TradeGuid": "2f316718-0d0b-4e33-a30c-c2c06f3cfb34",
@@ -138,7 +138,7 @@ export default class independentreserve extends independentreserveRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -255,12 +255,12 @@ export default class independentreserve extends independentreserveRest {
         return result;
     }
 
-    handleDelta (bookside, delta) {
+    override handleDelta (bookside, delta) {
         const bidAsk = this.parseOrderBookBidAsk (delta, 'Price', 'Volume');
         bookside.storeArray (bidAsk);
     }
 
-    handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside, deltas) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -287,7 +287,7 @@ export default class independentreserve extends independentreserveRest {
         return message;
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message) {
         const event = this.safeString (message, 'Event');
         const handlers: Dict = {
             'Subscriptions': this.handleSubscriptions,

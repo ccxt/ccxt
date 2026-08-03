@@ -10,7 +10,7 @@ import { ExchangeError } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
 
 export default class dydx extends dydxRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -46,7 +46,7 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -74,7 +74,7 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -132,7 +132,7 @@ export default class dydx extends dydxRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade, market: Market = undefined) {
         //
         // {
         //     "id": "02b6148d0000000200000003",
@@ -172,7 +172,7 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -197,7 +197,7 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -255,7 +255,7 @@ export default class dydx extends dydxRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleDelta (bookside, delta) {
+    override handleDelta (bookside, delta) {
         if (Array.isArray (delta)) {
             const price = this.safeFloat (delta, 0);
             const amount = this.safeFloat (delta, 1);
@@ -278,7 +278,7 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -309,7 +309,7 @@ export default class dydx extends dydxRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -418,7 +418,7 @@ export default class dydx extends dydxRest {
         return true;
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message) {
         const type = this.safeString (message, 'type');
         if (type === 'error') {
             this.handleErrorMessage (client, message);

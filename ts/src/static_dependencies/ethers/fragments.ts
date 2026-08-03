@@ -1097,7 +1097,7 @@ export class ErrorFragment extends NamedFragment {
     /**
      *  Returns a new **ErrorFragment** for %%obj%%.
      */
-    static from(obj: any): ErrorFragment {
+    static override from(obj: any): ErrorFragment {
         if (ErrorFragment.isFragment(obj)) { return obj; }
 
         if (typeof(obj) === "string") {
@@ -1182,7 +1182,7 @@ export class EventFragment extends NamedFragment {
     /**
      *  Returns a new **EventFragment** for %%obj%%.
      */
-    static from(obj: any): EventFragment {
+    static override from(obj: any): EventFragment {
         if (EventFragment.isFragment(obj)) { return obj; }
 
         if (typeof(obj) === "string") {
@@ -1264,7 +1264,7 @@ export class ConstructorFragment extends Fragment {
     /**
      *  Returns a new **ConstructorFragment** for %%obj%%.
      */
-    static from(obj: any): ConstructorFragment {
+    static override from(obj: any): ConstructorFragment {
         if (ConstructorFragment.isFragment(obj)) { return obj; }
 
         if (typeof(obj) === "string") {
@@ -1331,7 +1331,7 @@ export class FallbackFragment extends Fragment {
     /**
      *  Returns a new **FallbackFragment** for %%obj%%.
      */
-    static from(obj: any): FallbackFragment {
+    static override from(obj: any): FallbackFragment {
         if (FallbackFragment.isFragment(obj)) { return obj; }
 
         if (typeof(obj) === "string") {
@@ -1507,7 +1507,7 @@ export class FunctionFragment extends NamedFragment {
     /**
      *  Returns a new **FunctionFragment** for %%obj%%.
      */
-    static from(obj: any): FunctionFragment {
+    static override from(obj: any): FunctionFragment {
         if (FunctionFragment.isFragment(obj)) { return obj; }
 
         if (typeof(obj) === "string") {
@@ -1594,7 +1594,7 @@ export class StructFragment extends NamedFragment {
     /**
      *  Returns a new **StructFragment** for %%obj%%.
      */
-    static from(obj: any): StructFragment {
+    static override from(obj: any): StructFragment {
         if (typeof(obj) === "string") {
             try {
                 return StructFragment.from(lex(obj));

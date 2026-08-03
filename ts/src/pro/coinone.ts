@@ -10,7 +10,7 @@ import { ArrayCache } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 
 export default class coinone extends coinoneRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -60,7 +60,7 @@ export default class coinone extends coinoneRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -130,7 +130,7 @@ export default class coinone extends coinoneRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleDelta (bookside, delta) {
+    override handleDelta (bookside, delta) {
         const bidAsk = this.parseOrderBookBidAsk (delta, 'price', 'qty');
         bookside.storeArray (bidAsk);
     }
@@ -144,7 +144,7 @@ export default class coinone extends coinoneRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -269,7 +269,7 @@ export default class coinone extends coinoneRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -322,7 +322,7 @@ export default class coinone extends coinoneRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "quote_currency": "KRW",
@@ -380,7 +380,7 @@ export default class coinone extends coinoneRest {
         return false;
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message) {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
@@ -413,7 +413,7 @@ export default class coinone extends coinoneRest {
         }
     }
 
-    ping (client: Client) {
+    override ping (client: Client) {
         return {
             'request_type': 'PING',
         };

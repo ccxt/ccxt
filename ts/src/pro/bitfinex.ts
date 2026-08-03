@@ -12,7 +12,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class bitfinex extends bitfinexRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -126,7 +126,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -159,7 +159,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {bool} true if successfully unsubscribed, false otherwise
      */
-    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}) {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -282,7 +282,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const trades = await this.subscribe ('trades', symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -298,7 +298,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override unWatchTrades (symbol: string, params = {}): Promise<any> {
         return this.unSubscribe ('trades', 'trades', symbol, params);
     }
 
@@ -312,7 +312,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -336,7 +336,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override watchTicker (symbol: string, params = {}): Promise<Ticker> {
         return this.subscribe ('ticker', symbol, params);
     }
 
@@ -348,7 +348,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker (symbol: string, params = {}): Promise<any> {
+    override unWatchTicker (symbol: string, params = {}): Promise<any> {
         return this.unSubscribe ('ticker', 'ticker', symbol, params);
     }
 
@@ -461,7 +461,7 @@ export default class bitfinex extends bitfinexRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade, market: Market = undefined) {
         //
         //    [
         //        1128060969, // id
@@ -644,7 +644,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (limit !== undefined) {
             if ((limit !== 25) && (limit !== 100)) {
                 throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 25 or 100');
@@ -820,7 +820,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1078,7 +1078,7 @@ export default class bitfinex extends bitfinexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1182,7 +1182,7 @@ export default class bitfinex extends bitfinexRest {
         return this.safeString (statuses, status, status);
     }
 
-    parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order, market: Market = undefined) {
         //
         //   [
         //       97084883506, // order id
@@ -1269,7 +1269,7 @@ export default class bitfinex extends bitfinexRest {
         }, market);
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message) {
         const channelId = this.safeString (message, 0);
         //
         //     [

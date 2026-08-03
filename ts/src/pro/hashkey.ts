@@ -9,7 +9,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class hashkey extends hashkeyRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -84,7 +84,7 @@ export default class hashkey extends hashkeyRest {
      * @param {bool} [params.binary] true or false - default false
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -151,7 +151,7 @@ export default class hashkey extends hashkeyRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "t": 1722861660000,
@@ -184,7 +184,7 @@ export default class hashkey extends hashkeyRest {
      * @param {bool} [params.binary] true or false - default false
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -244,7 +244,7 @@ export default class hashkey extends hashkeyRest {
      * @param {bool} [params.binary] true or false - default false
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -315,7 +315,7 @@ export default class hashkey extends hashkeyRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -385,7 +385,7 @@ export default class hashkey extends hashkeyRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -451,7 +451,7 @@ export default class hashkey extends hashkeyRest {
         client.resolve (orders, symbolSpecificMessageHash);
     }
 
-    parseWsOrder (order: Dict, market: Market = undefined): Order {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         const marketId = this.safeString (order, 's');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'O');
@@ -509,7 +509,7 @@ export default class hashkey extends hashkeyRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -557,7 +557,7 @@ export default class hashkey extends hashkeyRest {
         client.resolve (tradesArray, symbolSpecificMessageHash);
     }
 
-    parseWsTrade (trade, market: Market = undefined): Trade {
+    override parseWsTrade (trade, market: Market = undefined): Trade {
         //
         // watchTrades
         //     {
@@ -628,7 +628,7 @@ export default class hashkey extends hashkeyRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -731,7 +731,7 @@ export default class hashkey extends hashkeyRest {
      * @param {string} [params.type] 'spot' or 'swap' - the type of the market to watch balance for (default 'spot')
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         const listenKey = await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -859,7 +859,7 @@ export default class hashkey extends hashkeyRest {
         }
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message) {
         if (Array.isArray (message)) {
             message = this.safeDict (message, 0, {});
         }

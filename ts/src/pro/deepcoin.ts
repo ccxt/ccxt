@@ -10,7 +10,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class deepcoin extends deepcoinRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -83,7 +83,7 @@ export default class deepcoin extends deepcoinRest {
         });
     }
 
-    ping (client: Client) {
+    override ping (client: Client) {
         const url = client.url;
         if (url.indexOf ('private') >= 0) {
             client.lastPong = this.milliseconds ();
@@ -204,7 +204,7 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -222,7 +222,7 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+    override async unWatchTicker (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -349,7 +349,7 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -371,7 +371,7 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async unWatchTrades (symbol: string, params = {}) {
+    override async unWatchTrades (symbol: string, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -423,7 +423,7 @@ export default class deepcoin extends deepcoinRest {
         client.resolve (strored, messageHash);
     }
 
-    parseWsTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // watchTrades
         //     {
@@ -513,7 +513,7 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -540,7 +540,7 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -605,7 +605,7 @@ export default class deepcoin extends deepcoinRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     {
         //         "I": "BTC/USDT",
@@ -639,7 +639,7 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -659,7 +659,7 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -779,7 +779,7 @@ export default class deepcoin extends deepcoinRest {
         }
     }
 
-    handleDelta (orderbook, entry) {
+    override handleDelta (orderbook, entry) {
         const data = this.safeDict (entry, 'd', {});
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
@@ -806,7 +806,7 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         let messageHash = 'myTrades';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -885,7 +885,7 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         let messageHash = 'orders';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -952,7 +952,7 @@ export default class deepcoin extends deepcoinRest {
         }
     }
 
-    parseWsOrder (order, market: Market = undefined): Order {
+    override parseWsOrder (order, market: Market = undefined): Order {
         //
         //     {
         //         "D": "0",
@@ -1027,7 +1027,7 @@ export default class deepcoin extends deepcoinRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1168,7 +1168,7 @@ export default class deepcoin extends deepcoinRest {
         return this.safeString (modes, marginMode, marginMode);
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message) {
         if (message === 'pong') {
             this.handlePong (client, message);
         } else {
