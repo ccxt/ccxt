@@ -3,7 +3,7 @@
 import deriveRest from '../derive.js';
 import { ExchangeError, AuthenticationError, UnsubscribeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, Dict, Bool } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Dict, Bool, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -437,7 +437,7 @@ export default class derive extends deriveRest {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             tradesArray = new ArrayCache (limit);
         }
-        for (let i = 0; i < data.length; i++) {
+        for (let i = 0; i < (data as List).length; i++) {
             const trade = this.parseTrade (data[i]);
             tradesArray.append (trade);
         }

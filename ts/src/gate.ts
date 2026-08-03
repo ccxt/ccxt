@@ -2911,7 +2911,7 @@ export default class gate extends Exchange {
         }
         let ticker: NullableDict = undefined;
         if (market['option']) {
-            for (let i = 0; i < response.length; i++) {
+            for (let i = 0; i < (response as List).length; i++) {
                 const entry = response[i];
                 if (entry['name'] === market['id']) {
                     ticker = entry;
@@ -3370,7 +3370,7 @@ export default class gate extends Exchange {
             }
             data = flatBalances;
         }
-        for (let i = 0; i < data.length; i++) {
+        for (let i = 0; i < (data as List).length; i++) {
             const entry = data[i];
             if (isolated) {
                 const marketId = this.safeString (entry, 'currency_pair');
