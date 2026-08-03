@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
+use ccxt\InvalidNonce;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -1758,9 +1759,29 @@ class nado extends \ccxt\async\nado {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
-            $this->orderbooks[$symbol] = $this->order_book();
+            return;
         }
         $orderbook = $this->orderbooks[$symbol];
+        $messageHash = 'orderbook:' . $symbol;
+        $maxTimestamp = $this->safe_string($orderbook, 'maxTimestamp');
+        $lastMaxTimestamp = $this->safe_string($message, 'last_max_timestamp');
+        if (($maxTimestamp !== null) && ($lastMaxTimestamp !== null) && ($maxTimestamp !== $lastMaxTimestamp)) {
+            $subscriptions = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
+            for ($i = 0; $i < count($subscriptions); $i++) {
+                $subscriptionHash = $subscriptions[$i];
+                $subscription = $this->safe_dict($client->subscriptions, $subscriptionHash);
+                $streamType = $this->safe_string($subscription, 'streamType');
+                $subscriptionSymbol = $this->safe_string($subscription, 'symbol');
+                if (($streamType === 'book_depth') && ($subscriptionSymbol === $symbol)) {
+                    unset($client->subscriptions[$subscriptionHash]);
+                }
+            }
+            unset($client->subscriptions[$messageHash]);
+            unset($this->orderbooks[$symbol]);
+            $error = new InvalidNonce($this->id . ' watchOrderBook received invalid nonce');
+            $client->reject($error, $messageHash);
+            return;
+        }
         $asks = $this->safe_list($message, 'asks', array());
         $bids = $this->safe_list($message, 'bids', array());
         $this->handle_deltas($orderbook['asks'], $asks);
@@ -1770,7 +1791,6 @@ class nado extends \ccxt\async\nado {
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
         $orderbook['maxTimestamp'] = $this->safe_string($message, 'max_timestamp');
-        $messageHash = 'orderbook:' . $symbol;
         $client->resolve($orderbook, $messageHash);
     }
 
