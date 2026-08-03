@@ -1487,6 +1487,44 @@ public struct DepositWithdrawFee
     }
 }
 
+public struct DepositWithdrawFees
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, DepositWithdrawFee> depositWithdrawFees;
+
+    public DepositWithdrawFees(object depositWithdrawFees2)
+    {
+        var depositWithdrawFees = (Dictionary<string, object>)depositWithdrawFees2;
+
+        info = Helper.GetInfo(depositWithdrawFees);
+        this.depositWithdrawFees = new Dictionary<string, DepositWithdrawFee>();
+        foreach (var fee in depositWithdrawFees)
+        {
+            if (fee.Key != "info")
+                this.depositWithdrawFees.Add(fee.Key, new DepositWithdrawFee(fee.Value));
+        }
+    }
+
+    public DepositWithdrawFee this[string key]
+    {
+        get
+        {
+            if (depositWithdrawFees.ContainsKey(key))
+            {
+                return depositWithdrawFees[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the depositWithdrawFees.");
+            }
+        }
+        set
+        {
+            depositWithdrawFees[key] = value;
+        }
+    }
+}
+
 public struct TransferEntry
 {
     public Dictionary<string, object>? info;

@@ -37,7 +37,7 @@ const KNOWN_TYPES = new Set([
     'LastPrice', 'LastPrices', 'LongShortRatio',
     'BorrowInterest', 'CrossBorrowRate', 'CrossBorrowRates',
     'IsolatedBorrowRate', 'IsolatedBorrowRates',
-    'FundingHistory', 'DepositWithdrawFee',
+    'FundingHistory', 'DepositWithdrawFee', 'DepositWithdrawFees',
     'OrderRequest', 'CancellationRequest', 'WithdrawalResponse',
     // native dedicated prediction-market types (io.github.ccxt.types.Prediction*)
     'PredictionTicker', 'PredictionTickers', 'PredictionOrder', 'PredictionTrade', 'PredictionPosition', 'PredictionOrderBook', 'PredictionTradingFee', 'PredictionOpenInterest', 'PredictionSettlement',

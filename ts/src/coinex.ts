@@ -7,7 +7,7 @@ import Exchange from './abstract/coinex.js';
 import { ExchangeError, ArgumentsRequired, BadSymbol, InsufficientFunds, OrderNotFound, InvalidOrder, AuthenticationError, PermissionDenied, ExchangeNotAvailable, RequestTimeout, BadRequest, RateLimitExceeded, NotSupported, AccountSuspended, OperationFailed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, CurrencyInterface, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, NullableDict, List, LeverageTiers, LeverageTier, int, FundingRate, FundingRates, DepositAddress, BorrowInterest, DepositWithdrawFee, Dictionary } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, NullableDict, List, LeverageTiers, LeverageTier, int, FundingRate, FundingRates, DepositAddress, BorrowInterest, DepositWithdrawFee, DepositWithdrawFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -5826,7 +5826,7 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<Dictionary<DepositWithdrawFee>> {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

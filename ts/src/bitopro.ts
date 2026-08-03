@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 ;
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, Bool, NullableDict, DepositWithdrawFee, Dictionary } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, Bool, NullableDict, DepositWithdrawFee, DepositWithdrawFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1886,7 +1886,7 @@ export default class bitopro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<Dictionary<DepositWithdrawFee>> {
+    override async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}): Promise<DepositWithdrawFees> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

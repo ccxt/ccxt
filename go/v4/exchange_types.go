@@ -2533,3 +2533,35 @@ func NewDepositWithdrawFeeMap(data2 any) map[string]DepositWithdrawFee {
 	}
 	return result
 }
+
+type DepositWithdrawFees struct {
+	Info                map[string]any
+	DepositWithdrawFees map[string]DepositWithdrawFee
+}
+
+func NewDepositWithdrawFees(data2 any) DepositWithdrawFees {
+	if data2 == nil {
+		data2 = make(map[string]any)
+	}
+	data := data2.(map[string]any)
+	info := GetInfo(data)
+	fees := make(map[string]DepositWithdrawFee)
+	for key, value := range data {
+		if key != "info" {
+			fees[key] = NewDepositWithdrawFee(value)
+		}
+	}
+	return DepositWithdrawFees{Info: info, DepositWithdrawFees: fees}
+}
+
+func (d *DepositWithdrawFees) Get(key string) (DepositWithdrawFee, error) {
+	fee, exists := d.DepositWithdrawFees[key]
+	if !exists {
+		return DepositWithdrawFee{}, fmt.Errorf("the key '%s' was not found in the depositWithdrawFees", key)
+	}
+	return fee, nil
+}
+
+func (d *DepositWithdrawFees) Set(key string, fee DepositWithdrawFee) {
+	d.DepositWithdrawFees[key] = fee
+}
