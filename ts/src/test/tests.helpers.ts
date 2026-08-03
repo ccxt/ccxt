@@ -81,10 +81,6 @@ function convertAscii (input: any)
     return input; // stub for c#
 }
 
-function getTestName (str: string) {
-    return str;
-}
-
 function ioFileExists (path: string) {
     return fs.existsSync (path);
 }
