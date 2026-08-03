@@ -1,6 +1,6 @@
 # Run the playground in an isolated container with EGRESS LOCKED to exchanges.
-#   OPENROUTER_API_KEY=sk-... docker compose up --build
-# (or put OPENROUTER_API_KEY in a .env file next to this one)
+#   PLAYGROUND_AI_URL=http://<host>:<port>/v1/chat/completions docker compose up --build
+# (or put PLAYGROUND_AI_URL in a .env file next to this one; unset = no assistant)
 #
 # Trust boundary = the container. Host protections:
 #   - no volumes / bind mounts  → the host filesystem is unreachable from runs
@@ -28,7 +28,7 @@ services:
     ports:
       - "${PLAYGROUND_PORT:-3000}:3000"
     environment:
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      PLAYGROUND_AI_URL: ${PLAYGROUND_AI_URL:-}
       RUN_TIMEOUT_MS: ${RUN_TIMEOUT_MS:-15000}
       COMPILE_TIMEOUT_MS: ${COMPILE_TIMEOUT_MS:-90000}
       # Force all child-process egress through the allowlist proxy. Upper- and
@@ -43,8 +43,11 @@ services:
       HTTPS_PROXY: http://egress-proxy:3128
       http_proxy: http://egress-proxy:3128
       https_proxy: http://egress-proxy:3128
-      NO_PROXY: localhost,127.0.0.1
-      no_proxy: localhost,127.0.0.1
+      # Hosts reached directly instead of through the egress allowlist. The
+      # PLAYGROUND_AI_URL host belongs here when it is deployment-local;
+      # override wholesale to add it.
+      NO_PROXY: ${PLAYGROUND_NO_PROXY:-localhost,127.0.0.1}
+      no_proxy: ${PLAYGROUND_NO_PROXY:-localhost,127.0.0.1}
     networks:
       - internal
     depends_on:

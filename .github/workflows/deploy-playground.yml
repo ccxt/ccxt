@@ -175,15 +175,20 @@ jobs:
           docker network connect "$NET_EGRESS" "$PROXY"
           docker tag "$IMAGE_PROXY:$SHA" "$IMAGE_PROXY:latest"
 
-          # OpenRouter key lives only on the box (root-only env-file, never in GitHub).
+          # Deployment-local settings (PLAYGROUND_AI_URL and anything else the box
+          # supplies) live only on the box, in a root-only env-file, never in GitHub.
           ENVFILE_ARG=""
           [ -f /root/ccxt-playground.env ] && ENVFILE_ARG="--env-file /root/ccxt-playground.env"
 
           # Force the app's egress through the proxy (it has no other route out).
+          # NO_PROXY carries the internal network's gateway so the assistant can
+          # reach the box-local endpoint in PLAYGROUND_AI_URL directly; everything
+          # else still goes through the exchange allowlist.
+          GATEWAY_IP="${SUBNET%.*/*}.1"
           PROXYENV="-e PLAYGROUND_EGRESS_PROXY=http://egress-proxy:3128 \
             -e HTTP_PROXY=http://egress-proxy:3128 -e HTTPS_PROXY=http://egress-proxy:3128 \
             -e http_proxy=http://egress-proxy:3128 -e https_proxy=http://egress-proxy:3128 \
-            -e NO_PROXY=localhost,127.0.0.1 -e no_proxy=localhost,127.0.0.1"
+            -e NO_PROXY=localhost,127.0.0.1,$GATEWAY_IP -e no_proxy=localhost,127.0.0.1,$GATEWAY_IP"
 
           # Hardening flags so a user run can't reach the host or exhaust it.
           # 12g/6cpu: sized for the dedicated docs box (8 cores / 31 GB). A warm
