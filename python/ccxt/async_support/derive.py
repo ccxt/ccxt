@@ -34,11 +34,11 @@ class derive(Exchange, ImplicitAPI):
             'dex': True,
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
-                'swap': False,
+                'swap': True,
                 'future': False,
-                'option': False,
+                'option': True,
                 'addMargin': False,
                 'borrowCrossMargin': False,
                 'borrowIsolatedMargin': False,
@@ -964,14 +964,26 @@ class derive(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'trades', [])
         return self.parse_trades(data, market, since, limit)
 
+    def parse_trades(self, trades: List[Any], market: Market = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        result = []
+        for i in range(0, len(trades)):
+            parsed = self.parse_trade(trades[i], market)
+            if parsed is None:
+                continue
+            trade = self.extend(parsed, params)
+            result.append(trade)
+        result = self.sort_by_2(result, 'timestamp', 'id')
+        symbol = self.safe_string(market, 'symbol')
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
+
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
+        #
+        # fetchTrades & fetchMyTrades
         #
         # {
         #     "subaccount_id": 130837,
-        #     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
         #     "instrument_name": "BTC-PERP",
         #     "direction": "sell",
-        #     "label": "test1234",
         #     "quote_id": null,
         #     "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
         #     "timestamp": 1738065303708,
@@ -982,13 +994,20 @@ class derive(Exchange, ImplicitAPI):
         #     "liquidity_role": "taker",
         #     "realized_pnl": "0",
         #     "realized_pnl_excl_fees": "0",
-        #     "is_transfer": False,
         #     "tx_status": "settled",
         #     "trade_fee": "1.127415534092999815",
         #     "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        #     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        #     "label": "test1234",                                      # only fetchMyTrades
+        #     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",       # only fetchMyTrades
+        #     "is_transfer": False,                                     # only fetchMyTrades
+        #     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d11bb",  # only fetchMyTrades
+        #     "rfq_id": null,                                           # only fetchTrades
+        #     "wallet": "0x353Bf69715DdbF7A2b0C6Deba8EAC1F1D160c123",   # only fetchTrades
+        #     "expected_rebate": "0",                                   # only fetchTrades
+        #     "extra_fee": "0",                                         # only fetchTrades
         # }
         #
+        isFetchTrades = not ('order_id' in trade)
         marketId = self.safe_string(trade, 'instrument_name')
         symbol = self.safe_symbol(marketId, market)
         timestamp = self.safe_integer(trade, 'timestamp')
@@ -996,6 +1015,10 @@ class derive(Exchange, ImplicitAPI):
             'currency': 'USDC',
             'cost': self.safe_string(trade, 'trade_fee'),
         }
+        takerOrMaker = self.safe_string(trade, 'liquidity_role')
+        if isFetchTrades and (takerOrMaker == 'maker'):
+            # skip maker trades
+            return None
         return self.safe_trade({
             'info': trade,
             'id': self.safe_string(trade, 'trade_id'),

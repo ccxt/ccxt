@@ -46,7 +46,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'margin': True,
                 'swap': True,
                 'future': True,
-                'option': True,
+                'option': False,
                 'addMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
