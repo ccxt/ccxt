@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { FALLBACK_FREE_MODELS, languageFromFence, type FreeModel } from "@/lib/ai/openrouter";
+import { languageFromFence } from "@/lib/ai/assistant";
 import { getLanguage, isRunnable, type LanguageId } from "@/lib/languages";
 import { apiUrl } from "@/lib/basePath";
 
@@ -27,34 +27,8 @@ export default function AssistantPanel({
 }) {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
-  const [models, setModels] = useState<FreeModel[]>(FALLBACK_FREE_MODELS);
-  const [model, setModel] = useState(FALLBACK_FREE_MODELS[0].id);
-  const [modelsLoading, setModelsLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  // The free tier rotates, so the live list comes from the server (warmed at
-  // startup). Until it lands — or if it fails — the fallback list is used.
-  useEffect(() => {
-    let cancelled = false;
-    fetch(apiUrl("/api/ai/models"))
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
-      .then((data: { models?: FreeModel[]; defaultModel?: string }) => {
-        if (cancelled || !data.models?.length) return;
-        const next = data.models;
-        setModels(next);
-        setModel((current) =>
-          next.some((m) => m.id === current) ? current : data.defaultModel ?? next[0].id,
-        );
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (!cancelled) setModelsLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const scrollDown = () => {
     requestAnimationFrame(() => {
@@ -75,7 +49,7 @@ export default function AssistantPanel({
       const res = await fetch(apiUrl("/api/ai"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history, model, language, code }),
+        body: JSON.stringify({ messages: history, language, code }),
       });
 
       if (!res.ok || !res.body) {
@@ -133,25 +107,12 @@ export default function AssistantPanel({
     <aside className="ai">
       <div className="ai-head">
         <span>✦ Assistant</span>
-        <select
-          className="select model-select"
-          value={model}
-          onChange={(e) => setModel(e.target.value)}
-          disabled={modelsLoading}
-          aria-label={modelsLoading ? "Loading models…" : "Model"}
-        >
-          {models.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.label}
-            </option>
-          ))}
-        </select>
       </div>
 
       <div className="ai-msgs" ref={scrollRef}>
         {messages.length === 0 ? (
           <div className="ai-empty">
-            Ask for CCXT code and it lands in your editor. Free models via OpenRouter.
+            Ask for CCXT code and it lands in your editor.
             <div className="chips">
               {SUGGESTIONS.map((s) => (
                 <button key={s} className="chip" onClick={() => send(s)}>
