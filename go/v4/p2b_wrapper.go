@@ -674,10 +674,10 @@ func (this *P2b) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, 
 func (this *P2b) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *P2b) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *P2b) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *P2b) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *P2b) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *P2b) FetchFreeBalance(params ...any) (Balance, error) {

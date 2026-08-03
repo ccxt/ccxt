@@ -461,10 +461,10 @@ func (this *Coinspot) FetchDeposits(options ...FetchDepositsOptions) ([]Transact
 func (this *Coinspot) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Coinspot) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Coinspot) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Coinspot) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Coinspot) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Coinspot) FetchFreeBalance(params ...any) (Balance, error) {

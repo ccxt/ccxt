@@ -1447,10 +1447,10 @@ func (this *Deepcoin) FetchDepositAddressesByNetwork(code string, options ...Fet
 func (this *Deepcoin) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Deepcoin) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Deepcoin) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Deepcoin) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Deepcoin) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Deepcoin) FetchFreeBalance(params ...any) (Balance, error) {

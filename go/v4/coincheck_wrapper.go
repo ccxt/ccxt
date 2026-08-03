@@ -591,10 +591,10 @@ func (this *Coincheck) FetchDepositAddressesByNetwork(code string, options ...Fe
 func (this *Coincheck) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Coincheck) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Coincheck) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Coincheck) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Coincheck) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Coincheck) FetchFreeBalance(params ...any) (Balance, error) {

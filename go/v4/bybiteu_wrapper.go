@@ -202,10 +202,10 @@ func (this *Bybiteu) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
 func (this *Bybiteu) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Bybiteu) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Bybiteu) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Bybiteu) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Bybiteu) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Bybiteu) FetchFreeBalance(params ...any) (Balance, error) {

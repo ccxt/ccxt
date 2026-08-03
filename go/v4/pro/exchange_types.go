@@ -66,4 +66,5 @@ type ADL = ccxt.ADL
 type OrderBooks = ccxt.OrderBooks
 type CancellationRequest = ccxt.CancellationRequest
 type DepositWithdrawFeeNetwork = ccxt.DepositWithdrawFeeNetwork
+type DepositWithdrawFee = ccxt.DepositWithdrawFee
 type DepositWithdrawFees = ccxt.DepositWithdrawFees

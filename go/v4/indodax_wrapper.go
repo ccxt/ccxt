@@ -750,10 +750,10 @@ func (this *Indodax) FetchDepositAddressesByNetwork(code string, options ...Fetc
 func (this *Indodax) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDeposits(options...)
 }
-func (this *Indodax) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Indodax) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Indodax) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Indodax) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Indodax) FetchFreeBalance(params ...any) (Balance, error) {

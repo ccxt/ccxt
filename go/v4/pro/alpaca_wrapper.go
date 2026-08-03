@@ -435,10 +435,10 @@ func (this *Alpaca) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.
 func (this *Alpaca) FetchDepositsWithdrawals(options ...ccxt.FetchDepositsWithdrawalsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Alpaca) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Alpaca) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (ccxt.DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Alpaca) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Alpaca) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (ccxt.DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Alpaca) FetchFreeBalance(params ...any) (ccxt.Balance, error) {

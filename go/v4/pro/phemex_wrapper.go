@@ -497,10 +497,10 @@ func (this *Phemex) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.
 func (this *Phemex) FetchDepositsWithdrawals(options ...ccxt.FetchDepositsWithdrawalsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Phemex) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Phemex) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (ccxt.DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Phemex) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Phemex) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (ccxt.DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Phemex) FetchFreeBalance(params ...any) (ccxt.Balance, error) {

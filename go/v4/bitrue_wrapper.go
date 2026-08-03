@@ -791,7 +791,7 @@ func (this *Bitrue) Withdraw(code string, amount float64, address string, option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Bitrue) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Bitrue) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 
 	opts := FetchDepositWithdrawFeesOptionsStruct{}
 
@@ -810,9 +810,9 @@ func (this *Bitrue) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFees
 	}
 	res := <-this.Core.FetchDepositWithdrawFees(codes, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return DepositWithdrawFees{}, CreateReturnError(res)
 	}
-	return (res).(map[string]any), nil
+	return NewDepositWithdrawFees(res), nil
 }
 
 /**
@@ -1109,7 +1109,7 @@ func (this *Bitrue) FetchDepositAddressesByNetwork(code string, options ...Fetch
 func (this *Bitrue) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Bitrue) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Bitrue) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
 func (this *Bitrue) FetchFreeBalance(params ...any) (Balance, error) {

@@ -1019,7 +1019,7 @@ func (this *Bitvavo) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Bitvavo) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Bitvavo) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 
 	opts := FetchDepositWithdrawFeesOptionsStruct{}
 
@@ -1038,9 +1038,9 @@ func (this *Bitvavo) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFee
 	}
 	res := <-this.Core.FetchDepositWithdrawFees(codes, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return DepositWithdrawFees{}, CreateReturnError(res)
 	}
-	return (res).(map[string]any), nil
+	return NewDepositWithdrawFees(res), nil
 }
 
 // missing typed methods from base
@@ -1189,7 +1189,7 @@ func (this *Bitvavo) FetchDepositAddressesByNetwork(code string, options ...Fetc
 func (this *Bitvavo) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Bitvavo) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Bitvavo) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
 func (this *Bitvavo) FetchFreeBalance(params ...any) (Balance, error) {

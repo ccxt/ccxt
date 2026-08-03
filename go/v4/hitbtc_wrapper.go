@@ -1376,7 +1376,7 @@ func (this *Hitbtc) SetLeverage(leverage int64, options ...SetLeverageOptions) (
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Hitbtc) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Hitbtc) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 
 	opts := FetchDepositWithdrawFeesOptionsStruct{}
 
@@ -1395,9 +1395,9 @@ func (this *Hitbtc) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFees
 	}
 	res := <-this.Core.FetchDepositWithdrawFees(codes, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return DepositWithdrawFees{}, CreateReturnError(res)
 	}
-	return (res).(map[string]any), nil
+	return NewDepositWithdrawFees(res), nil
 }
 
 // missing typed methods from base
@@ -1543,7 +1543,7 @@ func (this *Hitbtc) FetchDepositAddresses(options ...FetchDepositAddressesOption
 func (this *Hitbtc) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
-func (this *Hitbtc) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Hitbtc) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
 func (this *Hitbtc) FetchFreeBalance(params ...any) (Balance, error) {

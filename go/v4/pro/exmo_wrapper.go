@@ -435,10 +435,10 @@ func (this *Exmo) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Tr
 func (this *Exmo) FetchDepositsWithdrawals(options ...ccxt.FetchDepositsWithdrawalsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Exmo) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Exmo) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (ccxt.DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Exmo) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Exmo) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (ccxt.DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Exmo) FetchFreeBalance(params ...any) (ccxt.Balance, error) {

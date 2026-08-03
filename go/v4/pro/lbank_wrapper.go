@@ -554,10 +554,10 @@ func (this *Lbank) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.T
 func (this *Lbank) FetchDepositsWithdrawals(options ...ccxt.FetchDepositsWithdrawalsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Lbank) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Lbank) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (ccxt.DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Lbank) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Lbank) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (ccxt.DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Lbank) FetchFreeBalance(params ...any) (ccxt.Balance, error) {
