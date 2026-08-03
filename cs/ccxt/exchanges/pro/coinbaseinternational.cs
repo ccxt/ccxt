@@ -262,7 +262,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
 
     public virtual object getActiveSymbols()
     {
-        object symbols = ((object)this.symbols);
+        object symbols = this.symbols;
         object output = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
