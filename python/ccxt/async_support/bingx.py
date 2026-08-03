@@ -1495,10 +1495,16 @@ class bingx(Exchange, ImplicitAPI):
             takeOrMaker = 'maker' if isMaker else 'taker'
         amount = self.safe_string_n(trade, ['qty', 'amount', 'q'])
         if (market is not None) and market['swap'] and ('volume' in trade):
-            # private trade returns num of contracts instead of base currency(as the order-related methods do)
-            contractSize = self.safe_string(market['info'], 'tradeMinQuantity')
-            volume = self.safe_string(trade, 'volume')
-            amount = Precise.string_mul(volume, contractSize)
+            if market['linear']:
+                # private linear swap trades report 'amount' notional(quote) value, not the base amount
+                # 'volume' is the exchange's own base-currency fill quantity(bingx linear contractSize is always 1),
+                # use it directly instead of 'notional / price', which picks up rounding noise from the notional field
+                amount = self.safe_string(trade, 'volume')
+            else:
+                # private trade returns num of contracts instead of base currency(as the order-related methods do)
+                contractSize = self.safe_string(market['info'], 'tradeMinQuantity')
+                volume = self.safe_string(trade, 'volume')
+                amount = Precise.string_mul(volume, contractSize)
         return self.safe_trade({
             'id': self.safe_string_2(trade, 'id', 't'),
             'info': trade,

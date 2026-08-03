@@ -340,6 +340,7 @@ class xt(Exchange, ImplicitAPI):
                             'future/user/v1/position/margin': 1,
                             'future/user/v1/user/collection/add': 1,
                             'future/user/v1/user/collection/cancel': 1,
+                            'future/user/v1/position/change-type': 1,
                         },
                     },
                     'user': {
@@ -704,7 +705,7 @@ class xt(Exchange, ImplicitAPI):
                 'default': {
                     'sandbox': False,
                     'createOrder': {
-                        'marginMode': False,
+                        'marginMode': True,
                         'triggerPrice': False,
                         'triggerDirection': False,
                         'triggerPriceType': None,
@@ -785,6 +786,7 @@ class xt(Exchange, ImplicitAPI):
                 'forDerivatives': {
                     'extends': 'default',
                     'createOrder': {
+                        'marginMode': False,
                         'triggerPrice': True,
                         # todo
                         'triggerPriceType': {
@@ -1348,8 +1350,8 @@ class xt(Exchange, ImplicitAPI):
             'contract': contract,
             'linear': linear,
             'inverse': inverse,
-            'taker': self.safe_number(market, 'takerFee'),
-            'maker': self.safe_number(market, 'makerFee'),
+            'taker': self.safe_number_2(market, 'takerFee', 'takerFeeRate'),
+            'maker': self.safe_number_2(market, 'makerFee', 'makerFeeRate'),
             'contractSize': self.safe_number(market, 'contractSize'),
             'expiry': expiry,
             'expiryDatetime': self.iso8601(expiry),
@@ -1523,7 +1525,7 @@ class xt(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -4735,14 +4737,20 @@ class xt(Exchange, ImplicitAPI):
         else:
             marginMode = 'ISOLATED'
         posSide = self.safe_string_upper(params, 'positionSide')
-        if posSide is None:
-            raise ArgumentsRequired(self.id + ' setMarginMode() requires a positionSide parameter, either "LONG" or "SHORT"')
+        self.check_required_argument('setMarginMode', posSide, 'positionSide', ['LONG', 'SHORT'])
+        params = self.omit(params, 'positionSide')
         request = {
             'positionType': marginMode,
             'positionSide': posSide,
             'symbol': market['id'],
         }
-        response = self.privateLinearPostFutureUserV1PositionChangeType(self.extend(request, params))
+        subType = None
+        subType, params = self.handle_sub_type_and_params('setMarginMode', market, params)
+        response: dict
+        if subType == 'inverse':
+            response = self.privateInversePostFutureUserV1PositionChangeType(self.extend(request, params))
+        else:
+            response = self.privateLinearPostFutureUserV1PositionChangeType(self.extend(request, params))
         #
         # {
         #     "error": {
