@@ -1565,10 +1565,19 @@ public partial class bingx : Exchange
         object amount = this.safeStringN(trade, new List<object>() {"qty", "amount", "q"});
         if (isTrue(isTrue(isTrue((!isEqual(market, null))) && isTrue(getValue(market, "swap"))) && isTrue((inOp(trade, "volume")))))
         {
-            // private trade returns num of contracts instead of base currency (as the order-related methods do)
-            object contractSize = this.safeString(getValue(market, "info"), "tradeMinQuantity");
-            object volume = this.safeString(trade, "volume");
-            amount = Precise.stringMul(volume, contractSize);
+            if (isTrue(getValue(market, "linear")))
+            {
+                // private linear swap trades report 'amount' as the notional (quote) value, not the base amount;
+                // 'volume' is the exchange's own base-currency fill quantity (bingx linear contractSize is always 1),
+                // use it directly instead of 'notional / price', which picks up rounding noise from the notional field
+                amount = this.safeString(trade, "volume");
+            } else
+            {
+                // private trade returns num of contracts instead of base currency (as the order-related methods do)
+                object contractSize = this.safeString(getValue(market, "info"), "tradeMinQuantity");
+                object volume = this.safeString(trade, "volume");
+                amount = Precise.stringMul(volume, contractSize);
+            }
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", this.safeString2(trade, "id", "t") },
