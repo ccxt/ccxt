@@ -3248,6 +3248,7 @@ fetch the current funding rate
 * [hibachi](/exchanges/hibachi.md#fetchfundingrate)
 * [hitbtc](/exchanges/hitbtc.md#fetchfundingrate)
 * [htx](/exchanges/htx.md#fetchfundingrate)
+* [hyperliquid](/exchanges/hyperliquid.md#fetchfundingrate)
 * [kucoin](/exchanges/kucoin.md#fetchfundingrate)
 * [lbank](/exchanges/lbank.md#fetchfundingrate)
 * [mexc](/exchanges/mexc.md#fetchfundingrate)
