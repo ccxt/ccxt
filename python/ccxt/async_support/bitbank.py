@@ -1050,8 +1050,20 @@ class bitbank(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
+            # bitbank supports two auth methods, see https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#authorization
+            # 'timeWindow'(default): request time + validity window, stateless and safe for concurrent use of one key
+            # 'nonce': legacy strictly-increasing nonce, kept escape hatch for clients with drifting clocks,
+            # since bitbank offers no server time endpoint to compensate against
+            authMethod = self.safe_string(self.options, 'authMethod', 'timeWindow')
+            isTimeWindow = (authMethod == 'timeWindow')
+            requestTime = str(self.milliseconds())
+            timeWindow = self.safe_string(self.options, 'timeWindow', '5000')
             nonce = str(self.nonce())
-            auth = nonce
+            auth = None
+            if isTimeWindow:
+                auth = requestTime + timeWindow
+            else:
+                auth = nonce
             url += self.version + '/' + self.implode_params(path, params)
             if method == 'POST':
                 body = self.json(query)
@@ -1065,9 +1077,13 @@ class bitbank(Exchange, ImplicitAPI):
             headers = {
                 'Content-Type': 'application/json',
                 'ACCESS-KEY': self.apiKey,
-                'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256),
             }
+            if isTimeWindow:
+                headers['ACCESS-REQUEST-TIME'] = requestTime
+                headers['ACCESS-TIME-WINDOW'] = timeWindow
+            else:
+                headers['ACCESS-NONCE'] = nonce
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
