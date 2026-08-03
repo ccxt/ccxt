@@ -33,14 +33,19 @@ export default class okxus extends okx {
                 'CORS': undefined,
                 'spot': true,
                 'margin': undefined,
-                'swap': true,
-                'future': true,
+                'swap': false,
+                'future': false,
                 'option': false,
             },
             'features': {
                 'future': {
                     'linear': undefined,
                     'inverse': undefined,
+                },
+            },
+            'options': {
+                'fetchMarkets': {
+                    'types': [ 'spot' ], // only spot supported for now
                 },
             },
         });
