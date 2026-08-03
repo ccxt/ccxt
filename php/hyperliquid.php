@@ -64,7 +64,7 @@ class hyperliquid extends Exchange {
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => true,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
@@ -1299,6 +1299,26 @@ class hyperliquid extends Exchange {
             $result[$symbol] = $ticker;
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array()): array {
+        /**
+         * fetch the current funding $rate for a $symbol - hyperliquid only offers a bulk endpoint, so this filters the result of fetchFundingRates
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-$rate-structure funding $rate structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $rates = $this->fetch_funding_rates(array( $market['symbol'] ), $params);
+        $rate = $this->safe_dict($rates, $market['symbol']);
+        if ($rate === null) {
+            throw new BadSymbol($this->id . ' fetchFundingRate() could not find a funding $rate for ' . $symbol);
+        }
+        return $rate;
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array()): array {
