@@ -144,23 +144,6 @@ ccxt = [
 [tool.distutils.build]
 build_base = "python/build"
 
-# Formerly setup.cfg [flake8]. Primary Python lint is Ruff ([tool.ruff] below);
-# kept for any flake8 invocation that supports pyproject (e.g. flake8-pyproject).
-[tool.flake8]
-ignore = ["E501"]
-exclude = [
-    ".ropeproject",
-    ".tox",
-    ".eggs",
-    ".git",
-    "__pycache__",
-    "node_modules",
-    ".nyc_output",
-    "build",
-    "tmp",
-    "ccxt.py",
-]
-
 [tool.ruff]
 preview = true
 select = ["W", "F", "E"]
