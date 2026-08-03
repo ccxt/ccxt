@@ -18,6 +18,38 @@ let cachedConfigKey = null;
 // silently deep-copy it).
 let programCache = null;
 
+// Same fix as NewTranspiler.patchJavaPropertyTypes() in build/javaTranspiler.ts, applied here too
+// because worker threads construct their OWN Transpiler and never see the main-thread patch —
+// CI's pooled path would otherwise silently drift from the main-thread emit.
+// ast-transpiler's BaseTranspiler.getType() returns the raw TS type name for a TypeReference
+// (`Dict`, `Str`, `Num`, ...), and JavaTranspiler calls it only from printPropertyAccessModifiers(),
+// so a TS class field `x: Dict = {}` was emitted as `public Dict x = ...` — javac "cannot find
+// symbol". Resolve ccxt TS aliases in field position to DEFAULT_TYPE (`Object`), matching the
+// uniformly Object-typed generated Java (a narrower Map<String, Object> breaks on assignment from
+// safeValue(), which returns Object).
+const patchJavaPropertyTypes = (transpiler) => {
+    const javaTranspiler = transpiler?.javaTranspiler;
+    if (!javaTranspiler || typeof javaTranspiler.getType !== 'function' || javaTranspiler._propertyTypesPatched) {
+        return;
+    }
+    const originalGetType = javaTranspiler.getType.bind(javaTranspiler);
+    javaTranspiler.getType = (node) => {
+        const type = originalGetType(node);
+        // Only rewrite genuine TypeReference annotations (`x: Dict`). Keyword types
+        // (`x: boolean`, `x: string`, `x: any`, `x: string[]`) carry no `typeName` and are already
+        // resolved to real Java types — `boolean` is also a key of VariableTypeReplacements, so
+        // matching on the name alone would wrongly demote `public boolean verbose` to
+        // `public Object verbose`.
+        const isTypeReference = node?.type?.typeName !== undefined;
+        const tsAliases = javaTranspiler.VariableTypeReplacements ?? {};
+        if (isTypeReference && (typeof type === 'string') && Object.prototype.hasOwnProperty.call(tsAliases, type)) {
+            return javaTranspiler.DEFAULT_TYPE ?? 'Object';
+        }
+        return type;
+    };
+    javaTranspiler._propertyTypesPatched = true;
+};
+
 const verbose = !!process.env.CCXT_TRANSPILE_VERBOSE;
 
 export default async ({transpilerConfig, configKey, file, files, roots}) => {
@@ -26,6 +58,7 @@ export default async ({transpilerConfig, configKey, file, files, roots}) => {
         if (!programCache) programCache = Transpiler.createProgramCache();
         cachedTranspiler = new Transpiler(transpilerConfig, programCache);
         cachedTranspiler.setVerboseMode(false);
+        patchJavaPropertyTypes(cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;
