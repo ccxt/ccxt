@@ -59,7 +59,7 @@ const regionByKey: Record<string, Region> = Object.fromEntries(
 );
 
 export function LatencyMap() {
-  const exchangeIds = dataset.exchanges.map((e) => e.id);
+  const exchangeIds = useMemo(() => dataset.exchanges.map((e) => e.id), [dataset.exchanges]);
   const [selected, setSelected] = useState<string>(exchangeIds[0]);
   const [playing, setPlaying] = useState<boolean>(true);
 
@@ -122,6 +122,8 @@ export function LatencyMap() {
           onClick={() => setPlaying((p) => !p)}
           className="ml-auto rounded-full border px-3 py-1 text-sm text-fd-muted-foreground transition-colors hover:bg-fd-accent"
           title={playing ? 'Pause auto-cycle' : 'Auto-cycle exchanges'}
+          aria-pressed={playing}
+          aria-label={playing ? 'Pause auto-cycle' : 'Auto-cycle exchanges'}
         >
           {playing ? '❚❚ Pause' : '▶ Play'}
         </button>
@@ -164,7 +166,7 @@ export function LatencyMap() {
               const cx = mx;
               const cy = my - lift;
               const d = `M${x1} ${y1} Q${cx} ${cy} ${x2} ${y2}`;
-              const color = blocked ? '#ef4444' : latColor(c.ttfb);
+              const color = blocked ? '#6b7280' : latColor(c.ttfb);
               const pathId = `arc-${selected}-${c.region}`;
               // pulse travel time grows with latency (slower = higher latency)
               const dur = blocked ? 2.4 : Math.min(4, Math.max(0.7, (c.ttfb ?? 100) / 90));
