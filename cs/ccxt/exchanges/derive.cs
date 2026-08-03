@@ -892,11 +892,14 @@ public partial class derive : Exchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
-            object parsed = this.parseTrade(getValue(trades, i), market);
-            if (isTrue(isEqual(parsed, null)))
+            object rawTrade = getValue(trades, i);
+            object isFetchTrades = !isTrue((inOp(rawTrade, "order_id")));
+            object liquidityRole = this.safeString(rawTrade, "liquidity_role");
+            if (isTrue(isTrue(isFetchTrades) && isTrue((isEqual(liquidityRole, "maker")))))
             {
                 continue;
             }
+            object parsed = this.parseTrade(rawTrade, market);
             object trade = this.extend(parsed, parameters);
             ((IList<object>)result).Add(trade);
         }
@@ -937,7 +940,6 @@ public partial class derive : Exchange
         //     "extra_fee": "0",                                         // only fetchTrades
         // }
         //
-        object isFetchTrades = !isTrue((inOp(trade, "order_id")));
         object marketId = this.safeString(trade, "instrument_name");
         object symbol = this.safeSymbol(marketId, market);
         object timestamp = this.safeInteger(trade, "timestamp");
@@ -945,12 +947,6 @@ public partial class derive : Exchange
             { "currency", "USDC" },
             { "cost", this.safeString(trade, "trade_fee") },
         };
-        object takerOrMaker = this.safeString(trade, "liquidity_role");
-        if (isTrue(isTrue(isFetchTrades) && isTrue((isEqual(takerOrMaker, "maker")))))
-        {
-            // skip maker trades
-            return null;
-        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "trade_id") },
