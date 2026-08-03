@@ -6,6 +6,7 @@
 
 import testOrderBook from '../../../test/Exchange/base/test.orderBook.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+import { InvalidNonce } from '../../../base/errors.js';
 async function testWatchOrderBook(exchange, skippedProperties, symbol) {
     const method = 'watchOrderBook';
     let now = exchange.milliseconds();
@@ -17,7 +18,7 @@ async function testWatchOrderBook(exchange, skippedProperties, symbol) {
             response = await exchange.watchOrderBook(symbol);
         }
         catch (e) {
-            if (!testSharedMethods.isTemporaryFailure(e)) {
+            if (!testSharedMethods.isTemporaryFailure(e) && !(e instanceof InvalidNonce)) {
                 throw e;
             }
             now = exchange.milliseconds();

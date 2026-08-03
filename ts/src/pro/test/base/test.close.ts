@@ -3,20 +3,18 @@ import { ExchangeClosedByUser } from '../../../base/errors.js';
 import ccxt from '../../../../ccxt.js';
 
 async function watchTickerLoop (exchange: any) {
-    const method = 'watchTicker';
     /* eslint-disable */
     while (true) {
         console.log ('creating future');
-        const ticker = await exchange.watchTicker ('BTC/USDT');
+        await exchange.watchTicker ('BTC/USDT');
         console.log ('ticker recieved, future resolved');
     }
 }
 
 async function watchOrderBookForSymbolsLoop (exchange: any) {
-    const method = 'watchTicker';
     /* eslint-disable */
     while (true) {
-        const trades = await exchange.watchTradesForSymbols ([ 'BTC/USDT', 'ETH/USDT', 'LTC/USDT' ]);
+        await exchange.watchTradesForSymbols ([ 'BTC/USDT', 'ETH/USDT', 'LTC/USDT' ]);
     }
 }
 

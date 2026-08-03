@@ -12,7 +12,7 @@ import type {
     PredictionOrderRequest, Balances,
     Strings, PredictionOpenInterest, PredictionTradingFee,
     PredictionEvent, PredictionTicker, PredictionOrder, PredictionTrade, PredictionPosition,
-    fetchEventsParams,Bool, Fee, NullableDict } from '../base/types.js';
+    fetchEventsParams,Bool, NullableDict } from '../base/types.js';
 import { ArgumentsRequired, BadRequest, AuthenticationError, BadSymbol, InvalidOrder, InsufficientFunds, PermissionDenied, OrderNotFillable, ExchangeError } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------

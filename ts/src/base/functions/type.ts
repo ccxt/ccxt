@@ -1,6 +1,6 @@
 /*  ------------------------------------------------------------------------ */
 
-import { implicitReturnType, Int, Str, IndexType, NullableIndexType, Num, Dictionary } from '../types.js';
+import { implicitReturnType, Int, Str, NullableIndexType, Num, Dictionary } from '../types.js';
 
 const isNumber = Number.isFinite;
 const isInteger = Number.isInteger;

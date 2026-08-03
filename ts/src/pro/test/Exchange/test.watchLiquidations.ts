@@ -3,7 +3,6 @@ import assert from 'assert';
 import { Exchange } from "../../../../ccxt.js";
 import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
 import { NetworkError } from '../../../base/errors.js';
-import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import type { Liquidation } from '../../../base/types.js';
 
 

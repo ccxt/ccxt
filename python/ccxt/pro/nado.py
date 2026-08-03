@@ -11,6 +11,7 @@ from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import InvalidNonce
 from ccxt.base.precise import Precise
 
 
@@ -1535,8 +1536,25 @@ class nado(ccxt.async_support.nado):
         market = self.safe_market(marketId)
         symbol = market['symbol']
         if not (symbol in self.orderbooks):
-            self.orderbooks[symbol] = self.order_book()
+            return
         orderbook = self.orderbooks[symbol]
+        messageHash = 'orderbook:' + symbol
+        maxTimestamp = self.safe_string(orderbook, 'maxTimestamp')
+        lastMaxTimestamp = self.safe_string(message, 'last_max_timestamp')
+        if (maxTimestamp is not None) and (lastMaxTimestamp is not None) and (maxTimestamp != lastMaxTimestamp):
+            subscriptions = list(client.subscriptions.keys())
+            for i in range(0, len(subscriptions)):
+                subscriptionHash = subscriptions[i]
+                subscription = self.safe_dict(client.subscriptions, subscriptionHash)
+                streamType = self.safe_string(subscription, 'streamType')
+                subscriptionSymbol = self.safe_string(subscription, 'symbol')
+                if (streamType == 'book_depth') and (subscriptionSymbol == symbol):
+                    del client.subscriptions[subscriptionHash]
+            del client.subscriptions[messageHash]
+            del self.orderbooks[symbol]
+            error = InvalidNonce(self.id + ' watchOrderBook received invalid nonce')
+            client.reject(error, messageHash)
+            return
         asks = self.safe_list(message, 'asks', [])
         bids = self.safe_list(message, 'bids', [])
         self.handle_deltas(orderbook['asks'], asks)
@@ -1546,7 +1564,6 @@ class nado(ccxt.async_support.nado):
         orderbook['timestamp'] = timestamp
         orderbook['datetime'] = self.iso8601(timestamp)
         orderbook['maxTimestamp'] = self.safe_string(message, 'max_timestamp')
-        messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
     def handle_execute_response(self, client: Client, message):

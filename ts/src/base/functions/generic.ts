@@ -2,7 +2,7 @@
 // ----------------------------------------------------------------------------
 
 import { Dictionary, IndexType } from '../types.js';
-import { isObject, isNumber, isDict, isArray } from './type.js';
+import { isNumber, isDict, isArray } from './type.js';
 
 // ----------------------------------------------------------------------------
 

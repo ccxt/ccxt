@@ -8,7 +8,7 @@ import type {
     Market, PredictionOrderBook, OHLCV,
     Balances, PredictionOpenInterest,
     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement,
-    fetchEventsParams,Bool, Fee, NullableDict, OrderSide } from '../base/types.js';
+    fetchEventsParams,Bool, Fee, OrderSide } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 

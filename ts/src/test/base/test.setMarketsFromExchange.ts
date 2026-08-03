@@ -1,7 +1,7 @@
 
 import assert from 'assert';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
-import ccxt, { Exchange } from "../../../ccxt.js";
+import ccxt from "../../../ccxt.js";
 
 async function testSetMarketsFromExchange () {
 
