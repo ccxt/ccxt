@@ -984,8 +984,8 @@ class bitvavo(Exchange, ImplicitAPI):
         maker = self.safe_number(feesValue, 'maker')
         taker = self.safe_number(feesValue, 'taker')
         result = {}
-        for i in range(0, len((self.symbols))):
-            symbol = (self.symbols)[i]
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
             result[symbol] = {
                 'info': fees,
                 'symbol': symbol,

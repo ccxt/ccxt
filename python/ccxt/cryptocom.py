@@ -3351,8 +3351,8 @@ class cryptocom(Exchange, ImplicitAPI):
         #
         result = {}
         result['info'] = response
-        for i in range(0, len((self.symbols))):
-            symbol = (self.symbols)[i]
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
             market = self.market(symbol)
             isSwap = market['swap']
             takerFeeKey = 'effective_deriv_taker_rate_bps' if isSwap else 'effective_spot_taker_rate_bps'

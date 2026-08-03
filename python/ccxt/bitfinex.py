@@ -2588,8 +2588,8 @@ class bitfinex(Exchange, ImplicitAPI):
         takerFee = self.safe_number(takerData, 0)
         takerFeeFiat = self.safe_number(takerData, 2)
         takerFeeDeriv = self.safe_number(takerData, 5)
-        for i in range(0, len((self.symbols))):
-            symbol = (self.symbols)[i]
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
             market = self.market(symbol)
             fee = {
                 'info': response,

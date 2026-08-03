@@ -1156,8 +1156,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         maker = self.safe_number(response, 'maker_fee_rate')
         taker = self.safe_number(response, 'taker_fee_rate')
         result = {}
-        for i in range(0, len((self.symbols))):
-            symbol = (self.symbols)[i]
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,

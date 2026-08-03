@@ -2068,7 +2068,7 @@ class extended(Exchange, ImplicitAPI):
                 result[symbol] = parsed
         return result
 
-    def parse_trading_fee(self, fee: Any, market: Market = None) -> TradingFeeInterface:
+    def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
         #
         #     {
         #         "market": "BTC-USD",

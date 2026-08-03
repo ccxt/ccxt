@@ -4877,8 +4877,8 @@ class coinbase(Exchange, ImplicitAPI):
         taker_fee = self.safe_number(data, 'taker_fee_rate')
         maker_fee = self.safe_number(data, 'maker_fee_rate')
         result = {}
-        for i in range(0, len((self.symbols))):
-            symbol = (self.symbols)[i]
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
             market = self.market(symbol)
             if (isSpot and market['spot']) or (not isSpot and not market['spot']):
                 result[symbol] = {
