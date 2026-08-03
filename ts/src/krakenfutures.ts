@@ -14,7 +14,7 @@ import type { Balances, Bool, Currency, Dict, FundingRate, FundingRateHistory, F
  * @augments Exchange
  */
 export default class krakenfutures extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'krakenfutures',
             'name': 'Kraken Futures',
@@ -371,7 +371,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] exchange specific params
      * @returns An array of market structures
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.publicGetInstruments (params);
         //
         //    {
@@ -548,7 +548,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] exchange specific params
      * @returns An [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -600,7 +600,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -641,7 +641,7 @@ export default class krakenfutures extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //    {
         //        "tag": 'semiannual',  // 'month', 'quarter', "perpetual", "semiannual",
@@ -727,7 +727,7 @@ export default class krakenfutures extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -779,7 +779,7 @@ export default class krakenfutures extends Exchange {
         return this.parseOHLCVs ((candles as any[]), market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //    {
         //        "time": 1645198500000,
@@ -815,7 +815,7 @@ export default class krakenfutures extends Exchange {
      * @param {string} [params.method] The method to use to fetch trades. Can be 'historyGetMarketSymbolExecutions' or 'publicGetHistory' default is 'historyGetMarketSymbolExecutions'
      * @returns An array of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -929,7 +929,7 @@ export default class krakenfutures extends Exchange {
         return this.parseTrades (rawTrades, market, since, limit);
     }
 
-    parseTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (recent trades)
         //
@@ -1165,7 +1165,7 @@ export default class krakenfutures extends Exchange {
      * @param {string} [params.triggerSignal] for triggerPrice, stopLossPrice and takeProfitPrice orders, the trigger price type, 'last', 'mark' or 'index', default is 'last'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1252,7 +1252,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createOrders (orders: OrderRequest[], params = {}) {
+    override async createOrders (orders: OrderRequest[], params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1312,7 +1312,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] Exchange specific params
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1343,7 +1343,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] Exchange specific params
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1370,7 +1370,7 @@ export default class krakenfutures extends Exchange {
      * @param {string[]} [params.clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"]
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1432,7 +1432,7 @@ export default class krakenfutures extends Exchange {
      * @param {dict} [params] Exchange specific params
      * @returns Response from exchange api
      */
-    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrders (symbol: Str = undefined, params = {}) {
         const request: Dict = {};
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
@@ -1489,7 +1489,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    async cancelAllOrdersAfter (timeout: Int, params = {}) {
+    override async cancelAllOrdersAfter (timeout: Int, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1521,7 +1521,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] Exchange specific parameters
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1545,7 +1545,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] Exchange specific parameters
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1568,7 +1568,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1596,7 +1596,7 @@ export default class krakenfutures extends Exchange {
      * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1657,7 +1657,7 @@ export default class krakenfutures extends Exchange {
      * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1787,7 +1787,7 @@ export default class krakenfutures extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // LIMIT
         //
@@ -2290,7 +2290,7 @@ export default class krakenfutures extends Exchange {
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2333,7 +2333,7 @@ export default class krakenfutures extends Exchange {
      * @param {string} [params.symbol] A unified market symbol, when assigned the balance for a trading market that matches the symbol is returned
      * @returns A [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2453,7 +2453,7 @@ export default class krakenfutures extends Exchange {
         return balance;
     }
 
-    parseBalance (response): Balances {
+    override parseBalance (response): Balances {
         //
         // cashAccount
         //
@@ -2562,7 +2562,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    override async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2585,7 +2585,7 @@ export default class krakenfutures extends Exchange {
         return this.indexBy (fundingRates, 'symbol') as any;
     }
 
-    parseFundingRate (ticker, market: Market = undefined): FundingRate {
+    override parseFundingRate (ticker, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "PF_ENJUSD",
@@ -2664,7 +2664,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] extra parameters specific to the api endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -2717,7 +2717,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] Not used by krakenfutures
      * @returns Parsed exchange response for positions
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+    override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2743,7 +2743,7 @@ export default class krakenfutures extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    parsePositions (response, symbols: Strings = undefined, params = {}) {
+    override parsePositions (response, symbols: Strings = undefined, params = {}) {
         const result: any[] = [];
         // a degraded response can omit openPositions entirely - default to an
         // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
@@ -2755,7 +2755,7 @@ export default class krakenfutures extends Exchange {
         return result;
     }
 
-    parsePosition (position: Dict, market: Market = undefined) {
+    override parsePosition (position: Dict, market: Market = undefined) {
         // cross
         //    {
         //        "side": "long",
@@ -2820,7 +2820,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
+    override async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2873,7 +2873,7 @@ export default class krakenfutures extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
         /**
          * @method
          * @ignore
@@ -2943,7 +2943,7 @@ export default class krakenfutures extends Exchange {
         return tiers as LeverageTier[];
     }
 
-    parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
+    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // transfer
         //
@@ -2966,7 +2966,7 @@ export default class krakenfutures extends Exchange {
         };
     }
 
-    parseAccount (account) {
+    override parseAccount (account) {
         const accountByType: Dict = {
             'main': 'cash',
             'funding': 'cash',
@@ -3019,7 +3019,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    override async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3067,7 +3067,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+    override async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
@@ -3097,7 +3097,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
+    override async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3127,7 +3127,7 @@ export default class krakenfutures extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+    override async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchLeverage() requires a symbol argument');
         }
@@ -3155,7 +3155,7 @@ export default class krakenfutures extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const marketId = this.safeString (leverage, 'symbol');
         const leverageValue = this.safeInteger (leverage, 'maxLeverage');
         return {
@@ -3167,7 +3167,7 @@ export default class krakenfutures extends Exchange {
         } as Leverage;
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
@@ -3190,7 +3190,7 @@ export default class krakenfutures extends Exchange {
         throw new ExchangeError (feedback); // unknown message
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const apiVersions = this.safeValue (this.options['versions'], api, {});
         const methodVersions = this.safeValue (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.version);

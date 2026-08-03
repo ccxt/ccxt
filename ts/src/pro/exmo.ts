@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class exmo extends exmoRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -57,7 +57,7 @@ export default class exmo extends exmoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         await this.authenticate (params);
         const [ type, query ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const messageHash = 'balance:' + type;
@@ -225,7 +225,7 @@ export default class exmo extends exmoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -253,7 +253,7 @@ export default class exmo extends exmoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -321,7 +321,7 @@ export default class exmo extends exmoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -392,7 +392,7 @@ export default class exmo extends exmoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -527,7 +527,7 @@ export default class exmo extends exmoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -611,12 +611,12 @@ export default class exmo extends exmoRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleDelta (bookside, delta) {
+    override handleDelta (bookside, delta) {
         const bidAsk = this.parseOrderBookBidAsk (delta, 0, 1);
         bookside.storeArray (bidAsk);
     }
 
-    handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside, deltas) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -634,7 +634,7 @@ export default class exmo extends exmoRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -754,7 +754,7 @@ export default class exmo extends exmoRest {
         client.resolve (cachedOrders, messageHash);
     }
 
-    parseWsOrder (order: Dict, market: Market = undefined): Order {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         // {
         //     order_id: '43226756791',
@@ -820,7 +820,7 @@ export default class exmo extends exmoRest {
         }, market);
     }
 
-    parseWsTrade (trade: Dict, market: Market = undefined): Trade {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         const id = this.safeString (trade, 'order_id');
         const orderType = this.safeString (trade, 'type');
         const side = this.parseSide (orderType);
@@ -844,7 +844,7 @@ export default class exmo extends exmoRest {
         }, market);
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message) {
         //
         // {
         //     "ts": 1654206362552,

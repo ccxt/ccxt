@@ -9,7 +9,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class alpaca extends alpacaRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -74,7 +74,7 @@ export default class alpaca extends alpacaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
         if (this.markets === undefined) {
@@ -110,7 +110,7 @@ export default class alpaca extends alpacaRest {
         client.resolve (ticker, messageHash);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    override parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //    {
         //         "T": "q",
@@ -160,7 +160,7 @@ export default class alpaca extends alpacaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
         if (this.markets === undefined) {
@@ -219,7 +219,7 @@ export default class alpaca extends alpacaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
         if (this.markets === undefined) {
@@ -283,12 +283,12 @@ export default class alpaca extends alpacaRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleDelta (bookside, delta) {
+    override handleDelta (bookside, delta) {
         const bidAsk = this.parseOrderBookBidAsk (delta, 'p', 's');
         bookside.storeArray (bidAsk);
     }
 
-    handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside, deltas) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -305,7 +305,7 @@ export default class alpaca extends alpacaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const url = this.urls['api']['ws']['crypto'];
         await this.authenticate (url);
         if (this.markets === undefined) {
@@ -363,7 +363,7 @@ export default class alpaca extends alpacaRest {
      * @param {boolean} [params.unifiedMargin] use unified margin account
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const url = this.urls['api']['ws']['trading'];
         await this.authenticate (url);
         let messageHash = 'myTrades';
@@ -397,7 +397,7 @@ export default class alpaca extends alpacaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const url = this.urls['api']['ws']['trading'];
         await this.authenticate (url);
         if (this.markets === undefined) {
@@ -715,7 +715,7 @@ export default class alpaca extends alpacaRest {
         }
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message) {
         if (Array.isArray (message)) {
             this.handleCryptoMessage (client, message);
             return;

@@ -9,7 +9,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class bitrue extends bitrueRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -77,7 +77,7 @@ export default class bitrue extends bitrueRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         const url = await this.authenticate ();
         const messageHash = 'balance';
         const message: Dict = {
@@ -197,7 +197,7 @@ export default class bitrue extends bitrueRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/?id=order-structure} indexed by market symbols
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -256,7 +256,7 @@ export default class bitrue extends bitrueRest {
         client.resolve (this.orders, messageHash);
     }
 
-    parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order, market: Market = undefined) {
         //
         //    {
         //        "e": "ORDER",
@@ -316,7 +316,7 @@ export default class bitrue extends bitrueRest {
         }, market);
     }
 
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -472,7 +472,7 @@ export default class bitrue extends bitrueRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -551,7 +551,7 @@ export default class bitrue extends bitrueRest {
         }
     }
 
-    parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade, market: Market = undefined) {
         const symbol = (market as Dict)['symbol'];
         const timestamp = this.safeInteger (trade, 'ts');
         const sideLower = this.safeStringLower (trade, 'side');
@@ -587,7 +587,7 @@ export default class bitrue extends bitrueRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -670,7 +670,7 @@ export default class bitrue extends bitrueRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsOHLCV (tick, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (tick, market: Market = undefined): OHLCV {
         const symbol = (market as Dict)['symbol'];
         const idSeconds = this.safeInteger (tick, 'id');
         const timestamp = (idSeconds === undefined) ? undefined : idSeconds * 1000;
@@ -692,7 +692,7 @@ export default class bitrue extends bitrueRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -825,7 +825,7 @@ export default class bitrue extends bitrueRest {
         await client.send (pong);
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message) {
         if ('channel' in message) {
             const channel = this.safeString (message, 'channel');
             if ((channel as string).indexOf ('_depth_step') > -1) {

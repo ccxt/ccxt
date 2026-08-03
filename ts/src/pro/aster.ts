@@ -11,7 +11,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class aster extends asterRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -107,7 +107,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         params['callerMethodName'] = 'watchTicker';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -133,7 +133,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+    override async unWatchTicker (symbol: string, params = {}): Promise<any> {
         params['callerMethodName'] = 'unWatchTicker';
         return await this.unWatchTickers ([ symbol ], params);
     }
@@ -150,7 +150,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -201,7 +201,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -245,7 +245,7 @@ export default class aster extends asterRest {
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+    override async watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
         params['callerMethodName'] = 'watchMarkPrice';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -266,7 +266,7 @@ export default class aster extends asterRest {
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchMarkPrice (symbol: string, params = {}): Promise<any> {
+    override async unWatchMarkPrice (symbol: string, params = {}): Promise<any> {
         params['callerMethodName'] = 'unWatchMarkPrice';
         return await this.unWatchMarkPrices ([ symbol ], params);
     }
@@ -282,7 +282,7 @@ export default class aster extends asterRest {
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -334,7 +334,7 @@ export default class aster extends asterRest {
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchMarkPrices (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchMarkPrices (symbols: Strings = undefined, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -465,7 +465,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -513,7 +513,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchBidsAsks (symbols: Strings = undefined, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -598,7 +598,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         params['callerMethodName'] = 'watchTrades';
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
@@ -614,7 +614,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
         params['callerMethodName'] = 'unWatchTrades';
         return await this.unWatchTradesForSymbols ([ symbol ], params);
     }
@@ -632,7 +632,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -680,7 +680,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -743,7 +743,7 @@ export default class aster extends asterRest {
         client.resolve (stored, 'trade::' + symbol);
     }
 
-    parseWsTrade (trade, market: Market = undefined): Trade {
+    override parseWsTrade (trade, market: Market = undefined): Trade {
         //
         // public watchTrades (spot)
         //
@@ -905,7 +905,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         params['callerMethodName'] = 'watchOrderBook';
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
@@ -923,7 +923,7 @@ export default class aster extends asterRest {
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         params['callerMethodName'] = 'unWatchOrderBook';
         return await this.unWatchOrderBookForSymbols ([ symbol ], params);
     }
@@ -941,7 +941,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -988,7 +988,7 @@ export default class aster extends asterRest {
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
+    override async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1077,7 +1077,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         params['callerMethodName'] = 'watchOHLCV';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1098,7 +1098,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
         params['callerMethodName'] = 'unWatchOHLCV';
         return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
     }
@@ -1115,7 +1115,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1168,7 +1168,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
+    override async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1260,7 +1260,7 @@ export default class aster extends asterRest {
         client.resolve (resolveData, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 't'),
             this.safeNumber (ohlcv, 'o'),
@@ -1339,7 +1339,7 @@ export default class aster extends asterRest {
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1484,7 +1484,7 @@ export default class aster extends asterRest {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1682,7 +1682,7 @@ export default class aster extends asterRest {
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot' if symbol is not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1721,7 +1721,7 @@ export default class aster extends asterRest {
      * @param {string} [params.type] 'spot' or 'swap', default is 'spot' if symbol is not provided
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1921,7 +1921,7 @@ export default class aster extends asterRest {
         }
     }
 
-    parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order, market: Market = undefined) {
         const executionType = this.safeString (order, 'x');
         const marketId = this.safeString (order, 's');
         market = this.safeMarket (marketId, market);
@@ -1997,7 +1997,7 @@ export default class aster extends asterRest {
         this.handlePositions (client, message);
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message) {
         const messageInner = this.safeDict (message, 'data', message); // can be either wrapped in 'data' or full object itself
         const event = this.safeString (messageInner, 'e');
         const methods: Dict = {

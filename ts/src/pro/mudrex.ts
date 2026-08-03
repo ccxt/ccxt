@@ -9,7 +9,7 @@ import type { Int, OHLCV, Strings, Ticker, Tickers, Dict } from '../base/types.j
 // ---------------------------------------------------------------------------
 
 export default class mudrex extends mudrexRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -32,7 +32,7 @@ export default class mudrex extends mudrexRest {
         });
     }
 
-    ping (client) {
+    override ping (client) {
         return {
             'id': this.requestId (),
             'method': 'PING',
@@ -64,7 +64,7 @@ export default class mudrex extends mudrexRest {
         this.options['ws'] = wsOptions;
     }
 
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -86,7 +86,7 @@ export default class mudrex extends mudrexRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -120,7 +120,7 @@ export default class mudrex extends mudrexRest {
         return this.filterByArrayTickers (this.tickers, 'symbol', symbols);
     }
 
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -155,7 +155,7 @@ export default class mudrex extends mudrexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleMessage (client, message) {
+    override handleMessage (client, message) {
         if (this.safeString (message, 'method') === 'PONG') {
             return;
         }

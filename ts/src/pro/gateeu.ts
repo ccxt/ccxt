@@ -7,7 +7,7 @@ import gateeuRest from '../gateeu.js';
 // ---------------------------------------------------------------------------
 
 export default class gateeu extends gate {
-    describe (): any {
+    override describe (): any {
         // eslint-disable-next-line new-cap
         const restInstance = new gateeuRest ();
         const restDescribe = restInstance.describe ();

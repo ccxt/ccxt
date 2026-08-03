@@ -12,7 +12,7 @@ import Precise from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 
 export default class coinbaseexchange extends coinbaseexchangeRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -126,7 +126,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         const name = 'ticker';
         return await this.subscribe (name, symbol, name, params);
     }
@@ -140,7 +140,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -172,7 +172,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -195,7 +195,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new BadRequest (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
@@ -224,7 +224,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a symbol argument');
         }
@@ -252,7 +252,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async watchMyTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         symbols = this.marketSymbols (symbols, undefined, false);
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -279,7 +279,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -306,7 +306,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new BadSymbol (this.id + ' watchMyTrades requires a symbol');
         }
@@ -333,7 +333,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new BadRequest (this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
@@ -378,7 +378,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         const name = 'level2';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -464,7 +464,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return message;
     }
 
-    parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade, market: Market = undefined) {
         //
         // private trades
         // {
@@ -736,7 +736,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         }
     }
 
-    parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order, market: Market = undefined) {
         const id = this.safeString (order, 'order_id');
         const clientOrderId = this.safeString (order, 'client_oid');
         const marketId = this.safeString (order, 'product_id');
@@ -821,7 +821,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return message;
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    override parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "type": "ticker",
@@ -875,13 +875,13 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         });
     }
 
-    handleDelta (bookside, delta) {
+    override handleDelta (bookside, delta) {
         const price = this.safeNumber (delta, 0);
         const amount = this.safeNumber (delta, 1);
         bookside.store (price, amount);
     }
 
-    handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside, deltas) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -998,7 +998,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         }
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message) {
         const type = this.safeString (message, 'type');
         const methods: Dict = {
             'snapshot': this.handleOrderBook,

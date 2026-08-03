@@ -6,7 +6,7 @@ import binance from './binance.js';
 //  ---------------------------------------------------------------------------
 
 export default class binanceus extends binance {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'binanceus',
             'name': 'Binance US',

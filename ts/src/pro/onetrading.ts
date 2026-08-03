@@ -11,7 +11,7 @@ import { Precise } from '../base/Precise.js';
 //  ---------------------------------------------------------------------------
 
 export default class onetrading extends onetradingRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -86,7 +86,7 @@ export default class onetrading extends onetradingRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         await this.authenticate (params);
         const url = this.urls['api']['ws'];
         const messageHash = 'balance';
@@ -148,7 +148,7 @@ export default class onetrading extends onetradingRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -177,7 +177,7 @@ export default class onetrading extends onetradingRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -280,7 +280,7 @@ export default class onetrading extends onetradingRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -326,7 +326,7 @@ export default class onetrading extends onetradingRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -406,7 +406,7 @@ export default class onetrading extends onetradingRest {
         client.resolve (orderbook, channel);
     }
 
-    handleDelta (orderbook, delta) {
+    override handleDelta (orderbook, delta) {
         //
         //   [ 'BUY', "0.053595", "0" ]
         //
@@ -423,7 +423,7 @@ export default class onetrading extends onetradingRest {
         }
     }
 
-    handleDeltas (orderbook, deltas) {
+    override handleDeltas (orderbook, deltas) {
         //
         //    [
         //       [ 'BUY', "0.053593", "0" ],
@@ -447,7 +447,7 @@ export default class onetrading extends onetradingRest {
      * @param {string} [params.channel] can listen to orders using ACCOUNT_HISTORY or TRADING
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1073,7 +1073,7 @@ export default class onetrading extends onetradingRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1205,7 +1205,7 @@ export default class onetrading extends onetradingRest {
         client.resolve (stored, channel);
     }
 
-    findTimeframe (timeframe, timeframes: any = undefined) {
+    override findTimeframe (timeframe, timeframes: any = undefined) {
         timeframes = timeframes || this.timeframes;
         if (timeframes === undefined) {
             throw new ArgumentsRequired (this.id + ' findTimeframe() timeframes is required');
@@ -1259,7 +1259,7 @@ export default class onetrading extends onetradingRest {
         throw new ExchangeError (this.id + ' ' + this.json (message));
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message) {
         const error = this.safeValue (message, 'error');
         if (error !== undefined) {
             this.handleErrorMessage (client, message);

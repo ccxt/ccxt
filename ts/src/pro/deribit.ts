@@ -10,7 +10,7 @@ import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
 export default class deribit extends deribitRest {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -85,7 +85,7 @@ export default class deribit extends deribitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params = {}): Promise<Balances> {
         await this.authenticate (params);
         const messageHash = 'balance';
         const url = this.urls['api']['ws'];
@@ -174,7 +174,7 @@ export default class deribit extends deribitRest {
      * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -211,7 +211,7 @@ export default class deribit extends deribitRest {
      * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -297,7 +297,7 @@ export default class deribit extends deribitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -382,7 +382,7 @@ export default class deribit extends deribitRest {
      * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         params['callerMethodName'] = 'watchTrades';
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
@@ -398,7 +398,7 @@ export default class deribit extends deribitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         let interval: Str = undefined;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'interval', '100ms');
         if (interval === 'raw') {
@@ -470,7 +470,7 @@ export default class deribit extends deribitRest {
      * @param {str} [params.interval] specify aggregation and frequency of notifications. Possible values: 100ms, raw
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.authenticate (params);
         if (symbol !== undefined) {
             await this.loadMarkets ();
@@ -556,7 +556,7 @@ export default class deribit extends deribitRest {
      * @param {string} [params.interval] Frequency of notifications. Events will be aggregated over this interval. Possible values: 100ms, raw
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         params['callerMethodName'] = 'watchOrderBook';
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
@@ -571,7 +571,7 @@ export default class deribit extends deribitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         let interval: Str = undefined;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'interval', '100ms');
         if (interval === 'raw') {
@@ -691,7 +691,7 @@ export default class deribit extends deribitRest {
         return data;
     }
 
-    handleDelta (bookside, delta) {
+    override handleDelta (bookside, delta) {
         const price = delta[1];
         const amount = delta[2];
         if (delta[0] === 'new' || delta[0] === 'change') {
@@ -701,7 +701,7 @@ export default class deribit extends deribitRest {
         }
     }
 
-    handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside, deltas) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -718,7 +718,7 @@ export default class deribit extends deribitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -816,7 +816,7 @@ export default class deribit extends deribitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -836,7 +836,7 @@ export default class deribit extends deribitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
         const symbolsLength = symbolsAndTimeframes.length;
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
@@ -894,7 +894,7 @@ export default class deribit extends deribitRest {
         client.resolve (resolveData, messageHash);
     }
 
-    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //    {
         //        "c": "28909.0",
@@ -964,7 +964,7 @@ export default class deribit extends deribitRest {
         return await this.watchMultiple (url, messageHashes, extendedRequest, rawSubscriptions);
     }
 
-    handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message) {
         //
         // error
         //     {
