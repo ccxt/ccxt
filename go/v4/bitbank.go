@@ -1339,8 +1339,21 @@ func (this *BitbankCore) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
+		// bitbank supports two auth methods, see https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#authorization
+		// 'timeWindow' (default): request time + validity window, stateless and safe for concurrent use of one key
+		// 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
+		// since bitbank offers no server time endpoint to compensate against
+		var authMethod any = this.SafeString(this.Options, "authMethod", "timeWindow")
+		var isTimeWindow any = (IsEqual(authMethod, "timeWindow"))
+		var requestTime any = ToString(this.Milliseconds())
+		var timeWindow any = this.SafeString(this.Options, "timeWindow", "5000")
 		var nonce any = ToString(this.Nonce())
-		var auth any = nonce
+		var auth any = nil
+		if IsTrue(isTimeWindow) {
+			auth = Add(requestTime, timeWindow)
+		} else {
+			auth = nonce
+		}
 		url = Add(url, Add(Add(this.Version, "/"), this.ImplodeParams(path, params)))
 		if IsTrue(IsEqual(method, "POST")) {
 			body = this.Json(query)
@@ -1356,8 +1369,13 @@ func (this *BitbankCore) Sign(path any, optionalArgs ...any) any {
 		headers = map[string]any{
 			"Content-Type":     "application/json",
 			"ACCESS-KEY":       this.ApiKey,
-			"ACCESS-NONCE":     nonce,
 			"ACCESS-SIGNATURE": this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256),
+		}
+		if IsTrue(isTimeWindow) {
+			AddElementToObject(headers, "ACCESS-REQUEST-TIME", requestTime)
+			AddElementToObject(headers, "ACCESS-TIME-WINDOW", timeWindow)
+		} else {
+			AddElementToObject(headers, "ACCESS-NONCE", nonce)
 		}
 	}
 	return map[string]any{
