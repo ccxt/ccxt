@@ -156,6 +156,7 @@ interface Exchange {
     privateInversePostFutureUserV1PositionMargin (params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureUserV1UserCollectionAdd (params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureUserV1UserCollectionCancel (params?: {}): Promise<implicitReturnType>;
+    privateInversePostFutureUserV1PositionChangeType (params?: {}): Promise<implicitReturnType>;
     privateUserGetUserAccount (params?: {}): Promise<implicitReturnType>;
     privateUserGetUserAccountApiKey (params?: {}): Promise<implicitReturnType>;
     privateUserPostUserAccount (params?: {}): Promise<implicitReturnType>;
