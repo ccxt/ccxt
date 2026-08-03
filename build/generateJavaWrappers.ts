@@ -26,7 +26,8 @@ const PREDICTION_EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exc
 // Known CCXT types that have Java equivalents in io.github.ccxt.types
 const KNOWN_TYPES = new Set([
     'Ticker', 'Tickers', 'Trade', 'Order', 'OrderBook', 'OHLCV',
-    'MarketInterface', 'Currencies', 'CurrencyInterface', 'Account', 'Balance', 'Balances',
+    'MarketInterface', 'Currencies', 'CurrencyInterface', 'Account', 'Balance', 'BalanceAccount', 'Balances',
+    'ADL',
     'Position', 'FundingRate', 'FundingRates', 'FundingRateHistory',
     'OpenInterest', 'OpenInterests', 'Liquidation',
     'LeverageTier', 'LeverageTiers', 'Leverage', 'Leverages',
