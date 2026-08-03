@@ -964,11 +964,14 @@ public class DeriveCore extends DeriveApi
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
         {
-            Object parsed = this.parseTrade(Helpers.GetValue(trades, i), market);
-            if (Helpers.isTrue(Helpers.isEqual(parsed, null)))
+            Object rawTrade = Helpers.GetValue(trades, i);
+            Object isFetchTrades = !Helpers.isTrue((Helpers.inOp(rawTrade, "order_id")));
+            Object liquidityRole = this.safeString(rawTrade, "liquidity_role");
+            if (Helpers.isTrue(Helpers.isTrue(isFetchTrades) && Helpers.isTrue((Helpers.isEqual(liquidityRole, "maker")))))
             {
                 continue;
             }
+            Object parsed = this.parseTrade(rawTrade, market);
             Object trade = this.extend(parsed, parameters);
             ((java.util.List<Object>)result).add(trade);
         }
@@ -1010,7 +1013,6 @@ public class DeriveCore extends DeriveApi
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object isFetchTrades = !Helpers.isTrue((Helpers.inOp(trade, "order_id")));
         Object marketId = this.safeString(trade, "instrument_name");
         Object symbol = this.safeSymbol(marketId, market);
         Object timestamp = this.safeInteger(trade, "timestamp");
@@ -1018,12 +1020,6 @@ public class DeriveCore extends DeriveApi
             put( "currency", "USDC" );
             put( "cost", DeriveCore.this.safeString(trade, "trade_fee") );
         }};
-        Object takerOrMaker = this.safeString(trade, "liquidity_role");
-        if (Helpers.isTrue(Helpers.isTrue(isFetchTrades) && Helpers.isTrue((Helpers.isEqual(takerOrMaker, "maker")))))
-        {
-            // skip maker trades
-            return null;
-        }
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", DeriveCore.this.safeString(trade, "trade_id") );
