@@ -247,7 +247,10 @@ class BaseExchange(SyncExchange):
             async with session_method(yarl.URL(url, encoded=True),
                                       data=encoded_body,
                                       headers=request_headers,
-                                      timeout=(self.timeout / 1000),
+                                      # a bare float here becomes ClientTimeout(total=N) with sock_read unset,
+                                      # which can hang indefinitely on stale keep-alive connections that a proxy
+                                      # or cdn silently closed, see https://github.com/ccxt/ccxt/issues/27468
+                                      timeout=aiohttp.ClientTimeout(total=(self.timeout / 1000), sock_connect=(self.timeout / 1000), sock_read=(self.timeout / 1000)),
                                       proxy=final_proxy) as response:
                 http_response = await response.text(errors='replace')
                 # CIMultiDictProxy
