@@ -32,7 +32,7 @@ permissions:
 jobs:
   deploy:
     if: github.repository == 'ccxt/ccxt'
-    runs-on: [self-hosted, deploy]          # amd64 — native build matching the docs server
+    runs-on: [ self-hosted, linux, x64, deploy ]          # amd64 — native build matching the docs server
     env:
       IMAGE: ghcr.io/ccxt/ccxt-playground
       IMAGE_PROXY: ghcr.io/ccxt/ccxt-playground-egress
