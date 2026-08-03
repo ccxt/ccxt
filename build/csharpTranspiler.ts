@@ -314,6 +314,28 @@ class NewTranspiler {
         this.transpiler = new Transpiler (this.getTranspilerConfig())
         setupCsharpPrinter (this.transpiler);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
+        this.patchCsharpPropertyTypes ();
+    }
+
+    // Same ast-transpiler field-type hole as Java: getType() returns raw TS aliases
+    // (Dict/Str/Num/...) for class fields without VariableTypeReplacements. Without this,
+    // `skippedMethods: Dict = {}` emits `public Dict ...` and CS0246. Route field types
+    // through the existing map (exact key only).
+    patchCsharpPropertyTypes () {
+        const csharpTranspiler = (this.transpiler as any)?.csharpTranspiler;
+        if (!csharpTranspiler || typeof csharpTranspiler.getType !== 'function' || csharpTranspiler._propertyTypesPatched) {
+            return;
+        }
+        const originalGetType = csharpTranspiler.getType.bind (csharpTranspiler);
+        csharpTranspiler.getType = (node: any) => {
+            const type = originalGetType (node);
+            const replacements = csharpTranspiler.VariableTypeReplacements ?? {};
+            if ((typeof type === 'string') && Object.prototype.hasOwnProperty.call (replacements, type)) {
+                return replacements[type];
+            }
+            return type;
+        };
+        csharpTranspiler._propertyTypesPatched = true;
     }
 
     createGeneratedHeader() {
