@@ -4756,7 +4756,7 @@ export default class xt extends Exchange {
         if (breakEntry === undefined) {
             return entry;
         }
-        return this.extend ({}, entry, {
+        return this.extend (entry, {
             'breakPrice': this.safeString (breakEntry, 'breakPrice'),
             'calMarkPrice': this.safeString (breakEntry, 'calMarkPrice'),
         });
