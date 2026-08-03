@@ -28,6 +28,8 @@ class xt extends xt$1["default"] {
                 'watchOrders': true,
                 'watchMyTrades': true,
                 'watchPositions': true,
+                'watchFundingRate': true,
+                'unWatchFundingRate': true,
             },
             'urls': {
                 'api': {
@@ -617,6 +619,78 @@ class xt extends xt$1["default"] {
         }
         return this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true);
     }
+    /**
+     * @method
+     * @name xt#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://doc.xt.com/#futures_market_websocket_v2fundRate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+     */
+    async watchFundingRate(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new errors.BadSymbol(this.id + ' watchFundingRate() supports swap contracts only');
+        }
+        const name = 'fund_rate@' + market['id'];
+        return await this.subscribe(name, 'public', 'watchFundingRate', market, undefined, params);
+    }
+    /**
+     * @method
+     * @name xt#unWatchFundingRate
+     * @description stops watching the funding rate
+     * @see https://doc.xt.com/#futures_market_websocket_v2fundRate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+     */
+    async unWatchFundingRate(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new errors.BadSymbol(this.id + ' unWatchFundingRate() supports swap contracts only');
+        }
+        const name = 'fund_rate@' + market['id'];
+        const messageHash = 'unsubscribe::' + name;
+        return await this.unSubscribe(messageHash, name, 'public', 'unWatchFundingRate', 'fund_rate', market, undefined, params);
+    }
+    handleFundingRate(client, message) {
+        //
+        //     {
+        //         "topic": "fund_rate",
+        //         "event": "fund_rate@btc_usdt",
+        //         "data": {
+        //             "s": "btc_usdt",  // symbol
+        //             "r": "0.01",      // funding rate
+        //             "t": 123124124    // timestamp
+        //         }
+        //     }
+        //
+        const data = this.safeDict(message, 'data');
+        const marketId = this.safeString(data, 's');
+        if (marketId !== undefined) {
+            const raw = {
+                'symbol': marketId,
+                'fundingRate': this.safeString(data, 'r'),
+            };
+            const fundingRate = this.parseFundingRate(raw);
+            const timestamp = this.safeInteger(data, 't');
+            fundingRate['timestamp'] = timestamp;
+            fundingRate['datetime'] = this.iso8601(timestamp);
+            const symbol = fundingRate['symbol'];
+            this.fundingRates[symbol] = fundingRate;
+            const event = this.safeString(message, 'event');
+            const messageHash = event + '::contract';
+            client.resolve(fundingRate, messageHash);
+        }
+        return message;
+    }
     setPositionsCache(client) {
         if (this.positions === undefined) {
             this.positions = new Cache.ArrayCacheBySymbolBySide();
@@ -923,7 +997,7 @@ class xt extends xt$1["default"] {
             const symbol = market['symbol'];
             const parsed = this.parseOHLCV(data, market);
             this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
-            let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+            let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
                 stored = new Cache.ArrayCacheByTimestamp(limit);
@@ -1417,6 +1491,7 @@ class xt extends xt$1["default"] {
                 'balance': this.handleBalance,
                 'order': this.handleOrder,
                 'position': this.handlePosition,
+                'fund_rate': this.handleFundingRate,
             };
             let method = (topic === undefined) ? undefined : this.safeValue(methods, topic);
             if (topic === 'trade') {
