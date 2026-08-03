@@ -83,7 +83,7 @@ class extended extends \ccxt\async\extended {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "ts" => 1701563440000,
@@ -138,13 +138,13 @@ class extended extends \ccxt\async\extended {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $price = $this->safe_float($delta, 'p');
         $amount = $this->safe_float_2($delta, 'c', 'q');
         $bookside->store($price, $amount);
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -229,7 +229,7 @@ class extended extends \ccxt\async\extended {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //     {
         //         "type" => "BALANCE",
@@ -322,7 +322,7 @@ class extended extends \ccxt\async\extended {
         })();
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         //     {
         //         "type" => "TRADE",
@@ -414,7 +414,7 @@ class extended extends \ccxt\async\extended {
         })();
     }
 
-    public function handle_positions(Client $client, $message) {
+    public function handle_positions(Client $client, mixed $message) {
         //
         //     {
         //         "type" => "POSITION",
@@ -473,7 +473,7 @@ class extended extends \ccxt\async\extended {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function handle_orders(Client $client, $message) {
+    public function handle_orders(Client $client, mixed $message) {
         //
         //     {
         //         "type" => "ORDER",
@@ -566,7 +566,7 @@ class extended extends \ccxt\async\extended {
         })();
     }
 
-    public function handle_funding_rate(Client $client, $message) {
+    public function handle_funding_rate(Client $client, mixed $message) {
         //
         //     {
         //         "ts" => 1701563440000,
@@ -586,7 +586,7 @@ class extended extends \ccxt\async\extended {
         $client->resolve($fundingRate, $messageHash);
     }
 
-    public function parse_ws_funding_rate($fundingRate, ?array $market = null, mixed $message = null): array {
+    public function parse_ws_funding_rate(mixed $fundingRate, ?array $market = null, mixed $message = null): array {
         $marketId = $this->safe_string($fundingRate, 'm');
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($message, 'ts');
@@ -643,7 +643,7 @@ class extended extends \ccxt\async\extended {
         })();
     }
 
-    public function handle_mark_price(Client $client, $message) {
+    public function handle_mark_price(Client $client, mixed $message) {
         //
         //     {
         //         "type" => "MP",
@@ -711,7 +711,7 @@ class extended extends \ccxt\async\extended {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "ts" => 1701563440000,
@@ -811,7 +811,7 @@ class extended extends \ccxt\async\extended {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "ts" => 1695738675123,
@@ -872,7 +872,7 @@ class extended extends \ccxt\async\extended {
         return null;
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //     array( "status" => "ERROR", "error" => array( "code" => 1001, "message" => "Market not found." ) )
         //
@@ -888,7 +888,7 @@ class extended extends \ccxt\async\extended {
         throw new ExchangeError($feedback);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if ($this->handle_error_message($client, $message)) {
             return;
         }

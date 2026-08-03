@@ -774,7 +774,7 @@ class krakenfutures extends Exchange {
         return $this->parse_ohlcvs(($candles), $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //    {
         //        "time" => 1645198500000,
@@ -1704,7 +1704,7 @@ class krakenfutures extends Exchange {
         return $this->parse_orders($canceledAndRejected, $market, $since, $limit);
     }
 
-    public function parse_order_type($orderType) {
+    public function parse_order_type(mixed $orderType) {
         $typesMap = array(
             'lmt' => 'limit',
             'mkt' => 'market',
@@ -1714,7 +1714,7 @@ class krakenfutures extends Exchange {
         return $this->safe_string($typesMap, $orderType, $orderType);
     }
 
-    public function verify_order_action_success($status, $method, array $omit = array()) {
+    public function verify_order_action_success(mixed $status, mixed $method, array $omit = array()) {
         $errors = array(
             'invalidOrderType' => '\\ccxt\\InvalidOrder',
             'invalidSide' => '\\ccxt\\InvalidOrder',
@@ -2446,7 +2446,7 @@ class krakenfutures extends Exchange {
         return $balance;
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         // cashAccount
         //
@@ -2578,7 +2578,7 @@ class krakenfutures extends Exchange {
         return $this->index_by($fundingRates, 'symbol');
     }
 
-    public function parse_funding_rate($ticker, ?array $market = null): array {
+    public function parse_funding_rate(mixed $ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "PF_ENJUSD",
@@ -2736,7 +2736,7 @@ class krakenfutures extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function parse_positions($response, ?array $symbols = null, $params = array()) {
+    public function parse_positions(mixed $response, ?array $symbols = null, $params = array()) {
         $result = array();
         // a degraded $response can omit openPositions entirely - default to an
         // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
@@ -2866,7 +2866,7 @@ class krakenfutures extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
         /**
          * @ignore
          * @param $info Exchange $market response for 1 $market
@@ -2958,7 +2958,7 @@ class krakenfutures extends Exchange {
         );
     }
 
-    public function parse_account($account) {
+    public function parse_account(mixed $account) {
         $accountByType = array(
             'main' => 'cash',
             'funding' => 'cash',
@@ -2985,7 +2985,7 @@ class krakenfutures extends Exchange {
         }
     }
 
-    public function transfer_out(string $code, $amount, $params = array()) {
+    public function transfer_out(string $code, mixed $amount, $params = array()) {
         /**
          * transfer from futures wallet to spot wallet
          * @param {str} $code Unified currency $code
@@ -3156,7 +3156,7 @@ class krakenfutures extends Exchange {
         );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }
@@ -3179,7 +3179,7 @@ class krakenfutures extends Exchange {
         throw new ExchangeError($feedback); // unknown message
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $apiVersions = $this->safe_value($this->options['versions'], $api, array());
         $methodVersions = $this->safe_value($apiVersions, $method, array());
         $defaultVersion = $this->safe_string($methodVersions, $path, $this->version);

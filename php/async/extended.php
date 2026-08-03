@@ -351,7 +351,7 @@ class extended extends Exchange {
         })();
     }
 
-    public function index_by_stringified_numeric_id($input) {
+    public function index_by_stringified_numeric_id(mixed $input) {
         $result = array();
         if ($input === null) {
             return null;
@@ -826,7 +826,7 @@ class extended extends Exchange {
         })();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(mixed $ticker, ?array $market = null): array {
         //
         //     {
         //       "dailyVolume" => "231216165.666600",
@@ -1124,7 +1124,7 @@ class extended extends Exchange {
         })();
     }
 
-    public function parse_funding_history($history, ?array $market = null) {
+    public function parse_funding_history(mixed $history, ?array $market = null) {
         //
         //     {
         //         "id" => 8341,
@@ -1155,7 +1155,7 @@ class extended extends Exchange {
         );
     }
 
-    public function parse_funding_histories($histories, ?array $market = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_funding_histories(mixed $histories, ?array $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($histories); $i++) {
             $result[] = $this->parse_funding_history($histories[$i], $market);
@@ -1164,7 +1164,7 @@ class extended extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(mixed $trade, ?array $market = null): array {
         //
         // fetchTrades
         //
@@ -1292,7 +1292,7 @@ class extended extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //       "o" => "75657.5",
@@ -1390,7 +1390,7 @@ class extended extends Exchange {
         })();
     }
 
-    public function parse_funding_rate_history($info, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $info, ?array $market = null) {
         //
         //     {
         //       "m" => "BTC-USD",
@@ -1465,7 +1465,7 @@ class extended extends Exchange {
         })();
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //       "i" => "112620590.6060360000000000",
@@ -1532,7 +1532,7 @@ class extended extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $this->safe_dict($response, $i, array());
@@ -2229,7 +2229,7 @@ class extended extends Exchange {
         })();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null): array {
+    public function parse_trading_fee(mixed $fee, ?array $market = null): array {
         //
         //     {
         //         "market" => "BTC-USD",
@@ -2279,7 +2279,7 @@ class extended extends Exchange {
             //     }
             //
             $data = $this->safe_list($response, 'data', array());
-            return $this->parse_leverage($this->safe_dict($data, 0), $market);
+            return $this->parse_leverage($this->safe_dict($data, 0, array()), $market);
         })();
     }
 
@@ -2316,7 +2316,7 @@ class extended extends Exchange {
         })();
     }
 
-    public function parse_leverage($leverage, ?array $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         //
         //     {
         //         "market" => "BTC-USD",
@@ -2476,7 +2476,7 @@ class extended extends Exchange {
         })();
     }
 
-    public function parse_position($position, ?array $market = null): array {
+    public function parse_position(mixed $position, ?array $market = null): array {
         //
         //     {
         //         "id" => 1,
@@ -2541,7 +2541,7 @@ class extended extends Exchange {
         ));
     }
 
-    public function get_extended_stark_amount(string $amount, $resolution, $roundUp = false): string {
+    public function get_extended_stark_amount(string $amount, mixed $resolution, $roundUp = false): string {
         $resolutionString = $this->number_to_string($resolution);
         $precise = Precise::string_mul($amount, $resolutionString);
         $result = $this->decimal_to_precision($precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
@@ -3390,7 +3390,7 @@ class extended extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "id" => 1784963886257016832,
@@ -3481,7 +3481,7 @@ class extended extends Exchange {
         return $this->convert_to_big_int($this->string_to_base16($value));
     }
 
-    public function get_extended_encode_i64($value) {
+    public function get_extended_encode_i64(mixed $value) {
         // Cairo $prime offset for i64 negative encoding.
         $prime = '3618502788666131213697322783095070105623107215331596699973092056135872020481';
         $valueString = $this->number_to_string($value);
@@ -3491,7 +3491,7 @@ class extended extends Exchange {
         return $value;
     }
 
-    public function get_extended_decimal_to_base16($value) {
+    public function get_extended_decimal_to_base16(mixed $value) {
         $decimalString = '';
         if (gettype($value) === 'string') {
             $decimalString = $value;
@@ -3511,7 +3511,7 @@ class extended extends Exchange {
         return $result;
     }
 
-    public function get_extended_signature_hex($signature) {
+    public function get_extended_signature_hex(mixed $signature) {
         if (gettype($signature) === 'string') {
             if (mb_strpos($signature, '0x') === 0) {
                 return $signature;
@@ -3625,7 +3625,7 @@ class extended extends Exchange {
         ));
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null; // fallback to default $error handler
         }
@@ -3644,7 +3644,7 @@ class extended extends Exchange {
         return null;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $version = $this->safe_string($api, 0);
         $accessibility = $this->safe_string($api, 1);
         $endpoint = '/' . $this->implode_params($path, $params);

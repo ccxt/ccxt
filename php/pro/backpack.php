@@ -63,7 +63,7 @@ class backpack extends \ccxt\async\backpack {
         ));
     }
 
-    public function watch_public($topics, $messageHashes, $params = array(), $unwatch = false) {
+    public function watch_public(mixed $topics, mixed $messageHashes, $params = array(), $unwatch = false) {
         return Async\async(function () use ($topics, $messageHashes, $params, $unwatch) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -83,7 +83,7 @@ class backpack extends \ccxt\async\backpack {
         })();
     }
 
-    public function watch_private($topics, $messageHashes, $params = array(), $unwatch = false) {
+    public function watch_private(mixed $topics, mixed $messageHashes, $params = array(), $unwatch = false) {
         return Async\async(function () use ($topics, $messageHashes, $params, $unwatch) {
             $this->check_required_credentials();
             $url = $this->urls['api']['ws']['private'];
@@ -157,8 +157,9 @@ class backpack extends \ccxt\async\backpack {
                     }
                 } else {
                     $symbol = str_replace('unsubscribe:orders:', '', $messageHash);
-                    if (($this->orders !== null) && (is_array($this->orders) && array_key_exists($symbol ?? '', $this->orders))) {
-                        unset($this->orders[$symbol]);
+                    $cache = $this->orders;
+                    if (($cache !== null) && (is_array($cache) && array_key_exists($symbol ?? '', $cache))) {
+                        unset($cache[$symbol]);
                     }
                 }
             } elseif (mb_strpos($messageHash, 'positions') !== false) {
@@ -269,7 +270,7 @@ class backpack extends \ccxt\async\backpack {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         data => array(
@@ -395,7 +396,7 @@ class backpack extends \ccxt\async\backpack {
         })();
     }
 
-    public function handle_bid_ask(Client $client, $message) {
+    public function handle_bid_ask(Client $client, mixed $message) {
         //
         //     {
         //         $data => array(
@@ -421,7 +422,7 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve($parsedBidAsk, $messageHash);
     }
 
-    public function parse_ws_bid_ask($ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
         //
         //     {
         //         A => '0.4087',
@@ -562,7 +563,7 @@ class backpack extends \ccxt\async\backpack {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         $data => array(
@@ -604,7 +605,7 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve(array( $symbol, $timeframe, $ohlcv ), $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         E => '1754519557526056',
@@ -730,7 +731,7 @@ class backpack extends \ccxt\async\backpack {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         $data => array(
@@ -765,7 +766,7 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve($cache, 'trades');
     }
 
-    public function parse_ws_trade($trade, ?array $market = null): array {
+    public function parse_ws_trade(mixed $trade, ?array $market = null): array {
         //
         //     {
         //         E => '1754601477746429',
@@ -907,7 +908,7 @@ class backpack extends \ccxt\async\backpack {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -953,7 +954,7 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve($storedOrderBook, $messageHash);
     }
 
-    public function handle_delta($orderbook, $delta) {
+    public function handle_delta(mixed $orderbook, mixed $delta) {
         $timestamp = $this->parse_to_int($this->safe_integer($delta, 'T', 0) / 1000);
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
@@ -966,14 +967,14 @@ class backpack extends \ccxt\async\backpack {
         $this->handle_bid_asks($storedAsks, $asks);
     }
 
-    public function handle_bid_asks($bookSide, $bidAsks) {
+    public function handle_bid_asks(mixed $bookSide, mixed $bidAsks) {
         for ($i = 0; $i < count($bidAsks); $i++) {
             $bidAsk = $this->parse_order_book_bid_ask($bidAsks[$i]);
             $bookSide->storeArray($bidAsk);
         }
     }
 
-    public function get_cache_index($orderbook, $cache) {
+    public function get_cache_index(mixed $orderbook, mixed $cache) {
         //
         // array("E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":array(),"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171)
         $firstDelta = $this->safe_dict($cache, 0);
@@ -1066,7 +1067,7 @@ class backpack extends \ccxt\async\backpack {
         })();
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         //     {
         //         $data => array(
@@ -1109,7 +1110,7 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve($orders, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_order($order, ?array $market = null): array {
+    public function parse_ws_order(mixed $order, ?array $market = null): array {
         //
         //     array(
         //         E => '1754939110175879',
@@ -1274,7 +1275,7 @@ class backpack extends \ccxt\async\backpack {
         })();
     }
 
-    public function handle_positions($client, $message) {
+    public function handle_positions(mixed $client, mixed $message) {
         //
         //     {
         //         $data => array(
@@ -1315,7 +1316,7 @@ class backpack extends \ccxt\async\backpack {
         $client->resolve(array( $parsedPosition ), $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_position($position, ?array $market = null) {
+    public function parse_ws_position(mixed $position, ?array $market = null) {
         //
         //     {
         //         B => '4236.36',
@@ -1391,7 +1392,7 @@ class backpack extends \ccxt\async\backpack {
         ));
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }
@@ -1414,7 +1415,7 @@ class backpack extends \ccxt\async\backpack {
         }
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //     {
         //         id => null,

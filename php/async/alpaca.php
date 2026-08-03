@@ -504,7 +504,7 @@ class alpaca extends Exchange {
         })();
     }
 
-    public function parse_market($asset): array {
+    public function parse_market(array $asset): array {
         //
         //     {
         //         "id" => "c150e086-1e75-44e6-9c2c-093bb1e93139",
@@ -847,7 +847,7 @@ class alpaca extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //        "c":22895,
@@ -1012,7 +1012,7 @@ class alpaca extends Exchange {
         })();
     }
 
-    public function generate_client_order_id($params) {
+    public function generate_client_order_id(mixed $params) {
         $clientOrderIdprefix = $this->safe_string($this->options, 'clientOrderId');
         $uuid = $this->uuid();
         $parts = explode('-', $uuid);
@@ -1693,7 +1693,7 @@ class alpaca extends Exchange {
         })();
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "asset_id" => "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
@@ -1764,7 +1764,7 @@ class alpaca extends Exchange {
         })();
     }
 
-    public function fetch_transactions_helper($type, $code, $since, $limit, $params) {
+    public function fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params) {
         return Async\async(function () use ($type, $code, $since, $limit, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1917,7 +1917,7 @@ class alpaca extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction_type($type) {
+    public function parse_transaction_type(mixed $type) {
         $types = array(
             'INCOMING' => 'deposit',
             'OUTGOING' => 'withdrawal',
@@ -1991,7 +1991,7 @@ class alpaca extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         $account = $this->account();
         $currencyId = $this->safe_string($response, 'currency');
@@ -2004,7 +2004,7 @@ class alpaca extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->implode_hostname($this->urls['api'][$api[0]]);
         $headers = ($headers !== null) ? $headers : array();
@@ -2026,7 +2026,7 @@ class alpaca extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // default error handler
         }

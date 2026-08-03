@@ -389,7 +389,7 @@ class coinbase extends \ccxt\async\coinbase {
         })();
     }
 
-    public function handle_tickers($client, $message) {
+    public function handle_tickers(Client $client, mixed $message) {
         //
         //    {
         //        "channel" => "ticker",
@@ -508,7 +508,7 @@ class coinbase extends \ccxt\async\coinbase {
         }
     }
 
-    public function parse_ws_ticker($ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null) {
         //
         //     {
         //         "type" => "ticker",
@@ -753,7 +753,7 @@ class coinbase extends \ccxt\async\coinbase {
         })();
     }
 
-    public function handle_trade($client, $message) {
+    public function handle_trade(mixed $client, mixed $message) {
         //
         //    {
         //        "channel" => "market_trades",
@@ -810,7 +810,7 @@ class coinbase extends \ccxt\async\coinbase {
         $this->try_resolve_usdc($client, $messageHash, $tradesArray);
     }
 
-    public function handle_order($client, $message) {
+    public function handle_order(mixed $client, mixed $message) {
         //
         //    {
         //        "channel" => "user",
@@ -877,7 +877,7 @@ class coinbase extends \ccxt\async\coinbase {
         $client->resolve($this->orders, 'user');
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         //    {
         //        "order_id" => "XXX",
@@ -928,7 +928,7 @@ class coinbase extends \ccxt\async\coinbase {
         ));
     }
 
-    public function handle_order_book_helper($orderbook, $updates) {
+    public function handle_order_book_helper(mixed $orderbook, mixed $updates) {
         for ($i = 0; $i < count($updates); $i++) {
             $trade = $updates[$i];
             $sideId = $this->safe_string($trade, 'side');
@@ -940,7 +940,7 @@ class coinbase extends \ccxt\async\coinbase {
         }
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(mixed $client, mixed $message) {
         //
         //    {
         //        "channel" => "l2_data",
@@ -1002,13 +1002,13 @@ class coinbase extends \ccxt\async\coinbase {
         }
     }
 
-    public function try_resolve_usdc($client, $messageHash, $result) {
+    public function try_resolve_usdc(Client $client, mixed $messageHash, mixed $result) {
         if (str_ends_with($messageHash, '/USD') || str_ends_with($messageHash, '-USD')) {
             $client->resolve($result, $messageHash . 'C'); // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
         }
     }
 
-    public function handle_subscription_status($client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
         //         "type" => "subscriptions",
@@ -1048,7 +1048,7 @@ class coinbase extends \ccxt\async\coinbase {
         return $message;
     }
 
-    public function handle_heartbeats($client, $message) {
+    public function handle_heartbeats(Client $client, mixed $message) {
         // although the subscription takes a product_ids parameter (i.e. symbol),
         // there is no (clear) way of mapping the $message back to the symbol.
         //
@@ -1068,7 +1068,7 @@ class coinbase extends \ccxt\async\coinbase {
         return $message;
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(mixed $client, mixed $message) {
         $channel = $this->safe_string($message, 'channel');
         $methods = array(
             'subscriptions' => array($this, 'handle_subscription_status'),

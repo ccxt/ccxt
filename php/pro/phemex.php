@@ -51,7 +51,7 @@ class phemex extends \ccxt\async\phemex {
         ));
     }
 
-    public function from_en($en, $scale) {
+    public function from_en(mixed $en, mixed $scale) {
         if ($en === null) {
             return null;
         }
@@ -61,21 +61,21 @@ class phemex extends \ccxt\async\phemex {
         return (string) $precise;
     }
 
-    public function from_ep($ep, ?array $market = null) {
+    public function from_ep(mixed $ep, ?array $market = null) {
         if (($ep === null) || ($market === null)) {
             return $ep;
         }
         return $this->from_en($ep, $this->safe_integer($market, 'priceScale'));
     }
 
-    public function from_ev($ev, ?array $market = null) {
+    public function from_ev(mixed $ev, ?array $market = null) {
         if (($ev === null) || ($market === null)) {
             return $ev;
         }
         return $this->from_en($ev, $this->safe_integer($market, 'valueScale'));
     }
 
-    public function from_er($er, ?array $market = null) {
+    public function from_er(mixed $er, ?array $market = null) {
         if (($er === null) || ($market === null)) {
             return $er;
         }
@@ -90,7 +90,7 @@ class phemex extends \ccxt\async\phemex {
         return $requestId;
     }
 
-    public function parse_swap_ticker($ticker, ?array $market = null) {
+    public function parse_swap_ticker(mixed $ticker, ?array $market = null) {
         //
         //     {
         //         "close" => 442800,
@@ -152,7 +152,7 @@ class phemex extends \ccxt\async\phemex {
         ));
     }
 
-    public function parse_perpetual_ticker($ticker, ?array $market = null) {
+    public function parse_perpetual_ticker(mixed $ticker, ?array $market = null) {
         //
         //    array(
         //        "STXUSDT",
@@ -211,7 +211,7 @@ class phemex extends \ccxt\async\phemex {
         ));
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "spot_market24h" => array(
@@ -337,7 +337,7 @@ class phemex extends \ccxt\async\phemex {
         })();
     }
 
-    public function handle_balance($type, $client, $message) {
+    public function handle_balance(mixed $type, Client $client, mixed $message) {
         // spot
         //    array(
         //       array(
@@ -414,7 +414,7 @@ class phemex extends \ccxt\async\phemex {
         $client->resolve($this->balance, $messageHash);
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "sequence" => 1795484727,
@@ -460,7 +460,7 @@ class phemex extends \ccxt\async\phemex {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "kline" => array(
@@ -732,18 +732,18 @@ class phemex extends \ccxt\async\phemex {
         })();
     }
 
-    public function custom_handle_delta($bookside, $delta, ?array $market = null) {
+    public function custom_handle_delta(mixed $bookside, mixed $delta, ?array $market = null) {
         $bidAsk = $this->custom_parse_bid_ask($delta, 0, 1, $market);
         $bookside->storeArray($bidAsk);
     }
 
-    public function custom_handle_deltas($bookside, $deltas, ?array $market = null) {
+    public function custom_handle_deltas(mixed $bookside, mixed $deltas, ?array $market = null) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->custom_handle_delta($bookside, $deltas[$i], $market);
         }
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "book" => array(
@@ -858,7 +858,7 @@ class phemex extends \ccxt\async\phemex {
         })();
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         // swap
         //    array(
@@ -1027,7 +1027,7 @@ class phemex extends \ccxt\async\phemex {
         })();
     }
 
-    public function handle_orders(Client $client, $message) {
+    public function handle_orders(Client $client, mixed $message) {
         // spot $update
         // {
         //        "closed":array(
@@ -1247,7 +1247,7 @@ class phemex extends \ccxt\async\phemex {
         $client->resolve($this->orders, $messageHash);
     }
 
-    public function parse_ws_swap_order($order, ?array $market = null) {
+    public function parse_ws_swap_order(mixed $order, ?array $market = null) {
         //
         // swap
         //    {
@@ -1421,7 +1421,7 @@ class phemex extends \ccxt\async\phemex {
         ), $market);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         // private spot update
         // {
         //     "orders" => array( closed => array(), fills => array(), open => array() ),
@@ -1554,7 +1554,7 @@ class phemex extends \ccxt\async\phemex {
         }
     }
 
-    public function handle_authenticate(Client $client, $message) {
+    public function handle_authenticate(Client $client, mixed $message) {
         //
         // {
         //     "error" => null,
@@ -1578,7 +1578,7 @@ class phemex extends \ccxt\async\phemex {
         }
     }
 
-    public function subscribe_private($type, $messageHash, $params = array()) {
+    public function subscribe_private(mixed $type, mixed $messageHash, $params = array()) {
         return Async\async(function () use ($type, $messageHash, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());

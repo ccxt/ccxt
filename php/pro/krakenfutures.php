@@ -329,7 +329,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         })();
     }
 
-    public function handle_positions($client, $message) {
+    public function handle_positions(mixed $client, mixed $message) {
         //
         //    {
         //        feed => 'open_positions',
@@ -385,7 +385,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $client->resolve($newPositions, 'positions');
     }
 
-    public function parse_ws_position($position, ?array $market = null) {
+    public function parse_ws_position(mixed $position, ?array $market = null) {
         //
         //        {
         //            instrument => 'PF_LTCUSD',
@@ -529,7 +529,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         })();
     }
 
-    public function handle_trade(Client $client, $message) {
+    public function handle_trade(Client $client, mixed $message) {
         //
         // snapshot
         //
@@ -594,7 +594,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         //    {
         //        "feed" => "trade",
@@ -647,7 +647,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         ), $market);
     }
 
-    public function parse_ws_order_trade($trade, ?array $market = null) {
+    public function parse_ws_order_trade(array $trade, ?array $market = null) {
         //
         //    {
         //        "symbol" => "BTC_USDT",
@@ -699,7 +699,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         ), $market);
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         //  update (verbose)
         //
@@ -851,7 +851,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         return $message;
     }
 
-    public function handle_order_snapshot(Client $client, $message) {
+    public function handle_order_snapshot(Client $client, mixed $message) {
         //
         // verbose
         //
@@ -925,7 +925,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         // update
         //
@@ -1006,7 +1006,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         ));
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //    {
         //        "time" => 1680811086487,
@@ -1050,7 +1050,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
     }
 
-    public function handle_bid_ask(Client $client, $message) {
+    public function handle_bid_ask(Client $client, mixed $message) {
         //
         //    {
         //        "feed" => "ticker_lite",
@@ -1079,7 +1079,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
     }
 
-    public function parse_ws_ticker($ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null) {
         //
         //    {
         //        "time" => 1680811086487,
@@ -1160,7 +1160,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         ));
     }
 
-    public function handle_order_book_snapshot(Client $client, $message) {
+    public function handle_order_book_snapshot(Client $client, mixed $message) {
         //
         //    {
         //        "feed" => "book_snapshot",
@@ -1227,7 +1227,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //    {
         //        "feed" => "book",
@@ -1260,7 +1260,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         // snapshot
         //
@@ -1484,7 +1484,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $client->resolve($this->balance, $messageHash);
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         //    {
         //        "feed" => "fills_snapshot",
@@ -1535,7 +1535,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $client->resolve($stored, 'myTrades');
     }
 
-    public function parse_ws_my_trade($trade, ?array $market = null) {
+    public function parse_ws_my_trade(mixed $trade, ?array $market = null) {
         //
         //    {
         //        "instrument" => "FI_XBTUSD_200925",
@@ -1632,7 +1632,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         return $messageHash;
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //    {
         //        event => 'alert',
@@ -1660,7 +1660,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
     }
 
-    public function handle_message($client, $message) {
+    public function handle_message(mixed $client, mixed $message) {
         $event = $this->safe_string($message, 'event');
         if ($event === 'challenge') {
             $this->handle_authenticate($client, $message);
@@ -1695,7 +1695,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
     }
 
-    public function handle_authenticate(Client $client, $message) {
+    public function handle_authenticate(Client $client, mixed $message) {
         /**
          * @ignore
          * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/challenge

@@ -55,7 +55,7 @@ class derive extends \ccxt\async\derive {
         ));
     }
 
-    public function request_id($url) {
+    public function request_id(mixed $url) {
         $options = $this->safe_value($this->options, 'requestId', array());
         $previousValue = $this->safe_integer($options, $url, 0);
         $newValue = $this->sum($previousValue, 1);
@@ -63,7 +63,7 @@ class derive extends \ccxt\async\derive {
         return $newValue;
     }
 
-    public function watch_public($messageHash, $message, $subscription) {
+    public function watch_public(mixed $messageHash, mixed $message, mixed $subscription) {
         return Async\async(function () use ($messageHash, $message, $subscription) {
             $url = $this->urls['api']['ws'];
             $requestId = $this->request_id($url);
@@ -117,7 +117,7 @@ class derive extends \ccxt\async\derive {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         // {
         //     method => 'subscription',
@@ -185,7 +185,7 @@ class derive extends \ccxt\async\derive {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         // {
         //     method => 'subscription',
@@ -326,7 +326,7 @@ class derive extends \ccxt\async\derive {
         })();
     }
 
-    public function un_watch_public($messageHash, $message, $subscription) {
+    public function un_watch_public(mixed $messageHash, mixed $message, mixed $subscription) {
         return Async\async(function () use ($messageHash, $message, $subscription) {
             $url = $this->urls['api']['ws'];
             $requestId = $this->request_id($url);
@@ -341,7 +341,7 @@ class derive extends \ccxt\async\derive {
         })();
     }
 
-    public function handle_order_book_un_subscription(Client $client, $topic) {
+    public function handle_order_book_un_subscription(Client $client, mixed $topic) {
         $parsedTopic = explode('.', $topic);
         $marketId = $this->safe_string($parsedTopic, 1);
         $market = $this->safe_market($marketId);
@@ -357,7 +357,7 @@ class derive extends \ccxt\async\derive {
         $client->resolve($error, 'unwatch' . $topic);
     }
 
-    public function handle_trades_un_subscription(Client $client, $topic) {
+    public function handle_trades_un_subscription(Client $client, mixed $topic) {
         $parsedTopic = explode('.', $topic);
         $marketId = $this->safe_string($parsedTopic, 1);
         $market = $this->safe_market($marketId);
@@ -373,7 +373,7 @@ class derive extends \ccxt\async\derive {
         $client->resolve($error, 'unwatch' . $topic);
     }
 
-    public function handle_un_subscribe(Client $client, $message) {
+    public function handle_un_subscribe(Client $client, mixed $message) {
         //
         // {
         //     id => 1,
@@ -438,7 +438,7 @@ class derive extends \ccxt\async\derive {
         })();
     }
 
-    public function handle_trade(Client $client, $message) {
+    public function handle_trade(Client $client, mixed $message) {
         //
         //
         $params = $this->safe_dict($message, 'params');
@@ -495,7 +495,7 @@ class derive extends \ccxt\async\derive {
         })();
     }
 
-    public function watch_private($messageHash, $message, $subscription) {
+    public function watch_private(mixed $messageHash, mixed $message, mixed $subscription) {
         return Async\async(function () use ($messageHash, $message, $subscription) {
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws'];
@@ -558,7 +558,7 @@ class derive extends \ccxt\async\derive {
         })();
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         // {
         //     method => 'subscription',
@@ -684,7 +684,7 @@ class derive extends \ccxt\async\derive {
         })();
     }
 
-    public function handle_my_trade(Client $client, $message) {
+    public function handle_my_trade(Client $client, mixed $message) {
         //
         //
         $myTrades = $this->myTrades;
@@ -704,7 +704,7 @@ class derive extends \ccxt\async\derive {
         }
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         // {
         //     id => '690c6276-0fc6-4121-aafa-f28bf5adedcb',
@@ -737,7 +737,7 @@ class derive extends \ccxt\async\derive {
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if ($this->handle_error_message($client, $message)) {
             return;
         }
@@ -785,7 +785,7 @@ class derive extends \ccxt\async\derive {
         }
     }
 
-    public function handle_auth(Client $client, $message) {
+    public function handle_auth(Client $client, mixed $message) {
         //
         // {
         //     id => 1,

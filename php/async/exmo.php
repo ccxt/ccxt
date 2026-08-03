@@ -308,7 +308,7 @@ class exmo extends Exchange {
         ));
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()) {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()) {
         return Async\async(function () use ($symbol, $amount, $type, $params) {
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -512,7 +512,7 @@ class exmo extends Exchange {
         })();
     }
 
-    public function parse_fixed_float_value($input) {
+    public function parse_fixed_float_value(mixed $input) {
         if (($input === null) || ($input === '-')) {
             return null;
         }
@@ -610,7 +610,7 @@ class exmo extends Exchange {
         })();
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
@@ -651,7 +651,7 @@ class exmo extends Exchange {
         })();
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //    array(
         //        array(
@@ -1071,7 +1071,7 @@ class exmo extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "t":1584057600000,
@@ -1092,7 +1092,7 @@ class exmo extends Exchange {
         );
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         $wallets = $this->safe_value($response, 'wallets');
         if ($wallets !== null) {
@@ -2067,7 +2067,7 @@ class exmo extends Exchange {
         })();
     }
 
-    public function parse_status($status) {
+    public function parse_status(mixed $status) {
         if ($status === null) {
             return null;
         }
@@ -2080,7 +2080,7 @@ class exmo extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_side($orderType) {
+    public function parse_side(mixed $orderType) {
         $side = array(
             'limit_buy' => 'buy',
             'limit_sell' => 'sell',
@@ -2408,7 +2408,7 @@ class exmo extends Exchange {
         })();
     }
 
-    public function get_market_from_trades($trades) {
+    public function get_market_from_trades(mixed $trades) {
         $tradesBySymbol = $this->index_by($trades, 'pair');
         $symbols = is_array($tradesBySymbol) ? array_keys($tradesBySymbol) : array();
         $numSymbols = count($symbols);
@@ -2560,7 +2560,7 @@ class exmo extends Exchange {
             'rate' => null,
         );
         // fixed funding fees only (for now)
-        if (!$this->fees['transaction']['percentage']) {
+        if (!($this->fees)['transaction']['percentage']) {
             $key = ($type === 'withdrawal') ? 'withdraw' : 'deposit';
             $feeCost = $this->safe_string($transaction, 'commission');
             if ($feeCost === null) {
@@ -2897,7 +2897,7 @@ class exmo extends Exchange {
         })();
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/';
         if ($api !== 'web') {
             $url .= $this->version . '/';
@@ -2924,7 +2924,7 @@ class exmo extends Exchange {
         return $this->milliseconds();
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

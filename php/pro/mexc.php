@@ -117,7 +117,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         // swap
         //
@@ -274,7 +274,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_tickers(Client $client, $message) {
+    public function handle_tickers(Client $client, mixed $message) {
         //
         // swap
         //
@@ -364,7 +364,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve($result, $topic);
     }
 
-    public function parse_ws_ticker($ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null) {
         // protobuf $ticker
         // "bidprice" => "93387.28",  // Best bid $price
         // "bidquantity" => "3.73485", // Best bid quantity
@@ -473,7 +473,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_bid_ask(Client $client, $message) {
+    public function handle_bid_ask(Client $client, mixed $message) {
         //
         //    {
         //        "c" => "spot@public.bookTicker.v3.api@BTCUSDT",
@@ -497,7 +497,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve($parsedTicker, $messageHash);
     }
 
-    public function parse_ws_bid_ask($ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
         $data = $this->safe_dict($ticker, 'd');
         $marketId = $this->safe_string($ticker, 's');
         $market = $this->safe_market($marketId, $market);
@@ -515,7 +515,7 @@ class mexc extends \ccxt\async\mexc {
         ), $market);
     }
 
-    public function watch_spot_public($channel, $messageHash, $params = array()) {
+    public function watch_spot_public(mixed $channel, mixed $messageHash, $params = array()) {
         return Async\async(function () use ($channel, $messageHash, $params) {
             $unsubscribed = $this->safe_bool($params, 'unsubscribed', false);
             $params = $this->omit($params, array( 'unsubscribed' ));
@@ -529,7 +529,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function watch_spot_private($channel, $messageHash, $params = array()) {
+    public function watch_spot_private(mixed $channel, mixed $messageHash, $params = array()) {
         return Async\async(function () use ($channel, $messageHash, $params) {
             $this->check_required_credentials();
             $listenKey = Async\await($this->authenticate($channel));
@@ -542,7 +542,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function watch_swap_public($channel, $messageHash, $requestParams, $params = array()) {
+    public function watch_swap_public(mixed $channel, mixed $messageHash, mixed $requestParams, $params = array()) {
         return Async\async(function () use ($channel, $messageHash, $requestParams, $params) {
             $url = $this->urls['api']['ws']['swap'];
             $request = array(
@@ -554,7 +554,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function watch_swap_private($messageHash, $params = array()) {
+    public function watch_swap_private(mixed $messageHash, $params = array()) {
         return Async\async(function () use ($messageHash, $params) {
             $this->check_required_credentials();
             $channel = 'login';
@@ -618,7 +618,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         // spot
         //
@@ -717,7 +717,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // spot
         //
@@ -815,7 +815,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_order_book_subscription(Client $client, $message) {
+    public function handle_order_book_subscription(Client $client, mixed $message) {
         // spot
         //     array( id => 0, code => 0, $msg => "spot@public.increase.depth.v3.api@BTCUSDT" )
         //
@@ -826,7 +826,7 @@ class mexc extends \ccxt\async\mexc {
         $this->orderbooks[$symbol] = $this->order_book(array());
     }
 
-    public function get_cache_index($orderbook, $cache) {
+    public function get_cache_index(mixed $orderbook, mixed $cache) {
         // return the first index of the $cache that can be applied to the $orderbook or -1 if not possible
         $nonce = $this->safe_integer($orderbook, 'nonce');
         $firstDelta = $this->safe_value($cache, 0);
@@ -850,7 +850,7 @@ class mexc extends \ccxt\async\mexc {
         return count($cache);
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         // spot
         //    {
@@ -955,7 +955,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve($storedOrderBook, $messageHash);
     }
 
-    public function handle_bookside_delta($bookside, $bidasks) {
+    public function handle_bookside_delta(mixed $bookside, mixed $bidasks) {
         //
         //    [array(
         //        "p" => "20290.89",
@@ -974,7 +974,7 @@ class mexc extends \ccxt\async\mexc {
         }
     }
 
-    public function handle_delta($orderbook, $delta) {
+    public function handle_delta(mixed $orderbook, mixed $delta) {
         $existingNonce = $this->safe_integer($orderbook, 'nonce');
         $deltaNonce = $this->safe_integer_n($delta, array( 'r', 'version', 'fromVersion' ));
         if (($deltaNonce !== null) && ($existingNonce !== null) && ($deltaNonce < $existingNonce)) {
@@ -1030,7 +1030,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         // protobuf
         // {
         // "channel" => "spot@public.aggre.deals.v3.api.pb@100ms@BTCUSDT",
@@ -1148,7 +1148,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_my_trade(Client $client, $message, ?array $subscription = null) {
+    public function handle_my_trade(Client $client, mixed $message, ?array $subscription = null) {
         //
         //    {
         //        "c" => "spot@private.deals.v3.api",
@@ -1208,7 +1208,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve($trades, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         // public $trade (protobuf)
         //    {
@@ -1333,7 +1333,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         // spot
         //    {
@@ -1435,7 +1435,7 @@ class mexc extends \ccxt\async\mexc {
         $client->resolve($orders, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         // spot
         //     {
@@ -1540,7 +1540,7 @@ class mexc extends \ccxt\async\mexc {
         ), $market);
     }
 
-    public function parse_ws_order_status($status, ?array $market = null) {
+    public function parse_ws_order_status(mixed $status, ?array $market = null) {
         $statuses = array(
             '0' => 'open',     // new/pending (OCO orders)
             '1' => 'open',     // new order
@@ -1556,7 +1556,7 @@ class mexc extends \ccxt\async\mexc {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ws_order_type($type) {
+    public function parse_ws_order_type(mixed $type) {
         $types = array(
             '1' => 'limit',   // LIMIT_ORDER
             '2' => 'limit', // POST_ONLY
@@ -1570,7 +1570,7 @@ class mexc extends \ccxt\async\mexc {
         return $this->safe_string($types, $type);
     }
 
-    public function parse_ws_time_in_force($timeInForce) {
+    public function parse_ws_time_in_force(mixed $timeInForce) {
         $timeInForceIds = array(
             '1' => 'GTC',   // LIMIT_ORDER
             '2' => 'PO', // POST_ONLY
@@ -1610,7 +1610,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         // spot
         //
@@ -1722,7 +1722,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_funding_rate(Client $client, $message) {
+    public function handle_funding_rate(Client $client, mixed $message) {
         //
         //     {
         //         "symbol" => "BTC_USDT",
@@ -2045,7 +2045,7 @@ class mexc extends \ccxt\async\mexc {
         }
     }
 
-    public function authenticate($subscriptionHash, $params = array()) {
+    public function authenticate(mixed $subscriptionHash, $params = array()) {
         return Async\async(function () use ($subscriptionHash, $params) {
             // we only need one $listenKey since ccxt shares connections
             $listenKey = $this->safe_string($this->options, 'listenKey');
@@ -2088,7 +2088,7 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function keep_alive_listen_key($listenKey, $params = array()) {
+    public function keep_alive_listen_key(mixed $listenKey, $params = array()) {
         return Async\async(function () use ($listenKey, $params) {
             if ($listenKey === null) {
                 return;
@@ -2110,12 +2110,12 @@ class mexc extends \ccxt\async\mexc {
         })();
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         $client->lastPong = $this->milliseconds();
         return $message;
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //    {
         //        "id" => 0,
@@ -2140,7 +2140,7 @@ class mexc extends \ccxt\async\mexc {
         }
     }
 
-    public function handle_protobuf_message(Client $client, $message) {
+    public function handle_protobuf_message(Client $client, mixed $message) {
         // protobuf $message decoded
         //  {
         //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
@@ -2180,7 +2180,7 @@ class mexc extends \ccxt\async\mexc {
         return true;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if (gettype($message) === 'string') {
             if ($message === 'Invalid listen key') {
                 $error = new AuthenticationError($this->id . ' invalid listen key');

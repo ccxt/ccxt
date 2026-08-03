@@ -1234,7 +1234,7 @@ class cryptocom extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $responseResult = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list($responseResult, 'data', array());
         $positionBalances = $this->safe_value($data[0], 'position_balances', array());
@@ -2054,7 +2054,7 @@ class cryptocom extends Exchange {
         })();
     }
 
-    public function parse_address($addressString) {
+    public function parse_address(mixed $addressString) {
         $address = null;
         $tag = null;
         $rawTag = null;
@@ -2204,7 +2204,8 @@ class cryptocom extends Exchange {
              */
             $network = $this->safe_string_upper($params, 'network');
             $params = $this->omit($params, array( 'network' ));
-            $depositAddresses = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
+            $depositAddressesRaw = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
+            $depositAddresses = $depositAddressesRaw;
             if (is_array($depositAddresses) && array_key_exists($network ?? '', $depositAddresses)) {
                 return $depositAddresses[$network];
             }
@@ -2464,7 +2465,7 @@ class cryptocom extends Exchange {
         ), $market);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "o" => "26949.89",
@@ -2604,7 +2605,7 @@ class cryptocom extends Exchange {
         ), $market);
     }
 
-    public function parse_deposit_status($status) {
+    public function parse_deposit_status(mixed $status) {
         $statuses = array(
             '0' => 'pending',
             '1' => 'ok',
@@ -2614,7 +2615,7 @@ class cryptocom extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_withdrawal_status($status) {
+    public function parse_withdrawal_status(mixed $status) {
         $statuses = array(
             '0' => 'pending',
             '1' => 'pending',
@@ -2715,7 +2716,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function custom_handle_margin_mode_and_params($methodName, $params = array()): array {
+    public function custom_handle_margin_mode_and_params(mixed $methodName, $params = array()): array {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -2739,7 +2740,7 @@ class cryptocom extends Exchange {
         return array( $marginMode, $params );
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //    {
         //        "full_name" => "Alchemix",
@@ -2791,7 +2792,7 @@ class cryptocom extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
@@ -2936,7 +2937,7 @@ class cryptocom extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $ledgerType = array(
             'TRADING' => 'trade',
             'TRADE_FEE' => 'fee',
@@ -3016,7 +3017,7 @@ class cryptocom extends Exchange {
         })();
     }
 
-    public function parse_account($account) {
+    public function parse_account(mixed $account) {
         //
         //     {
         //         "uuid" => "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
@@ -3106,7 +3107,7 @@ class cryptocom extends Exchange {
         })();
     }
 
-    public function parse_settlement($settlement, $market) {
+    public function parse_settlement(mixed $settlement, mixed $market) {
         //
         //     {
         //         "i" => "BTCUSD-230526",
@@ -3126,7 +3127,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function parse_settlements($settlements, $market) {
+    public function parse_settlements(mixed $settlements, mixed $market) {
         //
         //     array(
         //         {
@@ -3191,7 +3192,7 @@ class cryptocom extends Exchange {
         })();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //                 array(
         //                     "v" => "-0.000001884",
@@ -3473,7 +3474,7 @@ class cryptocom extends Exchange {
         return $this->milliseconds();
     }
 
-    public function params_to_string($object, $level) {
+    public function params_to_string(mixed $object, mixed $level) {
         $maxLevel = 3;
         if ($level >= $maxLevel) {
             return (string) $object;
@@ -3628,7 +3629,7 @@ class cryptocom extends Exchange {
         })();
     }
 
-    public function parse_trading_fees($response) {
+    public function parse_trading_fees(mixed $response) {
         //
         // {
         //         "spot_tier" => "3",
@@ -3680,7 +3681,7 @@ class cryptocom extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $type = $this->safe_string($api, 0);
         $access = $this->safe_string($api, 1);
         $url = $this->urls['api'][$type] . '/' . $path;
@@ -3723,7 +3724,7 @@ class cryptocom extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         $errorCode = $this->safe_string($response, 'code');
         if ($errorCode !== '0') {
             $feedback = $this->id . ' ' . $body;

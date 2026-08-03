@@ -218,7 +218,7 @@ class bingx extends \ccxt\async\bingx {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         // swap
         //
@@ -288,7 +288,7 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function parse_ws_ticker($message, ?array $market = null) {
+    public function parse_ws_ticker(mixed $message, ?array $market = null) {
         //
         //     {
         //         "e" => "24hTicker",
@@ -450,7 +450,7 @@ class bingx extends \ccxt\async\bingx {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         // spot => first snapshot
         //
@@ -645,13 +645,13 @@ class bingx extends \ccxt\async\bingx {
         })();
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $price = $this->safe_float_2($delta, 0, 'p');
         $amount = $this->safe_float_2($delta, 1, 'a');
         $bookside->store($price, $amount);
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         // spot
         //
@@ -759,7 +759,7 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //    {
         //        "c" => "28909.0",
@@ -787,7 +787,7 @@ class bingx extends \ccxt\async\bingx {
         );
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         // spot:
         //
@@ -1190,7 +1190,7 @@ class bingx extends \ccxt\async\bingx {
         })();
     }
 
-    public function set_balance_cache(Client $client, $type, $subType, $subscriptionHash, $params) {
+    public function set_balance_cache(Client $client, mixed $type, mixed $subType, mixed $subscriptionHash, mixed $params) {
         if (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions)) {
             return;
         }
@@ -1206,7 +1206,7 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function load_balance_snapshot($client, $messageHash, $type, $subType) {
+    public function load_balance_snapshot(Client $client, mixed $messageHash, mixed $type, mixed $subType) {
         return Async\async(function () use ($client, $messageHash, $type, $subType) {
             $response = Async\await($this->fetch_balance(array( 'type' => $type, 'subType' => $subType )));
             $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
@@ -1280,7 +1280,7 @@ class bingx extends \ccxt\async\bingx {
         })();
     }
 
-    public function set_positions_cache(Client $client, $type, ?array $symbols = null) {
+    public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null) {
         if ($this->positions !== null) {
             return;
         }
@@ -1296,7 +1296,7 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function load_positions_snapshot($client, $messageHash, $type) {
+    public function load_positions_snapshot(Client $client, mixed $messageHash, mixed $type) {
         return Async\async(function () use ($client, $messageHash, $type) {
             $positions = Async\await($this->fetch_positions(null, array( 'type' => $type, 'subType' => 'linear' )));
             $this->positions = new ArrayCacheBySymbolBySide();
@@ -1317,7 +1317,7 @@ class bingx extends \ccxt\async\bingx {
         })();
     }
 
-    public function parse_ws_position($position, ?array $market = null) {
+    public function parse_ws_position(mixed $position, ?array $market = null) {
         //
         //     {
         //         "s" => "LINK-USDT",     // Symbol
@@ -1373,7 +1373,7 @@ class bingx extends \ccxt\async\bingx {
         ));
     }
 
-    public function handle_positions(Client $client, $message) {
+    public function handle_positions(Client $client, mixed $message) {
         //
         //     {
         //         "e" => "ACCOUNT_UPDATE",
@@ -1429,7 +1429,7 @@ class bingx extends \ccxt\async\bingx {
         $client->resolve($newPositions, 'swap:positions');
     }
 
-    public function handle_error_message($client, $message) {
+    public function handle_error_message(Client $client, mixed $message) {
         //
         // array( $code => 100400, msg => '', timestamp => 1696245808833 )
         //
@@ -1500,7 +1500,7 @@ class bingx extends \ccxt\async\bingx {
         })();
     }
 
-    public function pong($client, $message) {
+    public function pong(Client $client, mixed $message) {
         return Async\async(function () use ($client, $message) {
             //
             // spot
@@ -1529,7 +1529,7 @@ class bingx extends \ccxt\async\bingx {
         })();
     }
 
-    public function handle_order($client, $message) {
+    public function handle_order(mixed $client, mixed $message) {
         //
         //     {
         //         "code" => 0,
@@ -1630,7 +1630,7 @@ class bingx extends \ccxt\async\bingx {
         $client->resolve($stored, $messageHash . ':' . $symbol);
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         //
         //      {
@@ -1708,7 +1708,7 @@ class bingx extends \ccxt\async\bingx {
         $client->resolve($cachedTrades, $messageHash . ':' . $symbol);
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         // spot
         //     {
         //         "e":"ACCOUNT_UPDATE",
@@ -1771,7 +1771,7 @@ class bingx extends \ccxt\async\bingx {
         $client->resolve($this->balance[$type], $type . ':balance');
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }
@@ -1830,7 +1830,7 @@ class bingx extends \ccxt\async\bingx {
         }
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //     {
         //         "code" => 0,

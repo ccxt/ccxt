@@ -74,7 +74,7 @@ class paradex extends \ccxt\async\paradex {
         })();
     }
 
-    public function handle_authentication_message(Client $client, $message) {
+    public function handle_authentication_message(Client $client, mixed $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -131,7 +131,7 @@ class paradex extends \ccxt\async\paradex {
         })();
     }
 
-    public function handle_trade(Client $client, $message) {
+    public function handle_trade(Client $client, mixed $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -195,7 +195,7 @@ class paradex extends \ccxt\async\paradex {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -373,7 +373,7 @@ class paradex extends \ccxt\async\paradex {
         })();
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -418,7 +418,7 @@ class paradex extends \ccxt\async\paradex {
         }
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -534,7 +534,7 @@ class paradex extends \ccxt\async\paradex {
         })();
     }
 
-    public function handle_funding_rate(Client $client, $message) {
+    public function handle_funding_rate(Client $client, mixed $message) {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -563,7 +563,7 @@ class paradex extends \ccxt\async\paradex {
         $client->resolve($fundingRate, $messageHash);
     }
 
-    public function parse_funding_rate_ws($contract, ?array $market = null): array {
+    public function parse_funding_rate_ws(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "market" => "TRUMP-USD-PERP",
@@ -601,7 +601,7 @@ class paradex extends \ccxt\async\paradex {
         );
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //     {
         //         "jsonrpc" => "2.0",
@@ -633,7 +633,7 @@ class paradex extends \ccxt\async\paradex {
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if (!$this->handle_error_message($client, $message)) {
             return;
         }

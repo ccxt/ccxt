@@ -82,7 +82,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //  subscribed
         //     {
@@ -171,7 +171,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //  subscribed
         //     {
@@ -245,7 +245,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //  subscribed
         //     {
@@ -292,7 +292,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $client->resolve($ticker, $messageHash);
     }
 
-    public function parse_ws_updated_ticker($ticker, $lastTicker = null, ?array $market = null) {
+    public function parse_ws_updated_ticker(mixed $ticker, $lastTicker = null, ?array $market = null) {
         //
         //     {
         //         "seqnum" => 2,
@@ -360,7 +360,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //  subscribed
         //     {
@@ -402,7 +402,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         //     {
         //         "seqnum" => 1,
@@ -471,7 +471,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         })();
     }
 
-    public function handle_orders(Client $client, $message) {
+    public function handle_orders(Client $client, mixed $message) {
         //
         //     {
         //         "seqnum" => 1,
@@ -572,7 +572,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $client->resolve($this->orders, $messageHash);
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         //
         //     {
         //         "seqnum" => 3,
@@ -642,7 +642,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         ), $market);
     }
 
-    public function parse_ws_order_status($status) {
+    public function parse_ws_order_status(mixed $status) {
         $statuses = array(
             'pending' => 'open',
             'open' => 'open',
@@ -687,7 +687,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //  subscribe
         //     {
@@ -752,18 +752,18 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $bookArray = $this->parse_order_book_bid_ask($delta, 'px', 'qty', 'num');
         $bookside->storeArray($bookArray);
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         $channel = $this->safe_string($message, 'channel');
         $handlers = array(
             'ticker' => array($this, 'handle_ticker'),
@@ -783,7 +783,7 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         throw new NotSupported($this->id . ' received an unsupported $message => ' . $this->json($message));
     }
 
-    public function handle_authentication_message(Client $client, $message) {
+    public function handle_authentication_message(Client $client, mixed $message) {
         //
         //     {
         //         "seqnum" => 0,

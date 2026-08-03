@@ -78,7 +78,7 @@ class blofin extends \ccxt\async\blofin {
         return 'ping';
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         //
         //   'pong'
         //
@@ -130,7 +130,7 @@ class blofin extends \ccxt\async\blofin {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //       $arg => array(
@@ -165,7 +165,7 @@ class blofin extends \ccxt\async\blofin {
         }
     }
 
-    public function parse_ws_trade($trade, ?array $market = null): array {
+    public function parse_ws_trade(mixed $trade, ?array $market = null): array {
         return $this->parse_trade($trade, $market);
     }
 
@@ -215,7 +215,7 @@ class blofin extends \ccxt\async\blofin {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //   {
         //     $arg => array(
@@ -304,7 +304,7 @@ class blofin extends \ccxt\async\blofin {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         // $message
         //
@@ -331,7 +331,7 @@ class blofin extends \ccxt\async\blofin {
         }
     }
 
-    public function parse_ws_ticker($ticker, ?array $market = null): array {
+    public function parse_ws_ticker(array $ticker, ?array $market = null): array {
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -377,7 +377,7 @@ class blofin extends \ccxt\async\blofin {
         })();
     }
 
-    public function handle_bid_ask(Client $client, $message) {
+    public function handle_bid_ask(Client $client, mixed $message) {
         $data = $this->safe_list($message, 'data');
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $this->parse_ws_bid_ask($data[$i]);
@@ -388,7 +388,7 @@ class blofin extends \ccxt\async\blofin {
         }
     }
 
-    public function parse_ws_bid_ask($ticker, ?array $market = null) {
+    public function parse_ws_bid_ask(mixed $ticker, ?array $market = null) {
         $marketId = $this->safe_string($ticker, 'instId');
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $this->safe_string($market, 'symbol');
@@ -451,7 +451,7 @@ class blofin extends \ccxt\async\blofin {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         // $message
         //
@@ -519,7 +519,7 @@ class blofin extends \ccxt\async\blofin {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //     {
         //         arg => array(
@@ -537,7 +537,7 @@ class blofin extends \ccxt\async\blofin {
         $client->resolve($this->balance[$marketType], $messageHash);
     }
 
-    public function parse_ws_balance($message) {
+    public function parse_ws_balance(mixed $message) {
         return $this->parse_balance($message);
     }
 
@@ -594,7 +594,7 @@ class blofin extends \ccxt\async\blofin {
         })();
     }
 
-    public function handle_orders(Client $client, $message) {
+    public function handle_orders(Client $client, mixed $message) {
         //
         //     {
         //         action => 'update',
@@ -622,7 +622,7 @@ class blofin extends \ccxt\async\blofin {
         }
     }
 
-    public function parse_ws_order($order, ?array $market = null): array {
+    public function parse_ws_order(mixed $order, ?array $market = null): array {
         return $this->parse_order($order, $market);
     }
 
@@ -651,7 +651,7 @@ class blofin extends \ccxt\async\blofin {
         })();
     }
 
-    public function handle_positions(Client $client, $message) {
+    public function handle_positions(Client $client, mixed $message) {
         //
         //     {
         //         $arg => array( channel => 'positions' ),
@@ -677,7 +677,7 @@ class blofin extends \ccxt\async\blofin {
         }
     }
 
-    public function parse_ws_position($position, ?array $market = null): array {
+    public function parse_ws_position(mixed $position, ?array $market = null): array {
         return $this->parse_position($position, $market);
     }
 
@@ -709,7 +709,7 @@ class blofin extends \ccxt\async\blofin {
         })();
     }
 
-    public function handle_funding_rate(Client $client, $message) {
+    public function handle_funding_rate(Client $client, mixed $message) {
         //
         //     {
         //         "arg" => array(
@@ -797,14 +797,14 @@ class blofin extends \ccxt\async\blofin {
         })();
     }
 
-    public function get_subscription_request($args) {
+    public function get_subscription_request(mixed $args) {
         return array(
             'op' => 'subscribe',
             'args' => $args,
         );
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         //
         // $message examples
         //

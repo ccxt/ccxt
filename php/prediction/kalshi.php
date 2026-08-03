@@ -822,7 +822,7 @@ class kalshi extends Exchange {
         })();
     }
 
-    public function parse_prediction_open_interest($interest, ?array $market = null): array {
+    public function parse_prediction_open_interest(array $interest, ?array $market = null): array {
         //
         //     array( "ticker" => "...", "open_interest_fp" => "60802.01", ... )   // open $interest in contracts
         //
@@ -1242,7 +1242,7 @@ class kalshi extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         /**
          * @ignore
          * parses a single kalshi candlestick object into a CCXT OHLCV tuple, converting cent prices to decimals
@@ -1536,7 +1536,7 @@ class kalshi extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         /**
          * @ignore
          * parses a kalshi balance $response (cents) into a unified balances object with a USD entry
@@ -2167,7 +2167,7 @@ class kalshi extends Exchange {
         })();
     }
 
-    public function fetch_events(array $params = array()): PromiseInterface {
+    public function fetch_events($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches kalshi events scoped by a search query, tag, category or series ticker — always live from the API, never from the local cache (it POPULATES the cache for later event()/outcome lookups). the scope decides the endpoint => a free-text `query` hits kalshi's ranked search endpoint and the top `limit` matches are fetched canonically; `tags`/`category` resolve to series via the /series listing then fetch their events; `series_ticker` is used verbatim. `limit` bounds how many events are actually fetched (broad scopes stop early), and any other param is forwarded straight to the /events endpoint.

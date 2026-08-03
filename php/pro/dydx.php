@@ -96,7 +96,7 @@ class dydx extends \ccxt\async\dydx {
         })();
     }
 
-    public function handle_trades($client, $message) {
+    public function handle_trades(mixed $client, mixed $message) {
         //
         // {
         //     "type" => "subscribed",
@@ -139,7 +139,7 @@ class dydx extends \ccxt\async\dydx {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         // {
         //     "id" => "02b6148d0000000200000003",
@@ -223,7 +223,7 @@ class dydx extends \ccxt\async\dydx {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         // {
         //     "type" => "subscribed",
@@ -266,7 +266,7 @@ class dydx extends \ccxt\async\dydx {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         if ((gettype($delta) === 'array' && array_keys($delta) === array_keys(array_keys($delta)))) {
             $price = $this->safe_float($delta, 0);
             $amount = $this->safe_float($delta, 1);
@@ -340,7 +340,7 @@ class dydx extends \ccxt\async\dydx {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         // {
         //     "type" => "subscribed",
@@ -415,7 +415,7 @@ class dydx extends \ccxt\async\dydx {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, mixed $message) {
         //
         // {
         //     "type" => "error",
@@ -433,7 +433,7 @@ class dydx extends \ccxt\async\dydx {
         return true;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         $type = $this->safe_string($message, 'type');
         if ($type === 'error') {
             $this->handle_error_message($client, $message);

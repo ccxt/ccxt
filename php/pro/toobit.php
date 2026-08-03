@@ -85,7 +85,7 @@ class toobit extends \ccxt\async\toobit {
         );
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         //
         // public
         //
@@ -228,7 +228,7 @@ class toobit extends \ccxt\async\toobit {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         $symbol => "DOGEUSDT",
@@ -347,7 +347,7 @@ class toobit extends \ccxt\async\toobit {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         $symbol => 'DOGEUSDT',
@@ -400,7 +400,7 @@ class toobit extends \ccxt\async\toobit {
         $client->resolve($resolveData, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //             {
         //                 t => 1757251200000,
@@ -481,7 +481,7 @@ class toobit extends \ccxt\async\toobit {
         })();
     }
 
-    public function handle_tickers(Client $client, $message) {
+    public function handle_tickers(Client $client, mixed $message) {
         //
         //    {
         //        "symbol" => "DOGEUSDT",
@@ -538,7 +538,7 @@ class toobit extends \ccxt\async\toobit {
         $client->resolve($newTickers, 'tickers');
     }
 
-    public function parse_ws_ticker($ticker, ?array $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null) {
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -601,7 +601,7 @@ class toobit extends \ccxt\async\toobit {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         $symbol => 'DOGEUSDT',
@@ -651,12 +651,12 @@ class toobit extends \ccxt\async\toobit {
         }
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $bidAsk = $this->parse_order_book_bid_ask($delta);
         $bookside->storeArray($bidAsk);
     }
 
-    public function handle_order_book_partial_snapshot(Client $client, $message) {
+    public function handle_order_book_partial_snapshot(Client $client, mixed $message) {
         //
         //     {
         //         symbol => 'DOGEUSDT',
@@ -682,7 +682,7 @@ class toobit extends \ccxt\async\toobit {
         $this->set_order_book_snapshot($client, $message, 'depth');
     }
 
-    public function set_order_book_snapshot(Client $client, $message, string $channel) {
+    public function set_order_book_snapshot(Client $client, mixed $message, string $channel) {
         $data = $this->safe_list($message, 'data', array());
         $length = count($data);
         if ($length === 0) {
@@ -741,7 +741,7 @@ class toobit extends \ccxt\async\toobit {
         })();
     }
 
-    public function set_balance_cache(Client $client, $marketType, ?string $subscriptionHash = null, $params = array()) {
+    public function set_balance_cache(Client $client, mixed $marketType, ?string $subscriptionHash = null, $params = array()) {
         if (($subscriptionHash === null) || (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions))) {
             return;
         }
@@ -753,7 +753,7 @@ class toobit extends \ccxt\async\toobit {
         }
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         // spot
         //
@@ -813,7 +813,7 @@ class toobit extends \ccxt\async\toobit {
         $client->resolve($this->balance[$type], $type . ':balance');
     }
 
-    public function load_balance_snapshot($client, $messageHash, $marketType) {
+    public function load_balance_snapshot(Client $client, mixed $messageHash, mixed $marketType) {
         return Async\async(function () use ($client, $messageHash, $marketType) {
             $response = Async\await($this->fetch_balance(array( 'type' => $marketType )));
             $type = ($marketType === 'spot') ? 'spot' : 'contract';
@@ -861,7 +861,7 @@ class toobit extends \ccxt\async\toobit {
         })();
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         //    {
         //        "e" => "executionReport",
@@ -906,7 +906,7 @@ class toobit extends \ccxt\async\toobit {
         $client->resolve($orders, $messageHash);
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order(mixed $order, ?array $market = null) {
         $timestamp = $this->safe_integer($order, 'O');
         $marketId = $this->safe_string($order, 's');
         $symbol = $this->safe_symbol($marketId, $market);
@@ -986,7 +986,7 @@ class toobit extends \ccxt\async\toobit {
         })();
     }
 
-    public function handle_my_trade(Client $client, $message) {
+    public function handle_my_trade(Client $client, mixed $message) {
         //
         //    {
         //        "e" => "ticketInfo",
@@ -1016,7 +1016,7 @@ class toobit extends \ccxt\async\toobit {
         $client->resolve($myTrades, $messageHash);
     }
 
-    public function parse_my_trade($trade, ?array $market = null) {
+    public function parse_my_trade(mixed $trade, ?array $market = null) {
         $marketId = $this->safe_string($trade, 's');
         $ts = $this->safe_string($trade, 't');
         return $this->safe_trade(array(
@@ -1078,7 +1078,7 @@ class toobit extends \ccxt\async\toobit {
         })();
     }
 
-    public function set_positions_cache(Client $client, $type, ?array $symbols = null, $isPortfolioMargin = false) {
+    public function set_positions_cache(Client $client, mixed $type, ?array $symbols = null, $isPortfolioMargin = false) {
         if ($this->positions === null) {
             $this->positions = array();
         }
@@ -1097,7 +1097,7 @@ class toobit extends \ccxt\async\toobit {
         }
     }
 
-    public function load_positions_snapshot($client, $messageHash, $type) {
+    public function load_positions_snapshot(Client $client, mixed $messageHash, mixed $type) {
         return Async\async(function () use ($client, $messageHash, $type) {
             $params = array(
                 'type' => $type,
@@ -1118,7 +1118,7 @@ class toobit extends \ccxt\async\toobit {
         })();
     }
 
-    public function handle_positions($client, $message) {
+    public function handle_positions(mixed $client, mixed $message) {
         //
         // array(
         //     {
@@ -1176,7 +1176,7 @@ class toobit extends \ccxt\async\toobit {
         $client->resolve($newPositions, $accountType . ':positions');
     }
 
-    public function parse_ws_position($position, ?array $market = null) {
+    public function parse_ws_position(mixed $position, ?array $market = null) {
         $marketId = $this->safe_string($position, 's');
         return $this->safe_position(array(
             'info' => $position,
@@ -1273,7 +1273,7 @@ class toobit extends \ccxt\async\toobit {
         return $this->urls['api']['ws']['common'] . '/api/v1/ws/' . $this->options['ws']['listenKey'];
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //    {
         //        "code" => '-100010',

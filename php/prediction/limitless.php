@@ -1570,7 +1570,7 @@ class limitless extends Exchange {
         })();
     }
 
-    public function fetch_orders_by_ids($ids, ?string $outcome = null, $params = array()): PromiseInterface {
+    public function fetch_orders_by_ids(mixed $ids, ?string $outcome = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($ids, $outcome, $params) {
             /**
              * fetch orders by the list of order $id
@@ -2168,7 +2168,7 @@ class limitless extends Exchange {
         })();
     }
 
-    public function sign_order_request(array $signRequest, $marketSymbol) {
+    public function sign_order_request(array $signRequest, mixed $marketSymbol) {
         $this->check_required_credentials();
         if ($this->privateKey === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a privateKey (the embedded/trading wallet key) to sign orders');
@@ -2203,11 +2203,11 @@ class limitless extends Exchange {
         return $this->sign_message($msg, $this->privateKey);
     }
 
-    public function hash_message($message) {
+    public function hash_message(mixed $message) {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash($hash, $privateKey) {
+    public function sign_hash(mixed $hash, mixed $privateKey) {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $s = $signature['s'];
@@ -2218,7 +2218,7 @@ class limitless extends Exchange {
         return strtolower($result);
     }
 
-    public function sign_message($message, $privateKey) {
+    public function sign_message(mixed $message, mixed $privateKey) {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
@@ -2887,7 +2887,7 @@ class limitless extends Exchange {
         );
     }
 
-    public function fetch_events(array $params = array()): PromiseInterface {
+    public function fetch_events($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches prediction-market events matching the given scope (query/queries/tags/eventId/slug — required) and caches their markets and outcomes on the instance
@@ -3160,7 +3160,7 @@ class limitless extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $statusCode, string $statusText, string $url, string $method, array $responseHeaders, string $responseBody, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $statusCode, string $statusText, string $url, string $method, array $responseHeaders, string $responseBody, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         /**
          * @ignore
          * maps limitless error responses to ccxt exceptions

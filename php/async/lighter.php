@@ -382,7 +382,7 @@ class lighter extends Exchange {
         ));
     }
 
-    public function load_account($chainId, $privateKey, string $apiKeyIndex, string $accountIndex, $params = array()) {
+    public function load_account(mixed $chainId, mixed $privateKey, string $apiKeyIndex, string $accountIndex, $params = array()) {
         return Async\async(function () use ($chainId, $privateKey, $apiKeyIndex, $accountIndex, $params) {
             $this->init_auth_object($accountIndex, $apiKeyIndex);
             $cachedAuths = $this->safe_dict($this->options['auths'][$accountIndex], $apiKeyIndex);
@@ -624,7 +624,7 @@ class lighter extends Exchange {
         return '0x' . $this->hash($this->binary_concat($prefix, $binaryMessage), 'keccak', 'hex');
     }
 
-    public function sign_hash($hash, $privateKey) {
+    public function sign_hash(mixed $hash, mixed $privateKey) {
         $this->check_required_credentials();
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
@@ -633,7 +633,7 @@ class lighter extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_l1_and_prepare_tx_info($txInfo, $message, $privateKey) {
+    public function sign_l1_and_prepare_tx_info(mixed $txInfo, mixed $message, mixed $privateKey) {
         $hashMessage = $this->hash_message($message);
         $signature = $this->sign_hash($hashMessage, $privateKey);
         $decTxInfo = $this->parse_json($txInfo);
@@ -664,7 +664,7 @@ class lighter extends Exchange {
         })();
     }
 
-    public function approve_builder_fee(float $builder, float $takerFeeRate, float $makerFeeRate, float $accountIndex, float $apiKeyIndex, array $params = array()) {
+    public function approve_builder_fee(float $builder, float $takerFeeRate, float $makerFeeRate, float $accountIndex, float $apiKeyIndex, $params = array()) {
         return Async\async(function () use ($builder, $takerFeeRate, $makerFeeRate, $accountIndex, $apiKeyIndex, $params) {
             $strAccountIndex = $this->number_to_string($accountIndex);
             $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
@@ -691,7 +691,7 @@ class lighter extends Exchange {
         })();
     }
 
-    public function change_api_key(array $params = array()) {
+    public function change_api_key($params = array()) {
         return Async\async(function () use ($params) {
             $apiKeyIndex = null;
             list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'changeApiKey', 'apiKeyIndex', 'api_key_index');
@@ -893,7 +893,7 @@ class lighter extends Exchange {
         return $orders;
     }
 
-    public function fetch_nonce($accountIndex, $apiKeyIndex, $params = array()) {
+    public function fetch_nonce(mixed $accountIndex, mixed $apiKeyIndex, $params = array()) {
         return Async\async(function () use ($accountIndex, $apiKeyIndex, $params) {
             if (($accountIndex === null) || ($apiKeyIndex === null)) {
                 throw new ArgumentsRequired($this->id . ' fetchNonce() requires $accountIndex and $apiKeyIndex->');
@@ -1616,7 +1616,7 @@ class lighter extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // {
         //     "t" => 1767700500000,
@@ -1724,7 +1724,7 @@ class lighter extends Exchange {
         })();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "market_id" => 0,
@@ -2125,7 +2125,7 @@ class lighter extends Exchange {
         })();
     }
 
-    public function parse_account($account) {
+    public function parse_account(mixed $account) {
         //
         //     {
         //         "code" => "0",
@@ -2459,7 +2459,7 @@ class lighter extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type($type) {
+    public function parse_order_type(mixed $type) {
         $types = array(
             'limit' => 'limit',
             'market' => 'market',
@@ -2474,7 +2474,7 @@ class lighter extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order_type_integer($typeInteger) {
+    public function parse_order_type_integer(mixed $typeInteger) {
         if ($typeInteger === null) {
             return null;
         }
@@ -2492,7 +2492,7 @@ class lighter extends Exchange {
         return $this->safe_string($types, (string) $typeInteger);
     }
 
-    public function parse_order_time_in_force($tif) {
+    public function parse_order_time_in_force(mixed $tif) {
         $timeInForces = array(
             'immediate-or-cancel' => 'IOC',
             'good-till-time' => 'GTC',
@@ -2502,7 +2502,7 @@ class lighter extends Exchange {
         return $this->safe_string($timeInForces, $tif, $tif);
     }
 
-    public function parse_order_time_in_force_integer($tifInteger) {
+    public function parse_order_time_in_force_integer(mixed $tifInteger) {
         $timeInForces = array(
             '0' => 'immediate-or-cancel',
             '1' => 'good-till-time',
@@ -3408,7 +3408,7 @@ class lighter extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = null;
         if ($api === 'root') {
             $url = $this->implode_hostname($this->urls['api']['public']);
@@ -3433,7 +3433,7 @@ class lighter extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
         }

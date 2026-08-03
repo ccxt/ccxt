@@ -1598,7 +1598,7 @@ class hashkey extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     array(
         //         1721684280000,
@@ -1678,7 +1678,7 @@ class hashkey extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(mixed $ticker, ?array $market = null): array {
         //
         //     {
         //         "t" => 1721685896846,
@@ -1751,7 +1751,7 @@ class hashkey extends Exchange {
         return $this->parse_last_prices($response, $symbols);
     }
 
-    public function parse_last_price($entry, ?array $market = null): array {
+    public function parse_last_price(mixed $entry, ?array $market = null): array {
         $marketId = $this->safe_string($entry, 's');
         $market = $this->safe_market($marketId, $market);
         return array(
@@ -1822,7 +1822,7 @@ class hashkey extends Exchange {
         }
     }
 
-    public function parse_balance($balance): array {
+    public function parse_balance(mixed $balance): array {
         //
         //     {
         //         "balances" => array(
@@ -1858,7 +1858,7 @@ class hashkey extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_swap_balance($balance): array {
+    public function parse_swap_balance(mixed $balance): array {
         //
         //     {
         //         "balance" => "30.63364672",
@@ -1927,7 +1927,7 @@ class hashkey extends Exchange {
         return $depositAddress;
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "canDeposit" => true,
@@ -2113,7 +2113,7 @@ class hashkey extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(mixed $transaction, ?array $currency = null): array {
         //
         //  fetchDeposits
         //     {
@@ -2205,7 +2205,7 @@ class hashkey extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             '1' => 'pending',
             '2' => 'pending',
@@ -2260,7 +2260,7 @@ class hashkey extends Exchange {
         return $this->parse_transfer($response, $currency);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(mixed $transfer, ?array $currency = null) {
         $timestamp = $this->safe_integer($transfer, 'timestamp');
         $currencyId = $this->safe_string($currency, 'id');
         $status = null;
@@ -2308,7 +2308,7 @@ class hashkey extends Exchange {
         return $this->parse_accounts($response, $params);
     }
 
-    public function parse_account($account) {
+    public function parse_account(mixed $account) {
         $accountLabel = $this->safe_string($account, 'accountLabel');
         $label = '';
         if ($accountLabel === 'Main Trading Account' || $accountLabel === 'Main Future Account') {
@@ -2326,7 +2326,7 @@ class hashkey extends Exchange {
         );
     }
 
-    public function parse_account_type($type) {
+    public function parse_account_type(mixed $type) {
         $types = array(
             '1' => 'spot account',
             '3' => 'swap account',
@@ -2336,7 +2336,7 @@ class hashkey extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function encode_account_type($type) {
+    public function encode_account_type(mixed $type) {
         $types = array(
             'spot' => '1',
             'swap' => '3',
@@ -2345,7 +2345,7 @@ class hashkey extends Exchange {
         return $this->safe_integer($types, $type, $type);
     }
 
-    public function encode_flow_type($type) {
+    public function encode_flow_type(mixed $type) {
         $types = array(
             'trade' => '1',
             'fee' => '3',
@@ -2422,7 +2422,7 @@ class hashkey extends Exchange {
         return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             '1' => 'trade', // transfer
             '2' => 'fee', // trade
@@ -3591,7 +3591,7 @@ class hashkey extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function check_type_param($methodName, $params) {
+    public function check_type_param(mixed $methodName, mixed $params) {
         // some hashkey endpoints have a type param for swap markets that defines the type of an order
         // type param is reserved in ccxt for defining the type of the market
         // current method warns user if he provides the exchange specific value in type parameter
@@ -3780,7 +3780,7 @@ class hashkey extends Exchange {
         ), $market);
     }
 
-    public function parse_order_side_and_reduce_only($unparsed) {
+    public function parse_order_side_and_reduce_only(mixed $unparsed) {
         $parts = explode('_', $unparsed);
         $side = $parts[0];
         $reduceOnly = null;
@@ -3795,7 +3795,7 @@ class hashkey extends Exchange {
         return array( $side, $reduceOnly );
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'NEW' => 'open',
             'PARTIALLY_FILLED' => 'open',
@@ -3810,7 +3810,7 @@ class hashkey extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type_time_in_force_and_post_only($type, $timeInForce) {
+    public function parse_order_type_time_in_force_and_post_only(mixed $type, mixed $timeInForce) {
         $postOnly = null;
         if ($type === 'LIMIT_MAKER') {
             $postOnly = true;
@@ -3822,7 +3822,7 @@ class hashkey extends Exchange {
         return array( $type, $timeInForce, $postOnly );
     }
 
-    public function parse_order_type($type) {
+    public function parse_order_type(mixed $type) {
         $types = array(
             'MARKET' => 'market',
             'LIMIT' => 'limit',
@@ -3887,7 +3887,7 @@ class hashkey extends Exchange {
         return $this->parse_funding_rates($response, $symbols);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "ETHUSDT-PERPETUAL",
@@ -4229,7 +4229,7 @@ class hashkey extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -4310,7 +4310,7 @@ class hashkey extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
         //
         //     {
         //         "filters" => array(
@@ -4524,7 +4524,7 @@ class hashkey extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         $query = null;
         if ($api === 'private') {
@@ -4570,13 +4570,13 @@ class hashkey extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function custom_urlencode(array $params = array()): ?string {
+    public function custom_urlencode($params = array()): ?string {
         $result = $this->urlencode($params);
         $result = str_replace('%2C', ',', $result);
         return $result;
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, mixed $url, mixed $method, mixed $headers, mixed $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }
