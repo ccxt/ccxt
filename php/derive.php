@@ -976,10 +976,14 @@ class derive extends Exchange {
     public function parse_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         $result = array();
         for ($i = 0; $i < count($trades); $i++) {
-            $parsed = $this->parse_trade($trades[$i], $market);
-            if ($parsed === null) {
+            $rawTrade = $trades[$i];
+            $isFetchTrades = !(is_array($rawTrade) && array_key_exists('order_id' ?? '', $rawTrade));
+            $liquidityRole = $this->safe_string($rawTrade, 'liquidity_role');
+            if ($isFetchTrades && ($liquidityRole === 'maker')) {
+                // skip maker $trades
                 continue;
             }
+            $parsed = $this->parse_trade($rawTrade, $market);
             $trade = $this->extend($parsed, $params);
             $result[] = $trade;
         }
@@ -1019,7 +1023,6 @@ class derive extends Exchange {
         //     "extra_fee" => "0",                                         // only fetchTrades
         // }
         //
-        $isFetchTrades = !(is_array($trade) && array_key_exists('order_id' ?? '', $trade));
         $marketId = $this->safe_string($trade, 'instrument_name');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($trade, 'timestamp');
@@ -1027,11 +1030,6 @@ class derive extends Exchange {
             'currency' => 'USDC',
             'cost' => $this->safe_string($trade, 'trade_fee'),
         );
-        $takerOrMaker = $this->safe_string($trade, 'liquidity_role');
-        if ($isFetchTrades && ($takerOrMaker === 'maker')) {
-            // skip maker trades
-            return null;
-        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string($trade, 'trade_id'),
