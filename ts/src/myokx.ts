@@ -34,7 +34,7 @@ export default class myokx extends okx {
                 'spot': true,
                 'margin': undefined,
                 'swap': true,
-                'future': true,
+                'future': false,
                 'option': false,
             },
             'features': {
@@ -50,7 +50,7 @@ export default class myokx extends okx {
             'options': {
                 'mica': true,
                 'fetchMarkets': {
-                    'types': [ 'spot' ], // only spot supported for now
+                    'types': [ 'spot', 'swap' ],
                 },
             },
         });
