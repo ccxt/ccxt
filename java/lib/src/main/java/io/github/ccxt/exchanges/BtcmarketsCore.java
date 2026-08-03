@@ -1265,7 +1265,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             currency = Helpers.GetValue(market, "base");
             cost = this.amountToPrecision(symbol, amount);
         }
-        Object rate = Helpers.GetValue(market, takerOrMaker);
+        Object rate = this.safeValue(market, takerOrMaker);
         Object rateCost = Precise.stringMul(this.numberToString(rate), cost);
         Object feeCost = this.feeToPrecision(symbol, rateCost);
         if (Helpers.isTrue(Helpers.isEqual(feeCost, null)))

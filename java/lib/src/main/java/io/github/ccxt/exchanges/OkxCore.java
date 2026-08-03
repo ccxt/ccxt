@@ -6088,7 +6088,8 @@ public class OkxCore extends OkxApi
             parameters = this.omit(parameters, "network");
             code = ((String)this.safeCurrencyCode(code));
             Object network = this.networkIdToCode(rawNetwork, code);
-            Object response = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
+            Object responseRaw = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
+            Object response = ((Object)responseRaw);
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
             {
                 Object result = this.safeDict(response, network);

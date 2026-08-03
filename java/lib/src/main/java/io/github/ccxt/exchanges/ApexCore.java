@@ -843,7 +843,7 @@ public class ApexCore extends ApexApi
             }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(market, "id2") );
+                put( "symbol", ApexCore.this.safeString(market, "id2") );
             }};
             Object response = (this.publicGetV3Ticker(this.extend(request, parameters))).join();
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -909,7 +909,7 @@ public class ApexCore extends ApexApi
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "interval", ApexCore.this.safeString(ApexCore.this.timeframes, timeframe, timeframe) );
-                put( "symbol", Helpers.GetValue(market, "id2") );
+                put( "symbol", ApexCore.this.safeString(market, "id2") );
             }};
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
@@ -925,7 +925,7 @@ public class ApexCore extends ApexApi
             }
             Object response = (this.publicGetV3Klines(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object OHLCVs = this.safeList(data, Helpers.GetValue(market, "id2"), new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object OHLCVs = this.safeList(data, this.safeString(market, "id2"), new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOHLCVs(OHLCVs, market, timeframe, since, limit);
         });
 
@@ -973,7 +973,7 @@ public class ApexCore extends ApexApi
             }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(market, "id2") );
+                put( "symbol", ApexCore.this.safeString(market, "id2") );
             }};
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
@@ -1043,7 +1043,7 @@ public class ApexCore extends ApexApi
             }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(market, "id2") );
+                put( "symbol", ApexCore.this.safeString(market, "id2") );
             }};
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
@@ -1140,7 +1140,7 @@ public class ApexCore extends ApexApi
             }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", Helpers.GetValue(market, "id2") );
+                put( "symbol", ApexCore.this.safeString(market, "id2") );
             }};
             Object response = (this.publicGetV3Ticker(this.extend(request, parameters))).join();
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));

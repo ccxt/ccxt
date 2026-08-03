@@ -246,7 +246,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                     var subTypeparametersVariable = this.handleSubTypeAndParams(method, market, parameters, "linear");
                     subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
                     parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-                    url = Helpers.GetValue(Helpers.GetValue(url, accessibility), subType);
+                    url = Helpers.GetValue(Helpers.GetValue(url, accessibility), ((String)subType));
                 } else
                 {
                     // option

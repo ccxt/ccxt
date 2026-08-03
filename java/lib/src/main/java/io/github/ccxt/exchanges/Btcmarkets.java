@@ -466,6 +466,18 @@ public class Btcmarkets extends BtcmarketsCore {
     }
 
     @SuppressWarnings("unchecked")
+    public DepositWithdrawFees fetchDepositWithdrawFees(List<String> codes, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.fetchDepositWithdrawFees(codes, params));
+        return new DepositWithdrawFees(res);
+    }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFeesAsync(List<String> codes, Map<String, Object> params) {
+        return super.fetchDepositWithdrawFees(codes, params).thenApply(DepositWithdrawFees::new);
+    }
+    public DepositWithdrawFees fetchDepositWithdrawFees(String[] codes, Map<String, Object> params) { return fetchDepositWithdrawFees(codes == null ? null : java.util.Arrays.asList(codes), params); }
+    public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFeesAsync(String[] codes, Map<String, Object> params) { return fetchDepositWithdrawFeesAsync(codes == null ? null : java.util.Arrays.asList(codes), params); }
+
+    @SuppressWarnings("unchecked")
     public DepositWithdrawFee fetchDepositWithdrawFee(String code, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchDepositWithdrawFee(code, params));
         return new DepositWithdrawFee(res);

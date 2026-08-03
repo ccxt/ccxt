@@ -6854,10 +6854,10 @@ final Object finalRiskIncrVol = riskIncrVol;
         {
             if (Helpers.isTrue(Helpers.isEqual(section, "broker")))
             {
-                url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), access), "/"), path);
+                url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), ((String)access)), "/"), path);
             } else
             {
-                url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), access), "/api/"), this.version), "/"), path);
+                url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), ((String)access)), "/api/"), this.version), "/"), path);
             }
             Object urlParams = parameters;
             if (Helpers.isTrue(Helpers.isEqual(access, "private")))
@@ -6898,7 +6898,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             }
         } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(section, "contract")) || Helpers.isTrue(Helpers.isEqual(section, "spot2"))))
         {
-            url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), access), "/"), this.implodeParams(path, parameters));
+            url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section), ((String)access)), "/"), this.implodeParams(path, parameters));
             parameters = this.omit(parameters, this.extractParams(path));
             if (Helpers.isTrue(Helpers.isEqual(access, "public")))
             {

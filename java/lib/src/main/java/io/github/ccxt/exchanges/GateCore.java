@@ -2508,7 +2508,8 @@ public class GateCore extends GateApi
             var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
             networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
-            Object chainsIndexedById = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
+            Object chainsIndexedByIdRaw = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
+            Object chainsIndexedById = ((Object)chainsIndexedByIdRaw);
             Object selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks(code, networkCode, chainsIndexedById);
             return Helpers.GetValue(chainsIndexedById, ((String)selectedNetworkIdOrCode));
         });

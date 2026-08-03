@@ -1196,14 +1196,15 @@ public class WhitebitCore extends WhitebitApi
                     }
                 }
                 // Build comprehensive funding limits
+                Object currencyLimits = this.safeDict(currency, "limits", new java.util.HashMap<String, Object>() {{}});
                 Object limits = new java.util.HashMap<String, Object>() {{
                     put( "deposit", new java.util.HashMap<String, Object>() {{
-                        put( "min", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(currency, "limits"), "deposit"), "min") );
-                        put( "max", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(currency, "limits"), "deposit"), "max") );
+                        put( "min", Helpers.GetValue(Helpers.GetValue(currencyLimits, "deposit"), "min") );
+                        put( "max", Helpers.GetValue(Helpers.GetValue(currencyLimits, "deposit"), "max") );
                     }} );
                     put( "withdraw", new java.util.HashMap<String, Object>() {{
-                        put( "min", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(currency, "limits"), "withdraw"), "min") );
-                        put( "max", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(currency, "limits"), "withdraw"), "max") );
+                        put( "min", Helpers.GetValue(Helpers.GetValue(currencyLimits, "withdraw"), "min") );
+                        put( "max", Helpers.GetValue(Helpers.GetValue(currencyLimits, "withdraw"), "max") );
                     }} );
                 }};
                 // Add fee information if available

@@ -2564,7 +2564,7 @@ public class ExtendedCore extends ExtendedApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            return this.parseLeverage(this.safeDict(data, 0), market);
+            return this.parseLeverage(this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}}), market);
         });
 
     }

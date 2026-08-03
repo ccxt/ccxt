@@ -614,7 +614,7 @@ public class BitmexCore extends BitmexApi
         Object market = this.market(symbol);
         if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
         {
-            return this.parseNumber(this.convertToRealAmount(Helpers.GetValue(market, currencySide), rawQuantity));
+            return this.parseNumber(this.convertToRealAmount(this.safeString(market, currencySide), rawQuantity));
         }
         return this.parseNumber(rawQuantity);
     }

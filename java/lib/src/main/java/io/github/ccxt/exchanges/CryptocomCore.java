@@ -2506,7 +2506,8 @@ public class CryptocomCore extends CryptocomApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object network = this.safeStringUpper(parameters, "network");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("network")));
-            Object depositAddresses = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
+            Object depositAddressesRaw = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
+            Object depositAddresses = ((Object)depositAddressesRaw);
             if (Helpers.isTrue(Helpers.inOp(depositAddresses, ((String)network))))
             {
                 return Helpers.GetValue(depositAddresses, ((String)network));

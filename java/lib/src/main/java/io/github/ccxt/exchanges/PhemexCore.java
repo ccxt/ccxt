@@ -1361,7 +1361,7 @@ public class PhemexCore extends PhemexApi
         {
             return price;
         }
-        return this.toEn(price, Helpers.GetValue(market, "priceScale"));
+        return this.toEn(price, this.safeValue(market, "priceScale"));
     }
 
     public Object fromEn(Object en, Object scale)
@@ -4238,7 +4238,7 @@ public class PhemexCore extends PhemexApi
         Object networkId = this.safeString(transaction, "chainName");
         Object timestamp = this.safeIntegerN(transaction, new java.util.ArrayList<Object>(java.util.Arrays.asList("createdAt", "submitedAt", "submittedAt")));
         Object type = this.safeStringLower(transaction, "type");
-        Object feeCost = this.parseNumber(this.fromEn(this.safeString(transaction, "feeEv"), Helpers.GetValue(currency, "valueScale")));
+        Object feeCost = this.parseNumber(this.fromEn(this.safeString(transaction, "feeEv"), this.safeValue(currency, "valueScale")));
         if (Helpers.isTrue(Helpers.isEqual(feeCost, null)))
         {
             feeCost = this.safeNumber(transaction, "feeRv");
@@ -4254,7 +4254,7 @@ public class PhemexCore extends PhemexApi
             }};
         }
         Object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        Object amount = this.parseNumber(this.fromEn(this.safeString(transaction, "amountEv"), Helpers.GetValue(currency, "valueScale")));
+        Object amount = this.parseNumber(this.fromEn(this.safeString(transaction, "amountEv"), this.safeValue(currency, "valueScale")));
         if (Helpers.isTrue(Helpers.isEqual(amount, null)))
         {
             amount = this.safeNumber(transaction, "amountRv");

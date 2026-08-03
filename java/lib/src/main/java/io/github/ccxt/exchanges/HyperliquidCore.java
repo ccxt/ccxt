@@ -1341,7 +1341,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "l2Book" );
-                put( "coin", ((Helpers.isTrue(Helpers.GetValue(market, "swap")))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
+                put( "coin", ((Helpers.isTrue(Helpers.GetValue(market, "swap")))) ? HyperliquidCore.this.safeString(market, "baseName") : Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
             //
@@ -1685,7 +1685,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "candleSnapshot" );
                 put( "req", new java.util.HashMap<String, Object>() {{
-                    put( "coin", ((Helpers.isTrue(Helpers.GetValue(market, "swap")))) ? Helpers.GetValue(market, "baseName") : Helpers.GetValue(market, "id") );
+                    put( "coin", ((Helpers.isTrue(Helpers.GetValue(market, "swap")))) ? HyperliquidCore.this.safeString(market, "baseName") : Helpers.GetValue(market, "id") );
                     put( "interval", HyperliquidCore.this.safeString(HyperliquidCore.this.timeframes, timeframe, timeframe) );
                     put( "startTime", finalSince );
                     put( "endTime", until );
@@ -3592,7 +3592,7 @@ final Object finalClientOrderId = clientOrderId;
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "fundingHistory" );
-                put( "coin", Helpers.GetValue(market, "baseName") );
+                put( "coin", HyperliquidCore.this.safeString(market, "baseName") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {

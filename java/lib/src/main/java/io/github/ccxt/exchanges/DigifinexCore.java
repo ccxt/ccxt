@@ -4579,7 +4579,7 @@ public class DigifinexCore extends DigifinexApi
                 {
                     throw new ExchangeError((String)Helpers.add(this.id, " fetchTransfers() could not resolve currency")) ;
                 }
-                Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
+                Helpers.addElementToObject(request, "currency", Helpers.GetValue(((Object)currency), "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {

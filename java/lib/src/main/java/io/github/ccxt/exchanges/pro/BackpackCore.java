@@ -193,9 +193,10 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                 } else
                 {
                     Object symbol = Helpers.replace((String)messageHash, (String)"unsubscribe:orders:", (String)"");
-                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.orders, null))) && Helpers.isTrue((Helpers.inOp(this.orders, symbol)))))
+                    Object cache = this.orders;
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(cache, null))) && Helpers.isTrue((Helpers.inOp(cache, symbol)))))
                     {
-                        ((java.util.Map<String,Object>)this.orders).remove((String)symbol);
+                        ((java.util.Map<String,Object>)cache).remove((String)symbol);
                     }
                 }
             } else if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "positions"), 0)))
