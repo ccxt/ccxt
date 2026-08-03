@@ -13,6 +13,7 @@ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'defau
 
 var crypto__default = /*#__PURE__*/_interopDefaultLegacy(crypto);
 
+// ----------------------------------------------------------------------------
 // RSASSA-PKCS1-v1_5 (and RSASSA-PSS via padding = 'pss') signing through Node's built-in
 // `crypto` module. This is synchronous and works in Node.js / Bun / Deno (anything exposing
 // node:crypto). It is NOT available in the browser bundle (rspack stubs the `crypto` module),

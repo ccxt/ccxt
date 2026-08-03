@@ -5407,7 +5407,7 @@ public partial class xt : Exchange
         object response = null;
         if (isTrue(isEqual(subType, "inverse")))
         {
-            response = await ((Task<object>)callDynamically(this, "privateInversePostFutureUserV1PositionChangeType", new object[] { this.extend(request, parameters) }));
+            response = await this.privateInversePostFutureUserV1PositionChangeType(this.extend(request, parameters));
         } else
         {
             response = await this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, parameters));

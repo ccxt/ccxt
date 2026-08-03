@@ -5751,7 +5751,7 @@ final Object finalMarket = market;
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "privateInversePostFutureUserV1PositionChangeType", new Object[] { this.extend(request, parameters) })).join();
+                response = (this.privateInversePostFutureUserV1PositionChangeType(this.extend(request, parameters))).join();
             } else
             {
                 response = (this.privateLinearPostFutureUserV1PositionChangeType(this.extend(request, parameters))).join();

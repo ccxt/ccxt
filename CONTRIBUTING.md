@@ -186,7 +186,7 @@ The contents of the repository are structured as follows:
 /README.md                 # master markdown for GitHub, npmjs.com, npms.io, yarn and others
 /build/                    # build scripts
 /build/export-exchanges.js # used to create tables of exchanges in the docs during the build
-/build/transpile.js        # the transpilation script
+/build/transpile.ts        # the transpilation script
 /build/update-badges.js    # a JS script to update badges in the README and in docs
 /build/vss.js              # reads single-sourced version from package.json and writes it everywhere
 /dist/                     # a folder for the generated browser bundle of CCXT

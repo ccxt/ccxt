@@ -8,7 +8,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var crypto = require('../base/functions/crypto.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class backpack extends backpack$1["default"] {
     describe() {
