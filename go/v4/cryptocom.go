@@ -28,7 +28,7 @@ func (this *CryptocomCore) Describe() any {
 			"margin":                         true,
 			"swap":                           true,
 			"future":                         true,
-			"option":                         true,
+			"option":                         false,
 			"addMargin":                      false,
 			"cancelAllOrders":                true,
 			"cancelOrder":                    true,
