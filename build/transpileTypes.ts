@@ -19,10 +19,12 @@ import { extractTypesIR, TypesIR } from './typesIR.js';
 export interface EmitterOutput {
     /** repo-relative path of the file this emitter owns */
     path: string;
-    /** full new contents */
+    /** full new contents (ignored when `delete` is true) */
     contents: string;
     /** type names whose block changed */
     changed: string[];
+    /** when true, remove the file if it exists (type dropped from types.ts) */
+    delete?: boolean;
 }
 
 export interface LanguageEmitter {
@@ -123,6 +125,24 @@ async function main () {
         for (let o = 0; o < outputs.length; o++) {
             const output = outputs[o];
             const absolute = path.join (repoRoot, output.path);
+            if (output.delete === true) {
+                if (!fs.existsSync (absolute)) {
+                    console.log ('  ok      ' + output.path + '  (already absent)');
+                    continue;
+                }
+                stale += 1;
+                if (showDiff) {
+                    console.log ('--- a/' + output.path + '\n+++ /dev/null\n' + fs.readFileSync (absolute, 'utf8').split ('\n').map ((l) => '-' + l).join ('\n'));
+                }
+                if (check) {
+                    console.log ('  STALE   ' + output.path + '  (should delete)');
+                    continue;
+                }
+                fs.unlinkSync (absolute);
+                written += 1;
+                console.log ('  deleted ' + output.path + (output.changed.length > 0 ? '  (' + output.changed.join (', ') + ')' : ''));
+                continue;
+            }
             const before = fs.existsSync (absolute) ? fs.readFileSync (absolute, 'utf8') : '';
             if (before === output.contents) {
                 console.log ('  ok      ' + output.path);

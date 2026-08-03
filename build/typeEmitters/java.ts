@@ -597,14 +597,54 @@ function renderInterface (ir: TypesIR, className: string, fields: IRField[], exi
 }
 
 /**
+ * Map-field name inside a Dictionary wrapper class. Port-local (TS has no name); kept as an
+ * explicit table so a missing file is recreated with the same public shape as before.
+ */
+const DICT_FIELD: Record<string, string> = {
+    'Tickers': 'tickers',
+    'PredictionTickers': 'tickers',
+    'FundingRates': 'rates',
+    'IsolatedBorrowRates': 'rates',
+    'CrossBorrowRates': 'rates',
+    'Currencies': 'currencies',
+    'OrderBooks': 'orderBooks',
+    'DepositWithdrawFees': 'fees',
+    'TradingFees': 'fees',
+    'OpenInterests': 'interests',
+    'Leverages': 'leverages',
+    'LastPrices': 'prices',
+    'MarginModes': 'modes',
+    'OptionChain': 'options',
+    'LeverageTiers': 'tiers',
+};
+
+/** Wrappers that store a top-level `info` map and skip the `"info"` key when filling the bag. */
+const DICT_HAS_INFO: Record<string, boolean> = {
+    'Tickers': true,
+    'PredictionTickers': true,
+    'DepositWithdrawFees': true,
+    'TradingFees': true,
+};
+
+/** Wrappers that skip `"info"` in the fill loop without exposing an `info` field (Currencies). */
+const DICT_SKIP_INFO_KEY: Record<string, boolean> = {
+    'Tickers': true,
+    'PredictionTickers': true,
+    'DepositWithdrawFees': true,
+    'TradingFees': true,
+    'Currencies': true,
+};
+
+/**
  * `export interface Tickers extends Dictionary<Ticker> {}` is modelled in Java by a bespoke
  * collection wrapper — a `Map<String, T>` field whose name (`rates` / `tickers` / `tiers` /
  * ...), its population loop and its throwing `get()` accessor are all port-local choices TS
  * knows nothing about. The one thing TS *does* decide is `T`, and that is exactly the drift
- * that bites (#29502: a stale element type silently yields null-filled rows). So the wrapper
- * body is preserved verbatim and only the element class is re-bound to the TS value type.
+ * that bites (#29502: a stale element type silently yields null-filled rows). When the file
+ * already exists the body is preserved and only the element class is re-bound; when it is
+ * missing (e.g. `rm -f …/Tickers.java`) a full wrapper is written from DICT_FIELD / DICT_HAS_INFO.
  */
-function renderDictionary (ir: TypesIR, className: string, valueType: string, existing: ExistingFile): string | undefined {
+function renderDictionary (ir: TypesIR, className: string, valueType: string, existing: ExistingFile | undefined): string | undefined {
     let element = stripNullish (valueType).trim ();
     let elementIsList = false;
     if (element.endsWith ('[]')) {
@@ -614,6 +654,9 @@ function renderDictionary (ir: TypesIR, className: string, valueType: string, ex
     const elementClass = classFor (ir, element);
     if (elementClass === undefined) {
         return undefined;
+    }
+    if (existing === undefined) {
+        return renderNewDictionary (className, elementClass, elementIsList);
     }
     // the map field is the only Map<String, ...> that is not the raw `info` payload
     let current: string | undefined = undefined;
@@ -642,6 +685,65 @@ function renderDictionary (ir: TypesIR, className: string, valueType: string, ex
         return existing.text;
     }
     return existing.text.replace (new RegExp ('\\b' + current + '\\b', 'g'), elementClass);
+}
+
+function renderNewDictionary (className: string, elementClass: string, elementIsList: boolean): string | undefined {
+    const fieldName = DICT_FIELD[className];
+    if (fieldName === undefined) {
+        return undefined;
+    }
+    const mapValue = elementIsList ? ('List<' + elementClass + '>') : elementClass;
+    const hasInfo = DICT_HAS_INFO[className] === true;
+    const skipInfo = DICT_SKIP_INFO_KEY[className] === true;
+    // match existing ports: list wrappers use the map field's first letter (`t` for tiers)
+    const shortVar = elementIsList ? fieldName.charAt (0) : elementClass.charAt (0).toLowerCase ();
+    const out: string[] = [ 'package io.github.ccxt.types;', '' ];
+    out.push ('import java.util.LinkedHashMap;');
+    if (elementIsList) {
+        out.push ('import java.util.List;');
+    }
+    out.push ('import java.util.Map;');
+    out.push ('import java.util.NoSuchElementException;');
+    if (elementIsList) {
+        out.push ('import java.util.stream.Collectors;');
+    }
+    out.push ('');
+    out.push ('public final class ' + className + ' {');
+    out.push (INDENT + 'public Map<String, ' + mapValue + '> ' + fieldName + ';');
+    if (hasInfo) {
+        out.push (INDENT + 'public Map<String, Object> info;');
+    }
+    out.push ('');
+    out.push (INDENT + '@SuppressWarnings("unchecked")');
+    out.push (INDENT + 'public ' + className + '(Object raw) {');
+    out.push (BODY + 'Map<String, Object> data = TypeHelper.toMap(raw);');
+    if (hasInfo) {
+        out.push (BODY + 'this.info = TypeHelper.getInfo(data);');
+    }
+    out.push (BODY + 'this.' + fieldName + ' = new LinkedHashMap<>();');
+    out.push (BODY + 'for (Map.Entry<String, Object> entry : data.entrySet()) {');
+    if (elementIsList) {
+        out.push (BODY + INDENT + 'if (entry.getValue() instanceof List<?> list) {');
+        out.push (BODY + INDENT + INDENT + 'this.' + fieldName + '.put(entry.getKey(),');
+        out.push (BODY + INDENT + INDENT + INDENT + '((List<Object>) list).stream().map(' + elementClass + '::new).collect(Collectors.toList()));');
+        out.push (BODY + INDENT + '}');
+    } else if (skipInfo) {
+        out.push (BODY + INDENT + 'if (!"info".equals(entry.getKey())) {');
+        out.push (BODY + INDENT + INDENT + 'this.' + fieldName + '.put(entry.getKey(), new ' + elementClass + '(entry.getValue()));');
+        out.push (BODY + INDENT + '}');
+    } else {
+        out.push (BODY + INDENT + 'this.' + fieldName + '.put(entry.getKey(), new ' + elementClass + '(entry.getValue()));');
+    }
+    out.push (BODY + '}');
+    out.push (INDENT + '}');
+    out.push ('');
+    out.push (INDENT + 'public ' + mapValue + ' get(String key) {');
+    out.push (BODY + mapValue + ' ' + shortVar + ' = ' + fieldName + '.get(key);');
+    out.push (BODY + 'if (' + shortVar + ' == null) throw new NoSuchElementException("Key not found: " + key);');
+    out.push (BODY + 'return ' + shortVar + ';');
+    out.push (INDENT + '}');
+    out.push ('}');
+    return out.join ('\n') + '\n';
 }
 
 /**
@@ -689,7 +791,24 @@ function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
             classNames.push (name);
         }
     }
+    // Dictionary wrappers (Tickers, FundingRates, ...) must be recreated even when the .java
+    // file was deleted and the name is not in KNOWN_TYPES — they are first-class type ports.
+    const dictNames = Object.keys (DICT_FIELD);
+    for (let i = 0; i < dictNames.length; i++) {
+        const name = dictNames[i];
+        if (present[name] !== true && SKIPPED[name] === undefined && classNames.indexOf (name) < 0) {
+            classNames.push (name);
+        }
+    }
+    const inlineNames = Object.keys (INLINE_SOURCES);
+    for (let i = 0; i < inlineNames.length; i++) {
+        const name = inlineNames[i];
+        if (present[name] !== true && SKIPPED[name] === undefined && classNames.indexOf (name) < 0) {
+            classNames.push (name);
+        }
+    }
     classNames.sort ();
+    const emitted: Record<string, boolean> = {};
     for (let i = 0; i < classNames.length; i++) {
         const className = classNames[i];
         if (className === 'TypeHelper' || SKIPPED[className] !== undefined) {
@@ -721,11 +840,11 @@ function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
                 continue;
             }
             contents = renderInterface (ir, className, declaration.fields, existing);
-        } else if (declaration !== undefined && declaration.kind === 'dictionary' && declaration.valueType !== undefined && existing !== undefined) {
+        } else if (declaration !== undefined && declaration.kind === 'dictionary' && declaration.valueType !== undefined) {
             contents = renderDictionary (ir, className, declaration.valueType, existing);
         }
         if (contents === undefined) {
-            if (existing === undefined) {
+            if (existing === undefined && required.indexOf (className) >= 0) {
                 // the wrapper generator will emit this name into typed overloads regardless,
                 // so failing to produce the class is a compile break, not a skip
                 throw new Error ('java type emitter: cannot generate ' + relative + ' for KNOWN_TYPES entry "'
@@ -735,10 +854,42 @@ function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
             continue;
         }
         contents = ensureGeneratedBanner (contents, '//');
+        emitted[className] = true;
         outputs.push ({
             'path': relative,
             'contents': contents,
             'changed': existing === undefined ? [ className + ' (new)' ] : (contents === existing.text ? [] : [ className ]),
+        });
+    }
+    // Drop generated POJOs whose TS source disappeared (hand-written SKIPPED / TypeHelper stay).
+    for (let i = 0; i < entries.length; i++) {
+        if (!entries[i].endsWith ('.java')) {
+            continue;
+        }
+        const className = entries[i].slice (0, -5);
+        if (className === 'TypeHelper' || SKIPPED[className] !== undefined || emitted[className] === true) {
+            continue;
+        }
+        const relative = path.join (TYPES_DIR, className + '.java');
+        const absolute = path.join (repoRoot, relative);
+        if (!fs.existsSync (absolute)) {
+            continue;
+        }
+        const text = fs.readFileSync (absolute, 'utf8');
+        if (text.indexOf ('PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:') < 0) {
+            continue;
+        }
+        const tsName = CLASS_TO_TS[className] !== undefined ? CLASS_TO_TS[className] : className;
+        const stillInTs = ir.byName[tsName] !== undefined || INLINE_SOURCES[className] !== undefined;
+        if (stillInTs) {
+            // still declared in TS but this emitter does not own the file shape — leave it
+            continue;
+        }
+        outputs.push ({
+            'path': relative,
+            'contents': '',
+            'changed': [ className + ' (removed from types.ts)' ],
+            'delete': true,
         });
     }
     return outputs;
