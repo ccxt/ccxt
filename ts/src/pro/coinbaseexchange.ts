@@ -60,7 +60,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         };
     }
 
-    async subscribe (name, symbol: Str = undefined, messageHashStart: Str = undefined, params = {}) {
+    async subscribe (name: string, symbol: Str = undefined, messageHashStart: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -88,7 +88,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async subscribeMultiple (name, symbols: string[] = [], messageHashStart: Str = undefined, params = {}) {
+    async subscribeMultiple (name: any, symbols: string[] = [], messageHashStart: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -408,7 +408,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return orderbook.limit ();
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: any) {
         //
         //     {
         //         "type": "match",
@@ -446,7 +446,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return message;
     }
 
-    handleMyTrade (client: Client, message) {
+    handleMyTrade (client: Client, message: any) {
         const marketId = this.safeString (message, 'product_id');
         if (marketId !== undefined) {
             const trade = this.parseWsTrade (message);
@@ -464,7 +464,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return message;
     }
 
-    override parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         // private trades
         // {
@@ -550,7 +550,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return parsed;
     }
 
-    parseWsOrderStatus (status) {
+    parseWsOrderStatus (status: any) {
         const statuses: Dict = {
             'filled': 'closed',
             'canceled': 'canceled',
@@ -558,7 +558,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return this.safeString (statuses, status, 'open');
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         // Order is created
         //
@@ -715,7 +715,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
                         client.resolve (orders, messageHash);
                     } else if ((type === 'received') || (type === 'done')) {
                         const info = this.extend (previousOrder['info'], message);
-                        const order = this.parseWsOrder (info);
+                        const order: Dict = this.parseWsOrder (info);
                         const keys = Object.keys (order);
                         // update the reference
                         for (let i = 0; i < keys.length; i++) {
@@ -736,7 +736,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         }
     }
 
-    override parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         const id = this.safeString (order, 'order_id');
         const clientOrderId = this.safeString (order, 'client_oid');
         const marketId = this.safeString (order, 'product_id');
@@ -786,7 +786,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         });
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //     {
         //         "type": "ticker",
@@ -821,7 +821,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return message;
     }
 
-    override parseTicker (ticker, market: Market = undefined): Ticker {
+    override parseTicker (ticker: any, market: Market = undefined): Ticker {
         //
         //     {
         //         "type": "ticker",
@@ -875,19 +875,19 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         });
     }
 
-    override handleDelta (bookside, delta) {
+    override handleDelta (bookside: any, delta: any) {
         const price = this.safeNumber (delta, 0);
         const amount = this.safeNumber (delta, 1);
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         // first message (snapshot)
         //
@@ -953,7 +953,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //     {
         //         "type": "subscriptions",
@@ -968,7 +968,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //     {
         //         "type": "error",
@@ -998,7 +998,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         }
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         const type = this.safeString (message, 'type');
         const methods: Dict = {
             'snapshot': this.handleOrderBook,

@@ -307,7 +307,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    handlePositions (client, message) {
+    handlePositions (client: any, message: any) {
         //
         //    {
         //        feed: 'open_positions',
@@ -363,7 +363,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (newPositions, 'positions');
     }
 
-    parseWsPosition (position, market: Market = undefined) {
+    parseWsPosition (position: any, market: Market = undefined) {
         //
         //        {
         //            instrument: 'PF_LTCUSD',
@@ -501,7 +501,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return await this.subscribePrivate (name, messageHash, params);
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: any) {
         //
         // snapshot
         //
@@ -566,7 +566,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    override parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         //    {
         //        "feed": "trade",
@@ -619,7 +619,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }, market);
     }
 
-    override parseWsOrderTrade (trade, market: Market = undefined) {
+    override parseWsOrderTrade (trade: Dict, market: Market = undefined) {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -671,7 +671,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }, market);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         //  update (verbose)
         //
@@ -823,7 +823,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return message;
     }
 
-    handleOrderSnapshot (client: Client, message) {
+    handleOrderSnapshot (client: Client, message: any) {
         //
         // verbose
         //
@@ -897,7 +897,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    override parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         // update
         //
@@ -978,7 +978,7 @@ export default class krakenfutures extends krakenfuturesRest {
         });
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //    {
         //        "time": 1680811086487,
@@ -1022,7 +1022,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    handleBidAsk (client: Client, message) {
+    handleBidAsk (client: Client, message: any) {
         //
         //    {
         //        "feed": "ticker_lite",
@@ -1051,7 +1051,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    parseWsTicker (ticker, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //    {
         //        "time": 1680811086487,
@@ -1132,7 +1132,7 @@ export default class krakenfutures extends krakenfuturesRest {
         });
     }
 
-    handleOrderBookSnapshot (client: Client, message) {
+    handleOrderBookSnapshot (client: Client, message: any) {
         //
         //    {
         //        "feed": "book_snapshot",
@@ -1199,7 +1199,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //    {
         //        "feed": "book",
@@ -1232,7 +1232,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         // snapshot
         //
@@ -1456,7 +1456,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (this.balance, messageHash);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         //    {
         //        "feed": "fills_snapshot",
@@ -1507,7 +1507,7 @@ export default class krakenfutures extends krakenfuturesRest {
         client.resolve (stored, 'myTrades');
     }
 
-    parseWsMyTrade (trade, market: Market = undefined) {
+    parseWsMyTrade (trade: any, market: Market = undefined) {
         //
         //    {
         //        "instrument": "FI_XBTUSD_200925",
@@ -1602,7 +1602,7 @@ export default class krakenfutures extends krakenfuturesRest {
         return messageHash;
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //    {
         //        event: 'alert',
@@ -1630,7 +1630,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    override handleMessage (client, message) {
+    override handleMessage (client: any, message: any) {
         const event = this.safeString (message, 'event');
         if (event === 'challenge') {
             this.handleAuthenticate (client, message);
@@ -1665,7 +1665,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
     }
 
-    handleAuthenticate (client: Client, message) {
+    handleAuthenticate (client: Client, message: any) {
         /**
          * @ignore
          * @method

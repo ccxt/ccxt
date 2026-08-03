@@ -60,7 +60,7 @@ export default class backpack extends backpackRest {
         });
     }
 
-    async watchPublic (topics, messageHashes, params = {}, unwatch = false) {
+    async watchPublic (topics: any, messageHashes: any, params = {}, unwatch = false) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -78,7 +78,7 @@ export default class backpack extends backpackRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
-    async watchPrivate (topics, messageHashes, params = {}, unwatch = false) {
+    async watchPrivate (topics: any, messageHashes: any, params = {}, unwatch = false) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws']['private'];
         const instruction = 'subscribe';
@@ -140,7 +140,7 @@ export default class backpack extends backpackRest {
                 }
             } else if (messageHash.indexOf ('orders') >= 0) {
                 if (messageHash === 'unsubscribe:orders') {
-                    const cache = this.orders;
+                    const cache = this.orders as Dict;
                     if (cache !== undefined) {
                         const keys = Object.keys (cache);
                         for (let j = 0; j < keys.length; j++) {
@@ -150,8 +150,9 @@ export default class backpack extends backpackRest {
                     }
                 } else {
                     const symbol = messageHash.replace ('unsubscribe:orders:', '');
-                    if ((this.orders !== undefined) && (symbol in this.orders)) {
-                        delete this.orders[symbol];
+                    const cache = this.orders as Dict;
+                    if ((cache !== undefined) && (symbol in cache)) {
+                        delete cache[symbol];
                     }
                 }
             } else if (messageHash.indexOf ('positions') >= 0) {
@@ -256,7 +257,7 @@ export default class backpack extends backpackRest {
         return await this.watchPublic (topics, messageHashes, params, true);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //     {
         //         data: {
@@ -380,7 +381,7 @@ export default class backpack extends backpackRest {
         return await this.watchPublic (topics, messageHashes, params, true);
     }
 
-    handleBidAsk (client: Client, message) {
+    handleBidAsk (client: Client, message: any) {
         //
         //     {
         //         data: {
@@ -406,7 +407,7 @@ export default class backpack extends backpackRest {
         client.resolve (parsedBidAsk, messageHash);
     }
 
-    parseWsBidAsk (ticker, market: Market = undefined) {
+    parseWsBidAsk (ticker: any, market: Market = undefined) {
         //
         //     {
         //         A: '0.4087',
@@ -541,7 +542,7 @@ export default class backpack extends backpackRest {
         return await this.watchPublic (topics, messageHashes, params, true);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         data: {
@@ -583,7 +584,7 @@ export default class backpack extends backpackRest {
         client.resolve ([ symbol, timeframe, ohlcv ], messageHash);
     }
 
-    override parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         E: '1754519557526056',
@@ -705,7 +706,7 @@ export default class backpack extends backpackRest {
         return await this.watchPublic (topics, messageHashes, params, true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     {
         //         data: {
@@ -740,7 +741,7 @@ export default class backpack extends backpackRest {
         client.resolve (cache, 'trades');
     }
 
-    override parseWsTrade (trade, market: Market = undefined): Trade {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         //
         //     {
         //         E: '1754601477746429',
@@ -882,7 +883,7 @@ export default class backpack extends backpackRest {
         return await this.watchPublic (topics, messageHashes, params, true);
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -928,7 +929,7 @@ export default class backpack extends backpackRest {
         client.resolve (storedOrderBook, messageHash);
     }
 
-    override handleDelta (orderbook, delta) {
+    override handleDelta (orderbook: any, delta: any) {
         const timestamp = this.parseToInt (this.safeInteger (delta, 'T', 0) / 1000);
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
@@ -941,14 +942,14 @@ export default class backpack extends backpackRest {
         this.handleBidAsks (storedAsks, asks);
     }
 
-    handleBidAsks (bookSide, bidAsks) {
+    handleBidAsks (bookSide: any, bidAsks: any) {
         for (let i = 0; i < bidAsks.length; i++) {
             const bidAsk = this.parseOrderBookBidAsk (bidAsks[i]);
             bookSide.storeArray (bidAsk);
         }
     }
 
-    override getCacheIndex (orderbook, cache) {
+    override getCacheIndex (orderbook: any, cache: any) {
         //
         // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
         const firstDelta = this.safeDict (cache, 0);
@@ -1037,7 +1038,7 @@ export default class backpack extends backpackRest {
         return await this.watchPrivate ([ topic ], [ messageHash ], params, true);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         //     {
         //         data: {
@@ -1080,7 +1081,7 @@ export default class backpack extends backpackRest {
         client.resolve (orders, symbolSpecificMessageHash);
     }
 
-    override parseWsOrder (order, market: Market = undefined): Order {
+    override parseWsOrder (order: any, market: Market = undefined): Order {
         //
         //     {
         //         E: '1754939110175879',
@@ -1241,7 +1242,7 @@ export default class backpack extends backpackRest {
         return await this.watchPrivate (topics, messageHashes, params, true);
     }
 
-    handlePositions (client, message) {
+    handlePositions (client: any, message: any) {
         //
         //     {
         //         data: {
@@ -1282,7 +1283,7 @@ export default class backpack extends backpackRest {
         client.resolve ([ parsedPosition ], symbolSpecificMessageHash);
     }
 
-    parseWsPosition (position, market: Market = undefined) {
+    parseWsPosition (position: any, market: Market = undefined) {
         //
         //     {
         //         B: '4236.36',
@@ -1358,7 +1359,7 @@ export default class backpack extends backpackRest {
         });
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
@@ -1381,7 +1382,7 @@ export default class backpack extends backpackRest {
         }
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //     {
         //         id: null,

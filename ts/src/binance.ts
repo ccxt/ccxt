@@ -3025,8 +3025,8 @@ export default class binance extends Exchange {
         return this.parseCurrenciesCustom (responseCurrencies, marginablesById);
     }
 
-    parseCurrenciesCustom (responseCurrencies, marginablesById): Currencies {
-        const result = {};
+    parseCurrenciesCustom (responseCurrencies: any, marginablesById: any): Currencies {
+        const result: Dict = {};
         for (let i = 0; i < responseCurrencies.length; i++) {
             const parsed = this.parseCurrency (responseCurrencies[i]);
             if (parsed === undefined) {
@@ -3726,7 +3726,7 @@ export default class binance extends Exchange {
         return this.safeMarketStructure (entry);
     }
 
-    parseBalanceHelper (entry) {
+    parseBalanceHelper (entry: any) {
         const account = this.account ();
         account['used'] = this.safeString (entry, 'locked');
         account['free'] = this.safeString (entry, 'free');
@@ -3736,8 +3736,8 @@ export default class binance extends Exchange {
         return account;
     }
 
-    parseBalanceCustom (response, type: Str = undefined, marginMode: Str = undefined, isPortfolioMargin = false): Balances {
-        const result = {
+    parseBalanceCustom (response: any, type: Str = undefined, marginMode: Str = undefined, isPortfolioMargin = false): Balances {
+        const result: Dict = {
             'info': response,
         };
         let timestamp: Int = undefined;
@@ -3865,7 +3865,7 @@ export default class binance extends Exchange {
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
-        return isolated ? result : this.safeBalance (result);
+        return isolated ? (result as Balances) : this.safeBalance (result);
     }
 
     /**
@@ -4591,7 +4591,7 @@ export default class binance extends Exchange {
         return this.parseLastPrices (response, symbols);
     }
 
-    override parseLastPrice (entry, market: Market = undefined) {
+    override parseLastPrice (entry: any, market: Market = undefined) {
         //
         // spot
         //
@@ -4687,7 +4687,7 @@ export default class binance extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseTickersForRolling (response, symbols) {
+    parseTickersForRolling (response: any, symbols: any) {
         const results: List = [];
         for (let i = 0; i < response.length; i++) {
             const marketId = this.safeString (response[i], 'symbol');
@@ -4771,7 +4771,7 @@ export default class binance extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
         //     [
         //         1591478520000, // open time
@@ -7096,7 +7096,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createMarketSellOrderWithCost (symbol: string, cost: number, params = {}) {
+    override async createMarketSellOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8619,7 +8619,7 @@ export default class binance extends Exchange {
         return this.filterBySinceLimit (trades, since, limit);
     }
 
-    parseDustTrade (trade, market: Market = undefined) {
+    parseDustTrade (trade: any, market: Market = undefined) {
         //
         //     {
         //       "fromAsset": "USDT",
@@ -8958,7 +8958,7 @@ export default class binance extends Exchange {
         return this.parseTransactions (responseList, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status, type: Str = undefined) {
+    parseTransactionStatusByType (status: any, type: Str = undefined) {
         if (type === undefined) {
             return status;
         }
@@ -9241,7 +9241,7 @@ export default class binance extends Exchange {
         };
     }
 
-    override parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         //     {
         //       "symbol": "ETHUSDT",
@@ -9561,7 +9561,7 @@ export default class binance extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (response, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (response: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "coin": "XRP",
@@ -9772,7 +9772,7 @@ export default class binance extends Exchange {
         return this.parseDepositWithdrawFees (response, codes, 'coin');
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //    {
         //        "coin": "BAT",
@@ -10123,9 +10123,9 @@ export default class binance extends Exchange {
             const symbols = Object.keys (markets);
             const result: Dict = {};
             const feeTier = this.safeInteger (response, 'feeTier');
-            const feeTiers = this.fees['linear']['trading']['tiers'];
-            const maker = feeTiers['maker'][feeTier][1];
-            const taker = feeTiers['taker'][feeTier][1];
+            const feeTiers = (this.fees as Dict)['linear']['trading']['tiers'];
+            const maker = feeTiers['maker'][feeTier as number][1];
+            const taker = feeTiers['taker'][feeTier as number][1];
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = markets[symbol];
@@ -10158,9 +10158,9 @@ export default class binance extends Exchange {
             const symbols = Object.keys (markets);
             const result: Dict = {};
             const feeTier = this.safeInteger (response, 'feeTier');
-            const feeTiers = this.fees['inverse']['trading']['tiers'];
-            const maker = feeTiers['maker'][feeTier][1];
-            const taker = feeTiers['taker'][feeTier][1];
+            const feeTiers = (this.fees as Dict)['inverse']['trading']['tiers'];
+            const maker = feeTiers['maker'][feeTier as number][1];
+            const taker = feeTiers['taker'][feeTier as number][1];
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = markets[symbol];
@@ -10193,7 +10193,7 @@ export default class binance extends Exchange {
      * @param {float} params.recvWindow
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=futures-transfer-structure}
      */
-    async futuresTransfer (code: string, amount, type, params = {}) {
+    async futuresTransfer (code: string, amount: any, type: any, params = {}) {
         if ((type < 1) || (type > 4)) {
             throw new ArgumentsRequired (this.id + ' type must be between 1 and 4');
         }
@@ -10328,7 +10328,7 @@ export default class binance extends Exchange {
         return this.parseFundingRateHistories (response, market, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (contract, market: Market = undefined) {
+    override parseFundingRateHistory (contract: any, market: Market = undefined) {
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -10378,7 +10378,7 @@ export default class binance extends Exchange {
         return this.parseFundingRates (response, symbols);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         // ensure it matches with https://www.binance.com/en/futures/funding-history/0
         //
         // fetchFundingRate, fetchFundingRates
@@ -10440,7 +10440,7 @@ export default class binance extends Exchange {
         } as FundingRate;
     }
 
-    parseAccountPositions (account, filterClosed = false) {
+    parseAccountPositions (account: any, filterClosed = false) {
         const positions = this.safeList (account, 'positions', []);
         const assets = this.safeList (account, 'assets', []);
         const balances: Dict = {};
@@ -10480,7 +10480,7 @@ export default class binance extends Exchange {
         return result;
     }
 
-    parseAccountPosition (position, market: Market = undefined) {
+    parseAccountPosition (position: any, market: Market = undefined) {
         //
         // usdm
         //
@@ -10733,7 +10733,7 @@ export default class binance extends Exchange {
         };
     }
 
-    parsePositionRisk (position, market: Market = undefined) {
+    parsePositionRisk (position: any, market: Market = undefined) {
         //
         // usdm
         //
@@ -11106,7 +11106,7 @@ export default class binance extends Exchange {
         return this.parseLeverageTiers (response, symbols, 'symbol');
     }
 
-    override parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         /**
          * @ignore
          * @method
@@ -12106,7 +12106,7 @@ export default class binance extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseSettlement (settlement, market) {
+    parseSettlement (settlement: any, market: any) {
         //
         // fetchSettlementHistory
         //
@@ -12148,7 +12148,7 @@ export default class binance extends Exchange {
         };
     }
 
-    parseSettlements (settlements, market) {
+    parseSettlements (settlements: any, market: any) {
         //
         // fetchSettlementHistory
         //
@@ -12392,7 +12392,7 @@ export default class binance extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const ledgerType: Dict = {
             'FEE': 'fee',
             'FUNDING_FEE': 'fee',
@@ -12455,7 +12455,7 @@ export default class binance extends Exchange {
         return scheme + '//' + domain + '/';
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined) {
         const urls = this.urls as any;
         if (!(api in urls['api'])) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
@@ -12619,7 +12619,7 @@ export default class binance extends Exchange {
         return {};
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if ((code === 418) || (code === 429)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }
@@ -12709,7 +12709,7 @@ export default class binance extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api, method, path, params, config = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
         if (('noCoin' in config) && !('coin' in params)) {
             return config['noCoin'];
         } else if (('noSymbol' in config) && !('symbol' in params)) {
@@ -12729,7 +12729,7 @@ export default class binance extends Exchange {
         return this.safeValue (config, 'cost', 1);
     }
 
-    override async request (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
+    override async request (path: any, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
         const response = await this.fetch2 (path, api, method, params, headers, body, config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if (api === 'private') {
@@ -12738,7 +12738,7 @@ export default class binance extends Exchange {
         return response;
     }
 
-    async modifyMarginHelper (symbol: string, amount, addOrReduce, params = {}) {
+    async modifyMarginHelper (symbol: string, amount: any, addOrReduce: any, params = {}) {
         // used to modify isolated positions
         let defaultType = this.safeString (this.options, 'defaultType', 'future');
         if (defaultType === 'spot') {
@@ -13005,7 +13005,7 @@ export default class binance extends Exchange {
         return this.parseBorrowRateHistory (response, code, since, limit);
     }
 
-    override parseBorrowRate (info, currency: Currency = undefined) {
+    override parseBorrowRate (info: any, currency: Currency = undefined) {
         //
         //    {
         //        "asset": "USDT",
@@ -13074,7 +13074,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} The gift code id, code, currency and amount
      */
-    async createGiftCode (code: string, amount, params = {}) {
+    async createGiftCode (code: string, amount: any, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -13114,7 +13114,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async redeemGiftCode (giftcardCode, params = {}) {
+    async redeemGiftCode (giftcardCode: any, params = {}) {
         const request: Dict = {
             'code': giftcardCode,
         };
@@ -13274,7 +13274,7 @@ export default class binance extends Exchange {
      * @param {string} [params.specifyRepayAssets] *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayCrossMargin (code: string, amount, params = {}) {
+    override async repayCrossMargin (code: string, amount: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -13334,7 +13334,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+    override async repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -13431,7 +13431,7 @@ export default class binance extends Exchange {
         return this.parseMarginLoan (response, currency);
     }
 
-    parseMarginLoan (info, currency: Currency = undefined) {
+    parseMarginLoan (info: any, currency: Currency = undefined) {
         //
         //     {
         //         "tranId": 108988250265,
@@ -13614,7 +13614,7 @@ export default class binance extends Exchange {
         }
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         const timestamp = this.safeInteger2 (interest, 'timestamp', 'time');
         const id = this.safeString (interest, 'symbol');
         const amount = this.safeNumber2 (interest, 'sumOpenInterest', 'openInterest');
@@ -13800,7 +13800,7 @@ export default class binance extends Exchange {
         return this.parseLiquidations (liquidationsList, market, since, limit);
     }
 
-    override parseLiquidation (liquidation, market: Market = undefined) {
+    override parseLiquidation (liquidation: any, market: Market = undefined) {
         //
         // margin
         //

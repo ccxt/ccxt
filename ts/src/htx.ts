@@ -1680,7 +1680,7 @@ export default class htx extends Exchange {
         return this.parseTradingLimits (this.safeValue (response, 'data', {}));
     }
 
-    parseTradingLimits (limits, symbol: Str = undefined, params = {}) {
+    parseTradingLimits (limits: any, symbol: Str = undefined, params = {}) {
         //
         //   {                                "symbol": "aidocbtc",
         //                  "buy-limit-must-less-than":  1.1,
@@ -1707,7 +1707,7 @@ export default class htx extends Exchange {
         };
     }
 
-    override costToPrecision (symbol, cost) {
+    override costToPrecision (symbol: Str, cost: any) {
         return this.decimalToPrecision (cost, TRUNCATE, this.market (symbol)['precision']['cost'], this.precisionMode);
     }
 
@@ -2510,7 +2510,7 @@ export default class htx extends Exchange {
         return this.parseLastPrices (data, symbols);
     }
 
-    override parseLastPrice (entry, market: Market = undefined) {
+    override parseLastPrice (entry: any, market: Market = undefined) {
         // example responses are documented in fetchLastPrices
         const marketId = this.safeString2 (entry, 'symbol', 'contract_code');
         market = this.safeMarket (marketId, market);
@@ -3129,7 +3129,7 @@ export default class htx extends Exchange {
         return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as Trade[];
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "amount":1.2082,
@@ -3327,7 +3327,7 @@ export default class htx extends Exchange {
         return this.parseAccounts (data);
     }
 
-    override parseAccount (account) {
+    override parseAccount (account: any) {
         //
         //     {
         //         "id": 5202591,
@@ -4046,7 +4046,7 @@ export default class htx extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    parseMarginBalanceHelper (balance, code, result) {
+    parseMarginBalanceHelper (balance: any, code: any, result: any) {
         let account: NullableDict = undefined;
         if (code in result) {
             account = result[code];
@@ -4068,7 +4068,7 @@ export default class htx extends Exchange {
         return account;
     }
 
-    async fetchSpotOrdersByStates (states, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSpotOrdersByStates (states: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         const method = this.safeString (this.options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
         if (method === 'spot_private_get_v1_order_orders') {
             if (symbol === undefined) {
@@ -5202,7 +5202,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}): Promise<Order> {
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5228,7 +5228,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
+    override async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent: Num = undefined, trailingTriggerPrice: Num = undefined, params: Dict = {}): Promise<Order> {
         if (trailingPercent === undefined) {
             throw new ArgumentsRequired (this.id + ' createTrailingPercentOrder() requires a trailingPercent argument');
         }
@@ -6001,7 +6001,7 @@ export default class htx extends Exchange {
             }
             if (isLinear) {
                 if (trigger || stopLossTakeProfit || trailing) {
-                    const requestItem = {
+                    const requestItem: Dict = {
                         'contract_code': this.safeString (market, 'id'),
                     };
                     if (clientOrderId === undefined) {
@@ -6295,7 +6295,7 @@ export default class htx extends Exchange {
         return this.parseCancelOrders (data) as Order[];
     }
 
-    parseCancelOrders (orders) {
+    parseCancelOrders (orders: any) {
         //
         //    {
         //        "success": [
@@ -6548,7 +6548,7 @@ export default class htx extends Exchange {
         return response;
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined) {
         //
         //     {
         //         "currency": "usdt",
@@ -7429,7 +7429,7 @@ export default class htx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         // inverse swap
         //
@@ -7484,7 +7484,7 @@ export default class htx extends Exchange {
         } as FundingRate;
     }
 
-    parseFundingInterval (interval) {
+    parseFundingInterval (interval: any) {
         const intervals: Dict = {
             '3600000': '1h',
             '14400000': '4h',
@@ -7752,7 +7752,7 @@ export default class htx extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = '/';
         const isArrayParams = Array.isArray (params);
         let query: NullableDict = undefined;
@@ -7903,7 +7903,7 @@ export default class htx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -8116,7 +8116,7 @@ export default class htx extends Exchange {
         return response;
     }
 
-    override parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         //     {
         //       "id": "1667161118",
@@ -8610,7 +8610,7 @@ export default class htx extends Exchange {
         return parsed;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'trade': 'trade',
             'etf': 'trade',
@@ -8798,7 +8798,7 @@ export default class htx extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'contract_code');
     }
 
-    override parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         const currencyId = this.safeString (info, 'trade_partition');
         const marketId = this.safeString (info, 'contract_code');
         const tiers: List = [];
@@ -9128,7 +9128,7 @@ export default class htx extends Exchange {
         return openInterest as OpenInterest;
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         // fetchOpenInterestHistory
         //
@@ -9276,7 +9276,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+    override async repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9318,7 +9318,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayCrossMargin (code: string, amount, params = {}) {
+    override async repayCrossMargin (code: string, amount: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9349,7 +9349,7 @@ export default class htx extends Exchange {
         });
     }
 
-    parseMarginLoan (info, currency: Currency = undefined) {
+    parseMarginLoan (info: any, currency: Currency = undefined) {
         //
         // borrowMargin cross
         //
@@ -9565,7 +9565,7 @@ export default class htx extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //            {
         //              "currency": "sxp",
@@ -9634,7 +9634,7 @@ export default class htx extends Exchange {
         return result;
     }
 
-    parseSettlements (settlements, market) {
+    parseSettlements (settlements: any, market: any) {
         //
         // coin-m swap, fetchSettlementHistory
         //
@@ -9708,7 +9708,7 @@ export default class htx extends Exchange {
         return result;
     }
 
-    parseSettlement (settlement, market) {
+    parseSettlement (settlement: any, market: any) {
         //
         // coin-m swap, fetchSettlementHistory
         //
@@ -9848,7 +9848,7 @@ export default class htx extends Exchange {
         return this.parseLiquidations (data, market, since, limit);
     }
 
-    override parseLiquidation (liquidation, market: Market = undefined) {
+    override parseLiquidation (liquidation: any, market: Market = undefined) {
         //
         //     {
         //         "query_id": 452057,

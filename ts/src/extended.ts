@@ -342,7 +342,7 @@ export default class extended extends Exchange {
         return markets;
     }
 
-    indexByStringifiedNumericId (input) {
+    indexByStringifiedNumericId (input: any) {
         const result: Dict = {};
         if (input === undefined) {
             return undefined;
@@ -809,7 +809,7 @@ export default class extended extends Exchange {
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
-    override parseTicker (ticker, market: Market = undefined): Ticker {
+    override parseTicker (ticker: any, market: Market = undefined): Ticker {
         //
         //     {
         //       "dailyVolume": "231216165.666600",
@@ -1099,7 +1099,7 @@ export default class extended extends Exchange {
         return this.parseFundingHistories (result, market, since, limit);
     }
 
-    parseFundingHistory (history, market: Market = undefined) {
+    parseFundingHistory (history: any, market: Market = undefined) {
         //
         //     {
         //         "id": 8341,
@@ -1130,7 +1130,7 @@ export default class extended extends Exchange {
         } as FundingHistory;
     }
 
-    parseFundingHistories (histories, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
+    parseFundingHistories (histories: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
         const result: List = [];
         for (let i = 0; i < histories.length; i++) {
             result.push (this.parseFundingHistory (histories[i], market));
@@ -1139,7 +1139,7 @@ export default class extended extends Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit) as FundingHistory[];
     }
 
-    override parseTrade (trade, market: Market = undefined): Trade {
+    override parseTrade (trade: any, market: Market = undefined): Trade {
         //
         // fetchTrades
         //
@@ -1265,7 +1265,7 @@ export default class extended extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //       "o": "75657.5",
@@ -1361,7 +1361,7 @@ export default class extended extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (info, market: Market = undefined) {
+    override parseFundingRateHistory (info: any, market: Market = undefined) {
         //
         //     {
         //       "m": "BTC-USD",
@@ -1434,7 +1434,7 @@ export default class extended extends Exchange {
         return this.parseOpenInterestsHistory (data, market, since, limit);
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         //     {
         //       "i": "112620590.6060360000000000",
@@ -1499,7 +1499,7 @@ export default class extended extends Exchange {
         return this.parseBalance (data);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = this.safeDict (response, i, {});
@@ -2174,7 +2174,7 @@ export default class extended extends Exchange {
         return result;
     }
 
-    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee: any, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "market": "BTC-USD",
@@ -2223,7 +2223,7 @@ export default class extended extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        return this.parseLeverage (this.safeDict (data, 0), market);
+        return this.parseLeverage (this.safeDict (data, 0, {}), market);
     }
 
     /**
@@ -2257,7 +2257,7 @@ export default class extended extends Exchange {
         return this.parseLeverage (data, market);
     }
 
-    override parseLeverage (leverage, market: Market = undefined): Leverage {
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         //
         //     {
         //         "market": "BTC-USD",
@@ -2411,7 +2411,7 @@ export default class extended extends Exchange {
         return this.filterBySinceLimit (positions, since, limit, 'timestamp') as Position[];
     }
 
-    override parsePosition (position, market: Market = undefined): Position {
+    override parsePosition (position: any, market: Market = undefined): Position {
         //
         //     {
         //         "id": 1,
@@ -2476,7 +2476,7 @@ export default class extended extends Exchange {
         });
     }
 
-    getExtendedStarkAmount (amount: string, resolution, roundUp = false): string {
+    getExtendedStarkAmount (amount: string, resolution: any, roundUp = false): string {
         const resolutionString = this.numberToString (resolution);
         const precise = Precise.stringMul (amount, resolutionString);
         let result = this.decimalToPrecision (precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
@@ -2518,7 +2518,7 @@ export default class extended extends Exchange {
             baseAmount = Precise.stringNeg (baseAmount) as string;
         }
         const feeAmount = this.getExtendedStarkAmount (Precise.stringMul (totalFee, quoteAmount) as string, collateralResolution, true);
-        const settlement = {
+        const settlement: Dict = {
             'starkKey': starkKey,
             'collateralPosition': collateralPosition,
             'baseAssetId': syntheticId,
@@ -2724,7 +2724,7 @@ export default class extended extends Exchange {
                 const stopLossExecutionPrice = this.safeString (stopLoss, 'price');
                 const stopLossType = this.safeString (stopLoss, 'type');
                 const stopLossSettlement = this.createOrderSettlementData (!isBuy, amountString as string, stopLossExecutionPrice as string, settlementParams);
-                const requestStopLoss = {
+                const requestStopLoss: Dict = {
                     'triggerPrice': this.priceToPrecision (symbol, stopLossTrigger),
                     'price': this.priceToPrecision (symbol, stopLossExecutionPrice),
                     'settlement': {
@@ -2747,7 +2747,7 @@ export default class extended extends Exchange {
                 const takeProfitExecutionPrice = this.safeString (takeProfit, 'price');
                 const takeProfitType = this.safeString (takeProfit, 'type');
                 const takeProfitSettlement = this.createOrderSettlementData (!isBuy, amountString as string, takeProfitExecutionPrice as string, settlementParams);
-                const requestTakeProfit = {
+                const requestTakeProfit: Dict = {
                     'triggerPrice': this.priceToPrecision (symbol, takeProfitTrigger),
                     'price': this.priceToPrecision (symbol, takeProfitExecutionPrice),
                     'settlement': {
@@ -2770,7 +2770,7 @@ export default class extended extends Exchange {
                 if (triggerDirection === undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrder() requires triggerDirection for trigger order');
                 }
-                const trigger = {
+                const trigger: Dict = {
                     'triggerPrice': this.priceToPrecision (symbol, triggerPriceStr),
                 };
                 trigger['direction'] = triggerDirection;
@@ -2778,7 +2778,7 @@ export default class extended extends Exchange {
                 request['trigger'] = trigger;
             } else if (isStopLossOrder || isTakeProfitOrder) {
                 triggerPriceStr = isStopLossOrder ? stopLossTriggerPrice : takeProfitTriggerPrice;
-                const trigger = {
+                const trigger: Dict = {
                     'triggerPrice': this.priceToPrecision (symbol, triggerPriceStr),
                 };
                 if (isBuy) {
@@ -3299,7 +3299,7 @@ export default class extended extends Exchange {
         return this.safeString (statuses, status as string, status);
     }
 
-    override parseOrder (order, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "id": 1784963886257016832,
@@ -3390,7 +3390,7 @@ export default class extended extends Exchange {
         return this.convertToBigInt (this.stringToBase16 (value));
     }
 
-    getExtendedEncodeI64 (value) {
+    getExtendedEncodeI64 (value: any) {
         // Cairo prime offset for i64 negative encoding.
         const prime = '3618502788666131213697322783095070105623107215331596699973092056135872020481';
         const valueString = this.numberToString (value);
@@ -3400,7 +3400,7 @@ export default class extended extends Exchange {
         return value;
     }
 
-    getExtendedDecimalToBase16 (value) {
+    getExtendedDecimalToBase16 (value: any) {
         let decimalString = '';
         if (typeof value === 'string') {
             decimalString = value;
@@ -3420,7 +3420,7 @@ export default class extended extends Exchange {
         return result;
     }
 
-    getExtendedSignatureHex (signature) {
+    getExtendedSignatureHex (signature: any) {
         if (typeof signature === 'string') {
             if (signature.indexOf ('0x') === 0) {
                 return signature;
@@ -3534,7 +3534,7 @@ export default class extended extends Exchange {
         ]);
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (!response) {
             return undefined; // fallback to default error handler
         }
@@ -3553,7 +3553,7 @@ export default class extended extends Exchange {
         return undefined;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const version = this.safeString (api, 0);
         const accessibility = this.safeString (api, 1);
         const endpoint = '/' + this.implodeParams (path, params);

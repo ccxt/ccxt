@@ -442,7 +442,7 @@ export default class coinmate extends Exchange {
         return result;
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const balances = this.safeValue (response, 'data', {});
         const result: Dict = { 'info': response };
         const currencyIds = Object.keys (balances);
@@ -1238,7 +1238,7 @@ export default class coinmate extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = (this.urls['api'] as Dict)['rest'] + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
@@ -1262,7 +1262,7 @@ export default class coinmate extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

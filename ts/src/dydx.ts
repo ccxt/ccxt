@@ -704,7 +704,7 @@ export default class dydx extends Exchange {
         return this.parseTrades (rows, market, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         // {
         //     "startedAt": "2025-07-25T09:47:00.000Z",
@@ -1205,11 +1205,11 @@ export default class dydx extends Exchange {
         return this.parsePositions (rows, symbols);
     }
 
-    hashMessage (message) {
+    hashMessage (message: any) {
         return this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash, privateKey) {
+    signHash (hash: any, privateKey: any) {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
@@ -1220,7 +1220,7 @@ export default class dydx extends Exchange {
         };
     }
 
-    signMessage (message, privateKey) {
+    signMessage (message: any, privateKey: any) {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
@@ -1257,7 +1257,7 @@ export default class dydx extends Exchange {
         }
         let privateKey = this.safeString (this.options, 'privateKey');
         if (privateKey === undefined) {
-            const signature = this.signOnboardingAction ();
+            const signature: Dict = this.signOnboardingAction ();
             privateKey = this.hashMessage (this.base16ToBinary (signature['r'] + signature['s']));
         }
         credentials = this.retrieveDydxCredentials (privateKey);
@@ -1820,7 +1820,7 @@ export default class dydx extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const ledgerType: Dict = {
             'TRANSFER_IN': 'transfer',
             'TRANSFER_OUT': 'transfer',
@@ -2474,7 +2474,7 @@ export default class dydx extends Exchange {
         return this.parseBalance (data);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const account = this.account ();
         account['free'] = this.safeString (response, 'freeCollateral');
         const result: Dict = {
@@ -2503,7 +2503,7 @@ export default class dydx extends Exchange {
         throw new ArgumentsRequired (this.id + ' getWalletAddress() requires a wallet address. Set `walletAddress` or `dydxAccount` in exchange options.');
     }
 
-    override sign (path, section = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, section = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const pathWithParams = this.implodeParams (path, params);
         let url = this.urls['api'][section];
         params = this.omit (params, this.extractParams (path));
@@ -2522,7 +2522,7 @@ export default class dydx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (!response) {
             return undefined; // fallback to default error handler
         }

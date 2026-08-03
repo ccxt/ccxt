@@ -1960,6 +1960,12 @@ class Transpiler {
                 'NullableList': 'List[Any]'
             }
             const unwrapLists = (type: string) => {
+                // a union like `Dict | Dict[] | undefined` must be mapped member-by-member;
+                // only stripping a trailing `[]` from the whole string would emit the invalid
+                // python `dict[]` (E999 Unexpected token ']'), so split on `|` and recurse.
+                if (type.indexOf ('|') !== -1) {
+                    return type.split ('|').map ((member) => unwrapLists (member.trim ())).join (' | ')
+                }
                 let count = 0
                 while (type.slice (-2) == '[]') {
                     type = type.slice (0, -2)
@@ -2011,6 +2017,15 @@ class Transpiler {
                         nullable = nullable || variable.slice (-1) === '?'
                         variable = variable.replace (/\?$/, '')
                         let type = secondPart[0].trim ()
+                        // the hand-written BaseExchange declares the trailing params bag untyped
+                        // (`$params = []`), and PHP rejects an override that narrows it to
+                        // `array $params` ("must be compatible with"). noImplicitAny annotated
+                        // overrides as `params: Dict = {}`, which would emit `array` here, so keep
+                        // any `params` argument that defaults to `{}` untyped to match the base.
+                        const isUntypedParamsBag = (variable === 'params') && (secondPart.length === 2) && (secondPart[1].trim () === '{}')
+                        if (isUntypedParamsBag) {
+                            return '$' + variable + endpart
+                        }
                         // Normalise union parameter types so we never emit invalid PHP like
                         // `?Dict | null` or `?Currency | Str`. Split on `|`, drop the `undefined`
                         // member (it only signals nullability, already carried by the default /
@@ -2072,14 +2087,19 @@ class Transpiler {
                 pythonArgs = argsArray.map (x => {
                     if (x.includes (':')) {
                         const parts = x.split(':')
-                        let typeParts = parts[1].trim ().split (' ')
-                        const type = typeParts[0]
-                        typeParts[0] = ''
                         let variable = parts[0]
                         // const nullable = typeParts[typeParts.length - 1] === 'undefined' || variable.slice (-1) === '?'
                         variable = variable.replace (/\?$/, '')
-                        const rawType = unwrapLists (type)
-                        return variable + ': ' + rawType + typeParts.join (' ')
+                        // split the annotation into the type expression and the optional ` = default`
+                        // tail. The whole type expression must go through unwrapLists, otherwise a
+                        // union like `Dict | Dict[] | undefined` would only map its first member and
+                        // emit the invalid python `dict | Dict[] | None` (E999 Unexpected token ']').
+                        const annotation = parts[1].trim ()
+                        const defaultIndex = annotation.indexOf (' = ')
+                        const typeExpression = (defaultIndex === -1) ? annotation : annotation.slice (0, defaultIndex)
+                        const defaultExpression = (defaultIndex === -1) ? '' : annotation.slice (defaultIndex)
+                        const rawType = unwrapLists (typeExpression.trim ())
+                        return variable + ': ' + rawType + defaultExpression
                     } else {
                         return x.replace (' = ', '=')
                     }

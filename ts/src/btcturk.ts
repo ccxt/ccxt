@@ -309,7 +309,7 @@ export default class btcturk extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    override parseMarket (entry): Market {
+    override parseMarket (entry: any): Market {
         const id = this.safeString (entry, 'name');
         const baseId = this.safeString (entry, 'numerator');
         const quoteId = this.safeString (entry, 'denominator');
@@ -384,7 +384,7 @@ export default class btcturk extends Exchange {
         });
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const data = this.safeList (response, 'data', []);
         const result: Dict = {
             'info': response,
@@ -670,7 +670,7 @@ export default class btcturk extends Exchange {
         return this.parseTrades (dataList, market, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //    {
         //        "timestamp": 1661990400,
@@ -773,7 +773,7 @@ export default class btcturk extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    override parseOHLCVs (ohlcvs, market: any = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false) {
+    override parseOHLCVs (ohlcvs: any, market: any = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false) {
         const results: OHLCV[] = [];
         const timestamp = this.safeList (ohlcvs, 't', []);
         const high = this.safeList (ohlcvs, 'h', []);
@@ -1069,7 +1069,7 @@ export default class btcturk extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         if (this.id === 'btctrader') {
             throw new ExchangeError (this.id + ' is an abstract base API for BTCExchange, BTCTurk');
         }
@@ -1096,7 +1096,7 @@ export default class btcturk extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         const errorCode = this.safeString (response, 'code', '0');
         const message = this.safeString (response, 'message');
         const output = (message === undefined) ? body : message;

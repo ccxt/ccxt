@@ -631,7 +631,7 @@ export default class pacifica extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchSwapMarkets (params = {}): Promise<Market[]> {
+    async fetchSwapMarkets (params: any = {}): Promise<Market[]> {
         const markets = await this.fetchMarkets (params);
         return this.filterBy (markets, 'type', 'swap') as Market[];
     }
@@ -812,7 +812,7 @@ export default class pacifica extends Exchange {
         //   "code": null
         // }
         const data = this.safeDict (response, 'data', {});
-        const result = {
+        const result: Dict = {
             'info': data,
         };
         result['free'] = {};
@@ -949,7 +949,7 @@ export default class pacifica extends Exchange {
         if (settingsLen === 0) {
             return {};
         }
-        const settingsBySymbol = {};
+        const settingsBySymbol: Dict = {};
         for (let i = 0; i < settings.length; i++) {
             const marketId = settings[i]['symbol'];
             const market = this.safeMarket (marketId);
@@ -1127,7 +1127,7 @@ export default class pacifica extends Exchange {
         return this.parseFundingRates (result, symbols);
     }
 
-    override parseFundingRate (info, market: Market = undefined): FundingRate {
+    override parseFundingRate (info: any, market: Market = undefined): FundingRate {
         //
         //      {
         //         "funding": "0.00010529",
@@ -1251,7 +1251,7 @@ export default class pacifica extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //       "t": 1748954160000,
@@ -1590,7 +1590,7 @@ export default class pacifica extends Exchange {
             sigPayload['reduce_only'] = reduceOnly;
             const stopClientOrderId = this.safeString (params, 'clientOrderId');
             params = this.omit (params, [ 'clientOrderId' ]);
-            const stopPayload = {
+            const stopPayload: Dict = {
                 'amount': this.amountToPrecision (symbol, amount),
                 'stop_price': this.priceToPrecision (symbol, triggerPrice),
             };
@@ -2381,7 +2381,7 @@ export default class pacifica extends Exchange {
         return orders as Order[];
     }
 
-    addPaginationCursorToResult (response) {
+    addPaginationCursorToResult (response: any) {
         const data = this.safeList (response, 'data', []);
         const paginationCursor = this.safeString (response, 'next_cursor');
         const hasMore = this.safeBool (response, 'has_more', false);
@@ -2977,7 +2977,7 @@ export default class pacifica extends Exchange {
         return ois[symbol];
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         //     {
         //       "funding": "0.00010529",
@@ -3100,7 +3100,7 @@ export default class pacifica extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const ledgerType: Dict = {
             'subaccount_transfer': 'transfer',
             'deposit': 'transaction',
@@ -3179,7 +3179,7 @@ export default class pacifica extends Exchange {
         return this.parseIncomes (data, market, since, limit);
     }
 
-    override parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         //     {
         //       "history_id": 2287920,
@@ -3286,7 +3286,7 @@ export default class pacifica extends Exchange {
      * @returns {object} a response object
      */
     override async createSubAccount (name: string, params = {}) {
-        const finalHeaders = { };
+        const finalHeaders: Dict = { };
         let agentAddress: Str = undefined;
         [ agentAddress, params ] = this.handleOption ('createSubAccount', 'agentAddress');
         let originAddress: Str = undefined;
@@ -3418,7 +3418,7 @@ export default class pacifica extends Exchange {
         throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires address either as "exchange.walletAddress = ..." or as parameter or "address" in params');
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -3446,7 +3446,7 @@ export default class pacifica extends Exchange {
         return undefined;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const host = this.implodeHostname (this.urls[urlKey][api]);
@@ -3469,7 +3469,7 @@ export default class pacifica extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override calculateRateLimiterCost (api, method, path, params, config = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
         const cost = this.safeString (config, 'cost', '1');
         const costNumber = this.parseNumber (cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
@@ -3488,7 +3488,7 @@ export default class pacifica extends Exchange {
 
     sortJsonKeys (value: any): any {
         if (this.isDictionary (value)) {
-            const result = {};
+            const result: Dict = {};
             const keys = Object.keys (value);
             const sortedKeys = this.sort (keys);
             for (let i = 0; i < sortedKeys.length; i++) {
@@ -3554,7 +3554,7 @@ export default class pacifica extends Exchange {
             'type': operationType,
         };
         const signature = this.signMessage (signatureHeader, sigPayload, this.privateKey);
-        const finalHeaders = { };
+        const finalHeaders: Dict = { };
         let agentAddress: Str = undefined;
         [ agentAddress, params ] = this.handleOptionAndParams (params, 'postActionRequest', 'agentAddress');
         let originAddress: Str = undefined;

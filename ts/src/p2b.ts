@@ -523,7 +523,7 @@ export default class p2b extends Exchange {
         );
     }
 
-    override parseTicker (ticker, market: Market = undefined) {
+    override parseTicker (ticker: any, market: Market = undefined) {
         //
         // parseTickers
         //
@@ -811,7 +811,7 @@ export default class p2b extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined) : OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined) : OHLCV {
         //
         //    [
         //        1699253400,       // Kline open time
@@ -868,7 +868,7 @@ export default class p2b extends Exchange {
         return this.parseBalance (result);
     }
 
-    override parseBalance (response) {
+    override parseBalance (response: any) {
         //
         //    {
         //        "USDT": {
@@ -1354,7 +1354,7 @@ export default class p2b extends Exchange {
         }, market);
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
@@ -1377,7 +1377,7 @@ export default class p2b extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

@@ -65,8 +65,8 @@ class testMainClass {
     sandbox: boolean = false;
     onlySpecificTests: string[] = [];
     skippedSettingsForExchange = {};
-    skippedMethods = {};
-    checkedPublicTests = {};
+    skippedMethods: any = {};
+    checkedPublicTests: any = {};
     testFiles: any = {};
     publicTests = {};
     ext: string = "";
@@ -92,7 +92,7 @@ class testMainClass {
         this.ext = getExt ();
     }
 
-    async init (exchangeId, symbolArgv, methodArgv) {
+    async init (exchangeId: any, symbolArgv: any, methodArgv: any) {
         try {
             await this.initInner (exchangeId, symbolArgv, methodArgv);
         } catch (e) {
@@ -102,7 +102,7 @@ class testMainClass {
         return true;
     }
 
-    async initInner (exchangeId, symbolArgv, methodArgv) {
+    async initInner (exchangeId: any, symbolArgv: any, methodArgv: any) {
         this.parseCliArgsAndProps ();
 
         if (this.requestTests && this.responseTests) {
@@ -145,7 +145,7 @@ class testMainClass {
         return true; // required for c#
     }
 
-    checkIfSpecificTestIsChosen (methodArgv) {
+    checkIfSpecificTestIsChosen (methodArgv: any) {
         if (methodArgv !== undefined) {
             const testFileNames = Object.keys (this.testFiles);
             const possibleMethodNames = methodArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
@@ -251,7 +251,7 @@ class testMainClass {
         this.checkedPublicTests = {};
     }
 
-    addPadding (message: string, size) {
+    addPadding (message: string, size: any) {
         // has to be transpilable
         let res = '';
         const messageLength = message.length; // avoid php transpilation issue
@@ -313,9 +313,9 @@ class testMainClass {
         const argsStringified = '(' + exchange.json (args) + ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
         dump (this.addPadding ('[INFO] TESTING', 25), name, methodName, argsStringified);
         if (isSync ()) {
-            callMethodSync (this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
+            callMethodSync (this.testFiles, methodName, exchange, skippedPropertiesForMethod as object, args);
         } else {
-            await callMethod (this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
+            await callMethod (this.testFiles, methodName, exchange, skippedPropertiesForMethod as object, args);
         }
         dump (this.addPadding ('[INFO] TESTING DONE', 25), name, methodName);
         // add to the list of successed tests
@@ -326,7 +326,7 @@ class testMainClass {
     }
 
     getSkips (exchange: Exchange, methodName: string) {
-        let finalSkips = {};
+        let finalSkips: Dict = {};
         // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
         const methodNames = [ methodName, methodName + '.' + this.ext ];
         for (let i = 0; i < methodNames.length; i++) {
@@ -341,7 +341,7 @@ class testMainClass {
             }
         }
         // get "object-specific" skips
-        const objectSkips = {
+        const objectSkips: Dict = {
             'orderBook': [ 'fetchOrderBook', 'fetchOrderBooks', 'fetchL2OrderBook', 'watchOrderBook', 'watchOrderBookForSymbols' ],
             'ticker': [ 'fetchTicker', 'fetchTickers', 'watchTicker', 'watchTickers' ],
             'trade': [ 'fetchTrades', 'watchTrades', 'watchTradesForSymbols' ],
@@ -378,7 +378,7 @@ class testMainClass {
         return finalSkips;
     }
 
-    async testSafe (methodName, exchange, args = [], isPublic = false) {
+    async testSafe (methodName: any, exchange: any, args = [], isPublic = false) {
         // `testSafe` method does not throw an exception, instead mutes it. The reason we
         // mute the thrown exceptions here is because we don't want to stop the whole
         // tests queue if any single test-method fails. Instead, they are echoed with
@@ -477,9 +477,9 @@ class testMainClass {
         return true;
     }
 
-    async runPublicTests (exchange, symbols) {
+    async runPublicTests (exchange: any, symbols: any) {
         const primarySymbol = symbols[0];
-        let tests = {
+        let tests: Dict = {
             'features': [],
             'afterConstruct': [],
             'fetchCurrencies': [],
@@ -559,7 +559,7 @@ class testMainClass {
         return true;
     }
 
-    async loadExchange (exchange) {
+    async loadExchange (exchange: any) {
         const result = await this.testSafe ('loadMarkets', exchange, [], true);
         if (!result) {
             return false;
@@ -569,7 +569,7 @@ class testMainClass {
         return true;
     }
 
-    getTestSymbol (exchange, isSpot, symbols) {
+    getTestSymbol (exchange: any, isSpot: any, symbols: any) {
         let symbol: Str = undefined;
         const preferredSpotSymbol = exchange.safeString (this.skippedSettingsForExchange, 'preferredSpotSymbol');
         const preferredSwapSymbol = exchange.safeString (this.skippedSettingsForExchange, 'preferredSwapSymbol');
@@ -592,7 +592,7 @@ class testMainClass {
         return symbol;
     }
 
-    getExchangeCode (exchange, codes: Strings = undefined) {
+    getExchangeCode (exchange: any, codes: Strings = undefined) {
         if (codes === undefined) {
             codes = [ 'BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT' ];
         }
@@ -605,8 +605,8 @@ class testMainClass {
         return code;
     }
 
-    getMarketsFromExchange (exchange, spot = true) {
-        const res = {};
+    getMarketsFromExchange (exchange: any, spot = true) {
+        const res: Dict = {};
         const markets = exchange.markets;
         const keys = Object.keys (markets);
         for (let i = 0; i < keys.length; i++) {
@@ -621,7 +621,7 @@ class testMainClass {
         return res;
     }
 
-    getValidSymbol (exchange, spot = true) {
+    getValidSymbol (exchange: any, spot = true) {
         const currentTypeMarkets = this.getMarketsFromExchange (exchange, spot);
         const codes = [
             'BTC',
@@ -726,7 +726,7 @@ class testMainClass {
         return symbol;
     }
 
-    async testExchange (exchange, providedSymbol = undefined) {
+    async testExchange (exchange: any, providedSymbol = undefined) {
         // prediction-market exchanges have no spot/swap markets and address methods by an
         // outcome handle (not a market symbol), so they take a dedicated test flow
         if (exchange.safeBool (exchange.has, 'prediction', false)) {
@@ -799,7 +799,7 @@ class testMainClass {
         return true;
     }
 
-    async runPredictionTests (exchange) {
+    async runPredictionTests (exchange: any) {
         // loadMarkets (already called by loadExchange) populates the markets and their outcome
         // tokens; resolve a tradeable outcome handle from them (works in every language since
         // exchange.markets is typed on the base, unlike the prediction-only outcomes cache),
@@ -882,7 +882,7 @@ class testMainClass {
                     const dedashed = lowerPart.replaceAll ('-', ' ');
                     eventQuery = dedashed.replaceAll ('_', ' ');
                 }
-                const eventParams = {};
+                const eventParams: Dict = {};
                 if (eventQuery !== undefined) {
                     eventParams['query'] = eventQuery;
                 }
@@ -995,7 +995,7 @@ class testMainClass {
         return true;
     }
 
-    assertPredictionEvents (exchange, events) {
+    assertPredictionEvents (exchange: any, events: any) {
         assert (Array.isArray (events), exchange.id + ' fetchEvents/fetchEvent should return a list');
         const eventsLength = events.length;
         for (let i = 0; i < eventsLength; i++) {
@@ -1004,7 +1004,7 @@ class testMainClass {
         return true;
     }
 
-    assertPredictionEvent (exchange, event) {
+    assertPredictionEvent (exchange: any, event: any) {
         // validates one PredictionEvent structure (id, event handle, markets each carrying an
         // outcomes list, and the optional typed fields when present)
         const logText = ' event: ' + exchange.json (event);
@@ -1044,7 +1044,7 @@ class testMainClass {
         return true;
     }
 
-    async testPredictionCreateCancelOrder (exchange, outcome) {
+    async testPredictionCreateCancelOrder (exchange: any, outcome: any) {
         // place a deliberately non-marketable limit BUY (low fixed price * tiny amount), assert
         // it, then always cancel it. Safe by construction: 5 shares @ 0.02 = 0.10 USD notional,
         // far under the 25 USD live-test cap, and a 0.02 bid won't fill for a normal outcome.
@@ -1108,7 +1108,7 @@ class testMainClass {
         return true;
     }
 
-    async cancelPredictionOrder (exchange, orderId, outcome) {
+    async cancelPredictionOrder (exchange: any, orderId: any, outcome: any) {
         if (orderId === undefined) {
             return true;
         }
@@ -1125,7 +1125,7 @@ class testMainClass {
         return true;
     }
 
-    async runPrivateTests (exchange, symbol) {
+    async runPrivateTests (exchange: any, symbol: any) {
         if (!exchange.checkRequiredCredentials (false)) {
             dump ('[INFO] Skipping private tests', 'Keys not found');
             return true;
@@ -1137,7 +1137,7 @@ class testMainClass {
         //     await test ('InvalidOrder', exchange, symbol);
         //     await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
         // }
-        let tests = {
+        let tests: Dict = {
             'signIn': [ ],
             'fetchBalance': [ ],
             'fetchAccounts': [ ],
@@ -1218,7 +1218,7 @@ class testMainClass {
         return true; // required in c#
     }
 
-    async testProxies (exchange) {
+    async testProxies (exchange: any) {
         // these tests should be synchronously executed, because of conflicting nature of proxy settings
         const proxyTestName = this.proxyTestFileName;
         // todo: temporary skip for sync py
@@ -1276,7 +1276,7 @@ class testMainClass {
         return true;
     }
 
-    async startTest (exchange, symbolArgv) {
+    async startTest (exchange: any, symbolArgv: any) {
         // we do not need to test aliases
         if (exchange.alias) {
             return true;
@@ -1326,7 +1326,7 @@ class testMainClass {
         }
     }
 
-    assertStaticError (cond:boolean, message: string, calculatedOutput, storedOutput, key: Str = undefined) {
+    assertStaticError (cond:boolean, message: string, calculatedOutput: any, storedOutput: any, key: Str = undefined) {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
         //  -----------------------------------------------------------------------------
@@ -1367,7 +1367,7 @@ class testMainClass {
     }
 
     loadStaticData (folder: string, targetExchange: Str = undefined) {
-        const result = {};
+        const result: Dict = {};
         if (targetExchange) {
             // read a single exchange
             const path = folder + targetExchange + '.json';
@@ -1419,7 +1419,7 @@ class testMainClass {
     }
 
     urlencodedToDict (url: string) {
-        const result = {};
+        const result: Dict = {};
         const parts = url.split ('&');
         for (let i = 0; i < parts.length; i++) {
             const part = parts[i];
@@ -1439,7 +1439,7 @@ class testMainClass {
         return result;
     }
 
-    assertNewAndStoredOutputInner (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true, assertingKey: Str = undefined) {
+    assertNewAndStoredOutputInner (exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck = true, assertingKey: Str = undefined) {
         if (isNullValue (newOutput) && isNullValue (storedOutput)) {
             return true;
             // c# requirement
@@ -1560,7 +1560,7 @@ class testMainClass {
         return true; // c# requ
     }
 
-    assertNewAndStoredOutput (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true, assertingKey: Str = undefined) {
+    assertNewAndStoredOutput (exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck = true, assertingKey: Str = undefined) {
         let res = true;
         try {
             res = this.assertNewAndStoredOutputInner (exchange, skipKeys, newOutput, storedOutput, strictTypeCheck, assertingKey);
@@ -1586,7 +1586,7 @@ class testMainClass {
         return newString;
     }
 
-    assertStaticRequestOutput (exchange, type: Str, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
+    assertStaticRequestOutput (exchange: any, type: Str, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput: any, newOutput: any) {
         if (storedUrl !== requestUrl) {
             // remove the host part from the url
             const firstPath = this.removeHostnamefromUrl (storedUrl);
@@ -1637,11 +1637,11 @@ class testMainClass {
         return true;
     }
 
-    assertStaticResponseOutput (exchange: Exchange, skipKeys: string[], computedResult, storedResult) {
+    assertStaticResponseOutput (exchange: Exchange, skipKeys: string[], computedResult: any, storedResult: any) {
         this.assertNewAndStoredOutput (exchange, skipKeys, computedResult, storedResult, false);
     }
 
-    sanitizeDataInput (input) {
+    sanitizeDataInput (input: any) {
         // remove nulls and replace with unefined instead
         if (input === undefined) {
             return undefined;
@@ -1658,7 +1658,7 @@ class testMainClass {
         return newInput;
     }
 
-    async testRequestStatically (exchange, method: string, data: object, type: Str, skipKeys: string[]) {
+    async testRequestStatically (exchange: any, method: string, data: Dict, type: Str, skipKeys: string[]) {
         let output: Str = undefined;
         let requestUrl: Str = undefined;
         if (this.info) {
@@ -1691,7 +1691,7 @@ class testMainClass {
         return true;
     }
 
-    async testResponseStatically (exchange, method: string, skipKeys: string[], data: object) {
+    async testResponseStatically (exchange: any, method: string, skipKeys: string[], data: Dict) {
         const expectedResult = exchange.safeValue (data, 'parsedResponse');
         const mockedExchange = setFetchResponse (exchange, data['httpResponse']);
         if (this.info) {
@@ -1988,7 +1988,7 @@ class testMainClass {
         return true; // in c# methods that will be used with promiseAll need to return something
     }
 
-    getNumberOfTestsFromExchange (exchange, exchangeData: object, testName: Str = undefined) {
+    getNumberOfTestsFromExchange (exchange: any, exchangeData: Dict, testName: Str = undefined) {
         if (testName !== undefined) {
             return 1;
         }

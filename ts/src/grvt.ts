@@ -665,7 +665,7 @@ export default class grvt extends Exchange {
         return this.parseMarkets (result);
     }
 
-    override parseMarket (market): Market {
+    override parseMarket (market: Dict): Market {
         //
         //    {
         //        "instrument": "BTC_USDT_Perp",
@@ -954,7 +954,7 @@ export default class grvt extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = {
+        const request: Dict = {
             'instrument': this.marketId (symbol),
         };
         if (limit === undefined) {
@@ -1003,7 +1003,7 @@ export default class grvt extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'instrument': market['id'],
         };
         if (limit !== undefined) {
@@ -1146,7 +1146,7 @@ export default class grvt extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'instrument': market['id'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -1189,7 +1189,7 @@ export default class grvt extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //            {
         //                "open_time": "1767288240000000000",
@@ -1271,7 +1271,7 @@ export default class grvt extends Exchange {
         return this.parseFundingRateHistories (result, market);
     }
 
-    override parseFundingRateHistory (rawItem, market: Market = undefined) {
+    override parseFundingRateHistory (rawItem: any, market: Market = undefined) {
         //
         //            {
         //                "instrument": "BTC_USDT_Perp",
@@ -1293,7 +1293,7 @@ export default class grvt extends Exchange {
         };
     }
 
-    getSubAccountId (params) {
+    getSubAccountId (params: any) {
         let subAccountId: Str = undefined;
         [ subAccountId, params ] = this.handleOptionAndParams (params, 'getSubAccountId', 'accountId');
         if (subAccountId === undefined) {
@@ -1348,7 +1348,7 @@ export default class grvt extends Exchange {
         return this.parseBalance (result);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         //
         //        {
         //            "event_time": "1764863116142428457",
@@ -1518,7 +1518,7 @@ export default class grvt extends Exchange {
         }
     }
 
-    async internalFetchTransfers (req, currency: any = undefined, since: Int = undefined, limit: Int = undefined) {
+    async internalFetchTransfers (req: any, currency: any = undefined, since: Int = undefined, limit: Int = undefined) {
         const response = await this.privateTradingPostFullV1TransferHistory (req);
         //
         //    {
@@ -1991,7 +1991,7 @@ export default class grvt extends Exchange {
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarketsAndSignIn ();
         const market = this.market (symbol);
-        const orderLeg = {
+        const orderLeg: Dict = {
             'instrument': market['id'],
             'size': this.amountToPrecision (symbol, amount),
         };
@@ -2177,11 +2177,11 @@ export default class grvt extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    convertToBigIntCustom (x) {
+    convertToBigIntCustom (x: any) {
         return parseInt (x);
     }
 
-    eipMessageForOrder (order, structureType) {
+    eipMessageForOrder (order: any, structureType: any) {
         const priceMultiplier = '1000000000';
         const orderLegs = this.safeList (order, 'legs', []);
         const legs: List = [];
@@ -2198,7 +2198,7 @@ export default class grvt extends Exchange {
             const sizeDecLength = sizeDec.length + 0; // php tr
             const sizeDecLengthStr = sizeDecLength.toString ();
             const sizeInteger = this.convertToBigIntCustom (size.replace ('.', '')) * sizeMultiplier / (Math.pow (bigInt10, this.convertToBigIntCustom (sizeDecLengthStr)));
-            const legOrder = {
+            const legOrder: Dict = {
                 'assetID': market['info']['instrument_hash'],
                 'contractSize': this.parseToInt (sizeInteger),
                 'isBuyingContract': leg['is_buying_asset'],
@@ -2218,7 +2218,7 @@ export default class grvt extends Exchange {
             }
             legs.push (legOrder);
         }
-        const returnValue = {
+        const returnValue: Dict = {
             'subAccountID': order['sub_account_id'],
             'isMarket': order['is_market'],
             'timeInForce': this.timeInForceToInt (order['time_in_force']),
@@ -2255,7 +2255,7 @@ export default class grvt extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
-        let request = {
+        let request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
         };
         let market: Market = undefined;
@@ -2320,7 +2320,7 @@ export default class grvt extends Exchange {
      */
     override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         await this.loadMarketsAndSignIn ();
-        const request = {
+        const request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
         };
         if (symbols !== undefined) {
@@ -2585,7 +2585,7 @@ export default class grvt extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchFundingHistory', symbol, since, limit, params, 1000) as FundingHistory[];
         }
-        let request = {
+        let request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
         };
         let market: Market = undefined;
@@ -2624,7 +2624,7 @@ export default class grvt extends Exchange {
         return this.parseIncomes (result, market, since, limit);
     }
 
-    override parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         //            {
         //                "event_time": "1765267200004987902",
@@ -2664,7 +2664,7 @@ export default class grvt extends Exchange {
     override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarketsAndSignIn ();
         const subAccountId = this.getSubAccountId (params);
-        let request = {
+        let request: Dict = {
             'sub_account_id': subAccountId,
         };
         let market: Market = undefined;
@@ -2844,7 +2844,7 @@ export default class grvt extends Exchange {
     override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarketsAndSignIn ();
         const subAccountId = this.getSubAccountId (params);
-        const request = {
+        const request: Dict = {
             'sub_account_id': subAccountId,
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
@@ -3093,7 +3093,7 @@ export default class grvt extends Exchange {
      */
     override async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarketsAndSignIn ();
-        const request = {
+        const request: Dict = {
             'sub_account_id': this.getSubAccountId (params),
         };
         if (symbol !== undefined) {
@@ -3129,7 +3129,7 @@ export default class grvt extends Exchange {
     override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarketsAndSignIn ();
         const subAccoubntId = this.getSubAccountId (params);
-        const request = {
+        const request: Dict = {
             'sub_account_id': subAccoubntId,
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
@@ -3218,7 +3218,7 @@ export default class grvt extends Exchange {
             };
         }
         const domainData = this.eipDomainData ();
-        const definitions = this.eipDefinitions ();
+        const definitions: Dict = this.eipDefinitions ();
         const ethEncodedMessage = this.ethEncodeStructuredData (domainData, definitions[structureType], messageData);
         const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
         const usesPrivKey = this.usesPrivateKey (); // py transpiler needs this line separated
@@ -3254,7 +3254,7 @@ export default class grvt extends Exchange {
         };
     }
 
-    handleUntilOptionString (key: string, request, params, multiplier = 1) {
+    handleUntilOptionString (key: string, request: any, params: any, multiplier = 1) {
         const until = this.safeInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request[key] = this.numberToString (this.parseToInt (until * multiplier));
@@ -3269,7 +3269,7 @@ export default class grvt extends Exchange {
         return requestId;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + path;
         let queryString = '';
@@ -3305,7 +3305,7 @@ export default class grvt extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (url.endsWith ('auth/api_key/login') || url.endsWith ('auth/wallet/login')) {
             const accountId = this.safeString2 (headers, 'X-Grvt-Account-Id', 'x-grvt-account-id');
             this.options['AuthAccountId'] = accountId;

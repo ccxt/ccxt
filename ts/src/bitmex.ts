@@ -559,7 +559,7 @@ export default class bitmex extends Exchange {
         });
     }
 
-    convertFromRealAmount (code, amount) {
+    convertFromRealAmount (code: any, amount: any) {
         const currency = this.currency (code);
         const precision = this.safeString (currency, 'precision');
         const amountString = this.numberToString (amount);
@@ -578,7 +578,7 @@ export default class bitmex extends Exchange {
         return Precise.stringMul (amount, precision);
     }
 
-    override amountToPrecision (symbol, amount) {
+    override amountToPrecision (symbol: Str, amount: any) {
         symbol = this.safeSymbol (symbol);
         const market = this.market (symbol);
         const oldPrecision = this.safeValue (this.options, 'oldPrecision');
@@ -588,7 +588,7 @@ export default class bitmex extends Exchange {
         return super.amountToPrecision (symbol, amount);
     }
 
-    convertFromRawQuantity (symbol, rawQuantity, currencySide = 'base') {
+    convertFromRawQuantity (symbol: any, rawQuantity: any, currencySide = 'base') {
         if (this.safeValue (this.options, 'oldPrecision')) {
             return this.parseNumber (rawQuantity);
         }
@@ -599,12 +599,12 @@ export default class bitmex extends Exchange {
         }
         const market = this.market (symbol);
         if (market['spot']) {
-            return this.parseNumber (this.convertToRealAmount (market[currencySide], rawQuantity));
+            return this.parseNumber (this.convertToRealAmount (this.safeString (market, currencySide), rawQuantity));
         }
         return this.parseNumber (rawQuantity);
     }
 
-    convertFromRawCost (symbol, rawQuantity) {
+    convertFromRawCost (symbol: any, rawQuantity: any) {
         return this.convertFromRawQuantity (symbol, rawQuantity, 'quote');
     }
 
@@ -932,7 +932,7 @@ export default class bitmex extends Exchange {
         });
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         //
         //     [
         //         {
@@ -1323,7 +1323,7 @@ export default class bitmex extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'Withdrawal': 'transaction',
             'RealisedPNL': 'margin',
@@ -1699,7 +1699,7 @@ export default class bitmex extends Exchange {
         }, market);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "timestamp":"2015-09-25T13:38:00.000Z",
@@ -2814,7 +2814,7 @@ export default class bitmex extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         const datetime = this.safeString (contract, 'timestamp');
         const marketId = this.safeString (contract, 'symbol');
@@ -2911,7 +2911,7 @@ export default class bitmex extends Exchange {
         return this.parseFundingRateHistories (response, market, since, limit);
     }
 
-    override parseFundingRateHistory (info, market: Market = undefined) {
+    override parseFundingRateHistory (info: any, market: Market = undefined) {
         //
         //    {
         //        "timestamp": "2016-05-07T12:00:00.000Z",
@@ -3035,7 +3035,7 @@ export default class bitmex extends Exchange {
         } as DepositAddress;
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //    {
         //        "asset": "XBT",
@@ -3180,7 +3180,7 @@ export default class bitmex extends Exchange {
         return this.parseOpenInterests (response, symbols) as OpenInterests;
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         // fetchOpenInterest
         //
@@ -3215,7 +3215,7 @@ export default class bitmex extends Exchange {
         }, market);
     }
 
-    override calculateRateLimiterCost (api, method, path, params, config = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
         const isAuthenticated = this.checkRequiredCredentials (false);
         const cost = this.safeValue (config, 'cost', 1);
         if (cost !== 1) { // trading endpoints
@@ -3276,7 +3276,7 @@ export default class bitmex extends Exchange {
         return this.parseLiquidations (response, market, since, limit);
     }
 
-    override parseLiquidation (liquidation, market: Market = undefined) {
+    override parseLiquidation (liquidation: any, market: Market = undefined) {
         //
         //     {
         //         "orderID": "string",
@@ -3627,7 +3627,7 @@ export default class bitmex extends Exchange {
         return this.parseSettlements (response, market, since, limit);
     }
 
-    parseSettlements (settlements, market: Market = undefined, since: Int = undefined, limit: Int = undefined) {
+    parseSettlements (settlements: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined) {
         const result: List = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));
@@ -3637,7 +3637,7 @@ export default class bitmex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseSettlement (settlement, market: Market = undefined) {
+    parseSettlement (settlement: any, market: Market = undefined) {
         //
         //    {
         //        timestamp: '2025-03-28T12:00:00.000Z',
@@ -3706,7 +3706,7 @@ export default class bitmex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }
@@ -3731,7 +3731,7 @@ export default class bitmex extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let query = '/api/' + this.version + '/' + path;
         if (method === 'GET') {
             if (Object.keys (params).length) {

@@ -76,7 +76,7 @@ export default class toobit extends toobitRest {
         };
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         //
         // public
         //
@@ -217,7 +217,7 @@ export default class toobit extends toobitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     {
         //         symbol: "DOGEUSDT",
@@ -277,7 +277,7 @@ export default class toobit extends toobitRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
         return result[symbol][timeframe];
@@ -332,7 +332,7 @@ export default class toobit extends toobitRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         symbol: 'DOGEUSDT',
@@ -385,7 +385,7 @@ export default class toobit extends toobitRest {
         client.resolve (resolveData, messageHash);
     }
 
-    override parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //             {
         //                 t: 1757251200000,
@@ -462,7 +462,7 @@ export default class toobit extends toobitRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTickers (client: Client, message) {
+    handleTickers (client: Client, message: any) {
         //
         //    {
         //        "symbol": "DOGEUSDT",
@@ -502,7 +502,7 @@ export default class toobit extends toobitRest {
         if (data === undefined) {
             return;
         }
-        const newTickers = {};
+        const newTickers: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
             const parsed = this.parseWsTicker (ticker);
@@ -519,7 +519,7 @@ export default class toobit extends toobitRest {
         client.resolve (newTickers, 'tickers');
     }
 
-    parseWsTicker (ticker, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         return this.parseTicker (ticker, market);
     }
 
@@ -580,7 +580,7 @@ export default class toobit extends toobitRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         symbol: 'DOGEUSDT',
@@ -630,12 +630,12 @@ export default class toobit extends toobitRest {
         }
     }
 
-    override handleDelta (bookside, delta) {
+    override handleDelta (bookside: any, delta: any) {
         const bidAsk = this.parseOrderBookBidAsk (delta);
         bookside.storeArray (bidAsk);
     }
 
-    handleOrderBookPartialSnapshot (client: Client, message) {
+    handleOrderBookPartialSnapshot (client: Client, message: any) {
         //
         //     {
         //         symbol: 'DOGEUSDT',
@@ -661,7 +661,7 @@ export default class toobit extends toobitRest {
         this.setOrderBookSnapshot (client, message, 'depth');
     }
 
-    setOrderBookSnapshot (client: Client, message, channel: string) {
+    setOrderBookSnapshot (client: Client, message: any, channel: string) {
         const data = this.safeList (message, 'data', []);
         const length = data.length;
         if (length === 0) {
@@ -718,7 +718,7 @@ export default class toobit extends toobitRest {
         return await this.watch (url, messageHash, params, subscriptionHash);
     }
 
-    setBalanceCache (client: Client, marketType, subscriptionHash: Str = undefined, params = {}) {
+    setBalanceCache (client: Client, marketType: any, subscriptionHash: Str = undefined, params = {}) {
         if ((subscriptionHash === undefined) || (subscriptionHash in client.subscriptions)) {
             return;
         }
@@ -730,7 +730,7 @@ export default class toobit extends toobitRest {
         }
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         // spot
         //
@@ -790,7 +790,7 @@ export default class toobit extends toobitRest {
         client.resolve (this.balance[type], type + ':balance');
     }
 
-    async loadBalanceSnapshot (client, messageHash, marketType) {
+    async loadBalanceSnapshot (client: Client, messageHash: any, marketType: any) {
         const response = await this.fetchBalance ({ 'type': marketType });
         const type = (marketType === 'spot') ? 'spot' : 'contract';
         this.balance[type] = this.extend (response, this.safeDict (this.balance, type, {}));
@@ -834,7 +834,7 @@ export default class toobit extends toobitRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         //    {
         //        "e": "executionReport",
@@ -879,7 +879,7 @@ export default class toobit extends toobitRest {
         client.resolve (orders, messageHash);
     }
 
-    override parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         const timestamp = this.safeInteger (order, 'O');
         const marketId = this.safeString (order, 's');
         const symbol = this.safeSymbol (marketId, market);
@@ -957,7 +957,7 @@ export default class toobit extends toobitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleMyTrade (client: Client, message) {
+    handleMyTrade (client: Client, message: any) {
         //
         //    {
         //        "e": "ticketInfo",
@@ -987,7 +987,7 @@ export default class toobit extends toobitRest {
         client.resolve (myTrades, messageHash);
     }
 
-    parseMyTrade (trade, market: Market = undefined) {
+    parseMyTrade (trade: any, market: Market = undefined) {
         const marketId = this.safeString (trade, 's');
         const ts = this.safeString (trade, 't');
         return this.safeTrade ({
@@ -1047,7 +1047,7 @@ export default class toobit extends toobitRest {
         return this.filterBySymbolsSinceLimit (cache, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type, symbols: Strings = undefined, isPortfolioMargin = false) {
+    setPositionsCache (client: Client, type: any, symbols: Strings = undefined, isPortfolioMargin = false) {
         if (this.positions === undefined) {
             this.positions = {};
         }
@@ -1066,7 +1066,7 @@ export default class toobit extends toobitRest {
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash, type) {
+    async loadPositionsSnapshot (client: Client, messageHash: any, type: any) {
         const params: Dict = {
             'type': type,
         };
@@ -1085,7 +1085,7 @@ export default class toobit extends toobitRest {
         }
     }
 
-    handlePositions (client, message) {
+    handlePositions (client: any, message: any) {
         //
         // [
         //     {
@@ -1143,7 +1143,7 @@ export default class toobit extends toobitRest {
         client.resolve (newPositions, accountType + ':positions');
     }
 
-    parseWsPosition (position, market: Market = undefined) {
+    parseWsPosition (position: any, market: Market = undefined) {
         const marketId = this.safeString (position, 's');
         return this.safePosition ({
             'info': position,
@@ -1236,7 +1236,7 @@ export default class toobit extends toobitRest {
         return this.urls['api']['ws']['common'] + '/api/v1/ws/' + this.options['ws']['listenKey'];
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //    {
         //        "code": '-100010',

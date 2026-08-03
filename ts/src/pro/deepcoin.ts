@@ -92,7 +92,7 @@ export default class deepcoin extends deepcoinRest {
         return 'ping';
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: any) {
         client.lastPong = this.milliseconds ();
         return message;
     }
@@ -106,7 +106,7 @@ export default class deepcoin extends deepcoinRest {
         return newValue;
     }
 
-    createPublicRequest (market, requestId: number, topicID: string, suffix: string = '', unWatch: boolean = false) {
+    createPublicRequest (market: any, requestId: number, topicID: string, suffix: string = '', unWatch: boolean = false) {
         let marketId = market['symbol']; // spot markets use symbol with slash
         if (market['type'] === 'swap') {
             marketId = this.safeString (market, 'baseId', '') + this.safeString (market, 'quoteId', ''); // swap markets use symbol without slash
@@ -127,7 +127,7 @@ export default class deepcoin extends deepcoinRest {
         return request;
     }
 
-    async watchPublic (market, messageHash: string, topicID: string, params: Dict = {}, suffix: string = ''): Promise<any> {
+    async watchPublic (market: any, messageHash: string, topicID: string, params: Dict = {}, suffix: string = ''): Promise<any> {
         const url = this.urls['api']['ws']['public'][market['type']];
         const requestId = this.requestId ();
         const request = this.createPublicRequest (market, requestId, topicID, suffix);
@@ -138,7 +138,7 @@ export default class deepcoin extends deepcoinRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, subscription);
     }
 
-    async unWatchPublic (market, messageHash: string, topicID: string, params: Dict = {}, subscription: Dict = {}, suffix: string = ''): Promise<any> {
+    async unWatchPublic (market: any, messageHash: string, topicID: string, params: Dict = {}, subscription: Dict = {}, suffix: string = ''): Promise<any> {
         const url = this.urls['api']['ws']['public'][market['type']];
         const requestId = this.requestId ();
         const client = this.client (url);
@@ -234,7 +234,7 @@ export default class deepcoin extends deepcoinRest {
         return await this.unWatchPublic (market, messageHash, '7', params, subscription);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //     a: 'PO',
         //     m: 'Success',
@@ -383,7 +383,7 @@ export default class deepcoin extends deepcoinRest {
         return await this.unWatchPublic (market, messageHash, '2', params, subscription);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     {
         //         "a": "PMT",
@@ -557,7 +557,7 @@ export default class deepcoin extends deepcoinRest {
         return await this.unWatchPublic (market, messageHash, '11', params, subscription, suffix);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         "a": "PK",
@@ -605,7 +605,7 @@ export default class deepcoin extends deepcoinRest {
         client.resolve (stored, messageHash);
     }
 
-    override parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "I": "BTC/USDT",
@@ -672,7 +672,7 @@ export default class deepcoin extends deepcoinRest {
         return await this.unWatchPublic (market, messageHash, '25', params, subscription, suffix);
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "a": "PMO",
@@ -715,7 +715,7 @@ export default class deepcoin extends deepcoinRest {
         }
     }
 
-    handleOrderBookSnapshot (client: Client, message) {
+    handleOrderBookSnapshot (client: Client, message: any) {
         const entries = this.safeList (message, 'r', []);
         const first = this.safeDict (entries, 0, {});
         const data = this.safeDict (first, 'd', {});
@@ -754,7 +754,7 @@ export default class deepcoin extends deepcoinRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBookMessage (client: Client, message, orderbook) {
+    handleOrderBookMessage (client: Client, message: any, orderbook: any) {
         //     {
         //         "a": "PMO",
         //         "t": "i", // i - update, f - snapshot
@@ -779,7 +779,7 @@ export default class deepcoin extends deepcoinRest {
         }
     }
 
-    override handleDelta (orderbook, entry) {
+    override handleDelta (orderbook: any, entry: any) {
         const data = this.safeDict (entry, 'd', {});
         const bids = orderbook['bids'];
         const asks = orderbook['asks'];
@@ -822,7 +822,7 @@ export default class deepcoin extends deepcoinRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrade (client: Client, message) {
+    handleMyTrade (client: Client, message: any) {
         //
         //     {
         //         "action": "PushTrade",
@@ -901,7 +901,7 @@ export default class deepcoin extends deepcoinRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         //     {
         //         "action": "PushOrder",
@@ -952,7 +952,7 @@ export default class deepcoin extends deepcoinRest {
         }
     }
 
-    override parseWsOrder (order, market: Market = undefined): Order {
+    override parseWsOrder (order: any, market: Market = undefined): Order {
         //
         //     {
         //         "D": "0",
@@ -1052,7 +1052,7 @@ export default class deepcoin extends deepcoinRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    handlePosition (client: Client, message) {
+    handlePosition (client: Client, message: any) {
         //
         //     {
         //         "action": "PushPosition",
@@ -1095,7 +1095,7 @@ export default class deepcoin extends deepcoinRest {
         }
     }
 
-    parseWsPosition (position, market: Market = undefined): Position {
+    parseWsPosition (position: any, market: Market = undefined): Position {
         //
         //     {
         //         "A": "9256245",
@@ -1168,7 +1168,7 @@ export default class deepcoin extends deepcoinRest {
         return this.safeString (modes, marginMode, marginMode);
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         if (message === 'pong') {
             this.handlePong (client, message);
         } else {
@@ -1197,7 +1197,7 @@ export default class deepcoin extends deepcoinRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //     {
         //         "a": "RecvTopicAction",
@@ -1237,7 +1237,7 @@ export default class deepcoin extends deepcoinRest {
         this.cleanCache (subscription);
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message: any) {
         //
         //     {
         //         "a": "RecvTopicAction",

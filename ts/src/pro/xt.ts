@@ -113,7 +113,7 @@ export default class xt extends xtRest {
         return client.subscriptions['token'];
     }
 
-    override getCacheIndex (orderbook, cache) {
+    override getCacheIndex (orderbook: any, cache: any) {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         const nonce = this.safeInteger (orderbook, 'nonce');
         const firstDelta = this.safeValue (cache, 0);
@@ -131,7 +131,7 @@ export default class xt extends xtRest {
         return cache.length;
     }
 
-    override handleDelta (orderbook, delta) {
+    override handleDelta (orderbook: any, delta: any) {
         orderbook['nonce'] = this.safeInteger2 (delta, 'i', 'u');
         const obAsks = this.safeList (delta, 'a', []);
         const obBids = this.safeList (delta, 'b', []);
@@ -173,7 +173,7 @@ export default class xt extends xtRest {
         [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
         const isContract = (type !== 'spot');
         const id = this.numberToString (this.milliseconds ()) + name; // call back ID
-        const subscribe = {
+        const subscribe: Dict = {
             'method': isContract ? 'SUBSCRIBE' : 'subscribe',
             'id': id,
         };
@@ -229,7 +229,7 @@ export default class xt extends xtRest {
         [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
         const isContract = (type !== 'spot');
         const id = this.numberToString (this.milliseconds ()) + name; // call back ID
-        const unsubscribe = {
+        const unsubscribe: Dict = {
             'method': isContract ? 'UNSUBSCRIBE' : 'unsubscribe',
             'id': id,
         };
@@ -723,7 +723,7 @@ export default class xt extends xtRest {
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash) {
+    async loadPositionsSnapshot (client: Client, messageHash: any) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -742,7 +742,7 @@ export default class xt extends xtRest {
         }
     }
 
-    handlePosition (client, message) {
+    handlePosition (client: any, message: any) {
         //
         //    {
         //      topic: 'position',
@@ -1504,7 +1504,7 @@ export default class xt extends xtRest {
         client.resolve (stored, 'trade::' + tradeType);
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         const event = this.safeString (message, 'event');
         if (event === 'pong') {
             client.onPong ();
@@ -1545,7 +1545,7 @@ export default class xt extends xtRest {
         return 'ping';
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //     {
         //         id: '1763045665228ticker@eth_usdt',

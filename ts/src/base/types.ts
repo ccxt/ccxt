@@ -17,8 +17,10 @@ export interface Dictionary<T> {
     [key: string]: T;
 }
 
+// url trees are open-ended bags: exchanges nest arbitrary depth under
+// 'api', 'test', 'hostnames', 'demo', ... and index them dynamically
 export interface NestedDictionary {
-    [key: string]: string | NestedDictionary;
+    [key: string]: any;
 }
 
 export type Dict = Dictionary<any>;
@@ -530,6 +532,9 @@ export interface BalanceAccount {
     free: Str,
     used: Str,
     total: Str,
+    debt?: Str,
+    frozen?: Str,
+    info?: any,
 }
 
 export interface Account {

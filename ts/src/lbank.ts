@@ -462,7 +462,7 @@ export default class lbank extends Exchange {
         const id = this.safeString (rawCurrency[0], 'assetCode'); // first member is guaranteed
         const code = this.safeCurrencyCode (id);
         const networksRaw = rawCurrency;
-        const networks = {};
+        const networks: Dict = {};
         for (let j = 0; j < (networksRaw as List).length; j++) {
             const networkEntry = networksRaw[j];
             let networkId = this.safeString (networkEntry, 'chain');
@@ -536,7 +536,7 @@ export default class lbank extends Exchange {
         return this.arrayConcat (resolvedMarkets[0], resolvedMarkets[1]);
     }
 
-    async fetchSpotMarkets (params = {}) {
+    async fetchSpotMarkets (params: any = {}) {
         const response = await this.spotPublicGetAccuracy (params);
         //
         //     {
@@ -617,7 +617,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    async fetchSwapMarkets (params = {}) {
+    async fetchSwapMarkets (params: any = {}) {
         const request: Dict = {
             'productGroup': 'SwapU',
         };
@@ -1160,7 +1160,7 @@ export default class lbank extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //   [
         //     1482311500, // timestamp
@@ -1242,7 +1242,7 @@ export default class lbank extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         //
         // spotPrivatePostUserInfo
         //
@@ -1380,7 +1380,7 @@ export default class lbank extends Exchange {
         return undefined as any;
     }
 
-    override parseFundingRate (ticker, market: Market = undefined): FundingRate {
+    override parseFundingRate (ticker: any, market: Market = undefined): FundingRate {
         // {
         //     "symbol": "BTCUSDT",
         //     "highestPrice": "69495.5",
@@ -1624,7 +1624,7 @@ export default class lbank extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2282,7 +2282,7 @@ export default class lbank extends Exchange {
         return this.parseOrders (data);
     }
 
-    getNetworkCodeForCurrency (currencyCode, params) {
+    getNetworkCodeForCurrency (currencyCode: any, params: any) {
         const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
         const defaultNetwork = this.safeStringUpper (defaultNetworks, currencyCode);
         const networks = this.safeValue (this.options, 'networks', {});
@@ -2462,7 +2462,7 @@ export default class lbank extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatus (status, type) {
+    parseTransactionStatus (status: Str, type: any) {
         const statuses: Dict = {
             'deposit': {
                 '1': 'pending',
@@ -2950,7 +2950,7 @@ export default class lbank extends Exchange {
         return this.parsePublicDepositWithdrawFees (data, codes);
     }
 
-    parsePublicDepositWithdrawFees (response, codes: Strings = undefined) {
+    parsePublicDepositWithdrawFees (response: any, codes: Strings = undefined) {
         //
         //    [
         //        {
@@ -3009,7 +3009,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         // * only used for fetchPrivateDepositWithdrawFees
         //
@@ -3068,7 +3068,7 @@ export default class lbank extends Exchange {
         return result;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api']['rest'] + '/' + this.version + '/' + this.implodeParams (path, params);
         // Every spot endpoint ends with ".do"
@@ -3132,7 +3132,7 @@ export default class lbank extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    convertSecretToPem (secret) {
+    convertSecretToPem (secret: any) {
         const lineLength = 64;
         const secretLength = secret.length - 0;
         let numLines = this.parseToInt (secretLength / lineLength);
@@ -3146,7 +3146,7 @@ export default class lbank extends Exchange {
         return pem + '-----END PRIVATE KEY-----';
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             throw new NullResponse (this.id + ' parseBalance() returned empty response');
         }

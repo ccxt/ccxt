@@ -655,7 +655,7 @@ export default class whitebit extends Exchange {
         const id = this.safeString (rawCurrency, '_coin_id');
         const code = this.safeCurrencyCode (id);
         const hasProvider = ('providers' in rawCurrency);
-        const networks = {};
+        const networks: Dict = {};
         const rawNetworks = this.safeDict (rawCurrency, 'networks', {});
         const depositsNetworks = this.safeList (rawNetworks, 'deposits', []);
         const withdrawsNetworks = this.safeList (rawNetworks, 'withdraws', []);
@@ -841,7 +841,7 @@ export default class whitebit extends Exchange {
         return this.parseDepositWithdrawFees (response, codes);
     }
 
-    override parseDepositWithdrawFees (response, codes: Strings = undefined, currencyIdKey: Str = undefined) {
+    override parseDepositWithdrawFees (response: any, codes: Strings = undefined, currencyIdKey: Str = undefined) {
         //
         //    {
         //        "1INCH": {
@@ -998,7 +998,7 @@ export default class whitebit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [trading limits structure]{@link https://docs.ccxt.com/?id=trading-limits-structure}
      */
-    override async fetchTradingLimits (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async fetchTradingLimits (symbols: Strings = undefined, params = {}): Promise<Dict> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1205,14 +1205,15 @@ export default class whitebit extends Exchange {
                 }
             }
             // Build comprehensive funding limits
+            const currencyLimits = this.safeDict (currency, 'limits', {});
             const limits: Dict = {
                 'deposit': {
-                    'min': currency['limits']['deposit']['min'],
-                    'max': currency['limits']['deposit']['max'],
+                    'min': currencyLimits['deposit']['min'],
+                    'max': currencyLimits['deposit']['max'],
                 },
                 'withdraw': {
-                    'min': currency['limits']['withdraw']['min'],
-                    'max': currency['limits']['withdraw']['max'],
+                    'min': currencyLimits['withdraw']['min'],
+                    'max': currencyLimits['withdraw']['max'],
                 },
             };
             // Add fee information if available
@@ -1220,7 +1221,7 @@ export default class whitebit extends Exchange {
                 const depositFee = feeData['deposit'];
                 const withdrawFee = feeData['withdraw'];
                 if (depositFee) {
-                    const depositFeeData = {
+                    const depositFeeData: Dict = {
                         'fixed': this.safeNumber (depositFee, 'fixed'),
                     };
                     if (depositFee['flex']) {
@@ -1233,7 +1234,7 @@ export default class whitebit extends Exchange {
                     limits['deposit']['fee'] = depositFeeData;
                 }
                 if (withdrawFee) {
-                    const withdrawFeeData = {
+                    const withdrawFeeData: Dict = {
                         'fixed': this.safeNumber (withdrawFee, 'fixed'),
                     };
                     if (withdrawFee['flex']) {
@@ -1892,7 +1893,7 @@ export default class whitebit extends Exchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         1591488000,
@@ -2330,7 +2331,7 @@ export default class whitebit extends Exchange {
         return response;
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const balanceKeys = Object.keys (response);
         const result: Dict = {};
         for (let i = 0; i < balanceKeys.length; i++) {
@@ -2918,7 +2919,7 @@ export default class whitebit extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "address": "GDTSOI56XNVAKJNJBLJGRNZIVOCIZJRBIDKTWSCYEYNFAZEMBLN75RMN",
@@ -3499,7 +3500,7 @@ export default class whitebit extends Exchange {
         return this.parseFundingRates (data, symbols);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         // {
         //     "ticker_id":"ADA_PERP",
@@ -3612,7 +3613,7 @@ export default class whitebit extends Exchange {
         return this.parseFundingHistories (data, market, since, limit);
     }
 
-    parseFundingHistory (contract, market: Market = undefined) {
+    parseFundingHistory (contract: any, market: Market = undefined) {
         //
         //     {
         //         "market": "BTC_PERP",
@@ -3637,7 +3638,7 @@ export default class whitebit extends Exchange {
         };
     }
 
-    parseFundingHistories (contracts, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
+    parseFundingHistories (contracts: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
         const result: List = [];
         for (let i = 0; i < contracts.length; i++) {
             const contract = contracts[i];
@@ -4156,7 +4157,7 @@ export default class whitebit extends Exchange {
         return this.parseBorrowRate (data, currency);
     }
 
-    override parseBorrowRate (info, currency: Currency = undefined) {
+    override parseBorrowRate (info: any, currency: Currency = undefined) {
         //
         //
         const currencyId = this.safeString (info, 'ticker');
@@ -4227,7 +4228,7 @@ export default class whitebit extends Exchange {
         return this.parseFundingRateHistories (response, market, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (info, market: Market = undefined) {
+    override parseFundingRateHistory (info: any, market: Market = undefined) {
         const marketId = this.safeString (info, 'market');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeTimestamp (info, 'fundingTime');
@@ -4244,7 +4245,7 @@ export default class whitebit extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         const query = this.omit (params, this.extractParams (path));
         const version = this.safeValue (api, 0);
         const accessibility = this.safeValue (api, 1);
@@ -4278,7 +4279,7 @@ export default class whitebit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if ((code === 418) || (code === 429)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }

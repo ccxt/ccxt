@@ -451,6 +451,40 @@ class NewTranspiler {
         this.transpiler = new Transpiler(this.getTranspilerConfig())
         this.transpiler.setVerboseMode(false);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
+        this.patchJavaPropertyTypes();
+    }
+
+    // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
+    // TypeReference returns the raw TypeScript type name (`Dict`, `Str`, `Num`, `Strings`, ...)
+    // WITHOUT consulting `VariableTypeReplacements` — the very map it already applies to locals,
+    // parameters and return types. Java has no `Dict`/`Str`/`Num` class, so a TS field declared
+    //     skippedMethods: Dict = {};
+    // was emitted verbatim as
+    //     public Dict skippedMethods = new java.util.HashMap<String, Object>() {{}};
+    // and javac failed with "cannot find symbol". Untyped fields were unaffected (they fall back
+    // to the initializer-inferred type), which is why this only surfaced once ts/src was annotated
+    // for noImplicitAny.
+    //
+    // Scope: within JavaTranspiler, getType() is called from exactly ONE site —
+    // printPropertyAccessModifiers() — so routing its result through VariableTypeReplacements
+    // fixes class-field declarations only, and cannot perturb parameters, locals or return types
+    // (those already go through ArgTypeReplacements / the Dict special-cases and are correct).
+    // The map is applied by exact key, so a type name it does not know is passed through unchanged.
+    patchJavaPropertyTypes() {
+        const javaTranspiler = (this.transpiler as any)?.javaTranspiler;
+        if (!javaTranspiler || typeof javaTranspiler.getType !== 'function' || javaTranspiler._propertyTypesPatched) {
+            return;
+        }
+        const originalGetType = javaTranspiler.getType.bind(javaTranspiler);
+        javaTranspiler.getType = (node: any) => {
+            const type = originalGetType(node);
+            const replacements = javaTranspiler.VariableTypeReplacements ?? {};
+            if ((typeof type === 'string') && Object.prototype.hasOwnProperty.call(replacements, type)) {
+                return replacements[type];
+            }
+            return type;
+        };
+        javaTranspiler._propertyTypesPatched = true;
     }
 
     createGeneratedHeader() {
@@ -3169,6 +3203,9 @@ class NewTranspiler {
             [/TestMainClass\.this/gm, 'TestMain.this'],
             [/throw new Exception/g, 'throw new RuntimeException'],
             [/throw e/gm, 'throw new RuntimeException(e)'],
+            // noImplicitAny bags: Object so safeValue assignments typecheck (Map is too narrow)
+            [/public (?:Dict|java\.util\.Map<String, Object>) skippedMethods\b/g, 'public Object skippedMethods'],
+            [/public (?:Dict|java\.util\.Map<String, Object>) checkedPublicTests\b/g, 'public Object checkedPublicTests'],
 
         ])
         // Null-safe Array.isArray (see Helpers.isArrayJs).

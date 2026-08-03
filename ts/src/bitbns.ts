@@ -504,7 +504,7 @@ export default class bitbns extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const timestamp: Int = undefined;
         const result: Dict = {
             'info': response,
@@ -567,7 +567,7 @@ export default class bitbns extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseStatus (status) {
+    parseStatus (status: any) {
         const statuses: Dict = {
             '-1': 'cancelled',
             '0': 'open',
@@ -1142,7 +1142,7 @@ export default class bitbns extends Exchange {
         return this.parseTransactions (data, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status, type: Str = undefined) {
+    parseTransactionStatusByType (status: any, type: Str = undefined) {
         const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
@@ -1274,7 +1274,7 @@ export default class bitbns extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path, api: any = 'www', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'www', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const urls = this.urls as any;
         if (!(api in urls['api'])) {
             throw new ExchangeError (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
@@ -1313,7 +1313,7 @@ export default class bitbns extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

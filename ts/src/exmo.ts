@@ -305,7 +305,7 @@ export default class exmo extends Exchange {
         });
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}) {
+    async modifyMarginHelper (symbol: string, amount: any, type: any, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -497,7 +497,7 @@ export default class exmo extends Exchange {
         return result;
     }
 
-    parseFixedFloatValue (input) {
+    parseFixedFloatValue (input: any) {
         if ((input === undefined) || (input === '-')) {
             return undefined;
         }
@@ -632,7 +632,7 @@ export default class exmo extends Exchange {
         return result;
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //    [
         //        {
@@ -1046,7 +1046,7 @@ export default class exmo extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "t":1584057600000,
@@ -1067,7 +1067,7 @@ export default class exmo extends Exchange {
         ];
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         const wallets = this.safeValue (response, 'wallets');
         if (wallets !== undefined) {
@@ -2018,7 +2018,7 @@ export default class exmo extends Exchange {
         return orders as Order[];
     }
 
-    parseStatus (status) {
+    parseStatus (status: any) {
         if (status === undefined) {
             return undefined;
         }
@@ -2031,7 +2031,7 @@ export default class exmo extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseSide (orderType) {
+    parseSide (orderType: any) {
         const side: Dict = {
             'limit_buy': 'buy',
             'limit_sell': 'sell',
@@ -2354,7 +2354,7 @@ export default class exmo extends Exchange {
         } as DepositAddress;
     }
 
-    getMarketFromTrades (trades) {
+    getMarketFromTrades (trades: any) {
         const tradesBySymbol = this.indexBy (trades, 'pair');
         const symbols = Object.keys (tradesBySymbol);
         const numSymbols = symbols.length;
@@ -2504,7 +2504,7 @@ export default class exmo extends Exchange {
             'rate': undefined,
         };
         // fixed funding fees only (for now)
-        if (!this.fees['transaction']['percentage']) {
+        if (!(this.fees as Dict)['transaction']['percentage']) {
             const key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
             let feeCost = this.safeString (transaction, 'commission');
             if (feeCost === undefined) {
@@ -2831,7 +2831,7 @@ export default class exmo extends Exchange {
         return this.parseTransactions (items, currency, since, limit);
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/';
         if (api !== 'web') {
             url += this.version + '/';
@@ -2858,7 +2858,7 @@ export default class exmo extends Exchange {
         return this.milliseconds ();
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

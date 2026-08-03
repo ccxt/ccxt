@@ -581,7 +581,7 @@ export default class upbit extends Exchange {
         });
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1095,7 +1095,7 @@ export default class upbit extends Exchange {
         return response;
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "market": "BTC-ETH",
@@ -2225,7 +2225,7 @@ export default class upbit extends Exchange {
         return this.parseDepositAddresses (response, codes);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        currency: 'XRP',
@@ -2390,7 +2390,7 @@ export default class upbit extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url: Str = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         });
@@ -2429,7 +2429,7 @@ export default class upbit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

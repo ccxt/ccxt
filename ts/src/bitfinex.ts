@@ -4,7 +4,7 @@ import { ExchangeError, ArgumentsRequired, InsufficientFunds, AuthenticationErro
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, List, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, IndexType, NullableDict } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, List, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, IndexType, NullableDict, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -549,11 +549,11 @@ export default class bitfinex extends Exchange {
         });
     }
 
-    isFiat (code) {
+    isFiat (code: any) {
         return (code in this.options['fiat']);
     }
 
-    getCurrencyName (code) {
+    getCurrencyName (code: any) {
         // temporary fix for transpiler recognition, even though this is in parent class
         if (code in this.options['currencyNames']) {
             return this.options['currencyNames'][code];
@@ -561,7 +561,7 @@ export default class bitfinex extends Exchange {
         throw new NotSupported (this.id + ' ' + code + ' not supported for withdrawal');
     }
 
-    override amountToPrecision (symbol, amount) {
+    override amountToPrecision (symbol: Str, amount: any) {
         // https://docs.bitfinex.com/docs/introduction#amount-precision
         // The amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
@@ -570,7 +570,7 @@ export default class bitfinex extends Exchange {
         return this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES);
     }
 
-    override priceToPrecision (symbol, price) {
+    override priceToPrecision (symbol: Str, price: any) {
         symbol = this.safeSymbol (symbol);
         const market = this.market (symbol);
         price = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode);
@@ -863,7 +863,7 @@ export default class bitfinex extends Exchange {
         return this.parseCurrenciesCustom (ids, indexed, indexedNetworks);
     }
 
-    parseCurrenciesCustom (ids, indexed, indexedNetworks) {
+    parseCurrenciesCustom (ids: any, indexed: any, indexedNetworks: any) {
         const allowedIds: Str[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -873,7 +873,7 @@ export default class bitfinex extends Exchange {
             }
             allowedIds.push (id);
         }
-        const result = {};
+        const result: Dict = {};
         const arr = this.toArray (allowedIds);
         for (let i = 0; i < arr.length; i++) {
             const parsed = this.parseCurrencyCustom (arr[i], indexed, indexedNetworks);
@@ -883,7 +883,7 @@ export default class bitfinex extends Exchange {
         return result;
     }
 
-    parseCurrencyCustom (id, indexed, indexedNetworks): Currency {
+    parseCurrencyCustom (id: any, indexed: any, indexedNetworks: any): Currency {
         const code = this.safeCurrencyCode (id);
         const label = this.safeList (indexed['label'], id, []);
         const name = this.safeString (label, 1);
@@ -1124,7 +1124,7 @@ export default class bitfinex extends Exchange {
         return this.safeString (statuses, status as IndexType, status);
     }
 
-    convertDerivativesId (currency, type) {
+    convertDerivativesId (currency: any, type: any) {
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
         // {
         //   "id": "fUSTF0",
@@ -1579,7 +1579,7 @@ export default class bitfinex extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         1457539800000,
@@ -1621,7 +1621,7 @@ export default class bitfinex extends Exchange {
         return this.safeString (statuses, state as IndexType, status);
     }
 
-    parseOrderFlags (flags) {
+    parseOrderFlags (flags: any) {
         // flags can be added to each other...
         const flagValues: Dict = {
             '1024': [ 'reduceOnly' ],
@@ -1635,7 +1635,7 @@ export default class bitfinex extends Exchange {
         return this.safeValue (flagValues, flags, undefined);
     }
 
-    parseTimeInForce (orderType) {
+    parseTimeInForce (orderType: any) {
         const orderTypes: Dict = {
             'EXCHANGE IOC': 'IOC',
             'EXCHANGE FOK': 'FOK',
@@ -2725,7 +2725,7 @@ export default class bitfinex extends Exchange {
         for (let i = 0; i < (this.symbols as any).length; i++) {
             const symbol = (this.symbols as any)[i];
             const market = this.market (symbol);
-            const fee = {
+            const fee: Dict = {
                 'info': response,
                 'symbol': symbol,
                 'percentage': true,
@@ -3030,7 +3030,7 @@ export default class bitfinex extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let request = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'v1') {
@@ -3060,7 +3060,7 @@ export default class bitfinex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (statusCode, statusText, url, method, headers, body, response, requestHeaders, requestBody) {
+    override handleErrors (statusCode: int, statusText: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any) {
         // ["error", 11010, "ratelimit: error"]
         if (response !== undefined) {
             if (!Array.isArray (response)) {
@@ -3356,7 +3356,7 @@ export default class bitfinex extends Exchange {
         return reversedArray as FundingRateHistory[];
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //       [
         //          "tBTCF0:USTF0",
@@ -3410,7 +3410,7 @@ export default class bitfinex extends Exchange {
         } as FundingRate;
     }
 
-    override parseFundingRateHistory (contract, market: Market = undefined) {
+    override parseFundingRateHistory (contract: any, market: Market = undefined) {
         //
         // [
         //     1691165494000,
@@ -3635,7 +3635,7 @@ export default class bitfinex extends Exchange {
         return this.parseOpenInterestsHistory (response, market, since, limit);
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         // fetchOpenInterest:
         //
@@ -3763,7 +3763,7 @@ export default class bitfinex extends Exchange {
         return this.parseLiquidations (response, market, since, limit);
     }
 
-    override parseLiquidation (liquidation, market: Market = undefined) {
+    override parseLiquidation (liquidation: any, market: Market = undefined) {
         //
         //     [
         //         [
@@ -3839,7 +3839,7 @@ export default class bitfinex extends Exchange {
         return this.parseMarginModification (data, market);
     }
 
-    override parseMarginModification (data, market: Market = undefined): MarginModification {
+    override parseMarginModification (data: any, market: Market = undefined): MarginModification {
         //
         // setMargin
         //

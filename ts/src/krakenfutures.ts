@@ -779,7 +779,7 @@ export default class krakenfutures extends Exchange {
         return this.parseOHLCVs ((candles as any[]), market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //    {
         //        "time": 1645198500000,
@@ -1711,7 +1711,7 @@ export default class krakenfutures extends Exchange {
         return this.parseOrders (canceledAndRejected, market, since, limit);
     }
 
-    parseOrderType (orderType) {
+    parseOrderType (orderType: any) {
         const typesMap: Dict = {
             'lmt': 'limit',
             'mkt': 'market',
@@ -1721,7 +1721,7 @@ export default class krakenfutures extends Exchange {
         return this.safeString (typesMap, orderType, orderType);
     }
 
-    verifyOrderActionSuccess (status, method, omit: string[] = []) {
+    verifyOrderActionSuccess (status: any, method: any, omit: string[] = []) {
         const errors: Dict = {
             'invalidOrderType': InvalidOrder,
             'invalidSide': InvalidOrder,
@@ -2453,7 +2453,7 @@ export default class krakenfutures extends Exchange {
         return balance;
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         //
         // cashAccount
         //
@@ -2585,7 +2585,7 @@ export default class krakenfutures extends Exchange {
         return this.indexBy (fundingRates, 'symbol') as any;
     }
 
-    override parseFundingRate (ticker, market: Market = undefined): FundingRate {
+    override parseFundingRate (ticker: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "PF_ENJUSD",
@@ -2743,7 +2743,7 @@ export default class krakenfutures extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
-    override parsePositions (response, symbols: Strings = undefined, params = {}) {
+    override parsePositions (response: any, symbols: Strings = undefined, params = {}) {
         const result: any[] = [];
         // a degraded response can omit openPositions entirely - default to an
         // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
@@ -2873,7 +2873,7 @@ export default class krakenfutures extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    override parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         /**
          * @method
          * @ignore
@@ -2966,7 +2966,7 @@ export default class krakenfutures extends Exchange {
         };
     }
 
-    override parseAccount (account) {
+    override parseAccount (account: any) {
         const accountByType: Dict = {
             'main': 'cash',
             'funding': 'cash',
@@ -3002,7 +3002,7 @@ export default class krakenfutures extends Exchange {
      * @param {dict} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transferOut (code: string, amount, params = {}) {
+    async transferOut (code: string, amount: any, params = {}) {
         return await this.transfer (code, amount, 'future', 'spot', params);
     }
 
@@ -3167,7 +3167,7 @@ export default class krakenfutures extends Exchange {
         } as Leverage;
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }
@@ -3190,7 +3190,7 @@ export default class krakenfutures extends Exchange {
         throw new ExchangeError (feedback); // unknown message
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const apiVersions = this.safeValue (this.options['versions'], api, {});
         const methodVersions = this.safeValue (apiVersions, method, {});
         const defaultVersion = this.safeString (methodVersions, path, this.version);

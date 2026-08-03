@@ -1313,7 +1313,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    getMarketIdByType (market) {
+    getMarketIdByType (market: any) {
         if (market['quote'] === 'USDT') {
             return market['baseId'] + market['quoteId'];
         }
@@ -1362,7 +1362,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         // when api method = publicGetKlines || fapiPublicGetKlines || dapiPublicGetKlines
         //     [
         //         1591478520000, // open time
@@ -1515,7 +1515,7 @@ export default class tokocrypto extends Exchange {
         return this.parseBalanceCustom (response, type, marginMode);
     }
 
-    parseBalanceCustom (response, type: Str = undefined, marginMode: Str = undefined) {
+    parseBalanceCustom (response: any, type: Str = undefined, marginMode: Str = undefined) {
         const timestamp = this.safeInteger (response, 'updateTime');
         const result: Dict = {
             'info': response,
@@ -1711,7 +1711,7 @@ export default class tokocrypto extends Exchange {
         }, market);
     }
 
-    parseOrderType (status) {
+    parseOrderType (status: any) {
         const statuses: Dict = {
             '2': 'market',
             '1': 'limit',
@@ -2352,7 +2352,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
-    parseTransactionStatusByType (status, type: Str = undefined) {
+    parseTransactionStatusByType (status: any, type: Str = undefined) {
         const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
@@ -2537,7 +2537,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         if (!(api in this.urls['api']['rest'])) {
             throw new NotSupported (this.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints');
         }
@@ -2600,7 +2600,7 @@ export default class tokocrypto extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if ((code === 418) || (code === 429)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }
@@ -2676,7 +2676,7 @@ export default class tokocrypto extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api, method, path, params, config = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
         if (('noCoin' in config) && !('coin' in params)) {
             return config['noCoin'];
         } else if (('noSymbol' in config) && !('symbol' in params)) {

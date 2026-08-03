@@ -966,7 +966,7 @@ export default class woo extends Exchange {
         }, market);
     }
 
-    parseTokenAndFeeTemp (item, feeTokenKeys, feeAmountKeys) {
+    parseTokenAndFeeTemp (item: any, feeTokenKeys: any, feeAmountKeys: any) {
         const feeCost = this.safeStringN (item, feeAmountKeys);
         let fee: NullableDict = undefined;
         if (feeCost !== undefined) {
@@ -1320,7 +1320,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
+    override async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount: Num = undefined, trailingTriggerPrice: Num = undefined, params: Dict = {}): Promise<Order> {
         if (trailingAmount === undefined) {
             throw new ArgumentsRequired (this.id + ' createTrailingAmountOrder() requires a trailingAmount argument');
         }
@@ -1347,7 +1347,7 @@ export default class woo extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
+    override async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent: Num = undefined, trailingTriggerPrice: Num = undefined, params: Dict = {}): Promise<Order> {
         if (trailingPercent === undefined) {
             throw new ArgumentsRequired (this.id + ' createTrailingPercentOrder() requires a trailingPercent argument');
         }
@@ -1557,7 +1557,7 @@ export default class woo extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    encodeMarginMode (mode) {
+    encodeMarginMode (mode: any) {
         const modes = {
             'cross': 'CROSS',
             'isolated': 'ISOLATED',
@@ -2386,7 +2386,7 @@ export default class woo extends Exchange {
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 'startTimestamp'),
             this.safeNumber (ohlcv, 'open'),
@@ -2581,7 +2581,7 @@ export default class woo extends Exchange {
         return this.parseAccounts (rows, params);
     }
 
-    override parseAccount (account) {
+    override parseAccount (account: any) {
         //
         //     {
         //         "applicationId": "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
@@ -2662,7 +2662,7 @@ export default class woo extends Exchange {
         return this.parseBalance (data);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
         };
@@ -2716,7 +2716,7 @@ export default class woo extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    getDedicatedNetworkId (currency, params: Dict): any {
+    getDedicatedNetworkId (currency: any, params: Dict): any {
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         networkCode = this.networkIdToCode (networkCode, currency['code']);
@@ -2729,7 +2729,7 @@ export default class woo extends Exchange {
         return [ currentyNetworkId, params ];
     }
 
-    override parseDepositAddress (depositEntry, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositEntry: any, currency: Currency = undefined): DepositAddress {
         const address = this.safeString (depositEntry, 'address');
         this.checkAddress (address);
         return {
@@ -2875,7 +2875,7 @@ export default class woo extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
@@ -2883,7 +2883,7 @@ export default class woo extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    getCurrencyFromChaincode (networkizedCode, currency) {
+    getCurrencyFromChaincode (networkizedCode: any, currency: any) {
         if (currency !== undefined) {
             return currency;
         } else {
@@ -3304,7 +3304,7 @@ export default class woo extends Exchange {
         });
     }
 
-    parseMarginLoan (info, currency: Currency = undefined) {
+    parseMarginLoan (info: any, currency: Currency = undefined) {
         //
         //     {
         //         "success": true,
@@ -3325,7 +3325,7 @@ export default class woo extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    override sign (path, section = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, section = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);
@@ -3396,7 +3396,7 @@ export default class woo extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (!response) {
             return undefined; // fallback to default error handler
         }
@@ -3414,7 +3414,7 @@ export default class woo extends Exchange {
         return undefined;
     }
 
-    override parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         //     {
         //         "id": 1286360,
@@ -3521,7 +3521,7 @@ export default class woo extends Exchange {
         return this.parseIncomes (rows, market, since, limit);
     }
 
-    override parseFundingRate (fundingRate, market: Market = undefined): FundingRate {
+    override parseFundingRate (fundingRate: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "PERP_BTC_USDT",
@@ -3981,7 +3981,7 @@ export default class woo extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'REDUCE', params);
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: any, type: any, params = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4592,7 +4592,7 @@ export default class woo extends Exchange {
         } as ADL;
     }
 
-    defaultNetworkCodeForCurrency (code) { // TODO: can be moved into base as an unified method
+    defaultNetworkCodeForCurrency (code: any) { // TODO: can be moved into base as an unified method
         const currencyItem = this.currency (code);
         const networks = currencyItem['networks'];
         const networkKeys = Object.keys (networks);

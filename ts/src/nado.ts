@@ -971,7 +971,7 @@ export default class nado extends Exchange {
             'sender': sender,
             'recvTime': this.numberToString (this.milliseconds () + recvWindow),
         };
-        const request = {
+        const request: Dict = {
             'tx': tx,
             'type': 'list_trigger_orders',
             'product_ids': productIds,
@@ -2197,7 +2197,7 @@ export default class nado extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "product_id": 1,
@@ -2331,7 +2331,7 @@ export default class nado extends Exchange {
         }, market);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "product_id": 1,
@@ -2404,7 +2404,7 @@ export default class nado extends Exchange {
         };
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         //     {
         //         "product_id": 1,
@@ -2498,7 +2498,7 @@ export default class nado extends Exchange {
         });
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         //
         //     {
         //         "subaccount": "0x8d7d64d6cf1d4f018dd101482ac71ad49e30c56064656661756c740000000000",
@@ -2903,19 +2903,19 @@ export default class nado extends Exchange {
         return Precise.stringDiv (Precise.stringMul (value, '1000000000000000000'), '1', 0);
     }
 
-    parseX18 (value) {
+    parseX18 (value: any) {
         if (value === undefined) {
             return undefined;
         }
         return this.parseNumber (Precise.stringDiv (value, '1000000000000000000'));
     }
 
-    createOrderNonce (recvWindow) {
+    createOrderNonce (recvWindow: any) {
         const expires = this.sum (this.milliseconds (), recvWindow);
         return Precise.stringMul (this.numberToString (expires), '1048576');
     }
 
-    createOrderAppendix (isTriggerOrder, params = {}) {
+    createOrderAppendix (isTriggerOrder: any, params = {}) {
         // | value   | builder | builder fee rate | reserved | trigger | reduce only | order type | isolated | version |
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
@@ -3001,7 +3001,7 @@ export default class nado extends Exchange {
         return padded.slice (0, length);
     }
 
-    signOrder (order, productId: Int, chainId) {
+    signOrder (order: any, productId: Int, chainId: any) {
         const domain: Dict = {
             'name': 'Nado',
             'version': '0.0.1',
@@ -3023,7 +3023,7 @@ export default class nado extends Exchange {
         return this.signHash (hash, this.privateKey);
     }
 
-    signCancellation (cancellation, chainId, endpointAddress: string) {
+    signCancellation (cancellation: any, chainId: any, endpointAddress: string) {
         const domain: Dict = {
             'name': 'Nado',
             'version': '0.0.1',
@@ -3043,7 +3043,7 @@ export default class nado extends Exchange {
         return this.signHash (hash, this.privateKey);
     }
 
-    signCancellationProducts (cancellation, chainId, endpointAddress: string) {
+    signCancellationProducts (cancellation: any, chainId: any, endpointAddress: string) {
         const domain: Dict = {
             'name': 'Nado',
             'version': '0.0.1',
@@ -3062,7 +3062,7 @@ export default class nado extends Exchange {
         return this.signHash (hash, this.privateKey);
     }
 
-    signFetchTriggerOrders (tx, chainId, endpointAddress) {
+    signFetchTriggerOrders (tx: any, chainId: any, endpointAddress: any) {
         const domain: Dict = {
             'name': 'Nado',
             'version': '0.0.1',
@@ -3091,7 +3091,7 @@ export default class nado extends Exchange {
         return '0x' + this.padHex (r, 64) + this.padHex (s, 64) + v;
     }
 
-    removeMarketSuffix (marketId) {
+    removeMarketSuffix (marketId: any) {
         if (marketId === undefined) {
             return undefined;
         }
@@ -3101,7 +3101,7 @@ export default class nado extends Exchange {
         return marketId;
     }
 
-    override sign (path, api: any = [], method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: any, api: any = [], method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let endpoint = api[0];
         if (typeof api === 'string') {
             endpoint = api;
@@ -3126,7 +3126,7 @@ export default class nado extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: Int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: Int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (!response) {
             return undefined; // fallback to default error handler
         }

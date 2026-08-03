@@ -442,7 +442,7 @@ export default class luno extends Exchange {
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency[0], 'native_currency'); // first item is guaranteed
         const code = this.safeCurrencyCode (id);
-        const networks = {};
+        const networks: Dict = {};
         for (let i = 0; i < (rawCurrency as List).length; i++) {
             const networkEntry = rawCurrency[i];
             const networkId = this.safeString (networkEntry, 'name');
@@ -614,7 +614,7 @@ export default class luno extends Exchange {
         return result;
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const wallets = this.safeValue (response, 'balance', []);
         const result: Dict = {
             'info': response,
@@ -1139,7 +1139,7 @@ export default class luno extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         // {
         //     "timestamp": 1664055240000,
         //     "open": "19612.65",
@@ -1399,7 +1399,7 @@ export default class luno extends Exchange {
         return this.parseLedger (entries, currency, since, limit);
     }
 
-    parseLedgerComment (comment) {
+    parseLedgerComment (comment: any) {
         const words = comment.split (' ');
         const types: Dict = {
             'Withdrawal': 'fee',
@@ -1431,7 +1431,7 @@ export default class luno extends Exchange {
         };
     }
 
-    override parseLedgerEntry (entry, currency: Currency = undefined): LedgerEntry {
+    override parseLedgerEntry (entry: any, currency: Currency = undefined): LedgerEntry {
         // const details = this.safeValue (entry, 'details', {});
         const id = this.safeString (entry, 'row_index');
         const account_id = this.safeString (entry, 'account_id');
@@ -1572,7 +1572,7 @@ export default class luno extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "account_id": "string",
@@ -1604,7 +1604,7 @@ export default class luno extends Exchange {
         } as DepositAddress;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (Object.keys (query).length) {
@@ -1620,7 +1620,7 @@ export default class luno extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

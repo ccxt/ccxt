@@ -1845,7 +1845,7 @@ export default class kucoin extends Exchange {
         return result;
     }
 
-    async fetchContractMarkets (params = {}): Promise<Market[]> {
+    async fetchContractMarkets (params: any = {}): Promise<Market[]> {
         const response = await this.futuresPublicGetContractsActive (params);
         //
         //    {
@@ -2532,7 +2532,7 @@ export default class kucoin extends Exchange {
         return this.parseDepositWithdrawFee (data, currency) as any;
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //    {
         //        "currency": "USDT",
@@ -2611,7 +2611,7 @@ export default class kucoin extends Exchange {
         return result;
     }
 
-    isFuturesMethod (methodName, params) {
+    isFuturesMethod (methodName: any, params: any) {
         //
         // Helper
         // @methodName (string): The name of the method
@@ -3251,7 +3251,7 @@ export default class kucoin extends Exchange {
         }
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         "1545904980",             // Start time of the candle cycle
@@ -3674,7 +3674,7 @@ export default class kucoin extends Exchange {
         } as DepositAddress;
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         let address = this.safeString (depositAddress, 'address');
         // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
         if (address !== undefined) {
@@ -3925,7 +3925,7 @@ export default class kucoin extends Exchange {
         return orderbook;
     }
 
-    handleTriggerPrices (params) {
+    handleTriggerPrices (params: any) {
         const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice');
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
@@ -4159,7 +4159,7 @@ export default class kucoin extends Exchange {
         return this.extend (request, params);
     }
 
-    marketOrderAmountToPrecision (symbol: Str, amount) {
+    marketOrderAmountToPrecision (symbol: Str, amount: any) {
         const market = this.market (symbol);
         const result = this.decimalToPrecision (amount, TRUNCATE, market['info']['quoteIncrement'], this.precisionMode, this.paddingMode);
         if (result === '0') {
@@ -5404,7 +5404,7 @@ export default class kucoin extends Exchange {
      * Check fetchSpotOrdersByStatus(), fetchContractOrdersByStatus() and fetchUtaOrdersByStatus() for more details on the extra parameters that can be used in params
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5467,7 +5467,7 @@ export default class kucoin extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin orders
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchSpotOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchSpotOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5599,7 +5599,7 @@ export default class kucoin extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchContractOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchContractOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5713,7 +5713,7 @@ export default class kucoin extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchUtaOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchUtaOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8089,7 +8089,7 @@ export default class kucoin extends Exchange {
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    parseBalanceHelper (entry) {
+    parseBalanceHelper (entry: any) {
         const account = this.account ();
         account['used'] = this.safeString2 (entry, 'holdBalance', 'hold');
         account['free'] = this.safeString2 (entry, 'availableBalance', 'available');
@@ -8818,7 +8818,7 @@ export default class kucoin extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'Assets Transferred in After Upgrading': 'transfer', // Assets Transferred in After V1 to V2 Upgrading
             'Deposit': 'transaction', // Deposit
@@ -8883,7 +8883,7 @@ export default class kucoin extends Exchange {
         return this.safeString (types, (type as string), type);
     }
 
-    parseLedgerDirection (direction) {
+    parseLedgerDirection (direction: any) {
         const directions: Dict = {
             'in': 'in',
             'out': 'out',
@@ -8895,7 +8895,7 @@ export default class kucoin extends Exchange {
         return this.safeString (directions, direction, direction);
     }
 
-    parseLedgerStatus (status) {
+    parseLedgerStatus (status: any) {
         const statuses: Dict = {
             'Completed': 'ok',
             'Pending': 'pending',
@@ -9195,7 +9195,7 @@ export default class kucoin extends Exchange {
         return this.parseLedger (items, currency, since, limit);
     }
 
-    override calculateRateLimiterCost (api, method, path, params, config = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
         const versions = this.safeDict (this.options, 'versions', {});
         const apiVersions = this.safeDict (versions, api, {});
         const methodVersions = this.safeDict (apiVersions, method, {});
@@ -9211,7 +9211,7 @@ export default class kucoin extends Exchange {
         return this.safeValue (config, 'cost', 1);
     }
 
-    override parseBorrowRate (info, currency: Currency = undefined) {
+    override parseBorrowRate (info: any, currency: Currency = undefined) {
         //
         //     {
         //         "tradeId": "62db2dcaff219600012b56cd",
@@ -9559,7 +9559,7 @@ export default class kucoin extends Exchange {
         return this.parseBorrowRateHistory (rows, code, since, limit);
     }
 
-    parseBorrowRateHistories (response, codes, since, limit) {
+    parseBorrowRateHistories (response: any, codes: any, since: any, limit: any) {
         //
         //     [
         //         {
@@ -9716,7 +9716,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoints
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayCrossMargin (code: string, amount, params = {}) {
+    override async repayCrossMargin (code: string, amount: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9753,7 +9753,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoints
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+    override async repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -9782,7 +9782,7 @@ export default class kucoin extends Exchange {
         return this.parseMarginLoan (data, currency);
     }
 
-    parseMarginLoan (info, currency: Currency = undefined) {
+    parseMarginLoan (info: any, currency: Currency = undefined) {
         //
         //     {
         //         "orderNo": "5da6dba0f943c0c81f5d5db5",
@@ -10079,7 +10079,7 @@ export default class kucoin extends Exchange {
         return this.parseFundingRate (data, market);
     }
 
-    override parseFundingRate (data, market: Market = undefined): FundingRate {
+    override parseFundingRate (data: any, market: Market = undefined): FundingRate {
         // uta
         //     {
         //         "symbol": ".ETHUSDTMFPI8H",
@@ -10132,7 +10132,7 @@ export default class kucoin extends Exchange {
         } as FundingRate;
     }
 
-    parseFundingInterval (interval) {
+    parseFundingInterval (interval: any) {
         const intervals: Dict = {
             '3600000': '1h',
             '14400000': '4h',
@@ -10223,7 +10223,7 @@ export default class kucoin extends Exchange {
         return this.parseFundingRateHistories (result, market, since, limit);
     }
 
-    override parseFundingRateHistory (info, market: Market = undefined) {
+    override parseFundingRateHistory (info: any, market: Market = undefined) {
         //
         // uta
         //     {
@@ -11066,7 +11066,7 @@ export default class kucoin extends Exchange {
         };
     }
 
-    override parseMarginModification (info, market: Market = undefined): MarginModification {
+    override parseMarginModification (info: any, market: Market = undefined): MarginModification {
         //
         //    {
         //        "id": "62311d26064e8f00013f2c6d",
@@ -11350,7 +11350,7 @@ export default class kucoin extends Exchange {
         return this.parseMarketLeverageTiers (data, market);
     }
 
-    override parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         /**
          * @ignore
          * @method
@@ -11458,7 +11458,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         const tiers = this.parseMarketLeverageTiers (data);
         for (let i = 0; i < tiers.length; i++) {
             const tier = this.safeDict (tiers, i);
@@ -11514,7 +11514,7 @@ export default class kucoin extends Exchange {
         return this.parseOpenInterests (data, symbols) as OpenInterests;
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         //     {
         //         "symbol": "ETHUSDTM",
@@ -11614,7 +11614,7 @@ export default class kucoin extends Exchange {
         return uta;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         //
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                ↑                 ↑
@@ -11704,7 +11704,7 @@ export default class kucoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (!response) {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, body);
             return undefined;

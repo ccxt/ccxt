@@ -360,7 +360,7 @@ export default class kalshi extends Exchange {
                 if (parsed === undefined) {
                     throw new ExchangeError (this.id + ' fetchOutcome() could not resolve parsed');
                 }
-                this.markets[parsed['market']] = parsed;
+                this.markets[(parsed as Dict)['market']] = parsed;
                 // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
                 // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
                 this.indexMarketOutcomes (parsed);
@@ -448,7 +448,7 @@ export default class kalshi extends Exchange {
                 if (parsed === undefined) {
                     throw new ExchangeError (this.id + ' fetchOutcomes() could not resolve parsed');
                 }
-                this.markets[parsed['market']] = parsed;
+                this.markets[(parsed as Dict)['market']] = parsed;
                 this.indexMarketOutcomes (parsed);
             }
             startIndex = this.sum (startIndex, chunkSize);
@@ -813,12 +813,12 @@ export default class kalshi extends Exchange {
         return this.parsePredictionOpenInterest (raw, outcomeObj as any);
     }
 
-    override parsePredictionOpenInterest (interest, market: Market = undefined): PredictionOpenInterest {
+    override parsePredictionOpenInterest (interest: Dict, market: Market = undefined): PredictionOpenInterest {
         //
         //     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
         //
         const timestamp = this.milliseconds ();
-        const openInterest = this.safeOpenInterest ({
+        const openInterest: Dict = this.safeOpenInterest ({
             'symbol': this.safeSymbol (undefined, market),
             'openInterestAmount': this.safeNumber2 (interest, 'open_interest_fp', 'open_interest'),
             'openInterestValue': undefined,
@@ -1243,7 +1243,7 @@ export default class kalshi extends Exchange {
      * @param {object} [market] the outcome object the candle belongs to
      * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
      */
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "end_period_ts": 1776109260,
@@ -1536,7 +1536,7 @@ export default class kalshi extends Exchange {
      * @param {object} response the raw balance response
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         // Kalshi balance in cents → divide by 100
         const result: Dict = { 'info': response };
         const balanceCents = this.safeNumber (response, 'balance');

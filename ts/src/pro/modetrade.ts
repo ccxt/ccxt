@@ -70,7 +70,7 @@ export default class modetrade extends modetradeRest {
         });
     }
 
-    requestId (url) {
+    requestId (url: any) {
         const options = this.safeDict (this.options, 'requestId', {});
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
@@ -78,7 +78,7 @@ export default class modetrade extends modetradeRest {
         return newValue;
     }
 
-    async watchPublic (messageHash, message) {
+    async watchPublic (messageHash: any, message: any) {
         // the default id
         let id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
         if (this.accountId !== undefined && this.accountId !== '') {
@@ -119,7 +119,7 @@ export default class modetrade extends modetradeRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "topic": "PERP_BTC_USDC@orderbook",
@@ -181,7 +181,7 @@ export default class modetrade extends modetradeRest {
         return await this.watchPublic (topic, message);
     }
 
-    parseWsTicker (ticker, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //     {
         //         "symbol": "PERP_BTC_USDC",
@@ -218,7 +218,7 @@ export default class modetrade extends modetradeRest {
         }, market);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //     {
         //         "topic": "PERP_BTC_USDC@ticker",
@@ -273,7 +273,7 @@ export default class modetrade extends modetradeRest {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    handleTickers (client: Client, message) {
+    handleTickers (client: Client, message: any) {
         //
         //     {
         //         "topic":"tickers",
@@ -332,7 +332,7 @@ export default class modetrade extends modetradeRest {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    handleBidAsk (client: Client, message) {
+    handleBidAsk (client: Client, message: any) {
         //
         //     {
         //       "topic": "bbos",
@@ -363,7 +363,7 @@ export default class modetrade extends modetradeRest {
         client.resolve (result, topic);
     }
 
-    parseWsBidAsk (ticker, market: Market = undefined) {
+    parseWsBidAsk (ticker: any, market: Market = undefined) {
         const marketId = this.safeString (ticker, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');
@@ -415,7 +415,7 @@ export default class modetrade extends modetradeRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         "topic":"PERP_BTC_USDC@kline_1m",
@@ -494,7 +494,7 @@ export default class modetrade extends modetradeRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: any) {
         //
         // {
         //     "topic":"PERP_ADA_USDC@trade",
@@ -525,7 +525,7 @@ export default class modetrade extends modetradeRest {
         client.resolve (trades, topic);
     }
 
-    override parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         //     {
         //         "symbol":"PERP_ADA_USDC",
@@ -600,7 +600,7 @@ export default class modetrade extends modetradeRest {
         }, market);
     }
 
-    handleAuth (client: Client, message) {
+    handleAuth (client: Client, message: any) {
         //
         //     {
         //         "event": "auth",
@@ -655,7 +655,7 @@ export default class modetrade extends modetradeRest {
         return await future;
     }
 
-    async watchPrivate (messageHash, message, params = {}) {
+    async watchPrivate (messageHash: any, message: any, params = {}) {
         await this.authenticate (params);
         const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
         const requestId = this.requestId (url);
@@ -666,7 +666,7 @@ export default class modetrade extends modetradeRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
-    async watchPrivateMultiple (messageHashes, message, params = {}) {
+    async watchPrivateMultiple (messageHashes: any, message: any, params = {}) {
         await this.authenticate (params);
         const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
         const requestId = this.requestId (url);
@@ -753,7 +753,7 @@ export default class modetrade extends modetradeRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    override parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         //     {
         //         "symbol": "PERP_BTC_USDT",
@@ -874,7 +874,7 @@ export default class modetrade extends modetradeRest {
         });
     }
 
-    handleOrderUpdate (client: Client, message) {
+    handleOrderUpdate (client: Client, message: any) {
         //
         //     {
         //         "topic": "executionreport",
@@ -927,7 +927,7 @@ export default class modetrade extends modetradeRest {
         }
     }
 
-    handleOrder (client: Client, message, topic) {
+    handleOrder (client: Client, message: any, topic: any) {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
@@ -946,7 +946,7 @@ export default class modetrade extends modetradeRest {
                 }
                 const fees = this.safeList (order, 'fees');
                 if (fees !== undefined) {
-                    parsed['fees'] = fees;
+                    (parsed as Dict)['fees'] = fees;
                 }
                 parsed['trades'] = this.safeList (order, 'trades', []);
                 parsed['timestamp'] = this.safeInteger (order, 'timestamp');
@@ -959,7 +959,7 @@ export default class modetrade extends modetradeRest {
         }
     }
 
-    handleMyTrade (client: Client, message) {
+    handleMyTrade (client: Client, message: any) {
         //
         // {
         //     symbol: 'PERP_XRP_USDC',
@@ -1050,7 +1050,7 @@ export default class modetrade extends modetradeRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type, symbols: Strings = undefined) {
+    setPositionsCache (client: Client, type: any, symbols: Strings = undefined) {
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot) {
             const messageHash = 'fetchPositionsSnapshot';
@@ -1063,7 +1063,7 @@ export default class modetrade extends modetradeRest {
         }
     }
 
-    async loadPositionsSnapshot (client, messageHash) {
+    async loadPositionsSnapshot (client: Client, messageHash: any) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
         const cache = this.positions;
@@ -1082,7 +1082,7 @@ export default class modetrade extends modetradeRest {
         }
     }
 
-    handlePositions (client, message) {
+    handlePositions (client: any, message: any) {
         //
         //    {
         //        "topic":"position",
@@ -1135,7 +1135,7 @@ export default class modetrade extends modetradeRest {
         client.resolve (newPositions, 'positions');
     }
 
-    parseWsPosition (position, market: Market = undefined) {
+    parseWsPosition (position: any, market: Market = undefined) {
         //
         //     {
         //         "symbol":"PERP_ETH_USDC",
@@ -1230,7 +1230,7 @@ export default class modetrade extends modetradeRest {
         return await this.watchPrivate (messageHash, message);
     }
 
-    handleBalance (client, message) {
+    handleBalance (client: any, message: any) {
         //
         //     {
         //         "topic":"balance",
@@ -1286,7 +1286,7 @@ export default class modetrade extends modetradeRest {
         client.resolve (this.balance, 'balance');
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
@@ -1318,7 +1318,7 @@ export default class modetrade extends modetradeRest {
         }
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
@@ -1380,15 +1380,15 @@ export default class modetrade extends modetradeRest {
         return { 'event': 'ping' };
     }
 
-    async pong (client: Client, message) {
+    async pong (client: Client, message: any) {
         await client.send ({ 'event': 'pong' });
     }
 
-    handlePing (client: Client, message) {
+    handlePing (client: Client, message: any) {
         this.spawn (this.pong, client, message);
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: any) {
         //
         // { event: "pong", ts: 1614667590000 }
         //
@@ -1396,7 +1396,7 @@ export default class modetrade extends modetradeRest {
         return message;
     }
 
-    handleSubscribe (client: Client, message) {
+    handleSubscribe (client: Client, message: any) {
         //
         //     {
         //         "id": "666888",

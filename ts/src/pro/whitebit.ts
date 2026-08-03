@@ -97,7 +97,7 @@ export default class whitebit extends whitebitRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         // {
         //     "method": "candles_update",
@@ -175,7 +175,7 @@ export default class whitebit extends whitebitRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         // {
         //     "method":"depth_update",
@@ -240,13 +240,13 @@ export default class whitebit extends whitebitRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleDelta (bookside, delta) {
+    override handleDelta (bookside: any, delta: any) {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -306,7 +306,7 @@ export default class whitebit extends whitebitRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //   {
         //       "method": "market_update",
@@ -383,7 +383,7 @@ export default class whitebit extends whitebitRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //    {
         //        "method":"trades_update",
@@ -457,7 +457,7 @@ export default class whitebit extends whitebitRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message, subscription: Dict | undefined = undefined) {
+    handleMyTrades (client: Client, message: any, subscription: Dict | undefined = undefined) {
         //
         //   {
         //       "method": "deals_update",
@@ -490,7 +490,7 @@ export default class whitebit extends whitebitRest {
         client.resolve (stored, messageHash);
     }
 
-    override parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         //   [
         //         1894994106, // id
@@ -584,7 +584,7 @@ export default class whitebit extends whitebitRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleOrder (client: Client, message, subscription: Dict | undefined = undefined) {
+    handleOrder (client: Client, message: any, subscription: Dict | undefined = undefined) {
         //
         // {
         //     "method": "ordersPending_update",
@@ -626,7 +626,7 @@ export default class whitebit extends whitebitRest {
         client.resolve (this.orders, messageHash);
     }
 
-    override parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         //   {
         //         "id": 96433622651,
@@ -718,7 +718,7 @@ export default class whitebit extends whitebitRest {
         }, market);
     }
 
-    parseWsOrderType (status) {
+    parseWsOrderType (status: any) {
         const statuses: Dict = {
             '1': 'limit',
             '2': 'market',
@@ -762,7 +762,7 @@ export default class whitebit extends whitebitRest {
         return await this.watchPrivate (messageHash, method, currencies, params);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //   {
         //       "method":"balanceSpot_update",
@@ -804,7 +804,7 @@ export default class whitebit extends whitebitRest {
         client.resolve (this.balance, messageHash);
     }
 
-    async watchPublic (messageHash, method, reqParams: any[] = [], params = {}) {
+    async watchPublic (messageHash: any, method: any, reqParams: any[] = [], params = {}) {
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
         const request: Dict = {
@@ -816,7 +816,7 @@ export default class whitebit extends whitebitRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchMultipleSubscription (messageHash, method, symbol, isNested = false, params = {}) {
+    async watchMultipleSubscription (messageHash: any, method: any, symbol: any, isNested = false, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -878,7 +878,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    async watchPrivate (messageHash, method, reqParams: any[] = [], params = {}) {
+    async watchPrivate (messageHash: any, method: any, reqParams: any[] = [], params = {}) {
         this.checkRequiredCredentials ();
         await this.authenticate ();
         const url = this.urls['api']['ws'];
@@ -930,7 +930,7 @@ export default class whitebit extends whitebitRest {
         return await future;
     }
 
-    handleAuthenticate (client: Client, message) {
+    handleAuthenticate (client: Client, message: any) {
         //
         //     { error: null, result: { status: "success" }, id: 1656084550 }
         //
@@ -939,7 +939,7 @@ export default class whitebit extends whitebitRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //     {
         //         "error": { code: 1, message: "invalid argument" },
@@ -966,7 +966,7 @@ export default class whitebit extends whitebitRest {
         return true;
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         //
         // auth
         //    { error: null, result: { status: "success" }, id: 1656084550 }
@@ -1005,7 +1005,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message, id) {
+    handleSubscriptionStatus (client: Client, message: any, id: any) {
         // not every method stores its subscription
         // as an object so we can't do indeById here
         const subs = client.subscriptions;
@@ -1025,7 +1025,7 @@ export default class whitebit extends whitebitRest {
         }
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: any) {
         client.lastPong = this.milliseconds ();
         return message;
     }

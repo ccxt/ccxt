@@ -1260,7 +1260,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchSpotMarkets (params = {}) {
+    async fetchSpotMarkets (params: any = {}) {
         const response = await this.spotPublicGetExchangeInfo (params);
         //
         //     {
@@ -1387,7 +1387,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchSwapMarkets (params = {}) {
+    async fetchSwapMarkets (params: any = {}) {
         const currentRl = this.rateLimit;
         this.setProperty (this, 'rateLimit', 10); // see comment: https://github.com/ccxt/ccxt/pull/23698
         const response = await this.contractPublicGetDetail (params);
@@ -1573,7 +1573,7 @@ export default class mexc extends Exchange {
         return orderbook as OrderBook;
     }
 
-    override parseOrderBookBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+    override parseOrderBookBidAsk (bidask: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         const countKey = 2;
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
@@ -1954,7 +1954,7 @@ export default class mexc extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
@@ -2384,7 +2384,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    createSpotOrderRequest (market, type, side, amount, price: Num = undefined, marginMode: Str = undefined, params = {}) {
+    createSpotOrderRequest (market: any, type: any, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}) {
         const symbol = market['symbol'];
         const orderSide = side.toUpperCase ();
         const request: Dict = {
@@ -2458,7 +2458,7 @@ export default class mexc extends Exchange {
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createSpotOrder (market, type, side, amount, price: Num = undefined, marginMode: Str = undefined, params = {}) {
+    async createSpotOrder (market: any, type: OrderType, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2528,7 +2528,7 @@ export default class mexc extends Exchange {
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createSwapOrder (market, type, side, amount, price: Num = undefined, marginMode: Str = undefined, params = {}) {
+    async createSwapOrder (market: any, type: any, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3038,7 +3038,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    async fetchOrdersByIds (ids, symbol: Str = undefined, params = {}) {
+    async fetchOrdersByIds (ids: any, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3225,7 +3225,7 @@ export default class mexc extends Exchange {
         return await this.fetchOrdersByState (4, symbol, since, limit, params);
     }
 
-    async fetchOrdersByState (state, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByState (state: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3706,7 +3706,7 @@ export default class mexc extends Exchange {
         }, market);
     }
 
-    parseOrderSide (status) {
+    parseOrderSide (status: any) {
         const statuses: Dict = {
             'BUY': 'buy',
             'SELL': 'sell',
@@ -3717,7 +3717,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status) {
+    parseOrderType (status: any) {
         const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -3746,7 +3746,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, (status as string), status);
     }
 
-    parseOrderTimeInForce (status) {
+    parseOrderTimeInForce (status: any) {
         const statuses: Dict = {
             'GTC': 'GTC',
             'FOK': 'FOK',
@@ -3766,7 +3766,7 @@ export default class mexc extends Exchange {
         return this.safeString (statuses, (orderType as string), orderType);
     }
 
-    async fetchAccountHelper (type, params) {
+    async fetchAccountHelper (type: any, params: any) {
         if (type === 'spot') {
             return await this.spotPrivateGetAccount (params);
             //
@@ -3897,7 +3897,7 @@ export default class mexc extends Exchange {
         };
     }
 
-    customParseBalance (response, marketType): Balances {
+    customParseBalance (response: any, marketType: any): Balances {
         //
         // spot
         //
@@ -3966,7 +3966,7 @@ export default class mexc extends Exchange {
         } else {
             wallet = this.safeValue (response, 'balances', []);
         }
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         if (marketType === 'margin') {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = wallet[i];
@@ -3985,7 +3985,7 @@ export default class mexc extends Exchange {
                 }
                 result[symbol] = this.safeBalance (subResult);
             }
-            return result;
+            return result as Balances;
         } else if (marketType === 'swap') {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = wallet[i];
@@ -4015,7 +4015,7 @@ export default class mexc extends Exchange {
         }
     }
 
-    parseBalanceHelper (entry) {
+    parseBalanceHelper (entry: any) {
         const account = this.account ();
         account['used'] = this.safeString (entry, 'locked');
         account['free'] = this.safeString (entry, 'free');
@@ -4346,7 +4346,7 @@ export default class mexc extends Exchange {
         return this.parseTrades (trades, market, since, limit, query);
     }
 
-    async modifyMarginHelper (symbol: string, amount, addOrReduce, params = {}) {
+    async modifyMarginHelper (symbol: string, amount: any, addOrReduce: any, params = {}) {
         const positionId = this.safeInteger (params, 'positionId');
         if (positionId === undefined) {
             throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a positionId parameter');
@@ -4512,7 +4512,7 @@ export default class mexc extends Exchange {
         return result as FundingHistory[];
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "BTC_USDT",
@@ -4750,7 +4750,7 @@ export default class mexc extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    override parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -4835,7 +4835,7 @@ export default class mexc extends Exchange {
         return tiers as LeverageTier[];
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        coin: "USDT",
@@ -5227,7 +5227,7 @@ export default class mexc extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionStatusByType (status, type: Str = undefined) {
+    parseTransactionStatusByType (status: any, type: Str = undefined) {
         const statusesByType: Dict = {
             'deposit': {
                 '1': 'failed', // SMALL
@@ -5742,7 +5742,7 @@ export default class mexc extends Exchange {
         };
     }
 
-    parseAccountId (status) {
+    parseAccountId (status: any) {
         const statuses: Dict = {
             'SPOT': 'spot',
             'FUTURES': 'swap',
@@ -5923,7 +5923,7 @@ export default class mexc extends Exchange {
         return this.parseTransactionFees (response, codes);
     }
 
-    parseTransactionFees (response, codes: Strings = undefined) {
+    parseTransactionFees (response: any, codes: Strings = undefined) {
         const withdrawFees: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -5941,7 +5941,7 @@ export default class mexc extends Exchange {
         };
     }
 
-    parseTransactionFee (transaction, currency: Currency = undefined) {
+    parseTransactionFee (transaction: any, currency: Currency = undefined) {
         //
         //    {
         //        "coin": "AGLD",
@@ -6026,7 +6026,7 @@ export default class mexc extends Exchange {
         return this.parseDepositWithdrawFees (response, codes, 'coin');
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //    {
         //        "coin": "AGLD",
@@ -6151,7 +6151,7 @@ export default class mexc extends Exchange {
         } as Leverage;
     }
 
-    override handleMarginModeAndParams (methodName, params = {}, defaultValue: any = undefined): [any, Dict] {
+    override handleMarginModeAndParams (methodName: string, params = {}, defaultValue: any = undefined): [any, Dict] {
         /**
          * @ignore
          * @method
@@ -6297,18 +6297,18 @@ export default class mexc extends Exchange {
         return this.milliseconds () - this.safeInteger (this.options, 'timeDifference', 0);
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const section = this.safeString (api, 0);
         const access = this.safeString (api, 1);
         [ path, params ] = this.resolvePath (path, params);
         let url: Str = undefined;
         if (section === 'spot' || section === 'broker') {
             if (section === 'broker') {
-                url = this.urls['api'][section][access] + '/' + path;
+                url = this.urls['api'][section][access as string] + '/' + path;
             } else {
-                url = this.urls['api'][section][access] + '/api/' + this.version + '/' + path;
+                url = this.urls['api'][section][access as string] + '/api/' + this.version + '/' + path;
             }
-            let urlParams = params;
+            let urlParams: Dict = params;
             if (access === 'private') {
                 if (section === 'broker' && ((method === 'POST') || (method === 'PUT') || (method === 'DELETE'))) {
                     urlParams = {
@@ -6340,7 +6340,7 @@ export default class mexc extends Exchange {
                 headers['Content-Type'] = 'application/json';
             }
         } else if (section === 'contract' || section === 'spot2') {
-            url = this.urls['api'][section][access] + '/' + this.implodeParams (path, params);
+            url = this.urls['api'][section][access as string] + '/' + this.implodeParams (path, params);
             params = this.omit (params, this.extractParams (path));
             if (access === 'public') {
                 if (Object.keys (params).length) {
@@ -6374,7 +6374,7 @@ export default class mexc extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

@@ -64,7 +64,7 @@ export default class bitvavo extends bitvavoRest {
         });
     }
 
-    async watchPublic (name, symbol, params = {}) {
+    async watchPublic (name: any, symbol: any, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -86,7 +86,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchPublicMultiple (methodName, channelName: string, symbols, params = {}) {
+    async watchPublicMultiple (methodName: any, channelName: string, symbols: any, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -143,7 +143,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //     {
         //         "event": "ticker24h",
@@ -202,7 +202,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    handleBidAsk (client: Client, message) {
+    handleBidAsk (client: Client, message: any) {
         const event = 'bidask';
         const tickers = this.safeValue (message, 'data', []);
         const result: List = [];
@@ -218,7 +218,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (result, event);
     }
 
-    parseWsBidAsk (ticker, market: Market = undefined) {
+    parseWsBidAsk (ticker: any, market: Market = undefined) {
         const marketId = this.safeString (ticker, 'market');
         market = this.safeMarket (marketId, undefined, '-');
         const symbol = this.safeString (market, 'symbol');
@@ -257,7 +257,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: any) {
         //
         //     {
         //         "event": "trade",
@@ -325,7 +325,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleFetchOHLCV (client: Client, message) {
+    handleFetchOHLCV (client: Client, message: any) {
         //
         //    {
         //        action: 'getCandles',
@@ -341,7 +341,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (ohlcv, messageHash);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         "event": "candle",
@@ -426,19 +426,19 @@ export default class bitvavo extends bitvavoRest {
         return orderbook.limit ();
     }
 
-    override handleDelta (bookside, delta) {
+    override handleDelta (bookside: any, delta: any) {
         const price = this.safeFloat (delta, 0);
         const amount = this.safeFloat (delta, 1);
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
     }
 
-    handleOrderBookMessage (client: Client, message, orderbook) {
+    handleOrderBookMessage (client: Client, message: any, orderbook: any) {
         //
         //     {
         //         "event": "book",
@@ -461,7 +461,7 @@ export default class bitvavo extends bitvavoRest {
         return orderbook;
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "event": "book",
@@ -502,7 +502,7 @@ export default class bitvavo extends bitvavoRest {
         }
     }
 
-    async watchOrderBookSnapshot (client, message, subscription) {
+    async watchOrderBookSnapshot (client: any, message: any, subscription: any) {
         const params = this.safeValue (subscription, 'params');
         const marketId = this.safeString (subscription, 'marketId');
         const name = 'getBook';
@@ -516,7 +516,7 @@ export default class bitvavo extends bitvavoRest {
         return orderbook.limit ();
     }
 
-    handleOrderBookSnapshot (client: Client, message) {
+    handleOrderBookSnapshot (client: Client, message: any) {
         //
         //     {
         //         "action": "getBook",
@@ -558,7 +558,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleOrderBookSubscription (client: Client, message, subscription) {
+    handleOrderBookSubscription (client: Client, message: any, subscription: any) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         if ((symbol as string) in this.orderbooks) {
@@ -567,7 +567,7 @@ export default class bitvavo extends bitvavoRest {
         this.orderbooks[symbol as string] = this.orderBook ({}, limit);
     }
 
-    handleOrderBookSubscriptions (client: Client, message, marketIds) {
+    handleOrderBookSubscriptions (client: Client, message: any, marketIds: any) {
         const name = 'book';
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = this.safeString (marketIds, i);
@@ -768,7 +768,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watchRequest ('privateCancelOrders', this.extend (request, params)) as Order[];
     }
 
-    handleMultipleOrders (client: Client, message) {
+    handleMultipleOrders (client: Client, message: any) {
         //
         //    {
         //        action: 'privateCancelOrders',
@@ -846,7 +846,7 @@ export default class bitvavo extends bitvavoRest {
         return parseInt (ts + randomPart);
     }
 
-    async watchRequest (action, request) {
+    async watchRequest (action: any, request: any) {
         const messageHash = this.requestId ();
         const messageHashStr = messageHash.toString ();
         request['action'] = action;
@@ -906,7 +906,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterBySymbolSinceLimit (myTrades, symbol, since, limit);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         //    {
         //        action: 'privateGetTrades',
@@ -959,7 +959,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watchRequest ('privateWithdrawAssets', request);
     }
 
-    handleWithdraw (client: Client, message) {
+    handleWithdraw (client: Client, message: any) {
         //
         //    {
         //        action: 'privateWithdrawAssets',
@@ -999,7 +999,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterByCurrencySinceLimit (withdraws, code, since, limit);
     }
 
-    handleWithdraws (client: Client, message) {
+    handleWithdraws (client: Client, message: any) {
         //
         //    {
         //        action: 'privateGetWithdrawalHistory',
@@ -1066,7 +1066,7 @@ export default class bitvavo extends bitvavoRest {
         return this.filterByCurrencySinceLimit (deposits, code, since, limit);
     }
 
-    handleDeposits (client: Client, message) {
+    handleDeposits (client: Client, message: any) {
         //
         //    {
         //        action: 'privateGetDepositHistory',
@@ -1131,7 +1131,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watchRequest ('getAssets', params);
     }
 
-    handleFetchCurrencies (client: Client, message) {
+    handleFetchCurrencies (client: Client, message: any) {
         //
         //    {
         //        action: 'getAssets',
@@ -1158,7 +1158,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (currencies, messageHash);
     }
 
-    handleTradingFees (client, message) {
+    handleTradingFees (client: Client, message: any) {
         //
         //    {
         //        action: 'privateGetAccount',
@@ -1193,7 +1193,7 @@ export default class bitvavo extends bitvavoRest {
         return await this.watchRequest ('privateGetBalance', params);
     }
 
-    handleFetchBalance (client: Client, message) {
+    handleFetchBalance (client: Client, message: any) {
         //
         //    {
         //        action: 'privateGetBalance',
@@ -1212,7 +1212,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (balance, messageHash);
     }
 
-    handleSingleOrder (client: Client, message) {
+    handleSingleOrder (client: Client, message: any) {
         //
         //    {
         //        action: 'privateCreateOrder',
@@ -1247,7 +1247,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (order, messageHash);
     }
 
-    handleMarkets (client: Client, message) {
+    handleMarkets (client: Client, message: any) {
         //
         //    {
         //        action: 'getMarkets',
@@ -1273,7 +1273,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (markets, messageHash);
     }
 
-    buildMessageHash (action, params = {}) {
+    buildMessageHash (action: any, params = {}) {
         const methods: Dict = {
             'privateCreateOrder': this.actionAndMarketMessageHash,
             'privateUpdateOrder': this.actionAndOrderIdMessageHash,
@@ -1289,12 +1289,12 @@ export default class bitvavo extends bitvavoRest {
         return messageHash;
     }
 
-    actionAndMarketMessageHash (action, params = {}) {
+    actionAndMarketMessageHash (action: any, params = {}) {
         const symbol = this.safeString (params, 'market', '');
         return action + symbol;
     }
 
-    actionAndOrderIdMessageHash (action, params = {}) {
+    actionAndOrderIdMessageHash (action: any, params = {}) {
         const orderId = this.safeString (params, 'orderId');
         if (orderId === undefined) {
             throw new ExchangeError (this.id + ' privateUpdateOrderMessageHash requires a orderId parameter');
@@ -1302,7 +1302,7 @@ export default class bitvavo extends bitvavoRest {
         return action + orderId;
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         //     {
         //         "event": "order",
@@ -1338,7 +1338,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (this.orders, messageHash);
     }
 
-    handleMyTrade (client: Client, message) {
+    handleMyTrade (client: Client, message: any) {
         //
         //     {
         //         "event": "fill",
@@ -1368,7 +1368,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (tradesArray, messageHash);
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //     {
         //         "event": "subscribed",
@@ -1417,7 +1417,7 @@ export default class bitvavo extends bitvavoRest {
         return future;
     }
 
-    handleAuthenticationMessage (client: Client, message) {
+    handleAuthenticationMessage (client: Client, message: any) {
         //
         //     {
         //         "event": "authenticate",
@@ -1439,7 +1439,7 @@ export default class bitvavo extends bitvavoRest {
         }
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //    {
         //        action: 'privateCreateOrder',
@@ -1474,7 +1474,7 @@ export default class bitvavo extends bitvavoRest {
         return undefined;
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         //
         //     {
         //         "event": "subscribed",

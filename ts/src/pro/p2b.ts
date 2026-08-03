@@ -71,7 +71,7 @@ export default class p2b extends p2bRest {
      * @param {object} [params] extra parameters specific to the p2b api
      * @returns {object} data from the websocket stream
      */
-    async subscribe (name: string, messageHash: string, request, params = {}) {
+    async subscribe (name: string, messageHash: string, request: any, params = {}) {
         const url = this.urls['api']['ws'];
         const subscribe: Dict = {
             'method': name,
@@ -264,7 +264,7 @@ export default class p2b extends p2bRest {
         return orderbook.limit ();
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //    {
         //        "method": "kline.update",
@@ -309,7 +309,7 @@ export default class p2b extends p2bRest {
         return message;
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: any) {
         //
         //    {
         //        "method": "deals.update",
@@ -350,7 +350,7 @@ export default class p2b extends p2bRest {
         return message;
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         // state
         //
@@ -408,7 +408,7 @@ export default class p2b extends p2bRest {
         return message;
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //    {
         //        "method": "depth.update",
@@ -472,7 +472,7 @@ export default class p2b extends p2bRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
@@ -495,7 +495,7 @@ export default class p2b extends p2bRest {
         }
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         const error = this.safeString (message, 'error');
         if (error !== undefined) {
             throw new ExchangeError (this.id + ' error: ' + this.json (error));
@@ -515,7 +515,7 @@ export default class p2b extends p2bRest {
         };
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: any) {
         //
         //    {
         //        error: null,
@@ -527,12 +527,12 @@ export default class p2b extends p2bRest {
         return message;
     }
 
-    override onError (client: Client, error) {
+    override onError (client: Client, error: any) {
         this.options['tickerSubs'] = this.createSafeDictionary ();
         super.onError (client, error);
     }
 
-    override onClose (client: Client, error) {
+    override onClose (client: Client, error: any) {
         this.options['tickerSubs'] = this.createSafeDictionary ();
         super.onClose (client, error);
     }

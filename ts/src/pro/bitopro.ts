@@ -49,7 +49,7 @@ export default class bitopro extends bitoproRest {
         });
     }
 
-    async watchPublic (path, messageHash, marketId) {
+    async watchPublic (path: any, messageHash: any, marketId: any) {
         const url = this.urls['ws']['public'] + '/' + path + '/' + marketId;
         return await this.watch (url, messageHash, undefined, messageHash);
     }
@@ -86,7 +86,7 @@ export default class bitopro extends bitoproRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "event": "ORDER_BOOK",
@@ -148,7 +148,7 @@ export default class bitopro extends bitoproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: any) {
         //
         //     {
         //         "event": "TRADE",
@@ -217,7 +217,7 @@ export default class bitopro extends bitoproRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleMyTrade (client: Client, message) {
+    handleMyTrade (client: Client, message: any) {
         //
         //     {
         //         "event": "USER_TRADE",
@@ -353,7 +353,7 @@ export default class bitopro extends bitoproRest {
         return await this.watchPublic ('tickers', messageHash, market['id']);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //     {
         //         "event": "TICKER",
@@ -387,7 +387,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (result, messageHash);
     }
 
-    authenticate (url) {
+    authenticate (url: any) {
         if ((this.clients !== undefined) && (url in this.clients)) {
             return;
         }
@@ -440,7 +440,7 @@ export default class bitopro extends bitoproRest {
         return await this.watch (url, messageHash, undefined, messageHash);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //     {
         //         "event": "ACCOUNT_BALANCE",
@@ -483,7 +483,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (this.balance, event);
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         const methods: Dict = {
             'TRADE': this.handleTrade,
             'TICKER': this.handleTicker,

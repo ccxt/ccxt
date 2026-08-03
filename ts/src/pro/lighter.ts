@@ -68,7 +68,7 @@ export default class lighter extends lighterRest {
         return hash;
     }
 
-    async subscribePublic (messageHash, params = {}) {
+    async subscribePublic (messageHash: any, params = {}) {
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'type': 'subscribe',
@@ -80,7 +80,7 @@ export default class lighter extends lighterRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
-    async subscribePublicMultiple (messageHashes, params = {}) {
+    async subscribePublicMultiple (messageHashes: any, params = {}) {
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'type': 'subscribe',
@@ -92,7 +92,7 @@ export default class lighter extends lighterRest {
         return await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscription);
     }
 
-    async unsubscribe (messageHash, params = {}) {
+    async unsubscribe (messageHash: any, params = {}) {
         const url = this.urls['api']['ws'];
         const request: Dict = {
             'type': 'unsubscribe',
@@ -104,25 +104,25 @@ export default class lighter extends lighterRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
-    async subscribePrivate (messageHash, params = {}) {
+    async subscribePrivate (messageHash: any, params: Dict = {}) {
         await this.preLoadLighterLibrary ();
         params['auth'] = this.createAuth (params);
         return await this.subscribePublic (messageHash, params);
     }
 
-    override handleDelta (bookside, delta) {
+    override handleDelta (bookside: any, delta: any) {
         const price = this.safeFloat (delta, 'price');
         const amount = this.safeFloat (delta, 'size');
         bookside.store (price, amount);
     }
 
-    override handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
     }
 
-    handleOrderBookMessage (client: Client, message, orderbook) {
+    handleOrderBookMessage (client: Client, message: any, orderbook: any) {
         const data = this.safeDict (message, 'order_book', {});
         this.handleDeltas (orderbook['asks'], this.safeList (data, 'asks', []));
         this.handleDeltas (orderbook['bids'], this.safeList (data, 'bids', []));
@@ -133,7 +133,7 @@ export default class lighter extends lighterRest {
         return orderbook;
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         // {
         //     "channel": "order_book:0",
@@ -226,7 +226,7 @@ export default class lighter extends lighterRest {
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         // watchTicker
         //     {
@@ -376,7 +376,7 @@ export default class lighter extends lighterRest {
         }
         const newTicker = await this.subscribePublicMultiple (messageHashes, this.extend (request, params));
         if (this.newUpdates) {
-            const result = {};
+            const result: Dict = {};
             result[newTicker['symbol']] = newTicker;
             return result;
         }
@@ -455,7 +455,7 @@ export default class lighter extends lighterRest {
         return this.unWatchTickers (symbols, params);
     }
 
-    override parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         //     {
         //         "trade_id": 526801155,
@@ -507,7 +507,7 @@ export default class lighter extends lighterRest {
         }, market);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     {
         //         "channel": "trade:0",
@@ -616,7 +616,7 @@ export default class lighter extends lighterRest {
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
-    override parseWsOrderTrade (trade, market: Market = undefined) {
+    override parseWsOrderTrade (trade: Dict, market: Market = undefined) {
         //
         //     {
         //         "trade_id": 526801155,
@@ -701,7 +701,7 @@ export default class lighter extends lighterRest {
         }, market);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         //     {
         //         "channel": "account_all_trades:723310",
@@ -831,7 +831,7 @@ export default class lighter extends lighterRest {
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
-    parseWsLiquidation (liquidation, market: Market = undefined) {
+    parseWsLiquidation (liquidation: any, market: Market = undefined) {
         //
         //     {
         //         "trade_id": 526801155,
@@ -885,7 +885,7 @@ export default class lighter extends lighterRest {
         });
     }
 
-    handleLiquidation (client: Client, message) {
+    handleLiquidation (client: Client, message: any) {
         //
         //     {
         //         "channel": "trade:0",
@@ -986,7 +986,7 @@ export default class lighter extends lighterRest {
         let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'watchBalance', 'accountIndex', 'account_index');
         const messageHash = this.getMessageHash ('balances', undefined, type);
-        const request = {};
+        const request: Dict = {};
         if (type === 'spot') {
             request['channel'] = 'account_all_assets/' + this.numberToString (accountIndex);
             return await this.subscribePrivate (messageHash, this.extend (request, params));
@@ -996,7 +996,7 @@ export default class lighter extends lighterRest {
         }
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //    spot balance
         //    {
@@ -1106,7 +1106,7 @@ export default class lighter extends lighterRest {
         let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'watchOrders', 'accountIndex', 'account_index');
         let messageHash: Str = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
             messageHash = this.getMessageHash ('orders', market['symbol']);
@@ -1138,7 +1138,7 @@ export default class lighter extends lighterRest {
         let accountIndex: Int = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'watchOrders', 'accountIndex', 'account_index');
         let messageHash: Str = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             const market = this.market (symbol);
             messageHash = this.getMessageHash ('orders', market['symbol']);
@@ -1150,7 +1150,7 @@ export default class lighter extends lighterRest {
         return await this.unsubscribe (messageHash, this.extend (request, params));
     }
 
-    handleOrders (client: Client, message) {
+    handleOrders (client: Client, message: any) {
         //
         //    {
         //        "account": {ACCOUNT_INDEX},
@@ -1200,7 +1200,7 @@ export default class lighter extends lighterRest {
         return true;
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message: any) {
         //
         //     {
         //         "error": {
@@ -1224,7 +1224,7 @@ export default class lighter extends lighterRest {
         return true;
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
@@ -1271,7 +1271,7 @@ export default class lighter extends lighterRest {
         }
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //     {
         //         "session_id": "8d354239-80e0-4b77-8763-87b6fef2f768",
@@ -1304,14 +1304,14 @@ export default class lighter extends lighterRest {
         this.cleanCache (subscription);
     }
 
-    handlePing (client: Client, message) {
+    handlePing (client: Client, message: any) {
         //
         //     { "type": "ping" }
         //
         this.spawn (this.pong, client, message);
     }
 
-    async pong (client, message) {
+    async pong (client: Client, message: any) {
         const request: Dict = {
             'type': 'pong',
         };

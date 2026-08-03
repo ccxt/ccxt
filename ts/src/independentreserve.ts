@@ -399,7 +399,7 @@ export default class independentreserve extends Exchange {
         return result;
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -710,7 +710,7 @@ export default class independentreserve extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -741,7 +741,7 @@ export default class independentreserve extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = {};
+        const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -924,7 +924,7 @@ export default class independentreserve extends Exchange {
         const market = this.market (symbol);
         let orderType = this.capitalize (type);
         orderType += (side === 'sell') ? 'Offer' : 'Bid';
-        const request = {
+        const request: Dict = {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
@@ -1008,7 +1008,7 @@ export default class independentreserve extends Exchange {
         return this.parseDepositAddress (response);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        Tag: '3307446684',
@@ -1136,7 +1136,7 @@ export default class independentreserve extends Exchange {
         } as Transaction;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
@@ -1158,7 +1158,7 @@ export default class independentreserve extends Exchange {
             }
             const message = auth.join (',');
             const signature = this.hmac (this.encode (message), this.encode (this.secret), sha256);
-            const query = {};
+            const query: Dict = {};
             query['apiKey'] = this.apiKey;
             query['nonce'] = nonce;
             query['signature'] = signature.toUpperCase ();

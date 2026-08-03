@@ -739,7 +739,7 @@ export default class bitstamp extends Exchange {
         return result;
     }
 
-    constructCurrencyObject (id, code, name, precision, minCost, originalPayload) {
+    constructCurrencyObject (id: any, code: any, name: any, precision: any, minCost: any, originalPayload: any) {
         let currencyType = 'crypto';
         const description = this.describe ();
         if (this.isFiat (code)) {
@@ -1038,7 +1038,7 @@ export default class bitstamp extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    getCurrencyIdFromTransaction (transaction) {
+    getCurrencyIdFromTransaction (transaction: any) {
         //
         //     {
         //         "fee": "0.00000000",
@@ -1077,7 +1077,7 @@ export default class bitstamp extends Exchange {
         return undefined;
     }
 
-    getMarketFromTrade (trade) {
+    getMarketFromTrade (trade: any) {
         trade = this.omit (trade, [
             'fee',
             'price',
@@ -1291,7 +1291,7 @@ export default class bitstamp extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "high": "9064.77",
@@ -1370,7 +1370,7 @@ export default class bitstamp extends Exchange {
         return this.parseOHLCVs (ohlc, market, timeframe, since, limit);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const finalResponse = response; // java req
         const result: Dict = {
             'info': finalResponse,
@@ -1475,7 +1475,7 @@ export default class bitstamp extends Exchange {
         };
     }
 
-    parseTradingFees (fees) {
+    parseTradingFees (fees: any) {
         const result: Dict = { 'info': fees };
         for (let i = 0; i < fees.length; i++) {
             const fee = this.parseTradingFee (fees[i]);
@@ -1545,7 +1545,7 @@ export default class bitstamp extends Exchange {
         return this.parseTransactionFees (response);
     }
 
-    parseTransactionFees (response, codes: Strings = undefined) {
+    parseTransactionFees (response: any, codes: Strings = undefined) {
         const result: Dict = {};
         const currencies = this.indexBy (response, 'currency');
         const ids = Object.keys (currencies);
@@ -1595,7 +1595,7 @@ export default class bitstamp extends Exchange {
         return this.parseDepositWithdrawFees (responseByCurrencyId, codes);
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         const result = this.depositWithdrawFee (fee);
         const code = this.safeString (currency, 'code');
         for (let j = 0; j < fee.length; j++) {
@@ -1954,7 +1954,7 @@ export default class bitstamp extends Exchange {
         return this.parseFundingRateHistories (values, market, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRateHistory (contract, market: Market = undefined) {
+    override parseFundingRateHistory (contract: any, market: Market = undefined) {
         //
         //     {
         //         "funding_rate": "0.0024",
@@ -2301,7 +2301,7 @@ export default class bitstamp extends Exchange {
         }, market);
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             '0': 'transaction',
             '1': 'transaction',
@@ -2460,7 +2460,7 @@ export default class bitstamp extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-    override parseFundingRate (fundingRate, market: Market = undefined): FundingRate {
+    override parseFundingRate (fundingRate: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "funding_rate": "0.0024",
@@ -2534,7 +2534,7 @@ export default class bitstamp extends Exchange {
         });
     }
 
-    getCurrencyName (code) {
+    getCurrencyName (code: any) {
         /**
          * @ignore
          * @method
@@ -2544,7 +2544,7 @@ export default class bitstamp extends Exchange {
         return code.toLowerCase ();
     }
 
-    isFiat (code) {
+    isFiat (code: any) {
         return code === 'USD' || code === 'EUR' || code === 'GBP';
     }
 
@@ -2667,7 +2667,7 @@ export default class bitstamp extends Exchange {
         return transfer;
     }
 
-    override parseTransfer (transfer, currency: Currency = undefined) {
+    override parseTransfer (transfer: any, currency: Currency = undefined) {
         //
         //    { status: 'ok' }
         //
@@ -2701,7 +2701,7 @@ export default class bitstamp extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/';
         url += this.version + '/';
         url += this.implodeParams (path, params);
@@ -2746,7 +2746,7 @@ export default class bitstamp extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

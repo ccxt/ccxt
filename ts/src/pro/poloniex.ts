@@ -275,7 +275,7 @@ export default class poloniex extends poloniexRest {
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    override async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrderWs (id: string, symbol: Str = undefined, params: Dict = {}) {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             const clientOrderIds = this.safeValue (params, 'clientOrderId', []);
@@ -325,7 +325,7 @@ export default class poloniex extends poloniexRest {
         return await this.tradeRequest ('cancelAllOrders', params);
     }
 
-    handleOrderRequest (client: Client, message) {
+    handleOrderRequest (client: Client, message: any) {
         //
         //    {
         //        "id": "1234567",
@@ -568,7 +568,7 @@ export default class poloniex extends poloniexRest {
         return await this.subscribe (name, name, true, undefined, params);
     }
 
-    override parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -594,7 +594,7 @@ export default class poloniex extends poloniexRest {
         ];
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //    {
         //        "channel": "candles_minute_1",
@@ -641,7 +641,7 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    handleTrade (client: Client, message) {
+    handleTrade (client: Client, message: any) {
         //
         //    {
         //        "channel": "trades",
@@ -683,7 +683,7 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    override parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         // handleTrade
         //
@@ -751,7 +751,7 @@ export default class poloniex extends poloniexRest {
         }, market);
     }
 
-    parseStatus (status) {
+    parseStatus (status: any) {
         const statuses: Dict = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -764,7 +764,7 @@ export default class poloniex extends poloniexRest {
         return this.safeString (statuses, status, status);
     }
 
-    override parseWsOrderTrade (trade, market: Market = undefined) {
+    override parseWsOrderTrade (trade: Dict, market: Market = undefined) {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -816,7 +816,7 @@ export default class poloniex extends poloniexRest {
         }, market);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         // Order is created
         //
@@ -944,7 +944,7 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    override parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         //    {
         //        "symbol": "BTC_USDT",
@@ -1015,7 +1015,7 @@ export default class poloniex extends poloniexRest {
         });
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //    {
         //        "channel": "ticker",
@@ -1069,7 +1069,7 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         // snapshot
         //
@@ -1164,7 +1164,7 @@ export default class poloniex extends poloniexRest {
         }
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //    {
         //       "channel": "balances",
@@ -1190,7 +1190,7 @@ export default class poloniex extends poloniexRest {
         client.resolve (this.balance, messageHash);
     }
 
-    parseWsBalance (response) {
+    parseWsBalance (response: any) {
         //
         //    [
         //        {
@@ -1228,7 +1228,7 @@ export default class poloniex extends poloniexRest {
         return this.safeBalance (result);
     }
 
-    handleMyTrades (client: Client, parsedTrade) {
+    handleMyTrades (client: Client, parsedTrade: any) {
         // emulated using the orders' stream
         const messageHash = 'myTrades';
         const symbol = parsedTrade['symbol'];
@@ -1247,7 +1247,7 @@ export default class poloniex extends poloniexRest {
         client.lastPong = this.milliseconds ();
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
@@ -1296,7 +1296,7 @@ export default class poloniex extends poloniexRest {
         }
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //    {
         //        message: 'Invalid channel value ["ordersss"]',
@@ -1355,7 +1355,7 @@ export default class poloniex extends poloniexRest {
         return false;
     }
 
-    handleAuthenticate (client: Client, message) {
+    handleAuthenticate (client: Client, message: any) {
         //
         //    {
         //        "success": true,

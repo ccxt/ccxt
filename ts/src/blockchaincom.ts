@@ -551,7 +551,7 @@ export default class blockchaincom extends Exchange {
         return this.parseTickers (tickers, symbols);
     }
 
-    parseOrderState (state) {
+    parseOrderState (state: any) {
         const states: Dict = {
             'OPEN': 'open',
             'REJECTED': 'rejected',
@@ -826,7 +826,7 @@ export default class blockchaincom extends Exchange {
         return await this.fetchOrdersByState (state, symbol, since, limit, params);
     }
 
-    async fetchOrdersByState (state, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByState (state: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -956,7 +956,7 @@ export default class blockchaincom extends Exchange {
         } as DepositAddress;
     }
 
-    parseTransactionState (state) {
+    parseTransactionState (state: any) {
         const states: Dict = {
             'COMPLETED': 'ok', //
             'REJECTED': 'failed',
@@ -1270,7 +1270,7 @@ export default class blockchaincom extends Exchange {
         return this.parseOrder (response);
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const requestPath = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit (params, this.extractParams (path));
@@ -1295,7 +1295,7 @@ export default class blockchaincom extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if (response === undefined) {
             return undefined;

@@ -225,7 +225,7 @@ export default class bitflyer extends Exchange {
         });
     }
 
-    parseExpiryDate (expiry) {
+    parseExpiryDate (expiry: any) {
         const day = expiry.slice (0, 2);
         const monthName = expiry.slice (2, 5);
         const year = expiry.slice (5, 9);
@@ -409,7 +409,7 @@ export default class bitflyer extends Exchange {
         return result;
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -1081,7 +1081,7 @@ export default class bitflyer extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseDepositStatus (status) {
+    parseDepositStatus (status: any) {
         const statuses: Dict = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
@@ -1089,7 +1089,7 @@ export default class bitflyer extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseWithdrawalStatus (status) {
+    parseWithdrawalStatus (status: any) {
         const statuses: Dict = {
             'PENDING': 'pending',
             'COMPLETED': 'ok',
@@ -1205,7 +1205,7 @@ export default class bitflyer extends Exchange {
         return this.parseFundingRate (response, market);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //    {
         //        "current_funding_rate": -0.003750000000
@@ -1236,7 +1236,7 @@ export default class bitflyer extends Exchange {
         } as FundingRate;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let request = '/' + this.version + '/';
         if (api === 'private') {
             request += 'me/';
@@ -1270,7 +1270,7 @@ export default class bitflyer extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to the default error handler
         }

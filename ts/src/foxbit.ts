@@ -668,7 +668,7 @@ export default class foxbit extends Exchange {
         //     }
         // ]
         const data = this.safeList (response, 'data', []);
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const marketId = this.safeString (entry, 'market_symbol');
@@ -1269,7 +1269,7 @@ export default class foxbit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market_symbol': market['id'],
         };
         if (since !== undefined) {
@@ -1765,7 +1765,7 @@ export default class foxbit extends Exchange {
         }, market);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
@@ -1776,7 +1776,7 @@ export default class foxbit extends Exchange {
         ];
     }
 
-    override parseTrade (trade, market: Market = undefined): Trade {
+    override parseTrade (trade: any, market: Market = undefined): Trade {
         const timestamp = this.parseDate (this.safeString (trade, 'created_at'));
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'volume', this.safeString (trade, 'quantity'));
@@ -1817,7 +1817,7 @@ export default class foxbit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    override parseOrder (order, market: Market = undefined): Order {
+    override parseOrder (order: Dict, market: Market = undefined): Order {
         let symbol = this.safeString (order, 'market_symbol');
         if (market === undefined && symbol !== undefined) {
             market = this.market (symbol);
@@ -1876,7 +1876,7 @@ export default class foxbit extends Exchange {
         });
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined) {
         const network = this.safeDict (depositAddress, 'network');
         const networkId = this.safeString (network, 'code');
         const currencyCode = this.safeCurrencyCode (undefined, currency);
@@ -1911,7 +1911,7 @@ export default class foxbit extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    override parseTransaction (transaction, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined): Transaction {
+    override parseTransaction (transaction: any, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined): Transaction {
         const cryptoDetails = this.safeDict (transaction, 'details_crypto');
         const address = this.safeString2 (cryptoDetails, 'receiving_address', 'destination_address');
         const sn = this.safeString (transaction, 'sn');
@@ -1962,7 +1962,7 @@ export default class foxbit extends Exchange {
         };
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'DEPOSITING': 'transaction',
             'WITHDRAWING': 'transaction',
@@ -2035,7 +2035,7 @@ export default class foxbit extends Exchange {
         };
     }
 
-    override sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const version = api[0];
         let urlPath = api[1];
         let fullPath = '/rest/' + version + '/' + this.implodeParams (path, params);
@@ -2087,7 +2087,7 @@ export default class foxbit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

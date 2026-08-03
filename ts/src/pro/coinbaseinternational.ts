@@ -273,7 +273,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleInstrument (client: Client, message) {
+    handleInstrument (client: Client, message: any) {
         //
         //    {
         //        "sequence": 1,
@@ -385,7 +385,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         });
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         // snapshot
         //    {
@@ -483,7 +483,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         // {
         //     "sequence": 0,
@@ -561,7 +561,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrade (client, message) {
+    handleTrade (client: any, message: any) {
         //
         //    {
         //       "sequence": 0,
@@ -591,7 +591,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return message;
     }
 
-    override parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         //    {
         //       "sequence": 0,
@@ -651,7 +651,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return this.subscribeMultiple ('LEVEL2', symbols, params);
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: any, message: any) {
         //
         // snapshot
         //    {
@@ -712,7 +712,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         client.resolve (orderbook, channel + '::' + symbol);
     }
 
-    override handleDelta (orderbook, delta) {
+    override handleDelta (orderbook: any, delta: any) {
         const rawSide = this.safeStringLower (delta, 0);
         const side = (rawSide === 'buy') ? 'bids' : 'asks';
         const price = this.safeFloat (delta, 1);
@@ -721,13 +721,13 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         bookside.store (price, amount);
     }
 
-    override handleDeltas (orderbook, deltas) {
+    override handleDeltas (orderbook: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (orderbook, deltas[i]);
         }
     }
 
-    handleSubscriptionStatus (client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //    {
         //       "channels": [
@@ -755,7 +755,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return message;
     }
 
-    handleFundingRate (client: Client, message) {
+    handleFundingRate (client: Client, message: any) {
         //
         // snapshot
         //    {
@@ -784,7 +784,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         client.resolve (fundingRate, channel + '::' + fundingRate['symbol']);
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //    {
         //        message: 'Failed to subscribe',
@@ -810,7 +810,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         return true;
     }
 
-    override handleMessage (client, message) {
+    override handleMessage (client: any, message: any) {
         if (this.handleErrorMessage (client, message)) {
             return;
         }

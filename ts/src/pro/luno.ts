@@ -70,7 +70,7 @@ export default class luno extends lunoRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message, subscription) {
+    handleTrades (client: Client, message: any, subscription: any) {
         //
         //     {
         //         "sequence": "110980825",
@@ -109,7 +109,7 @@ export default class luno extends lunoRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    override parseTrade (trade, market: Market = undefined): Trade {
+    override parseTrade (trade: any, market: Market = undefined): Trade {
         //
         // watchTrades (public)
         //
@@ -171,7 +171,7 @@ export default class luno extends lunoRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message, subscription) {
+    handleOrderBook (client: Client, message: any, subscription: any) {
         //
         //     {
         //         "sequence": "24352",
@@ -226,7 +226,7 @@ export default class luno extends lunoRest {
         client.resolve (orderbook, messageHash);
     }
 
-    customParseOrderBook (orderbook, symbol, timestamp: Int = undefined, bidsKey = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2) {
+    customParseOrderBook (orderbook: any, symbol: any, timestamp: Int = undefined, bidsKey = 'bids', asksKey: IndexType = 'asks', priceKey: IndexType = 'price', amountKey: IndexType = 'volume', countOrIdKey: IndexType = 2) {
         const bids = this.parseOrderBookBidsAsks (this.safeValue (orderbook, bidsKey, []), priceKey, amountKey, countOrIdKey);
         const asks = this.parseOrderBookBidsAsks (this.safeValue (orderbook, asksKey, []), priceKey, amountKey, countOrIdKey);
         return {
@@ -239,7 +239,7 @@ export default class luno extends lunoRest {
         };
     }
 
-    override parseOrderBookBidsAsks (bidasks, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
+    override parseOrderBookBidsAsks (bidasks: any, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
         bidasks = this.toArray (bidasks);
         const result: any[] = [];
         for (let i = 0; i < bidasks.length; i++) {
@@ -248,7 +248,7 @@ export default class luno extends lunoRest {
         return result;
     }
 
-    customParseBidAsk (bidask, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
+    customParseBidAsk (bidask: any, priceKey: IndexType = 'price', amountKey: IndexType = 'volume', thirdKey: IndexType = 2) {
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         const result = [ price, amount ];
@@ -259,7 +259,7 @@ export default class luno extends lunoRest {
         return result;
     }
 
-    override handleDelta (orderbook, message) {
+    override handleDelta (orderbook: any, message: any) {
         //
         //  create
         //     {
@@ -323,7 +323,7 @@ export default class luno extends lunoRest {
         }
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         if (message === '') {
             return;
         }

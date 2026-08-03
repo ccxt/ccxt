@@ -26,7 +26,7 @@ function helperTestInitThrottler () {
     // todo: add initial tockenbtucket test
 }
 
-function helperTestSandboxState (exchange, expectEnabled = true) {
+function helperTestSandboxState (exchange: any, expectEnabled = true) {
     assert (exchange.urls !== undefined);
     assert ('test' in exchange.urls);
     const isSandboxModeEnabled = testSharedMethods.exchangeProp (exchange, 'isSandboxModeEnabled');

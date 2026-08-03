@@ -479,7 +479,7 @@ export default class bittrade extends Exchange {
         return this.parseTradingLimits (this.safeValue (response, 'data', {}));
     }
 
-    parseTradingLimits (limits, symbol: Str = undefined, params = {}) {
+    parseTradingLimits (limits: any, symbol: Str = undefined, params = {}) {
         //
         //   {                                  symbol: "aidocbtc",
         //                  "buy-limit-must-less-than":  1.1,
@@ -506,7 +506,7 @@ export default class bittrade extends Exchange {
         };
     }
 
-    override costToPrecision (symbol, cost) {
+    override costToPrecision (symbol: Str, cost: any) {
         return this.decimalToPrecision (cost, TRUNCATE, this.market (symbol)['precision']['cost'], this.precisionMode);
     }
 
@@ -1039,7 +1039,7 @@ export default class bittrade extends Exchange {
         return this.filterBySymbolSinceLimit (result, market['symbol'], since, limit) as Trade[];
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "amount":1.2082,
@@ -1216,7 +1216,7 @@ export default class bittrade extends Exchange {
         });
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const balances = this.safeValue (response['data'], 'list', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
@@ -1268,7 +1268,7 @@ export default class bittrade extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrdersByStates (states, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStates (states: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1532,7 +1532,7 @@ export default class bittrade extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1713,7 +1713,7 @@ export default class bittrade extends Exchange {
         return this.parseCancelOrders (response) as Order[];
     }
 
-    parseCancelOrders (orders) {
+    parseCancelOrders (orders: any) {
         //
         //    {
         //        "success": [
@@ -1814,7 +1814,7 @@ export default class bittrade extends Exchange {
         ];
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined) {
         //
         //     {
         //         "currency": "usdt",
@@ -2068,7 +2068,7 @@ export default class bittrade extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = '/';
         if (api === 'market') {
             url += api;
@@ -2121,7 +2121,7 @@ export default class bittrade extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

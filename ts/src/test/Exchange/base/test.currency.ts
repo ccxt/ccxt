@@ -1,12 +1,13 @@
 import assert from 'assert';
 import { Currency, Exchange } from "../../../../ccxt.js";
 import testSharedMethods from './test.sharedMethods.js';
+import type { Dict } from '../../../base/types.js';
 
 function testCurrency (exchange: Exchange, skippedProperties: object, method: string, entry: Currency) {
     if (entry === undefined) {
         return;
     }
-    const format = {
+    const format: Dict = {
         'id': 'btc', // string literal for referencing within an exchange
         'code': 'BTC', // uppercase string literal of a pair of currencies
     };

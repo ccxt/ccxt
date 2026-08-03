@@ -675,7 +675,7 @@ export default class coinsph extends Exchange {
         });
     }
 
-    override calculateRateLimiterCost (api, method, path, params, config = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
         if (('noSymbol' in config) && !('symbol' in params)) {
             return config['noSymbol'];
         } else if (('noSymbolAndNoSymbols' in config) && !('symbol' in params) && !('symbols' in params)) {
@@ -1134,7 +1134,7 @@ export default class coinsph extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
@@ -1368,7 +1368,7 @@ export default class coinsph extends Exchange {
         return this.parseBalance (response);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const balances = this.safeList (response, 'balances', []);
         const result: Dict = {
             'info': response,
@@ -1746,7 +1746,7 @@ export default class coinsph extends Exchange {
         }, market);
     }
 
-    parseOrderSide (status) {
+    parseOrderSide (status: any) {
         const statuses: Dict = {
             'BUY': 'buy',
             'SELL': 'sell',
@@ -1757,7 +1757,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    encodeOrderSide (status) {
+    encodeOrderSide (status: any) {
         const statuses: Dict = {
             'buy': 'BUY',
             'sell': 'SELL',
@@ -1768,7 +1768,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status) {
+    parseOrderType (status: any) {
         const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -1784,7 +1784,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    encodeOrderType (status) {
+    encodeOrderType (status: any) {
         const statuses: Dict = {
             'market': 'MARKET',
             'limit': 'LIMIT',
@@ -1815,7 +1815,7 @@ export default class coinsph extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderTimeInForce (status) {
+    parseOrderTimeInForce (status: any) {
         const statuses: Dict = {
             'GTC': 'GTC',
             'FOK': 'FOK',
@@ -2225,7 +2225,7 @@ export default class coinsph extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "coin": "ETH",
@@ -2244,7 +2244,7 @@ export default class coinsph extends Exchange {
         } as DepositAddress;
     }
 
-    urlEncodeQuery (query = {}) {
+    urlEncodeQuery (query: Dict = {}) {
         let encodedArrayParams = '';
         const keys = Object.keys (query);
         for (let i = 0; i < keys.length; i++) {
@@ -2267,7 +2267,7 @@ export default class coinsph extends Exchange {
         }
     }
 
-    parseArrayParam (array, key) {
+    parseArrayParam (array: any, key: any) {
         let stringifiedArray = this.json (array);
         stringifiedArray = stringifiedArray.replace ('[', '%5B');
         stringifiedArray = stringifiedArray.replace (']', '%5D');
@@ -2275,7 +2275,7 @@ export default class coinsph extends Exchange {
         return urlEncodedParam;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api];
         let query = this.omit (params, this.extractParams (path));
         const endpoint = this.implodeParams (path, params);
@@ -2305,7 +2305,7 @@ export default class coinsph extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

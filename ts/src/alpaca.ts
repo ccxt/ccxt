@@ -497,7 +497,7 @@ export default class alpaca extends Exchange {
         return this.parseMarkets (assets);
     }
 
-    override parseMarket (asset): Market {
+    override parseMarket (asset: Dict): Market {
         //
         //     {
         //         "id": "c150e086-1e75-44e6-9c2c-093bb1e93139",
@@ -834,7 +834,7 @@ export default class alpaca extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //        "c":22895,
@@ -995,7 +995,7 @@ export default class alpaca extends Exchange {
         return this.filterByArray (results, 'symbol', symbols);
     }
 
-    generateClientOrderId (params) {
+    generateClientOrderId (params: any) {
         const clientOrderIdprefix = this.safeString (this.options, 'clientOrderId');
         const uuid = this.uuid ();
         const parts = uuid.split ('-');
@@ -1651,7 +1651,7 @@ export default class alpaca extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
@@ -1720,7 +1720,7 @@ export default class alpaca extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    async fetchTransactionsHelper (type, code, since, limit, params) {
+    async fetchTransactionsHelper (type: any, code: any, since: any, limit: any, params: any) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1865,7 +1865,7 @@ export default class alpaca extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransactionType (type) {
+    parseTransactionType (type: any) {
         const types: Dict = {
             'INCOMING': 'deposit',
             'OUTGOING': 'withdrawal',
@@ -1937,7 +1937,7 @@ export default class alpaca extends Exchange {
         return this.parseBalance (response);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         const account = this.account ();
         const currencyId = this.safeString (response, 'currency');
@@ -1950,7 +1950,7 @@ export default class alpaca extends Exchange {
         return this.safeBalance (result);
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let endpoint = '/' + this.implodeParams (path, params);
         let url = this.implodeHostname (this.urls['api'][api[0]]);
         headers = (headers !== undefined) ? headers : {};
@@ -1972,7 +1972,7 @@ export default class alpaca extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // default error handler
         }

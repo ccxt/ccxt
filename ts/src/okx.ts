@@ -1449,7 +1449,7 @@ export default class okx extends Exchange {
         });
     }
 
-    override handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue: any = undefined): any {
+    override handleMarketTypeAndParams (methodName: string, market: Market = undefined, params: Dict = {}, defaultValue: any = undefined): any {
         const instType = this.safeString (params, 'instType');
         params = this.omit (params, 'instType');
         const type = this.safeString (params, 'type');
@@ -1459,7 +1459,7 @@ export default class okx extends Exchange {
         return super.handleMarketTypeAndParams (methodName, market, params, defaultValue);
     }
 
-    convertToInstrumentType (type) {
+    convertToInstrumentType (type: any) {
         const exchangeTypes = this.safeDict (this.options, 'exchangeType', {});
         return this.safeString (exchangeTypes, (type as string), type);
     }
@@ -1904,7 +1904,7 @@ export default class okx extends Exchange {
         });
     }
 
-    async fetchMarketsByType (type, params = {}) {
+    async fetchMarketsByType (type: any, params = {}) {
         const request: Dict = {
             'instType': this.convertToInstrumentType (type),
         };
@@ -2600,7 +2600,7 @@ export default class okx extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         "1678928760000", // timestamp
@@ -2819,7 +2819,7 @@ export default class okx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    parseBalanceByType (type, response) {
+    parseBalanceByType (type: any, response: any) {
         if (type === 'funding') {
             return this.parseFundingBalance (response);
         } else {
@@ -2827,7 +2827,7 @@ export default class okx extends Exchange {
         }
     }
 
-    parseTradingBalance (response) {
+    parseTradingBalance (response: any) {
         const result: Dict = { 'info': response };
         const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0, {});
@@ -2857,7 +2857,7 @@ export default class okx extends Exchange {
         return this.safeBalance (result);
     }
 
-    parseFundingBalance (response) {
+    parseFundingBalance (response: any) {
         const result: Dict = { 'info': response };
         const data = this.safeList (response, 'data', []) as List;
         for (let i = 0; i < data.length; i++) {
@@ -3310,7 +3310,7 @@ export default class okx extends Exchange {
                     throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"], or params["stopLoss"]["stopPrice"], or params["stopLoss"]["slTriggerPx"] for a stop loss order');
                 }
                 const slTriggerPx = this.priceToPrecision (symbol, stopLossTriggerPrice);
-                const slOrder = {};
+                const slOrder: Dict = {};
                 slOrder['slTriggerPx'] = slTriggerPx;
                 const stopLossLimitPrice = this.safeValueN (stopLoss, [ 'price', 'stopLossPrice', 'slOrdPx' ]);
                 const stopLossOrderType = this.safeString (stopLoss, 'type');
@@ -3347,7 +3347,7 @@ export default class okx extends Exchange {
                 if (takeProfitTriggerPrice === undefined) {
                     throw new InvalidOrder (this.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"], or params["takeProfit"]["stopPrice"], or params["takeProfit"]["tpTriggerPx"] for a take profit order');
                 }
-                const tpOrder = {};
+                const tpOrder: Dict = {};
                 tpOrder['tpTriggerPx'] = this.priceToPrecision (symbol, takeProfitTriggerPrice);
                 const takeProfitLimitPrice = this.safeValueN (takeProfit, [ 'price', 'takeProfitPrice', 'tpOrdPx' ]);
                 const takeProfitOrderType = this.safeString2 (takeProfit, 'type', 'tpOrdKind');
@@ -3563,7 +3563,7 @@ export default class okx extends Exchange {
         return this.parseOrders (data);
     }
 
-    editOrderRequest (id: string, symbol, type, side, amount: Num = undefined, price: Num = undefined, params = {}) {
+    editOrderRequest (id: string, symbol: Str, type: any, side: any, amount: Num = undefined, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         const request: Dict = {
             'instId': market['id'],
@@ -3773,7 +3773,7 @@ export default class okx extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    parseIds (ids) {
+    parseIds (ids: any) {
         /**
          * @ignore
          * @method
@@ -5240,7 +5240,7 @@ export default class okx extends Exchange {
         return this.parseLedger (data, currency, since, limit);
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             '1': 'transfer', // transfer
             '2': 'trade', // trade
@@ -5327,7 +5327,7 @@ export default class okx extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "addr": "okbtothemoon",
@@ -5488,7 +5488,8 @@ export default class okx extends Exchange {
         params = this.omit (params, 'network');
         code = this.safeCurrencyCode (code) as string;
         const network = this.networkIdToCode (rawNetwork, code);
-        const response = await this.fetchDepositAddressesByNetwork (code, params);
+        const responseRaw = await this.fetchDepositAddressesByNetwork (code, params);
+        const response: Dict = responseRaw as any;
         if (network !== undefined) {
             const result = this.safeDict (response, network);
             if (result === undefined) {
@@ -6661,7 +6662,7 @@ export default class okx extends Exchange {
         return this.parseTransfers (transfers, currency, since, limit, params);
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const isArray = Array.isArray (params);
         const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -6723,7 +6724,7 @@ export default class okx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //    {
         //        "fundingRate": "0.00027815",
@@ -6784,7 +6785,7 @@ export default class okx extends Exchange {
         } as FundingRate;
     }
 
-    parseFundingInterval (interval) {
+    parseFundingInterval (interval: any) {
         const intervals: Dict = {
             '3600000': '1h',
             '7200000': '2h',
@@ -7325,7 +7326,7 @@ export default class okx extends Exchange {
         return this.parseBorrowRate (rate);
     }
 
-    override parseBorrowRate (info, currency: Currency = undefined) {
+    override parseBorrowRate (info: any, currency: Currency = undefined) {
         //
         //    {
         //        "amt": "992.10341195",
@@ -7346,7 +7347,7 @@ export default class okx extends Exchange {
         };
     }
 
-    parseBorrowRateHistories (response, codes, since, limit) {
+    parseBorrowRateHistories (response: any, codes: any, since: any, limit: any) {
         //
         //    [
         //        {
@@ -7472,7 +7473,7 @@ export default class okx extends Exchange {
         return this.parseBorrowRateHistory (data, code, since, limit);
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: any, type: any, params = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7672,7 +7673,7 @@ export default class okx extends Exchange {
         return this.parseMarketLeverageTiers (data, market);
     }
 
-    override parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         /**
          * @ignore
          * @method
@@ -7852,7 +7853,7 @@ export default class okx extends Exchange {
      * @param {string} [params.id] the order ID of borrowing, it is necessary while repaying
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayCrossMargin (code: string, amount, params = {}) {
+    override async repayCrossMargin (code: string, amount: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7889,7 +7890,7 @@ export default class okx extends Exchange {
         return this.parseMarginLoan (loan, currency);
     }
 
-    parseMarginLoan (info, currency: Currency = undefined) {
+    parseMarginLoan (info: any, currency: Currency = undefined) {
         //
         //     {
         //         "amt": "102",
@@ -8090,7 +8091,7 @@ export default class okx extends Exchange {
         return this.parseOpenInterestsHistory (data, undefined, since, limit);
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         // fetchOpenInterestHistory
         //
@@ -8168,7 +8169,7 @@ export default class okx extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = {};
+        const request: Dict = {};
         if (codes !== undefined) {
             const ids = this.currencyIds (codes);
             request['ccy'] = ids.join (',');
@@ -8221,7 +8222,7 @@ export default class okx extends Exchange {
         return this.parseDepositWithdrawFees (data, codes);
     }
 
-    override parseDepositWithdrawFees (response, codes: Strings = undefined, currencyIdKey: any = undefined) {
+    override parseDepositWithdrawFees (response: any, codes: Strings = undefined, currencyIdKey: any = undefined) {
         //
         // [
         //   {
@@ -8349,7 +8350,7 @@ export default class okx extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
-    parseSettlement (settlement, market) {
+    parseSettlement (settlement: any, market: any) {
         //
         //     {
         //         "insId": "BTC-USD-230521-28500-P",
@@ -8367,7 +8368,7 @@ export default class okx extends Exchange {
         };
     }
 
-    parseSettlements (settlements, market) {
+    parseSettlements (settlements: any, market: any) {
         //
         //     {
         //         "details": [
@@ -9195,7 +9196,7 @@ export default class okx extends Exchange {
         return result;
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (!response) {
             return undefined; // fallback to default error handler
         }

@@ -89,7 +89,7 @@ export default class alpaca extends alpacaRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //    {
         //         "T": "q",
@@ -110,7 +110,7 @@ export default class alpaca extends alpacaRest {
         client.resolve (ticker, messageHash);
     }
 
-    override parseTicker (ticker, market: Market = undefined): Ticker {
+    override parseTicker (ticker: any, market: Market = undefined): Ticker {
         //
         //    {
         //         "T": "q",
@@ -180,7 +180,7 @@ export default class alpaca extends alpacaRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //    {
         //        "T": "b",
@@ -236,7 +236,7 @@ export default class alpaca extends alpacaRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         // snapshot
         //    {
@@ -283,12 +283,12 @@ export default class alpaca extends alpacaRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleDelta (bookside, delta) {
+    override handleDelta (bookside: any, delta: any) {
         const bidAsk = this.parseOrderBookBidAsk (delta, 'p', 's');
         bookside.storeArray (bidAsk);
     }
 
-    override handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
@@ -325,7 +325,7 @@ export default class alpaca extends alpacaRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     {
         //         "T": "t",
@@ -422,12 +422,12 @@ export default class alpaca extends alpacaRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleTradeUpdate (client: Client, message) {
+    handleTradeUpdate (client: Client, message: any) {
         this.handleOrder (client, message);
         this.handleMyTrade (client, message);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         //    {
         //        "stream": "trade_updates",
@@ -488,7 +488,7 @@ export default class alpaca extends alpacaRest {
         client.resolve (orders, messageHash);
     }
 
-    handleMyTrade (client: Client, message) {
+    handleMyTrade (client: Client, message: any) {
         //
         //    {
         //        "stream": "trade_updates",
@@ -556,7 +556,7 @@ export default class alpaca extends alpacaRest {
         client.resolve (myTrades, messageHash);
     }
 
-    parseMyTrade (trade, market: Market = undefined) {
+    parseMyTrade (trade: any, market: Market = undefined) {
         //
         //    {
         //        "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
@@ -621,7 +621,7 @@ export default class alpaca extends alpacaRest {
         }, market);
     }
 
-    async authenticate (url, params = {}) {
+    async authenticate (url: any, params = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
         const client = this.client (url);
@@ -648,7 +648,7 @@ export default class alpaca extends alpacaRest {
         return await future;
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //    {
         //        "T": "error",
@@ -661,7 +661,7 @@ export default class alpaca extends alpacaRest {
         throw new ExchangeError (this.id + ' code: ' + code + ' message: ' + msg);
     }
 
-    handleConnected (client: Client, message) {
+    handleConnected (client: Client, message: any) {
         //
         //    {
         //        "T": "success",
@@ -671,7 +671,7 @@ export default class alpaca extends alpacaRest {
         return message;
     }
 
-    handleCryptoMessage (client: Client, message) {
+    handleCryptoMessage (client: Client, message: any) {
         for (let i = 0; i < message.length; i++) {
             const data = message[i];
             const T = this.safeString (data, 'T');
@@ -702,7 +702,7 @@ export default class alpaca extends alpacaRest {
         }
     }
 
-    handleTradingMessage (client: Client, message) {
+    handleTradingMessage (client: Client, message: any) {
         const stream = this.safeString (message, 'stream');
         const methods: Dict = {
             'authorization': this.handleAuthenticate,
@@ -715,7 +715,7 @@ export default class alpaca extends alpacaRest {
         }
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         if (Array.isArray (message)) {
             this.handleCryptoMessage (client, message);
             return;
@@ -723,7 +723,7 @@ export default class alpaca extends alpacaRest {
         this.handleTradingMessage (client, message);
     }
 
-    handleAuthenticate (client: Client, message) {
+    handleAuthenticate (client: Client, message: any) {
         //
         // crypto
         //    {
@@ -760,7 +760,7 @@ export default class alpaca extends alpacaRest {
         throw new AuthenticationError (this.id + ' failed to authenticate.');
     }
 
-    handleSubscription (client: Client, message) {
+    handleSubscription (client: Client, message: any) {
         //
         // crypto
         //    {

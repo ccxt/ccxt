@@ -530,7 +530,7 @@ export default class digifinex extends Exchange {
         const firstEntry = this.safeDict (networkEntries, 0, {}); // it must have at least one entry
         const id = this.safeString (firstEntry, 'currency');
         const code = this.safeCurrencyCode (id);
-        const networks = {};
+        const networks: Dict = {};
         for (let j = 0; j < networkEntries.length; j++) {
             const networkEntry = networkEntries[j];
             const networkId = this.safeString2 (networkEntry, 'chain', 'currency');
@@ -826,7 +826,7 @@ export default class digifinex extends Exchange {
         return result;
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         //
         // spot and margin
         //
@@ -1531,7 +1531,7 @@ export default class digifinex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         1556712900,
@@ -1947,7 +1947,7 @@ export default class digifinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2041,7 +2041,7 @@ export default class digifinex extends Exchange {
         }
     }
 
-    parseCancelOrders (response) {
+    parseCancelOrders (response: any) {
         const success = this.safeList (response, 'success', []);
         const error = this.safeList (response, 'error', []);
         const result: Order[] = [];
@@ -2666,7 +2666,7 @@ export default class digifinex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {};
         return this.safeString (types, (type as string), type);
     }
@@ -2814,7 +2814,7 @@ export default class digifinex extends Exchange {
         return this.parseLedger (ledger, currency, since, limit);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "addressTag":"",
@@ -2876,7 +2876,7 @@ export default class digifinex extends Exchange {
         return address as DepositAddress;
     }
 
-    async fetchTransactionsByType (type, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactionsByType (type: any, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3114,7 +3114,7 @@ export default class digifinex extends Exchange {
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toId = this.safeString (accountsByType, toAccount, toAccount);
-        const request = {};
+        const request: Dict = {};
         const fromSwap = (fromAccount === 'swap');
         const toSwap = (toAccount === 'swap');
         let response = undefined;
@@ -3341,7 +3341,7 @@ export default class digifinex extends Exchange {
         return this.parseBorrowRates (result, 'currency');
     }
 
-    override parseBorrowRate (info, currency: Currency = undefined) {
+    override parseBorrowRate (info: any, currency: Currency = undefined) {
         //
         //     {
         //         "valuation_rate": 1,
@@ -3362,7 +3362,7 @@ export default class digifinex extends Exchange {
         };
     }
 
-    parseBorrowRates (info, codeKey) {
+    parseBorrowRates (info: any, codeKey: any) {
         //
         //     {
         //         "valuation_rate": 1,
@@ -3434,7 +3434,7 @@ export default class digifinex extends Exchange {
         return await this.fetchFundingRate (symbol, params);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
@@ -3472,7 +3472,7 @@ export default class digifinex extends Exchange {
         } as FundingRate;
     }
 
-    parseFundingInterval (interval) {
+    parseFundingInterval (interval: any) {
         const intervals: Dict = {
             '3600000': '1h',
             '14400000': '4h',
@@ -3976,7 +3976,7 @@ export default class digifinex extends Exchange {
             if (currency === undefined) {
                 throw new ExchangeError (this.id + ' fetchTransfers() could not resolve currency');
             }
-            request['currency'] = currency['id'];
+            request['currency'] = (currency as any)['id'];
         }
         if (since !== undefined) {
             request['start_timestamp'] = since;
@@ -4104,7 +4104,7 @@ export default class digifinex extends Exchange {
         return this.parseMarketLeverageTiers (data, market);
     }
 
-    override parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
@@ -4149,7 +4149,7 @@ export default class digifinex extends Exchange {
         return tiers as LeverageTier[];
     }
 
-    override handleMarginModeAndParams (methodName, params = {}, defaultValue: any = undefined): [any, Dict] {
+    override handleMarginModeAndParams (methodName: string, params = {}, defaultValue: any = undefined): [any, Dict] {
         /**
          * @ignore
          * @method
@@ -4220,7 +4220,7 @@ export default class digifinex extends Exchange {
         return this.parseDepositWithdrawFees (data, codes);
     }
 
-    override parseDepositWithdrawFees (response, codes: Strings = undefined, currencyIdKey: Str = undefined) {
+    override parseDepositWithdrawFees (response: any, codes: Strings = undefined, currencyIdKey: Str = undefined) {
         //
         //     [
         //         {
@@ -4328,7 +4328,7 @@ export default class digifinex extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 2, params);
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: any, type: any, params = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4432,7 +4432,7 @@ export default class digifinex extends Exchange {
         return this.parseIncomes (data, market, since, limit);
     }
 
-    override parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
@@ -4484,7 +4484,7 @@ export default class digifinex extends Exchange {
         return await this.privateSwapPostAccountPositionMode (this.extend (request, params));
     }
 
-    override sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const signed = api[0] === 'private';
         const endpoint = api[1];
         const pathPart = (endpoint === 'spot') ? '/v3' : '/swap/v2';
@@ -4541,7 +4541,7 @@ export default class digifinex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody, response, requestHeaders, requestBody) {
+    override handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: any, response: any, requestHeaders: any, requestBody: any) {
         if (!response) {
             return undefined; // fall back to default error handler
         }

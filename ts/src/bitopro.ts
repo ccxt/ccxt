@@ -875,7 +875,7 @@ export default class bitopro extends Exchange {
         return result;
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 'timestamp'),
             this.safeNumber (ohlcv, 'open'),
@@ -945,7 +945,7 @@ export default class bitopro extends Exchange {
         return this.insertMissingCandles (sparse, timeframeInSeconds, alignedSince, limit) as OHLCV[];
     }
 
-    insertMissingCandles (candles, distance, since, limit) {
+    insertMissingCandles (candles: any, distance: any, since: any, limit: any) {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
         const length = candles.length;
@@ -985,7 +985,7 @@ export default class bitopro extends Exchange {
         return result;
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         //
         //     [{
         //         "currency":"twd",
@@ -1249,7 +1249,7 @@ export default class bitopro extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseCancelOrders (data) {
+    parseCancelOrders (data: any) {
         const dataKeys = Object.keys (data);
         const orders: Order[] = [];
         for (let i = 0; i < dataKeys.length; i++) {
@@ -1852,7 +1852,7 @@ export default class bitopro extends Exchange {
         return this.parseTransaction (result, currency);
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //    {
         //        "currency":"eth",
         //        "withdrawFee":"0.007",
@@ -1911,7 +1911,7 @@ export default class bitopro extends Exchange {
         return this.parseDepositWithdrawFees (data, codes, 'currency');
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (headers === undefined) {
@@ -1951,7 +1951,7 @@ export default class bitopro extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to the default error handler
         }

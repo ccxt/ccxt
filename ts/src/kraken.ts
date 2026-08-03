@@ -580,7 +580,7 @@ export default class kraken extends Exchange {
         });
     }
 
-    override feeToPrecision (symbol, fee) {
+    override feeToPrecision (symbol: Str, fee: any) {
         return this.decimalToPrecision (fee, TRUNCATE, this.market (symbol)['precision']['amount'], this.precisionMode);
     }
 
@@ -988,7 +988,7 @@ export default class kraken extends Exchange {
         return this.parseTradingFee (result, market);
     }
 
-    parseTradingFee (response, market) {
+    parseTradingFee (response: any, market: any) {
         const makerFees = this.safeValue (response, 'fees_maker', {});
         const takerFees = this.safeValue (response, 'fees', {});
         const symbolMakerFee = this.safeValue (makerFees, market['id'], {});
@@ -1003,7 +1003,7 @@ export default class kraken extends Exchange {
         };
     }
 
-    override parseOrderBookBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+    override parseOrderBookBidAsk (bidask: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         const price = this.safeNumber (bidask, priceKey);
         const amount = this.safeNumber (bidask, amountKey);
         const timestamp = this.safeInteger (bidask, 2);
@@ -1175,7 +1175,7 @@ export default class kraken extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         1591475640,
@@ -1257,7 +1257,7 @@ export default class kraken extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'trade': 'trade',
             'withdrawal': 'transaction',
@@ -1379,7 +1379,7 @@ export default class kraken extends Exchange {
         return this.parseLedger (items, currency, since, limit);
     }
 
-    async fetchLedgerEntriesByIds (ids, code: Str = undefined, params = {}) {
+    async fetchLedgerEntriesByIds (ids: any, code: Str = undefined, params = {}) {
         // https://www.kraken.com/features/api#query-ledgers
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1620,7 +1620,7 @@ export default class kraken extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const balances = this.safeValue (response, 'result', {});
         const result: Dict = {
             'info': response,
@@ -1843,7 +1843,7 @@ export default class kraken extends Exchange {
         return this.parseOrders (this.safeList (result, 'orders') as List);
     }
 
-    findMarketByAltnameOrId (id) {
+    findMarketByAltnameOrId (id: any) {
         const marketsByAltname = this.safeValue (this.options, 'marketsByAltname', {});
         if (id in marketsByAltname) {
             return marketsByAltname[id];
@@ -1852,7 +1852,7 @@ export default class kraken extends Exchange {
         }
     }
 
-    getDelistedMarketById (id) {
+    getDelistedMarketById (id: any) {
         if (id === undefined) {
             return id;
         }
@@ -1904,7 +1904,7 @@ export default class kraken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status) {
+    parseOrderType (status: any) {
         const statuses: Dict = {
             // we dont add "space" delimited orders here (eg. stop loss) because they need separate parsing
             'take-profit': 'market',
@@ -2538,7 +2538,7 @@ export default class kraken extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrdersByIds (ids, symbol: Str = undefined, params = {}) {
+    async fetchOrdersByIds (ids: any, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2967,7 +2967,7 @@ export default class kraken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseNetwork (network) {
+    parseNetwork (network: any) {
         const withdrawMethods = this.safeValue (this.options, 'withdrawMethods', {});
         return this.safeString (withdrawMethods, network, network);
     }
@@ -3082,7 +3082,7 @@ export default class kraken extends Exchange {
         } as Transaction;
     }
 
-    parseTransactionsByType (type, transactions, code: Str = undefined, since: Int = undefined, limit: Int = undefined) {
+    parseTransactionsByType (type: any, transactions: any, code: Str = undefined, since: Int = undefined, limit: Int = undefined) {
         const result: List = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = this.parseTransaction (this.extend ({
@@ -3181,7 +3181,7 @@ export default class kraken extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3255,7 +3255,7 @@ export default class kraken extends Exchange {
         return this.parseTransactionsByType ('withdrawal', rawWithdrawals, code, since, limit);
     }
 
-    addPaginationCursorToResult (result) {
+    addPaginationCursorToResult (result: any) {
         const cursor = this.safeString (result, 'next_cursor');
         const data = this.safeValue (result, 'withdrawals');
         const dataLength = data.length;
@@ -3395,7 +3395,7 @@ export default class kraken extends Exchange {
         return this.parseDepositAddress (firstResult, currency);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "address":"0x77b5051f97efa9cc52c9ad5b023a53fc15c200d3",
@@ -3576,7 +3576,7 @@ export default class kraken extends Exchange {
         });
     }
 
-    parseAccountType (account) {
+    parseAccountType (account: any) {
         const accountByType: Dict = {
             'spot': 'Spot Wallet',
             'swap': 'Futures Wallet',
@@ -3595,7 +3595,7 @@ export default class kraken extends Exchange {
      * @param {dict} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transferOut (code: string, amount, params = {}) {
+    async transferOut (code: string, amount: any, params = {}) {
         return await this.transfer (code, amount, 'spot', 'swap', params);
     }
 
@@ -3672,7 +3672,7 @@ export default class kraken extends Exchange {
         };
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = '/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
@@ -3721,7 +3721,7 @@ export default class kraken extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (code === 520) {
             throw new ExchangeNotAvailable (this.id + ' ' + code.toString () + ' ' + reason);
         }

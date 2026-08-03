@@ -522,7 +522,7 @@ export default class coinbaseexchange extends Exchange {
         return this.parseCurrencies (response);
     }
 
-    override parseCurrency (rawCurrency): CurrencyInterface {
+    override parseCurrency (rawCurrency: any): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'id');
         const name = this.safeString (rawCurrency, 'name');
         const code = this.safeCurrencyCode (id);
@@ -737,7 +737,7 @@ export default class coinbaseexchange extends Exchange {
         return this.parseAccounts (response, params);
     }
 
-    override parseAccount (account) {
+    override parseAccount (account: any) {
         //
         //     {
         //         "id": "4aac9c60-cbda-4396-9da4-4aa71e95fba0",
@@ -757,7 +757,7 @@ export default class coinbaseexchange extends Exchange {
         };
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -1200,7 +1200,7 @@ export default class coinbaseexchange extends Exchange {
         return result;
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         1591514160,
@@ -1729,7 +1729,7 @@ export default class coinbaseexchange extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'transfer': 'transfer', // Funds moved between portfolios
             'match': 'trade',       // Funds moved as a result of a trade
@@ -2009,7 +2009,7 @@ export default class coinbaseexchange extends Exchange {
         return await this.fetchDepositsWithdrawals (code, since, limit, this.extend ({ 'type': 'withdraw' }, params));
     }
 
-    parseTransactionStatus (transaction) {
+    parseTransactionStatus (transaction: any) {
         const canceled = this.safeValue (transaction, 'canceled_at');
         if (canceled) {
             return 'canceled';
@@ -2147,7 +2147,7 @@ export default class coinbaseexchange extends Exchange {
         } as DepositAddress;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let request = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
@@ -2185,7 +2185,7 @@ export default class coinbaseexchange extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if ((code === 400) || (code === 404)) {
             if (body[0] === '{') {
                 const message = this.safeString (response, 'message');
@@ -2199,7 +2199,7 @@ export default class coinbaseexchange extends Exchange {
         return undefined;
     }
 
-    override async request (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
+    override async request (path: any, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
         const response = await this.fetch2 (path, api, method, params, headers, body, config);
         if (typeof response !== 'string') {
             if ('message' in response) {

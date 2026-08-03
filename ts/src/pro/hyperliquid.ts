@@ -242,7 +242,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['swap'] ? market['baseName'] : market['id'],
+                'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -274,14 +274,14 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'l2Book',
-                'coin': market['swap'] ? market['baseName'] : market['id'],
+                'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: any, message: any) {
         //
         //     {
         //         "channel": "l2Book",
@@ -496,7 +496,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleWsTickers (client: Client, message) {
+    handleWsTickers (client: Client, message: any) {
         // hip3 mids
         // {
         //     channel: 'allMids',
@@ -536,11 +536,11 @@ export default class hyperliquid extends hyperliquidRest {
         return true;
     }
 
-    parseWsTicker (rawTicker, market: Market = undefined): Ticker {
+    parseWsTicker (rawTicker: any, market: Market = undefined): Ticker {
         return this.parseTicker (rawTicker, market);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         //     {
         //         "channel": "userFills",
@@ -621,7 +621,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['swap'] ? market['baseName'] : market['id'],
+                'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
@@ -654,14 +654,14 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'trades',
-                'coin': market['swap'] ? market['baseName'] : market['id'],
+                'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
             },
         };
         const message = this.extend (request, params);
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     {
         //         "channel": "trades",
@@ -790,7 +790,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['swap'] ? market['baseName'] : market['id'],
+                'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
                 'interval': timeframe,
             },
         };
@@ -824,7 +824,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'unsubscribe',
             'subscription': {
                 'type': 'candle',
-                'coin': market['swap'] ? market['baseName'] : market['id'],
+                'coin': market['swap'] ? (market as Dict)['baseName'] : market['id'],
                 'interval': timeframe,
             },
         };
@@ -834,7 +834,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messagehash, message, messagehash);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         channel: 'candle',
@@ -917,7 +917,7 @@ export default class hyperliquid extends hyperliquidRest {
         const topic = (isSpot) ? 'spotState' : 'clearinghouseState';
         const messageHash = topic + '::balance';
         const url = this.urls['api']['ws']['public'];
-        const subscription = {
+        const subscription: Dict = {
             'type': topic,
             'user': userAddress,
         };
@@ -976,7 +976,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         // spot
         // {
@@ -1066,7 +1066,7 @@ export default class hyperliquid extends hyperliquidRest {
         client.resolve (this.balance[(account as string)], messageHash);
     }
 
-    parseWsBalance (balance, accountType: Str = undefined) {
+    parseWsBalance (balance: any, accountType: Str = undefined) {
         //
         // spot
         //     {
@@ -1151,7 +1151,7 @@ export default class hyperliquid extends hyperliquidRest {
             messageHash += '::' + symbols.join (',');
         }
         const url = this.urls['api']['ws']['public'];
-        const subscription = {
+        const subscription: Dict = {
             'type': topic,
             'user': userAddress,
         };
@@ -1181,7 +1181,7 @@ export default class hyperliquid extends hyperliquidRest {
         this.positions = new ArrayCacheBySymbolBySide ();
     }
 
-    handlePositions (client, message) {
+    handlePositions (client: any, message: any) {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
@@ -1324,7 +1324,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleOrder (client: Client, message) {
+    handleOrder (client: Client, message: any) {
         //
         //     {
         //         channel: 'orderUpdates',
@@ -1373,7 +1373,7 @@ export default class hyperliquid extends hyperliquidRest {
         client.resolve (stored, messageHash);
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //    {
         //      "channel": "post",
@@ -1541,7 +1541,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
-    handleSubscriptionResponse (client: Client, message) {
+    handleSubscriptionResponse (client: Client, message: any) {
         // {
         //     "channel":"subscriptionResponse",
         //     "data":{
@@ -1589,7 +1589,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         //
         // {
         //     "channel":"subscriptionResponse",
@@ -1643,7 +1643,7 @@ export default class hyperliquid extends hyperliquidRest {
         };
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: any) {
         //
         //   {
         //       "channel": "pong"

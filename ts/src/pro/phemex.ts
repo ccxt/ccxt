@@ -48,7 +48,7 @@ export default class phemex extends phemexRest {
         });
     }
 
-    override fromEn (en, scale) {
+    override fromEn (en: any, scale: any) {
         if (en === undefined) {
             return undefined;
         }
@@ -58,21 +58,21 @@ export default class phemex extends phemexRest {
         return precise.toString ();
     }
 
-    override fromEp (ep, market: Market = undefined) {
+    override fromEp (ep: any, market: Market = undefined) {
         if ((ep === undefined) || (market === undefined)) {
             return ep;
         }
         return this.fromEn (ep, this.safeInteger (market, 'priceScale'));
     }
 
-    override fromEv (ev, market: Market = undefined) {
+    override fromEv (ev: any, market: Market = undefined) {
         if ((ev === undefined) || (market === undefined)) {
             return ev;
         }
         return this.fromEn (ev, this.safeInteger (market, 'valueScale'));
     }
 
-    override fromEr (er, market: Market = undefined) {
+    override fromEr (er: any, market: Market = undefined) {
         if ((er === undefined) || (market === undefined)) {
             return er;
         }
@@ -87,7 +87,7 @@ export default class phemex extends phemexRest {
         return requestId;
     }
 
-    parseSwapTicker (ticker, market: Market = undefined) {
+    parseSwapTicker (ticker: any, market: Market = undefined) {
         //
         //     {
         //         "close": 442800,
@@ -149,7 +149,7 @@ export default class phemex extends phemexRest {
         });
     }
 
-    parsePerpetualTicker (ticker, market: Market = undefined) {
+    parsePerpetualTicker (ticker: any, market: Market = undefined) {
         //
         //    [
         //        "STXUSDT",
@@ -208,7 +208,7 @@ export default class phemex extends phemexRest {
         });
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //     {
         //         "spot_market24h": {
@@ -332,7 +332,7 @@ export default class phemex extends phemexRest {
         return await this.subscribePrivate (type, messageHash, params);
     }
 
-    handleBalance (type, client, message) {
+    handleBalance (type: any, client: Client, message: any) {
         // spot
         //    [
         //       {
@@ -409,7 +409,7 @@ export default class phemex extends phemexRest {
         client.resolve (this.balance, messageHash);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     {
         //         "sequence": 1795484727,
@@ -455,7 +455,7 @@ export default class phemex extends phemexRest {
         client.resolve (stored, messageHash);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         "kline": [
@@ -717,18 +717,18 @@ export default class phemex extends phemexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    customHandleDelta (bookside, delta, market: Market = undefined) {
+    customHandleDelta (bookside: any, delta: any, market: Market = undefined) {
         const bidAsk = this.customParseBidAsk (delta, 0, 1, market);
         bookside.storeArray (bidAsk);
     }
 
-    customHandleDeltas (bookside, deltas, market: Market = undefined) {
+    customHandleDeltas (bookside: any, deltas: any, market: Market = undefined) {
         for (let i = 0; i < deltas.length; i++) {
             this.customHandleDelta (bookside, deltas[i], market);
         }
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //     {
         //         "book": {
@@ -815,7 +815,7 @@ export default class phemex extends phemexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -843,7 +843,7 @@ export default class phemex extends phemexRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         // swap
         //    [
@@ -984,7 +984,7 @@ export default class phemex extends phemexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1012,7 +1012,7 @@ export default class phemex extends phemexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message) {
+    handleOrders (client: Client, message: any) {
         // spot update
         // {
         //        "closed":[
@@ -1232,7 +1232,7 @@ export default class phemex extends phemexRest {
         client.resolve (this.orders, messageHash);
     }
 
-    parseWSSwapOrder (order, market: Market = undefined) {
+    parseWSSwapOrder (order: any, market: Market = undefined) {
         //
         // swap
         //    {
@@ -1406,7 +1406,7 @@ export default class phemex extends phemexRest {
         }, market);
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         // private spot update
         // {
         //     "orders": { closed: [ ], fills: [ ], open: [] },
@@ -1539,7 +1539,7 @@ export default class phemex extends phemexRest {
         }
     }
 
-    handleAuthenticate (client: Client, message) {
+    handleAuthenticate (client: Client, message: any) {
         //
         // {
         //     "error": null,
@@ -1563,7 +1563,7 @@ export default class phemex extends phemexRest {
         }
     }
 
-    async subscribePrivate (type, messageHash, params = {}) {
+    async subscribePrivate (type: any, messageHash: any, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

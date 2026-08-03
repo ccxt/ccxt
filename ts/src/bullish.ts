@@ -1388,7 +1388,7 @@ export default class bullish extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 'createdAtTimestamp'),
             this.safeNumber (ohlcv, 'open'),
@@ -1746,7 +1746,7 @@ export default class bullish extends Exchange {
      * @param {string} params.traidingAccountId the trading account id (mandatory parameter)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         await Promise.all ([ this.loadMarkets (), this.handleToken () ]);
         const tradingAccountId = await this.loadAccount (params);
         const market = this.market (symbol);
@@ -1983,7 +1983,7 @@ export default class bullish extends Exchange {
         const timeInForce = this.safeString (order, 'timeInForce');
         const stopPrice = this.safeString (order, 'stopPrice');
         const cost = this.safeString (order, 'quoteAmount');
-        const fee = {};
+        const fee: Dict = {};
         const quoteFee = this.safeNumber (order, 'quoteFee');
         if (quoteFee !== undefined) {
             fee['cost'] = quoteFee;
@@ -2223,7 +2223,7 @@ export default class bullish extends Exchange {
         };
     }
 
-    parseTransactionType (type) {
+    parseTransactionType (type: any) {
         const types: Dict = {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
@@ -2421,7 +2421,7 @@ export default class bullish extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         const id = this.safeString (depositAddress, 'symbol');
         const network = this.safeString (depositAddress, 'network');
         const code = this.safeCurrencyCode (id, currency);
@@ -2479,7 +2479,7 @@ export default class bullish extends Exchange {
         }
     }
 
-    parseBalanceForSingleCurrency (response, code: Str): Balances {
+    parseBalanceForSingleCurrency (response: any, code: Str): Balances {
         const result: Dict = { 'info': response };
         const account = this.account ();
         account['free'] = this.safeString (response, 'availableQuantity');
@@ -2488,7 +2488,7 @@ export default class bullish extends Exchange {
         return this.safeBalance (result);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
         };
@@ -2716,7 +2716,7 @@ export default class bullish extends Exchange {
         return transfer;
     }
 
-    override parseTransfer (transfer, currency: Currency = undefined) {
+    override parseTransfer (transfer: any, currency: Currency = undefined) {
         //
         // fetchTransfers
         //     {
@@ -2757,7 +2757,7 @@ export default class bullish extends Exchange {
         };
     }
 
-    parseTransferStatus (status) {
+    parseTransferStatus (status: Str) {
         const statuses: Dict = {
             'CLOSED': 'ok',
             'OPEN': 'pending',
@@ -2817,7 +2817,7 @@ export default class bullish extends Exchange {
         return this.parseBorrowRateHistory (response, code, since, limit);
     }
 
-    override parseBorrowRate (info, currency: Currency = undefined) {
+    override parseBorrowRate (info: any, currency: Currency = undefined) {
         //
         //     {
         //         "assetId": "1",
@@ -2903,7 +2903,7 @@ export default class bullish extends Exchange {
         return this.parseOpenInterest (response, market);
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         //     {
         //         "createdAtDatetime": "2021-05-20T01:01:01.000Z",
@@ -2955,7 +2955,7 @@ export default class bullish extends Exchange {
         }, market);
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const request = this.omit (params, this.extractParams (path));
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.urls['api'][api] + endpoint;
@@ -3046,7 +3046,7 @@ export default class bullish extends Exchange {
         }
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

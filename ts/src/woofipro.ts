@@ -766,7 +766,7 @@ export default class woofipro extends Exchange {
         });
     }
 
-    parseTokenAndFeeTemp (item, feeTokenKey, feeAmountKey) {
+    parseTokenAndFeeTemp (item: any, feeTokenKey: any, feeAmountKey: any) {
         const feeCost = this.safeString (item, feeAmountKey);
         let fee: NullableDict = undefined;
         if (feeCost !== undefined) {
@@ -889,7 +889,7 @@ export default class woofipro extends Exchange {
         return this.parseTrades (rows, market, since, limit);
     }
 
-    override parseFundingRate (fundingRate, market: Market = undefined): FundingRate {
+    override parseFundingRate (fundingRate: any, market: Market = undefined): FundingRate {
         //
         //         {
         //             "symbol":"PERP_AAVE_USDT",
@@ -931,7 +931,7 @@ export default class woofipro extends Exchange {
         } as FundingRate;
     }
 
-    parseFundingInterval (interval) {
+    parseFundingInterval (interval: any) {
         const intervals: Dict = {
             '3600000': '1h',
             '14400000': '4h',
@@ -1100,7 +1100,7 @@ export default class woofipro extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    override parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         // {
         //         "symbol": "PERP_ETH_USDC",
@@ -1304,7 +1304,7 @@ export default class woofipro extends Exchange {
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return [
             this.safeInteger (ohlcv, 'start_timestamp'),
             this.safeNumber (ohlcv, 'open'),
@@ -2354,7 +2354,7 @@ export default class woofipro extends Exchange {
         return this.parseTrades (trades, market, since, limit, params);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
         };
@@ -2483,7 +2483,7 @@ export default class woofipro extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'BALANCE': 'transaction', // Funds moved in/out wallet
             'COLLATERAL': 'transfer', // Funds moved between portfolios
@@ -2640,11 +2640,11 @@ export default class woofipro extends Exchange {
         return this.safeNumber (data, 'withdraw_nonce');
     }
 
-    hashMessage (message) {
+    hashMessage (message: any) {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash, privateKey) {
+    signHash (hash: any, privateKey: any) {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         const r = signature['r'];
         const s = signature['s'];
@@ -2652,7 +2652,7 @@ export default class woofipro extends Exchange {
         return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
-    signMessage (message, privateKey) {
+    signMessage (message: any, privateKey: any) {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
@@ -2739,7 +2739,7 @@ export default class woofipro extends Exchange {
         return this.parseTransaction (data, currency);
     }
 
-    override parseLeverage (leverage, market: Market = undefined): Leverage {
+    override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
         const leverageValue = this.safeInteger (leverage, 'max_leverage');
         return {
             'info': leverage,
@@ -2999,7 +2999,7 @@ export default class woofipro extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path, section = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, section = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);
@@ -3066,7 +3066,7 @@ export default class woofipro extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (!response) {
             return undefined; // fallback to default error handler
         }

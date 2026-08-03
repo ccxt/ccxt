@@ -492,7 +492,7 @@ export default class cryptomus extends Exchange {
         return this.parseTickers (data, symbols);
     }
 
-    override parseTicker (ticker, market: Market = undefined): Ticker {
+    override parseTicker (ticker: any, market: Market = undefined): Ticker {
         //
         //     {
         //         "currency_pair": "XMR_USDT",
@@ -679,7 +679,7 @@ export default class cryptomus extends Exchange {
         return this.parseBalance (result);
     }
 
-    override parseBalance (balance): Balances {
+    override parseBalance (balance: any): Balances {
         //
         //     {
         //         "ticker": "AVAX",
@@ -1141,7 +1141,7 @@ export default class cryptomus extends Exchange {
         return result;
     }
 
-    parseFeeTiers (feeTiers, market: Market = undefined) {
+    parseFeeTiers (feeTiers: any, market: Market = undefined) {
         const takerFees: List = [];
         const makerFees: List = [];
         for (let i = 0; i < feeTiers.length; i++) {
@@ -1160,7 +1160,7 @@ export default class cryptomus extends Exchange {
         };
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const endpoint = this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + '/' + endpoint;
@@ -1193,7 +1193,7 @@ export default class cryptomus extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

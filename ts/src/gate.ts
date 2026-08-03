@@ -1341,7 +1341,7 @@ export default class gate extends Exchange {
         return this.arraysConcat (results);
     }
 
-    async fetchSpotMarkets (params = {}) {
+    async fetchSpotMarkets (params: any = {}) {
         const marginPromise = this.publicMarginGetCurrencyPairs (params);
         const spotMarketsPromise = this.publicSpotGetCurrencyPairs (params);
         const [ marginResponse, spotMarketsResponse ] = await Promise.all ([ marginPromise, spotMarketsPromise ]);
@@ -1459,7 +1459,7 @@ export default class gate extends Exchange {
         return result;
     }
 
-    async fetchSwapMarkets (params = {}) {
+    async fetchSwapMarkets (params: any = {}) {
         const result: any[] = [];
         let swapSettlementCurrencies = this.getSettlementCurrencies ('swap', 'fetchMarkets');
         if (this.options['sandboxMode']) {
@@ -1499,7 +1499,7 @@ export default class gate extends Exchange {
         return result;
     }
 
-    parseContractMarket (market, settleId) {
+    parseContractMarket (market: any, settleId: any) {
         //
         //  Perpetual swap
         //
@@ -1686,7 +1686,7 @@ export default class gate extends Exchange {
         };
     }
 
-    async fetchOptionMarkets (params = {}) {
+    async fetchOptionMarkets (params: any = {}) {
         const result: any[] = [];
         const underlyings = await this.fetchOptionUnderlyings ();
         for (let i = 0; i < underlyings.length; i++) {
@@ -1919,7 +1919,7 @@ export default class gate extends Exchange {
         return [ request, query ];
     }
 
-    getMarginMode (trigger, params) {
+    getMarginMode (trigger: any, params: any) {
         /**
          * @ignore
          * @method
@@ -1956,7 +1956,7 @@ export default class gate extends Exchange {
         return [ marginMode, params ];
     }
 
-    getSettlementCurrencies (type, method) {
+    getSettlementCurrencies (type: any, method: any) {
         const options = this.safeValue (this.options, type, {}); // [ 'BTC', 'USDT' ] unified codes
         const fetchMarketsContractOptions = this.safeValue (options, method, {});
         const defaultSettle = (type === 'swap') ? [ 'usdt' ] : [ 'btc' ];
@@ -2025,7 +2025,7 @@ export default class gate extends Exchange {
         // check leveraged tokens (e.g. BTC3S, ETH5L)
         const type = this.isLeveragedCurrency (currencyId) ? 'leveraged' : 'crypto';
         const chains = this.safeList (rawCurrency, 'chains', []);
-        const networks = {};
+        const networks: Dict = {};
         for (let j = 0; j < chains.length; j++) {
             const chain = chains[j];
             const networkId = this.safeString (chain, 'name');
@@ -2202,7 +2202,7 @@ export default class gate extends Exchange {
         return this.parseFundingRates (response, symbols);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //    {
         //        "name": "BTC_USDT",
@@ -2276,7 +2276,7 @@ export default class gate extends Exchange {
         } as FundingRate;
     }
 
-    parseFundingInterval (interval) {
+    parseFundingInterval (interval: any) {
         const intervals: Dict = {
             '3600000': '1h',
             '14400000': '4h',
@@ -2370,12 +2370,13 @@ export default class gate extends Exchange {
         }
         let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
-        const chainsIndexedById = await this.fetchDepositAddressesByNetwork (code, params);
+        const chainsIndexedByIdRaw = await this.fetchDepositAddressesByNetwork (code, params);
+        const chainsIndexedById: Dict = chainsIndexedByIdRaw as any;
         const selectedNetworkIdOrCode = this.selectNetworkCodeFromUnifiedNetworks (code, networkCode, chainsIndexedById);
         return chainsIndexedById[selectedNetworkIdOrCode as string];
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         chain: "BTC",
@@ -2462,7 +2463,7 @@ export default class gate extends Exchange {
         return this.parseTradingFees (response);
     }
 
-    parseTradingFees (response) {
+    parseTradingFees (response: any) {
         const result: Dict = {};
         const symbols = this.symbols;
         for (let i = 0; i < symbols.length; i++) {
@@ -2473,7 +2474,7 @@ export default class gate extends Exchange {
         return result;
     }
 
-    parseTradingFee (info, market: Market = undefined) {
+    parseTradingFee (info: any, market: Market = undefined) {
         //
         //    {
         //        "user_id": 1486602,
@@ -2604,7 +2605,7 @@ export default class gate extends Exchange {
         return this.parseDepositWithdrawFees (response, codes, 'currency');
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //    {
         //        "currency": "MTN",
@@ -2714,7 +2715,7 @@ export default class gate extends Exchange {
         return this.parseFundingHistories (response, symbol, since, limit);
     }
 
-    parseFundingHistories (response, symbol, since, limit): FundingHistory[] {
+    parseFundingHistories (response: any, symbol: any, since: Int, limit: Int): FundingHistory[] {
         const result: FundingHistory[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -2725,7 +2726,7 @@ export default class gate extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseFundingHistory (info, market: Market = undefined) {
+    parseFundingHistory (info: any, market: Market = undefined) {
         //
         //    {
         //        "time": 1646899200,
@@ -3086,7 +3087,7 @@ export default class gate extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseBalanceHelper (entry) {
+    parseBalanceHelper (entry: any) {
         const account = this.account ();
         account['used'] = this.safeString2 (entry, 'freeze', 'locked');
         account['free'] = this.safeString (entry, 'available');
@@ -3549,7 +3550,7 @@ export default class gate extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit) as FundingRateHistory[];
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         // Spot market candles
         //
@@ -4211,7 +4212,7 @@ export default class gate extends Exchange {
         return this.safeString (statuses, status as IndexType, status as string);
     }
 
-    parseTransactionType (type) {
+    parseTransactionType (type: any) {
         const types: Dict = {
             'd': 'deposit',
             'w': 'withdrawal',
@@ -5435,7 +5436,7 @@ export default class gate extends Exchange {
             return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params) as Order[];
         }
         params = this.omit (params, 'type');
-        let request = {};
+        let request: Dict = {};
         [ request, params ] = this.prepareRequest (market, type, params);
         if (since !== undefined) {
             request['from'] = this.parseToInt (since / 1000);
@@ -5451,7 +5452,7 @@ export default class gate extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    prepareOrdersByStatusRequest (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    prepareOrdersByStatusRequest (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -5491,7 +5492,7 @@ export default class gate extends Exchange {
         return [ request, finalParams ];
     }
 
-    async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6716,7 +6717,7 @@ export default class gate extends Exchange {
         return tiers as LeverageTier[];
     }
 
-    override parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         //
         //     [
         //         {
@@ -6764,7 +6765,7 @@ export default class gate extends Exchange {
      * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayIsolatedMargin (symbol: string, code: string, amount, params = {}) {
+    override async repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6796,7 +6797,7 @@ export default class gate extends Exchange {
      * @param {boolean} [params.unifiedAccount] set to true for repaying in the unified account
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    override async repayCrossMargin (code: string, amount, params = {}) {
+    override async repayCrossMargin (code: string, amount: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6933,7 +6934,7 @@ export default class gate extends Exchange {
         return this.parseMarginLoan (response, currency);
     }
 
-    parseMarginLoan (info, currency: Currency = undefined) {
+    parseMarginLoan (info: any, currency: Currency = undefined) {
         //
         // Cross
         //
@@ -7066,7 +7067,7 @@ export default class gate extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    override sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = [], method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const authentication = api[0]; // public, private
         const type = api[1]; // spot, margin, future, delivery
         let query = this.omit (params, this.extractParams (path));
@@ -7160,7 +7161,7 @@ export default class gate extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async modifyMarginHelper (symbol: string, amount, params = {}) {
+    async modifyMarginHelper (symbol: string, amount: any, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7315,7 +7316,7 @@ export default class gate extends Exchange {
         return this.parseOpenInterestsHistory (response, market, since, limit);
     }
 
-    override parseOpenInterest (interest, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         //
         //    {
         //        "long_liq_size": "0",
@@ -7486,7 +7487,7 @@ export default class gate extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseSettlement (settlement, market) {
+    parseSettlement (settlement: any, market: any) {
         //
         // fetchSettlementHistory
         //
@@ -7537,7 +7538,7 @@ export default class gate extends Exchange {
         };
     }
 
-    parseSettlements (settlements, market) {
+    parseSettlements (settlements: any, market: any) {
         //
         // fetchSettlementHistory
         //
@@ -7776,7 +7777,7 @@ export default class gate extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const ledgerType: Dict = {
             'deposit': 'deposit',
             'withdraw': 'withdrawal',
@@ -8007,7 +8008,7 @@ export default class gate extends Exchange {
         return this.parseLiquidations (response, market, since, limit);
     }
 
-    override parseLiquidation (liquidation, market: Market = undefined) {
+    override parseLiquidation (liquidation: any, market: Market = undefined) {
         //
         // fetchLiquidations
         //
@@ -8657,7 +8658,7 @@ export default class gate extends Exchange {
         return this.parsePositions (responseList, symbols, params);
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

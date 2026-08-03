@@ -363,7 +363,7 @@ export default class hyperliquid extends Exchange {
         });
     }
 
-    override setSandboxMode (enabled) {
+    override setSandboxMode (enabled: boolean) {
         super.setSandboxMode (enabled);
         this.options['sandboxMode'] = enabled;
     }
@@ -707,7 +707,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchSwapMarkets (params = {}): Promise<Market[]> {
+    async fetchSwapMarkets (params: any = {}): Promise<Market[]> {
         const request: Dict = {
             'type': 'metaAndAssetCtxs',
         };
@@ -814,7 +814,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    async fetchSpotMarkets (params = {}): Promise<Market[]> {
+    async fetchSpotMarkets (params: any = {}): Promise<Market[]> {
         const request: Dict = {
             'type': 'spotMetaAndAssetCtxs',
         };
@@ -1190,7 +1190,7 @@ export default class hyperliquid extends Exchange {
             return this.safeBalance (spotBalances);
         }
         const data = this.safeDict (response, 'marginSummary', {});
-        const usdcBalance = {
+        const usdcBalance: Dict = {
             'total': this.safeNumber (data, 'accountValue'),
         };
         if ((marginMode !== undefined) && (marginMode === 'isolated')) {
@@ -1225,7 +1225,7 @@ export default class hyperliquid extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'type': 'l2Book',
-            'coin': market['swap'] ? market['baseName'] : market['id'],
+            'coin': market['swap'] ? this.safeString (market, 'baseName') : market['id'],
         };
         const response = await this.publicPostInfo (this.extend (request, params));
         //
@@ -1393,7 +1393,7 @@ export default class hyperliquid extends Exchange {
         return this.parseFundingRates (result, symbols);
     }
 
-    override parseFundingRate (info, market: Market = undefined): FundingRate {
+    override parseFundingRate (info: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "maxLeverage": "50",
@@ -1515,7 +1515,7 @@ export default class hyperliquid extends Exchange {
         const request: Dict = {
             'type': 'candleSnapshot',
             'req': {
-                'coin': market['swap'] ? market['baseName'] : market['id'],
+                'coin': market['swap'] ? this.safeString (market, 'baseName') : market['id'],
                 'interval': this.safeString (this.timeframes, timeframe, timeframe),
                 'startTime': since,
                 'endTime': until,
@@ -1541,7 +1541,7 @@ export default class hyperliquid extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, originalSince, limit, useTail);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "T": 1704287699999,
@@ -1630,12 +1630,12 @@ export default class hyperliquid extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    override amountToPrecision (symbol: Str, amount) {
+    override amountToPrecision (symbol: Str, amount: any) {
         const market = this.market (symbol);
         return this.decimalToPrecision (amount, ROUND, market['precision']['amount'], this.precisionMode, this.paddingMode);
     }
 
-    override priceToPrecision (symbol: Str, price): Str {
+    override priceToPrecision (symbol: Str, price: any): Str {
         const market = this.market (symbol);
         const priceStr = this.numberToString (price);
         const integerPart = (priceStr as string).split ('.')[0];
@@ -1646,11 +1646,11 @@ export default class hyperliquid extends Exchange {
         return this.decimalToPrecision (result, ROUND, subtractedValue, DECIMAL_PLACES, this.paddingMode);
     }
 
-    hashMessage (message) {
+    hashMessage (message: any) {
         return '0x' + this.hash (message, keccak, 'hex');
     }
 
-    signHash (hash, privateKey) {
+    signHash (hash: any, privateKey: any) {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         return {
             'r': '0x' + signature['r'],
@@ -1659,11 +1659,11 @@ export default class hyperliquid extends Exchange {
         };
     }
 
-    signMessage (message, privateKey) {
+    signMessage (message: any, privateKey: any) {
         return this.signHash (this.hashMessage (message), privateKey.slice (-64));
     }
 
-    constructPhantomAgent (hash, isTestnet = true) {
+    constructPhantomAgent (hash: any, isTestnet = true) {
         const source = (isTestnet) ? 'b' : 'a';
         return {
             'source': source,
@@ -1671,7 +1671,7 @@ export default class hyperliquid extends Exchange {
         };
     }
 
-    actionHash (action, vaultAddress, nonce, expiresAfter: Int = undefined) {
+    actionHash (action: any, vaultAddress: any, nonce: any, expiresAfter: Int = undefined) {
         const dataBinary = this.packb (action);
         const dataHex = this.binaryToBase16 (dataBinary);
         let data = dataHex;
@@ -1689,7 +1689,7 @@ export default class hyperliquid extends Exchange {
         return this.hash (this.base16ToBinary (data), keccak, 'binary');
     }
 
-    signL1Action (action, nonce, vaultAdress: Str = undefined, expiresAfter: Int = undefined): object {
+    signL1Action (action: any, nonce: any, vaultAdress: Str = undefined, expiresAfter: Int = undefined): object {
         const hash = this.actionHash (action, vaultAdress, nonce, expiresAfter);
         const isTestnet = this.safeBool (this.options, 'sandboxMode', false);
         const phantomAgent = this.constructPhantomAgent (hash, isTestnet);
@@ -1734,7 +1734,7 @@ export default class hyperliquid extends Exchange {
         return signature;
     }
 
-    signUserSignedAction (messageTypes, message) {
+    signUserSignedAction (messageTypes: any, message: any) {
         const zeroAddress = this.safeString (this.options, 'zeroAddress');
         const chainId = 421614; // check this out
         const domain: Dict = {
@@ -1748,7 +1748,7 @@ export default class hyperliquid extends Exchange {
         return signature;
     }
 
-    buildUsdSendSig (message) {
+    buildUsdSendSig (message: any) {
         const messageTypes: Dict = {
             'HyperliquidTransaction:UsdSend': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
@@ -1760,7 +1760,7 @@ export default class hyperliquid extends Exchange {
         return this.signUserSignedAction (messageTypes, message);
     }
 
-    buildUsdClassSendSig (message) {
+    buildUsdClassSendSig (message: any) {
         const messageTypes: Dict = {
             'HyperliquidTransaction:UsdClassTransfer': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
@@ -1772,7 +1772,7 @@ export default class hyperliquid extends Exchange {
         return this.signUserSignedAction (messageTypes, message);
     }
 
-    buildWithdrawSig (message) {
+    buildWithdrawSig (message: any) {
         const messageTypes: Dict = {
             'HyperliquidTransaction:Withdraw': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
@@ -1784,7 +1784,7 @@ export default class hyperliquid extends Exchange {
         return this.signUserSignedAction (messageTypes, message);
     }
 
-    buildUserDexAbstractionSig (message) {
+    buildUserDexAbstractionSig (message: any) {
         const messageTypes: Dict = {
             'HyperliquidTransaction:UserDexAbstraction': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
@@ -1796,7 +1796,7 @@ export default class hyperliquid extends Exchange {
         return this.signUserSignedAction (messageTypes, message);
     }
 
-    buildUserAbstractionSig (message) {
+    buildUserAbstractionSig (message: any) {
         const messageTypes: Dict = {
             'HyperliquidTransaction:UserSetAbstraction': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
@@ -1808,7 +1808,7 @@ export default class hyperliquid extends Exchange {
         return this.signUserSignedAction (messageTypes, message);
     }
 
-    buildApproveBuilderFeeSig (message) {
+    buildApproveBuilderFeeSig (message: any) {
         const messageTypes: Dict = {
             'HyperliquidTransaction:ApproveBuilderFee': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
@@ -2311,7 +2311,7 @@ export default class hyperliquid extends Exchange {
         return orderObj;
     }
 
-    createOrdersRequest (orders, params = {}): Dict {
+    createOrdersRequest (orders: any, params = {}): Dict {
         /**
          * @method
          * @name hyperliquid#createOrdersRequest
@@ -2764,7 +2764,7 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    editOrdersRequest (orders, params = {}) {
+    editOrdersRequest (orders: any, params = {}) {
         this.checkRequiredCredentials ();
         let hasClientOrderId = false;
         for (let i = 0; i < orders.length; i++) {
@@ -3041,7 +3041,7 @@ export default class hyperliquid extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'type': 'fundingHistory',
-            'coin': market['baseName'],
+            'coin': this.safeString (market, 'baseName'),
         };
         if (since !== undefined) {
             request['startTime'] = since;
@@ -3081,7 +3081,7 @@ export default class hyperliquid extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
-    getDexFromHip3Symbol (market) {
+    getDexFromHip3Symbol (market: any) {
         const baseName = this.safeString (market, 'baseName', '');
         const part = baseName.split (':');
         const partsLength = part.length;
@@ -3144,7 +3144,7 @@ export default class hyperliquid extends Exchange {
         const orderWithStatus: List = [];
         for (let i = 0; i < response.length; i++) {
             const order = response[i];
-            const extendOrder = {};
+            const extendOrder: Dict = {};
             if (this.safeString (order, 'status') === undefined) {
                 extendOrder['ccxtStatus'] = 'open';
             }
@@ -3541,7 +3541,7 @@ export default class hyperliquid extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrderType (status) {
+    parseOrderType (status: any) {
         const statuses: Dict = {
             'stop limit': 'limit',
             'stop market': 'market',
@@ -4023,7 +4023,7 @@ export default class hyperliquid extends Exchange {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: any, type: any, params = {}): Promise<MarginModification> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4535,7 +4535,7 @@ export default class hyperliquid extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const ledgerType: Dict = {
             'internalTransfer': 'transfer',
             'accountClassTransfer': 'transfer',
@@ -4712,7 +4712,7 @@ export default class hyperliquid extends Exchange {
         return ois[symbol];
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         //  {
         //      szDecimals: '2',
@@ -4800,7 +4800,7 @@ export default class hyperliquid extends Exchange {
         return this.parseIncomes (response, market, since, limit);
     }
 
-    override parseIncome (income, market: Market = undefined) {
+    override parseIncome (income: any, market: Market = undefined) {
         //
         // {
         //     "time": 1734026400057,
@@ -4894,7 +4894,7 @@ export default class hyperliquid extends Exchange {
     }
 
     extractTypeFromDelta (data = []) {
-        const records = [];
+        const records: any[] = [];
         for (let i = 0; i < data.length; i++) {
             const record = data[i];
             record['type'] = record['delta']['type'];
@@ -4948,7 +4948,7 @@ export default class hyperliquid extends Exchange {
         return this.safeCurrencyCode (coin) + '/USDC:USDC';
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (!response) {
             return undefined; // fallback to default error handler
         }
@@ -5001,7 +5001,7 @@ export default class hyperliquid extends Exchange {
         return undefined;
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         if (method === 'POST') {
             headers = {
@@ -5012,7 +5012,7 @@ export default class hyperliquid extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override calculateRateLimiterCost (api, method, path, params, config = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
         if (('byType' in config) && ('type' in params)) {
             const type = params['type'];
             const byType = config['byType'] as Dict;
@@ -5029,7 +5029,7 @@ export default class hyperliquid extends Exchange {
         [ vaultAddress, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'vaultAddress', 'subAccountAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         symbol = market['symbol'];
-        const order = {
+        const order: Dict = {
             'symbol': symbol,
             'type': type,
             'side': side,
@@ -5037,7 +5037,7 @@ export default class hyperliquid extends Exchange {
             'price': price,
             'params': params,
         };
-        const globalParams = {};
+        const globalParams: Dict = {};
         if (vaultAddress !== undefined) {
             globalParams['vaultAddress'] = vaultAddress;
         }

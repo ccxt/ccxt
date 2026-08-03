@@ -682,7 +682,7 @@ export default class deribit extends Exchange {
         });
     }
 
-    codeFromOptions (methodName, params = {}) {
+    codeFromOptions (methodName: any, params = {}) {
         const defaultCode = this.safeValue (this.options, 'code', 'BTC');
         const options = this.safeValue (this.options, methodName, {});
         const code = this.safeValue (options, 'code', defaultCode);
@@ -774,7 +774,7 @@ export default class deribit extends Exchange {
         return this.parseAccounts (result);
     }
 
-    override parseAccount (account) {
+    override parseAccount (account: any) {
         //
         //      {
         //          "username": "someusername_1",
@@ -1046,7 +1046,7 @@ export default class deribit extends Exchange {
         return result;
     }
 
-    override parseBalance (balance): Balances {
+    override parseBalance (balance: any): Balances {
         const result: Dict = {
             'info': balance,
         };
@@ -1898,7 +1898,7 @@ export default class deribit extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    parseOrderType (orderType) {
+    parseOrderType (orderType: any) {
         const orderTypes: Dict = {
             'stop_limit': 'limit',
             'take_limit': 'limit',
@@ -2948,7 +2948,7 @@ export default class deribit extends Exchange {
         return this.parseVolatilityHistory (response);
     }
 
-    parseVolatilityHistory (volatility) {
+    parseVolatilityHistory (volatility: any) {
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -3173,7 +3173,7 @@ export default class deribit extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //    {
         //      "withdrawal_priorities": [],
@@ -3355,7 +3355,7 @@ export default class deribit extends Exchange {
         return this.filterBySymbolSinceLimit (rates, symbol, since, limit) as FundingRateHistory[];
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //   {
         //       "jsonrpc":"2.0",
@@ -3466,7 +3466,7 @@ export default class deribit extends Exchange {
         return this.parseLiquidations (settlementsWithCursor, market, since, limit);
     }
 
-    addPaginationCursorToResult (cursor, data) {
+    addPaginationCursorToResult (cursor: any, data: any) {
         if (cursor !== undefined) {
             const dataLength = data.length;
             if (dataLength > 0) {
@@ -3543,7 +3543,7 @@ export default class deribit extends Exchange {
         return this.parseLiquidations (settlements, market, since, limit);
     }
 
-    override parseLiquidation (liquidation, market: Market = undefined) {
+    override parseLiquidation (liquidation: any, market: Market = undefined) {
         //
         //     {
         //         "type": "bankruptcy",
@@ -3923,7 +3923,7 @@ export default class deribit extends Exchange {
         return this.parseOpenInterest (data, market);
     }
 
-    override parseOpenInterest (interest, market: Market = undefined) {
+    override parseOpenInterest (interest: any, market: Market = undefined) {
         //
         //     {
         //         "high": 93099.5,
@@ -3972,7 +3972,7 @@ export default class deribit extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let request = '/' + 'api/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
@@ -3998,7 +3998,7 @@ export default class deribit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (!response) {
             return undefined; // fallback to default error handler
         }

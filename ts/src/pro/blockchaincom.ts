@@ -73,7 +73,7 @@ export default class blockchaincom extends blockchaincomRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //  subscribed
         //     {
@@ -160,7 +160,7 @@ export default class blockchaincom extends blockchaincomRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //  subscribed
         //     {
@@ -232,7 +232,7 @@ export default class blockchaincom extends blockchaincomRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //  subscribed
         //     {
@@ -279,7 +279,7 @@ export default class blockchaincom extends blockchaincomRest {
         client.resolve (ticker, messageHash);
     }
 
-    parseWsUpdatedTicker (ticker, lastTicker = undefined, market: Market = undefined) {
+    parseWsUpdatedTicker (ticker: any, lastTicker = undefined, market: Market = undefined) {
         //
         //     {
         //         "seqnum": 2,
@@ -345,7 +345,7 @@ export default class blockchaincom extends blockchaincomRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //  subscribed
         //     {
@@ -387,7 +387,7 @@ export default class blockchaincom extends blockchaincomRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    override parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         //     {
         //         "seqnum": 1,
@@ -454,7 +454,7 @@ export default class blockchaincom extends blockchaincomRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message) {
+    handleOrders (client: Client, message: any) {
         //
         //     {
         //         "seqnum": 1,
@@ -555,7 +555,7 @@ export default class blockchaincom extends blockchaincomRest {
         client.resolve (this.orders, messageHash);
     }
 
-    override parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         //     {
         //         "seqnum": 3,
@@ -625,7 +625,7 @@ export default class blockchaincom extends blockchaincomRest {
         }, market);
     }
 
-    parseWsOrderStatus (status) {
+    parseWsOrderStatus (status: any) {
         const statuses: Dict = {
             'pending': 'open',
             'open': 'open',
@@ -668,7 +668,7 @@ export default class blockchaincom extends blockchaincomRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //  subscribe
         //     {
@@ -733,18 +733,18 @@ export default class blockchaincom extends blockchaincomRest {
         client.resolve (orderbook, messageHash);
     }
 
-    override handleDelta (bookside, delta) {
+    override handleDelta (bookside: any, delta: any) {
         const bookArray = this.parseOrderBookBidAsk (delta, 'px', 'qty', 'num');
         bookside.storeArray (bookArray);
     }
 
-    override handleDeltas (bookside, deltas) {
+    override handleDeltas (bookside: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (bookside, deltas[i]);
         }
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         const channel = this.safeString (message, 'channel');
         const handlers: Dict = {
             'ticker': this.handleTicker,
@@ -764,7 +764,7 @@ export default class blockchaincom extends blockchaincomRest {
         throw new NotSupported (this.id + ' received an unsupported message: ' + this.json (message));
     }
 
-    handleAuthenticationMessage (client: Client, message) {
+    handleAuthenticationMessage (client: Client, message: any) {
         //
         //     {
         //         "seqnum": 0,

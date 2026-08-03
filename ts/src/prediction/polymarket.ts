@@ -895,7 +895,7 @@ export default class polymarket extends Exchange {
                     if (mkt === undefined) {
                         throw new ExchangeError (this.id + ' fetchOutcome() could not resolve mkt');
                     }
-                    this.markets[mkt['market']] = mkt;
+                    this.markets[(mkt as Dict)['market']] = mkt;
                 }
                 this.populateOutcomes ();
                 const byId = this.safeValue (this.outcomes_by_id, outcomeSymbol);
@@ -955,7 +955,7 @@ export default class polymarket extends Exchange {
                     if (mkt === undefined) {
                         throw new ExchangeError (this.id + ' fetchOutcomes() could not resolve mkt');
                     }
-                    this.markets[mkt['market']] = mkt;
+                    this.markets[(mkt as Dict)['market']] = mkt;
                 }
                 startIndex = this.sum (startIndex, chunkSize);
             }
@@ -1314,7 +1314,7 @@ export default class polymarket extends Exchange {
         // Client-side bucket aggregation: snap each tick to its candle boundary and
         // build open/high/low/close/volume. Assumes history is sorted ascending by time.
         const resolutionMs = fidelityMin * 60 * 1000;
-        const buckets = {};
+        const buckets: Dict = {};
         for (let i = 0; i < history.length; i++) {
             const item = history[i];
             const t = this.safeInteger (item, 't');
@@ -1358,7 +1358,7 @@ export default class polymarket extends Exchange {
         return candles;
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         // Unused: fetchOHLCV performs client-side bucket aggregation directly.
         //
         //     {
@@ -1434,12 +1434,12 @@ export default class polymarket extends Exchange {
         return this.parsePredictionOpenInterest (first, outcomeObj as any);
     }
 
-    override parsePredictionOpenInterest (interest, market: Market = undefined): PredictionOpenInterest {
+    override parsePredictionOpenInterest (interest: Dict, market: Market = undefined): PredictionOpenInterest {
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
         const timestamp = this.milliseconds ();
-        const openInterest = this.safeOpenInterest ({
+        const openInterest: Dict = this.safeOpenInterest ({
             'symbol': this.safeOutcomeSymbol (undefined, market),
             'openInterestAmount': undefined,
             'openInterestValue': this.safeNumber (interest, 'value'),
@@ -1670,7 +1670,7 @@ export default class polymarket extends Exchange {
      * @param {object} response the raw balance-allowance response
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = { 'info': response };
         // 'balance' is the raw USDC collateral in 6-decimal units (e.g. "8992211" = 8.992211 USDC)
         const raw = this.safeString (response, 'balance');
@@ -2479,7 +2479,7 @@ export default class polymarket extends Exchange {
                 if (m === undefined) {
                     throw new ExchangeError (this.id + ' fetchEvents() missing m');
                 }
-                this.markets[m['market']] = m;
+                this.markets[(m as Dict)['market']] = m;
             }
             const parsedEvent = this.parseEvent (eventForParsing);
             result.push (parsedEvent);
@@ -3031,7 +3031,7 @@ export default class polymarket extends Exchange {
     handleOrderBookDelta (client: any, event: any) {
         const timestamp = this.parsePolyTimestamp (this.safeString (event, 'timestamp'));
         const changes = this.safeList (event, 'price_changes', []) as any[];
-        const updated = {};
+        const updated: Dict = {};
         for (let i = 0; i < changes.length; i++) {
             const change = changes[i];
             const tokenId = this.safeString (change, 'asset_id');

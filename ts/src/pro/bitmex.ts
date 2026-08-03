@@ -121,7 +121,7 @@ export default class bitmex extends bitmexRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //     {
         //         "table": "instrument",
@@ -424,7 +424,7 @@ export default class bitmex extends bitmexRest {
         return this.filterBySymbolsSinceLimit (this.liquidations, symbols, since, limit, true);
     }
 
-    handleLiquidation (client: Client, message) {
+    handleLiquidation (client: Client, message: any) {
         //
         //    {
         //        "table":"liquidation",
@@ -497,7 +497,7 @@ export default class bitmex extends bitmexRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //     {
         //         "table": "margin",
@@ -603,7 +603,7 @@ export default class bitmex extends bitmexRest {
         client.resolve (this.balance, messageHash);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         // initial snapshot
         //
@@ -726,7 +726,7 @@ export default class bitmex extends bitmexRest {
         return await future;
     }
 
-    handleAuthenticationMessage (client: Client, message) {
+    handleAuthenticationMessage (client: Client, message: any) {
         const authenticated = this.safeBool (message, 'success', false);
         const messageHash = 'authenticated';
         if (authenticated) {
@@ -777,7 +777,7 @@ export default class bitmex extends bitmexRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    handlePositions (client, message) {
+    handlePositions (client: any, message: any) {
         //
         // partial
         //    {
@@ -1009,7 +1009,7 @@ export default class bitmex extends bitmexRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message) {
+    handleOrders (client: Client, message: any) {
         //
         //     {
         //         "table": "order",
@@ -1229,7 +1229,7 @@ export default class bitmex extends bitmexRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
-    handleMyTrades (client: Client, message) {
+    handleMyTrades (client: Client, message: any) {
         //
         //     {
         //         "table":"execution",
@@ -1447,7 +1447,7 @@ export default class bitmex extends bitmexRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         //     {
         //         "table": "tradeBin1m",
@@ -1559,7 +1559,7 @@ export default class bitmex extends bitmexRest {
         return await this.watch (url, event);
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         // first snapshot
         //
@@ -1639,7 +1639,7 @@ export default class bitmex extends bitmexRest {
                 const id = this.safeString (data[i], 'id');
                 let side = this.safeString (data[i], 'side');
                 side = (side === 'Buy') ? 'bids' : 'asks';
-                const bookside = orderbook[side];
+                const bookside = (orderbook as Dict)[side];
                 bookside.storeArray ([ price, size, id ]);
                 const datetime = this.safeString (data[i], 'timestamp');
                 orderbook['timestamp'] = this.parse8601 (datetime);
@@ -1666,7 +1666,7 @@ export default class bitmex extends bitmexRest {
                 const id = this.safeString (data[i], 'id');
                 let side = this.safeString (data[i], 'side');
                 side = (side === 'Buy') ? 'bids' : 'asks';
-                const bookside = orderbook[side];
+                const bookside = (orderbook as Dict)[side];
                 bookside.storeArray ([ price, size, id ]);
                 const datetime = this.safeString (data[i], 'timestamp');
                 orderbook['timestamp'] = this.parse8601 (datetime);
@@ -1684,7 +1684,7 @@ export default class bitmex extends bitmexRest {
         }
     }
 
-    handleSystemStatus (client: Client, message) {
+    handleSystemStatus (client: Client, message: any) {
         //
         // todo answer the question whether handleSystemStatus should be renamed
         // and unified as handleStatus for any usage pattern that
@@ -1701,7 +1701,7 @@ export default class bitmex extends bitmexRest {
         return message;
     }
 
-    handleSubscriptionStatus (client: Client, message) {
+    handleSubscriptionStatus (client: Client, message: any) {
         //
         //     {
         //         "success": true,
@@ -1712,7 +1712,7 @@ export default class bitmex extends bitmexRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         // generic error format
         //
@@ -1751,7 +1751,7 @@ export default class bitmex extends bitmexRest {
         return true;
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         //
         //     {
         //         "info": "Welcome to the BitMEX Realtime API.",

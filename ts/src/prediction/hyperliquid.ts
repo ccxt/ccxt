@@ -217,7 +217,7 @@ export default class hyperliquid extends Exchange {
             return {};
         }
         const parts = description.split ('|');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < parts.length; i++) {
             const part = parts[i];
             const colonIndex = part.indexOf (':');
@@ -405,7 +405,7 @@ export default class hyperliquid extends Exchange {
         const response = await this.publicPostInfo (this.extend ({ 'type': 'outcomeMeta' }, params));
         const outcomesList = this.safeList (response, 'outcomes', []);
         const questionsList = this.safeList (response, 'questions', []);
-        const outcomesToQuestions = {};
+        const outcomesToQuestions: Dict = {};
         for (let qi = 0; qi < questionsList.length; qi++) {
             const question = this.safeDict (questionsList, qi, {});
             const fallbackOutcome = this.safeInteger (question, 'fallbackOutcome');
@@ -664,7 +664,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     override async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
-        const requestedOutcomeSymbols = {};
+        const requestedOutcomeSymbols: Dict = {};
         if (outcomes !== undefined) {
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
             // then identities resolve synchronously
@@ -896,7 +896,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [market] the market the candle belongs to
      * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
      */
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "T": 1704287699999,   // close time
@@ -947,7 +947,7 @@ export default class hyperliquid extends Exchange {
         //         ]
         //     }
         //
-        const result = {
+        const result: Dict = {
             'info': response,
         };
         const balances = this.safeList (response, 'balances', []);
@@ -977,7 +977,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     override async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
-        const requestedOutcomeSymbols = {};
+        const requestedOutcomeSymbols: Dict = {};
         if (outcomes !== undefined) {
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
             // then identities resolve synchronously
@@ -1256,7 +1256,7 @@ export default class hyperliquid extends Exchange {
         const orderType = {
             'limit': { 'tif': tif },
         };
-        const orderObj = {
+        const orderObj: Dict = {
             'a': assetId,
             'b': isBuy,
             'p': px,
@@ -1270,7 +1270,7 @@ export default class hyperliquid extends Exchange {
         let vaultAddress: Str = undefined;
         [ vaultAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
-        const orderAction = {
+        const orderAction: Dict = {
             'type': 'order',
             'orders': [ orderObj ],
             'grouping': 'na',
@@ -1286,7 +1286,7 @@ export default class hyperliquid extends Exchange {
             orderAction['builder'] = { 'b': wallet, 'f': feeInt };
         }
         const signature = this.signL1Action (orderAction, nonce, vaultAddress);
-        const request = {
+        const request: Dict = {
             'action': orderAction,
             'nonce': nonce,
             'signature': signature,
@@ -1398,7 +1398,7 @@ export default class hyperliquid extends Exchange {
         [ vaultAddress, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
-        const request = {
+        const request: Dict = {
             'action': cancelAction,
             'nonce': nonce,
             'signature': signature,
@@ -1501,7 +1501,7 @@ export default class hyperliquid extends Exchange {
         const request = { 'type': 'historicalOrders', 'user': userAddress };
         const response = await this.publicPostInfo (this.extend (request, params));
         // Deduplicate by oid keeping most recent statusTimestamp
-        const deduped = {};
+        const deduped: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const raw = response[i];
             let entry = this.safeDict (raw, 'order');
@@ -1548,7 +1548,7 @@ export default class hyperliquid extends Exchange {
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOrder', params);
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        const request = { 'type': 'orderStatus', 'user': userAddress };
+        const request: Dict = { 'type': 'orderStatus', 'user': userAddress };
         if (clientOrderId !== undefined) {
             params = this.omit (params, 'clientOrderId');
             request['oid'] = clientOrderId;
@@ -1845,7 +1845,7 @@ export default class hyperliquid extends Exchange {
         const marketsDict = await this.loadMarkets ();
         const marketValues = this.toArray (marketsDict);
         // Group markets by parentSymbol
-        const groupMap = {};
+        const groupMap: Dict = {};
         if (queries === undefined) {
             throw new ExchangeError (this.id + ' fetchEvents() missing queries');
         }
@@ -2244,7 +2244,7 @@ export default class hyperliquid extends Exchange {
         return undefined;
     }
 
-    override calculateRateLimiterCost (api, method, path, params, config = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
         if (('byType' in config) && ('type' in params)) {
             const type = params['type'];
             const byType = config['byType'] as Dict;

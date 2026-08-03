@@ -717,7 +717,7 @@ export default class coinbase extends Exchange {
         return result;
     }
 
-    override parseAccount (account) {
+    override parseAccount (account: any) {
         //
         // fetchAccountsV2
         //
@@ -911,7 +911,7 @@ export default class coinbase extends Exchange {
         return this.parseTrades (buys['data'], undefined, since, limit);
     }
 
-    async fetchTransactionsWithMethod (method, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchTransactionsWithMethod (method: any, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         let request: NullableDict = undefined;
         [ request, params ] = await this.prepareAccountRequestWithCurrencyCode (code, limit, params);
         if (this.markets === undefined) {
@@ -1593,7 +1593,7 @@ export default class coinbase extends Exchange {
         return newMarkets;
     }
 
-    parseSpotMarket (market, feeTier): Market {
+    parseSpotMarket (market: any, feeTier: any): Market {
         //
         //         {
         //             "product_id": "TONE-USD",
@@ -1690,7 +1690,7 @@ export default class coinbase extends Exchange {
         });
     }
 
-    parseContractMarket (market, feeTier): Market {
+    parseContractMarket (market: any, feeTier: any): Market {
         // expiring
         //
         //        {
@@ -2409,7 +2409,7 @@ export default class coinbase extends Exchange {
         }, market);
     }
 
-    parseCustomBalance (response, params = {}) {
+    parseCustomBalance (response: any, params = {}) {
         const balances = this.safeList2 (response, 'data', 'accounts', []);
         const accounts = this.safeList (params, 'type', this.options['accounts']);
         const v3Accounts = this.safeList (params, 'type', this.options['v3Accounts']);
@@ -2479,7 +2479,7 @@ export default class coinbase extends Exchange {
      * @param {int} [params.limit] default 250, maximum number of accounts to return
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2621,14 +2621,14 @@ export default class coinbase extends Exchange {
         return ledger;
     }
 
-    parseLedgerEntryStatus (status) {
+    parseLedgerEntryStatus (status: any) {
         const types: Dict = {
             'completed': 'ok',
         };
         return this.safeString (types, status, status);
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'buy': 'trade',
             'sell': 'trade',
@@ -2953,7 +2953,7 @@ export default class coinbase extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    async findAccountId (code, params = {}) {
+    async findAccountId (code: any, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3012,7 +3012,7 @@ export default class coinbase extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}) {
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3053,7 +3053,7 @@ export default class coinbase extends Exchange {
      * @param {float} [params.reduceOnly] set to true for closing a position or use closePosition
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3714,7 +3714,7 @@ export default class coinbase extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStatus (status: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3934,7 +3934,7 @@ export default class coinbase extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         {
@@ -4374,7 +4374,7 @@ export default class coinbase extends Exchange {
         return this.indexBy (addressStructures, 'network') as DepositAddress[];
     }
 
-    override parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //    {
         //        id: '64ceb5f1-5fa2-5310-a4ff-9fd46271003d',
@@ -4675,7 +4675,7 @@ export default class coinbase extends Exchange {
         return this.parseDepositMethodId (result);
     }
 
-    parseDepositMethodIds (ids, params = {}) {
+    parseDepositMethodIds (ids: any, params = {}) {
         const result: any[] = [];
         for (let i = 0; i < ids.length; i++) {
             const id = this.extend (this.parseDepositMethodId (ids[i]), params);
@@ -4684,7 +4684,7 @@ export default class coinbase extends Exchange {
         return result;
     }
 
-    parseDepositMethodId (depositId) {
+    parseDepositMethodId (depositId: any) {
         return {
             'info': depositId,
             'id': this.safeString (depositId, 'id'),
@@ -5290,7 +5290,7 @@ export default class coinbase extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    override sign (path, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = [], method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const version = api[0];
         const signed = api[1] === 'private';
         const isV3 = version === 'v3';
@@ -5388,7 +5388,7 @@ export default class coinbase extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

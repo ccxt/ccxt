@@ -574,7 +574,7 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -646,7 +646,7 @@ export default class bydfi extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -846,7 +846,7 @@ export default class bydfi extends Exchange {
         }
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'interval': interval,
         };
@@ -900,7 +900,7 @@ export default class bydfi extends Exchange {
         return result;
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "s": "ETH-USDT",
@@ -1059,7 +1059,7 @@ export default class bydfi extends Exchange {
         return this.parseFundingRate (data, market);
     }
 
-    override parseFundingRate (contract, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "BTC-USDT",
@@ -1148,7 +1148,7 @@ export default class bydfi extends Exchange {
         return this.parseFundingRateHistories (data, market, since, limit);
     }
 
-    override parseFundingRateHistory (contract, market: Market = undefined) {
+    override parseFundingRateHistory (contract: any, market: Market = undefined) {
         //
         //     {
         //         "symbol": "ETH-USDT",
@@ -1870,7 +1870,7 @@ export default class bydfi extends Exchange {
             postOnly = true;
         }
         const rawStatus = this.safeString (order, 'status');
-        const fee = {};
+        const fee: Dict = {};
         const quoteFee = this.safeNumber (order, 'quoteFee');
         if (quoteFee !== undefined) {
             fee['cost'] = quoteFee;
@@ -2593,7 +2593,7 @@ export default class bydfi extends Exchange {
         return this.parseBalance (data);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const timestamp = this.milliseconds ();
         const result: Dict = {
             'info': response,
@@ -2812,7 +2812,7 @@ export default class bydfi extends Exchange {
         return await this.fetchTransactionsHelper ('withdrawal', code, since, limit, params);
     }
 
-    async fetchTransactionsHelper (type, code, since, limit, params) {
+    async fetchTransactionsHelper (type: any, code: any, since: any, limit: any, params: any) {
         const methodName = (type === 'deposit') ? 'fetchDeposits' : 'fetchWithdrawals';
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a code argument');
@@ -2959,7 +2959,7 @@ export default class bydfi extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         let url = this.urls['api'][api];
         let endpoint = '/' + path;
         let query = '';
@@ -2997,7 +2997,7 @@ export default class bydfi extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

@@ -138,7 +138,7 @@ export default class lbank extends lbankRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
-    handleOHLCV (client, message) {
+    handleOHLCV (client: any, message: any) {
         //
         // request
         //    {
@@ -294,7 +294,7 @@ export default class lbank extends lbankRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleTicker (client, message) {
+    handleTicker (client: any, message: any) {
         //
         //     {
         //         "tick":{
@@ -327,7 +327,7 @@ export default class lbank extends lbankRest {
         client.resolve (parsedTicker, messageHash);
     }
 
-    parseWsTicker (ticker, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //     {
         //         "tick":{
@@ -438,7 +438,7 @@ export default class lbank extends lbankRest {
         return this.sortBy (result, 'timestamp') as Trade[]; // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: any, message: any) {
         //
         // request
         //     {
@@ -488,7 +488,7 @@ export default class lbank extends lbankRest {
         client.resolve (this.trades[symbol], messageHash);
     }
 
-    override parseWsTrade (trade, market: Market = undefined) {
+    override parseWsTrade (trade: any, market: Market = undefined) {
         //
         // request
         //    [ 'timestamp', 'price', 'volume', 'direction' ]
@@ -570,7 +570,7 @@ export default class lbank extends lbankRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client, message) {
+    handleOrders (client: Client, message: any) {
         //
         //     {
         //         "orderUpdate":{
@@ -607,7 +607,7 @@ export default class lbank extends lbankRest {
         client.resolve (myOrders, messageHash);
     }
 
-    override parseWsOrder (order, market: Market = undefined) {
+    override parseWsOrder (order: any, market: Market = undefined) {
         //
         //     {
         //         "orderUpdate":{
@@ -691,7 +691,7 @@ export default class lbank extends lbankRest {
         }, market);
     }
 
-    parseWsOrderStatus (status) {
+    parseWsOrderStatus (status: any) {
         const statuses: Dict = {
             '-1': 'canceled',  // Withdrawn
             '0': 'open',   // Unsettled
@@ -726,7 +726,7 @@ export default class lbank extends lbankRest {
         return await this.watch (url, messageHash, request, messageHash, request);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //     {
         //         "data": {
@@ -824,7 +824,7 @@ export default class lbank extends lbankRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: any, message: any) {
         //
         // request
         //    {
@@ -899,7 +899,7 @@ export default class lbank extends lbankRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleErrorMessage (client, message) {
+    handleErrorMessage (client: Client, message: any) {
         //
         //    {
         //        SERVER: 'V2',
@@ -913,7 +913,7 @@ export default class lbank extends lbankRest {
         client.reject (error);
     }
 
-    async handlePing (client: Client, message) {
+    async handlePing (client: Client, message: any) {
         //
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //
@@ -928,7 +928,7 @@ export default class lbank extends lbankRest {
         }
     }
 
-    override handleMessage (client, message) {
+    override handleMessage (client: any, message: any) {
         const status = this.safeString (message, 'status');
         if (status === 'error') {
             this.handleErrorMessage (client, message);

@@ -566,7 +566,7 @@ export default class poloniex extends Exchange {
         });
     }
 
-    override parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         // spot:
         //
@@ -735,7 +735,7 @@ export default class poloniex extends Exchange {
         return this.arrayConcat (results[0], results[1]);
     }
 
-    async fetchSpotMarkets (params = {}): Promise<Market[]> {
+    async fetchSpotMarkets (params: any = {}): Promise<Market[]> {
         const markets = await this.publicGetMarkets (params);
         //
         //     [
@@ -763,7 +763,7 @@ export default class poloniex extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    async fetchSwapMarkets (params = {}): Promise<Market[]> {
+    async fetchSwapMarkets (params: any = {}): Promise<Market[]> {
         // do similar as spot per https://api-docs.poloniex.com/v3/futures/api/market/get-product-info
         const response = await this.swapPublicGetV3MarketAllInstruments (params);
         //
@@ -1784,7 +1784,7 @@ export default class poloniex extends Exchange {
         }, market);
     }
 
-    parseOrderType (status) {
+    parseOrderType (status: any) {
         const statuses: Dict = {
             'MARKET': 'market',
             'LIMIT': 'limit',
@@ -1795,7 +1795,7 @@ export default class poloniex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOpenOrders (orders, market, result) {
+    parseOpenOrders (orders: any, market: any, result: any) {
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const extended = this.extend (order, {
@@ -2040,7 +2040,7 @@ export default class poloniex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    orderRequest (symbol, type, side, amount, request, price: Num = undefined, params = {}) {
+    orderRequest (symbol: any, type: any, side: any, amount: any, request: any, price: Num = undefined, params = {}) {
         const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
         const market = this.market (symbol);
         if (market['contract']) {
@@ -2410,7 +2410,7 @@ export default class poloniex extends Exchange {
         return this.parseTrades (trades);
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -2721,7 +2721,7 @@ export default class poloniex extends Exchange {
         return [ request, params, currency, networkEntry ];
     }
 
-    parseDepositAddressSpecial (response, currency, networkEntry): DepositAddress {
+    parseDepositAddressSpecial (response: any, currency: any, networkEntry: any): DepositAddress {
         let address = this.safeString (response, 'address');
         if (address === undefined) {
             address = this.safeString (response, networkEntry['id']);
@@ -2812,7 +2812,7 @@ export default class poloniex extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'coin': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
             'address': address,
@@ -3015,7 +3015,7 @@ export default class poloniex extends Exchange {
         return this.parseDepositWithdrawFees (data, codes);
     }
 
-    override parseDepositWithdrawFees (response, codes: Strings = undefined, currencyIdKey: Str = undefined) {
+    override parseDepositWithdrawFees (response: any, codes: Strings = undefined, currencyIdKey: Str = undefined) {
         //
         //         {
         //             "1CR": {
@@ -3077,7 +3077,7 @@ export default class poloniex extends Exchange {
         return depositWithdrawFees;
     }
 
-    override parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    override parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         const depositWithdrawFee = this.depositWithdrawFee ({});
         const currencyCode = this.safeString (currency, 'code');
         depositWithdrawFee['info'][currencyCode as string] = fee;
@@ -3532,7 +3532,7 @@ export default class poloniex extends Exchange {
         });
     }
 
-    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
+    async modifyMarginHelper (symbol: string, amount: any, type: any, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         amount = this.amountToPrecision (symbol, amount);
@@ -3615,7 +3615,7 @@ export default class poloniex extends Exchange {
         return this.milliseconds ();
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api']['spot'];
         if (this.inArray (api, [ 'swapPublic', 'swapPrivate' ])) {
             url = this.urls['api']['swap'];
@@ -3662,7 +3662,7 @@ export default class poloniex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }

@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import blofinRest from '../blofin.js';
 import { NotSupported, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order, Position, FundingRate, List, IndexType } from '../base/types.js';
+import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order, Position, FundingRate, List, IndexType, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -72,7 +72,7 @@ export default class blofin extends blofinRest {
         return 'ping';
     }
 
-    handlePong (client: Client, message) {
+    handlePong (client: Client, message: any) {
         //
         //   'pong'
         //
@@ -90,7 +90,7 @@ export default class blofin extends blofinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         params['callerMethodName'] = 'watchTrades';
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
@@ -120,7 +120,7 @@ export default class blofin extends blofinRest {
         return this.sortBy (result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     {
         //       arg: {
@@ -155,7 +155,7 @@ export default class blofin extends blofinRest {
         }
     }
 
-    override parseWsTrade (trade, market: Market = undefined): Trade {
+    override parseWsTrade (trade: any, market: Market = undefined): Trade {
         return this.parseTrade (trade, market);
     }
 
@@ -169,7 +169,7 @@ export default class blofin extends blofinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         params['callerMethodName'] = 'watchOrderBook';
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
@@ -201,7 +201,7 @@ export default class blofin extends blofinRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //   {
         //     arg: {
@@ -256,7 +256,7 @@ export default class blofin extends blofinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         params['callerMethodName'] = 'watchTicker';
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -279,14 +279,14 @@ export default class blofin extends blofinRest {
         }
         const ticker = await this.watchMultipleWrapper (true, 'tickers', 'watchTickers', symbols, params);
         if (this.newUpdates) {
-            const tickers = {};
+            const tickers: Dict = {};
             tickers[ticker['symbol']] = ticker;
             return tickers;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         // message
         //
@@ -313,7 +313,7 @@ export default class blofin extends blofinRest {
         }
     }
 
-    parseWsTicker (ticker, market: Market = undefined): Ticker {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         return this.parseTicker (ticker, market);
     }
 
@@ -350,14 +350,14 @@ export default class blofin extends blofinRest {
         const request = this.getSubscriptionRequest (args);
         const ticker = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
         if (this.newUpdates) {
-            const tickers = {};
+            const tickers: Dict = {};
             tickers[ticker['symbol']] = ticker;
             return tickers;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
 
-    handleBidAsk (client: Client, message) {
+    handleBidAsk (client: Client, message: any) {
         const data = this.safeList (message, 'data') as List;
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsBidAsk (data[i]);
@@ -368,7 +368,7 @@ export default class blofin extends blofinRest {
         }
     }
 
-    parseWsBidAsk (ticker, market: Market = undefined) {
+    parseWsBidAsk (ticker: any, market: Market = undefined) {
         const marketId = this.safeString (ticker, 'instId');
         market = this.safeMarket (marketId, market, '-');
         const symbol = this.safeString (market, 'symbol');
@@ -396,7 +396,7 @@ export default class blofin extends blofinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
         return result[symbol][timeframe];
@@ -429,7 +429,7 @@ export default class blofin extends blofinRest {
         return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
-    handleOHLCV (client: Client, message) {
+    handleOHLCV (client: Client, message: any) {
         //
         // message
         //
@@ -495,7 +495,7 @@ export default class blofin extends blofinRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //     {
         //         arg: {
@@ -513,7 +513,7 @@ export default class blofin extends blofinRest {
         client.resolve (this.balance[marketType], messageHash);
     }
 
-    parseWsBalance (message) {
+    parseWsBalance (message: any) {
         return this.parseBalance (message);
     }
 
@@ -530,7 +530,7 @@ export default class blofin extends blofinRest {
      * @param {boolean} [params.trigger] set to true for trigger orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         params['callerMethodName'] = 'watchOrders';
         const symbolsArray = (symbol !== undefined) ? [ symbol ] : [];
         return await this.watchOrdersForSymbols (symbolsArray, since, limit, params);
@@ -566,7 +566,7 @@ export default class blofin extends blofinRest {
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
-    handleOrders (client: Client, message) {
+    handleOrders (client: Client, message: any) {
         //
         //     {
         //         action: 'update',
@@ -594,7 +594,7 @@ export default class blofin extends blofinRest {
         }
     }
 
-    override parseWsOrder (order, market: Market = undefined): Order {
+    override parseWsOrder (order: any, market: Market = undefined): Order {
         return this.parseOrder (order, market);
     }
 
@@ -621,7 +621,7 @@ export default class blofin extends blofinRest {
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit);
     }
 
-    handlePositions (client: Client, message) {
+    handlePositions (client: Client, message: any) {
         //
         //     {
         //         arg: { channel: 'positions' },
@@ -647,7 +647,7 @@ export default class blofin extends blofinRest {
         }
     }
 
-    parseWsPosition (position, market: Market = undefined): Position {
+    parseWsPosition (position: any, market: Market = undefined): Position {
         return this.parsePosition (position, market);
     }
 
@@ -677,7 +677,7 @@ export default class blofin extends blofinRest {
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
-    handleFundingRate (client: Client, message) {
+    handleFundingRate (client: Client, message: any) {
         //
         //     {
         //         "arg": {
@@ -763,14 +763,14 @@ export default class blofin extends blofinRest {
         return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
     }
 
-    getSubscriptionRequest (args) {
+    getSubscriptionRequest (args: any) {
         return {
             'op': 'subscribe',
             'args': args,
         };
     }
 
-    override handleMessage (client: Client, message) {
+    override handleMessage (client: Client, message: any) {
         //
         // message examples
         //

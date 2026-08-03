@@ -2,7 +2,7 @@
 import { ROUND_UP, ROUND_DOWN } from './number.js'
 import { asFloat } from './type.js'
 import { NotSupported } from '../errors.js'
-import { Dictionary, Num } from '../types.js'
+import { Dict, Dictionary, Num } from '../types.js'
 
 //-------------------------------------------------------------------------
 // converts timeframe to seconds
@@ -81,9 +81,9 @@ function vwap (baseVolume: number, quoteVolume: number): Num {
 
 /*  ------------------------------------------------------------------------ */
 
-function aggregate (bidasks) {  // TODO: Parameter 'bidasks' implicitly has an 'any' type.ts(7006)
+function aggregate (bidasks: any[]) {
 
-    const result = {}
+    const result: Dict = {}
 
     for (let i = 0; i < bidasks.length; i++) {
         const [ price, volume ] = bidasks[i];

@@ -508,7 +508,7 @@ export default class zebpay extends Exchange {
             // }
             //
             const responseData = this.safeList (response, 'data', []);
-            data = this.safeDict (responseData, 0);
+            data = this.safeDict (responseData, 0, {});
         }
         return this.parseTradingFee (data, market);
     }
@@ -1082,7 +1082,7 @@ export default class zebpay extends Exchange {
         return this.parseOrder (data, market);
     }
 
-    orderRequest (symbol, type, amount, request, price: Num = undefined, params = {}) {
+    orderRequest (symbol: any, type: any, amount: any, request: any, price: Num = undefined, params = {}) {
         const upperCaseType = type.toUpperCase ();
         const triggerPrice = this.safeString (params, 'stopLossPrice');
         const quoteOrderQty = this.safeString2 (params, 'quoteOrderQty', 'cost', undefined);
@@ -1489,7 +1489,7 @@ export default class zebpay extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const request = {};
+        const request: Dict = {};
         if (symbols !== undefined) {
             request['symbols'] = this.marketIds (symbols);
         }
@@ -1600,7 +1600,7 @@ export default class zebpay extends Exchange {
         });
     }
 
-    async fetchSpotMarkets (params = {}): Promise<Market[]> {
+    async fetchSpotMarkets (params: any = {}): Promise<Market[]> {
         const response = await this.publicSpotGetV2ExExchangeInfo (params);
         //
         //    {
@@ -1674,7 +1674,7 @@ export default class zebpay extends Exchange {
         return result;
     }
 
-    async fetchSwapMarkets (params = {}): Promise<Market[]> {
+    async fetchSwapMarkets (params: any = {}): Promise<Market[]> {
         const response = await this.publicSwapGetV1MarketMarkets (params);
         //
         //    {
@@ -1747,7 +1747,7 @@ export default class zebpay extends Exchange {
         return result;
     }
 
-    override parseBalance (response): Balances {
+    override parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1891,7 +1891,7 @@ export default class zebpay extends Exchange {
         }, market);
     }
 
-    override parseMarginModification (info, market: Market = undefined): MarginModification {
+    override parseMarginModification (info: any, market: Market = undefined): MarginModification {
         //
         //    {
         //         "symbol": "BTCINR",
@@ -1916,7 +1916,7 @@ export default class zebpay extends Exchange {
         };
     }
 
-    override sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    override sign (path: any, api: any = 'public', method = 'GET', params: Dict = {}, headers: NullableDict = undefined, body: Str = undefined) {
         params = this.omit (params, 'defaultType');
         const isV1 = path.indexOf ('v1/') > -1;
         const marketType = isV1 ? 'swap' : 'spot';
@@ -1964,7 +1964,7 @@ export default class zebpay extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (!response) {
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, body);
             return undefined;

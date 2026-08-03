@@ -3,7 +3,7 @@ import path from 'path';
 import errors from "../js/src/base/errors.js";
 import { basename, resolve } from 'path';
 import { createFolderRecursively, overwriteFile, checkCreateFolder } from './fsLocal.js';
-import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js';
+import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js';
 // import { writeFile } from 'fs/promises';
 import { platform } from 'process';
 import { spawnSync } from 'child_process';
@@ -1576,6 +1576,9 @@ class NewTranspiler {
     }
 
     createGoWrappers(exchange: string, path: string, wrappers: any[], ws: boolean | 'prediction' = false) {
+        // ast-transpiler drops the `= {}` default of a type-annotated params bag, which would
+        // emit it as a required positional arg ahead of the variadic options
+        restoreParamsBagInitializers(wrappers);
         const isPrediction = (ws === 'prediction');
         const isWs = (ws === true);
         const methodsList = new Set(wrappers.map(wrapper => wrapper.name));
