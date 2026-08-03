@@ -6,6 +6,7 @@ var lbank$1 = require('../lbank.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class lbank extends lbank$1["default"] {
     describe() {

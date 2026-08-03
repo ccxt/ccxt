@@ -7,6 +7,7 @@ var typed = require('../typed.js');
 var abstractCoder = require('./abstract-coder.js');
 var array = require('./array.js');
 
+// ----------------------------------------------------------------------------
 /**
  *  @_ignore
  */

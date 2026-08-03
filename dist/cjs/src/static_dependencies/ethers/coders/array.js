@@ -18,6 +18,7 @@ var typed = require('../typed.js');
 var abstractCoder = require('./abstract-coder.js');
 var anonymous = require('./anonymous.js');
 
+// ----------------------------------------------------------------------------
 /**
  *  @_ignore
  */

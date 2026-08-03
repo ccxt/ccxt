@@ -16,6 +16,7 @@ require('@noble/hashes/sha3.js');
 require('@noble/hashes/sha2.js');
 var abstractCoder = require('./abstract-coder.js');
 
+// ----------------------------------------------------------------------------
 /**
  *  @_ignore
  */
