@@ -8,7 +8,7 @@ import { ExchangeError, InvalidAddress, DuplicateOrderId, InsufficientFunds, Inv
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate, Fee, NullableDict } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, Currencies, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, DepositAddress, FundingRates, FundingRate, Fee, NullableDict, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -463,7 +463,7 @@ export default class lbank extends Exchange {
         const code = this.safeCurrencyCode (id);
         const networksRaw = rawCurrency;
         const networks = {};
-        for (let j = 0; j < networksRaw.length; j++) {
+        for (let j = 0; j < (networksRaw as List).length; j++) {
             const networkEntry = networksRaw[j];
             let networkId = this.safeString (networkEntry, 'chain');
             if (networkId === undefined) {

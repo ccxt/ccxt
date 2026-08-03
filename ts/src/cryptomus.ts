@@ -421,7 +421,7 @@ export default class cryptomus extends Exchange {
         let id: Str = undefined; // all entries have same id, as they were grouped by
         let code: Str = undefined;
         const networks: Dict = {};
-        for (let i = 0; i < rawCurrency.length; i++) {
+        for (let i = 0; i < (rawCurrency as List).length; i++) {
             const networkEntry = rawCurrency[i];
             // set ID on first loop
             if (id === undefined) {

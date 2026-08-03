@@ -2058,7 +2058,7 @@ export default class okx extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         const networks: Dict = {};
         let type = 'crypto';
-        const chainsLength = chains.length;
+        const chainsLength = (chains as List).length;
         for (let j = 0; j < chainsLength; j++) {
             const chain = chains[j];
             // allow empty string for rare fiat-currencies, e.g. TRY
@@ -6016,7 +6016,7 @@ export default class okx extends Exchange {
         let marginMode: Str = undefined;
         let longLeverage: Int = undefined;
         let shortLeverage: Int = undefined;
-        for (let i = 0; i < leverage.length; i++) {
+        for (let i = 0; i < (leverage as List).length; i++) {
             const entry = leverage[i];
             marginMode = this.safeStringLower (entry, 'mgnMode');
             marketId = this.safeString (entry, 'instId');
