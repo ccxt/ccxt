@@ -7,7 +7,7 @@ import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ChecksumError, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Balances, Bool, Dict, Int, Liquidation, List, Market, Num, NullableDict, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Liquidation, List, Market, Num, FeeString, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { rsa } from '../base/functions/rsa.js';
 import { eddsa } from '../base/functions/crypto.js';
 import Client from '../base/ws/Client.js';
@@ -1463,7 +1463,7 @@ export default class binance extends binanceRest {
             }
             takerOrMaker = trade['m'] ? 'maker' : 'taker';
         }
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCost = this.safeString (trade, 'n');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'N');
@@ -4030,7 +4030,7 @@ export default class binance extends binanceRest {
             lastTradeTimestamp = T;
         }
         const lastUpdateTimestamp = T;
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCost = this.safeString (order, 'n');
         if ((feeCost !== undefined) && (Precise.stringGt (feeCost, '0'))) {
             const feeCurrencyId = this.safeString (order, 'N');

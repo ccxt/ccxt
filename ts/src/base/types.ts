@@ -43,6 +43,14 @@ export interface FeeInterface {
     rate?: Num;
 }
 
+// intermediate fee bag carried through the Precise/safeTrade pipeline, before
+// parseFeeNumeric() converts cost/rate to numbers; the unified Trade/Order fee is Fee
+export interface FeeStringInterface {
+    currency: Str;
+    cost: Str;
+    rate?: Str;
+}
+
 export interface TradingFeeInterface {
     info: any;
     symbol: Str;
@@ -53,6 +61,8 @@ export interface TradingFeeInterface {
 }
 
 export type Fee = FeeInterface | undefined;
+
+export type FeeString = FeeStringInterface | undefined;
 
 export interface MarketMarginModes {
     isolated: Bool;

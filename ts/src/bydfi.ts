@@ -6,7 +6,7 @@ import Exchange from './abstract/bydfi.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InsufficientFunds, NotSupported, PermissionDenied, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Bool, Currency, Dict, Fee, FundingRate, FundingRateHistory, Int, int, Leverage, List, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers } from './base/types.js';
+import type { Balances, Bool, Currency, Dict, Fee, FeeString, FundingRate, FundingRateHistory, Int, int, Leverage, List, MarginMode, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Trade, Transaction, TransferEntry, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -780,7 +780,7 @@ export default class bydfi extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (trade, 'time');
-        let fee: Dict | undefined = undefined;
+        let fee: FeeString = undefined;
         const rawType = this.safeString (trade, 'type');
         const feeCost = this.safeString (trade, 'fee');
         if (feeCost !== undefined) {

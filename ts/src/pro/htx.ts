@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import htxRest from '../htx.js';
 import { ExchangeError, InvalidNonce, ChecksumError, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, SubType, Ticker, Trade, NullableDict } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, SubType, Ticker, Trade, NullableDict, FeeString } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -1465,7 +1465,7 @@ export default class htx extends htxRest {
         const filled = this.safeString2 (order, 'execAmt', 'trade_volume');
         const typeSide = this.safeString (order, 'type');
         const feeCost = this.safeString (order, 'fee');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString2 (order, 'fee_asset', 'fee_currency');
             fee = {
@@ -2816,7 +2816,7 @@ export default class htx extends htxRest {
             orderTypeParts = orderType.split ('-');
             type = this.safeString (orderTypeParts, 1, orderType);
         }
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCurrency = this.safeCurrencyCode (this.safeStringN (trade, [ 'feeCurrency', 'fee_currency', 'fee_asset' ]));
         if (feeCurrency !== undefined) {
             fee = {

@@ -6,7 +6,7 @@ import Exchange from './abstract/delta.js';
 import { ExchangeError, InsufficientFunds, BadRequest, BadSymbol, InvalidOrder, AuthenticationError, OrderNotFound, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type{ Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL } from './base/types.js';
+import type{ Balances, Currency, CurrencyInterface, Greeks, Int, Market, MarketInterface, NullableDict, FeeString, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Position, Leverage, MarginMode, Num, Option, MarginModification, Currencies, Dict, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, ADL } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1541,7 +1541,7 @@ export default class delta extends Exchange {
             type = type.replace ('_order', '');
         }
         const feeCostString = this.safeString (trade, 'commission');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         if (feeCostString !== undefined) {
             const settlingAsset = this.safeDict (product, 'settling_asset', {});
             const feeCurrencyId = this.safeString (settlingAsset, 'symbol');
@@ -1970,7 +1970,7 @@ export default class delta extends Exchange {
         const amount = this.safeString (order, 'size');
         const remaining = this.safeString (order, 'unfilled_size');
         const average = this.safeString (order, 'average_fill_price');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCostString = this.safeString (order, 'paid_commission');
         if (feeCostString !== undefined) {
             let feeCurrencyCode: Str = undefined;

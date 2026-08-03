@@ -6,7 +6,7 @@ import Exchange from './abstract/bit2c.js';
 import { ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported, OrderNotFound, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, int, DepositAddress, NullableDict, NullableList } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, TradingFees, int, DepositAddress, NullableDict, FeeString, NullableList } from './base/types.js';
 
 ;
 
@@ -897,7 +897,7 @@ export default class bit2c extends Exchange {
         let price: Str = undefined;
         let amount: Str = undefined;
         let orderId: Str = undefined;
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         let side: string;
         let makerOrTaker: Str = undefined;
         const reference = this.safeString (trade, 'reference');

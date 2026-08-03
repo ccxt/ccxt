@@ -6,7 +6,7 @@ import Exchange from './abstract/blofin.js';
 import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, Bool, List, NullableDict, IndexType } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, FeeString, Bool, List, NullableDict, IndexType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -819,7 +819,7 @@ export default class blofin extends Exchange {
         const side = this.safeString (trade, 'side');
         const orderId = this.safeString (trade, 'orderId');
         const feeCost = this.safeString (trade, 'fee');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         let feeCurrency = this.safeString (trade, 'feeCurrency');
         const isSpot = feeCurrency !== undefined;
         if (feeCurrency === undefined) {

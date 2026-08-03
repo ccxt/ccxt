@@ -5,7 +5,7 @@ import Exchange from './abstract/bitteam.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, int, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, FeeString, int, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1346,7 +1346,7 @@ export default class bitteam extends Exchange {
         const price = this.safeString (order, 'price');
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'executed');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         if (feeRaw !== undefined) {
             const feeCost = this.safeString (feeRaw, 'amount');
             const feeCurrencyId = this.safeString (feeRaw, 'symbol');

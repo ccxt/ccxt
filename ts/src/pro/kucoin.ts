@@ -5,7 +5,7 @@ import kucoinRest from '../kucoin.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, FeeString, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -1357,7 +1357,7 @@ export default class kucoin extends kucoinRest {
         const marketId = this.safeString (trade, 's');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeIntegerProduct2 (trade, 'M', 'E', 0.000001);
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCost = this.safeString (trade, 'f');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fC');

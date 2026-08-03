@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import coinexRest from '../coinex.js';
 import { AuthenticationError, BadRequest, RateLimitExceeded, NotSupported, RequestTimeout, ExchangeError, ExchangeNotAvailable, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, int, NullableList, NullableDict } from '../base/types.js';
+import type { Balances, Dict, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, int, NullableList, FeeString } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -1205,7 +1205,7 @@ export default class coinex extends coinexRest {
         const isSpot = ('margin_market' in order);
         const defaultType = isSpot ? 'spot' : 'swap';
         market = this.safeMarket (marketId, market, undefined, defaultType);
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeCost = this.omitZero (this.safeString2 (order, 'fee', 'quote_ccy_fee'));
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (order, 'fee_ccy', market['quote']);

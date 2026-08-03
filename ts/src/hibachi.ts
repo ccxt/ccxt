@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ Balances, Currencies, Dict, Fee, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, NullableDict } from './base/types.js';
+import type{ Balances, Currencies, Dict, Fee, FeeString, Market, Str, Ticker, Trade, Int, Num, OrderSide, OrderType, OrderBook, TradingFees, Transaction, DepositAddress, OHLCV, Order, LedgerEntry, Currency, int, Position, Strings, FundingRate, FundingRateHistory, OrderRequest, NullableDict } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { Precise } from './base/Precise.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, OrderNotFound } from './base/errors.js';
@@ -553,7 +553,7 @@ export default class hibachi extends Exchange {
         const timestamp = this.safeIntegerProduct (trade, 'timestamp', 1000);
         const cost = Precise.stringMul (price, amount);
         let side: Str = undefined;
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         let orderType: Str = undefined;
         let orderId: Str = undefined;
         let takerOrMaker: Str = undefined;

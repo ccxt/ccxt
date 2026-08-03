@@ -2174,7 +2174,7 @@ export default class extended extends Exchange {
         return result;
     }
 
-    parseTradingFee (fee: any, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "market": "BTC-USD",

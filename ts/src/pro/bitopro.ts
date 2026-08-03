@@ -5,7 +5,7 @@ import { sha384 } from '@noble/hashes/sha2.js';
 import bitoproRest from '../bitopro.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, OrderBook, Trade, Ticker, Balances, Market, Str, Dict, NullableDict } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, Balances, Market, Str, Dict, FeeString } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -298,7 +298,7 @@ export default class bitopro extends bitoproRest {
             }
         }
         const amount = this.safeString (trade, 'volume');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeAmount = this.safeString (trade, 'fee');
         const feeSymbol = this.safeCurrencyCode (this.safeString (trade, 'feeCurrency'));
         if (feeAmount !== undefined) {

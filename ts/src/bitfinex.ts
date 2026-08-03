@@ -4,7 +4,7 @@ import { ExchangeError, ArgumentsRequired, InsufficientFunds, AuthenticationErro
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, List, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, IndexType, NullableDict, int } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, LedgerEntry, List, FundingRate, FundingRates, DepositAddress, OpenInterests, Position, IndexType, NullableDict, FeeString, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1436,7 +1436,7 @@ export default class bitfinex extends Exchange {
         let orderId: Str = undefined;
         let takerOrMaker: Str = undefined;
         let type: Str = undefined;
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         let symbol = this.safeSymbol (undefined, market);
         const timestampIndex = isPrivate ? 2 : 1;
         const timestamp = this.safeInteger (tradeList, timestampIndex);

@@ -5,7 +5,7 @@ import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/latoken.js';
 import { ExchangeError, AuthenticationError, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFeeInterface, Currencies, Dict, NullableDict, List, FeeInterface, int } from './base/types.js';
+import type { TransferEntry, Balances, Currency, CurrencyInterface, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFeeInterface, Currencies, Dict, NullableDict, FeeString, List, FeeInterface, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -861,7 +861,7 @@ export default class latoken extends Exchange {
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order');
         const feeCost = this.safeString (trade, 'fee');
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,

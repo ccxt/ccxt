@@ -6,7 +6,7 @@ import Exchange from './abstract/phemex.js';
 import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Balances, Currency, CurrencyInterface, Fee, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, NullableDict, List, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary, ADL } from './base/types.js';
+import type { TransferEntry, Balances, Currency, CurrencyInterface, Fee, FeeString, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, NullableDict, List, LeverageTier, LeverageTiers, int, FundingRate, DepositAddress, Conversion, Position, Dictionary, ADL } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1904,7 +1904,7 @@ export default class phemex extends Exchange {
         let side: Str = undefined;
         let costString: Str = undefined;
         let type: Str = undefined;
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         let feeCostString: Str = undefined;
         let feeRateString: Str = undefined;
         let feeCurrencyCode: Str = undefined;
@@ -2602,7 +2602,7 @@ export default class phemex extends Exchange {
         const stopLoss = this.safeString (order, 'stopLossRp');
         const feeValue = this.omitZero (this.safeString (order, 'execFeeRv'));
         const ptFeeRv = this.omitZero (this.safeString (order, 'ptFeeRv'));
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         if (feeValue !== undefined) {
             fee = {
                 'cost': feeValue,

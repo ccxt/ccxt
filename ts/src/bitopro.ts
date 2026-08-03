@@ -8,7 +8,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
 ;
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, Bool, NullableDict, DepositWithdrawFees } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, Bool, NullableDict, FeeString, DepositWithdrawFees } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -709,7 +709,7 @@ export default class bitopro extends Exchange {
         if (amount === undefined) {
             amount = this.safeString (trade, 'baseAmount');
         }
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeAmount = this.safeString (trade, 'fee');
         const feeSymbol = this.safeCurrencyCode (this.safeString (trade, 'feeSymbol'));
         if (feeAmount !== undefined) {
@@ -1116,7 +1116,7 @@ export default class bitopro extends Exchange {
         if (timeInForce === 'POST_ONLY') {
             postOnly = true;
         }
-        let fee: NullableDict = undefined;
+        let fee: FeeString = undefined;
         const feeAmount = this.safeString (order, 'fee');
         const feeSymbol = this.safeCurrencyCode (this.safeString (order, 'feeSymbol'));
         if (Precise.stringGt (feeAmount, '0')) {
