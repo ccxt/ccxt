@@ -16,7 +16,7 @@
 import Transpiler from "ast-transpiler";
 import * as fs from 'fs';
 import { fileURLToPath } from 'node:url';
-import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js';
+import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js';
 
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
@@ -197,7 +197,7 @@ function parseMethodsFromTS(sourceFile: string = TS_BASE_FILE): MethodInfo[] {
     const strippedBaseFile = writeOverloadStrippedFile (sourceFile);
     const baseFile: any = transpiler.transpileJavaByPath(strippedBaseFile);
     removeOverloadStrippedFile (strippedBaseFile, sourceFile);
-    const methodsTypes = baseFile.methodsTypes || [];
+    const methodsTypes = restoreParamsBagInitializers (baseFile.methodsTypes || []);
 
     const methods: MethodInfo[] = [];
 

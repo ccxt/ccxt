@@ -4,7 +4,7 @@ import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
 import { setupCsharpPrinter } from './csharp-worker.js'
-import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
+import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { platform } from 'process'
 import os from 'os'
 import fs from 'fs'
@@ -739,6 +739,9 @@ class NewTranspiler {
     }
 
     createCSharpWrappers(exchange:string, path: string, wrappers: any[], ws = false, prediction = false) {
+        // ast-transpiler drops the `= {}` default of a type-annotated params bag, which would
+        // emit it as a required parameter sitting after optionals (CS1737)
+        restoreParamsBagInitializers(wrappers);
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
         const shouldCreateClassWrappers = exchange === 'BaseExchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
