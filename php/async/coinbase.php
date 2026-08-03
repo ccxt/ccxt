@@ -163,6 +163,7 @@ class coinbase extends Exchange {
                 'setMargin' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -4907,6 +4908,65 @@ class coinbase extends Exchange {
             'toAmount' => null,
             'price' => null,
             'fee' => $this->safe_number($feeAmountStructure, 'value'),
+        );
+    }
+
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
+        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
+            /**
+             * $transfer $currency internally between portfolios of the same account
+             *
+             * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/move-portfolios-funds
+             *
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount amount to $transfer
+             * @param {string} $fromAccount the portfolio uuid to $transfer funds from
+             * @param {string} $toAccount the portfolio uuid to $transfer funds to
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structure~
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'funds' => array(
+                    'value' => $this->currency_to_precision($code, $amount),
+                    'currency' => $currency['id'],
+                ),
+                'source_portfolio_uuid' => $fromAccount,
+                'target_portfolio_uuid' => $toAccount,
+            );
+            $response = Async\await($this->v3PrivatePostBrokeragePortfoliosMoveFunds($this->extend($request, $params)));
+            //
+            //     {
+            //         "source_portfolio_uuid" => "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+            //         "target_portfolio_uuid" => "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+            //     }
+            //
+            $transfer = $this->parse_transfer($response, $currency);
+            $transfer['amount'] = $amount;
+            $transfer['status'] = 'ok';
+            return $transfer;
+        })();
+    }
+
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
+        //
+        //     {
+        //         "source_portfolio_uuid" => "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+        //         "target_portfolio_uuid" => "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+        //     }
+        //
+        $currencyCode = $this->safe_currency_code(null, $currency);
+        return array(
+            'info' => $transfer,
+            'id' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $currencyCode,
+            'amount' => null,
+            'fromAccount' => $this->safe_string($transfer, 'source_portfolio_uuid'),
+            'toAccount' => $this->safe_string($transfer, 'target_portfolio_uuid'),
+            'status' => null,
         );
     }
 
