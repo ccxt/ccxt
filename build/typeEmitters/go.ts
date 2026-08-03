@@ -773,7 +773,7 @@ function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
         const file = files[f];
         const plan = plans[file.path];
         const result: SpliceResult = spliceBlocks (file.text, plan.blocks, findBraceBlockEnd);
-        const contents = ensureGeneratedBanner (result.text, '//', 'after-package');
+        const contents = ensureGeneratedBanner (result.text, '//');
         const changed = result.replaced.concat (result.appended);
         if (contents !== result.text) {
             changed.push ('banner');

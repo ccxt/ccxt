@@ -734,7 +734,7 @@ export function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
             });
         }
         const result: SpliceResult = spliceBlocks (before, blocks, findBraceBlockEnd);
-        const contents = ensureGeneratedBanner (result.text, '//', 'after-namespace');
+        const contents = ensureGeneratedBanner (result.text, '//');
         const changed = result.replaced.concat (result.appended);
         if (contents !== result.text) {
             changed.push ('banner');

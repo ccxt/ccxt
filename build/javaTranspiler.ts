@@ -1615,8 +1615,7 @@ class NewTranspiler {
             content = this.postProcessWsJava(content, name, true, true);
         }
         content = this.addDeprecatedAnnotations(content);
-        content = this.createGeneratedHeader().join('\n') + '\n' + content;
-        return javaImports + content;
+        return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
 
     /**

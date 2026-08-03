@@ -363,7 +363,7 @@ export function emit (ir: TypesIR, repoRoot: string) {
         blocks.push ({ 'name': type.name, 'anchor': anchor, 'source': source });
     }
     const result = spliceBlocks (before, blocks, findIndentBlockEnd);
-    const contents = ensureGeneratedBanner (result.text, '#', 'file-top');
+    const contents = ensureGeneratedBanner (result.text, '#');
     const changed = result.replaced.concat (result.appended);
     if (contents !== result.text && changed.indexOf ('banner') < 0) {
         changed.push ('banner');

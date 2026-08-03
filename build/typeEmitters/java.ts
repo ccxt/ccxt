@@ -734,7 +734,7 @@ function emit (ir: TypesIR, repoRoot: string): EmitterOutput[] {
             }
             continue;
         }
-        contents = ensureGeneratedBanner (contents, '//', 'after-imports');
+        contents = ensureGeneratedBanner (contents, '//');
         outputs.push ({
             'path': relative,
             'contents': contents,
