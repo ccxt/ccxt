@@ -985,9 +985,9 @@ public class HollaexCore extends HollaexApi
             Object makerFees = this.safeValue(fees, "maker", new java.util.HashMap<String, Object>() {{}});
             Object takerFees = this.safeValue(fees, "taker", new java.util.HashMap<String, Object>() {{}});
             Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(((Object)this.symbols))); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
             {
-                Object symbol = Helpers.GetValue(((Object)this.symbols), i);
+                Object symbol = Helpers.GetValue(this.symbols, i);
                 Object market = this.market(symbol);
                 Object makerString = this.safeString(makerFees, Helpers.GetValue(market, "id"));
                 Object takerString = this.safeString(takerFees, Helpers.GetValue(market, "id"));

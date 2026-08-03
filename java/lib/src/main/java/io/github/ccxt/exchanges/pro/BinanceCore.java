@@ -3398,7 +3398,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clients)); i++)
             {
                 Client client = (Client)Helpers.GetValue(clients, i);
-                Object subscriptionKeys = Helpers.objectKeys(((java.util.Map)client.subscriptions));
+                Object subscriptionKeys = Helpers.objectKeys(client.subscriptions);
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(subscriptionKeys)); j++)
                 {
                     Object subscribeType = Helpers.GetValue(subscriptionKeys, j);

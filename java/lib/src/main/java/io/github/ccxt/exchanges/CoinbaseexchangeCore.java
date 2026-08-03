@@ -1193,9 +1193,9 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Object maker = this.safeNumber(response, "maker_fee_rate");
             Object taker = this.safeNumber(response, "taker_fee_rate");
             Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(((Object)this.symbols))); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
             {
-                Object symbol = Helpers.GetValue(((Object)this.symbols), i);
+                Object symbol = Helpers.GetValue(this.symbols, i);
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", response );
         put( "symbol", symbol );

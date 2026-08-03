@@ -4154,9 +4154,9 @@ public class CryptocomCore extends CryptocomApi
         //
         Object result = new java.util.HashMap<String, Object>() {{}};
         Helpers.addElementToObject(result, "info", response);
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(((Object)this.symbols))); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
         {
-            Object symbol = Helpers.GetValue(((Object)this.symbols), i);
+            Object symbol = Helpers.GetValue(this.symbols, i);
             Object market = this.market(symbol);
             Object isSwap = Helpers.GetValue(market, "swap");
             Object takerFeeKey = ((Helpers.isTrue(isSwap))) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";

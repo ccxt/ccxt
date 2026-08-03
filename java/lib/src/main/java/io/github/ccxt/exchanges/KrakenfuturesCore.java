@@ -780,7 +780,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             //    }
             //
             Object candles = this.safeList(response, "candles");
-            return this.parseOHLCVs((java.util.List<Object>)(candles), market, timeframe, since, limit);
+            return this.parseOHLCVs(candles, market, timeframe, since, limit);
         });
 
     }

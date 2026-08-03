@@ -5989,9 +5989,9 @@ public class CoinbaseCore extends CoinbaseApi
             Object taker_fee = this.safeNumber(data, "taker_fee_rate");
             Object maker_fee = this.safeNumber(data, "maker_fee_rate");
             Object result = new java.util.HashMap<String, Object>() {{}};
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(((Object)this.symbols))); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
             {
-                Object symbol = Helpers.GetValue(((Object)this.symbols), i);
+                Object symbol = Helpers.GetValue(this.symbols, i);
                 Object market = this.market(symbol);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(isSpot) && Helpers.isTrue(Helpers.GetValue(market, "spot")))) || Helpers.isTrue((!Helpers.isTrue(isSpot) && !Helpers.isTrue(Helpers.GetValue(market, "spot"))))))
                 {

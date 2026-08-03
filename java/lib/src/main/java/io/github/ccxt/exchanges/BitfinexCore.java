@@ -3097,9 +3097,9 @@ public class BitfinexCore extends BitfinexApi
             Object takerFee = this.safeNumber(takerData, 0);
             Object takerFeeFiat = this.safeNumber(takerData, 2);
             Object takerFeeDeriv = this.safeNumber(takerData, 5);
-            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(((Object)this.symbols))); i++)
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
             {
-                Object symbol = Helpers.GetValue(((Object)this.symbols), i);
+                Object symbol = Helpers.GetValue(this.symbols, i);
                 Object market = this.market(symbol);
                 Object fee = new java.util.HashMap<String, Object>() {{
                     put( "info", response );

@@ -305,7 +305,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
 
     public Object getActiveSymbols()
     {
-        Object symbols = ((Object)this.symbols);
+        Object symbols = this.symbols;
         Object output = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {

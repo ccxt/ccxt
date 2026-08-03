@@ -1070,9 +1070,9 @@ final Object finalBase = base;
         Object maker = this.safeNumber(feesValue, "maker");
         Object taker = this.safeNumber(feesValue, "taker");
         Object result = new java.util.HashMap<String, Object>() {{}};
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(((Object)this.symbols))); i++)
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
         {
-            Object symbol = Helpers.GetValue(((Object)this.symbols), i);
+            Object symbol = Helpers.GetValue(this.symbols, i);
             Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
     put( "info", fees );
     put( "symbol", symbol );
