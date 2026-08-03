@@ -2358,9 +2358,29 @@ func (this *NadoCore) HandleOrderBook(client any, message any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	if !ccxt.IsTrue((ccxt.InOp(this.Orderbooks, symbol))) {
-		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
+		return
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
+	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var maxTimestamp any = this.SafeString(orderbook, "maxTimestamp")
+	var lastMaxTimestamp any = this.SafeString(message, "last_max_timestamp")
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(maxTimestamp, nil))) && ccxt.IsTrue((!ccxt.IsEqual(lastMaxTimestamp, nil)))) && ccxt.IsTrue((!ccxt.IsEqual(maxTimestamp, lastMaxTimestamp)))) {
+		var subscriptions any = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(subscriptions)); i++ {
+			var subscriptionHash any = ccxt.GetValue(subscriptions, i)
+			var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
+			var streamType any = this.SafeString(subscription, "streamType")
+			var subscriptionSymbol any = this.SafeString(subscription, "symbol")
+			if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(streamType, "book_depth"))) && ccxt.IsTrue((ccxt.IsEqual(subscriptionSymbol, symbol)))) {
+				ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)
+			}
+		}
+		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		ccxt.Remove(this.Orderbooks, symbol)
+		error := ccxt.InvalidNonce(ccxt.Add(this.Id, " watchOrderBook received invalid nonce"))
+		client.(ccxt.ClientInterface).Reject(error, messageHash)
+		return
+	}
 	var asks any = this.SafeList(message, "asks", []any{})
 	var bids any = this.SafeList(message, "bids", []any{})
 	this.HandleDeltas(ccxt.GetValue(orderbook, "asks"), asks)
@@ -2370,7 +2390,6 @@ func (this *NadoCore) HandleOrderBook(client any, message any) {
 	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
 	ccxt.AddElementToObject(orderbook, "datetime", this.Iso8601(timestamp))
 	ccxt.AddElementToObject(orderbook, "maxTimestamp", this.SafeString(message, "max_timestamp"))
-	var messageHash any = ccxt.Add("orderbook:", symbol)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *NadoCore) HandleExecuteResponse(client any, message any) {
