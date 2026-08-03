@@ -663,7 +663,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    async override fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
+    override async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
         const requestedOutcomeSymbols: Dict = {};
         if (outcomes !== undefined) {
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
@@ -976,7 +976,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.user] wallet address
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    async override fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
+    override async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
         const requestedOutcomeSymbols: Dict = {};
         if (outcomes !== undefined) {
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),

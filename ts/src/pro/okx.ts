@@ -466,7 +466,7 @@ export default class okx extends okxRest {
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async override watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'tickers');
         params['channel'] = channel;
@@ -524,7 +524,7 @@ export default class okx extends okxRest {
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async override watchMarkPrice (symbol: string, params: Dict = {}): Promise<Ticker> {
+    override async watchMarkPrice (symbol: string, params: Dict = {}): Promise<Ticker> {
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchMarkPrice', 'channel', 'mark-price');
         params['channel'] = channel;

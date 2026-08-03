@@ -7852,7 +7852,7 @@ export default class okx extends Exchange {
      * @param {string} [params.id] the order ID of borrowing, it is necessary while repaying
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async override repayCrossMargin (code: string, amount: number, params = {}) {
+    override async repayCrossMargin (code: string, amount: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

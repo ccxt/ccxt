@@ -2017,7 +2017,7 @@ export default class bitrue extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async override createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

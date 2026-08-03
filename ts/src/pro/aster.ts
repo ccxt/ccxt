@@ -107,7 +107,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async override watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         params['callerMethodName'] = 'watchTicker';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -133,7 +133,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async override unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
+    override async unWatchTicker (symbol: string, params: Dict = {}): Promise<any> {
         params['callerMethodName'] = 'unWatchTicker';
         return await this.unWatchTickers ([ symbol ], params);
     }
@@ -245,7 +245,7 @@ export default class aster extends asterRest {
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async override watchMarkPrice (symbol: string, params: Dict = {}): Promise<Ticker> {
+    override async watchMarkPrice (symbol: string, params: Dict = {}): Promise<Ticker> {
         params['callerMethodName'] = 'watchMarkPrice';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -266,7 +266,7 @@ export default class aster extends asterRest {
      * @param {boolean} [params.use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    async override unWatchMarkPrice (symbol: string, params: Dict = {}): Promise<any> {
+    override async unWatchMarkPrice (symbol: string, params: Dict = {}): Promise<any> {
         params['callerMethodName'] = 'unWatchMarkPrice';
         return await this.unWatchMarkPrices ([ symbol ], params);
     }
@@ -598,7 +598,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async override watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         params['callerMethodName'] = 'watchTrades';
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
@@ -614,7 +614,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async override unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         params['callerMethodName'] = 'unWatchTrades';
         return await this.unWatchTradesForSymbols ([ symbol ], params);
     }
@@ -905,7 +905,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async override watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         params['callerMethodName'] = 'watchOrderBook';
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
@@ -923,7 +923,7 @@ export default class aster extends asterRest {
      * @param {int} [params.limit] orderbook limit, default is undefined
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    async override unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         params['callerMethodName'] = 'unWatchOrderBook';
         return await this.unWatchOrderBookForSymbols ([ symbol ], params);
     }
@@ -1077,7 +1077,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async override watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         params['callerMethodName'] = 'watchOHLCV';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -1098,7 +1098,7 @@ export default class aster extends asterRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async override unWatchOHLCV (symbol: string, timeframe = '1m', params: Dict = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe = '1m', params: Dict = {}): Promise<any> {
         params['callerMethodName'] = 'unWatchOHLCV';
         return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
     }

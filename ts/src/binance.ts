@@ -7096,7 +7096,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async override createMarketSellOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
+    override async createMarketSellOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -12729,7 +12729,7 @@ export default class binance extends Exchange {
         return this.safeValue (config, 'cost', 1);
     }
 
-    async override request (path: any, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
+    override async request (path: any, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
         const response = await this.fetch2 (path, api, method, params, headers, body, config);
         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if (api === 'private') {
@@ -13274,7 +13274,7 @@ export default class binance extends Exchange {
      * @param {string} [params.specifyRepayAssets] *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async override repayCrossMargin (code: string, amount: number, params = {}) {
+    override async repayCrossMargin (code: string, amount: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -13334,7 +13334,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async override repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
+    override async repayIsolatedMargin (symbol: string, code: string, amount: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

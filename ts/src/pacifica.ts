@@ -3285,7 +3285,7 @@ export default class pacifica extends Exchange {
      * @param {string} [params.subAccountPrivateKey] - The private key of the sub-account to use for creation
      * @returns {object} a response object
      */
-    async override createSubAccount (name: string, params = {}) {
+    override async createSubAccount (name: string, params = {}) {
         const finalHeaders: Dict = { };
         let agentAddress: Str = undefined;
         [ agentAddress, params ] = this.handleOption ('createSubAccount', 'agentAddress');

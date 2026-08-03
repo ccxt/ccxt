@@ -275,7 +275,7 @@ export default class poloniex extends poloniexRest {
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    async override cancelOrderWs (id: string, symbol: Str = undefined, params: Dict = {}) {
+    override async cancelOrderWs (id: string, symbol: Str = undefined, params: Dict = {}) {
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             const clientOrderIds = this.safeValue (params, 'clientOrderId', []);

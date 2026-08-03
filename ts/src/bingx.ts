@@ -3035,7 +3035,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async override createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params: Dict = {}) {
+    override async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params: Dict = {}) {
         params['quoteOrderQty'] = cost;
         return await this.createOrder (symbol, 'market', side, cost, undefined, params);
     }
@@ -3049,7 +3049,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async override createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
+    override async createMarketBuyOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
         params['quoteOrderQty'] = cost;
         return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
@@ -3063,7 +3063,7 @@ export default class bingx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async override createMarketSellOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
+    override async createMarketSellOrderWithCost (symbol: string, cost: number, params: Dict = {}) {
         params['quoteOrderQty'] = cost;
         return await this.createOrder (symbol, 'market', 'sell', cost, undefined, params);
     }
