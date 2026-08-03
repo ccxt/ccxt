@@ -1597,7 +1597,7 @@ class woofipro extends woofipro$1["default"] {
                     'type': 'LIMIT',
                     'reduce_only': true,
                 };
-                outterOrder.push(takeProfitOrder);
+                childOrders.push(takeProfitOrder);
             }
             request['child_orders'] = [outterOrder];
         }

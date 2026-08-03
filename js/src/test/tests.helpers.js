@@ -71,9 +71,6 @@ function jsonStringify(elem) {
 function convertAscii(input) {
     return input; // stub for c#
 }
-function getTestName(str) {
-    return str;
-}
 function ioFileExists(path) {
     return fs.existsSync(path);
 }
