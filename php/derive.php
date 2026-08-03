@@ -21,11 +21,11 @@ class derive extends Exchange {
             'dex' => true,
             'has' => array(
                 'CORS' => null,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
-                'swap' => false,
+                'swap' => true,
                 'future' => false,
-                'option' => false,
+                'option' => true,
                 'addMargin' => false,
                 'borrowCrossMargin' => false,
                 'borrowIsolatedMargin' => false,
@@ -973,14 +973,29 @@ class derive extends Exchange {
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
+    public function parse_trades(array $trades, ?array $market = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+        $result = array();
+        for ($i = 0; $i < count($trades); $i++) {
+            $parsed = $this->parse_trade($trades[$i], $market);
+            if ($parsed === null) {
+                continue;
+            }
+            $trade = $this->extend($parsed, $params);
+            $result[] = $trade;
+        }
+        $result = $this->sort_by_2($result, 'timestamp', 'id');
+        $symbol = $this->safe_string($market, 'symbol');
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
+    }
+
     public function parse_trade(array $trade, ?array $market = null): array {
+        //
+        // fetchTrades & fetchMyTrades
         //
         // {
         //     "subaccount_id" => 130837,
-        //     "order_id" => "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
         //     "instrument_name" => "BTC-PERP",
         //     "direction" => "sell",
-        //     "label" => "test1234",
         //     "quote_id" => null,
         //     "trade_id" => "f8a30740-488c-4c2d-905d-e17057bafde1",
         //     "timestamp" => 1738065303708,
@@ -991,13 +1006,20 @@ class derive extends Exchange {
         //     "liquidity_role" => "taker",
         //     "realized_pnl" => "0",
         //     "realized_pnl_excl_fees" => "0",
-        //     "is_transfer" => false,
         //     "tx_status" => "settled",
         //     "trade_fee" => "1.127415534092999815",
         //     "tx_hash" => "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        //     "transaction_id" => "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        //     "label" => "test1234",                                      // only fetchMyTrades
+        //     "order_id" => "30c48194-8d48-43ac-ad00-0d5ba29eddc9",       // only fetchMyTrades
+        //     "is_transfer" => false,                                     // only fetchMyTrades
+        //     "transaction_id" => "e18b9426-3fa5-41bb-99d3-8b54fb4d11bb", // only fetchMyTrades
+        //     "rfq_id" => null,                                           // only fetchTrades
+        //     "wallet" => "0x353Bf69715DdbF7A2b0C6Deba8EAC1F1D160c123",   // only fetchTrades
+        //     "expected_rebate" => "0",                                   // only fetchTrades
+        //     "extra_fee" => "0",                                         // only fetchTrades
         // }
         //
+        $isFetchTrades = !(is_array($trade) && array_key_exists('order_id' ?? '', $trade));
         $marketId = $this->safe_string($trade, 'instrument_name');
         $symbol = $this->safe_symbol($marketId, $market);
         $timestamp = $this->safe_integer($trade, 'timestamp');
@@ -1005,6 +1027,11 @@ class derive extends Exchange {
             'currency' => 'USDC',
             'cost' => $this->safe_string($trade, 'trade_fee'),
         );
+        $takerOrMaker = $this->safe_string($trade, 'liquidity_role');
+        if ($isFetchTrades && ($takerOrMaker === 'maker')) {
+            // skip maker trades
+            return null;
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string($trade, 'trade_id'),
