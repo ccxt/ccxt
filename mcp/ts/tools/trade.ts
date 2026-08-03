@@ -23,7 +23,7 @@ const WRITE_METHOD_ALLOWLIST = new Set ([
 export function registerTradeTools (server: McpServer, ctx: ServerContext): void {
     server.registerTool ('create_order', {
         'title': 'Place an order',
-        'description': 'Place an order on a trading-enabled account (works on prediction exchanges with outcome handles as the symbol). Validated against market precision/limits and the account\'s notional caps, and gated by a confirmation step. Use "cost" instead of "amount" to market-buy by quote value where supported. Exchange-specific order params (triggerPrice, timeInForce, postOnly, reduceOnly, …): describe_method {"method": "createOrder", "exchange": ...}.',
+        'description': 'Place an order on a trading-enabled account (works on prediction exchanges with outcome handles as the symbol). Validated against market precision/limits and the account\'s notional caps. Whether it returns a preview + confirmToken first depends on the account\'s "confirm" policy: always = every order is previewed; live (the default) = only orders on a LIVE account are previewed, sandbox/demo execute immediately; never = no preview. So on a sandbox/demo account under the default policy an order executes without a confirm step. A stop/trigger order also returns meta.note flagging that conditional orders may not appear in get_orders even when live — confirm before treating the stop as guaranteed protection. Use "cost" instead of "amount" to market-buy by quote value where supported. Exchange-specific order params (triggerPrice, timeInForce, postOnly, reduceOnly, …): describe_method {"method": "createOrder", "exchange": ...}.',
         'inputSchema': {
             'account': accountParam,
             'symbol': z.string ().describe ('unified symbol (outcome handle on prediction exchanges)'),
@@ -128,7 +128,17 @@ export function registerTradeTools (server: McpServer, ctx: ServerContext): void
             if (dispatch.error !== undefined) {
                 return dispatch.error;
             }
-            return ok (project (dispatch.result, ORDER_FIELDS), { ...environmentMeta (account), 'estimatedValueUsd': guarded.orderValue, 'clientOrderId': injected.clientOrderId });
+            const orderMeta: Record<string, any> = { ...environmentMeta (account), 'estimatedValueUsd': guarded.orderValue, 'clientOrderId': injected.clientOrderId ?? dispatch.result?.clientOrderId };
+            // the create was accepted (ccxt throws on rejection), but a stop/trigger is easy to
+            // MISHANDLE downstream: many venues keep conditional orders on a separate query endpoint,
+            // so get_orders may not list it even though it exists. Flag it so the agent verifies
+            // with the venue-specific query before treating the stop as guaranteed protection —
+            // no extra API call, just an honest caveat.
+            if (isTriggerOrder (args.type, args.params)) {
+                orderMeta['triggerOrder'] = true;
+                orderMeta['note'] = 'stop/trigger order accepted by the exchange. Conditional orders often live on a separate query endpoint, so get_orders may not list it even when it exists — confirm it with the venue-specific trigger-order query (see describe_method params) before relying on it as protection.';
+            }
+            return ok (project (dispatch.result, ORDER_FIELDS), orderMeta);
         });
     }));
 
@@ -414,4 +424,13 @@ export function registerTradeTools (server: McpServer, ctx: ServerContext): void
             return ok (dispatch.result, { ...environmentMeta (account), method });
         });
     }));
+}
+
+// a stop/take-profit/trigger order — its live existence isn't guaranteed by an accepted create
+function isTriggerOrder (type: string | undefined, params: any): boolean {
+    const p = params ?? {};
+    if (p['triggerPrice'] !== undefined || p['stopPrice'] !== undefined || p['stopLossPrice'] !== undefined || p['takeProfitPrice'] !== undefined || p['stopLoss'] !== undefined || p['takeProfit'] !== undefined) {
+        return true;
+    }
+    return (typeof type === 'string') && /stop|trigger|take.?profit/i.test (type);
 }

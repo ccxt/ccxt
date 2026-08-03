@@ -23,7 +23,7 @@ const BUFFER_MAX = 200;             // updates retained per EVENT subscription (
 const READ_MAX = 50;                // event updates returned per watch_read
 const OHLCV_WINDOW = 200;           // candles retained per (symbol, timeframe) in a snapshot
 const IDLE_TTL_MS = 10 * 60 * 1000; // stop a stream with no watch_read for 10 minutes
-const DEAD_TTL_MS = 30 * 1000;      // purge a dead (errored) subscription after 30s
+const DEAD_TOMBSTONES_MAX = 100;    // cap on retained failure records for reaped streams
 const MAX_CONSECUTIVE_ERRORS = 5;   // give up a stream after this many back-to-back errors
 const WAIT_DEFAULT_MS = 25 * 1000;  // default block for waitForChange
 const WAIT_MAX_MS = 55 * 1000;      // clamp — stay under typical host tool-call timeouts
@@ -137,15 +137,24 @@ export class StreamArgError extends Error {
 export class SubscriptionRegistry {
     private pools: any;
     private maxSubscriptions: number;
+    private deadRetentionMs: number;
     private subs = new Map<string, Subscription> ();
+    // tombstones for streams reaped AFTER their retention window, so a late watch_read still
+    // gets the real failure (SUBSCRIPTION_FAILED) instead of a misleading "not found / idle" —
+    // bounded so it can't grow without bound
+    private deadErrors = new Map<string, StreamError> ();
     // reserved counts in-flight subscribe() calls that passed the cap check but aren't yet
     // in `subs` — closes the check-then-act gap across the acquire await
     private reserved = 0;
 
-    constructor (pools: any, maxSubscriptions = 0) {
+    constructor (pools: any, maxSubscriptions = 0, deadRetentionMs = IDLE_TTL_MS) {
         this.pools = pools;
         // 0 = no limit (the default); a positive value is an optional runaway backstop
         this.maxSubscriptions = maxSubscriptions;
+        // how long an errored stream is retained (listable, readable with its error) before it
+        // is reaped — defaults to the idle TTL so a dead stream doesn't vanish minutes after it
+        // died and confuse watch_read into reporting "idle-expired"
+        this.deadRetentionMs = deadRetentionMs;
     }
 
     async subscribe (opts: { exchangeId: string, method: string, args?: (string | number | boolean | null)[], symbol?: string, symbols?: string[], account?: string, marketType?: string, prediction?: boolean, params?: Record<string, any> }): Promise<any> {
@@ -272,17 +281,22 @@ export class SubscriptionRegistry {
         }
     }
 
-    read (id: string, cursor?: number): any {
+    read (id: string, cursor?: number, depth?: number): any {
         const sub = this.subs.get (id);
         if (sub === undefined) {
+            // reaped long after it failed — surface the real error, not a "not found / idle" guess
+            const tombstone = this.deadErrors.get (id);
+            if (tombstone !== undefined) {
+                return { 'found': false, 'failed': true, 'error': tombstone };
+            }
             return { 'found': false };
         }
-        return this.readSub (sub, cursor);
+        return this.readSub (sub, cursor, depth);
     }
 
     // reads a subscription record directly — works even after it has been removed from the
     // map (a waitForChange parked reader woken by unsubscribe/idle still gets a terminal read)
-    private readSub (sub: Subscription, cursor?: number): any {
+    private readSub (sub: Subscription, cursor?: number, depth?: number): any {
         sub.lastReadAt = Date.now ();
         if (sub.active) {
             this.resetIdle (sub);
@@ -304,7 +318,7 @@ export class SubscriptionRegistry {
             const updatesSinceRead = sub.seq - sub.lastReadSeq;
             sub.lastReadSeq = sub.seq;
             common['updatesSinceRead'] = updatesSinceRead;
-            common['latest'] = buildSnapshot (sub);
+            common['latest'] = buildSnapshot (sub, depth ?? 20);
             common['latestSeq'] = sub.latest?.seq;
             return common;
         }
@@ -332,10 +346,10 @@ export class SubscriptionRegistry {
     // watch_read with optional blocking: if waitForChange and there is nothing new yet, park
     // until the next update lands (or the stream stops, or the timeout elapses), then read.
     // This is the "notify me on the next fill" pattern — one long request instead of polling.
-    async readWaiting (id: string, cursor?: number, waitForChange = false, timeoutMs?: number): Promise<any> {
+    async readWaiting (id: string, cursor?: number, waitForChange = false, timeoutMs?: number, depth?: number): Promise<any> {
         const sub = this.subs.get (id);
         if (sub === undefined) {
-            return { 'found': false };
+            return this.read (id, cursor, depth); // tombstone-aware (SUBSCRIPTION_FAILED vs not-found)
         }
         let timedOut = false;
         if (waitForChange && sub.active && !this.hasNewSince (sub, cursor)) {
@@ -343,7 +357,7 @@ export class SubscriptionRegistry {
         }
         // read the captured sub directly: if it was stopped (unsubscribe/idle) while we were
         // parked, the agent still gets a terminal read (active:false + last state) not "not found"
-        const result = this.readSub (sub, cursor);
+        const result = this.readSub (sub, cursor, depth);
         if (waitForChange) {
             result.waited = true;
             result.timedOut = timedOut;
@@ -491,6 +505,13 @@ export class SubscriptionRegistry {
         }
         sub.stopResolve (sub.stopSentinel);
         this.notifyWaiters (sub); // unblock any waitForChange
+        // leave a tombstone for an errored stream so a later read is honest about WHY it's gone
+        if (sub.error !== undefined) {
+            if (this.deadErrors.size >= DEAD_TOMBSTONES_MAX) {
+                this.deadErrors.delete (this.deadErrors.keys ().next ().value as string);
+            }
+            this.deadErrors.set (sub.id, sub.error);
+        }
         this.subs.delete (sub.id);
         if (wasActive) {
             this.releaseTransport (sub);
@@ -536,7 +557,7 @@ export class SubscriptionRegistry {
                     if (sub.timer !== undefined) {
                         clearTimeout (sub.timer);
                     }
-                    sub.timer = this.armTimer (() => this.stopSub (sub), DEAD_TTL_MS);
+                    sub.timer = this.armTimer (() => this.stopSub (sub), this.deadRetentionMs);
                     break;
                 }
                 // interruptible backoff — a stop wakes it immediately instead of blocking up to 30s
@@ -663,14 +684,14 @@ function mergeDelta (sub: Subscription, result: any): void {
 
 // Project the accumulator into the full snapshot returned by watch_read. Runs at READ time
 // only, so the projection/sort cost is paid at read frequency, not tick frequency.
-function buildSnapshot (sub: Subscription): any {
+function buildSnapshot (sub: Subscription, depth = 20): any {
     const strategy = sub.strategy;
     const acc = sub.accumulator;
     if (acc === undefined) {
         return undefined;
     }
     if (strategy === 'replace' || strategy === undefined) {
-        return trimWatchUpdate (sub.method, acc);
+        return trimWatchUpdate (sub.method, acc, depth);
     }
     if (strategy === 'mergeDict') {
         const out: Record<string, any> = {};
@@ -682,7 +703,7 @@ function buildSnapshot (sub: Subscription): any {
     if (strategy === 'mergeBook') {
         const out: Record<string, any> = {};
         for (const [ symbol, book ] of Object.entries (acc)) {
-            out[symbol] = trimOrderBook (book);
+            out[symbol] = trimOrderBook (book, depth);
         }
         return out;
     }
@@ -706,14 +727,15 @@ function projectSnapshotItem (method: string, item: any): any {
     return project (item, TICKER_FIELDS);
 }
 
-function trimOrderBook (data: any): any {
+function trimOrderBook (data: any, depth = 20): any {
+    const n = Math.max (1, Math.min (100, depth));
     return {
         'symbol': data.symbol,
         'timestamp': data.timestamp,
         'datetime': data.datetime,
         'nonce': data.nonce,
-        'bids': (data.bids ?? []).slice (0, 20).map ((l: any[]) => [ l[0], l[1] ]),
-        'asks': (data.asks ?? []).slice (0, 20).map ((l: any[]) => [ l[0], l[1] ]),
+        'bids': (data.bids ?? []).slice (0, n).map ((l: any[]) => [ l[0], l[1] ]),
+        'asks': (data.asks ?? []).slice (0, n).map ((l: any[]) => [ l[0], l[1] ]),
     };
 }
 
@@ -771,13 +793,13 @@ function buildOhlcvSnapshot (acc: Record<string, Record<string, Map<number, any>
 
 // keep updates small: project to the same fields the fetch* tools return, and cap
 // array-valued streams (order book depth, trade/order batches, ohlcv candles)
-function trimWatchUpdate (method: string, data: any): any {
+function trimWatchUpdate (method: string, data: any, depth = 20): any {
     if (data === null || data === undefined) {
         return data;
     }
     const m = method.toLowerCase ();
     if (m.includes ('orderbook')) {
-        return trimOrderBook (data);
+        return trimOrderBook (data, depth);
     }
     if (m.includes ('ohlcv')) {
         return Array.isArray (data) ? data.slice (-5) : data;

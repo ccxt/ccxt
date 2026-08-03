@@ -547,7 +547,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
                 'implicitWrites': accounts.some ((account) => account.implicitWrites),
             },
             'elicitationSupported': ctx.elicitationSupported (),
-            'configPath': ctx.config.configPath ?? '(no config file found — public market tier only)',
+            'configPath': ctx.config.configPath ?? (accounts.length > 0 ? '(no config file — accounts configured via environment variables)' : '(no config file found — public market tier only)'),
             'journal': ctx.journal.location (),
             'unresolvedIntents': unresolved.map ((record: any) => ({ 'intentId': record.intentId, 'ts': record.ts, 'account': record.account, 'method': record.method, 'clientOrderId': record.clientOrderId })),
             'configProblems': ctx.config.problems,

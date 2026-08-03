@@ -12,6 +12,7 @@ export interface CreateServerOptions {
     poolsDeps: PoolsDeps;
     version: string;
     journalDir?: string;
+    deadRetentionMs?: number; // how long errored streams stay listable/readable (tests inject a tiny value)
 }
 
 // assembles a fully-wired server; server.ts feeds it the real ccxt module and loader deps,
@@ -20,7 +21,7 @@ export function createServer (options: CreateServerOptions): { server: McpServer
     const journal = new Journal (options.journalDir);
     const safety = new Safety (journal);
     const pools = new ExchangePools (options.config, options.poolsDeps);
-    const subscriptions = new SubscriptionRegistry (pools, options.config.settings.maxSubscriptions);
+    const subscriptions = new SubscriptionRegistry (pools, options.config.settings.maxSubscriptions, options.deadRetentionMs);
     const server = new McpServer ({
         'name': 'ccxt-mcp',
         'version': options.version,

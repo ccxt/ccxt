@@ -9,13 +9,14 @@ import { createServer } from '../../ts/factory.js';
 import { fakeCcxtModule, fakePoolsDeps, makeConfig } from '../helpers/fake-ccxt.js';
 import type { ServerContext } from '../../ts/types.js';
 
-async function connect (accounts: any = {}): Promise<{ client: Client, ctx: ServerContext }> {
+async function connect (accounts: any = {}, opts: { deadRetentionMs?: number } = {}): Promise<{ client: Client, ctx: ServerContext }> {
     const { server, ctx } = createServer ({
         'config': makeConfig (accounts),
         'ccxtModule': fakeCcxtModule,
         'poolsDeps': fakePoolsDeps,
         'version': 'test',
         'journalDir': fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-watch-')),
+        'deadRetentionMs': opts.deadRetentionMs,
     });
     const [ clientTransport, serverTransport ] = InMemoryTransport.createLinkedPair ();
     const client = new Client ({ 'name': 'watch-test', 'version': '0.0.1' });
@@ -216,6 +217,44 @@ test ('a fatal stream error releases the socket and surfaces an actionable error
     assert.equal (held.exchange.closed, false);
     ctx.pools.releasePublicStream (held.streamKey); // 1 -> 0 -> closed
     assert.equal (held.exchange.closed, true, 'socket closes once the last ref is released');
+    await ctx.subscriptions.closeAll ();
+    await client.close ();
+});
+
+test ('watch_read depth trims an order-book snapshot (depth:1 = top of book)', async () => {
+    const { client, ctx } = await connect ({});
+    const sub = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchOrderBookForSymbols', 'args': [ [ 'BTC/USDT' ] ] });
+    const id = sub.data.subscriptionId;
+    await sleep (30);
+    const full = await call (client, 'watch_read', { 'subscriptionId': id });
+    assert.equal (full.data.latest['BTC/USDT'].bids.length, 20, 'default is 20 levels');
+    const top = await call (client, 'watch_read', { 'subscriptionId': id, 'depth': 1 });
+    assert.equal (top.data.latest['BTC/USDT'].bids.length, 1, 'depth:1 = best bid only');
+    assert.equal (top.data.latest['BTC/USDT'].asks.length, 1);
+    const five = await call (client, 'watch_read', { 'subscriptionId': id, 'depth': 5 });
+    assert.equal (five.data.latest['BTC/USDT'].bids.length, 5);
+    await ctx.subscriptions.closeAll ();
+    await client.close ();
+});
+
+test ('a dead stream stays observable, then reads as SUBSCRIPTION_FAILED (not a misleading idle NOT_FOUND)', async () => {
+    const { client, ctx } = await connect ({}, { 'deadRetentionMs': 120 });
+    // watchBidsAsks throws a fatal BadSymbol on the first tick
+    const sub = await call (client, 'watch_subscribe', { 'exchange': 'fakex', 'method': 'watchBidsAsks', 'args': [ [ 'BTC/USDT' ] ] });
+    const id = sub.data.subscriptionId;
+    await sleep (40); // errored, still within the retention window
+    // (1) retained: visible in watch_list and readable with the REAL error
+    const list = await call (client, 'watch_list', {});
+    assert.ok (list.data.some ((s: any) => s.subscriptionId === id && s.active === false && s.error), 'dead stream retained in watch_list');
+    const during = await call (client, 'watch_read', { 'subscriptionId': id });
+    assert.equal (during.data.active, false);
+    assert.equal (during.data.error.code, 'STREAM_UNSUPPORTED');
+    // (2) after retention: reaped, but watch_read is HONEST — SUBSCRIPTION_FAILED, not the idle guess
+    await sleep (220);
+    const after = await call (client, 'watch_read', { 'subscriptionId': id });
+    assert.equal (after.ok, false);
+    assert.equal (after.error.code, 'SUBSCRIPTION_FAILED');
+    assert.ok (!after.error.hint.includes ('idle-expired'), 'no misleading idle-expiry hint for a stream that errored');
     await ctx.subscriptions.closeAll ();
     await client.close ();
 });

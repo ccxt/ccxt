@@ -142,6 +142,12 @@ export function toErrorEnvelope (error: any, context: ErrorContext = {}): Envelo
             + (context.clientOrderId ? 'looking for clientOrderId ' + context.clientOrderId + ' ' : '')
             + 'before doing anything else';
     }
+    // a LOCAL DNS/socket failure (getaddrinfo ENOTFOUND / EAI_AGAIN / ECONNRESET / ETIMEDOUT —
+    // e.g. many concurrent cold market loads starving the resolver threadpool) is NOT the venue
+    // being down; don't have the agent report the exchange as unreachable
+    if (code === 'EXCHANGE_UNAVAILABLE' && /ENOTFOUND|EAI_AGAIN|getaddrinfo|ECONNRESET|ETIMEDOUT/i.test (String (error?.message ?? error))) {
+        hint = 'could not reach ' + (context.exchange ?? 'the exchange') + ' — this looks like a LOCAL network/DNS failure (often DNS/threadpool exhaustion from too many concurrent cold market loads or watch_subscribe calls), NOT necessarily an exchange outage; reduce concurrency (a few at a time) and retry';
+    }
     const message = redact (String (error?.message ?? error));
     const errorBody: Record<string, any> = {
         code,

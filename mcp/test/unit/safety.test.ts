@@ -144,6 +144,10 @@ test ('confirmationRequired follows the confirm policy and environment', () => {
     assert.equal (safety.confirmationRequired (account ({ 'confirm': 'never' })), false);
     assert.equal (safety.confirmationRequired (account ({ 'confirm': 'live', 'sandbox': true })), false);
     assert.equal (safety.confirmationRequired (account ({ 'confirm': 'live', 'sandbox': false, 'trading': 'live' })), true);
+    // pin the DEMO exemption (documented, previously only covered for sandbox): default 'live'
+    // exempts demo, but 'always' still gates it — a future change must not silently start/stop gating
+    assert.equal (safety.confirmationRequired (account ({ 'confirm': 'live', 'demo': true })), false);
+    assert.equal (safety.confirmationRequired (account ({ 'confirm': 'always', 'demo': true })), true);
 });
 
 test ('withAccountLock serializes per-account critical sections', async () => {

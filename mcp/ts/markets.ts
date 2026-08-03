@@ -10,6 +10,37 @@ import { log } from './logging.js';
 
 const inFlight = new Map<string, Promise<void>> ();
 
+// Bound how many COLD loadMarkets run at once. Each cold load resolves a distinct exchange
+// hostname; Node runs getaddrinfo on the libuv threadpool (default 4), so a burst of dozens of
+// concurrent loads starves DNS and surfaces as getaddrinfo ENOTFOUND — a LOCAL failure the agent
+// would otherwise be told is the exchange being down. Bound = the threadpool size (not arbitrary).
+const LOAD_LIMIT = Math.max (2, Number (process.env['UV_THREADPOOL_SIZE']) || 4);
+let loadActive = 0;
+const loadWaiters: Array<() => void> = [];
+
+// runs fn while holding one of LOAD_LIMIT slots, queueing if all are taken (exported for tests)
+export async function withMarketLoadLimit<T> (fn: () => Promise<T>): Promise<T> {
+    if (loadActive < LOAD_LIMIT) {
+        loadActive += 1;
+    } else {
+        await new Promise<void> ((resolve) => loadWaiters.push (resolve));
+    }
+    try {
+        return await fn ();
+    } finally {
+        const next = loadWaiters.shift ();
+        if (next !== undefined) {
+            next (); // hand the slot straight to the next waiter (loadActive unchanged)
+        } else {
+            loadActive -= 1;
+        }
+    }
+}
+
+export function marketLoadLimit (): number {
+    return LOAD_LIMIT;
+}
+
 function jsonStringify (obj: any): string {
     return JSON.stringify (obj, (k, v) => ((v === undefined) ? null : v));
 }
@@ -60,11 +91,14 @@ async function loadMarketsWithCache (exchange: any, refreshTimeout: number, forc
             log ('warning', 'markets cache read failed for ' + exchange.id + ', falling back to a live load: ' + e.message);
         }
     }
-    await exchange.loadMarkets (forceRefresh);
-    try {
-        await writeFileEnsuringDir (marketsPath, jsonStringify (exchange.markets));
-        await writeFileEnsuringDir (currenciesPath, jsonStringify (exchange.currencies));
-    } catch (e: any) {
-        log ('warning', 'markets cache write failed for ' + exchange.id + ': ' + e.message);
-    }
+    // gate only the cold network+disk path (not the cache-hit fast path above)
+    await withMarketLoadLimit (async () => {
+        await exchange.loadMarkets (forceRefresh);
+        try {
+            await writeFileEnsuringDir (marketsPath, jsonStringify (exchange.markets));
+            await writeFileEnsuringDir (currenciesPath, jsonStringify (exchange.currencies));
+        } catch (e: any) {
+            log ('warning', 'markets cache write failed for ' + exchange.id + ': ' + e.message);
+        }
+    });
 }

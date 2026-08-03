@@ -63,7 +63,7 @@ To use private data or trading, create the config file (its path is shown by the
       "maxOrderValue": 250,     // …and a per-order USD cap you author (null = opt out)
       "maxDailyValue": 1000,    // optional rolling-24h cap
       "allowedSymbols": ["BTC/USDT", "ETH/*"],  // optional strict allowlist
-      "confirm": "live"         // always | live (default) | never
+      "confirm": "live"         // always (every order) | live (default: only LIVE accounts; sandbox/demo execute WITHOUT a confirm step) | never
     },
     "polymarket-main": { "exchange": "polymarket", "walletAddress": "0x…", "privateKey": "0x…" }
   }
@@ -109,7 +109,7 @@ Conventions to follow:
 ## Trading safely
 
 1. Start on `sandbox: true` with testnet keys.
-2. Order tools return a **preview + confirmation** first — show the preview (symbol, side, amount, estimated USD value) to the user, then repeat the identical call with the `confirm` token (or approve the native prompt) to execute.
+2. Order tools return a **preview + confirmation** first **when the account's `confirm` policy fires** (`always`, or `live` on a live account) — show the preview (symbol, side, amount, estimated USD value) to the user, then repeat the identical call with the `confirm` token (or approve the native prompt) to execute. Under the default `live` policy, **sandbox/demo orders execute immediately without a preview**, and `maxOrderValue: null` means no cap — so on a demo account an order can execute in one call with no gate.
 3. For live accounts, set a `maxOrderValue` cap and, on the exchange, use API keys with **withdrawal disabled** and an **IP allowlist**.
 
 ## Troubleshooting

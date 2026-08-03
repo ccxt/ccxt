@@ -152,6 +152,46 @@ test ('create_order: preview + confirm token executes exactly once, journaled', 
     await client.close ();
 });
 
+test ('get_safety_status does not claim "public market tier only" when accounts are configured without a file', async () => {
+    const { client } = await connect (TRADING_ACCOUNT); // configPath undefined (env/harness accounts), trading armed
+    const status = await call (client, 'get_safety_status', {});
+    assert.equal (status.data.tiers.trading, true);
+    assert.ok (status.data.accounts.length > 0);
+    assert.ok (!status.data.configPath.includes ('public market tier only'), 'must not contradict the armed trading tier');
+    assert.match (status.data.configPath, /environment variables/i);
+    await client.close ();
+});
+
+test ('create_order flags a stop/trigger order with a caveat note, without an extra API call (P0)', async () => {
+    const { client, ctx } = await connect (TRADING_ACCOUNT);
+    const args = { 'account': 'acc', 'symbol': 'BTC/USDT', 'type': 'market', 'side': 'sell', 'amount': 0.001, 'params': { 'triggerPrice': 39000, 'reduceOnly': true } };
+    const preview = await call (client, 'create_order', args);
+    assert.equal (preview.ok, true);
+    const executed = await call (client, 'create_order', { ...args, 'confirm': preview.meta.confirmToken });
+    assert.equal (executed.ok, true, 'never a false failure — the venue accepted it');
+    assert.ok (executed.data.id, 'returns the real venue order id (not synthesized)');
+    assert.equal (executed.meta.triggerOrder, true);
+    assert.ok (executed.meta.note && executed.meta.note.length > 0, 'a caveat note about conditional-order visibility');
+    // warn-only: no extra read call — the fake records reads, and only the create happened
+    const { exchange } = await ctx.pools.getAuthenticated ('acc');
+    assert.equal (exchange.openOrdersFetches, 0, 'no fetchOpenOrders call on the create path');
+    await client.close ();
+});
+
+test ('create_order: a plain order has no trigger meta; clientOrderId reflects the order', async () => {
+    const { client } = await connect (TRADING_ACCOUNT);
+    const args = { 'account': 'acc', 'symbol': 'BTC/USDT', 'type': 'limit', 'side': 'buy', 'amount': 0.001, 'price': 50000 };
+    const preview = await call (client, 'create_order', args);
+    const executed = await call (client, 'create_order', { ...args, 'confirm': preview.meta.confirmToken });
+    assert.equal (executed.ok, true);
+    assert.equal (executed.meta.triggerOrder, undefined, 'no trigger meta on a plain order');
+    assert.equal (executed.meta.note, undefined);
+    // the server did not inject (fake uses a computed key); meta.clientOrderId falls back to the
+    // venue-assigned id on the returned order, not null
+    assert.equal (executed.meta.clientOrderId, 'venue-cid-1', 'meta.clientOrderId reflects the order, not null');
+    await client.close ();
+});
+
 test ('order rails: cap and market limits enforced at execution', async () => {
     const { client } = await connect (TRADING_ACCOUNT);
     const over = await call (client, 'create_order', { 'account': 'acc', 'symbol': 'BTC/USDT', 'type': 'limit', 'side': 'buy', 'amount': 0.01, 'price': 50000 });

@@ -51,6 +51,7 @@ export class FakeExchange {
         'watchOrderBook': false,
         'watchTickers': true, // multi-symbol STATE stream — used to test snapshot merging
         'watchMarkPrices': true, // STATE stream whose data lives in markPrice, not TICKER_FIELDS
+        'watchOrderBookForSymbols': true, // order-book STATE stream (25 levels) — for watch_read depth
         'watchFundingRate': true, // single STATE stream that never ticks (parks waitForChange)
         'watchBidsAsks': true, // used to exercise the fatal-error path (always throws)
         'watchOrders': true,  // private — used to test the account-required guard
@@ -166,7 +167,10 @@ export class FakeExchange {
         return { symbol, 'fundingRate': 0.0001, 'info': { 'raw': true } };
     }
 
+    openOrdersFetches = 0;
+
     async fetchOpenOrders (symbol?: string): Promise<any> {
+        this.openOrdersFetches += 1;
         return [ { 'id': 'open-1', 'symbol': symbol ?? 'BTC/USDT', 'type': 'limit', 'side': 'buy', 'amount': 0.001, 'remaining': 0.001, 'price': 40000, 'status': 'open', 'info': { 'raw': true } } ];
     }
 
@@ -179,7 +183,12 @@ export class FakeExchange {
     }
 
     async createOrder (symbol: string, type: string, side: string, amount: number, price?: number, params: any = {}): Promise<any> {
-        const order = { 'id': 'order-' + (this.createdOrders.length + 1), symbol, type, side, amount, price, 'status': 'open', 'clientOrderId': params['clientOrderId'], 'info': { 'raw': true } };
+        // computed key so this method's SOURCE has no literal client-order-id token for the server's
+        // injection source-inspection to match — the server does NOT inject, the order carries a
+        // venue-assigned id instead, which exercises the meta fallback
+        const cidKey = [ 'client', 'OrderId' ].join (''); // .join so the bundler can't fold it to a literal
+        const n = this.createdOrders.length + 1;
+        const order = { 'id': 'order-' + n, symbol, type, side, amount, price, 'status': 'open', [cidKey]: params[cidKey] ?? ('venue-cid-' + n), 'info': { 'raw': true } };
         this.createdOrders.push (order);
         return order;
     }
@@ -264,6 +273,18 @@ export class FakeExchange {
     // a silent stream that never resolves, so a waitForChange read genuinely parks
     async watchFundingRate (): Promise<any> {
         return new Promise (() => undefined);
+    }
+
+    // order-book state stream returning 25 levels/side, to test watch_read's depth trimming
+    async watchOrderBookForSymbols (symbols?: string[]): Promise<any> {
+        await this.nextTick ();
+        this.watchTick += 1;
+        const symbol = (Array.isArray (symbols) && symbols.length > 0) ? symbols[0] : 'BTC/USDT';
+        return {
+            symbol, 'timestamp': 1700000000000, 'datetime': null, 'nonce': this.watchTick,
+            'bids': Array.from ({ 'length': 25 }, (_, i) => [ 50000 - i, 1 ]),
+            'asks': Array.from ({ 'length': 25 }, (_, i) => [ 50001 + i, 1 ]),
+        };
     }
 
     // always throws a fatal-class error, to exercise the terminal-error socket release

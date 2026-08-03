@@ -43,10 +43,16 @@ export function registerWatchTools (server: McpServer, ctx: ServerContext): void
             'cursor': z.number ().int ().optional ().describe ('EVENT streams only: the nextCursor from your previous watch_read (omit on the first read). Ignored for state streams.'),
             'waitForChange': z.boolean ().optional ().describe ('block until the next update lands (or timeoutMs elapses) instead of returning right away — use to wait for a fill/position change without polling. If something new is already available it returns immediately.'),
             'timeoutMs': z.number ().int ().positive ().optional ().describe ('max time to block when waitForChange is set (default 25000, clamped to 1000–55000 — sub-second values are raised to ~1s, larger stay under host tool-call timeouts)'),
+            'depth': z.number ().int ().positive ().optional ().describe ('order-book streams only: levels per side to return in "latest" (default 20, max 100). Use depth:1 for just top-of-book (best bid/ask) — much cheaper when comparing many venues.'),
         },
         'annotations': { 'readOnlyHint': true, 'openWorldHint': false },
-    }, async ({ subscriptionId, cursor, waitForChange, timeoutMs }) => run ({ 'tool': 'watch_read' }, async () => {
-        const result = await ctx.subscriptions.readWaiting (subscriptionId, cursor, waitForChange ?? false, timeoutMs);
+    }, async ({ subscriptionId, cursor, waitForChange, timeoutMs, depth }) => run ({ 'tool': 'watch_read' }, async () => {
+        const result = await ctx.subscriptions.readWaiting (subscriptionId, cursor, waitForChange ?? false, timeoutMs, depth);
+        if (result.failed) {
+            // the stream DIED (error), not idle/unsubscribed — surface the real cause honestly
+            const e = result.error ?? {};
+            return { 'ok': false, 'error': { 'code': 'SUBSCRIPTION_FAILED', 'message': e.message ?? 'the stream failed and was stopped', 'retryable': false, 'hint': e.hint ?? 'the stream errored and is no longer running — fix the cause and watch_subscribe again' } };
+        }
         if (!result.found) {
             return { 'ok': false, 'error': { 'code': 'SUBSCRIPTION_NOT_FOUND', 'message': 'no active subscription ' + JSON.stringify (subscriptionId), 'retryable': false, 'hint': 'it may have been unsubscribed or idle-expired (10 min) — start a new one with watch_subscribe; watch_list shows active streams' } };
         }
