@@ -671,7 +671,7 @@ export default class coinex extends coinexRest {
         }
         let marketIds = this.marketIds (symbols);
         let market: Market = undefined;
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
@@ -733,7 +733,7 @@ export default class coinex extends coinexRest {
             await this.loadMarkets ();
         }
         const subscribedSymbols: any[] = [];
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         let market: Market = undefined;
         let callerMethodName: Str = undefined;
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchTradesForSymbols');
@@ -780,7 +780,7 @@ export default class coinex extends coinexRest {
             await this.loadMarkets ();
         }
         const watchOrderBookSubscriptions: Dict = {};
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         let market: Market = undefined;
         let type: Str = undefined;
         let callerMethodName: Str = undefined;
@@ -1268,7 +1268,7 @@ export default class coinex extends coinexRest {
             await this.loadMarkets ();
         }
         const marketIds = this.marketIds (symbols);
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         let market: Market = undefined;
         const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {

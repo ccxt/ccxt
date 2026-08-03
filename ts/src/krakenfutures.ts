@@ -2135,7 +2135,7 @@ export default class krakenfutures extends Exchange {
         let fixed = false;
         let statusId: Str = undefined;
         let price: Str = undefined;
-        let trades: any[] = [];
+        let trades: Trade[] = [];
         if (orderEventsLength) {
             const executions: any[] = [];
             for (let i = 0; i < orderEvents.length; i++) {
@@ -2569,7 +2569,7 @@ export default class krakenfutures extends Exchange {
         const marketIds = this.marketIds (symbols);
         const response = await this.publicGetTickers (params);
         const tickers = this.safeList (response, 'tickers', []);
-        const fundingRates: any[] = [];
+        const fundingRates: FundingRate[] = [];
         for (let i = 0; i < tickers.length; i++) {
             const entry = tickers[i];
             const entry_symbol = this.safeValue (entry, 'symbol');
@@ -2744,7 +2744,7 @@ export default class krakenfutures extends Exchange {
     }
 
     override parsePositions (response: any, symbols: Strings = undefined, params = {}) {
-        const result: any[] = [];
+        const result: Position[] = [];
         // a degraded response can omit openPositions entirely - default to an
         // empty list instead of crashing, see https://github.com/ccxt/ccxt/issues/19896
         const positions = this.safeList (response, 'openPositions', []);

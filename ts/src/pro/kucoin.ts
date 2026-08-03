@@ -451,7 +451,7 @@ export default class kucoin extends kucoinRest {
             [ method, params ] = this.handleOptionAndParams2 (params, 'watchTickers', 'method', 'spotMethod', method);
         }
         const messageHashes: string[] = [];
-        const topics: any[] = [];
+        const topics: string[] = [];
         if (symbols !== undefined) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
@@ -1160,7 +1160,7 @@ export default class kucoin extends kucoinRest {
         const marketIds = this.marketIds (symbols);
         const url = await this.negotiate (false, isFuturesMethod);
         const messageHashes: string[] = [];
-        const subscriptionHashes: any[] = [];
+        const subscriptionHashes: string[] = [];
         let channelName = '/market/match:';
         if (isFuturesMethod) {
             channelName = '/contractMarket/execution:';
@@ -1201,7 +1201,7 @@ export default class kucoin extends kucoinRest {
         const isFuturesMethod = (firstMarket as Dict)['contract'];
         const url = await this.negotiate (false, isFuturesMethod);
         const messageHashes: string[] = [];
-        const subscriptionHashes: any[] = [];
+        const subscriptionHashes: string[] = [];
         let channelName = '/market/match:';
         if (isFuturesMethod) {
             channelName = '/contractMarket/execution:';
@@ -1536,7 +1536,7 @@ export default class kucoin extends kucoinRest {
         }
         const topic = method + ':' + marketIds.join (',');
         const messageHashes: string[] = [];
-        const subscriptionHashes: any[] = [];
+        const subscriptionHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             messageHashes.push ('orderbook:' + symbol);
@@ -1594,7 +1594,7 @@ export default class kucoin extends kucoinRest {
         }
         const topic = method + ':' + marketIds.join (',');
         const messageHashes: string[] = [];
-        const subscriptionHashes: any[] = [];
+        const subscriptionHashes: string[] = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             messageHashes.push ('unsubscribe:orderbook:' + symbol);

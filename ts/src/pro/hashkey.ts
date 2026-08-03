@@ -635,7 +635,7 @@ export default class hashkey extends hashkeyRest {
         const listenKey = await this.authenticate ();
         symbols = this.marketSymbols (symbols);
         const messageHash = 'positions';
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         if (symbols === undefined) {
             messageHashes.push (messageHash);
         } else {

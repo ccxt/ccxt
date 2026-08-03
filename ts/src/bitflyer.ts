@@ -1143,7 +1143,7 @@ export default class bitflyer extends Exchange {
         const rawStatus = this.safeString (transaction, 'status');
         let type: Str = undefined;
         let status: Str = undefined;
-        let fee: NullableDict = undefined;
+        let fee: Fee = undefined;
         if ('fee' in transaction) {
             type = 'withdrawal';
             status = this.parseWithdrawalStatus (rawStatus);

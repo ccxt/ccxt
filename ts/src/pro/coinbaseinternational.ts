@@ -91,7 +91,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             symbols = this.getActiveSymbols ();
         }
         const symbolsLength = symbols.length;
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         if (symbolsLength > 1) {
             const parsedSymbols = this.marketSymbols (symbols);
             const marketIds = this.marketIds (parsedSymbols);
@@ -150,7 +150,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         } else {
             symbols = this.marketSymbols (symbols);
         }
-        const messageHashes: any[] = [];
+        const messageHashes: string[] = [];
         const productIds: any[] = [];
         for (let i = 0; i < (symbols as string[]).length; i++) {
             const marketId = this.marketId ((symbols as string[])[i]);
