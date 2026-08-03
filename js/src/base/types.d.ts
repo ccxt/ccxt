@@ -30,6 +30,11 @@ export interface FeeInterface {
     cost: Num;
     rate?: Num;
 }
+export interface FeeStringInterface {
+    currency: Str;
+    cost: Str;
+    rate?: Str;
+}
 export interface TradingFeeInterface {
     info: any;
     symbol: Str;
@@ -39,6 +44,7 @@ export interface TradingFeeInterface {
     tierBased: Bool;
 }
 export type Fee = FeeInterface | undefined;
+export type FeeString = FeeStringInterface | undefined;
 export interface MarketMarginModes {
     isolated: Bool;
     cross: Bool;

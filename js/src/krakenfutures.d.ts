@@ -285,7 +285,7 @@ export default class krakenfutures extends Exchange {
      * @returns Parsed exchange response for positions
      */
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;
-    parsePositions(response: any, symbols?: Strings, params?: {}): any[];
+    parsePositions(response: any, symbols?: Strings, params?: {}): Position[];
     parsePosition(position: Dict, market?: Market): {
         info: Dict;
         symbol: string;

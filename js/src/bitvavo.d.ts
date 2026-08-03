@@ -24,7 +24,7 @@ export default class bitvavo extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    parseMarkets(markets: any): any[];
+    parseMarkets(markets: any): Market[];
     /**
      * @method
      * @name bitvavo#fetchCurrencies
