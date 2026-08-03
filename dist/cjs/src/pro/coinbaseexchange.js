@@ -8,7 +8,7 @@ var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var Precise = require('../base/Precise.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class coinbaseexchange extends coinbaseexchange$1["default"] {
     describe() {

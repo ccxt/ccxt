@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var hitbtc = require('./hitbtc.js');
 var bequant$1 = require('../bequant.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 class bequant extends hitbtc["default"] {
     describe() {

@@ -6,7 +6,7 @@ var binance = require('./binance.js');
 var binanceusdm$1 = require('../binanceusdm.js');
 var errors = require('../base/errors.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 class binanceusdm extends binance["default"] {
     describe() {

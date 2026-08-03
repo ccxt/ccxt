@@ -4,7 +4,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var utils = require('./utils.js');
 
-// ----------------------------------------------------------------------------
 var has = Object.prototype.hasOwnProperty;
 var defaults = {
     allowDots: false,

@@ -12,7 +12,6 @@ var time = require('../functions/time.js');
 require('../functions/io.js');
 var base = require('@scure/base');
 
-// ----------------------------------------------------------------------------
 // websocket decompression backends are resolved once at startup so the message
 // hot path stays branch-free: node:zlib under Node, the fflate npm package elsewhere.
 // inflate is always raw deflate (no zlib header), hence node's inflateRawSync.

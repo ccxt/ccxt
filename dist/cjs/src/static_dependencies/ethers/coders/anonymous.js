@@ -4,7 +4,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var abstractCoder = require('./abstract-coder.js');
 
-// ----------------------------------------------------------------------------
 /**
  *  Clones the functionality of an existing Coder, but without a localName
  *

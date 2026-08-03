@@ -25,7 +25,18 @@ var string = require('./coders/string.js');
 var tuple = require('./coders/tuple.js');
 var fragments = require('./fragments.js');
 
-// ----------------------------------------------------------------------------
+/**
+ *  When sending values to or receiving values from a [[Contract]], the
+ *  data is generally encoded using the [ABI standard](link-solc-abi).
+ *
+ *  The AbiCoder provides a utility to encode values to ABI data and
+ *  decode values from ABI data.
+ *
+ *  Most of the time, developers should favour the [[Contract]] class,
+ *  which further abstracts a lot of the finer details of ABI data.
+ *
+ *  @_section api/abi/abi-coder:ABI Encoding
+ */
 // https://docs.soliditylang.org/en/v0.8.17/control-structures.html
 const PanicReasons = new Map();
 PanicReasons.set(0x00, "GENERIC_PANIC");

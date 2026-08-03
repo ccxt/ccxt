@@ -15,7 +15,7 @@ var merkle = require('./merkle.js');
 var num = require('./num.js');
 var shortString = require('./shortString.js');
 
-// ----------------------------------------------------------------------------
+/* eslint-disable no-param-reassign */
 const presetTypes = {
     u256: JSON.parse('[{ "name": "low", "type": "u128" }, { "name": "high", "type": "u128" }]'),
     TokenAmount: JSON.parse('[{ "name": "token_address", "type": "ContractAddress" }, { "name": "amount", "type": "u256" }]'),

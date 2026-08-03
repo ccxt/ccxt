@@ -8,7 +8,7 @@ var Precise = require('../base/Precise.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class bitfinex extends bitfinex$1["default"] {
     describe() {

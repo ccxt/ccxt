@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 /**
  * @class cryptocom
  * @augments Exchange
@@ -29,7 +29,7 @@ class cryptocom extends cryptocom$1["default"] {
                 'margin': true,
                 'swap': true,
                 'future': true,
-                'option': true,
+                'option': false,
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,

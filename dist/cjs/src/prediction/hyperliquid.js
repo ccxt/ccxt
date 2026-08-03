@@ -9,7 +9,6 @@ var Precise = require('../base/Precise.js');
 var crypto = require('../base/functions/crypto.js');
 var errors = require('../base/errors.js');
 
-// ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class hyperliquid

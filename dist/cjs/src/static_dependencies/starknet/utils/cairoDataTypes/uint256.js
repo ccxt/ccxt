@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var encode = require('../encode.js');
 var felt = require('./felt.js');
 
-// ----------------------------------------------------------------------------
+/* eslint-disable no-bitwise */
 const UINT_128_MAX = (1n << 128n) - 1n;
 const UINT_256_MAX = (1n << 256n) - 1n;
 const UINT_256_MIN = 0n;
