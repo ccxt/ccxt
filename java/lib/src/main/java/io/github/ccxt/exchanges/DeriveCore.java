@@ -30,11 +30,11 @@ public class DeriveCore extends DeriveApi
             put( "dex", true );
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "CORS", null );
-                put( "spot", false );
+                put( "spot", true );
                 put( "margin", false );
-                put( "swap", false );
+                put( "swap", true );
                 put( "future", false );
-                put( "option", false );
+                put( "option", true );
                 put( "addMargin", false );
                 put( "borrowCrossMargin", false );
                 put( "borrowIsolatedMargin", false );
@@ -955,15 +955,37 @@ public class DeriveCore extends DeriveApi
 
     }
 
+    public Object parseTrades(Object trades, Object... optionalArgs)
+    {
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object since = Helpers.getArg(optionalArgs, 1, null);
+        Object limit = Helpers.getArg(optionalArgs, 2, null);
+        Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
+        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
+        {
+            Object parsed = this.parseTrade(Helpers.GetValue(trades, i), market);
+            if (Helpers.isTrue(Helpers.isEqual(parsed, null)))
+            {
+                continue;
+            }
+            Object trade = this.extend(parsed, parameters);
+            ((java.util.List<Object>)result).add(trade);
+        }
+        result = this.sortBy2(result, "timestamp", "id");
+        Object symbol = this.safeString(market, "symbol");
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
+    }
+
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
+        // fetchTrades & fetchMyTrades
+        //
         // {
         //     "subaccount_id": 130837,
-        //     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
         //     "instrument_name": "BTC-PERP",
         //     "direction": "sell",
-        //     "label": "test1234",
         //     "quote_id": null,
         //     "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
         //     "timestamp": 1738065303708,
@@ -974,14 +996,21 @@ public class DeriveCore extends DeriveApi
         //     "liquidity_role": "taker",
         //     "realized_pnl": "0",
         //     "realized_pnl_excl_fees": "0",
-        //     "is_transfer": false,
         //     "tx_status": "settled",
         //     "trade_fee": "1.127415534092999815",
         //     "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        //     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        //     "label": "test1234",                                      // only fetchMyTrades
+        //     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",       // only fetchMyTrades
+        //     "is_transfer": false,                                     // only fetchMyTrades
+        //     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d11bb", // only fetchMyTrades
+        //     "rfq_id": null,                                           // only fetchTrades
+        //     "wallet": "0x353Bf69715DdbF7A2b0C6Deba8EAC1F1D160c123",   // only fetchTrades
+        //     "expected_rebate": "0",                                   // only fetchTrades
+        //     "extra_fee": "0",                                         // only fetchTrades
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object isFetchTrades = !Helpers.isTrue((Helpers.inOp(trade, "order_id")));
         Object marketId = this.safeString(trade, "instrument_name");
         Object symbol = this.safeSymbol(marketId, market);
         Object timestamp = this.safeInteger(trade, "timestamp");
@@ -989,6 +1018,12 @@ public class DeriveCore extends DeriveApi
             put( "currency", "USDC" );
             put( "cost", DeriveCore.this.safeString(trade, "trade_fee") );
         }};
+        Object takerOrMaker = this.safeString(trade, "liquidity_role");
+        if (Helpers.isTrue(Helpers.isTrue(isFetchTrades) && Helpers.isTrue((Helpers.isEqual(takerOrMaker, "maker")))))
+        {
+            // skip maker trades
+            return null;
+        }
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", DeriveCore.this.safeString(trade, "trade_id") );

@@ -156,6 +156,7 @@ public class CoinbaseCore extends CoinbaseApi
                 put( "setMargin", false );
                 put( "setMarginMode", false );
                 put( "setPositionMode", false );
+                put( "transfer", true );
                 put( "withdraw", true );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
@@ -5563,6 +5564,72 @@ public class CoinbaseCore extends CoinbaseApi
             put( "toAmount", null );
             put( "price", null );
             put( "fee", CoinbaseCore.this.safeNumber(feeAmountStructure, "value") );
+        }};
+    }
+
+    /**
+     * @method
+     * @name coinbase#transfer
+     * @description transfer currency internally between portfolios of the same account
+     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/move-portfolios-funds
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount the portfolio uuid to transfer funds from
+     * @param {string} toAccount the portfolio uuid to transfer funds to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object currency = this.currency(code);
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "funds", new java.util.HashMap<String, Object>() {{
+                    put( "value", CoinbaseCore.this.currencyToPrecision(code, amount) );
+                    put( "currency", Helpers.GetValue(currency, "id") );
+                }} );
+                put( "source_portfolio_uuid", fromAccount );
+                put( "target_portfolio_uuid", toAccount );
+            }};
+            Object response = (this.v3PrivatePostBrokeragePortfoliosMoveFunds(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+            //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+            //     }
+            //
+            Object transfer = this.parseTransfer(response, currency);
+            Helpers.addElementToObject(transfer, "amount", amount);
+            Helpers.addElementToObject(transfer, "status", "ok");
+            return transfer;
+        });
+
+    }
+
+    public Object parseTransfer(Object transfer, Object... optionalArgs)
+    {
+        //
+        //     {
+        //         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+        //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+        //     }
+        //
+        Object currency = Helpers.getArg(optionalArgs, 0, null);
+        Object currencyCode = this.safeCurrencyCode(null, currency);
+        return new java.util.HashMap<String, Object>() {{
+            put( "info", transfer );
+            put( "id", null );
+            put( "timestamp", null );
+            put( "datetime", null );
+            put( "currency", currencyCode );
+            put( "amount", null );
+            put( "fromAccount", CoinbaseCore.this.safeString(transfer, "source_portfolio_uuid") );
+            put( "toAccount", CoinbaseCore.this.safeString(transfer, "target_portfolio_uuid") );
+            put( "status", null );
         }};
     }
 

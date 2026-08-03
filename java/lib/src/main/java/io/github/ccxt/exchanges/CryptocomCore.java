@@ -33,7 +33,7 @@ public class CryptocomCore extends CryptocomApi
                 put( "margin", true );
                 put( "swap", true );
                 put( "future", true );
-                put( "option", true );
+                put( "option", false );
                 put( "addMargin", false );
                 put( "cancelAllOrders", true );
                 put( "cancelOrder", true );
