@@ -116,6 +116,8 @@
     "transpile": "npm run transpileRest && npm run transpileWs",
     "transpileRest": "tsx build/transpile.ts",
     "transpileWs": "tsx build/transpileWS.ts",
+    "transpile-types": "tsx build/transpileTypes.ts",
+    "transpile-types-check": "tsx build/transpileTypes.ts --check",
     "force-transpile": "npm run force-transpileRest && npm run force-transpileWs",
     "force-transpile-fast": "npm run dev-force-transpile",
     "force-transpile-fast-py": "npm run fast-force-transpileRest-py && npm run fast-force-transpileWs-py",
