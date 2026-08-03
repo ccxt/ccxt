@@ -305,6 +305,12 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Coinbase Watch All Trades](./examples/py/coinbase-watch-all-trades.md)
 
+- [Coinbase Watch Ohlcv](./examples/py/coinbase-watch-ohlcv.md)
+
+- [Coinbase Watch Order Book](./examples/py/coinbase-watch-order-book.md)
+
+- [Coinbase Watch Ticker](./examples/py/coinbase-watch-ticker.md)
+
 - [Coinbase Watch Trades](./examples/py/coinbase-watch-trades.md)
 
 - [Coinbaseexchange Fetch My Trades Pagination](./examples/py/coinbaseexchange-fetch-my-trades-pagination.md)
