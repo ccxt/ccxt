@@ -2712,8 +2712,8 @@ class bitfinex extends Exchange {
         $takerFee = $this->safe_number($takerData, 0);
         $takerFeeFiat = $this->safe_number($takerData, 2);
         $takerFeeDeriv = $this->safe_number($takerData, 5);
-        for ($i = 0; $i < count(($this->symbols)); $i++) {
-            $symbol = ($this->symbols)[$i];
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
             $market = $this->market($symbol);
             $fee = array(
                 'info' => $response,

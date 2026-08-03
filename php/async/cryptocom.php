@@ -3642,8 +3642,8 @@ class cryptocom extends Exchange {
         //
         $result = array();
         $result['info'] = $response;
-        for ($i = 0; $i < count(($this->symbols)); $i++) {
-            $symbol = ($this->symbols)[$i];
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
             $market = $this->market($symbol);
             $isSwap = $market['swap'];
             $takerFeeKey = $isSwap ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';

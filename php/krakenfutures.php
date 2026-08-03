@@ -771,7 +771,7 @@ class krakenfutures extends Exchange {
         //    }
         //
         $candles = $this->safe_list($response, 'candles');
-        return $this->parse_ohlcvs(($candles), $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {

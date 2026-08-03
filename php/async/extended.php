@@ -2229,7 +2229,7 @@ class extended extends Exchange {
         })();
     }
 
-    public function parse_trading_fee(mixed $fee, ?array $market = null): array {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         //     {
         //         "market" => "BTC-USD",

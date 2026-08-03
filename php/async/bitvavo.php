@@ -1011,8 +1011,8 @@ class bitvavo extends Exchange {
         $maker = $this->safe_number($feesValue, 'maker');
         $taker = $this->safe_number($feesValue, 'taker');
         $result = array();
-        for ($i = 0; $i < count(($this->symbols)); $i++) {
-            $symbol = ($this->symbols)[$i];
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
             $result[$symbol] = array(
                 'info' => $fees,
                 'symbol' => $symbol,

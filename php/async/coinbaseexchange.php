@@ -1208,8 +1208,8 @@ class coinbaseexchange extends Exchange {
             $maker = $this->safe_number($response, 'maker_fee_rate');
             $taker = $this->safe_number($response, 'taker_fee_rate');
             $result = array();
-            for ($i = 0; $i < count(($this->symbols)); $i++) {
-                $symbol = ($this->symbols)[$i];
+            for ($i = 0; $i < count($this->symbols); $i++) {
+                $symbol = $this->symbols[$i];
                 $result[$symbol] = array(
                     'info' => $response,
                     'symbol' => $symbol,
