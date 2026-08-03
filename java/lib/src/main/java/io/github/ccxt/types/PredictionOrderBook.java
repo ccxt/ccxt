@@ -18,7 +18,6 @@ public final class PredictionOrderBook {
     public String outcome;
     public String outcomeId;
     public String market;
-    public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
     public PredictionOrderBook(Object raw) {
@@ -31,7 +30,6 @@ public final class PredictionOrderBook {
         this.outcome = TypeHelper.safeString(data, "outcome");
         this.outcomeId = TypeHelper.safeString(data, "outcomeId");
         this.market = TypeHelper.safeString(data, "market");
-        this.info = TypeHelper.getInfo(data);
     }
 
     @SuppressWarnings("unchecked")

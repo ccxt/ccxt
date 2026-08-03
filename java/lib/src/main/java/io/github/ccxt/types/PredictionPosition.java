@@ -27,7 +27,6 @@ public final class PredictionPosition {
     public String label;
     public String market;
     public String eventId;
-    public String oppositeOutcome;
     public Boolean resolved;
     public Boolean won;
     public Double settleFraction;
@@ -56,7 +55,6 @@ public final class PredictionPosition {
         this.label = TypeHelper.safeString(data, "label");
         this.market = TypeHelper.safeString(data, "market");
         this.eventId = TypeHelper.safeString(data, "event");
-        this.oppositeOutcome = TypeHelper.safeString(data, "oppositeOutcome");
         this.resolved = TypeHelper.safeBool(data, "resolved");
         this.won = TypeHelper.safeBool(data, "won");
         this.settleFraction = TypeHelper.safeFloat(data, "settleFraction");

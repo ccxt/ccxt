@@ -6,6 +6,7 @@ import java.util.Map;
 public final class CurrencyInterface {
     public String id;
     public String code;
+    public Long numericId;
     public String name;
     public String type;
     public Boolean active;
@@ -23,6 +24,7 @@ public final class CurrencyInterface {
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.code = TypeHelper.safeString(data, "code");
+        this.numericId = TypeHelper.safeInteger(data, "numericId");
         this.name = TypeHelper.safeString(data, "name");
         this.type = TypeHelper.safeString(data, "type");
         this.active = TypeHelper.safeBool(data, "active");

@@ -2007,12 +2007,18 @@ public struct BalanceAccount
     public string? used;
     public string? total;
 
+    public string? debt;
+    public string? frozen;
+    public Dictionary<string, object> info;
     public BalanceAccount(object account2)
     {
         var account = (Dictionary<string, object>)account2;
         free = Exchange.SafeString(account, "free");
         used = Exchange.SafeString(account, "used");
         total = Exchange.SafeString(account, "total");
+        debt = Exchange.SafeString(account, "debt");
+        frozen = Exchange.SafeString(account, "frozen");
+        info = Helper.GetInfo(account);
     }
 }
 

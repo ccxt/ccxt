@@ -106,7 +106,7 @@ type MarketInterface struct {
 	Precision      Precision
 	Limits         Limits
 	Created        *int64
-	NumericId      *int64
+	NumericId      *float64
 	SubType        *string
 	Prediction     *bool
 	Percentage     *bool
@@ -178,7 +178,7 @@ func NewMarketInterface(data any) MarketInterface {
 		Precision:      precision,
 		Limits:         limits,
 		Created:        SafeInt64Typed(m, "created"),
-		NumericId:      SafeInt64Typed(m, "numericId"),
+		NumericId:      SafeFloatTyped(m, "numericId"),
 		SubType:        SafeStringTyped(m, "subType"),
 		Prediction:     SafeBoolTyped(m, "prediction"),
 		Percentage:     SafeBoolTyped(m, "percentage"),
@@ -424,7 +424,7 @@ type Order struct {
 	ClientOrderId       *string
 	Timestamp           *int64
 	Datetime            *string
-	LastTradeTimestamp  *string
+	LastTradeTimestamp  *int64
 	Symbol              *string
 	Type                *string
 	Side                *string
@@ -464,7 +464,7 @@ func NewOrder(data any) Order {
 		ClientOrderId:       SafeStringTyped(m, "clientOrderId"),
 		Timestamp:           SafeInt64Typed(m, "timestamp"),
 		Datetime:            SafeStringTyped(m, "datetime"),
-		LastTradeTimestamp:  SafeStringTyped(m, "lastTradeTimestamp"),
+		LastTradeTimestamp:  SafeInt64Typed(m, "lastTradeTimestamp"),
 		Symbol:              SafeStringTyped(m, "symbol"),
 		Type:                SafeStringTyped(m, "type"),
 		Side:                SafeStringTyped(m, "side"),
@@ -938,6 +938,7 @@ func (b *Balances) String() string {
 
 type FundingRate struct {
 	Symbol                   *string
+	Info                     map[string]any
 	Timestamp                *int64
 	Datetime                 *string
 	FundingRate              *float64
@@ -946,9 +947,10 @@ type FundingRate struct {
 	InterestRate             *float64
 	EstimatedSettlePrice     *float64
 	FundingTimestamp         *float64
+	FundingDatetime          *string
 	NextFundingTimestamp     *float64
 	NextFundingRate          *float64
-	NextFundingDatetime      *int64
+	NextFundingDatetime      *string
 	PreviousFundingTimestamp *float64
 	PreviousFundingDatetime  *string
 	PreviousFundingRate      *float64
@@ -960,6 +962,7 @@ func NewFundingRate(fundingRateEntry2 any) FundingRate {
 	fundingRateEntry := fundingRateEntry2.(map[string]any)
 	return FundingRate{
 		Symbol:                   SafeStringTyped(fundingRateEntry, "symbol"),
+		Info:                     GetInfo(fundingRateEntry),
 		Datetime:                 SafeStringTyped(fundingRateEntry, "datetime"),
 		Timestamp:                SafeInt64Typed(fundingRateEntry, "timestamp"),
 		FundingRate:              SafeFloatTyped(fundingRateEntry, "fundingRate"),
@@ -968,9 +971,10 @@ func NewFundingRate(fundingRateEntry2 any) FundingRate {
 		InterestRate:             SafeFloatTyped(fundingRateEntry, "interestRate"),
 		EstimatedSettlePrice:     SafeFloatTyped(fundingRateEntry, "estimatedSettlePrice"),
 		FundingTimestamp:         SafeFloatTyped(fundingRateEntry, "fundingTimestamp"),
+		FundingDatetime:          SafeStringTyped(fundingRateEntry, "fundingDatetime"),
 		NextFundingTimestamp:     SafeFloatTyped(fundingRateEntry, "nextFundingTimestamp"),
 		NextFundingRate:          SafeFloatTyped(fundingRateEntry, "nextFundingRate"),
-		NextFundingDatetime:      SafeInt64Typed(fundingRateEntry, "nextFundingDatetime"),
+		NextFundingDatetime:      SafeStringTyped(fundingRateEntry, "nextFundingDatetime"),
 		PreviousFundingTimestamp: SafeFloatTyped(fundingRateEntry, "previousFundingTimestamp"),
 		PreviousFundingDatetime:  SafeStringTyped(fundingRateEntry, "previousFundingDatetime"),
 		PreviousFundingRate:      SafeFloatTyped(fundingRateEntry, "previousFundingRate"),
@@ -1192,6 +1196,7 @@ func NewWithdrawlResponse(withdrawlResponseData map[string]any) WithdrawlRespons
 type CrossBorrowRate struct {
 	Currency  *string
 	Rate      *float64
+	Period    *float64
 	Timestamp *int64
 	Datetime  *string
 	Info      map[string]any
@@ -1201,6 +1206,7 @@ func NewCrossBorrowRate(data any) CrossBorrowRate {
 	return CrossBorrowRate{
 		Currency:  SafeStringTyped(data, "currency"),
 		Rate:      SafeFloatTyped(data, "rate"),
+		Period:    SafeFloatTyped(data, "period"),
 		Timestamp: SafeInt64Typed(data, "timestamp"),
 		Datetime:  SafeStringTyped(data, "datetime"),
 		Info:      GetInfo(data),
@@ -1226,9 +1232,11 @@ func NewCrossBorrowRates(data2 any) CrossBorrowRates {
 
 type IsolatedBorrowRate struct {
 	Symbol    *string
+	Base      *string
 	BaseRate  *float64
 	Quote     *string
 	QuoteRate *float64
+	Period    *int64
 	Rate      *float64
 	Timestamp *int64
 	Datetime  *string
@@ -1238,9 +1246,11 @@ type IsolatedBorrowRate struct {
 func NewIsolatedBorrowRate(data any) IsolatedBorrowRate {
 	return IsolatedBorrowRate{
 		Symbol:    SafeStringTyped(data, "symbol"),
+		Base:      SafeStringTyped(data, "base"),
 		BaseRate:  SafeFloatTyped(data, "baseRate"),
 		Quote:     SafeStringTyped(data, "quote"),
 		QuoteRate: SafeFloatTyped(data, "quoteRate"),
+		Period:    SafeInt64Typed(data, "period"),
 		Rate:      SafeFloatTyped(data, "rate"),
 		Timestamp: SafeInt64Typed(data, "timestamp"),
 		Datetime:  SafeStringTyped(data, "datetime"),
@@ -1295,6 +1305,8 @@ type OpenInterest struct {
 	Symbol             *string
 	OpenInterestAmount *float64
 	OpenInterestValue  *float64
+	BaseVolume         *float64
+	QuoteVolume        *float64
 	Timestamp          *int64
 	Datetime           *string
 	Info               map[string]any
@@ -1305,6 +1317,8 @@ func NewOpenInterest(data any) OpenInterest {
 		Symbol:             SafeStringTyped(data, "symbol"),
 		OpenInterestAmount: SafeFloatTyped(data, "openInterestAmount"),
 		OpenInterestValue:  SafeFloatTyped(data, "openInterestValue"),
+		BaseVolume:         SafeFloatTyped(data, "baseVolume"),
+		QuoteVolume:        SafeFloatTyped(data, "quoteVolume"),
 		Timestamp:          SafeInt64Typed(data, "timestamp"),
 		Datetime:           SafeStringTyped(data, "datetime"),
 		Info:               GetInfo(data),
@@ -1510,8 +1524,8 @@ type Leverage struct {
 	Symbol        *string
 	MarginMode    *string
 	Leverage      *int64
-	LongLeverage  *int64
-	ShortLeverage *int64
+	LongLeverage  *float64
+	ShortLeverage *float64
 }
 
 func NewLeverage(data any) Leverage {
@@ -1520,8 +1534,8 @@ func NewLeverage(data any) Leverage {
 		Symbol:        SafeStringTyped(data, "symbol"),
 		MarginMode:    SafeStringTyped(data, "marginMode"),
 		Leverage:      SafeInt64Typed(data, "leverage"),
-		LongLeverage:  SafeInt64Typed(data, "longLeverage"),
-		ShortLeverage: SafeInt64Typed(data, "shortLeverage"),
+		LongLeverage:  SafeFloatTyped(data, "longLeverage"),
+		ShortLeverage: SafeFloatTyped(data, "shortLeverage"),
 	}
 }
 
@@ -1555,16 +1569,22 @@ func (l *Leverages) Set(key string, lev Leverage) {
 }
 
 type BalanceAccount struct {
-	Free  *string
-	Used  *string
-	Total *string
+	Free   *string
+	Used   *string
+	Total  *string
+	Debt   *string
+	Frozen *string
+	Info   map[string]any
 }
 
 func NewBalanceAccount(data any) BalanceAccount {
 	return BalanceAccount{
-		Free:  SafeStringTyped(data, "free"),
-		Used:  SafeStringTyped(data, "used"),
-		Total: SafeStringTyped(data, "total"),
+		Free:   SafeStringTyped(data, "free"),
+		Used:   SafeStringTyped(data, "used"),
+		Total:  SafeStringTyped(data, "total"),
+		Debt:   SafeStringTyped(data, "debt"),
+		Frozen: SafeStringTyped(data, "frozen"),
+		Info:   GetInfo(data),
 	}
 }
 
@@ -1961,6 +1981,7 @@ func (t *TradingFees) Set(key string, fee TradingFeeInterface) {
 }
 
 type FundingRateHistory struct {
+	Info        map[string]any
 	Symbol      *string
 	Timestamp   *int64
 	Datetime    *string
@@ -1969,6 +1990,7 @@ type FundingRateHistory struct {
 
 func NewFundingRateHistory(data any) FundingRateHistory {
 	return FundingRateHistory{
+		Info:        GetInfo(data),
 		Symbol:      SafeStringTyped(data, "symbol"),
 		Datetime:    SafeStringTyped(data, "datetime"),
 		Timestamp:   SafeInt64Typed(data, "timestamp"),
@@ -2438,14 +2460,16 @@ func (o *OrderBooks) Set(key string, value OrderBook) {
 }
 
 type CancellationRequest struct {
-	Symbol *string
-	Id     *string
+	Symbol        *string
+	Id            *string
+	ClientOrderId *string
 }
 
 func NewCancellationRequest(request map[string]any) CancellationRequest {
 	return CancellationRequest{
-		Id:     SafeStringTyped(request, "id"),
-		Symbol: SafeStringTyped(request, "symbol"),
+		Id:            SafeStringTyped(request, "id"),
+		ClientOrderId: SafeStringTyped(request, "clientOrderId"),
+		Symbol:        SafeStringTyped(request, "symbol"),
 	}
 }
 

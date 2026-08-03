@@ -9,7 +9,8 @@ public final class Order {
     public String clientOrderId;
     public Long timestamp;
     public String datetime;
-    public String lastTradeTimestamp;
+    public Long lastTradeTimestamp;
+    public Long lastUpdateTimestamp;
     public String symbol;
     public String type;
     public String timeInForce;
@@ -20,6 +21,7 @@ public final class Order {
     public Double amount;
     public Double filled;
     public Double remaining;
+    public Double stopPrice;
     public Double triggerPrice;
     public Double stopLossPrice;
     public Double takeProfitPrice;
@@ -37,7 +39,8 @@ public final class Order {
         this.clientOrderId = TypeHelper.safeString(data, "clientOrderId");
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");
         this.datetime = TypeHelper.safeString(data, "datetime");
-        this.lastTradeTimestamp = TypeHelper.safeString(data, "lastTradeTimestamp");
+        this.lastTradeTimestamp = TypeHelper.safeInteger(data, "lastTradeTimestamp");
+        this.lastUpdateTimestamp = TypeHelper.safeInteger(data, "lastUpdateTimestamp");
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.type = TypeHelper.safeString(data, "type");
         this.timeInForce = TypeHelper.safeString(data, "timeInForce");
@@ -48,6 +51,7 @@ public final class Order {
         this.amount = TypeHelper.safeFloat(data, "amount");
         this.filled = TypeHelper.safeFloat(data, "filled");
         this.remaining = TypeHelper.safeFloat(data, "remaining");
+        this.stopPrice = TypeHelper.safeFloat(data, "stopPrice");
         this.triggerPrice = TypeHelper.safeFloat(data, "triggerPrice");
         this.stopLossPrice = TypeHelper.safeFloat(data, "stopLossPrice");
         this.takeProfitPrice = TypeHelper.safeFloat(data, "takeProfitPrice");
