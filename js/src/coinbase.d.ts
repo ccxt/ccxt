@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbase.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, Conversion, Dict, NullableDict, int, TradingFees, LedgerEntry, DepositAddress, Position } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, Conversion, Dict, NullableDict, int, TradingFees, LedgerEntry, DepositAddress, Position, TransferEntry } from './base/types.js';
 /**
  * @class coinbase
  * @augments Exchange
@@ -561,6 +561,20 @@ export default class coinbase extends Exchange {
      */
     fetchConvertTrade(id: string, code?: Str, params?: {}): Promise<Conversion>;
     parseConversion(conversion: Dict, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
+    /**
+     * @method
+     * @name coinbase#transfer
+     * @description transfer currency internally between portfolios of the same account
+     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/move-portfolios-funds
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount the portfolio uuid to transfer funds from
+     * @param {string} toAccount the portfolio uuid to transfer funds to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     /**
      * @method
      * @name coinbase#closePosition

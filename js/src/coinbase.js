@@ -154,6 +154,7 @@ export default class coinbase extends Exchange {
                 'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'urls': {
@@ -4767,6 +4768,61 @@ export default class coinbase extends Exchange {
             'toAmount': undefined,
             'price': undefined,
             'fee': this.safeNumber(feeAmountStructure, 'value'),
+        };
+    }
+    /**
+     * @method
+     * @name coinbase#transfer
+     * @description transfer currency internally between portfolios of the same account
+     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/move-portfolios-funds
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount the portfolio uuid to transfer funds from
+     * @param {string} toAccount the portfolio uuid to transfer funds to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    async transfer(code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'funds': {
+                'value': this.currencyToPrecision(code, amount),
+                'currency': currency['id'],
+            },
+            'source_portfolio_uuid': fromAccount,
+            'target_portfolio_uuid': toAccount,
+        };
+        const response = await this.v3PrivatePostBrokeragePortfoliosMoveFunds(this.extend(request, params));
+        //
+        //     {
+        //         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+        //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+        //     }
+        //
+        const transfer = this.parseTransfer(response, currency);
+        transfer['amount'] = amount;
+        transfer['status'] = 'ok';
+        return transfer;
+    }
+    parseTransfer(transfer, currency = undefined) {
+        //
+        //     {
+        //         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+        //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+        //     }
+        //
+        const currencyCode = this.safeCurrencyCode(undefined, currency);
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': currencyCode,
+            'amount': undefined,
+            'fromAccount': this.safeString(transfer, 'source_portfolio_uuid'),
+            'toAccount': this.safeString(transfer, 'target_portfolio_uuid'),
+            'status': undefined,
         };
     }
     /**

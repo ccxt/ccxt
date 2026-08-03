@@ -7335,6 +7335,7 @@ transfer currency internally between wallets on the same account
 * [bybit](/exchanges/bybit.md#transfer)
 * [budfi](/exchanges/budfi.md#transfer)
 * [cex](/exchanges/cex.md#transfer)
+* [coinbase](/exchanges/coinbase.md#transfer)
 * [coinbaseinternational](/exchanges/coinbaseinternational.md#transfer)
 * [coinex](/exchanges/coinex.md#transfer)
 * [deepcoin](/exchanges/deepcoin.md#transfer)
