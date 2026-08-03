@@ -794,6 +794,22 @@ Most exchanges allow **up to 1 or 2 requests per second**. Exchanges may tempora
 
 **The `exchange.rateLimit` property is set to a safe default which is sub-optimal. Some exchanges may have varying rate limits for different endpoints. It is up to the user to tweak `rateLimit` according to application-specific purposes.**
 
+### What the rateLimit number means
+
+`exchange.rateLimit` is **a number of milliseconds**. It is the pause the built-in throttler keeps between requests.
+
+Requests are not all equal — each endpoint has a *cost* (also called *weight*). A cheap endpoint has a cost of 1, a heavy one might cost 20. The rule is simple:
+
+```
+pause before a request = rateLimit × cost of that request
+```
+
+So with `rateLimit = 50`, a cost-1 request waits 50 ms, and a cost-20 request waits 1000 ms.
+
+To pick the right value, start from the exchange's published limit. Say an exchange allows 12000 units of weight per minute — that is one unit every `60000 / 12000 = 5` ms, so `rateLimit = 5`. Going the other way, your effective request rate is `1000 / (rateLimit × cost)` requests per second.
+
+Keep in mind this number only controls the pacing on your side. Exchanges also apply their own per-endpoint, per-account and burst rules that one number cannot express — that is why the shipped default is conservative and why tuning `rateLimit` for your workload is up to you.
+
 The CCXT library has built-in experimental rate-limiter algorithms that will do the necessary throttling in background transparently to the user. **WARNING: users are responsible for at least some type of rate-limiting: either by implementing a custom algorithm or by doing it with the built-in rate-limiter.**
 
 CCXT has the following built-in rate-limiting algorithms:
