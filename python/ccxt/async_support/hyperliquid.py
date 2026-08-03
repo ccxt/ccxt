@@ -12,6 +12,7 @@ from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -82,7 +83,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
-                'fetchFundingRate': False,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
                 'fetchIndexOHLCV': False,
@@ -1254,6 +1255,24 @@ class hyperliquid(Exchange, ImplicitAPI):
             symbol = self.safe_string(ticker, 'symbol')
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
+
+    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate for a symbol - hyperliquid only offers a bulk endpoint, so self filters the result of fetchFundingRates
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        rates = await self.fetch_funding_rates([market['symbol']], params)
+        rate = self.safe_dict(rates, market['symbol'])
+        if rate is None:
+            raise BadSymbol(self.id + ' fetchFundingRate() could not find a funding rate for ' + symbol)
+        return rate
 
     async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
