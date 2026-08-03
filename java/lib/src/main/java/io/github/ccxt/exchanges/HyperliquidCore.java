@@ -73,7 +73,7 @@ public class HyperliquidCore extends HyperliquidApi
                 put( "fetchDepositWithdrawFee", "emulated" );
                 put( "fetchDepositWithdrawFees", false );
                 put( "fetchFundingHistory", true );
-                put( "fetchFundingRate", false );
+                put( "fetchFundingRate", true );
                 put( "fetchFundingRateHistory", true );
                 put( "fetchFundingRates", true );
                 put( "fetchIndexOHLCV", false );
@@ -1447,6 +1447,34 @@ public class HyperliquidCore extends HyperliquidApi
                 Helpers.addElementToObject(result, ((String)symbol), ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#fetchFundingRate
+     * @description fetch the current funding rate for a symbol - hyperliquid only offers a bulk endpoint, so this filters the result of fetchFundingRates
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchFundingRate(Object symbol, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            (this.loadMarkets()).join();
+            Object market = this.market(symbol);
+            Object rates = (this.fetchFundingRates(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
+            Object rate = this.safeDict(rates, Helpers.GetValue(market, "symbol"));
+            if (Helpers.isTrue(Helpers.isEqual(rate, null)))
+            {
+                throw new BadSymbol((String)Helpers.add(Helpers.add(this.id, " fetchFundingRate() could not find a funding rate for "), symbol)) ;
+            }
+            return rate;
         });
 
     }
