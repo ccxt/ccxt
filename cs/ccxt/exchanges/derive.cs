@@ -18,11 +18,11 @@ public partial class derive : Exchange
             { "dex", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
-                { "spot", false },
+                { "spot", true },
                 { "margin", false },
-                { "swap", false },
+                { "swap", true },
                 { "future", false },
-                { "option", false },
+                { "option", true },
                 { "addMargin", false },
                 { "borrowCrossMargin", false },
                 { "borrowIsolatedMargin", false },
@@ -886,15 +886,34 @@ public partial class derive : Exchange
         return this.parseTrades(data, market, since, limit);
     }
 
+    public override object parseTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        {
+            object parsed = this.parseTrade(getValue(trades, i), market);
+            if (isTrue(isEqual(parsed, null)))
+            {
+                continue;
+            }
+            object trade = this.extend(parsed, parameters);
+            ((IList<object>)result).Add(trade);
+        }
+        result = this.sortBy2(result, "timestamp", "id");
+        object symbol = this.safeString(market, "symbol");
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
+    }
+
     public override object parseTrade(object trade, object market = null)
     {
         //
+        // fetchTrades & fetchMyTrades
+        //
         // {
         //     "subaccount_id": 130837,
-        //     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",
         //     "instrument_name": "BTC-PERP",
         //     "direction": "sell",
-        //     "label": "test1234",
         //     "quote_id": null,
         //     "trade_id": "f8a30740-488c-4c2d-905d-e17057bafde1",
         //     "timestamp": 1738065303708,
@@ -905,13 +924,20 @@ public partial class derive : Exchange
         //     "liquidity_role": "taker",
         //     "realized_pnl": "0",
         //     "realized_pnl_excl_fees": "0",
-        //     "is_transfer": false,
         //     "tx_status": "settled",
         //     "trade_fee": "1.127415534092999815",
         //     "tx_hash": "0xc55df1f07330faf86579bd8a6385391fbe9e73089301149d8550e9d29c9ead74",
-        //     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d51bb"
+        //     "label": "test1234",                                      // only fetchMyTrades
+        //     "order_id": "30c48194-8d48-43ac-ad00-0d5ba29eddc9",       // only fetchMyTrades
+        //     "is_transfer": false,                                     // only fetchMyTrades
+        //     "transaction_id": "e18b9426-3fa5-41bb-99d3-8b54fb4d11bb", // only fetchMyTrades
+        //     "rfq_id": null,                                           // only fetchTrades
+        //     "wallet": "0x353Bf69715DdbF7A2b0C6Deba8EAC1F1D160c123",   // only fetchTrades
+        //     "expected_rebate": "0",                                   // only fetchTrades
+        //     "extra_fee": "0",                                         // only fetchTrades
         // }
         //
+        object isFetchTrades = !isTrue((inOp(trade, "order_id")));
         object marketId = this.safeString(trade, "instrument_name");
         object symbol = this.safeSymbol(marketId, market);
         object timestamp = this.safeInteger(trade, "timestamp");
@@ -919,6 +945,12 @@ public partial class derive : Exchange
             { "currency", "USDC" },
             { "cost", this.safeString(trade, "trade_fee") },
         };
+        object takerOrMaker = this.safeString(trade, "liquidity_role");
+        if (isTrue(isTrue(isFetchTrades) && isTrue((isEqual(takerOrMaker, "maker")))))
+        {
+            // skip maker trades
+            return null;
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "trade_id") },

@@ -1318,6 +1318,26 @@ public partial class coinbase
         return new Conversion(res);
     }
     /// <summary>
+    /// transfer currency internally between portfolios of the same account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/move-portfolios-funds"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
+    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
+        return new TransferEntry(res);
+    }
+    /// <summary>
     /// fetch all open positions
     /// </summary>
     /// <remarks>
