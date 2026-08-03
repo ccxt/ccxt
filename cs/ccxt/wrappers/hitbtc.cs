@@ -820,7 +820,7 @@ public partial class hitbtc
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public List<Dictionary<string, object>> CreateOrderRequest(object market, string marketType, string type, string side, double amount, double? price2 = 0, string marginMode = null, Dictionary<string, object> parameters = null)
+    public List<Dictionary<string, object>> CreateOrderRequest(Dictionary<string, object> market, string marketType, string type, string side, double amount, double? price2 = 0, string marginMode = null, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = this.createOrderRequest(market, marketType, type, side, amount, price, marginMode, parameters);
@@ -1147,9 +1147,9 @@ public partial class hitbtc
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositWithdrawFees(res);
     }
 }

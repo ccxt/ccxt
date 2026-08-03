@@ -1273,7 +1273,7 @@ public partial class hyperliquid : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "type", "l2Book" },
-            { "coin", ((bool) isTrue(getValue(market, "swap"))) ? getValue(market, "baseName") : getValue(market, "id") },
+            { "coin", ((bool) isTrue(getValue(market, "swap"))) ? this.safeString(market, "baseName") : getValue(market, "id") },
         };
         object response = await this.publicPostInfo(this.extend(request, parameters));
         //
@@ -1589,7 +1589,7 @@ public partial class hyperliquid : Exchange
         object request = new Dictionary<string, object>() {
             { "type", "candleSnapshot" },
             { "req", new Dictionary<string, object>() {
-                { "coin", ((bool) isTrue(getValue(market, "swap"))) ? getValue(market, "baseName") : getValue(market, "id") },
+                { "coin", ((bool) isTrue(getValue(market, "swap"))) ? this.safeString(market, "baseName") : getValue(market, "id") },
                 { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
                 { "startTime", since },
                 { "endTime", until },
@@ -3354,7 +3354,7 @@ public partial class hyperliquid : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "type", "fundingHistory" },
-            { "coin", getValue(market, "baseName") },
+            { "coin", this.safeString(market, "baseName") },
         };
         if (isTrue(!isEqual(since, null)))
         {

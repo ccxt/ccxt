@@ -2350,7 +2350,8 @@ public partial class cryptocom : Exchange
         parameters ??= new Dictionary<string, object>();
         object network = this.safeStringUpper(parameters, "network");
         parameters = this.omit(parameters, new List<object>() {"network"});
-        object depositAddresses = await this.fetchDepositAddressesByNetwork(code, parameters);
+        object depositAddressesRaw = await this.fetchDepositAddressesByNetwork(code, parameters);
+        object depositAddresses = ((object)depositAddressesRaw);
         if (isTrue(inOp(depositAddresses, ((string)network))))
         {
             return getValue(depositAddresses, ((string)network));

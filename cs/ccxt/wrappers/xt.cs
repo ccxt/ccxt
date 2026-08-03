@@ -35,7 +35,7 @@ public partial class xt
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchSpotMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchSpotMarkets(object parameters = null)
     {
         var res = await this.fetchSpotMarkets(parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
@@ -329,7 +329,7 @@ public partial class xt
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateSpotOrder(string symbol, object type, object side, object amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateSpotOrder(string symbol, string type, object side, object amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.createSpotOrder(symbol, type, side, amount, price, parameters);

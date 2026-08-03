@@ -347,10 +347,10 @@ public partial class BaseExchange
         var res = await this.fetchTransactionFees(codes, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, DepositWithdrawFee>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return ((Dictionary<string, DepositWithdrawFee>)res);
+        return new DepositWithdrawFees(res);
     }
     public async Task<DepositWithdrawFee> FetchDepositWithdrawFee(string code, Dictionary<string, object> parameters = null)
     {

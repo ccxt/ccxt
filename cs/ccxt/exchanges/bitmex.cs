@@ -593,7 +593,7 @@ public partial class bitmex : Exchange
         object market = this.market(symbol);
         if (isTrue(getValue(market, "spot")))
         {
-            return this.parseNumber(this.convertToRealAmount(getValue(market, currencySide), rawQuantity));
+            return this.parseNumber(this.convertToRealAmount(this.safeString(market, currencySide), rawQuantity));
         }
         return this.parseNumber(rawQuantity);
     }

@@ -6378,10 +6378,10 @@ public partial class mexc : Exchange
         {
             if (isTrue(isEqual(section, "broker")))
             {
-                url = add(add(getValue(getValue(getValue(this.urls, "api"), section), access), "/"), path);
+                url = add(add(getValue(getValue(getValue(this.urls, "api"), section), ((string)access)), "/"), path);
             } else
             {
-                url = add(add(add(add(getValue(getValue(getValue(this.urls, "api"), section), access), "/api/"), this.version), "/"), path);
+                url = add(add(add(add(getValue(getValue(getValue(this.urls, "api"), section), ((string)access)), "/api/"), this.version), "/"), path);
             }
             object urlParams = parameters;
             if (isTrue(isEqual(access, "private")))
@@ -6422,7 +6422,7 @@ public partial class mexc : Exchange
             }
         } else if (isTrue(isTrue(isEqual(section, "contract")) || isTrue(isEqual(section, "spot2"))))
         {
-            url = add(add(getValue(getValue(getValue(this.urls, "api"), section), access), "/"), this.implodeParams(path, parameters));
+            url = add(add(getValue(getValue(getValue(this.urls, "api"), section), ((string)access)), "/"), this.implodeParams(path, parameters));
             parameters = this.omit(parameters, this.extractParams(path));
             if (isTrue(isEqual(access, "public")))
             {
