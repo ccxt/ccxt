@@ -2,6 +2,7 @@ import assert from 'assert';
 import { Exchange } from "../../../ccxt.js";
 import testCurrency from './base/test.currency.js';
 import testSharedMethods from './base/test.sharedMethods.js';
+import type { Dict } from '../../base/types.js';
 
 
 async function testFetchCurrencies (exchange: Exchange, skippedProperties: object) {
@@ -54,7 +55,7 @@ async function testFetchCurrencies (exchange: Exchange, skippedProperties: objec
 
 function detectCurrencyConflicts (exchange: Exchange, currencyValues: any) {
     // detect if there are currencies with different ids for the same code
-    const ids = {};
+    const ids: Dict = {};
     const keys = Object.keys (currencyValues);
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];

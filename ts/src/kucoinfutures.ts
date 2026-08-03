@@ -128,7 +128,7 @@ export default class kucoinfutures extends kucoin {
         });
     }
 
-    parseTransferType (transferType) {
+    parseTransferType (transferType: any) {
         const transferTypes: Dict = {
             'spot': 'TRADE',
             'funding': 'MAIN',

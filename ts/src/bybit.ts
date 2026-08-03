@@ -1420,7 +1420,7 @@ export default class bybit extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    addPaginationCursorToResult (response) {
+    addPaginationCursorToResult (response: any) {
         const result = this.safeDict (response, 'result', {});
         const data = this.safeListN (result, [ 'list', 'rows', 'data', 'dataList' ], []);
         const paginationCursor = this.safeString2 (result, 'nextPageCursor', 'cursor');
@@ -1641,7 +1641,7 @@ export default class bybit extends Exchange {
         return super.safeMarket (marketId, market, delimiter, marketType);
     }
 
-    getBybitType (method, market, params = {}): [Str, Dict] {
+    getBybitType (method: any, market: any, params = {}): [Str, Dict] {
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (method, market, params);
         let subType: Str = undefined;
@@ -1945,7 +1945,7 @@ export default class bybit extends Exchange {
         return result;
     }
 
-    async fetchSpotMarkets (params): Promise<Market[]> {
+    async fetchSpotMarkets (params: any): Promise<Market[]> {
         const request: Dict = {
             'category': 'spot',
         };
@@ -2063,7 +2063,7 @@ export default class bybit extends Exchange {
         return result;
     }
 
-    async fetchFutureMarkets (params = {}): Promise<Market[]> {
+    async fetchFutureMarkets (params: Dict = {}): Promise<Market[]> {
         params = this.extend (params, {});
         params['limit'] = 1000; // minimize number of requests
         let preLaunchMarkets = [] as any;
@@ -2259,7 +2259,7 @@ export default class bybit extends Exchange {
         return result;
     }
 
-    async fetchOptionMarkets (params): Promise<Market[]> {
+    async fetchOptionMarkets (params: any): Promise<Market[]> {
         const request: Dict = {
             'category': 'option',
         };
@@ -2727,7 +2727,7 @@ export default class bybit extends Exchange {
         return await this.fetchTickers (symbols, params);
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         "1621162800",
@@ -2873,7 +2873,7 @@ export default class bybit extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseFundingRate (ticker, market: Market = undefined): FundingRate {
+    parseFundingRate (ticker: any, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "BTCUSDT",
@@ -3483,7 +3483,7 @@ export default class bybit extends Exchange {
         return this.parseOrderBook (result, symbol, timestamp, 'b', 'a');
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: any): Balances {
         //
         // cross
         //     {
@@ -5940,7 +5940,7 @@ export default class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "chainType": "ERC20",
@@ -6552,7 +6552,7 @@ export default class bybit extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const types: Dict = {
             'Deposit': 'transaction',
             'Withdraw': 'transaction',
@@ -7429,7 +7429,7 @@ export default class bybit extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An array of open interest structures
      */
-    async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         if (timeframe === '1m') {
             throw new BadRequest (this.id + ' fetchOpenInterestHistory cannot use the 1m timeframe');
         }
@@ -7455,7 +7455,7 @@ export default class bybit extends Exchange {
         return await this.fetchDerivativesOpenInterestHistory (symbol, timeframe, since, limit, params);
     }
 
-    parseOpenInterest (interest, market: Market = undefined) {
+    parseOpenInterest (interest: any, market: Market = undefined) {
         //
         //    {
         //        "openInterest": 64757.62400000,
@@ -7515,7 +7515,7 @@ export default class bybit extends Exchange {
         return this.parseBorrowRate (data, currency);
     }
 
-    parseBorrowRate (info, currency: Currency = undefined) {
+    parseBorrowRate (info: any, currency: Currency = undefined) {
         //
         //     {
         //         "coin": "USDT",
@@ -7838,7 +7838,7 @@ export default class bybit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    async repayCrossMargin (code: string, amount, params = {}) {
+    async repayCrossMargin (code: string, amount: number, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7866,7 +7866,7 @@ export default class bybit extends Exchange {
         });
     }
 
-    parseMarginLoan (info, currency: Currency = undefined): Dict {
+    parseMarginLoan (info: any, currency: Currency = undefined): Dict {
         //
         // borrowCrossMargin
         //
@@ -8121,7 +8121,7 @@ export default class bybit extends Exchange {
         return result;
     }
 
-    parseDepositWithdrawFee (fee, currency: Currency = undefined): any {
+    parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
         //
         //    {
         //        "name": "BTC",
@@ -8350,7 +8350,7 @@ export default class bybit extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit);
     }
 
-    parseSettlement (settlement, market) {
+    parseSettlement (settlement: any, market: any) {
         //
         // fetchSettlementHistory
         //
@@ -8384,7 +8384,7 @@ export default class bybit extends Exchange {
         };
     }
 
-    parseSettlements (settlements, market) {
+    parseSettlements (settlements: any, market: any) {
         //
         // fetchSettlementHistory
         //
@@ -8456,7 +8456,7 @@ export default class bybit extends Exchange {
         return this.parseVolatilityHistory (volatility);
     }
 
-    parseVolatilityHistory (volatility) {
+    parseVolatilityHistory (volatility: any) {
         //
         //     {
         //         "period": 7,
@@ -8762,7 +8762,7 @@ export default class bybit extends Exchange {
         return this.parseLiquidations (liquidations, market, since, limit);
     }
 
-    parseLiquidation (liquidation, market: Market = undefined): Liquidation {
+    parseLiquidation (liquidation: any, market: Market = undefined): Liquidation {
         //
         //     {
         //         "symbol": "ETHPERP",
@@ -8872,7 +8872,7 @@ export default class bybit extends Exchange {
         return this.parseLeverageTiers (data, symbols, 'symbol');
     }
 
-    parseLeverageTiers (response, symbols: Strings = undefined, marketIdKey: Str = undefined): LeverageTiers {
+    parseLeverageTiers (response: any, symbols: Strings = undefined, marketIdKey: Str = undefined): LeverageTiers {
         //
         //  [
         //      {
@@ -8906,7 +8906,7 @@ export default class bybit extends Exchange {
         return tiers as LeverageTiers;
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         //
         //  [
         //      {
@@ -8992,7 +8992,7 @@ export default class bybit extends Exchange {
         return this.parseIncomes (fundings, market, since, limit);
     }
 
-    parseIncome (income, market: Market = undefined): object {
+    parseIncome (income: any, market: Market = undefined): object {
         //
         // {
         //     "symbol": "XMRUSDT",
@@ -9957,7 +9957,7 @@ export default class bybit extends Exchange {
         return this.safeString (marginModes, marginMode, marginMode);
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
@@ -10060,7 +10060,7 @@ export default class bybit extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (!response) {
             return undefined; // fallback to default error handler
         }

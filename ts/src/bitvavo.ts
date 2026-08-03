@@ -472,7 +472,7 @@ export default class bitvavo extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarkets (markets) {
+    parseMarkets (markets: any) {
         const result: any[] = [];
         const fees = this.fees;
         for (let i = 0; i < markets.length; i++) {
@@ -980,7 +980,7 @@ export default class bitvavo extends Exchange {
         return this.parseTradingFees (response);
     }
 
-    parseTradingFees (fees, market: Market = undefined) {
+    parseTradingFees (fees: any, market: Market = undefined) {
         //
         //     {
         //         "fees": {
@@ -1091,7 +1091,7 @@ export default class bitvavo extends Exchange {
         return orderbook;
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         1590383700000,
@@ -1175,7 +1175,7 @@ export default class bitvavo extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1653,7 +1653,7 @@ export default class bitvavo extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    editOrderRequest (id: string, symbol, type, side, amount: Num = undefined, price: Num = undefined, params = {}) {
+    editOrderRequest (id: string, symbol: Str, type: any, side: any, amount: Num = undefined, price: Num = undefined, params = {}) {
         let request: Dict = {};
         const market = this.market (symbol);
         const amountRemaining = this.safeNumber (params, 'amountRemaining');
@@ -2350,7 +2350,7 @@ export default class bitvavo extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    withdrawRequest (code: Str, amount, address, tag: Str = undefined, params = {}) {
+    withdrawRequest (code: Str, amount: any, address: any, tag: Str = undefined, params = {}) {
         const currency = this.currency (code);
         const request: Dict = {
             'symbol': currency['id'],
@@ -2608,7 +2608,7 @@ export default class bitvavo extends Exchange {
         } as Transaction;
     }
 
-    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //   {
         //       "symbol": "1INCH",
@@ -2690,7 +2690,7 @@ export default class bitvavo extends Exchange {
         return this.parseDepositWithdrawFees (response, codes, 'symbol');
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = '/' + this.version + '/' + this.implodeParams (path, params);
         const getOrDelete = (method === 'GET') || (method === 'DELETE');
@@ -2726,7 +2726,7 @@ export default class bitvavo extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -2746,7 +2746,7 @@ export default class bitvavo extends Exchange {
         return undefined;
     }
 
-    calculateRateLimiterCost (api, method, path, params, config = {}) {
+    calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
         if (('noMarket' in config) && !('market' in params)) {
             return config['noMarket'];
         }

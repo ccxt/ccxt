@@ -178,7 +178,7 @@ export default class mudrex extends Exchange {
         });
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    sign (path: any, api = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         const apiUrls = this.safeDict (this.urls, 'api', {});
         const base = this.safeString (apiUrls, api);
         if (base === undefined) {
@@ -219,7 +219,7 @@ export default class mudrex extends Exchange {
         return { 'url': url, 'method': methodUpper, 'body': undefined, 'headers': requestHeaders };
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined || typeof response !== 'object') {
             return undefined;
         }
@@ -251,7 +251,7 @@ export default class mudrex extends Exchange {
         return undefined;
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [ 1782984660, 60681, 60797.6, 60671.8, 60693.3, 275.741 ]
         //     [ timestampInSeconds, open, high, low, close, volume ]

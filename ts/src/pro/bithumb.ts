@@ -105,7 +105,7 @@ export default class bithumb extends bithumbRest {
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
-    handleTicker (client: Client, message) {
+    handleTicker (client: Client, message: any) {
         //
         //    {
         //        "type" : "ticker",
@@ -138,7 +138,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (this.tickers[symbol], messageHash);
     }
 
-    parseWsTicker (ticker, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //    {
         //        "symbol" : "BTC_KRW",           // 통화코드
@@ -213,7 +213,7 @@ export default class bithumb extends bithumbRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message) {
+    handleOrderBook (client: Client, message: any) {
         //
         //    {
         //        "type" : "orderbookdepth",
@@ -257,7 +257,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleDelta (orderbook, delta) {
+    handleDelta (orderbook: any, delta: any) {
         //
         //    {
         //        symbol: "ETH_BTC",
@@ -274,7 +274,7 @@ export default class bithumb extends bithumbRest {
         orderbookSide.storeArray (bidAsk);
     }
 
-    handleDeltas (orderbook, deltas) {
+    handleDeltas (orderbook: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (orderbook, deltas[i]);
         }
@@ -310,7 +310,7 @@ export default class bithumb extends bithumbRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client: any, message: any) {
         //
         //    {
         //        "type" : "transaction",
@@ -348,7 +348,7 @@ export default class bithumb extends bithumbRest {
         }
     }
 
-    parseWsTrade (trade, market: Market = undefined) {
+    parseWsTrade (trade: any, market: Market = undefined) {
         //
         //    {
         //        "symbol" : "BTC_KRW",
@@ -382,7 +382,7 @@ export default class bithumb extends bithumbRest {
         }, market);
     }
 
-    handleErrorMessage (client: Client, message): Bool {
+    handleErrorMessage (client: Client, message: any): Bool {
         //
         //    {
         //        "status" : "5100",
@@ -428,7 +428,7 @@ export default class bithumb extends bithumbRest {
         return balance;
     }
 
-    handleBalance (client: Client, message) {
+    handleBalance (client: Client, message: any) {
         //
         //    {
         //        "type": "myAsset",
@@ -528,7 +528,7 @@ export default class bithumb extends bithumbRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
-    handleOrders (client: Client, message) {
+    handleOrders (client: Client, message: any) {
         //
         //    {
         //        "type": "myOrder",
@@ -568,7 +568,7 @@ export default class bithumb extends bithumbRest {
         client.resolve (cachedOrders, symbolSpecificMessageHash);
     }
 
-    parseWsOrder (order, market: Market = undefined) {
+    parseWsOrder (order: any, market: Market = undefined) {
         //
         //    {
         //        "type": "myOrder",
@@ -659,7 +659,7 @@ export default class bithumb extends bithumbRest {
         }, market);
     }
 
-    handleMessage (client: Client, message) {
+    handleMessage (client: Client, message: any) {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }

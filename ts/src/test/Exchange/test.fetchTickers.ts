@@ -2,7 +2,7 @@ import assert from 'assert';
 import { Exchange } from "../../../ccxt.js";
 import testTicker from './base/test.ticker.js';
 import testSharedMethods from './base/test.sharedMethods.js';
-import type { Str } from '../../base/types.js';
+import type { Str, Strings } from '../../base/types.js';
 
 
 async function testFetchTickers (exchange: Exchange, skippedProperties: object, symbol: string) {
@@ -20,7 +20,7 @@ async function testFetchTickers (exchange: Exchange, skippedProperties: object, 
     return results;
 }
 
-async function fetchTickersHelperTest (exchange: Exchange, skippedProperties: object, argSymbols, argParams = {}) {
+async function fetchTickersHelperTest (exchange: Exchange, skippedProperties: object, argSymbols: Strings, argParams = {}) {
     const method = 'fetchTickers';
     const response =  await exchange.fetchTickers (argSymbols, argParams);
     assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return a dict. ' + exchange.json (response));

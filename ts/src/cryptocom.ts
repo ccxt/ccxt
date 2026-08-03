@@ -1211,7 +1211,7 @@ export default class cryptocom extends Exchange {
         return this.parseOrderBook (orderBook, symbol, timestamp);
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: any): Balances {
         const responseResult = this.safeDict (response, 'result', {});
         const data = this.safeList (responseResult, 'data', []);
         const positionBalances = this.safeValue (data[0], 'position_balances', []);
@@ -2009,7 +2009,7 @@ export default class cryptocom extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseAddress (addressString) {
+    parseAddress (addressString: any) {
         let address: Str = undefined;
         let tag: Str = undefined;
         let rawTag: Str = undefined;
@@ -2154,7 +2154,7 @@ export default class cryptocom extends Exchange {
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         const network = this.safeStringUpper (params, 'network');
         params = this.omit (params, [ 'network' ]);
-        const depositAddresses = await this.fetchDepositAddressesByNetwork (code, params);
+        const depositAddresses = await this.fetchDepositAddressesByNetwork (code, params) as any;
         if ((network as string) in depositAddresses) {
             return depositAddresses[(network as string)];
         }
@@ -2409,7 +2409,7 @@ export default class cryptocom extends Exchange {
         }, market);
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "o": "26949.89",
@@ -2549,7 +2549,7 @@ export default class cryptocom extends Exchange {
         }, market);
     }
 
-    parseDepositStatus (status) {
+    parseDepositStatus (status: any) {
         const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',
@@ -2559,7 +2559,7 @@ export default class cryptocom extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseWithdrawalStatus (status) {
+    parseWithdrawalStatus (status: any) {
         const statuses: Dict = {
             '0': 'pending',
             '1': 'pending',
@@ -2660,7 +2660,7 @@ export default class cryptocom extends Exchange {
         } as Transaction;
     }
 
-    customHandleMarginModeAndParams (methodName, params = {}): [Str, Dict] {
+    customHandleMarginModeAndParams (methodName: any, params = {}): [Str, Dict] {
         /**
          * @ignore
          * @method
@@ -2685,7 +2685,7 @@ export default class cryptocom extends Exchange {
         return [ marginMode, params ];
     }
 
-    parseDepositWithdrawFee (fee, currency: Currency = undefined) {
+    parseDepositWithdrawFee (fee: any, currency: Currency = undefined) {
         //
         //    {
         //        "full_name": "Alchemix",
@@ -2878,7 +2878,7 @@ export default class cryptocom extends Exchange {
         }, currency) as LedgerEntry;
     }
 
-    parseLedgerEntryType (type) {
+    parseLedgerEntryType (type: any) {
         const ledgerType: Dict = {
             'TRADING': 'trade',
             'TRADE_FEE': 'fee',
@@ -2956,7 +2956,7 @@ export default class cryptocom extends Exchange {
         return this.parseAccounts (accounts, params);
     }
 
-    parseAccount (account) {
+    parseAccount (account: any) {
         //
         //     {
         //         "uuid": "a1234abc-1234-4321-q5r7-b1ab0a0b12b",
@@ -3044,7 +3044,7 @@ export default class cryptocom extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
-    parseSettlement (settlement, market) {
+    parseSettlement (settlement: any, market: any) {
         //
         //     {
         //         "i": "BTCUSD-230526",
@@ -3064,7 +3064,7 @@ export default class cryptocom extends Exchange {
         };
     }
 
-    parseSettlements (settlements, market) {
+    parseSettlements (settlements: any, market: any) {
         //
         //     [
         //         {
@@ -3127,7 +3127,7 @@ export default class cryptocom extends Exchange {
         return this.parseFundingRate (entry, market);
     }
 
-    parseFundingRate (contract, market: Market = undefined): FundingRate {
+    parseFundingRate (contract: any, market: Market = undefined): FundingRate {
         //
         //                 {
         //                     "v": "-0.000001884",
@@ -3403,7 +3403,7 @@ export default class cryptocom extends Exchange {
         return this.milliseconds ();
     }
 
-    paramsToString (object, level) {
+    paramsToString (object: any, level: any) {
         const maxLevel = 3;
         if (level >= maxLevel) {
             return object.toString ();
@@ -3552,7 +3552,7 @@ export default class cryptocom extends Exchange {
         return this.parseTradingFees (result);
     }
 
-    parseTradingFees (response) {
+    parseTradingFees (response: any) {
         //
         // {
         //         "spot_tier": "3",
@@ -3604,7 +3604,7 @@ export default class cryptocom extends Exchange {
         };
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
+    sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const type = this.safeString (api, 0);
         const access = this.safeString (api, 1);
         let url = this.urls['api'][type as string] + '/' + path;
@@ -3647,7 +3647,7 @@ export default class cryptocom extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         const errorCode = this.safeString (response, 'code');
         if (errorCode !== '0') {
             const feedback = this.id + ' ' + body;

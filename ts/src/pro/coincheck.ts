@@ -72,7 +72,7 @@ export default class coincheck extends coincheckRest {
         return orderbook.limit ();
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client: any, message: any) {
         //
         //     [
         //         "btc_jpy",
@@ -140,7 +140,7 @@ export default class coincheck extends coincheckRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client: Client, message) {
+    handleTrades (client: Client, message: any) {
         //
         //     [
         //         [
@@ -207,7 +207,7 @@ export default class coincheck extends coincheckRest {
         }, market);
     }
 
-    handleMessage (client: Client, message) {
+    handleMessage (client: Client, message: any) {
         const data = this.safeValue (message, 0);
         if (!Array.isArray (data)) {
             this.handleOrderBook (client, message);

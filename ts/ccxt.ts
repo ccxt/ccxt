@@ -430,8 +430,8 @@ for (const exchange in pro) {
     // }
 }
 
-(pro as any).exchanges = Object.keys (pro)
-pro['Exchange'] = Exchange // now the same for rest and ts
+(pro as any).exchanges = Object.keys (pro);
+(pro as Dict)['Exchange'] = Exchange // now the same for rest and ts
 //-----------------------------------------------------------------------------
 
 const prediction = {
@@ -442,10 +442,10 @@ const prediction = {
     'polymarket':             polymarketPrediction,
 };
 
-(prediction as any).exchanges = Object.keys (prediction)
+(prediction as any).exchanges = Object.keys (prediction);
 // the namespace's `Exchange` alias must be the prediction base, not the crypto Exchange —
 // prediction instances are `instanceof PredictionExchange`, NOT `instanceof Exchange` (siblings)
-prediction['Exchange'] = PredictionExchange
+(prediction as Dict)['Exchange'] = PredictionExchange
 //-----------------------------------------------------------------------------
 
 const ccxt = Object.assign ({ version, Exchange, BaseExchange, PredictionExchange, Precise, 'exchanges': Object.keys (exchanges), 'pro': pro, 'prediction': prediction}, exchanges, functions, errors)

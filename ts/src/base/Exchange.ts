@@ -188,6 +188,10 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  * @class Exchange
  */
 export class BaseExchange {
+    // implicit api methods (defineRestApi) and unCamelCase aliases are attached
+    // dynamically at construction time, so the class is indexable by string
+    [key: string]: any;
+
     // this is updated by vss.js when building
     static ccxtVersion = '4.5.70';
 
@@ -297,13 +301,14 @@ export class BaseExchange {
     positions: any;
     urls!: {
         logo?: string;
-        api: string | NestedDictionary;
-        test: string | NestedDictionary;
+        api: NestedDictionary;
+        test: NestedDictionary;
         www?: string;
         doc?: string[];
         api_management?: string;
         fees?: string;
         referral?: string;
+        [key: string]: any;
     };
 
     requiresWeb3: boolean = false;
@@ -351,6 +356,7 @@ export class BaseExchange {
         privateKey: Bool,  // a "0x"-prefixed hexstring private key for a wallet
         walletAddress: Bool,  // the wallet address "0x"-prefixed hexstring
         token: Bool,  // reserved for HTTP auth in some cases
+        [key: string]: Bool,
     };
 
     rateLimit: Num = 2000; // milliseconds
@@ -407,7 +413,9 @@ export class BaseExchange {
     precisionMode: Int = undefined;
     paddingMode: Int = undefined;
 
-    exceptions: Dictionary<string> = {};
+    // nested by design: exchanges declare { 'exact': {...}, 'broad': {...} }
+    // and pro subclasses add a 'ws' sub-tree, with error classes as values
+    exceptions: Dict = {};
     timeframes: Dictionary<number | string> = {};
 
     version: Str = undefined;
@@ -661,7 +669,7 @@ export class BaseExchange {
         ].join ('-');
     }
 
-    encodeURIComponent (...args) {
+    encodeURIComponent (...args: any[]) {
         // @ts-expect-error
         return encodeURIComponent (...args);
     }
@@ -674,12 +682,12 @@ export class BaseExchange {
         this.throttler = new Throttler (this.tokenBucket);
     }
 
-    defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
+    defineRestApiEndpoint (methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config = {}) {
         const splitPath = path.split (/[^a-zA-Z0-9]/);
         const camelcaseSuffix = splitPath.map (this.capitalize).join ('');
-        const underscoreSuffix = splitPath.map ((x) => x.trim ().toLowerCase ()).filter ((x) => x.length > 0).join ('_');
+        const underscoreSuffix = splitPath.map ((x: string) => x.trim ().toLowerCase ()).filter ((x: string) => x.length > 0).join ('_');
         const camelcasePrefix = [ paths[0] ].concat (paths.slice (1).map (this.capitalize)).join ('');
-        const underscorePrefix = [ paths[0] ].concat (paths.slice (1).map ((x) => x.trim ()).filter ((x) => x.length > 0)).join ('_');
+        const underscorePrefix = [ paths[0] ].concat (paths.slice (1).map ((x: string) => x.trim ()).filter ((x: string) => x.length > 0)).join ('_');
         const camelcase = camelcasePrefix + camelcaseMethod + this.capitalize (camelcaseSuffix);
         const underscore = underscorePrefix + '_' + lowercaseMethod + '_' + underscoreSuffix;
         const typeArgument = (paths.length > 1) ? paths : paths[0];
@@ -690,7 +698,7 @@ export class BaseExchange {
         this[underscore] = partial;
     }
 
-    defineRestApi (api, methodName, paths: string[] = []) {
+    defineRestApi (api: any, methodName: any, paths: string[] = []) {
         const keys = Object.keys (api);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -725,7 +733,7 @@ export class BaseExchange {
         }
     }
 
-    log (...args) {
+    log (...args: any[]) {
         console.log (...args);
     }
 
@@ -759,7 +767,7 @@ export class BaseExchange {
         return await this.proxiesModulesLoading;
     }
 
-    setProxyAgents (httpProxy, httpsProxy, socksProxy) {
+    setProxyAgents (httpProxy: any, httpsProxy: any, socksProxy: any) {
         let chosenAgent: any = undefined;
         // in browser-side, proxy modules are not supported in 'fetch/ws' methods
         if (!isNode && (httpProxy || httpsProxy || socksProxy)) {
@@ -810,7 +818,7 @@ export class BaseExchange {
         return this.httpAgent;
     }
 
-    getHttpAgentIfNeeded (url) {
+    getHttpAgentIfNeeded (url: any) {
         if (isNode) {
             // only for non-ssl proxy
             if (url.substring (0, 5) === 'ws://') {
@@ -823,7 +831,7 @@ export class BaseExchange {
         return undefined;
     }
 
-    addFetchCache (data) {
+    addFetchCache (data: any) {
         if (this.fetchHistoryCacheSize <= 0) {
             return;
         }
@@ -837,20 +845,20 @@ export class BaseExchange {
         return this.fetchHistoryCache;
     }
 
-    isBinaryMessage (msg) {
+    isBinaryMessage (msg: any) {
         return msg instanceof Uint8Array || msg instanceof ArrayBuffer;
     }
 
-    stringToBinary (content) {
+    stringToBinary (content: any) {
         // same as: this.base64ToBinary (this.stringToBase64 (str));
         return this.encode (content);
     }
 
-    binaryToString (binary) {
+    binaryToString (binary: any) {
         return this.decode (binary);
     }
 
-    decodeProtoMsg (data) {
+    decodeProtoMsg (data: any) {
         if (!protobufMexc) {
             throw new NotSupported (this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');
         }
@@ -973,7 +981,7 @@ export class BaseExchange {
      * @returns {object} undici dispatcher options
      */
     getDispatcherOptions (isPlainAgent = false) {
-        const options = {
+        const options: Dict = {
             'keepAliveTimeout': 60 * 1000, // hold idle sockets for 60s (server keep-alive hints still apply)
             'keepAliveMaxTimeout': 10 * 60 * 1000, // cap server-suggested keep-alive at 10 minutes
             'connections': 256, // per-origin socket cap, prevents fd exhaustion under bursts
@@ -1023,7 +1031,7 @@ export class BaseExchange {
      * @param {object} [agent] a legacy proxy-carrying agent object
      * @returns {string|undefined} the proxy url, or undefined when the agent does not carry one
      */
-    extractProxyFromAgent (agent) {
+    extractProxyFromAgent (agent: any) {
         if (agent !== undefined && agent !== null) {
             const proxy = agent.proxy;
             if (proxy !== undefined && proxy !== null) {
@@ -1047,7 +1055,7 @@ export class BaseExchange {
      * @param {any} value an undici dispatcher or a node-style agent
      * @returns {any} the cached value
      */
-    cacheProxyDictionary (proxyUrl, value) {
+    cacheProxyDictionary (proxyUrl: any, value: any) {
         const existing = this.proxyDictionaries[proxyUrl];
         if (existing !== undefined) {
             // same url switching between the dispatcher and agent families
@@ -1072,7 +1080,7 @@ export class BaseExchange {
      * @description closes an undici dispatcher that left this.proxyDictionaries - close () drains in-flight requests before releasing sockets, and any close failure is irrelevant because the dispatcher is already unreferenced; legacy node-style agents are left untouched (never destroyed, matching the long-standing behavior, because live ws connections may still use them)
      * @param {any} entry the evicted or replaced proxyDictionaries value
      */
-    releaseProxyDictionaryEntry (entry) {
+    releaseProxyDictionaryEntry (entry: any) {
         if ((entry !== undefined) && (entry !== null) && (typeof entry.dispatch === 'function') && (typeof entry.close === 'function')) {
             entry.close ().catch (() => {});
         }
@@ -1086,7 +1094,7 @@ export class BaseExchange {
      * @param {string} proxyUrl the proxy url, e.g. http://user:pass@host:port or socks5://host:port
      * @returns {any} an undici dispatcher
      */
-    getFetchProxyDispatcher (proxyUrl) {
+    getFetchProxyDispatcher (proxyUrl: any) {
         const cached = this.proxyDictionaries[proxyUrl];
         if ((cached !== undefined) && (typeof cached.dispatch === 'function')) {
             return cached;
@@ -1110,7 +1118,7 @@ export class BaseExchange {
      * @param {object} params fetch-style request params ('method', 'headers', 'body', 'signal', 'dispatcher')
      * @returns {Promise<object>} an object with 'status', 'statusText', 'headers' (plain object), 'text' and 'arrayBuffer' methods
      */
-    async undiciRequest (url, params) {
+    async undiciRequest (url: any, params: any) {
         const headers = params['headers'];
         if (!('Accept-Encoding' in headers) && !('accept-encoding' in headers)) {
             headers['Accept-Encoding'] = 'gzip, deflate, br'; // fetch/node-fetch parity, inflated in undiciBody
@@ -1148,7 +1156,7 @@ export class BaseExchange {
      * @param {boolean} [binary] true to return a Buffer, false to return a utf8 string
      * @returns {Promise<any>} the response body
      */
-    async undiciBody (res, binary = false) {
+    async undiciBody (res: any, binary = false) {
         let contentEncoding = res.headers['content-encoding'];
         if ((res.statusCode === 204) || (res.statusCode === 304)) {
             contentEncoding = undefined; // bodyless statuses, nothing to inflate
@@ -1185,7 +1193,7 @@ export class BaseExchange {
      * @param {string} [httpsProxy] unified httpsProxy setting
      * @param {string} [socksProxy] unified socksProxy setting
      */
-    setFetchProxyOptions (params, httpProxy, httpsProxy, socksProxy) {
+    setFetchProxyOptions (params: any, httpProxy: any, httpsProxy: any, socksProxy: any) {
         // unified proxy settings take precedence over legacy proxy-carrying agent objects
         let selectedProxy = httpProxy || httpsProxy || socksProxy;
         if (!selectedProxy) {
@@ -1211,7 +1219,7 @@ export class BaseExchange {
         params['dispatcher'] = this.getFetchProxyDispatcher (selectedProxy);
     }
 
-    async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
+    async fetch (url: any, method = 'GET', headers: any = undefined, body: any = undefined) {
         // ##### PROXY & HEADERS #####
         headers = this.extend (this.headers, headers);
         // proxy-url
@@ -1275,7 +1283,7 @@ export class BaseExchange {
             await this.loadFetchImplementation ();
         }
         const fetchImplementation = this.fetchImplementation;
-        const params = { method, headers, body };
+        const params: Dict = { method, headers, body };
         if (this.fetchIsNative) {
             // never follow redirects: the whatwg-fetch paths (browser / bun / global-fetch
             // fallback) reject with TypeError on a redirect response, which the catch below
@@ -1325,11 +1333,11 @@ export class BaseExchange {
         return await this.handleRestResponse (response, url, method, headers, body);
     }
 
-    jsonStringifyWithNull (obj) {
+    jsonStringifyWithNull (obj: any) {
         return JSON.stringify (obj, (_, v) => (v === undefined ? null : v));
     }
 
-    hasUnsafeInteger (value) {
+    hasUnsafeInteger (value: any) {
         if (typeof value === 'number') {
             return (value > Number.MAX_SAFE_INTEGER) || (value < -Number.MAX_SAFE_INTEGER);
         }
@@ -1351,7 +1359,7 @@ export class BaseExchange {
         return false;
     }
 
-    parseJson (jsonString) {
+    parseJson (jsonString: any) {
         try {
             if (this.isJsonEncodedObject (jsonString)) {
                 if (!this.quoteJsonNumbers) {
@@ -1375,13 +1383,13 @@ export class BaseExchange {
         }
     }
 
-    getResponseHeaders (response) {
-        const result = {};
+    getResponseHeaders (response: any) {
+        const result: Dict = {};
         const headers = response.headers;
         if (typeof headers.forEach === 'function') {
             // fetch Headers object
-            headers.forEach ((value, key) => {
-                key = key.split ('-').map ((word) => this.capitalize (word)).join ('-');
+            headers.forEach ((value: any, key: string) => {
+                key = key.split ('-').map ((word: string) => this.capitalize (word)).join ('-');
                 result[key] = value;
             });
             return result;
@@ -1400,12 +1408,12 @@ export class BaseExchange {
         return result;
     }
 
-    handleRestResponse (response, url, method = 'GET', requestHeaders: any = undefined, requestBody: any = undefined) {
+    handleRestResponse (response: any, url: any, method = 'GET', requestHeaders: any = undefined, requestBody: any = undefined) {
         const responseHeaders = this.getResponseHeaders (response);
         if (this.handleContentTypeApplicationZip && (responseHeaders['Content-Type'] === 'application/zip')) {
             // native fetch responses have no buffer() method, polyfill it from arrayBuffer()
             // Buffer on node/bun for backwards compatibility, Uint8Array in browsers
-            const responseBuffer = response.arrayBuffer ().then ((arrayBuffer) => ((typeof Buffer !== 'undefined') ? Buffer.from (arrayBuffer) : new Uint8Array (arrayBuffer)));
+            const responseBuffer = response.arrayBuffer ().then ((arrayBuffer: ArrayBuffer) => ((typeof Buffer !== 'undefined') ? Buffer.from (arrayBuffer) : new Uint8Array (arrayBuffer)));
             if (this.enableLastResponseHeaders) {
                 this.last_response_headers = responseHeaders;
             }
@@ -1418,7 +1426,7 @@ export class BaseExchange {
             // no error handler needed, because it would not be a zip response in case of an error
             return responseBuffer;
         }
-        return response.text ().then ((responseBody) => {
+        return response.text ().then ((responseBody: string) => {
             const bodyText = this.onRestResponse (response.status, response.statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody);
             const parsedBody = this.parseJson (bodyText);
             if (this.enableLastResponseHeaders) {
@@ -1444,11 +1452,11 @@ export class BaseExchange {
         });
     }
 
-    onRestResponse (statusCode, statusText, url, method, responseHeaders, responseBody, requestHeaders, requestBody) {
+    onRestResponse (statusCode: any, statusText: any, url: any, method: any, responseHeaders: any, responseBody: any, requestHeaders: any, requestBody: any) {
         return responseBody.trim ();
     }
 
-    onJsonResponse (responseBody) {
+    onJsonResponse (responseBody: any) {
         // quotes json numbers in-place so JSON.parse preserves their exact source digits as strings
         // (doubles would silently lose precision on big order ids and >15-significant-digit prices)
         //
@@ -1565,7 +1573,7 @@ export class BaseExchange {
 
     }
 
-    parseNumber (value, d: Num = undefined): number {
+    parseNumber (value: any, d: Num = undefined): number {
         if (value === undefined) {
             return d as number;
         } else {
@@ -1589,7 +1597,7 @@ export class BaseExchange {
         }
     }
 
-    checkOrderArguments (market, type, side, amount, price, params) {
+    checkOrderArguments (market: any, type: any, side: any, amount: any, price: any, params: any) {
         if (price === undefined) {
             if (type === 'limit') {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a limit order');
@@ -1600,7 +1608,7 @@ export class BaseExchange {
         }
     }
 
-    handleHttpStatusCode (code, reason, url, method, body) {
+    handleHttpStatusCode (code: any, reason: any, url: any, method: any, body: any) {
         const codeAsString = code.toString ();
         if (codeAsString in this.httpExceptions) {
             const ErrorClass = this.httpExceptions[codeAsString];
@@ -1608,7 +1616,7 @@ export class BaseExchange {
         }
     }
 
-    remove0xPrefix (hexData) {
+    remove0xPrefix (hexData: any) {
         if (hexData.slice (0, 2) === '0x') {
             return hexData.slice (2);
         } else {
@@ -1616,15 +1624,15 @@ export class BaseExchange {
         }
     }
 
-    mapToSafeMap (dict) {
+    mapToSafeMap (dict: any) {
         return dict; // wrapper for go
     }
 
-    safeMapToMap (dict) {
+    safeMapToMap (dict: any) {
         return dict; // wrapper for go
     }
 
-    spawn (method, ...args) {
+    spawn (method: any, ...args: any[]) {
         const future = Future ();
         // using setTimeout 0 to force the execution to run after the future is returned
         setTimeout (() => {
@@ -1633,7 +1641,7 @@ export class BaseExchange {
         return future;
     }
 
-    delay (timeout, method, ...args) {
+    delay (timeout: any, method: any, ...args: any[]) {
         setTimeout (() => {
             this.spawn (method, ...args);
         }, timeout);
@@ -1655,7 +1663,7 @@ export class BaseExchange {
         return new CountedOrderBook (snapshot, depth);
     }
 
-    handleMessage (client, message) {} // stub to override
+    handleMessage (client: any, message: any) {} // stub to override
 
     // ping (client: Client) {} // stub to override
 
@@ -1766,7 +1774,7 @@ export class BaseExchange {
                         //               V
                         client.throttle (cost).then (() => {
                             client.send (message);
-                        }).catch ((e) => {
+                        }).catch ((e: any) => {
                             for (let i = 0; i < missingSubscriptions.length; i++) {
                                 const subscribeHash = missingSubscriptions[i];
                                 delete client.subscriptions[subscribeHash];
@@ -1862,7 +1870,7 @@ export class BaseExchange {
                         //               V
                         client.throttle (cost).then (() => {
                             client.send (message);
-                        }).catch ((e) => {
+                        }).catch ((e: any) => {
                             client.onError (e);
                         });
                     } else {
@@ -1880,18 +1888,18 @@ export class BaseExchange {
         return future;
     }
 
-    onConnected (client, message: any = undefined) {
+    onConnected (client: any, message: any = undefined) {
         // for user hooks
         // console.log ('Connected to', client.url)
     }
 
-    onError (client, error) {
+    onError (client: any, error: any) {
         if ((client.url in this.clients) && (this.clients[client.url].error)) {
             delete this.clients[client.url];
         }
     }
 
-    onClose (client, error) {
+    onClose (client: any, error: any) {
         if (client.error) {
             // connection closed due to an error, do nothing
         } else {
@@ -1939,18 +1947,18 @@ export class BaseExchange {
         return value !== undefined && value !== null;
     }
 
-    arraySlice (array, first, second: Int = undefined) {
+    arraySlice (array: any, first: any, second: Int = undefined) {
         if (second === undefined) {
             return array.slice (first);
         }
         return array.slice (first, second);
     }
 
-    getProperty (obj, property, defaultValue: any = undefined) {
+    getProperty (obj: any, property: any, defaultValue: any = undefined) {
         return (property in obj ? obj[property] : defaultValue);
     }
 
-    setProperty (obj, property, defaultValue: any = undefined) {
+    setProperty (obj: any, property: any, defaultValue: any = undefined) {
         obj[property] = defaultValue;
     }
 
@@ -1972,11 +1980,11 @@ export class BaseExchange {
         return modifiedContent;
     }
 
-    ethAbiEncode (types, args) {
+    ethAbiEncode (types: any, args: any) {
         return this.base16ToBinary (ethers.encode (types, args).slice (2));
     }
 
-    ethEncodeStructuredData (domain, messageTypes, messageData) {
+    ethEncodeStructuredData (domain: any, messageTypes: any, messageData: any) {
         return this.base16ToBinary (TypedDataEncoder.encode (domain, messageTypes, messageData).slice (-132));
     }
 
@@ -1998,7 +2006,7 @@ export class BaseExchange {
         return addressHex;
     }
 
-    retrieveStarkAccount (signature, accountClassHash, accountProxyClassHash) {
+    retrieveStarkAccount (signature: any, accountClassHash: any, accountProxyClassHash: any) {
         const privateKey = ethSigToPrivate (signature);
         const publicKey = getStarkKey (privateKey);
         const callData = Starknet.CallData.compile ({
@@ -2022,7 +2030,7 @@ export class BaseExchange {
         };
     }
 
-    starknetEncodeStructuredData (domain, messageTypes, messageData, address) {
+    starknetEncodeStructuredData (domain: any, messageTypes: any, messageData: any, address: any) {
         const types = Object.keys (messageTypes);
         if (types.length > 1) {
             throw new NotSupported (this.id + ' starknetEncodeStructuredData only support single type');
@@ -2043,26 +2051,26 @@ export class BaseExchange {
         return msgHash;
     }
 
-    starknetSign (msgHash, pri) {
+    starknetSign (msgHash: any, pri: any) {
         // TODO: unify to ecdsa
         const signature = starknetCurveSign (msgHash.replace ('0x', ''), pri.replace ('0x', ''));
         return this.json ([ signature.r.toString (), signature.s.toString () ]);
     }
 
-    extendedStarknetSign (msgHash, pri) {
+    extendedStarknetSign (msgHash: any, pri: any) {
         const signature = starknetCurveSign (msgHash.replace ('0x', ''), pri.replace ('0x', ''));
         return this.json ([ signature.r.toString (), signature.s.toString () ]);
     }
 
-    extendedStarknetGetSelectorFromName (name) {
+    extendedStarknetGetSelectorFromName (name: any) {
         return Starknet.hash.getSelectorFromName (name);
     }
 
-    extendedStarknetComputePoseidonHashOnElements (data) {
+    extendedStarknetComputePoseidonHashOnElements (data: any) {
         return Starknet.hash.computePoseidonHashOnElements (data);
     }
 
-    async getZKContractSignatureObj (seed, params = {}) {
+    async getZKContractSignatureObj (seed: any, params = {}) {
         const formattedSlotId = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (this.safeString (params, 'slotId', '')), sha256, 'hex'))).toString ();
         const formattedNonce = BigInt ('0x' + this.remove0xPrefix (this.hash (this.encode (this.safeString (params, 'nonce', '')), sha256, 'hex'))).toString ();
         const formattedUint64 = '18446744073709551615';
@@ -2124,7 +2132,7 @@ export class BaseExchange {
         return zkSign;
     }
 
-    async getZKTransferSignatureObj (seed, params = {}) {
+    async getZKTransferSignatureObj (seed: any, params = {}) {
         await init ();
         const _signer = zklink.newRpcSignerWithProvider ({});
         await _signer.initZklinkSigner (seed);
@@ -2190,10 +2198,10 @@ export class BaseExchange {
     }
 
     encodeDydxTxForSimulation (
-        message,
-        memo,
-        sequence,
-        publicKey
+        message: any,
+        memo: any,
+        sequence: any,
+        publicKey: any
     ): string {
         const encodeFn = encodeAsAny;
         if (encodeFn === undefined) {
@@ -2231,11 +2239,11 @@ export class BaseExchange {
     }
 
     encodeDydxTxForSigning (
-        message,
-        memo,
-        chainId,
-        account,
-        authenticators,
+        message: any,
+        memo: any,
+        chainId: any,
+        account: any,
+        authenticators: any,
         fee: any = undefined
     ): [ string, Dict ] {
         const encodeFn = encodeAsAny;
@@ -2309,7 +2317,7 @@ export class BaseExchange {
         })).finish ());
     }
 
-    intToBase16 (elem): string {
+    intToBase16 (elem: any): string {
         return elem.toString (16);
     }
 
@@ -2321,7 +2329,7 @@ export class BaseExchange {
         return {};
     }
 
-    convertToSafeDictionary (dict) {
+    convertToSafeDictionary (dict: any) {
         return dict;
     }
 
@@ -2351,7 +2359,7 @@ export class BaseExchange {
         return undefined;  // c# stub
     }
 
-    async loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex, createClient = false) {
+    async loadLighterLibrary (libraryPath: any, chainId: any, privateKey: any, apiKeyIndex: any, accountIndex: any, createClient = false) {
         // wasmExecPathExample: '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js';
         // libraryPath eg: '/Users/cjg/Git/lighter-go/lighter.wasm';
         if (libraryPath === undefined || libraryPath === '') {
@@ -2377,14 +2385,14 @@ export class BaseExchange {
         return {}; // empty object we will read it from globalThis
     }
 
-    lighterCreateClient (signer, chainId, privateKey, apiKeyIndex, accountIndex) {
+    lighterCreateClient (signer: any, chainId: any, privateKey: any, apiKeyIndex: any, accountIndex: any) {
         const url = this.implodeHostname (this.urls['api']['public']);
         const res = globalThis.CreateClient (url, privateKey, chainId, apiKeyIndex, accountIndex);
         this.checkLighterSignedError (res);
         return signer;
     }
 
-    lighterSignCreateGroupedOrders (signer, request): any[] {
+    lighterSignCreateGroupedOrders (signer: any, request: any): any[] {
         const orders = request['orders'];
         const ordersArr: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
@@ -2415,7 +2423,7 @@ export class BaseExchange {
         return [ res.txType, res.txInfo ];
     }
 
-    lighterSignCreateOrder (signer, request): any[] {
+    lighterSignCreateOrder (signer: any, request: any): any[] {
         const res = (globalThis.SignCreateOrder (
             parseInt (request['market_index']),
             request['client_order_index'],
@@ -2439,13 +2447,13 @@ export class BaseExchange {
         return [ res.txType, res.txInfo ];
     }
 
-    checkLighterSignedError (result) {
+    checkLighterSignedError (result: any) {
         if ('error' in result) {
             throw new Error ('Lighter signing error: ' + result.error);
         }
     }
 
-    lighterSignCancelOrder (signer, request): any[] {
+    lighterSignCancelOrder (signer: any, request: any): any[] {
         const res = (globalThis.SignCancelOrder (
             request['market_index'],
             request['order_index'],
@@ -2458,7 +2466,7 @@ export class BaseExchange {
         return [ res.txType, res.txInfo ];
     }
 
-    lighterSignWithdraw (signer, request): any[] {
+    lighterSignWithdraw (signer: any, request: any): any[] {
         const res = (globalThis.SignWithdraw (
             request['asset_index'],
             request['route_type'],
@@ -2472,7 +2480,7 @@ export class BaseExchange {
         return [ res.txType, res.txInfo ];
     }
 
-    lighterSignCreateSubAccount (signer, request): any[] {
+    lighterSignCreateSubAccount (signer: any, request: any): any[] {
         const res = (globalThis.SignCreateSubAccount (
             1, // skip nonce
             request['nonce'],
@@ -2483,7 +2491,7 @@ export class BaseExchange {
         return [ res.txType, res.txInfo ];
     }
 
-    lighterSignCancelAllOrders (signer, request): any[] {
+    lighterSignCancelAllOrders (signer: any, request: any): any[] {
         const res = (globalThis.SignCancelAllOrders (
             request['time_in_force'],
             request['time'],
@@ -2496,7 +2504,7 @@ export class BaseExchange {
         return [ res.txType, res.txInfo ];
     }
 
-    lighterSignModifyOrder (signer, request): any[] {
+    lighterSignModifyOrder (signer: any, request: any): any[] {
         const res = (globalThis.SignModifyOrder (
             request['market_index'],
             request['index'],
@@ -2515,7 +2523,7 @@ export class BaseExchange {
         return [ res.txType, res.txInfo ];
     }
 
-    lighterSignTransfer (signer, request): any[] {
+    lighterSignTransfer (signer: any, request: any): any[] {
         const res = globalThis.SignTransfer (
             request['to_account_index'],
             request['asset_index'],
@@ -2533,7 +2541,7 @@ export class BaseExchange {
         return [ res.txType, res.txInfo ];
     }
 
-    lighterSignUpdateLeverage (signer, request): any[] {
+    lighterSignUpdateLeverage (signer: any, request: any): any[] {
         const res = (globalThis.SignUpdateLeverage (
             request['market_index'],
             request['initial_margin_fraction'],
@@ -2547,7 +2555,7 @@ export class BaseExchange {
         return [ res.txType, res.txInfo ];
     }
 
-    lighterCreateAuthToken (signer, request): string {
+    lighterCreateAuthToken (signer: any, request: any): string {
         const res = globalThis.CreateAuthToken (
             request['deadline'],
             request['api_key_index'],
@@ -2557,7 +2565,7 @@ export class BaseExchange {
         return res.authToken;
     }
 
-    lighterSignUpdateMargin (signer, request): any[] {
+    lighterSignUpdateMargin (signer: any, request: any): any[] {
         const res = globalThis.SignUpdateMargin (
             request['market_index'],
             request['usdc_amount'],
@@ -2571,7 +2579,7 @@ export class BaseExchange {
         return [ res.txType, res.txInfo ];
     }
 
-    lighterSignApproveIntegrator (signer, request): any[] {
+    lighterSignApproveIntegrator (signer: any, request: any): any[] {
         const res = globalThis.SignApproveIntegrator (
             request['integrator_account_index'],
             request['integrator_taker_fee'],
@@ -2589,13 +2597,13 @@ export class BaseExchange {
     }
 
     // eslint-disable-next-line no-unused-vars
-    lighterGenerateApiKey (signer): any[] {
+    lighterGenerateApiKey (signer: any): any[] {
         const res = globalThis.GenerateAPIKey ();
         this.checkLighterSignedError (res);
         return [ res.privateKey, res.publicKey ];
     }
 
-    lighterSignChangePubkey (signer, request): any[] {
+    lighterSignChangePubkey (signer: any, request: any): any[] {
         const res = globalThis.SignChangePubKey (
             Buffer.from (request['pubkey']).toString (),
             1, // skip nonce
@@ -2614,7 +2622,7 @@ export class BaseExchange {
         this.lastRestRequestTimestamp = this.milliseconds ();
     }
 
-    setLastRequest (request) {
+    setLastRequest (request: any) {
         // hand-written per language (not transpiled): plain assignments in most
         // languages, but the Go implementation guards the writes with a mutex because
         // concurrent requests would otherwise data-race on these bookkeeping fields
@@ -3040,7 +3048,7 @@ export class BaseExchange {
         this.positions = undefined;
     }
 
-    safeBoolN (dictionaryOrList, keys: NullableIndexType[], defaultValue: Bool = undefined): boolean | undefined {
+    safeBoolN (dictionaryOrList: any, keys: NullableIndexType[], defaultValue: Bool = undefined): boolean | undefined {
         /**
          * @ignore
          * @method
@@ -3054,7 +3062,7 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    safeBool2 (dictionaryOrList, key1: NullableIndexType, key2: NullableIndexType, defaultValue: Bool = undefined): boolean | undefined {
+    safeBool2 (dictionaryOrList: any, key1: NullableIndexType, key2: NullableIndexType, defaultValue: Bool = undefined): boolean | undefined {
         /**
          * @ignore
          * @method
@@ -3072,7 +3080,7 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    safeBool (dictionaryOrList, key: NullableIndexType, defaultValue: Bool = undefined): boolean | undefined {
+    safeBool (dictionaryOrList: any, key: NullableIndexType, defaultValue: Bool = undefined): boolean | undefined {
         /**
          * @ignore
          * @method
@@ -3086,9 +3094,9 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    safeDictN (dictionaryOrList, keys: NullableIndexType[], defaultValue: Dictionary<any>): Dictionary<any>;
-    safeDictN (dictionaryOrList, keys: NullableIndexType[], defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
-    safeDictN (dictionaryOrList, keys: NullableIndexType[], defaultValue: NullableDict = undefined): Dictionary<any> | undefined {
+    safeDictN (dictionaryOrList: any, keys: NullableIndexType[], defaultValue: Dictionary<any>): Dictionary<any>;
+    safeDictN (dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
+    safeDictN (dictionaryOrList: any, keys: NullableIndexType[], defaultValue: NullableDict = undefined): Dictionary<any> | undefined {
         /**
          * @ignore
          * @method
@@ -3105,9 +3113,9 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    safeDict (dictionaryOrList, key: NullableIndexType, defaultValue: Dictionary<any>): Dictionary<any>;
-    safeDict (dictionaryOrList, key: NullableIndexType, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
-    safeDict (dictionaryOrList, key: NullableIndexType, defaultValue: NullableDict = undefined): Dictionary<any> | undefined {
+    safeDict (dictionaryOrList: any, key: NullableIndexType, defaultValue: Dictionary<any>): Dictionary<any>;
+    safeDict (dictionaryOrList: any, key: NullableIndexType, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
+    safeDict (dictionaryOrList: any, key: NullableIndexType, defaultValue: NullableDict = undefined): Dictionary<any> | undefined {
         /**
          * @ignore
          * @method
@@ -3124,9 +3132,9 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    safeDict2 (dictionaryOrList, key1: NullableIndexType, key2: string, defaultValue: Dictionary<any>): Dictionary<any>;
-    safeDict2 (dictionaryOrList, key1: NullableIndexType, key2: string, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
-    safeDict2 (dictionaryOrList, key1: NullableIndexType, key2: string, defaultValue: NullableDict = undefined): Dictionary<any> | undefined {
+    safeDict2 (dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue: Dictionary<any>): Dictionary<any>;
+    safeDict2 (dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
+    safeDict2 (dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue: NullableDict = undefined): Dictionary<any> | undefined {
         /**
          * @ignore
          * @method
@@ -3144,9 +3152,9 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    safeListN (dictionaryOrList, keys: NullableIndexType[], defaultValue: any[]): any[];
-    safeListN (dictionaryOrList, keys: NullableIndexType[], defaultValue?: any[]): any[] | undefined;
-    safeListN (dictionaryOrList, keys: NullableIndexType[], defaultValue: NullableList = undefined): any[] | undefined {
+    safeListN (dictionaryOrList: any, keys: NullableIndexType[], defaultValue: any[]): any[];
+    safeListN (dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: any[]): any[] | undefined;
+    safeListN (dictionaryOrList: any, keys: NullableIndexType[], defaultValue: NullableList = undefined): any[] | undefined {
         /**
          * @ignore
          * @method
@@ -3167,9 +3175,9 @@ export class BaseExchange {
         return (value !== undefined) && (typeof value === 'object') && !Array.isArray (value);
     }
 
-    safeList2 (dictionaryOrList, key1: NullableIndexType, key2: string, defaultValue: any[]): any[];
-    safeList2 (dictionaryOrList, key1: NullableIndexType, key2: string, defaultValue?: any[]): any[] | undefined;
-    safeList2 (dictionaryOrList, key1: NullableIndexType, key2: string, defaultValue: NullableList = undefined): any[] | undefined {
+    safeList2 (dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue: any[]): any[];
+    safeList2 (dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue?: any[]): any[] | undefined;
+    safeList2 (dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue: NullableList = undefined): any[] | undefined {
         /**
          * @ignore
          * @method
@@ -3187,9 +3195,9 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    safeList (dictionaryOrList, key: NullableIndexType, defaultValue: any[]): any[];
-    safeList (dictionaryOrList, key: NullableIndexType, defaultValue?: any[]): any[] | undefined;
-    safeList (dictionaryOrList, key: NullableIndexType, defaultValue: NullableList = undefined): any[] | undefined {
+    safeList (dictionaryOrList: any, key: NullableIndexType, defaultValue: any[]): any[];
+    safeList (dictionaryOrList: any, key: NullableIndexType, defaultValue?: any[]): any[] | undefined;
+    safeList (dictionaryOrList: any, key: NullableIndexType, defaultValue: NullableList = undefined): any[] | undefined {
         /**
          * @ignore
          * @method
@@ -3206,7 +3214,7 @@ export class BaseExchange {
         return defaultValue;
     }
 
-    storeByKey (dict, key: NullableIndexType, value) {
+    storeByKey (dict: any, key: NullableIndexType, value: any) {
         /**
          * @ignore
          * @method
@@ -3218,24 +3226,24 @@ export class BaseExchange {
         }
     }
 
-    handleDeltas (orderbook, deltas) {
+    handleDeltas (orderbook: any, deltas: any) {
         for (let i = 0; i < deltas.length; i++) {
             this.handleDelta (orderbook, deltas[i]);
         }
     }
 
-    handleDelta (bookside, delta) {
+    handleDelta (bookside: any, delta: any) {
         throw new NotSupported (this.id + ' handleDelta not supported yet');
     }
 
-    handleDeltasWithKeys (bookSide: any, deltas, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+    handleDeltasWithKeys (bookSide: any, deltas: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         for (let i = 0; i < deltas.length; i++) {
             const bidAsk = this.parseOrderBookBidAsk (deltas[i], priceKey, amountKey, countOrIdKey);
             bookSide.storeArray (bidAsk);
         }
     }
 
-    getCacheIndex (orderbook, deltas) {
+    getCacheIndex (orderbook: any, deltas: any) {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible.
         return -1;
     }
@@ -3248,7 +3256,7 @@ export class BaseExchange {
         return result;
     }
 
-    findTimeframe (timeframe, timeframes: NullableDict = undefined) {
+    findTimeframe (timeframe: any, timeframes: NullableDict = undefined) {
         if (timeframes === undefined) {
             timeframes = this.timeframes;
         }
@@ -3393,7 +3401,7 @@ export class BaseExchange {
         return [ wsProxy, wssProxy, wsSocksProxy ];
     }
 
-    checkConflictingProxies (proxyAgentSet, proxyUrlSet) {
+    checkConflictingProxies (proxyAgentSet: any, proxyUrlSet: any) {
         if (proxyAgentSet && proxyUrlSet) {
             throw new InvalidProxySettings (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
@@ -3412,7 +3420,7 @@ export class BaseExchange {
         return address;
     }
 
-    findMessageHashes (client, element: string): string[] {
+    findMessageHashes (client: any, element: string): string[] {
         const result: string[] = [];
         const messageHashes = Object.keys (client.futures);
         for (let i = 0; i < messageHashes.length; i++) {
@@ -3424,7 +3432,7 @@ export class BaseExchange {
         return result;
     }
 
-    filterByLimit (array: object[], limit: Int = undefined, key: IndexType = 'timestamp', fromStart: boolean = false): any {
+    filterByLimit (array: Dict[], limit: Int = undefined, key: IndexType = 'timestamp', fromStart: boolean = false): any {
         if (this.valueIsDefined (limit)) {
             const arrayLength = array.length;
             if (arrayLength > 0) {
@@ -3568,7 +3576,7 @@ export class BaseExchange {
         this.options['enableDemoTrading'] = enable;
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+    sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
         return { 'url': undefined, 'method': undefined, 'headers': undefined, 'body': undefined };
     }
 
@@ -3663,7 +3671,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchTime() is not supported yet');
     }
 
-    async fetchTradingLimits (symbols: Strings = undefined, params = {}): Promise<{}> {
+    async fetchTradingLimits (symbols: Strings = undefined, params = {}): Promise<Dict> {
         throw new NotSupported (this.id + ' fetchTradingLimits() is not supported yet');
     }
 
@@ -3671,8 +3679,8 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseCurrency() is not supported yet');
     }
 
-    parseCurrencies (rawCurrencies): Currencies {
-        const result = {};
+    parseCurrencies (rawCurrencies: any): Currencies {
+        const result: Dict = {};
         const arr = this.toArray (rawCurrencies);
         for (let i = 0; i < arr.length; i++) {
             const parsed = this.parseCurrency (arr[i]);
@@ -3689,7 +3697,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseMarket() is not supported yet');
     }
 
-    parseMarkets (markets): Market[] {
+    parseMarkets (markets: any): Market[] {
         const result: Market[] = [];
         for (let i = 0; i < markets.length; i++) {
             result.push (this.parseMarket (markets[i]));
@@ -3701,7 +3709,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseTicker() is not supported yet');
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
+    parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
         throw new NotSupported (this.id + ' parseDepositAddress() is not supported yet');
     }
 
@@ -3740,7 +3748,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchIsolatedBorrowRates() is not supported yet');
     }
 
-    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+    parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
         throw new NotSupported (this.id + ' parseMarketLeverageTiers() is not supported yet');
     }
 
@@ -3752,7 +3760,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parsePosition() is not supported yet');
     }
 
-    parseFundingRateHistory (info, market: Market = undefined): FundingRateHistory {
+    parseFundingRateHistory (info: any, market: Market = undefined): FundingRateHistory {
         throw new NotSupported (this.id + ' parseFundingRateHistory() is not supported yet');
     }
 
@@ -3776,7 +3784,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseWsOrderTrade() is not supported yet');
     }
 
-    parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    parseWsOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         return this.parseOHLCV (ohlcv, market);
     }
 
@@ -3896,7 +3904,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchPaymentMethods() is not supported yet');
     }
 
-    parseToInt (number): number {
+    parseToInt (number: any): number {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
         // numberToString is typed as nullable under strictNullChecks; cast to string
@@ -3907,7 +3915,7 @@ export class BaseExchange {
         return parseInt (convertedNumber);
     }
 
-    parseToNumeric (number): number {
+    parseToNumeric (number: any): number {
         const stringVersion = this.numberToString (number) as string; // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
         // in JS:     1 === 1.0 is true
@@ -3926,7 +3934,7 @@ export class BaseExchange {
         return res === 0;
     }
 
-    isEmptyString (value) {
+    isEmptyString (value: any) {
         return !this.valueIsDefined (value) || value === '';
     }
 
@@ -4240,7 +4248,7 @@ export class BaseExchange {
         };
     }
 
-    safeCurrencyStructure (currency: object): CurrencyInterface {
+    safeCurrencyStructure (currency: Dict): CurrencyInterface {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         const networks = this.safeDict (currency, 'networks', {});
         const keys = Object.keys (networks);
@@ -4429,7 +4437,7 @@ export class BaseExchange {
         return this.extend (cleanStructure);
     }
 
-    setMarkets (markets, currencies = undefined): Dictionary<Market> {
+    setMarkets (markets: any, currencies = undefined): Dictionary<Market> {
         const values: Dict[] = [];
         this.markets_by_id = this.createSafeDictionary ();
         // handle marketId conflicts
@@ -4541,7 +4549,7 @@ export class BaseExchange {
         return this.markets;
     }
 
-    setMarketsFromExchange (sourceExchange) {
+    setMarketsFromExchange (sourceExchange: any) {
         // Validate that both exchanges are of the same type
         if (this.id !== sourceExchange.id) {
             throw new ArgumentsRequired (this.id + ' shareMarkets() can only share markets with exchanges of the same type (got ' + sourceExchange['id'] + ')');
@@ -4583,7 +4591,7 @@ export class BaseExchange {
         balance['free'] = {};
         balance['used'] = {};
         balance['total'] = {};
-        const debtBalance = {};
+        const debtBalance: Dict = {};
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             let total = this.safeString (balance[code], 'total');
@@ -4895,7 +4903,7 @@ export class BaseExchange {
         });
     }
 
-    parseOrders (orders: object | undefined, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Order[] {
+    parseOrders (orders: Dict | Dict[] | undefined, market: Market = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Order[] {
         //
         // the value of orders is either a dict or a list
         //
@@ -5140,7 +5148,7 @@ export class BaseExchange {
         return arr[length - 1];
     }
 
-    addKeyInArrayItems (obj, keyName) {
+    addKeyInArrayItems (obj: any, keyName: any) {
         const result: Dict[] = [];
         const keys = Object.keys (obj);
         for (let i = 0; i < keys.length; i++) {
@@ -5156,8 +5164,8 @@ export class BaseExchange {
         return result;
     }
 
-    invertFlatStringDictionary (dict) {
-        const reversed = {};
+    invertFlatStringDictionary (dict: any) {
+        const reversed: Dict = {};
         const keys = Object.keys (dict);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -5169,11 +5177,11 @@ export class BaseExchange {
         return reversed;
     }
 
-    stringToBase16 (str) {
+    stringToBase16 (str: any) {
         return '0x' + this.binaryToBase16 (this.base64ToBinary (this.stringToBase64 (str)));
     }
 
-    reduceFeesByCurrency (fees) {
+    reduceFeesByCurrency (fees: any) {
         //
         // this function takes a list of fee structures having the following format
         //
@@ -5219,7 +5227,7 @@ export class BaseExchange {
         //         { 'currency': 'USDT', 'cost': 12.3456 },
         //     ]
         //
-        const reduced = {};
+        const reduced: Dict = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
             const code = this.safeString (fee, 'currency');
@@ -5429,7 +5437,7 @@ export class BaseExchange {
     }
 
     convertOHLCVToTradingView (ohlcvs: number[][], timestamp = 't', open = 'o', high = 'h', low = 'l', close = 'c', volume = 'v', ms = false) {
-        const result = {};
+        const result: Dict = {};
         result[timestamp] = [];
         result[open] = [];
         result[high] = [];
@@ -5454,7 +5462,7 @@ export class BaseExchange {
         return result;
     }
 
-    async fetchWebEndpoint (method, endpointMethod, returnAsJson, startRegex: Str = undefined, endRegex: Str = undefined) {
+    async fetchWebEndpoint (method: any, endpointMethod: any, returnAsJson: any, startRegex: Str = undefined, endRegex: Str = undefined) {
         let errorMessage = '';
         const options = this.safeValue (this.options, method, {});
         const muteOnFailure = this.safeBool (options, 'webApiMuteFailure', true);
@@ -5631,7 +5639,7 @@ export class BaseExchange {
         return result;
     }
 
-    parseOrderBookBidsAsks (bidasks, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+    parseOrderBookBidsAsks (bidasks: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         bidasks = this.toArray (bidasks);
         const result: Num[][] = [];
         for (let i = 0; i < bidasks.length; i++) {
@@ -5640,7 +5648,7 @@ export class BaseExchange {
         return result;
     }
 
-    filterByKey (objects, key: IndexType, value: Str = undefined) {
+    filterByKey (objects: any, key: IndexType, value: Str = undefined) {
         if (value === undefined) {
             return objects;
         }
@@ -5654,11 +5662,11 @@ export class BaseExchange {
         return result;
     }
 
-    filterBySymbol (objects, symbol: Str = undefined) {
+    filterBySymbol (objects: any, symbol: Str = undefined) {
         return this.filterByKey (objects, 'symbol', symbol);
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined) : OHLCV {
+    parseOHLCV (ohlcv: any, market: Market = undefined) : OHLCV {
         if (Array.isArray (ohlcv)) {
             return [
                 this.safeInteger (ohlcv, 0), // timestamp
@@ -5672,7 +5680,7 @@ export class BaseExchange {
         return ohlcv;
     }
 
-    safeNetwork (network) {
+    safeNetwork (network: any) {
         const withdrawEnabled = this.safeBool (network, 'withdraw');
         const depositEnabled = this.safeBool (network, 'deposit');
         const limits = this.safeDict (network, 'limits');
@@ -5821,7 +5829,7 @@ export class BaseExchange {
         return preferredChain;
     }
 
-    handleNetworkCodeAndParams (params) {
+    handleNetworkCodeAndParams (params: any) {
         const networkCodeInParams = this.safeString2 (params, 'networkCode', 'network');
         if (networkCodeInParams !== undefined) {
             params = this.omit (params, [ 'networkCode', 'network' ]);
@@ -5846,15 +5854,15 @@ export class BaseExchange {
         return defaultNetworkCode;
     }
 
-    selectNetworkCodeFromUnifiedNetworks (currencyCode, networkCode, indexedNetworkEntries) {
+    selectNetworkCodeFromUnifiedNetworks (currencyCode: any, networkCode: any, indexedNetworkEntries: any) {
         return this.selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, true);
     }
 
-    selectNetworkIdFromRawNetworks (currencyCode, networkCode, indexedNetworkEntries) {
+    selectNetworkIdFromRawNetworks (currencyCode: any, networkCode: any, indexedNetworkEntries: any) {
         return this.selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, false);
     }
 
-    selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, isIndexedByUnifiedNetworkCode = false) {
+    selectNetworkKeyFromNetworks (currencyCode: any, networkCode: any, indexedNetworkEntries: any, isIndexedByUnifiedNetworkCode = false) {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         let chosenNetworkId: Str = undefined;
         const availableNetworkIds = Object.keys (indexedNetworkEntries);
@@ -5926,7 +5934,7 @@ export class BaseExchange {
     parseLeverageTiers (response: any, symbols: Strings = undefined, marketIdKey: Str = undefined): LeverageTiers {
         // marketIdKey should only be undefined when response is a dictionary.
         symbols = this.marketSymbols (symbols);
-        const tiers = {};
+        const tiers: Dict = {};
         let symbolsLength = 0;
         if (symbols !== undefined) {
             symbolsLength = symbols.length;
@@ -6094,7 +6102,7 @@ export class BaseExchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseLedger (data, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): LedgerEntry[] {
+    parseLedger (data: any, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): LedgerEntry[] {
         let result: LedgerEntry[] = [];
         const arrayData = this.toArray (data);
         for (let i = 0; i < arrayData.length; i++) {
@@ -6116,7 +6124,7 @@ export class BaseExchange {
         return this.seconds ();
     }
 
-    setHeaders (headers) {
+    setHeaders (headers: any) {
         return headers;
     }
 
@@ -6225,14 +6233,14 @@ export class BaseExchange {
         return [ request, params ];
     }
 
-    resolvePath (path, params) {
+    resolvePath (path: any, params: any) {
         return [
             this.implodeParams (path, params),
             this.omit (params, this.extractParams (path)),
         ];
     }
 
-    getListFromObjectValues (objects, key: IndexType) {
+    getListFromObjectValues (objects: any, key: IndexType) {
         let newArray = objects;
         if (!Array.isArray (objects)) {
             newArray = this.toArray (objects);
@@ -6264,7 +6272,7 @@ export class BaseExchange {
         return this.getListFromObjectValues (filteredMarkets, 'symbol');
     }
 
-    filterByArray (objects, key: IndexType, values: any = undefined, indexed = true) {
+    filterByArray (objects: any, key: IndexType, values: any = undefined, indexed = true) {
         objects = this.toArray (objects);
         // return all of them if no values were passed
         if (values === undefined || !values) {
@@ -6288,7 +6296,7 @@ export class BaseExchange {
         return results;
     }
 
-    filterOutByArray (objects, key: IndexType, values: any = undefined, indexed = true) {
+    filterOutByArray (objects: any, key: IndexType, values: any = undefined, indexed = true) {
         objects = this.toArray (objects);
         // return all of them if no values were passed
         if (values === undefined || !values) {
@@ -6312,7 +6320,7 @@ export class BaseExchange {
         return results;
     }
 
-    async fetch2 (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
+    async fetch2 (path: any, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
         if (this.enableRateLimit) {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config);
             await this.throttle (cost);
@@ -6365,7 +6373,7 @@ export class BaseExchange {
         return undefined; // this line is never reached, but exists for c# value return requirement
     }
 
-    async request (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
+    async request (path: any, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
         return await this.fetch2 (path, api, method, params, headers, body, config);
     }
 
@@ -6452,7 +6460,7 @@ export class BaseExchange {
         return ohlcvs;
     }
 
-    parseTradingViewOHLCV (ohlcvs, market: Market = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined) {
+    parseTradingViewOHLCV (ohlcvs: any, market: Market = undefined, timeframe = '1m', since: Int = undefined, limit: Int = undefined) {
         const result = this.convertTradingViewToOHLCV (ohlcvs);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
@@ -6469,7 +6477,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchLedgerEntry() is not supported yet');
     }
 
-    parseOrderBookBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+    parseOrderBookBidAsk (bidask: any, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         const price = this.safeFloat (bidask, priceKey);
         const amount = this.safeFloat (bidask, amountKey);
         const countOrId = this.safeInteger (bidask, countOrIdKey);
@@ -6604,7 +6612,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchBalanceWs() is not supported yet');
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: any): Balances {
         throw new NotSupported (this.id + ' parseBalance() is not supported yet');
     }
 
@@ -6612,7 +6620,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' watchBalance() is not supported yet');
     }
 
-    async fetchPartialBalance (part, params = {}): Promise<Balance> {
+    async fetchPartialBalance (part: any, params = {}): Promise<Balance> {
         const balance = await this.fetchBalance (params);
         return balance[part];
     }
@@ -6656,7 +6664,7 @@ export class BaseExchange {
         return this.safeValue (fees, code);
     }
 
-    getSupportedMapping (key, mapping = {}) {
+    getSupportedMapping (key: any, mapping: Dict = {}) {
         if (key in mapping) {
             return mapping[key];
         } else {
@@ -6834,7 +6842,7 @@ export class BaseExchange {
         return this.handleOptionAndParams (params, methodName, 'marginMode', defaultValue);
     }
 
-    throwExactlyMatchedException (exact, string, message) {
+    throwExactlyMatchedException (exact: any, string: any, message: any) {
         if (string === undefined) {
             return;
         }
@@ -6843,14 +6851,14 @@ export class BaseExchange {
         }
     }
 
-    throwBroadlyMatchedException (broad, string, message) {
+    throwBroadlyMatchedException (broad: any, string: any, message: any) {
         const broadKey = this.findBroadlyMatchedKey (broad, string);
         if (broadKey !== undefined) {
             throw new broad[broadKey] (message);
         }
     }
 
-    findBroadlyMatchedKey (broad, string) {
+    findBroadlyMatchedKey (broad: any, string: any) {
         // a helper for matching error strings exactly vs broadly
         const keys = Object.keys (broad);
         for (let i = 0; i < keys.length; i++) {
@@ -6864,13 +6872,13 @@ export class BaseExchange {
         return undefined;
     }
 
-    handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response, requestHeaders, requestBody) {
+    handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody: string, response: any, requestHeaders: any, requestBody: any) {
         // it is a stub method that must be overrided in the derived exchange classes
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
         return undefined;
     }
 
-    calculateRateLimiterCost (api, method, path, params, config = {}) {
+    calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
         return this.safeValue (config, 'cost', 1);
     }
 
@@ -6939,7 +6947,7 @@ export class BaseExchange {
         }
     }
 
-    setTakeProfitAndStopLossParams (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, takeProfit: Num = undefined, stopLoss: Num = undefined, params = {}) {
+    setTakeProfitAndStopLossParams (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, takeProfit: Num = undefined, stopLoss: Num = undefined, params: Dict = {}) {
         if ((takeProfit === undefined) && (stopLoss === undefined)) {
             throw new ArgumentsRequired (this.id + ' createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument');
         }
@@ -7087,7 +7095,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchFundingHistory() is not supported yet');
     }
 
-    parseLastPrice (price, market: Market = undefined): LastPrice {
+    parseLastPrice (price: any, market: Market = undefined): LastPrice {
         throw new NotSupported (this.id + ' parseLastPrice() is not supported yet');
     }
 
@@ -7187,7 +7195,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' createExpiredOptionMarket () is not supported yet');
     }
 
-    isLeveragedCurrency (currencyCode, checkBaseCoin: Bool = false, existingCurrencies: NullableDict = undefined): boolean {
+    isLeveragedCurrency (currencyCode: any, checkBaseCoin: Bool = false, existingCurrencies: NullableDict = undefined): boolean {
         const leverageSuffixes = [
             '2L', '2S', '3L', '3S', '4L', '4S', '5L', '5S', // Leveraged Tokens (LT)
             'UP', 'DOWN', // exchange-specific (e.g. BLVT)
@@ -7210,7 +7218,7 @@ export class BaseExchange {
         return false;
     }
 
-    handleWithdrawTagAndParams (tag, params): any {
+    handleWithdrawTagAndParams (tag: any, params: any): any {
         if (this.isDictionary (tag)) {
             params = this.extend (tag, params);
             tag = undefined;
@@ -7224,7 +7232,7 @@ export class BaseExchange {
         return [ tag, params ];
     }
 
-    costToPrecision (symbol: Str, cost) {
+    costToPrecision (symbol: Str, cost: any) {
         if (cost === undefined) {
             return undefined;
         }
@@ -7232,7 +7240,7 @@ export class BaseExchange {
         return this.decimalToPrecision (cost, TRUNCATE, this.safeString2 (market['precision'], 'cost', 'price'), this.precisionMode, this.paddingMode);
     }
 
-    priceToPrecision (symbol: Str, price): Str {
+    priceToPrecision (symbol: Str, price: any): Str {
         if (price === undefined) {
             return undefined;
         }
@@ -7244,7 +7252,7 @@ export class BaseExchange {
         return result;
     }
 
-    amountToPrecision (symbol: Str, amount) {
+    amountToPrecision (symbol: Str, amount: any) {
         if (amount === undefined) {
             return undefined;
         }
@@ -7256,7 +7264,7 @@ export class BaseExchange {
         return result;
     }
 
-    feeToPrecision (symbol: Str, fee) {
+    feeToPrecision (symbol: Str, fee: any) {
         if (fee === undefined) {
             return undefined;
         }
@@ -7264,7 +7272,7 @@ export class BaseExchange {
         return this.decimalToPrecision (fee, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
     }
 
-    currencyToPrecision (code: Str, fee, networkCode: Str = undefined) {
+    currencyToPrecision (code: Str, fee: any, networkCode: Str = undefined) {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' currencyToPrecision() requires a code argument');
         }
@@ -7283,7 +7291,7 @@ export class BaseExchange {
         }
     }
 
-    forceString (value) {
+    forceString (value: any) {
         if (typeof value !== 'string') {
             return this.numberToString (value);
         }
@@ -7302,7 +7310,7 @@ export class BaseExchange {
         return this.precisionMode === SIGNIFICANT_DIGITS;
     }
 
-    safeNumber (obj, key: NullableIndexType, defaultNumber: Num = undefined): Num {
+    safeNumber (obj: any, key: NullableIndexType, defaultNumber: Num = undefined): Num {
         const value = this.safeString (obj, key);
         return this.parseNumber (value, defaultNumber);
     }
@@ -7404,20 +7412,20 @@ export class BaseExchange {
         return currency['code'];
     }
 
-    filterBySymbolSinceLimit (array, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+    filterBySymbolSinceLimit (array: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
         return this.filterByValueSinceLimit (array, 'symbol', symbol, since, limit, 'timestamp', tail);
     }
 
-    filterByCurrencySinceLimit (array, code: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+    filterByCurrencySinceLimit (array: any, code: Str = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
         return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp', tail);
     }
 
-    filterBySymbolsSinceLimit (array, symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
+    filterBySymbolsSinceLimit (array: any, symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, tail = false) {
         const result = this.filterByArray (array, 'symbol', symbols, false);
         return this.filterBySinceLimit (result, since, limit, 'timestamp', tail);
     }
 
-    parseLastPrices (pricesData, symbols: Strings = undefined, params = {}): LastPrices {
+    parseLastPrices (pricesData: any, symbols: Strings = undefined, params = {}): LastPrices {
         //
         // the value of tickers is either a dict or a list
         //
@@ -7456,7 +7464,7 @@ export class BaseExchange {
         return this.filterByArray (results, 'symbol', symbols);
     }
 
-    parseTickers (tickers, symbols: Strings = undefined, params = {}): Tickers {
+    parseTickers (tickers: any, symbols: Strings = undefined, params = {}): Tickers {
         //
         // the value of tickers is either a dict or a list
         //
@@ -7500,7 +7508,7 @@ export class BaseExchange {
         return this.filterByArray (results, 'symbol', symbols);
     }
 
-    parseDepositAddresses (addresses, codes: Strings = undefined, indexed = true, params = {}): DepositAddress[] {
+    parseDepositAddresses (addresses: any, codes: Strings = undefined, indexed = true, params = {}): DepositAddress[] {
         let result: Dict[] = [];
         for (let i = 0; i < addresses.length; i++) {
             const address = this.extend (this.parseDepositAddress (addresses[i]), params);
@@ -7515,7 +7523,7 @@ export class BaseExchange {
         return result as DepositAddress[];
     }
 
-    parseBorrowInterests (response, market: Market = undefined): BorrowInterest[] {
+    parseBorrowInterests (response: any, market: Market = undefined): BorrowInterest[] {
         const interests: BorrowInterest[] = [];
         for (let i = 0; i < response.length; i++) {
             const row = response[i];
@@ -7524,11 +7532,11 @@ export class BaseExchange {
         return interests as BorrowInterest[];
     }
 
-    parseBorrowRate (info, currency: Currency = undefined): Dict {
+    parseBorrowRate (info: any, currency: Currency = undefined): Dict {
         throw new NotSupported (this.id + ' parseBorrowRate() is not supported yet');
     }
 
-    parseBorrowRateHistory (response, code: Str, since: Int, limit: Int) {
+    parseBorrowRateHistory (response: any, code: Str, since: Int, limit: Int) {
         const result: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
@@ -7540,7 +7548,7 @@ export class BaseExchange {
     }
 
     parseIsolatedBorrowRates (info: any): IsolatedBorrowRates {
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < info.length; i++) {
             const item = info[i];
             const borrowRate = this.parseIsolatedBorrowRate (item);
@@ -7550,7 +7558,7 @@ export class BaseExchange {
         return result as any;
     }
 
-    parseFundingRateHistories (response, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingRateHistory[] {
+    parseFundingRateHistories (response: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingRateHistory[] {
         const rates: FundingRateHistory[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -7570,8 +7578,8 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseFundingRate() is not supported yet');
     }
 
-    parseFundingRates (response, symbols: Strings = undefined): FundingRates {
-        const fundingRates = {};
+    parseFundingRates (response: any, symbols: Strings = undefined): FundingRates {
+        const fundingRates: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const parsed = this.parseFundingRate (entry);
@@ -7586,7 +7594,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseLongShortRatio() is not supported yet');
     }
 
-    parseLongShortRatioHistory (response, market: Market = undefined, since: Int = undefined, limit: Int = undefined): LongShortRatio[] {
+    parseLongShortRatioHistory (response: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): LongShortRatio[] {
         const rates: LongShortRatio[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -7597,7 +7605,7 @@ export class BaseExchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as LongShortRatio[];
     }
 
-    handleTriggerPricesAndParams (symbol, params, omitParams = true) {
+    handleTriggerPricesAndParams (symbol: any, params: any, omitParams = true) {
         //
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         let triggerPriceStr: Str = undefined;
@@ -7627,7 +7635,7 @@ export class BaseExchange {
         return [ triggerPriceStr, stopLossPriceStr, takeProfitPriceStr, params ];
     }
 
-    handleTriggerDirectionAndParams (params, exchangeSpecificKey: Str = undefined, allowEmpty: Bool = false) {
+    handleTriggerDirectionAndParams (params: any, exchangeSpecificKey: Str = undefined, allowEmpty: Bool = false) {
         /**
          * @ignore
          * @method
@@ -7653,7 +7661,7 @@ export class BaseExchange {
         return [ triggerDirection, params ];
     }
 
-    handleTriggerAndParams (params) {
+    handleTriggerAndParams (params: any) {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         if (isTrigger) {
             params = this.omit (params, [ 'trigger', 'stop' ]);
@@ -7661,12 +7669,12 @@ export class BaseExchange {
         return [ isTrigger, params ];
     }
 
-    isTriggerOrder (params) {
+    isTriggerOrder (params: any) {
         // for backwards compatibility
         return this.handleTriggerAndParams (params);
     }
 
-    isPostOnly (isMarketOrder: boolean, exchangeSpecificParam, params = {}) {
+    isPostOnly (isMarketOrder: boolean, exchangeSpecificParam: any, params = {}) {
         /**
          * @ignore
          * @method
@@ -7742,12 +7750,12 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchConvertCurrencies() is not supported yet');
     }
 
-    parseOpenInterest (interest, market: Market = undefined): OpenInterest {
+    parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         throw new NotSupported (this.id + ' parseOpenInterest () is not supported yet');
     }
 
-    parseOpenInterests (response, symbols: Strings = undefined): OpenInterests {
-        const result = {};
+    parseOpenInterests (response: any, symbols: Strings = undefined): OpenInterests {
+        const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const parsed = this.parseOpenInterest (entry);
@@ -7758,7 +7766,7 @@ export class BaseExchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseOpenInterestsHistory (response, market: Market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
+    parseOpenInterestsHistory (response: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
         const interests: BorrowInterest[] = [];
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -7894,7 +7902,7 @@ export class BaseExchange {
         return undefined;
     }
 
-    convertTypeToAccount (account) {
+    convertTypeToAccount (account: any) {
         /**
          * @ignore
          * @method
@@ -7917,7 +7925,7 @@ export class BaseExchange {
         }
     }
 
-    checkRequiredArgument (methodName: string, argument, argumentName, options: string[] = []) {
+    checkRequiredArgument (methodName: string, argument: any, argumentName: any, options: string[] = []) {
         /**
          * @ignore
          * @method
@@ -7953,7 +7961,7 @@ export class BaseExchange {
         }
     }
 
-    parseDepositWithdrawFees (response, codes: Strings = undefined, currencyIdKey: Str = undefined): any {
+    parseDepositWithdrawFees (response: any, codes: Strings = undefined, currencyIdKey: Str = undefined): any {
         /**
          * @ignore
          * @method
@@ -7962,7 +7970,7 @@ export class BaseExchange {
          * @param {str} currencyIdKey *should only be undefined when response is a dictionary* the object key that corresponds to the currency id
          * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
          */
-        const depositWithdrawFees = {};
+        const depositWithdrawFees: Dict = {};
         const isArray = Array.isArray (response);
         let responseKeys = response;
         if (!isArray) {
@@ -7984,11 +7992,11 @@ export class BaseExchange {
         return depositWithdrawFees;
     }
 
-    parseDepositWithdrawFee (fee, currency: Currency = undefined): any {
+    parseDepositWithdrawFee (fee: any, currency: Currency = undefined): any {
         throw new NotSupported (this.id + ' parseDepositWithdrawFee() is not supported yet');
     }
 
-    depositWithdrawFee (info): any {
+    depositWithdrawFee (info: any): any {
         return {
             'info': info,
             'withdraw': {
@@ -8003,7 +8011,7 @@ export class BaseExchange {
         };
     }
 
-    assignDefaultDepositWithdrawFees (fee, currency: Currency = undefined): any {
+    assignDefaultDepositWithdrawFees (fee: any, currency: Currency = undefined): any {
         /**
          * @ignore
          * @method
@@ -8030,11 +8038,11 @@ export class BaseExchange {
         return fee;
     }
 
-    parseIncome (info, market: Market = undefined): object {
+    parseIncome (info: any, market: Market = undefined): object {
         throw new NotSupported (this.id + ' parseIncome () is not supported yet');
     }
 
-    parseIncomes (incomes, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
+    parseIncomes (incomes: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): FundingHistory[] {
         /**
          * @ignore
          * @method
@@ -8104,7 +8112,7 @@ export class BaseExchange {
         }
     }
 
-    filterByArrayPositions (objects, key: IndexType, values: any = undefined, indexed = true): Position[] {
+    filterByArrayPositions (objects: any, key: IndexType, values: any = undefined, indexed = true): Position[] {
         /**
          * @ignore
          * @method
@@ -8113,7 +8121,7 @@ export class BaseExchange {
         return this.filterByArray (objects, key, values, indexed) as Position[];
     }
 
-    filterByArrayTickers (objects, key: IndexType, values: any = undefined, indexed = true): Dictionary<Ticker> {
+    filterByArrayTickers (objects: any, key: IndexType, values: any = undefined, indexed = true): Dictionary<Ticker> {
         /**
          * @ignore
          * @method
@@ -8122,7 +8130,7 @@ export class BaseExchange {
         return this.filterByArray (objects, key, values, indexed) as Dictionary<Ticker>;
     }
 
-    filterByArrayADLRanks (objects, key: IndexType, values: any = undefined, indexed = true): ADL[] {
+    filterByArrayADLRanks (objects: any, key: IndexType, values: any = undefined, indexed = true): ADL[] {
         /**
          * @ignore
          * @method
@@ -8131,8 +8139,8 @@ export class BaseExchange {
         return this.filterByArray (objects, key, values, indexed) as ADL[];
     }
 
-    createOHLCVObject (symbol: string, timeframe: string, data): Dictionary<Dictionary<OHLCV[]>> {
-        const res = {};
+    createOHLCVObject (symbol: string, timeframe: string, data: any): Dictionary<Dictionary<OHLCV[]>> {
+        const res: Dict = {};
         res[symbol] = {};
         res[symbol][timeframe] = data;
         return res;
@@ -8150,7 +8158,7 @@ export class BaseExchange {
         return [ maxEntriesPerRequest, params ];
     }
 
-    async fetchPaginatedCallDynamic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}, maxEntriesPerRequest: Int = undefined, removeRepeated = true): Promise<any> {
+    async fetchPaginatedCallDynamic (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, maxEntriesPerRequest: Int = undefined, removeRepeated = true): Promise<any> {
         let maxCalls = 10;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
         let maxRetries = 3;
@@ -8318,7 +8326,7 @@ export class BaseExchange {
         return this.filterBySinceLimit (uniqueResults, since, limit, key);
     }
 
-    async fetchPaginatedCallCursor (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
+    async fetchPaginatedCallCursor (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, cursorReceived: Str = undefined, cursorSent: Str = undefined, cursorIncrement: Int = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
         let maxCalls = 10;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
         let maxRetries = 3;
@@ -8407,7 +8415,7 @@ export class BaseExchange {
         return this.filterBySinceLimit (sorted, since, limit, key);
     }
 
-    async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}, pageKey: Str = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
+    async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}, pageKey: Str = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
         let maxCalls = 10;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', maxCalls);
         let maxRetries = 3;
@@ -8444,7 +8452,7 @@ export class BaseExchange {
         return this.filterBySinceLimit (sorted, since, limit, key);
     }
 
-    sortCursorPaginatedResult (result) {
+    sortCursorPaginatedResult (result: any) {
         const first = this.safeValue (result, 0);
         if (first !== undefined) {
             if ('timestamp' in first) {
@@ -8457,8 +8465,8 @@ export class BaseExchange {
         return result;
     }
 
-    removeRepeatedElementsFromArray (input, fallbackToTimestamp: boolean = true) {
-        const uniqueDic = {};
+    removeRepeatedElementsFromArray (input: any, fallbackToTimestamp: boolean = true) {
+        const uniqueDic: Dict = {};
         const uniqueResult: Dict[] = [];
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
@@ -8475,8 +8483,8 @@ export class BaseExchange {
         return input;
     }
 
-    removeRepeatedTradesFromArray (input) {
-        const uniqueResult = {};
+    removeRepeatedTradesFromArray (input: any) {
+        const uniqueResult: Dict = {};
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
             let id = this.safeString (entry, 'id');
@@ -8501,7 +8509,7 @@ export class BaseExchange {
 
     removeKeysFromDict (dict:Dict, removeKeys: string[]) {
         const keys = Object.keys (dict);
-        const newDict = {};
+        const newDict: Dict = {};
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             if (!this.inArray (key, removeKeys)) {
@@ -8511,7 +8519,7 @@ export class BaseExchange {
         return newDict;
     }
 
-    handleUntilOption (key: string, request, params, multiplier = 1) {
+    handleUntilOption (key: string, request: any, params: any, multiplier = 1) {
         const until = this.safeInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request[key] = this.parseToInt (until * multiplier);
@@ -8537,7 +8545,7 @@ export class BaseExchange {
         });
     }
 
-    parseLiquidation (liquidation, market: Market = undefined): Liquidation {
+    parseLiquidation (liquidation: any, market: Market = undefined): Liquidation {
         throw new NotSupported (this.id + ' parseLiquidation () is not supported yet');
     }
 
@@ -8567,7 +8575,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseGreeks () is not supported yet');
     }
 
-    parseAllGreeks (greeks, symbols: Strings = undefined, params = {}): Greeks[] {
+    parseAllGreeks (greeks: any, symbols: Strings = undefined, params = {}): Greeks[] {
         //
         // the value of greeks is either a dict or a list
         //
@@ -8597,7 +8605,7 @@ export class BaseExchange {
     }
 
     parseOptionChain (response: object[], currencyKey: Str = undefined, symbolKey: Str = undefined): OptionChain {
-        const optionStructures = {};
+        const optionStructures: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
             const currencyId = (currencyKey === undefined) ? undefined : this.safeString (info, currencyKey);
@@ -8610,7 +8618,7 @@ export class BaseExchange {
     }
 
     parseMarginModes (response: object[], symbols: Strings = undefined, symbolKey: Str = undefined, marketType: MarketType | undefined = undefined): MarginModes {
-        const marginModeStructures = {};
+        const marginModeStructures: Dict = {};
         if (marketType === undefined) {
             marketType = 'swap'; // default to swap
         }
@@ -8630,7 +8638,7 @@ export class BaseExchange {
     }
 
     parseLeverages (response: object[], symbols: Strings = undefined, symbolKey: Str = undefined, marketType: MarketType | undefined = undefined): Leverages {
-        const leverageStructures = {};
+        const leverageStructures: Dict = {};
         if (marketType === undefined) {
             marketType = 'swap'; // default to swap
         }
@@ -8892,7 +8900,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' unWatchBidsAsks () is not supported yet');
     }
 
-    cleanUnsubscription (client, subHash: Str, unsubHash: Str, subHashIsPrefix = false) {
+    cleanUnsubscription (client: any, subHash: Str, unsubHash: Str, subHashIsPrefix = false) {
         if ((unsubHash !== undefined) && (unsubHash in client.subscriptions)) {
             delete client.subscriptions[unsubHash];
         }
@@ -9383,7 +9391,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' createTakeProfitOrderWs() is not supported yet');
     }
 
-    async createTrailingAmountOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
+    async createTrailingAmountOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount: Num = undefined, trailingTriggerPrice: Num = undefined, params: Dict = {}): Promise<Order> {
         /**
          * @method
          * @name createTrailingAmountOrderWs
@@ -9411,7 +9419,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' createTrailingAmountOrderWs() is not supported yet');
     }
 
-    async createTrailingPercentOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
+    async createTrailingPercentOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent: Num = undefined, trailingTriggerPrice: Num = undefined, params: Dict = {}): Promise<Order> {
         /**
          * @method
          * @name createTrailingPercentOrderWs
@@ -9533,7 +9541,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' fetchTradesWs() is not supported yet');
     }
 
-    async loadOrderBook (client, messageHash: string, symbol: string, limit: Int = undefined, params = {}) {
+    async loadOrderBook (client: any, messageHash: string, symbol: string, limit: Int = undefined, params = {}) {
         if (!(symbol in this.orderbooks)) {
             client.reject (new ExchangeError (this.id + ' loadOrderBook() orderbook is not initiated'), messageHash);
             return;
@@ -9583,7 +9591,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' fetchOrderBook() is not supported yet');
     }
 
-    async fetchRestOrderBookSafe (symbol, limit: Int = undefined, params = {}) {
+    async fetchRestOrderBookSafe (symbol: any, limit: Int = undefined, params = {}) {
         const fetchSnapshotMaxRetries = this.handleOption ('watchOrderBook', 'maxRetries', 3);
         for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
             try {
@@ -9711,7 +9719,7 @@ export default class Exchange extends BaseExchange {
         return order['status'];
     }
 
-    async fetchUnifiedOrder (order, params = {}): Promise<Order> {
+    async fetchUnifiedOrder (order: any, params = {}): Promise<Order> {
         return await this.fetchOrder (this.safeString (order, 'id') as string, this.safeString (order, 'symbol'), params);
     }
 
@@ -9719,7 +9727,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 
-    async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
+    async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount: Num = undefined, trailingTriggerPrice: Num = undefined, params: Dict = {}): Promise<Order> {
         /**
          * @method
          * @name createTrailingAmountOrder
@@ -9747,7 +9755,7 @@ export default class Exchange extends BaseExchange {
         throw new NotSupported (this.id + ' createTrailingAmountOrder() is not supported yet');
     }
 
-    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
+    async createTrailingPercentOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingPercent: Num = undefined, trailingTriggerPrice: Num = undefined, params: Dict = {}): Promise<Order> {
         /**
          * @method
          * @name createTrailingPercentOrder

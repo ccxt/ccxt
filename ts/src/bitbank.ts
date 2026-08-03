@@ -308,7 +308,7 @@ export default class bitbank extends Exchange {
         return this.parseMarkets (pairs);
     }
 
-    parseMarket (entry): Market {
+    parseMarket (entry: any): Market {
         const id = this.safeString (entry, 'name');
         const baseId = this.safeString (entry, 'base_asset');
         const quoteId = this.safeString (entry, 'quote_asset');
@@ -573,7 +573,7 @@ export default class bitbank extends Exchange {
         return result;
     }
 
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     [
         //         "0.02501786",
@@ -649,7 +649,7 @@ export default class bitbank extends Exchange {
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: any): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1085,7 +1085,7 @@ export default class bitbank extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
+    sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let query = this.omit (params, this.extractParams (path));
         let url = this.implodeHostname (this.urls['api'][api]) + '/';
         if ((api === 'public') || (api === 'markets')) {
@@ -1119,7 +1119,7 @@ export default class bitbank extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }
