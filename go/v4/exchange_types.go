@@ -106,6 +106,14 @@ type MarketInterface struct {
 	Precision      Precision
 	Limits         Limits
 	Created        *int64
+	NumericId      *int64
+	SubType        *string
+	Prediction     *bool
+	Percentage     *bool
+	TierBased      *bool
+	FeeSide        *string
+	MarginModes    *MarketMarginModes
+	Outcomes       []PredictionOutcome
 }
 
 // CreateMarketInterface initializes the MarketInterface struct
@@ -126,6 +134,15 @@ func NewMarketInterface(data any) MarketInterface {
 	var precision Precision
 	if v, ok := m["precision"]; ok && v != nil {
 		precision = NewPrecision(v)
+	}
+
+	// Handle marginModes if present
+	var marginModes *MarketMarginModes
+	if v, ok := m["marginModes"]; ok && v != nil {
+		if marginModesMap, ok := v.(map[string]any); ok {
+			marginModesValue := NewMarketMarginModes(marginModesMap)
+			marginModes = &marginModesValue
+		}
 	}
 
 	return MarketInterface{
@@ -161,6 +178,14 @@ func NewMarketInterface(data any) MarketInterface {
 		Precision:      precision,
 		Limits:         limits,
 		Created:        SafeInt64Typed(m, "created"),
+		NumericId:      SafeInt64Typed(m, "numericId"),
+		SubType:        SafeStringTyped(m, "subType"),
+		Prediction:     SafeBoolTyped(m, "prediction"),
+		Percentage:     SafeBoolTyped(m, "percentage"),
+		TierBased:      SafeBoolTyped(m, "tierBased"),
+		FeeSide:        SafeStringTyped(m, "feeSide"),
+		MarginModes:    marginModes,
+		Outcomes:       NewPredictionOutcomeArray(m["outcomes"]),
 	}
 }
 
@@ -184,6 +209,7 @@ func NewMarketsMap(data2 any) map[string]MarketInterface {
 type Precision struct {
 	Amount *float64
 	Price  *float64
+	Cost   *float64
 }
 
 func NewPrecision(data any) Precision {
@@ -191,6 +217,7 @@ func NewPrecision(data any) Precision {
 	return Precision{
 		Amount: SafeFloatTyped(m, "amount"),
 		Price:  SafeFloatTyped(m, "price"),
+		Cost:   SafeFloatTyped(m, "cost"),
 	}
 }
 
@@ -224,15 +251,17 @@ func NewMarketMarginModes(data any) MarketMarginModes {
 
 // Fee struct
 type Fee struct {
-	Rate *float64
-	Cost *float64
+	Rate     *float64
+	Cost     *float64
+	Currency *string
 }
 
 func NewFee(data any) Fee {
 	m := data.(map[string]any)
 	return Fee{
-		Rate: SafeFloatTyped(m, "rate"),
-		Cost: SafeFloatTyped(m, "cost"),
+		Rate:     SafeFloatTyped(m, "rate"),
+		Cost:     SafeFloatTyped(m, "cost"),
+		Currency: SafeStringTyped(m, "currency"),
 	}
 }
 
@@ -391,29 +420,32 @@ func NewTrade(data any) Trade {
 
 // Order struct
 type Order struct {
-	Id                 *string
-	ClientOrderId      *string
-	Timestamp          *int64
-	Datetime           *string
-	LastTradeTimestamp *string
-	Symbol             *string
-	Type               *string
-	Side               *string
-	Price              *float64
-	Cost               *float64
-	Average            *float64
-	Amount             *float64
-	Filled             *float64
-	Remaining          *float64
-	Status             *string
-	ReduceOnly         *bool
-	PostOnly           *bool
-	Fee                Fee
-	Trades             []Trade
-	TriggerPrice       *float64
-	StopLossPrice      *float64
-	TakeProfitPrice    *float64
-	Info               map[string]any
+	Id                  *string
+	ClientOrderId       *string
+	Timestamp           *int64
+	Datetime            *string
+	LastTradeTimestamp  *string
+	Symbol              *string
+	Type                *string
+	Side                *string
+	Price               *float64
+	Cost                *float64
+	Average             *float64
+	Amount              *float64
+	Filled              *float64
+	Remaining           *float64
+	Status              *string
+	ReduceOnly          *bool
+	PostOnly            *bool
+	Fee                 Fee
+	Trades              []Trade
+	TriggerPrice        *float64
+	StopLossPrice       *float64
+	TakeProfitPrice     *float64
+	LastUpdateTimestamp *int64
+	TimeInForce         *string
+	StopPrice           *float64
+	Info                map[string]any
 }
 
 func NewOrder(data any) Order {
@@ -428,29 +460,32 @@ func NewOrder(data any) Order {
 	}
 
 	return Order{
-		Id:                 SafeStringTyped(m, "id"),
-		ClientOrderId:      SafeStringTyped(m, "clientOrderId"),
-		Timestamp:          SafeInt64Typed(m, "timestamp"),
-		Datetime:           SafeStringTyped(m, "datetime"),
-		LastTradeTimestamp: SafeStringTyped(m, "lastTradeTimestamp"),
-		Symbol:             SafeStringTyped(m, "symbol"),
-		Type:               SafeStringTyped(m, "type"),
-		Side:               SafeStringTyped(m, "side"),
-		Price:              SafeFloatTyped(m, "price"),
-		Cost:               SafeFloatTyped(m, "cost"),
-		Average:            SafeFloatTyped(m, "average"),
-		Amount:             SafeFloatTyped(m, "amount"),
-		Filled:             SafeFloatTyped(m, "filled"),
-		Remaining:          SafeFloatTyped(m, "remaining"),
-		Status:             SafeStringTyped(m, "status"),
-		ReduceOnly:         SafeBoolTyped(m, "reduceOnly"),
-		PostOnly:           SafeBoolTyped(m, "postOnly"),
-		Fee:                NewFee(SafeValue(m, "fee", map[string]any{}).(map[string]any)),
-		Trades:             trades,
-		TriggerPrice:       SafeFloatTyped(m, "triggerPrice"),
-		StopLossPrice:      SafeFloatTyped(m, "stopLossPrice"),
-		TakeProfitPrice:    SafeFloatTyped(m, "takeProfitPrice"),
-		Info:               m,
+		Id:                  SafeStringTyped(m, "id"),
+		ClientOrderId:       SafeStringTyped(m, "clientOrderId"),
+		Timestamp:           SafeInt64Typed(m, "timestamp"),
+		Datetime:            SafeStringTyped(m, "datetime"),
+		LastTradeTimestamp:  SafeStringTyped(m, "lastTradeTimestamp"),
+		Symbol:              SafeStringTyped(m, "symbol"),
+		Type:                SafeStringTyped(m, "type"),
+		Side:                SafeStringTyped(m, "side"),
+		Price:               SafeFloatTyped(m, "price"),
+		Cost:                SafeFloatTyped(m, "cost"),
+		Average:             SafeFloatTyped(m, "average"),
+		Amount:              SafeFloatTyped(m, "amount"),
+		Filled:              SafeFloatTyped(m, "filled"),
+		Remaining:           SafeFloatTyped(m, "remaining"),
+		Status:              SafeStringTyped(m, "status"),
+		ReduceOnly:          SafeBoolTyped(m, "reduceOnly"),
+		PostOnly:            SafeBoolTyped(m, "postOnly"),
+		Fee:                 NewFee(SafeValue(m, "fee", map[string]any{}).(map[string]any)),
+		Trades:              trades,
+		TriggerPrice:        SafeFloatTyped(m, "triggerPrice"),
+		StopLossPrice:       SafeFloatTyped(m, "stopLossPrice"),
+		TakeProfitPrice:     SafeFloatTyped(m, "takeProfitPrice"),
+		LastUpdateTimestamp: SafeInt64Typed(m, "lastUpdateTimestamp"),
+		TimeInForce:         SafeStringTyped(m, "timeInForce"),
+		StopPrice:           SafeFloatTyped(m, "stopPrice"),
+		Info:                m,
 	}
 }
 
@@ -475,6 +510,8 @@ type Ticker struct {
 	Average       *float64
 	BaseVolume    *float64
 	QuoteVolume   *float64
+	IndexPrice    *float64
+	MarkPrice     *float64
 	Info          map[string]any
 }
 
@@ -500,6 +537,8 @@ func NewTicker(data any) Ticker {
 		Average:       SafeFloatTyped(m, "average"),
 		BaseVolume:    SafeFloatTyped(m, "baseVolume"),
 		QuoteVolume:   SafeFloatTyped(m, "quoteVolume"),
+		IndexPrice:    SafeFloatTyped(m, "indexPrice"),
+		MarkPrice:     SafeFloatTyped(m, "markPrice"),
 		Info:          GetInfo(m),
 	}
 }
@@ -529,34 +568,59 @@ func NewOHLCV(data any) OHLCV {
 // transaction
 
 type Transaction struct {
-	Id        *string
-	TxId      *string
-	Address   *string
-	Tag       *string
-	Type      *string
-	Currency  *string
-	Amount    *float64
-	Status    *string
-	Updated   *int64
-	Timestamp *int64
-	Datetime  *string
+	Id          *string
+	TxId        *string
+	Address     *string
+	Tag         *string
+	Type        *string
+	Currency    *string
+	Amount      *float64
+	Status      *string
+	Updated     *int64
+	Timestamp   *int64
+	Datetime    *string
+	Info        map[string]any
+	AddressFrom *string
+	AddressTo   *string
+	TagFrom     *string
+	TagTo       *string
+	Fee         *Fee
+	Network     *string
+	Comment     *string
+	Internal    *bool
 }
 
 // NewTransaction initializes a Transaction struct from a map.
 func NewTransaction(transaction2 any) Transaction {
 	transaction := transaction2.(map[string]any)
+	var fee *Fee
+	if v, ok := transaction["fee"]; ok && v != nil {
+		if feeMap, ok := v.(map[string]any); ok {
+			feeValue := NewFee(feeMap)
+			fee = &feeValue
+		}
+	}
 	return Transaction{
-		Id:        SafeStringTyped(transaction, "id"),
-		TxId:      SafeStringTyped(transaction, "txid"),
-		Address:   SafeStringTyped(transaction, "address"),
-		Tag:       SafeStringTyped(transaction, "tag"),
-		Type:      SafeStringTyped(transaction, "type"),
-		Currency:  SafeStringTyped(transaction, "currency"),
-		Amount:    SafeFloatTyped(transaction, "amount"),
-		Status:    SafeStringTyped(transaction, "status"),
-		Updated:   SafeInt64Typed(transaction, "updated"),
-		Timestamp: SafeInt64Typed(transaction, "timestamp"),
-		Datetime:  SafeStringTyped(transaction, "datetime"),
+		Id:          SafeStringTyped(transaction, "id"),
+		TxId:        SafeStringTyped(transaction, "txid"),
+		Address:     SafeStringTyped(transaction, "address"),
+		Tag:         SafeStringTyped(transaction, "tag"),
+		Type:        SafeStringTyped(transaction, "type"),
+		Currency:    SafeStringTyped(transaction, "currency"),
+		Amount:      SafeFloatTyped(transaction, "amount"),
+		Status:      SafeStringTyped(transaction, "status"),
+		Updated:     SafeInt64Typed(transaction, "updated"),
+		Timestamp:   SafeInt64Typed(transaction, "timestamp"),
+		Datetime:    SafeStringTyped(transaction, "datetime"),
+		Info:        GetInfo(transaction),
+		AddressFrom: SafeStringTyped(transaction, "addressFrom"),
+		AddressTo:   SafeStringTyped(transaction, "addressTo"),
+		TagFrom:     SafeStringTyped(transaction, "tagFrom"),
+		TagTo:       SafeStringTyped(transaction, "tagTo"),
+		Fee:         fee,
+		Network:     SafeStringTyped(transaction, "network"),
+		Comment:     SafeStringTyped(transaction, "comment"),
+		Internal:    SafeBoolTyped(transaction, "internal"),
 	}
 }
 
@@ -680,6 +744,7 @@ type Balance struct {
 	Free  *float64
 	Used  *float64
 	Total *float64
+	Debt  *float64
 }
 
 // String returns a string representation of the Balance struct
@@ -710,11 +775,13 @@ func (b *Balance) String() string {
 }
 
 type Balances struct {
-	Balances map[string]Balance
-	Free     map[string]*float64
-	Used     map[string]*float64
-	Total    map[string]*float64
-	Info     map[string]any
+	Balances  map[string]Balance
+	Free      map[string]*float64
+	Used      map[string]*float64
+	Total     map[string]*float64
+	Info      map[string]any
+	Timestamp *int64
+	Datetime  *string
 }
 
 // NewBalance initializes a Balance struct from a map.
@@ -724,6 +791,7 @@ func NewBalance(balanceData2 any) Balance {
 		Free:  SafeFloatTyped(balanceData, "free"),
 		Used:  SafeFloatTyped(balanceData, "used"),
 		Total: SafeFloatTyped(balanceData, "total"),
+		Debt:  SafeFloatTyped(balanceData, "debt"),
 	}
 }
 
@@ -789,11 +857,13 @@ func NewBalances(balancesData2 any) Balances {
 	info := GetInfo(balancesData) // Assuming GetInfo is implemented
 
 	return Balances{
-		Balances: balancesMap,
-		Free:     freeBalances,
-		Used:     usedBalances,
-		Total:    totalBalances,
-		Info:     info,
+		Balances:  balancesMap,
+		Free:      freeBalances,
+		Used:      usedBalances,
+		Total:     totalBalances,
+		Info:      info,
+		Timestamp: SafeInt64Typed(balancesData, "timestamp"),
+		Datetime:  SafeStringTyped(balancesData, "datetime"),
 	}
 }
 
@@ -2382,13 +2452,116 @@ func NewCancellationRequest(request map[string]any) CancellationRequest {
 // DepositWithdrawFeeNetwork
 
 type DepositWithdrawFeeNetwork struct {
-	fee        *float64
-	percentage *float64
+	Fee        *float64
+	Percentage *bool
 }
 
 func NewDepositWithdrawFeeNetwork(data any) DepositWithdrawFeeNetwork {
 	return DepositWithdrawFeeNetwork{
-		fee:        SafeFloatTyped(data, "fee"),
-		percentage: SafeFloatTyped(data, "percentage"),
+		Fee:        SafeFloatTyped(data, "fee"),
+		Percentage: SafeBoolTyped(data, "percentage"),
 	}
+}
+
+// DepositWithdrawFee
+
+type DepositWithdrawFee struct {
+	Info     map[string]any
+	Withdraw *DepositWithdrawFeeNetwork
+	Deposit  *DepositWithdrawFeeNetwork
+	Networks map[string]DepositWithdrawFeeNetwork
+}
+
+func NewDepositWithdrawFee(data any) DepositWithdrawFee {
+	if data == nil {
+		return DepositWithdrawFee{}
+	}
+	if syncMap, ok := data.(*sync.Map); ok {
+		data = SafeMapToMap(syncMap)
+	}
+	m, ok := data.(map[string]any)
+	if !ok {
+		return DepositWithdrawFee{}
+	}
+	info := GetInfo(m)
+	if info == nil {
+		info = m
+	}
+	var withdraw *DepositWithdrawFeeNetwork
+	if v, ok := m["withdraw"]; ok && v != nil {
+		if withdrawMap, ok := v.(map[string]any); ok {
+			withdrawValue := NewDepositWithdrawFeeNetwork(withdrawMap)
+			withdraw = &withdrawValue
+		}
+	}
+	var deposit *DepositWithdrawFeeNetwork
+	if v, ok := m["deposit"]; ok && v != nil {
+		if depositMap, ok := v.(map[string]any); ok {
+			depositValue := NewDepositWithdrawFeeNetwork(depositMap)
+			deposit = &depositValue
+		}
+	}
+	networks := make(map[string]DepositWithdrawFeeNetwork)
+	if v, ok := m["networks"]; ok && v != nil {
+		if networksMap, ok := v.(map[string]any); ok {
+			for key, value := range networksMap {
+				if networkMap, ok := value.(map[string]any); ok {
+					networks[key] = NewDepositWithdrawFeeNetwork(networkMap)
+				}
+			}
+		}
+	}
+	return DepositWithdrawFee{
+		Info:     info,
+		Withdraw: withdraw,
+		Deposit:  deposit,
+		Networks: networks,
+	}
+}
+
+func NewDepositWithdrawFeeMap(data2 any) map[string]DepositWithdrawFee {
+	if data2 == nil {
+		data2 = make(map[string]any)
+	}
+	if dataMap, ok := data2.(*sync.Map); ok {
+		data2 = SafeMapToMap(dataMap)
+	}
+	data := data2.(map[string]any)
+	result := make(map[string]DepositWithdrawFee)
+	for key, value := range data {
+		result[key] = NewDepositWithdrawFee(value)
+	}
+	return result
+}
+
+type DepositWithdrawFees struct {
+	Info                map[string]any
+	DepositWithdrawFees map[string]DepositWithdrawFee
+}
+
+func NewDepositWithdrawFees(data2 any) DepositWithdrawFees {
+	if data2 == nil {
+		data2 = make(map[string]any)
+	}
+	data := data2.(map[string]any)
+	info := GetInfo(data)
+	fees := make(map[string]DepositWithdrawFee)
+	for key, value := range data {
+		if key != "info" {
+			fees[key] = NewDepositWithdrawFee(value)
+		}
+	}
+	return DepositWithdrawFees{Info: info, DepositWithdrawFees: fees}
+}
+
+func (d *DepositWithdrawFees) Get(key string) (DepositWithdrawFee, error) {
+	fee, exists := d.DepositWithdrawFees[key]
+	if !exists {
+		return DepositWithdrawFee{}, fmt.Errorf("the key '%s' was not found in the depositWithdrawFees", key)
+	}
+	return fee, nil
+}
+
+func (d *DepositWithdrawFees) Set(key string, fee DepositWithdrawFee) {
+	d.DepositWithdrawFees[key] = fee
 }

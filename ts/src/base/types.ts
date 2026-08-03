@@ -674,6 +674,9 @@ export interface DepositWithdrawFee {
     networks?: Dictionary<DepositWithdrawFeeNetwork>;
 }
 
+export interface DepositWithdrawFees extends Dictionary<DepositWithdrawFee> {
+}
+
 export interface TransferEntry {
     info?: any;
     id?: Str;

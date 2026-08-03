@@ -76,6 +76,18 @@ class TradingFeeInterface(TypedDict):
     tierBased: Bool
 
 
+class DepositWithdrawFeeNetwork(TypedDict):
+    fee: NotRequired[Num]
+    percentage: NotRequired[Bool]
+
+
+class DepositWithdrawFee(TypedDict):
+    info: Dict[str, Any]
+    withdraw: NotRequired[DepositWithdrawFeeNetwork]
+    deposit: NotRequired[DepositWithdrawFeeNetwork]
+    networks: NotRequired[Dict[str, DepositWithdrawFeeNetwork]]
+
+
 class Balance(TypedDict):
     free: Num
     used: Num
@@ -611,6 +623,7 @@ OpenInterests = Dict[Str, OpenInterest]
 LastPrices = Dict[Str, LastPrice]
 Currencies = Dict[Str, CurrencyInterface]
 TradingFees = Dict[Str, TradingFeeInterface]
+DepositWithdrawFees = Dict[Str, DepositWithdrawFee]
 IsolatedBorrowRates = Dict[Str, IsolatedBorrowRate]
 CrossBorrowRates = Dict[Str, CrossBorrowRate]
 LeverageTiers = Dict[Str, List[LeverageTier]]
