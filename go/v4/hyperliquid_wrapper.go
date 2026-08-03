@@ -233,6 +233,34 @@ func (this *Hyperliquid) FetchTickers(options ...FetchTickersOptions) (Tickers, 
 
 /**
  * @method
+ * @name hyperliquid#fetchFundingRate
+ * @description fetch the current funding rate for a symbol - hyperliquid only offers a bulk endpoint, so this filters the result of fetchFundingRates
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ */
+func (this *Hyperliquid) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
+
+	opts := FetchFundingRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchFundingRate(symbol, params)
+	if IsError(res) {
+		return FundingRate{}, CreateReturnError(res)
+	}
+	return NewFundingRate(res), nil
+}
+
+/**
+ * @method
  * @name hyperliquid#fetchFundingRates
  * @description retrieves data on all swap markets for hyperliquid
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-perpetuals-asset-contexts-includes-mark-price-current-funding-open-interest-etc
@@ -1723,9 +1751,6 @@ func (this *Hyperliquid) FetchFundingInterval(symbol string, options ...FetchFun
 }
 func (this *Hyperliquid) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
 	return this.exchangeTyped.FetchFundingIntervals(options...)
-}
-func (this *Hyperliquid) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingRate(symbol, options...)
 }
 func (this *Hyperliquid) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
 	return this.exchangeTyped.FetchGreeks(symbol, options...)
