@@ -45,7 +45,7 @@ classifiers = [
 dependencies = [
     "certifi==2026.6.17",
     "requests==2.34.2",
-    "cryptography==49.0.0",
+    "cryptography==50.0.0",
     "typing_extensions==4.16.0",
     "aiohttp==3.14.1",
     "yarl==1.24.2",
@@ -103,7 +103,7 @@ type = [
 dev = [
     "certifi==2026.6.17",
     "requests==2.34.2",
-    "cryptography==49.0.0",
+    "cryptography==50.0.0",
     "typing_extensions==4.16.0",
     "aiohttp==3.14.1",
     "aiodns==4.0.4",
