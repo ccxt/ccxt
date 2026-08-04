@@ -45,7 +45,7 @@ public class MyokxCore extends MyokxApi
                 put( "CORS", null );
                 put( "spot", true );
                 put( "margin", null );
-                put( "swap", false );
+                put( "swap", true );
                 put( "future", false );
                 put( "option", false );
             }} );
@@ -61,6 +61,9 @@ public class MyokxCore extends MyokxApi
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
                 put( "mica", true );
+                put( "fetchMarkets", new java.util.HashMap<String, Object>() {{
+                    put( "types", new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap")) );
+                }} );
             }} );
         }});
     }
