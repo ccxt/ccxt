@@ -4,8 +4,8 @@ import Exchange from '../abstract/prediction/sxbet.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import { ROUND, DECIMAL_PLACES, TICK_SIZE } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
-import { ArgumentsRequired, ExchangeError, InvalidOrder, OrderNotFound } from '../base/errors.js';
-import type { Dict, Int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams } from '../base/types.js';
+import { ArgumentsRequired, BadRequest, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from '../base/errors.js';
+import type { Dict, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -34,18 +34,18 @@ export default class sxbet extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
-                'fetchBalance': true,
+                'fetchBalance': false,
                 'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchMarkets': true,
-                'fetchMyTrades': true,
+                'fetchMyTrades': false,
                 'fetchOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
-                'fetchPositions': true,
-                'fetchSettlements': true,
+                'fetchPositions': false,
+                'fetchSettlements': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'prediction': true,
@@ -116,16 +116,55 @@ export default class sxbet extends Exchange {
             'fees': {
                 'trading': {
                     'tierBased': false,
-                    'percentage': false,
+                    'percentage': true,
+                    // no per-trade maker/taker cut found anywhere in the docs or /metadata —
+                    // oracleFees there is a resolution/oracle cost, not a trading fee
+                    'maker': 0.0,
+                    'taker': 0.0,
                 },
             },
             'exceptions': {
-                'exact': {},
-                'broad': {},
+                // sx.bet errors come as { "error": "Bad Request", "message": <CODE or [strings]>, "statusCode": 4xx };
+                // per-order statuses inside a 200 createOrder response reuse the same codes
+                'exact': {
+                    'INSUFFICIENT_BALANCE': InsufficientFunds,   // maker token balance too low
+                    'INVALID_MARKET': BadRequest,   // non-unique marketHashes in one request
+                    'ORDERS_ALREADY_EXIST': DuplicateOrderId,
+                    'TOO_MANY_DIFFERENT_MARKETS': BadRequest,   // more than 3 markets in a single request
+                    'ORDERS_MUST_HAVE_IDENTICAL_MARKET': BadRequest,
+                    'BAD_BASE_TOKEN': BadRequest,   // all orders must share one base token
+                    'INSUFFICIENT_KYC': PermissionDenied,
+                    'AFTER_ORDER_EXPIRY': OrderNotFillable,   // a targeted order expired before the fill
+                    'BASE_TOKENS_NOT_SAME': BadRequest,
+                    'MARKETS_NOT_SAME': BadRequest,
+                    'DIRECTIONS_NOT_SAME': BadRequest,
+                    'INVALID_ORDERS': OrderNotFillable,   // a targeted order is no longer active
+                    'INVALID_ODDS': InvalidOrder,   // desiredOdds must be below 10^20
+                    'INVALID_ODDS_SLIPPAGE': BadRequest,   // integer 0-100
+                    'MATCH_STATE_INVALID': MarketClosed,   // fixture not available for betting
+                    'TAKER_SIGNATURE_MISMATCH': InvalidOrder,
+                    'SIGNATURE_MISMATCH': InvalidOrder,   // cancel payload signature failed verification
+                    'PROXY_ACCOUNT_INVALID': BadRequest,
+                    'TAKER_AMOUNT_TOO_LOW': InvalidOrder,   // below the token's taker minimum
+                    'META_TX_RATE_LIMIT_REACHED': RateLimitExceeded,   // max 10 pending meta transactions
+                    'INSUFFICIENT_SPACE': OrderNotFillable,   // remaining maker space consumed by pending fills
+                    'FILL_ALREADY_SUBMITTED': DuplicateOrderId,
+                    'ODDS_STALE': OrderNotFillable,   // nothing resting within desiredOdds + oddsSlippage
+                    'NO_MATCHING_ORDERS': OrderNotFillable,   // observed live: no fillable liquidity (e.g. self-trade)
+                    'CANCEL_REQUEST_ALREADY_PROCESSED': OperationRejected,
+                    'RATE_LIMIT_ORDER_REQUEST_MARKET_COUNT': BadRequest,   // more than 1000 marketHashes queried
+                    'BOTH_SPORTXEVENTID_MARKETHASHES_PRESENT': BadRequest,
+                    'BAD_MARKET_HASHES': BadRequest,   // invalid or more than 30 hashes on /markets/find
+                },
+                'broad': {
+                    'no longer supported': NotSupported,   // e.g. "OrderBook V2 is no longer supported" (testnet V3 canary gate)
+                    'must be': BadRequest,   // request validation messages like "orders must be an array"
+                },
             },
             'options': {
-                'marketsPageSize': 100,
-                'maxMarketsPages': 50,
+                'marketsPageSize': 100,   // markets per GET /markets/active page (cursor pagination)
+                'maxMarketsPages': 50,    // safety cap on pages fetched per markets scan (100 * 50 = 5000 markets)
+                // venue-specific fetchEvents scope params accepted by requireEventQuery
                 'eventScopeParams': [ 'leagueId', 'sportId' ],
                 // per-chain RPC endpoint for the on-chain reads approve() needs (ERC20 name()/nonces());
                 // sx.bet's own REST API has no RPC proxy, and /metadata carries no rpcUrl field
@@ -209,26 +248,28 @@ export default class sxbet extends Exchange {
      * @returns {object} a [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
     parseSxbetMarket (raw: Dict): Market {
-        // {
-        //     "status": "ACTIVE",
-        //     "marketHash": "0x7154aa3580267e276cccd0f4f826464a05e3efd8e1c81d7717bef6b5ae88b07d",
-        //     "outcomeOneName": "Los Angeles Rams",
-        //     "outcomeTwoName": "San Francisco 49ers",
-        //     "outcomeVoidName": "NO_CONTEST",
-        //     "teamOneName": "Los Angeles Rams",
-        //     "teamTwoName": "San Francisco 49ers",
-        //     "type": 226,
-        //     "gameTime": 1789086900,
-        //     "line": -2.5, // present on spread/total markets only
-        //     "sportXeventId": "L18870109",
-        //     "liveEnabled": true,
-        //     "sportLabel": "Football",
-        //     "sportId": 8,
-        //     "leagueId": 243,
-        //     "leagueLabel": "NFL",
-        //     "mainLine": true,
-        //     "isQuarterLineMarket": false
-        // }
+        //
+        //     {
+        //         "status": "ACTIVE",
+        //         "marketHash": "0x7154aa3580267e276cccd0f4f826464a05e3efd8e1c81d7717bef6b5ae88b07d",
+        //         "outcomeOneName": "Los Angeles Rams",
+        //         "outcomeTwoName": "San Francisco 49ers",
+        //         "outcomeVoidName": "NO_CONTEST",
+        //         "teamOneName": "Los Angeles Rams",
+        //         "teamTwoName": "San Francisco 49ers",
+        //         "type": 226,
+        //         "gameTime": 1789086900,
+        //         "line": -2.5, // present on spread/total markets only
+        //         "sportXeventId": "L18870109",
+        //         "liveEnabled": true,
+        //         "sportLabel": "Football",
+        //         "sportId": 8,
+        //         "leagueId": 243,
+        //         "leagueLabel": "NFL",
+        //         "mainLine": true,
+        //         "isQuarterLineMarket": false
+        //     }
+        //
         const marketHash = this.safeString (raw, 'marketHash', '');
         const teamOneName = this.safeString (raw, 'teamOneName');
         const teamTwoName = this.safeString (raw, 'teamTwoName');
@@ -622,8 +663,12 @@ export default class sxbet extends Exchange {
      */
     signDigest (digest: string, privateKey: string): string {
         const signature = ecdsa (digest.slice (-64), privateKey.slice (-64), secp256k1, undefined);
-        const r = signature['r'].padStart (64, '0');
-        const s = signature['s'].padStart (64, '0');
+        // assign to bare locals before padStart — the php transpiler's str_pad regex only
+        // matches a simple identifier, an expression form leaks a raw padStart() call
+        const rRaw = signature['r'];
+        const sRaw = signature['s'];
+        const r = rRaw.padStart (64, '0');
+        const s = sRaw.padStart (64, '0');
         const v = this.intToBase16 (this.sum (27, signature['v']));
         return '0x' + r + s + v;
     }
@@ -790,9 +835,9 @@ export default class sxbet extends Exchange {
         const isBuy = (side === 'buy');
         // 'sell' bets the complementary outcome, mirroring the requested outcome's own probability —
         // matches the normalize-to-one-book convention used by other prediction venues
-        const isMakerBettingOutcomeOne = isBuy ? isOutcomeOne : !isOutcomeOne;
+        const isMakerBettingOutcomeOne = (isBuy) ? isOutcomeOne : !isOutcomeOne;
         const priceStr = this.numberToString (price);
-        const makerProbability = isBuy ? priceStr : Precise.stringSub ('1', priceStr);
+        const makerProbability = (isBuy) ? priceStr : Precise.stringSub ('1', priceStr);
         const sxMetadata = await this.loadSxMetadata ();
         const usdcAddress = this.safeString (sxMetadata, 'usdcAddress', '');
         const executor = this.safeString (sxMetadata, 'executorAddress', '');
@@ -830,7 +875,11 @@ export default class sxbet extends Exchange {
         const returnedId = this.safeString (orderHashes, 0, orderHash);
         const status = this.safeString (statuses, returnedId, this.safeString (statuses, orderHash));
         if ((status !== undefined) && (status !== 'OK')) {
-            throw new InvalidOrder (this.id + ' createOrder() rejected: ' + status);
+            // per-order rejections (INSUFFICIENT_BALANCE, ORDERS_ALREADY_EXIST, ...) arrive inside a
+            // 200 response, so handleErrors never sees them — route them through the same mapping
+            const feedback = this.id + ' createOrder() rejected: ' + status;
+            this.throwExactlyMatchedException (this.exceptions['exact'], status, feedback);
+            throw new InvalidOrder (feedback);
         }
         const now = this.milliseconds ();
         return this.safePredictionOrder ({
@@ -871,7 +920,7 @@ export default class sxbet extends Exchange {
     hashSxbetOrder (marketHash: string, baseToken: string, totalBetSize: string, percentageOdds: string, expiry: string, salt: string, maker: string, executor: string, isMakerBettingOutcomeOne: boolean): string {
         // ternary hoisted to a bare local before base16ToBinary: inlined inside the function call
         // argument, the regex transpiler mangles it (see the signatureType fix earlier this session)
-        const boolHex = isMakerBettingOutcomeOne ? '01' : '00';
+        const boolHex = (isMakerBettingOutcomeOne) ? '01' : '00';
         const packed = this.binaryConcat (
             this.base16ToBinary (this.remove0xPrefix (marketHash)),
             this.base16ToBinary (this.remove0xPrefix (baseToken)),
@@ -898,18 +947,18 @@ export default class sxbet extends Exchange {
         const outcomeId = this.safeString (outcomeObj, 'outcomeId');
         const isOutcomeOne = (outcomeId === marketHash);
         const isBuy = (side === 'buy');
-        const isTakerBettingOutcomeOne = isBuy ? isOutcomeOne : !isOutcomeOne;
+        const isTakerBettingOutcomeOne = (isBuy) ? isOutcomeOne : !isOutcomeOne;
         let requestedProbability = price;
         if (requestedProbability === undefined) {
             const outcomeHandle = this.safeString (outcomeObj, 'outcome');
             const ticker = await this.fetchTicker (outcomeHandle);
-            requestedProbability = isBuy ? this.safeNumber (ticker, 'ask') : this.safeNumber (ticker, 'bid');
+            requestedProbability = (isBuy) ? this.safeNumber (ticker, 'ask') : this.safeNumber (ticker, 'bid');
             if (requestedProbability === undefined) {
                 throw new InvalidOrder (this.id + " createOrder() could not resolve a default price for a 'market' order - no resting liquidity on the opposite side, pass a price explicitly");
             }
         }
         const requestedProbabilityStr = this.numberToString (requestedProbability);
-        const takerProbability = isBuy ? requestedProbabilityStr : Precise.stringSub ('1', requestedProbabilityStr);
+        const takerProbability = (isBuy) ? requestedProbabilityStr : Precise.stringSub ('1', requestedProbabilityStr);
         const desiredOdds = this.decimalToPrecision (Precise.stringMul (takerProbability, '100000000000000000000'), ROUND, 0, DECIMAL_PLACES);
         const defaultSlippage = this.safeInteger (this.options, 'defaultOddsSlippage', 5);
         const oddsSlippage = this.safeInteger (params, 'oddsSlippage', defaultSlippage);
@@ -998,7 +1047,7 @@ export default class sxbet extends Exchange {
         if (averageOddsStr !== undefined) {
             const averageTakerProbability = Precise.stringDiv (averageOddsStr, '100000000000000000000', 10);
             // ternary hoisted to a bare local before parseNumber (see hashSxbetOrder's comment)
-            const averageOutcomeProbability = isBuy ? averageTakerProbability : Precise.stringSub ('1', averageTakerProbability);
+            const averageOutcomeProbability = (isBuy) ? averageTakerProbability : Precise.stringSub ('1', averageTakerProbability);
             averagePrice = this.parseNumber (averageOutcomeProbability);
         }
         const now = this.milliseconds ();
@@ -1034,7 +1083,7 @@ export default class sxbet extends Exchange {
      * @ignore
      * @method
      * @name sxbet#signSxbetCancel
-     * @description EIP-712 signs a cancel payload — the cancel domain uses a random 'salt' field instead of the usual 'verifyingContract' (verified byte-identical against the reference TypedDataEncoder for this domain shape)
+     * @description signs a cancel payload with EIP-712 — the cancel domain uses a random 'salt' field instead of the usual 'verifyingContract' (verified byte-identical against the reference TypedDataEncoder for this domain shape)
      * @param {string} domainName the EIP-712 domain name for this cancel endpoint (e.g. 'CancelOrderV2SportX')
      * @param {object} messageTypes the EIP-712 'Details' type definition for this cancel endpoint
      * @param {object} messageData the EIP-712 message values for this cancel endpoint
@@ -1093,7 +1142,9 @@ export default class sxbet extends Exchange {
         }
         const maker = this.walletAddress;
         const timestamp = this.seconds ();
-        const saltHex = this.intToBase16 (this.milliseconds ()).padStart (64, '0');
+        // assign to a bare local before padStart — see the signDigest comment
+        const saltHexRaw = this.intToBase16 (this.milliseconds ());
+        const saltHex = saltHexRaw.padStart (64, '0');
         const salt = this.safeString (params, 'salt', '0x' + saltHex);
         const messageTypes: Dict = {
             'Details': [
@@ -1135,7 +1186,7 @@ export default class sxbet extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires an id argument');
         }
         const orders = await this.cancelSxbetOrders ([ id ], params);
-        return this.safeValue (orders, 0) as PredictionOrder;
+        return this.safeDict (orders, 0) as PredictionOrder;
     }
 
     /**
@@ -1173,7 +1224,9 @@ export default class sxbet extends Exchange {
         }
         const maker = this.walletAddress;
         const timestamp = this.seconds ();
-        const saltHex = this.intToBase16 (this.milliseconds ()).padStart (64, '0');
+        // assign to a bare local before padStart — see the signDigest comment
+        const saltHexRaw = this.intToBase16 (this.milliseconds ());
+        const saltHex = saltHexRaw.padStart (64, '0');
         const salt = this.safeString (params, 'salt', '0x' + saltHex);
         const sportXeventId = this.safeString (params, 'sportXeventId');
         if (sportXeventId !== undefined) {
@@ -1282,7 +1335,7 @@ export default class sxbet extends Exchange {
         const orderHash = this.safeString (order, 'orderHash');
         const marketHash = this.safeString (order, 'marketHash', '');
         const isMakerBettingOutcomeOne = this.safeBool (order, 'isMakerBettingOutcomeOne', true);
-        const outcomeId = isMakerBettingOutcomeOne ? marketHash : (marketHash + '-2');
+        const outcomeId = (isMakerBettingOutcomeOne) ? marketHash : (marketHash + '-2');
         const outcomeObj = this.safeOutcome (outcomeId, market as any);
         const oneDenom = '100000000000000000000';
         const usdcDecimals = '1000000';
@@ -1511,6 +1564,14 @@ export default class sxbet extends Exchange {
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     parseSxbetTicker (raw: Dict, market: Market = undefined): PredictionTicker {
+        //
+        //     {
+        //         "marketHash": "0x48ce0ef287c59fb3bb3ca6deb80de0d5791eb761ea8e16d6f03c8e93ef28d1de",
+        //         "baseToken": "0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B",
+        //         "outcomeOne": { "percentageOdds": "50250000000000000000", "updatedAt": 1785697831141 },
+        //         "outcomeTwo": { "percentageOdds": "48000000000000000000", "updatedAt": 1785699649869 }
+        //     }
+        //
         const marketAny = market as any;
         const outcomeObj = this.safeOutcome (this.safeString (marketAny, 'outcome'), marketAny);
         const outcomeId = this.safeString (outcomeObj, 'outcomeId');
@@ -1518,8 +1579,8 @@ export default class sxbet extends Exchange {
         const isOutcomeOne = (outcomeId === marketHash);
         const outcomeOneOdds = this.safeDict (raw, 'outcomeOne', {});
         const outcomeTwoOdds = this.safeDict (raw, 'outcomeTwo', {});
-        const ownOdds = isOutcomeOne ? outcomeOneOdds : outcomeTwoOdds;
-        const oppositeOdds = isOutcomeOne ? outcomeTwoOdds : outcomeOneOdds;
+        const ownOdds = (isOutcomeOne) ? outcomeOneOdds : outcomeTwoOdds;
+        const oppositeOdds = (isOutcomeOne) ? outcomeTwoOdds : outcomeOneOdds;
         // percentageOdds is the maker's own implied probability * 1e20 (sx.bet protocol format);
         // the opposite side's best resting maker mirrors into this outcome's ask via 1 - p
         const oneDenom = '100000000000000000000';
@@ -1641,6 +1702,36 @@ export default class sxbet extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
         } as unknown as PredictionOrderBook, outcomeObj);
+    }
+
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+        // sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx };
+        // map the known codes to ccxt errors so callers can distinguish a rejected order or a
+        // validation problem from a transport outage (the base otherwise maps a bare 4xx to the
+        // exchange-not-available error). unmapped codes fall through to the base http-status handling
+        if (!response) {
+            return undefined;
+        }
+        const message = this.safeValue (response, 'message');
+        if (message === undefined) {
+            return undefined;
+        }
+        // validation failures arrive as an array of strings, business errors as a single code string
+        let messageString = undefined;
+        if (Array.isArray (message)) {
+            messageString = message.join (', ');
+        } else {
+            messageString = message;
+        }
+        const feedback = this.id + ' ' + body;
+        this.throwExactlyMatchedException (this.exceptions['exact'], messageString, feedback);
+        this.throwBroadlyMatchedException (this.exceptions['broad'], messageString, feedback);
+        // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
+        // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
+        if (code === 400) {
+            throw new BadRequest (feedback);
+        }
+        return undefined;
     }
 
     /**
