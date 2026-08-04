@@ -1278,6 +1278,7 @@ func (this *Xt) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]Fu
  * @name xt#fetchPosition
  * @description fetch data on a single open contract trade position
  * @see https://doc.xt.com/#futures_usergetPosition
+ * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -1306,6 +1307,7 @@ func (this *Xt) FetchPosition(symbol string, options ...FetchPositionOptions) (P
  * @name xt#fetchPositions
  * @description fetch all open positions
  * @see https://doc.xt.com/#futures_usergetPosition
+ * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
  * @param {string} [symbols] list of unified market symbols, not supported with xt
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
