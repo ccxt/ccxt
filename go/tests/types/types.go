@@ -187,6 +187,8 @@ func testPosition(exchange *ccxt.Binance) {
 	Assert(*typed[1].Symbol != "")
 	Assert(*typed[1].Side != "")
 	Assert(*typed[1].Contracts > 0)
+	Assert(typed[1].ContractSize != nil)
+	Assert(*typed[1].ContractSize > 0)
 	Assert(*typed[1].Timestamp > 0)
 	Assert(*typed[1].Datetime != "")
 	Assert(len(typed[0].Info) > 0)

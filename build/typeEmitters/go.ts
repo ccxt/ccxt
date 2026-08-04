@@ -117,6 +117,20 @@ const TYPE_OVERRIDES: Record<string, Record<string, string>> = {
 
 const PLAIN_ACCESSOR = /^(?:Safe(?:Float|Int64|String|Bool)Typed\(\s*\w+\s*,\s*(?:"[^"]*"|\d+)\s*\)|GetInfo\(\s*\w+\s*\))$/;
 
+// captures the JSON key argument of a plain Safe*Typed(accessor, "key") call, so a
+// learned accessor can be checked against the TS field name before being trusted —
+// GetInfo(...) and numeric-indexed accessors have no such key and are left alone.
+const PLAIN_ACCESSOR_KEY = /^Safe(?:Float|Int64|String|Bool)Typed\(\s*\w+\s*,\s*"([^"]*)"\s*\)$/;
+
+/** True when a learned plain accessor's JSON key still matches the TS source of truth. */
+function learnedKeyMatchesTs (learnedExpr: string, tsName: string): boolean {
+    const match = PLAIN_ACCESSOR_KEY.exec (learnedExpr);
+    if (match === null) {
+        return true; // GetInfo(...) or a non-string-key accessor — nothing to drift
+    }
+    return match[1] === tsName;
+}
+
 /** `'info'` and `"info"` are legal TS member names — MarginModification quotes all of its. */
 function tsFieldName (field: IRField): string {
     const raw = field.name;
@@ -595,16 +609,20 @@ function planInterface (ir: TypesIR, goName: string, type: IRType, learned: Lear
         let expr: string | undefined = undefined;
         if (learnedExpr !== undefined && !PLAIN_ACCESSOR.test (learnedExpr)) {
             expr = learnedExpr; // hand-written (bespoke expression), keep it
-        } else if (learnedExpr !== undefined && !typeChanged) {
+        } else if (learnedExpr !== undefined && !typeChanged && learnedKeyMatchesTs (learnedExpr, tsName)) {
             // the Go port is authoritative for the accessor width (TS can't tell int
             // from float), so a learned Safe*Typed accessor wins when the type is kept
+            // and its JSON key still agrees with the TS source of truth
             expr = learnedExpr;
         } else {
-            // the type changed (drift fix) or there is no learned expression — the
-            // accessor must be regenerated from the NEW type
+            // the type changed (drift fix), the learned key drifted from ts/src/base/types.ts,
+            // or there is no learned expression — the accessor must be regenerated
             expr = defaultExpr (goType, tsName, accessor, isInfo, helpers);
             if (expr === undefined) {
                 expr = learnedExpr;
+            }
+            if (learnedExpr !== undefined && expr !== learnedExpr && !typeChanged) {
+                notes.push ('#' + fieldName + ' key drifted, regenerated from "' + tsName + '"');
             }
         }
         if (expr === undefined && hasCtor) {
