@@ -39,8 +39,17 @@
 * [watchTickers](#watchtickers)
 * [watchBidsAsks](#watchbidsasks)
 * [watchTrades](#watchtrades)
+* [watchTradesForSymbols](#watchtradesforsymbols)
+* [unWatchTrades](#unwatchtrades)
+* [unWatchTradesForSymbols](#unwatchtradesforsymbols)
 * [watchOHLCV](#watchohlcv)
+* [watchOHLCVForSymbols](#watchohlcvforsymbols)
+* [unWatchOHLCV](#unwatchohlcv)
+* [unWatchOHLCVForSymbols](#unwatchohlcvforsymbols)
 * [watchOrderBook](#watchorderbook)
+* [watchOrderBookForSymbols](#watchorderbookforsymbols)
+* [unWatchOrderBook](#unwatchorderbook)
+* [unWatchOrderBookForSymbols](#unwatchorderbookforsymbols)
 * [watchOrders](#watchorders)
 * [watchMyTrades](#watchmytrades)
 * [createOrderWs](#createorderws)
@@ -833,6 +842,71 @@ bitvavo.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
+<a name="watchTradesForSymbols" id="watchtradesforsymbols"></a>
+
+### watchTradesForSymbols{docsify-ignore}
+get the list of most recent trades for a list of symbols
+
+**Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+
+**See**: https://docs.bitvavo.com/docs/websocket-api/trades-subscription/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbols of the markets to fetch trades for |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitvavo.watchTradesForSymbols (symbols, since?, limit?, params?)
+```
+
+
+<a name="unWatchTrades" id="unwatchtrades"></a>
+
+### unWatchTrades{docsify-ignore}
+stop watching the list of most recent trades for a particular symbol
+
+**Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://docs.bitvavo.com/docs/websocket-api/trades-subscription/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to stop watching the trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitvavo.unWatchTrades (symbol, params?)
+```
+
+
+<a name="unWatchTradesForSymbols" id="unwatchtradesforsymbols"></a>
+
+### unWatchTradesForSymbols{docsify-ignore}
+stop watching the list of most recent trades for a list of symbols
+
+**Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://docs.bitvavo.com/docs/websocket-api/trades-subscription/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbols of the markets to stop watching the trades for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitvavo.unWatchTradesForSymbols (symbols, params?)
+```
+
+
 <a name="watchOHLCV" id="watchohlcv"></a>
 
 ### watchOHLCV{docsify-ignore}
@@ -856,6 +930,72 @@ bitvavo.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
+<a name="watchOHLCVForSymbols" id="watchohlcvforsymbols"></a>
+
+### watchOHLCVForSymbols{docsify-ignore}
+watches historical candlestick data containing the open, high, low, and close price, and the volume of multiple markets
+
+**Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
+**Returns**: <code>object</code> - a dictionary of [symbol, timeframe] keyed arrays of candles ordered as timestamp, open, high, low, close, volume
+
+**See**: https://docs.bitvavo.com/docs/websocket-api/candles-subscription/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbolsAndTimeframes | <code>Array&lt;Array&lt;string&gt;&gt;</code> | Yes | array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/EUR', '1m'], ['ETH/EUR', '5m']] |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitvavo.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
+```
+
+
+<a name="unWatchOHLCV" id="unwatchohlcv"></a>
+
+### unWatchOHLCV{docsify-ignore}
+stop watching historical candlestick data for a market
+
+**Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://docs.bitvavo.com/docs/websocket-api/candles-subscription/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to stop watching the candles for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitvavo.unWatchOHLCV (symbol, timeframe, params?)
+```
+
+
+<a name="unWatchOHLCVForSymbols" id="unwatchohlcvforsymbols"></a>
+
+### unWatchOHLCVForSymbols{docsify-ignore}
+stop watching historical candlestick data for multiple markets
+
+**Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://docs.bitvavo.com/docs/websocket-api/candles-subscription/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbolsAndTimeframes | <code>Array&lt;Array&lt;string&gt;&gt;</code> | Yes | array of arrays containing unified symbols and timeframes to stop watching the candles for, example [['BTC/EUR', '1m'], ['ETH/EUR', '5m']] |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitvavo.unWatchOHLCVForSymbols (symbolsAndTimeframes, params?)
+```
+
+
 <a name="watchOrderBook" id="watchorderbook"></a>
 
 ### watchOrderBook{docsify-ignore}
@@ -874,6 +1014,70 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 ```javascript
 bitvavo.watchOrderBook (symbol, limit?, params?)
+```
+
+
+<a name="watchOrderBookForSymbols" id="watchorderbookforsymbols"></a>
+
+### watchOrderBookForSymbols{docsify-ignore}
+watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+
+**Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
+
+**See**: https://docs.bitvavo.com/docs/websocket-api/book-subscription/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbols of the markets to fetch the order book for |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitvavo.watchOrderBookForSymbols (symbols, limit?, params?)
+```
+
+
+<a name="unWatchOrderBook" id="unwatchorderbook"></a>
+
+### unWatchOrderBook{docsify-ignore}
+stop watching the order book for a particular symbol
+
+**Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://docs.bitvavo.com/docs/websocket-api/book-subscription/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to stop watching the order book for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitvavo.unWatchOrderBook (symbol, params?)
+```
+
+
+<a name="unWatchOrderBookForSymbols" id="unwatchorderbookforsymbols"></a>
+
+### unWatchOrderBookForSymbols{docsify-ignore}
+stop watching the order book for multiple markets
+
+**Kind**: instance method of [<code>bitvavo</code>](#bitvavo)  
+**Returns**: <code>any</code> - status of the unwatch request
+
+**See**: https://docs.bitvavo.com/docs/websocket-api/book-subscription/  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbols of the markets to stop watching the order book for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitvavo.unWatchOrderBookForSymbols (symbols, params?)
 ```
 
 

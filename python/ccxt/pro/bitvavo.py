@@ -23,13 +23,22 @@ class bitvavo(ccxt.async_support.bitvavo):
                 'cancelOrdersWs': False,
                 'fetchTradesWs': False,
                 'watchOrderBook': True,
+                'watchOrderBookForSymbols': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchBidsAsks': True,
                 'watchOHLCV': True,
+                'watchOHLCVForSymbols': True,
                 'watchOrders': True,
                 'watchMyTrades': True,
+                'unWatchOrderBook': True,
+                'unWatchOrderBookForSymbols': True,
+                'unWatchTrades': True,
+                'unWatchTradesForSymbols': True,
+                'unWatchOHLCV': True,
+                'unWatchOHLCVForSymbols': True,
                 'cancelAllOrdersWs': True,
                 'cancelOrderWs': True,
                 'createOrderWs': True,
@@ -267,6 +276,89 @@ class bitvavo(ccxt.async_support.bitvavo):
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, messageHash)
 
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        get the list of most recent trades for a list of symbols
+
+        https://docs.bitvavo.com/docs/websocket-api/trades-subscription/
+
+        :param str[] symbols: unified symbols of the markets to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        name = 'trades'
+        marketIds = []
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            market = self.market(symbols[i])
+            marketIds.append(market['id'])
+            messageHashes.append(name + '@' + market['id'])
+        url = self.urls['api']['ws']
+        request = {
+            'action': 'subscribe',
+            'channels': [
+                {
+                    'name': name,
+                    'markets': marketIds,
+                },
+            ],
+        }
+        message = self.extend(request, params)
+        trades = await self.watch_multiple(url, messageHashes, message, messageHashes)
+        if self.newUpdates:
+            first = self.safe_value(trades, 0)
+            tradeSymbol = self.safe_string(first, 'symbol')
+            limit = trades.getLimit(tradeSymbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+        """
+        stop watching the list of most recent trades for a particular symbol
+
+        https://docs.bitvavo.com/docs/websocket-api/trades-subscription/
+
+        :param str symbol: unified symbol of the market to stop watching the trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        return await self.un_watch_trades_for_symbols([symbol], params)
+
+    async def un_watch_trades_for_symbols(self, symbols: List[str], params={}) -> Any:
+        """
+        stop watching the list of most recent trades for a list of symbols
+
+        https://docs.bitvavo.com/docs/websocket-api/trades-subscription/
+
+        :param str[] symbols: unified symbols of the markets to stop watching the trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        name = 'trades'
+        marketIds = []
+        subMessageHashes = []
+        for i in range(0, len(symbols)):
+            market = self.market(symbols[i])
+            marketIds.append(market['id'])
+            subMessageHashes.append(name + '@' + market['id'])
+        channels = [
+            {
+                'name': name,
+                'markets': marketIds,
+            },
+        ]
+        subscriptionArgs = {
+            'symbols': symbols,
+        }
+        return await self.un_watch_channels('trades', channels, subMessageHashes, subscriptionArgs, params)
+
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -355,6 +447,110 @@ class bitvavo(ccxt.async_support.bitvavo):
             parsed = self.parse_ohlcv(candle, market)
             stored.append(parsed)
         client.resolve(stored, messageHash)
+        # watchOHLCVForSymbols needs the symbol and timeframe to assemble its result
+        client.resolve([symbol, timeframe, stored], 'multi:' + messageHash)
+
+    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of multiple markets
+
+        https://docs.bitvavo.com/docs/websocket-api/candles-subscription/
+
+        :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/EUR', '1m'], ['ETH/EUR', '5m']]
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of [symbol, timeframe] keyed arrays of candles ordered, open, high, low, close, volume
+        """
+        if self.markets is None:
+            await self.load_markets()
+        name = 'candles'
+        messageHashes = []
+        marketIdsByInterval = {}
+        for i in range(0, len(symbolsAndTimeframes)):
+            symbolAndTimeframe = symbolsAndTimeframes[i]
+            market = self.market(symbolAndTimeframe[0])
+            timeframeString = symbolAndTimeframe[1]
+            interval = self.safe_string(self.timeframes, timeframeString, timeframeString)
+            if not (interval in marketIdsByInterval):
+                marketIdsByInterval[interval] = []
+            intervalIds = marketIdsByInterval[interval]
+            intervalIds.append(market['id'])
+            messageHashes.append('multi:' + name + '@' + market['id'] + '_' + interval)
+        channels = []
+        intervals = list(marketIdsByInterval.keys())
+        for i in range(0, len(intervals)):
+            interval = intervals[i]
+            channels.append({
+                'name': name,
+                'interval': [interval],
+                'markets': marketIdsByInterval[interval],
+            })
+        url = self.urls['api']['ws']
+        request = {
+            'action': 'subscribe',
+            'channels': channels,
+        }
+        message = self.extend(request, params)
+        symbol, timeframe, candles = await self.watch_multiple(url, messageHashes, message, messageHashes)
+        if self.newUpdates:
+            limit = candles.getLimit(symbol, limit)
+        filtered = self.filter_by_since_limit(candles, since, limit, 0, True)
+        return self.create_ohlcv_object(symbol, timeframe, filtered)
+
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
+        """
+        stop watching historical candlestick data for a market
+
+        https://docs.bitvavo.com/docs/websocket-api/candles-subscription/
+
+        :param str symbol: unified symbol of the market to stop watching the candles for
+        :param str timeframe: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        return await self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
+
+    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], params={}) -> Any:
+        """
+        stop watching historical candlestick data for multiple markets
+
+        https://docs.bitvavo.com/docs/websocket-api/candles-subscription/
+
+        :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to stop watching the candles for, example [['BTC/EUR', '1m'], ['ETH/EUR', '5m']]
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        if self.markets is None:
+            await self.load_markets()
+        name = 'candles'
+        subMessageHashes = []
+        marketIdsByInterval = {}
+        for i in range(0, len(symbolsAndTimeframes)):
+            symbolAndTimeframe = symbolsAndTimeframes[i]
+            market = self.market(symbolAndTimeframe[0])
+            timeframeString = symbolAndTimeframe[1]
+            interval = self.safe_string(self.timeframes, timeframeString, timeframeString)
+            if not (interval in marketIdsByInterval):
+                marketIdsByInterval[interval] = []
+            intervalIds = marketIdsByInterval[interval]
+            intervalIds.append(market['id'])
+            # both the single-symbol and the multi-symbol watch hashes must be released
+            subMessageHashes.append(name + '@' + market['id'] + '_' + interval)
+            subMessageHashes.append('multi:' + name + '@' + market['id'] + '_' + interval)
+        channels = []
+        intervals = list(marketIdsByInterval.keys())
+        for i in range(0, len(intervals)):
+            interval = intervals[i]
+            channels.append({
+                'name': name,
+                'interval': [interval],
+                'markets': marketIdsByInterval[interval],
+            })
+        subscriptionArgs = {
+            'symbolsAndTimeframes': symbolsAndTimeframes,
+        }
+        return await self.un_watch_channels('ohlcv', channels, subMessageHashes, subscriptionArgs, params)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -394,6 +590,92 @@ class bitvavo(ccxt.async_support.bitvavo):
         message = self.extend(request, params)
         orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
         return orderbook.limit()
+
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data for multiple markets
+
+        https://docs.bitvavo.com/docs/websocket-api/book-subscription/
+
+        :param str[] symbols: unified symbols of the markets to fetch the order book for
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        name = 'book'
+        marketIds = []
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            market = self.market(symbols[i])
+            marketIds.append(market['id'])
+            messageHashes.append(name + '@' + market['id'])
+        url = self.urls['api']['ws']
+        request = {
+            'action': 'subscribe',
+            'channels': [
+                {
+                    'name': name,
+                    'markets': marketIds,
+                },
+            ],
+        }
+        # the per-market snapshot machinery reads the marketId from the buffered
+        # delta messages, so the shared subscription only carries the common fields
+        subscription = {
+            'name': name,
+            'symbols': symbols,
+            'limit': limit,
+            'params': params,
+        }
+        message = self.extend(request, params)
+        orderbook = await self.watch_multiple(url, messageHashes, message, messageHashes, subscription)
+        return orderbook.limit()
+
+    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+        """
+        stop watching the order book for a particular symbol
+
+        https://docs.bitvavo.com/docs/websocket-api/book-subscription/
+
+        :param str symbol: unified symbol of the market to stop watching the order book for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        return await self.un_watch_order_book_for_symbols([symbol], params)
+
+    async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}) -> Any:
+        """
+        stop watching the order book for multiple markets
+
+        https://docs.bitvavo.com/docs/websocket-api/book-subscription/
+
+        :param str[] symbols: unified symbols of the markets to stop watching the order book for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns any: status of the unwatch request
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        name = 'book'
+        marketIds = []
+        subMessageHashes = []
+        for i in range(0, len(symbols)):
+            market = self.market(symbols[i])
+            marketIds.append(market['id'])
+            subMessageHashes.append(name + '@' + market['id'])
+        channels = [
+            {
+                'name': name,
+                'markets': marketIds,
+            },
+        ]
+        subscriptionArgs = {
+            'symbols': symbols,
+        }
+        return await self.un_watch_channels('orderbook', channels, subMessageHashes, subscriptionArgs, params)
 
     def handle_delta(self, bookside: Any, delta: Any):
         price = self.safe_float(delta, 0)
@@ -449,9 +731,12 @@ class bitvavo(ccxt.async_support.bitvavo):
             return
         if orderbook['nonce'] is None:
             subscription = self.safe_value(client.subscriptions, messageHash, {})
-            watchingOrderBookSnapshot = self.safe_value(subscription, 'watchingOrderBookSnapshot')
+            # multi-symbol watches share one subscription object, so the
+            # snapshot-in-flight flag must be tracked per market
+            flagKey = 'watchingOrderBookSnapshot@' + marketId
+            watchingOrderBookSnapshot = self.safe_value(subscription, flagKey)
             if watchingOrderBookSnapshot is None:
-                subscription['watchingOrderBookSnapshot'] = True
+                subscription[flagKey] = True
                 client.subscriptions[messageHash] = subscription
                 options = self.safe_value(self.options, 'watchOrderBookSnapshot', {})
                 delay = self.safe_integer(options, 'delay', self.rateLimit)
@@ -464,7 +749,14 @@ class bitvavo(ccxt.async_support.bitvavo):
 
     async def watch_order_book_snapshot(self, client: Any, message: Any, subscription: Any):
         params = self.safe_value(subscription, 'params')
-        marketId = self.safe_string(subscription, 'marketId')
+        # multi-symbol watches share one subscription object without a marketId,
+        # in that case the buffered delta message identifies the market
+        marketId = self.safe_string_2(subscription, 'marketId', 'market', self.safe_string(message, 'market'))
+        snapshotSymbol = self.safe_symbol(marketId, None, '-')
+        if not (snapshotSymbol in self.orderbooks):
+            # self snapshot fetch was scheduled before an unsubscribe removed the
+            # order book - skip it so the getBook request is not sent for a dead market
+            return None
         name = 'getBook'
         messageHash = name + '@' + marketId
         url = self.urls['api']['ws']
@@ -502,7 +794,10 @@ class bitvavo(ccxt.async_support.bitvavo):
         symbol = self.safe_symbol(marketId, None, '-')
         name = 'book'
         messageHash = name + '@' + marketId
-        orderbook = self.orderbooks[symbol]
+        orderbook = self.safe_value(self.orderbooks, symbol)
+        if orderbook is None:
+            # the market was unsubscribed while self snapshot request was in flight
+            return
         snapshot = self.parse_order_book(response, symbol)
         snapshot['nonce'] = self.safe_integer(response, 'nonce')
         orderbook.reset(snapshot)
@@ -513,6 +808,12 @@ class bitvavo(ccxt.async_support.bitvavo):
             self.handle_order_book_message(client, messageItem, orderbook)
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
+        # getBook is a one-shot request but self.watch tracks it persistent
+        # subscription - drop it so a later unsubscribe/subscribe re-fetches the snapshot
+        # instead of suppressing the request already-active subscription
+        snapshotHash = 'getBook@' + marketId
+        if snapshotHash in client.subscriptions:
+            del client.subscriptions[snapshotHash]
 
     def handle_order_book_subscription(self, client: Client, message: Any, subscription: Any):
         symbol = self.safe_string(subscription, 'symbol')
@@ -532,6 +833,56 @@ class bitvavo(ccxt.async_support.bitvavo):
                 method = self.safe_value(subscription, 'method')
                 if method is not None:
                     method(client, message, subscription)
+                elif subscription is not None:
+                    # multi-symbol watches share one subscription object without a
+                    # per-market method - initialize the order book directly
+                    limit = self.safe_integer(subscription, 'limit')
+                    self.orderbooks[symbol] = self.order_book({}, limit)
+
+    async def un_watch_channels(self, topic: str, channels: List[Any], subMessageHashes: List[str], subscriptionArgs: dict, params={}) -> Any:
+        url = self.urls['api']['ws']
+        request = {
+            'action': 'unsubscribe',
+            'channels': channels,
+        }
+        unsubHashes = []
+        for i in range(0, len(subMessageHashes)):
+            unsubHashes.append('unsubscribe:' + subMessageHashes[i])
+        subscription = self.extend({
+            'topic': topic,
+            'subMessageHashes': subMessageHashes,
+            'unsubHashes': unsubHashes,
+        }, subscriptionArgs)
+        message = self.extend(request, params)
+        return await self.watch_multiple(url, unsubHashes, message, unsubHashes, subscription)
+
+    def handle_unsubscription_status(self, client: Client, message: Any):
+        #
+        #     {
+        #         "event": "unsubscribed",
+        #         "subscriptions": {}
+        #     }
+        #
+        # the confirmation carries the remaining subscriptions without identifying
+        # which unsubscribe request it belongs to, so settle every pending unsubscription
+        keys = list(client.subscriptions.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            if not (key in client.subscriptions):
+                continue
+            if not key.startswith('unsubscribe:'):
+                continue
+            subscription = client.subscriptions[key]
+            subHash = key.replace('unsubscribe:', '')
+            self.clean_cache(subscription)
+            self.clean_unsubscription(client, subHash, key)
+            # bitvavo resolves-and-deletes the data futures on every message, so at
+            # unsubscribe time the sub future is usually already gone and cleanUnsubscription
+            # stashes the error in client.rejections instead - that stale entry
+            # would immediately reject the next subscribe's fresh future, so clear it here
+            if subHash in client.rejections:
+                del client.rejections[subHash]
+        return message
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -1388,6 +1739,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             self.handle_error_message(client, message)
         methods = {
             'subscribed': self.handle_subscription_status,
+            'unsubscribed': self.handle_unsubscription_status,
             'book': self.handle_order_book,
             'getBook': self.handle_order_book_snapshot,
             'trade': self.handle_trade,

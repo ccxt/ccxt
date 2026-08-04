@@ -52,6 +52,8 @@ class Future(asyncio.Future):
                 # would accumulate on long-lived futures and leak memory
                 if not f.done() and not getattr(f, '_ccxt_swallow_attached', False):
                     f._ccxt_swallow_attached = True
+                # still-pending losers need a swallow for their eventual rejection
+                if not f.done():
                     f.add_done_callback(_swallow)
             callbacks.clear()
 

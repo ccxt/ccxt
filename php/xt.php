@@ -4721,7 +4721,7 @@ class xt extends Exchange {
         );
     }
 
-    public function index_position_break_list($breakList): array {
+    public function index_position_break_list(array $breakList): array {
         /**
          * @ignore
          * @param {array[]} $breakList the "result" array of a position/break-list response
