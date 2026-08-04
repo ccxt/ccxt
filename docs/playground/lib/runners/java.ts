@@ -83,6 +83,20 @@ export async function runJava(code: string, onChunk?: OnChunk): Promise<RunResul
       "Your code must declare a class Main with public static void main(String[] args).",
     );
   }
+  // ccxt-java's data methods are synchronous (fetchTicker returns Ticker); only
+  // the ...Async variants return CompletableFuture. Snippets that assume the
+  // async shape fail with "cannot find symbol: method join()" on a type javac
+  // reports as Ticker/OrderBook/…, which reads like a broken library. Point at
+  // the actual rule instead. Scoped to the fetch/watch/load/trade verbs, because
+  // close() really does return a CompletableFuture — close().join() is correct.
+  const joined =
+    /\b((?:fetch|watch|load|create|cancel|edit)[A-Z]\w*)\s*\([^()]*\)\s*\.\s*(?:join|get)\s*\(\s*\)/.exec(code);
+  if (joined && !joined[1].endsWith("Async")) {
+    return earlyError(
+      `ccxt's Java ${joined[1]}(...) is synchronous — it returns the value directly, so drop the .join().\n` +
+        `Only the ...Async variants return a CompletableFuture (e.g. ${joined[1]}Async(...).join()).`,
+    );
+  }
   const runRoot = path.join(RUNTIME_ROOT, "tmp");
   await mkdir(runRoot, { recursive: true });
   const dir = await mkdtemp(path.join(runRoot, "java-"));
