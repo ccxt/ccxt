@@ -172,6 +172,9 @@ func AssertTimestampAndDatetime(exchange ccxt.ICoreExchange, skippedProperties a
 			// so, we have to compare with millisecond accururacy
 			var dtParsed any = exchange.Parse8601(dt)
 			var tsMs any = GetValue(entry, "timestamp")
+			if IsTrue(IsEqual(dtParsed, nil)) {
+				Assert(false, Add(Add("datetime is not parseable: ", dt), logText))
+			}
 			var diff any = mathAbs(Subtract(dtParsed, tsMs))
 			if IsTrue(IsGreaterThanOrEqual(diff, 500)) {
 				var dtParsedString any = exchange.Iso8601(dtParsed)
@@ -241,7 +244,7 @@ func AssertSymbol(exchange ccxt.ICoreExchange, skippedProperties any, method any
 }
 func AssertSymbolInMarkets(exchange ccxt.ICoreExchange, skippedProperties any, method any, symbol any) {
 	var logText any = LogTemplate(exchange, method, map[string]any{})
-	Assert((InOp(exchange.GetMarkets(), symbol)), Add("symbol should be present in exchange.symbols", logText))
+	Assert(IsTrue((!IsEqual(exchange.GetMarkets(), nil))) && IsTrue((InOp(exchange.GetMarkets(), symbol))), Add("symbol should be present in exchange.symbols", logText))
 }
 func AssertGreater(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, key any, compareTo any, optionalArgs ...any) {
 	allowNull := GetArg(optionalArgs, 0, true)
@@ -693,7 +696,7 @@ func ValidateTickerExceptionForPercentage(ex any, exchange ccxt.ICoreExchange, t
 			var symbol any = GetValue(ticker, "symbol")
 			if IsTrue(!IsEqual(symbol, nil)) {
 				// if it's not in markets, then maybe newly added symbol, so can can compromise there
-				if !IsTrue((InOp(exchange.GetMarkets(), symbol))) {
+				if IsTrue(IsTrue((IsEqual(exchange.GetMarkets(), nil))) || !IsTrue((InOp(exchange.GetMarkets(), symbol)))) {
 
 					return nil
 				}

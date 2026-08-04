@@ -88,6 +88,7 @@ interface Exchange {
     privateLinearGetFutureUserV1BalanceFundingRateList(params?: {}): Promise<implicitReturnType>;
     privateLinearGetFutureUserV1BalanceList(params?: {}): Promise<implicitReturnType>;
     privateLinearGetFutureUserV1PositionAdl(params?: {}): Promise<implicitReturnType>;
+    privateLinearGetFutureUserV1PositionBreakList(params?: {}): Promise<implicitReturnType>;
     privateLinearGetFutureUserV1PositionList(params?: {}): Promise<implicitReturnType>;
     privateLinearGetFutureUserV1UserCollectionList(params?: {}): Promise<implicitReturnType>;
     privateLinearGetFutureUserV1UserListenKey(params?: {}): Promise<implicitReturnType>;
@@ -126,6 +127,7 @@ interface Exchange {
     privateInverseGetFutureUserV1BalanceFundingRateList(params?: {}): Promise<implicitReturnType>;
     privateInverseGetFutureUserV1BalanceList(params?: {}): Promise<implicitReturnType>;
     privateInverseGetFutureUserV1PositionAdl(params?: {}): Promise<implicitReturnType>;
+    privateInverseGetFutureUserV1PositionBreakList(params?: {}): Promise<implicitReturnType>;
     privateInverseGetFutureUserV1PositionList(params?: {}): Promise<implicitReturnType>;
     privateInverseGetFutureUserV1UserCollectionList(params?: {}): Promise<implicitReturnType>;
     privateInverseGetFutureUserV1UserListenKey(params?: {}): Promise<implicitReturnType>;
@@ -148,6 +150,7 @@ interface Exchange {
     privateInversePostFutureUserV1PositionMargin(params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureUserV1UserCollectionAdd(params?: {}): Promise<implicitReturnType>;
     privateInversePostFutureUserV1UserCollectionCancel(params?: {}): Promise<implicitReturnType>;
+    privateInversePostFutureUserV1PositionChangeType(params?: {}): Promise<implicitReturnType>;
     privateUserGetUserAccount(params?: {}): Promise<implicitReturnType>;
     privateUserGetUserAccountApiKey(params?: {}): Promise<implicitReturnType>;
     privateUserPostUserAccount(params?: {}): Promise<implicitReturnType>;

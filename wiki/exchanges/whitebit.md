@@ -293,7 +293,7 @@ whitebit.fetchTickers (symbols?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.whitebit.com/public/http-v4/#orderbook  
 
@@ -559,14 +559,14 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | market type, ['swap', 'spot'] |
 | params.isMargin | <code>boolean</code> | No | cancel all margin orders |
 
 
 ```javascript
-whitebit.cancelAllOrders (symbol, params?)
+whitebit.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -1279,7 +1279,7 @@ whitebit.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>whitebit</code>](#whitebit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.whitebit.com/public/websocket/#market-depth  
 

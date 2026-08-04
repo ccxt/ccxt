@@ -66,7 +66,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //    {
         //        "Channel" => "ticker-btc-usd",
@@ -101,7 +101,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         //    {
         //        "TradeGuid" => "2f316718-0d0b-4e33-a30c-c2c06f3cfb34",
@@ -140,7 +140,7 @@ class independentreserve extends \ccxt\async\independentreserve {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -161,7 +161,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //    {
         //        "Channel" => "orderbook/1/eth/aud",
@@ -186,6 +186,9 @@ class independentreserve extends \ccxt\async\independentreserve {
         //
         $event = $this->safe_string($message, 'Event');
         $channel = $this->safe_string($message, 'Channel');
+        if ($channel === null) {
+            return;
+        }
         $parts = explode('/', $channel);
         $depth = $this->safe_string($parts, 1);
         $baseId = $this->safe_string($parts, 2);
@@ -247,7 +250,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         }
     }
 
-    public function value_to_checksum($value) {
+    public function value_to_checksum(mixed $value) {
         $result = sprintf('%.8f', $value);
         $result = str_replace('.', '', $result);
         // remove leading zeros
@@ -256,18 +259,18 @@ class independentreserve extends \ccxt\async\independentreserve {
         return $result;
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $bidAsk = $this->parse_order_book_bid_ask($delta, 'Price', 'Volume');
         $bookside->storeArray($bidAsk);
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
     }
 
-    public function handle_heartbeat(Client $client, $message) {
+    public function handle_heartbeat(Client $client, mixed $message) {
         //
         //    {
         //        "Time" => 1676156208182,
@@ -277,7 +280,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         return $message;
     }
 
-    public function handle_subscriptions(Client $client, $message) {
+    public function handle_subscriptions(Client $client, mixed $message) {
         //
         //    {
         //        "Data" => array( "ticker-btc-sgd" ),
@@ -288,7 +291,7 @@ class independentreserve extends \ccxt\async\independentreserve {
         return $message;
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         $event = $this->safe_string($message, 'Event');
         $handlers = array(
             'Subscriptions' => array($this, 'handle_subscriptions'),

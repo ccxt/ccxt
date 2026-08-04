@@ -1,12 +1,12 @@
 import Exchange from './abstract/okx.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, NullableDict, List, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, CurrencyInterface, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, NullableDict, List, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests, DepositWithdrawFees } from './base/types.js';
 /**
  * @class okx
  * @augments Exchange
  */
 export default class okx extends Exchange {
     describe(): any;
-    handleMarketTypeAndParams(methodName: string, market?: Market, params?: {}, defaultValue?: any): any;
+    handleMarketTypeAndParams(methodName: string, market?: Market, params?: Dict, defaultValue?: any): any;
     convertToInstrumentType(type: any): string;
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
@@ -48,7 +48,7 @@ export default class okx extends Exchange {
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: Dict): Market;
-    fetchMarketsByType(type: any, params?: {}): Promise<MarketInterface[]>;
+    fetchMarketsByType(type: any, params?: {}): Promise<Market[]>;
     /**
      * @method
      * @name okx#fetchCurrencies
@@ -58,7 +58,7 @@ export default class okx extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(currency: Dict): Currency;
+    parseCurrency(currency: Dict): CurrencyInterface;
     /**
      * @method
      * @name okx#fetchOrderBook
@@ -69,7 +69,7 @@ export default class okx extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
@@ -214,7 +214,7 @@ export default class okx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createMarketSellOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name okx#createOrder
@@ -256,7 +256,7 @@ export default class okx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    editOrderRequest(id: string, symbol: any, type: any, side: any, amount?: Num, price?: Num, params?: {}): any;
+    editOrderRequest(id: string, symbol: Str, type: any, side: any, amount?: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name okx#editOrder
@@ -341,7 +341,7 @@ export default class okx extends Exchange {
      * @returns {object} the api result
      */
     cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
-    parseOrderStatus(status: Str): string;
+    parseOrderStatus(status: Str): string | undefined;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -544,7 +544,7 @@ export default class okx extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchWithdrawal(id: string, code?: Str, params?: {}): Promise<Transaction>;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): string | undefined;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     /**
      * @method
@@ -631,11 +631,11 @@ export default class okx extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+    sign(path: any, api?: any, method?: string, params?: Dict, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
-        headers: Dict;
+        body: Str;
+        headers: NullableDict;
     };
     parseFundingRate(contract: any, market?: Market): FundingRate;
     parseFundingInterval(interval: any): string;
@@ -751,11 +751,11 @@ export default class okx extends Exchange {
      */
     fetchCrossBorrowRate(code: string, params?: {}): Promise<CrossBorrowRate>;
     parseBorrowRate(info: any, currency?: Currency): {
-        currency: string;
+        currency: Str;
         rate: number;
         period: number;
-        timestamp: number;
-        datetime: string;
+        timestamp: Int;
+        datetime: string | undefined;
         info: any;
     };
     parseBorrowRateHistories(response: any, codes: any, since: any, limit: any): Dict;
@@ -770,7 +770,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
      */
-    fetchBorrowRateHistories(codes?: any, since?: Int, limit?: Int, params?: {}): Promise<Dict>;
+    fetchBorrowRateHistories(codes?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name okx#fetchBorrowRateHistory
@@ -846,12 +846,12 @@ export default class okx extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     borrowCrossMargin(code: string, amount: number, params?: {}): Promise<{
-        id: any;
-        currency: string;
-        amount: number;
-        symbol: any;
-        timestamp: any;
-        datetime: any;
+        id: undefined;
+        currency: Str;
+        amount: Num;
+        symbol: undefined;
+        timestamp: undefined;
+        datetime: undefined;
         info: any;
     }>;
     /**
@@ -865,22 +865,22 @@ export default class okx extends Exchange {
      * @param {string} [params.id] the order ID of borrowing, it is necessary while repaying
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    repayCrossMargin(code: string, amount: any, params?: {}): Promise<{
-        id: any;
-        currency: string;
-        amount: number;
-        symbol: any;
-        timestamp: any;
-        datetime: any;
+    repayCrossMargin(code: string, amount: number, params?: {}): Promise<{
+        id: undefined;
+        currency: Str;
+        amount: Num;
+        symbol: undefined;
+        timestamp: undefined;
+        datetime: undefined;
         info: any;
     }>;
     parseMarginLoan(info: any, currency?: Currency): {
-        id: any;
-        currency: string;
-        amount: number;
-        symbol: any;
-        timestamp: any;
-        datetime: any;
+        id: undefined;
+        currency: Str;
+        amount: Num;
+        symbol: undefined;
+        timestamp: undefined;
+        datetime: undefined;
         info: any;
     };
     /**
@@ -932,7 +932,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<DepositWithdrawFees>;
     parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: any): Dict;
     /**
      * @method
@@ -949,9 +949,9 @@ export default class okx extends Exchange {
     parseSettlement(settlement: any, market: any): {
         info: any;
         symbol: string;
-        price: number;
-        timestamp: any;
-        datetime: any;
+        price: Num;
+        timestamp: undefined;
+        datetime: undefined;
     };
     parseSettlements(settlements: any, market: any): List;
     /**
@@ -1086,7 +1086,7 @@ export default class okx extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchConvertCurrencies(params?: {}): Promise<Currencies>;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     /**
      * @method
      * @name okx#fetchMarginAdjustmentHistory

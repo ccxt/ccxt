@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinex.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, NullableDict, List, LeverageTiers, LeverageTier, int, FundingRate, FundingRates, DepositAddress, BorrowInterest } from './base/types.js';
+import type { Balances, Currency, CurrencyInterface, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, NullableDict, List, LeverageTiers, LeverageTier, int, FundingRate, FundingRates, DepositAddress, BorrowInterest, DepositWithdrawFee, DepositWithdrawFees } from './base/types.js';
 /**
  * @class coinex
  * @augments Exchange
@@ -15,7 +15,7 @@ export default class coinex extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(coin: any): Currency;
+    parseCurrency(coin: Dict): CurrencyInterface;
     /**
      * @method
      * @name coinex#fetchMarkets
@@ -69,7 +69,7 @@ export default class coinex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<import("./base/types.js").OrderBook>;
     parseTrade(trade: Dict, market?: Market): Trade;
@@ -140,7 +140,7 @@ export default class coinex extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: {}): Promise<Balances>;
-    parseOrderStatus(status: Str): string;
+    parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -153,8 +153,8 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
+    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: Dict): Promise<Order>;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name coinex#createOrder
@@ -513,7 +513,7 @@ export default class coinex extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): Str;
     /**
      * @method
      * @name coinex#fetchFundingRateHistory
@@ -543,7 +543,7 @@ export default class coinex extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    parseTransferStatus(status: any): string;
+    parseTransferStatus(status: Str): Str;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     /**
      * @method
@@ -633,14 +633,14 @@ export default class coinex extends Exchange {
      * @param {string} [params.borrow_id] extra parameter that is not required
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<any>;
+    repayIsolatedMargin(symbol: string, code: string, amount: number, params?: {}): Promise<any>;
     parseMarginLoan(info: any, currency?: Currency): {
-        id: number;
-        currency: string;
-        amount: string;
+        id: Int;
+        currency: Str;
+        amount: Str;
         symbol: string;
-        timestamp: number;
-        datetime: string;
+        timestamp: Int;
+        datetime: string | undefined;
         info: any;
     };
     /**
@@ -652,7 +652,7 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchDepositWithdrawFee(code: string, params?: {}): Promise<any>;
+    fetchDepositWithdrawFee(code: string, params?: {}): Promise<DepositWithdrawFee>;
     /**
      * @method
      * @name coinex#fetchDepositWithdrawFees
@@ -662,7 +662,7 @@ export default class coinex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
+    fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<DepositWithdrawFees>;
     parseDepositWithdrawFee(fee: any, currency?: Currency): Dict;
     /**
      * @method
@@ -704,15 +704,15 @@ export default class coinex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;
-    handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): [any, Dict];
+    handleMarginModeAndParams(methodName: string, params?: {}, defaultValue?: any): [any, Dict];
     nonce(): number;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
-        headers: Dict;
+        body: Str;
+        headers: NullableDict;
     };
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     /**
      * @method
      * @name coinex#fetchMarginAdjustmentHistory

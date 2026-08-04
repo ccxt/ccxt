@@ -10,6 +10,7 @@ import Exchange from './abstract/kraken.js';
 import { AccountSuspended, BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
+;
 //  ---------------------------------------------------------------------------
 /**
  * @class kraken
@@ -579,7 +580,7 @@ export default class kraken extends Exchange {
         });
     }
     feeToPrecision(symbol, fee) {
-        return this.decimalToPrecision(fee, TRUNCATE, this.markets[symbol]['precision']['amount'], this.precisionMode);
+        return this.decimalToPrecision(fee, TRUNCATE, this.market(symbol)['precision']['amount'], this.precisionMode);
     }
     /**
      * @method
@@ -681,10 +682,16 @@ export default class kraken extends Exchange {
             let precisionAmount = this.parseNumber(this.parsePrecision(this.safeString(market, 'lot_decimals')));
             const spot = true;
             // fix https://github.com/freqtrade/freqtrade/issues/11765#issuecomment-2894224103
+            if (base === undefined) {
+                throw new ExchangeError(this.id + ' method() missing base');
+            }
             if (spot && (base in cachedCurrencies)) {
-                const currency = cachedCurrencies[base];
+                const currency = this.safeValue(cachedCurrencies, base);
                 const currencyPrecision = this.safeNumber(currency, 'precision');
                 // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
+                if (currencyPrecision === undefined) {
+                    throw new ExchangeError(this.id + ' method() missing currencyPrecision');
+                }
                 if (currencyPrecision > precisionAmount) {
                     precisionAmount = currencyPrecision;
                 }
@@ -856,6 +863,9 @@ export default class kraken extends Exchange {
         const id = this.safeString(rawCurrency, '_coin_id');
         let code = this.safeCurrencyCode(id);
         // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
+        if (id === undefined) {
+            throw new ExchangeError(this.id + ' parseCurrency() missing id');
+        }
         if (id.indexOf('.') < 0) {
             const altName = this.safeString(rawCurrency, 'altname');
             // handle cases like below:
@@ -864,14 +874,22 @@ export default class kraken extends Exchange {
             // ---------------
             // XXBT  |  XBT
             // ZUSD  |  USD
+            if (id === undefined) {
+                throw new ExchangeError(this.id + ' parseCurrency() missing id');
+            }
             if (id !== altName && (id.startsWith('X') || id.startsWith('Z'))) {
                 code = this.safeCurrencyCode(altName);
                 // also, add map in commonCurrencies:
-                this.commonCurrencies[id] = code;
+                if ((id !== undefined) && (code !== undefined)) {
+                    this.commonCurrencies[id] = code;
+                }
             }
             else {
                 code = this.safeCurrencyCode(id);
             }
+        }
+        if (code === undefined) {
+            throw new ExchangeError(this.id + ' parseCurrency() missing code');
         }
         const isFiat = code.indexOf('.HOLD') >= 0;
         rawCurrency = this.omit(rawCurrency, '_coin_id');
@@ -991,7 +1009,7 @@ export default class kraken extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1103,7 +1121,7 @@ export default class kraken extends Exchange {
             const marketIds = [];
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
-                const market = this.markets[symbol];
+                const market = this.market(symbol);
                 if (market['active']) {
                     marketIds.push(market['id']);
                 }
@@ -1141,7 +1159,7 @@ export default class kraken extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetTicker(this.extend(request, params));
-        const ticker = response['result'][market['id']];
+        const ticker = this.safeValue(response['result'], market['id']);
         return this.parseTicker(ticker, market);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -1201,6 +1219,9 @@ export default class kraken extends Exchange {
         }
         if (since !== undefined) {
             const scaledSince = this.parseToInt(since / 1000);
+            if (parsedTimeframe === undefined) {
+                throw new ExchangeError(this.id + ' fetchOHLCV() missing parsedTimeframe');
+            }
             const timeFrameInSeconds = parsedTimeframe * 60;
             request['since'] = this.numberToString(scaledSince - timeFrameInSeconds); // expected to be in seconds
         }
@@ -1572,7 +1593,7 @@ export default class kraken extends Exchange {
         //     }
         //
         const result = response['result'];
-        const trades = result[id];
+        const trades = this.safeValue(result, id);
         // trades is a sorted array: last (most recent trade) goes last
         const length = trades.length;
         if (length <= 0) {
@@ -1599,7 +1620,9 @@ export default class kraken extends Exchange {
             const account = this.account();
             account['used'] = this.safeString(balance, 'hold_trade');
             account['total'] = this.safeString(balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1721,7 +1744,7 @@ export default class kraken extends Exchange {
         result['usingCost'] = isUsingCost;
         // it's impossible to know if the order was created using cost or base currency
         // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
-        // this usingCost flag is used to help the parsing but omited from the order
+        // this usingCost flag is used to help the parsing but omitted from the order
         return this.parseOrder(result);
     }
     /**
@@ -2157,7 +2180,7 @@ export default class kraken extends Exchange {
         const trailingLimitPercent = this.safeString(params, 'trailingLimitPercent');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         const isTrailingPercentOrder = trailingPercent !== undefined;
-        const isLimitOrder = type.endsWith('limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        const isLimitOrder = (type !== undefined) && type.endsWith('limit'); // supporting limit, stop-loss-limit, take-profit-limit, etc
         const isMarketOrder = type === 'market';
         const cost = this.safeString(params, 'cost');
         const flags = this.safeString(params, 'oflags');
@@ -2688,7 +2711,7 @@ export default class kraken extends Exchange {
      * @name kraken#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.kraken.com/api-reference/trading/cancel-all-orders
-     * @param {string} symbol unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
+     * @param {string} [symbol] unified market symbol, not used by kraken cancelAllOrders (all open orders are cancelled)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2721,11 +2744,17 @@ export default class kraken extends Exchange {
      * @returns {object} the api result
      */
     async cancelAllOrdersAfter(timeout, params = {}) {
+        if (timeout === undefined) {
+            throw new ExchangeError(this.id + ' cancelAllOrdersAfter() missing timeout');
+        }
         if (timeout > 86400000) {
             throw new BadRequest(this.id + ' cancelAllOrdersAfter timeout should be less than 86400000 milliseconds');
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
+        }
+        if (timeout === undefined) {
+            throw new ExchangeError(this.id + ' cancelAllOrdersAfter() missing timeout');
         }
         const request = {
             'timeout': (timeout > 0) ? (this.parseToInt(timeout / 1000)) : 0,
@@ -3310,6 +3339,9 @@ export default class kraken extends Exchange {
                 // find best matching deposit method, or fallback to the first one
                 for (let i = 0; i < depositMethods.length; i++) {
                     const entry = this.safeString(depositMethods[i], 'method');
+                    if (entry === undefined) {
+                        throw new ExchangeError(this.id + ' fetchDepositAddress() missing entry');
+                    }
                     if (entry.indexOf(network) >= 0) {
                         depositMethod = entry;
                         break;

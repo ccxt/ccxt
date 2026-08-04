@@ -126,7 +126,7 @@ func (this *Coinbase) CreateDepositAddress(code string, options ...CreateDeposit
  * @ignore
  * @description fetch sells
  * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
- * @param {string} symbol not used by coinbase fetchMySells ()
+ * @param {string} symbol not used by fetchMySells ()
  * @param {int} [since] timestamp in ms of the earliest sell, default is undefined
  * @param {int} [limit] max number of sells to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -172,7 +172,7 @@ func (this *Coinbase) FetchMySells(options ...FetchMySellsOptions) ([]Trade, err
  * @ignore
  * @description fetch buys
  * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
- * @param {string} symbol not used by coinbase fetchMyBuys ()
+ * @param {string} symbol not used by fetchMyBuys ()
  * @param {int} [since] timestamp in ms of the earliest buy, default is undefined
  * @param {int} [limit] max number of buys to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -746,7 +746,7 @@ func (this *Coinbase) CreateOrder(symbol string, typeVar string, side string, am
  * @description cancels an open order
  * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
  * @param {string} id order id
- * @param {string} symbol not used by coinbase cancelOrder()
+ * @param {string} symbol not used by cancelOrder()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -780,7 +780,7 @@ func (this *Coinbase) CancelOrder(id string, options ...CancelOrderOptions) (Ord
  * @description cancel multiple orders
  * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
  * @param {string[]} ids order ids
- * @param {string} symbol not used by coinbase cancelOrders()
+ * @param {string} symbol not used by cancelOrders()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1254,7 +1254,7 @@ func (this *Coinbase) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the order book
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Coinbase) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -1559,6 +1559,37 @@ func (this *Coinbase) FetchConvertTrade(id string, options ...FetchConvertTradeO
 
 /**
  * @method
+ * @name coinbase#transfer
+ * @description transfer currency internally between portfolios of the same account
+ * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/move-portfolios-funds
+ * @param {string} code unified currency code
+ * @param {float} amount amount to transfer
+ * @param {string} fromAccount the portfolio uuid to transfer funds from
+ * @param {string} toAccount the portfolio uuid to transfer funds to
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+ */
+func (this *Coinbase) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
+
+	opts := TransferOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.Transfer(code, amount, fromAccount, toAccount, params)
+	if IsError(res) {
+		return TransferEntry{}, CreateReturnError(res)
+	}
+	return NewTransferEntry(res), nil
+}
+
+/**
+ * @method
  * @name coinbase#fetchPositions
  * @description fetch all open positions
  * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/list-futures-positions
@@ -1796,10 +1827,10 @@ func (this *Coinbase) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, er
 func (this *Coinbase) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddress(code, options...)
 }
-func (this *Coinbase) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Coinbase) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Coinbase) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Coinbase) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Coinbase) FetchFreeBalance(params ...any) (Balance, error) {
@@ -1963,9 +1994,6 @@ func (this *Coinbase) SetMarginMode(marginMode string, options ...SetMarginModeO
 }
 func (this *Coinbase) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
-}
-func (this *Coinbase) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
-	return this.exchangeTyped.Transfer(code, amount, fromAccount, toAccount, options...)
 }
 func (this *Coinbase) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrdersWs(options...)

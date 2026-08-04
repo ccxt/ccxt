@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official xt API documentation:** [doc.xt.com](https://doc.xt.com/) · [github.com](https://github.com/xtpub/api-doc)
 
-> 153 implicit endpoints across 2 access groups.
+> 156 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -153,6 +153,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateLinearGetFutureUserV1BalanceFundingRateList` | GET | `future/user/v1/balance/funding-rate-list` | 1 |
 | `privateLinearGetFutureUserV1BalanceList` | GET | `future/user/v1/balance/list` | 1 |
 | `privateLinearGetFutureUserV1PositionAdl` | GET | `future/user/v1/position/adl` | 1 |
+| `privateLinearGetFutureUserV1PositionBreakList` | GET | `future/user/v1/position/break-list` | 1 |
 | `privateLinearGetFutureUserV1PositionList` | GET | `future/user/v1/position/list` | 1 |
 | `privateLinearGetFutureUserV1UserCollectionList` | GET | `future/user/v1/user/collection/list` | 1 |
 | `privateLinearGetFutureUserV1UserListenKey` | GET | `future/user/v1/user/listen-key` | 1 |
@@ -191,6 +192,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateInverseGetFutureUserV1BalanceFundingRateList` | GET | `future/user/v1/balance/funding-rate-list` | 1 |
 | `privateInverseGetFutureUserV1BalanceList` | GET | `future/user/v1/balance/list` | 1 |
 | `privateInverseGetFutureUserV1PositionAdl` | GET | `future/user/v1/position/adl` | 1 |
+| `privateInverseGetFutureUserV1PositionBreakList` | GET | `future/user/v1/position/break-list` | 1 |
 | `privateInverseGetFutureUserV1PositionList` | GET | `future/user/v1/position/list` | 1 |
 | `privateInverseGetFutureUserV1UserCollectionList` | GET | `future/user/v1/user/collection/list` | 1 |
 | `privateInverseGetFutureUserV1UserListenKey` | GET | `future/user/v1/user/listen-key` | 1 |
@@ -213,6 +215,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateInversePostFutureUserV1PositionMargin` | POST | `future/user/v1/position/margin` | 1 |
 | `privateInversePostFutureUserV1UserCollectionAdd` | POST | `future/user/v1/user/collection/add` | 1 |
 | `privateInversePostFutureUserV1UserCollectionCancel` | POST | `future/user/v1/user/collection/cancel` | 1 |
+| `privateInversePostFutureUserV1PositionChangeType` | POST | `future/user/v1/position/change-type` | 1 |
 | `privateUserGetUserAccount` | GET | `user/account` | 1 |
 | `privateUserGetUserAccountApiKey` | GET | `user/account/api-key` | 1 |
 | `privateUserPostUserAccount` | POST | `user/account` | 1 |

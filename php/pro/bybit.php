@@ -137,7 +137,7 @@ class bybit extends \ccxt\async\bybit {
                 ),
                 'watchMyTrades' => array(
                     // filter execType => https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
-                    'filterExecTypes' => array(
+                    'execType' => array(
                         'Trade', 'AdlTrade', 'BustTrade', 'Settle',
                     ),
                 ),
@@ -239,7 +239,7 @@ class bybit extends \ccxt\async\bybit {
         })();
     }
 
-    public function clean_params($params) {
+    public function clean_params(mixed $params) {
         $params = $this->omit($params, array( 'type', 'subType', 'settle', 'defaultSettle', 'unifiedMargin' ));
         return $params;
     }
@@ -508,7 +508,7 @@ class bybit extends \ccxt\async\bybit {
         return $this->un_watch_tickers(array( $symbol ), $params);
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         // linear
         //     {
@@ -690,7 +690,7 @@ class bybit extends \ccxt\async\bybit {
         })();
     }
 
-    public function parse_ws_bid_ask($orderbook, ?array $market = null) {
+    public function parse_ws_bid_ask(mixed $orderbook, ?array $market = null) {
         $timestamp = $this->safe_integer($orderbook, 'timestamp');
         $bids = $this->sort_by($this->aggregate($orderbook['bids']), 0);
         $asks = $this->sort_by($this->aggregate($orderbook['asks']), 0);
@@ -827,7 +827,7 @@ class bybit extends \ccxt\async\bybit {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "topic" => "kline.5.BTCUSDT",
@@ -882,7 +882,7 @@ class bybit extends \ccxt\async\bybit {
         $client->resolve($resolveData, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "start" => 1670363160000,
@@ -933,7 +933,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return.
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1033,7 +1033,7 @@ class bybit extends \ccxt\async\bybit {
         return $this->un_watch_order_book_for_symbols(array( $symbol ), $params);
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "topic" => "orderbook.50.BTCUSDT",
@@ -1106,12 +1106,12 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $bidAsk = $this->parse_order_book_bid_ask($delta, 0, 1);
         $bookside->storeArray($bidAsk);
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -1220,7 +1220,7 @@ class bybit extends \ccxt\async\bybit {
         return $this->un_watch_trades_for_symbols(array( $symbol ), $params);
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "topic" => "publicTrade.BTCUSDT",
@@ -1263,7 +1263,7 @@ class bybit extends \ccxt\async\bybit {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         // public
         //    {
@@ -1334,7 +1334,7 @@ class bybit extends \ccxt\async\bybit {
         ), $market);
     }
 
-    public function get_private_type($url) {
+    public function get_private_type(mixed $url) {
         if (mb_strpos($url, 'spot') !== false) {
             return 'spot';
         } elseif (mb_strpos($url, 'v5/private') !== false) {
@@ -1430,7 +1430,7 @@ class bybit extends \ccxt\async\bybit {
         })();
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         // $spot
         //    {
@@ -1528,7 +1528,22 @@ class bybit extends \ccxt\async\bybit {
         }
         $trades = $this->myTrades;
         $symbols = array();
-        $filterExecTypes = $this->handle_option('watchMyTrades', 'filterExecTypes', array());
+        // the option was renamed from filterExecTypes to $execType to mirror
+        // the exchange's own field name, the old key is still read
+        // fallback for backward compatibility
+        // see https://github.com/ccxt/ccxt/issues/17244
+        // and https://github.com/ccxt/ccxt/issues/28181
+        $execTypeOption = $this->handle_option('watchMyTrades', 'execType');
+        if ($execTypeOption === null) {
+            $execTypeOption = $this->handle_option('watchMyTrades', 'filterExecTypes');
+        }
+        $execTypes = null;
+        if (gettype($execTypeOption) === 'string') {
+            // a single execution type is accepted plain string
+            $execTypes = array( $execTypeOption );
+        } else {
+            $execTypes = $execTypeOption;
+        }
         for ($i = 0; $i < count($data); $i++) {
             $rawTrade = $data[$i];
             $parsed = null;
@@ -1540,7 +1555,7 @@ class bybit extends \ccxt\async\bybit {
                 if ($executionFast) {
                     $execType = 'Trade';
                 }
-                if (!$this->in_array($execType, $filterExecTypes)) {
+                if (($execTypes !== null) && !$this->in_array($execType, $execTypes)) {
                     continue;
                 }
                 $parsed = $this->parse_trade($rawTrade);
@@ -1622,7 +1637,7 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function load_positions_snapshot($client, $messageHash) {
+    public function load_positions_snapshot(Client $client, mixed $messageHash) {
         return Async\async(function () use ($client, $messageHash) {
             // one ws channel gives $positions for all types, for snapshot must load all $positions
             $fetchFunctions = array(
@@ -1648,7 +1663,7 @@ class bybit extends \ccxt\async\bybit {
         })();
     }
 
-    public function handle_positions($client, $message) {
+    public function handle_positions(mixed $client, mixed $message) {
         //
         //    {
         //        topic => 'position',
@@ -1788,7 +1803,7 @@ class bybit extends \ccxt\async\bybit {
         })();
     }
 
-    public function handle_liquidation(Client $client, $message) {
+    public function handle_liquidation(Client $client, mixed $message) {
         //
         //     {
         //         "data" => array(
@@ -1852,7 +1867,7 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function parse_ws_liquidation($liquidation, ?array $market = null) {
+    public function parse_ws_liquidation(mixed $liquidation, ?array $market = null) {
         //
         //     {
         //         "price" => "0.03803",
@@ -1958,7 +1973,7 @@ class bybit extends \ccxt\async\bybit {
         })();
     }
 
-    public function handle_order_ws(Client $client, $message) {
+    public function handle_order_ws(Client $client, mixed $message) {
         //
         //    {
         //        "reqId":"1",
@@ -1985,7 +2000,7 @@ class bybit extends \ccxt\async\bybit {
         $client->resolve($order, $messageHash);
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         //     spot
         //     {
@@ -2166,7 +2181,7 @@ class bybit extends \ccxt\async\bybit {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         // spot
         //    {
@@ -2360,7 +2375,7 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function parse_ws_balance($balance, ?string $accountType = null) {
+    public function parse_ws_balance(mixed $balance, ?string $accountType = null) {
         //
         // spot
         //    {
@@ -2409,13 +2424,17 @@ class bybit extends \ccxt\async\bybit {
             if ($this->safe_value($this->balance, $accountType) === null) {
                 $this->balance[$accountType] = array();
             }
-            $this->balance[$accountType][$code] = $account;
+            if (($accountType !== null) && ($code !== null)) {
+                $this->balance[$accountType][$code] = $account;
+            }
         } else {
-            $this->balance[$code] = $account;
+            if ($code !== null) {
+                $this->balance[$code] = $account;
+            }
         }
     }
 
-    public function watch_topics($url, $messageHashes, $topics, $params = array()) {
+    public function watch_topics(mixed $url, mixed $messageHashes, mixed $topics, $params = array()) {
         return Async\async(function () use ($url, $messageHashes, $topics, $params) {
             $request = array(
                 'op' => 'subscribe',
@@ -2427,7 +2446,7 @@ class bybit extends \ccxt\async\bybit {
         })();
     }
 
-    public function un_watch_topics(string $url, string $topic, ?array $symbols, array $messageHashes, array $subMessageHashes, $topics, $params = array(), $subExtension = array()) {
+    public function un_watch_topics(string $url, string $topic, ?array $symbols, array $messageHashes, array $subMessageHashes, mixed $topics, $params = array(), $subExtension = array()) {
         return Async\async(function () use ($url, $topic, $symbols, $messageHashes, $subMessageHashes, $topics, $params, $subExtension) {
             $reqId = $this->request_id();
             $request = array(
@@ -2447,7 +2466,7 @@ class bybit extends \ccxt\async\bybit {
         })();
     }
 
-    public function authenticate($url, $params = array()) {
+    public function authenticate(mixed $url, $params = array()) {
         return Async\async(function () use ($url, $params) {
             $this->check_required_credentials();
             $messageHash = 'authenticated';
@@ -2473,7 +2492,7 @@ class bybit extends \ccxt\async\bybit {
         })();
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //   {
         //       "success" => false,
@@ -2548,6 +2567,17 @@ class bybit extends \ccxt\async\bybit {
                 if (is_array($client->subscriptions) && array_key_exists($authenticatedHash ?? '', $client->subscriptions)) {
                     unset($client->subscriptions[$authenticatedHash]);
                 }
+                $op = $this->safe_string($message, 'op');
+                if (($op !== null) && ($op !== 'auth')) {
+                    // an operation response that carries no reqId, e.g. bybit
+                    // omits it on some permission rejections of trade ops,
+                    // would leave the awaiting future pending forever, and
+                    // since nothing on this $client can proceed without
+                    // authentication, reject everything pending, mirroring the
+                    // behavior of unattributable non auth errors, see
+                    // https://github.com/ccxt/ccxt/issues/29361
+                    $client->reject($error);
+                }
             } else {
                 $client->reject($error, $messageHash);
             }
@@ -2555,7 +2585,7 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         $topic = $this->safe_string_2($message, 'topic', 'op', '');
         if ($this->handle_error_message($client, $message)) {
             return;
@@ -2639,7 +2669,7 @@ class bybit extends \ccxt\async\bybit {
         );
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         //
         //   {
         //       "success" => true,
@@ -2662,7 +2692,7 @@ class bybit extends \ccxt\async\bybit {
         return $message;
     }
 
-    public function handle_authenticate(Client $client, $message) {
+    public function handle_authenticate(Client $client, mixed $message) {
         //
         //    {
         //        "success" => true,
@@ -2701,7 +2731,7 @@ class bybit extends \ccxt\async\bybit {
         return $message;
     }
 
-    public function handle_subscription_status(Client $client, $message) {
+    public function handle_subscription_status(Client $client, mixed $message) {
         //
         //    {
         //        "topic" => "kline",
@@ -2719,7 +2749,7 @@ class bybit extends \ccxt\async\bybit {
         return $message;
     }
 
-    public function handle_un_subscribe(Client $client, $message) {
+    public function handle_un_subscribe(Client $client, mixed $message) {
         //
         // array("success":true,"ret_msg":"","conn_id":"7188110e-6908-41e9-b863-6365127e92ad","req_id":"3","op":"unsubscribe")
         //

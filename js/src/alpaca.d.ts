@@ -23,7 +23,7 @@ export default class alpaca extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    parseMarket(asset: any): Market;
+    parseMarket(asset: Dict): Market;
     /**
      * @method
      * @name alpaca#fetchTrades
@@ -48,7 +48,7 @@ export default class alpaca extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -157,7 +157,7 @@ export default class alpaca extends Exchange {
      * @name alpaca#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://docs.alpaca.markets/reference/deleteallorders
-     * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+     * @param {string} [symbol] alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -231,8 +231,8 @@ export default class alpaca extends Exchange {
      */
     editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): string;
-    parseTimeInForce(timeInForce: Str): string;
+    parseOrderStatus(status: Str): Str;
+    parseTimeInForce(timeInForce: Str): Str;
     /**
      * @method
      * @name alpaca#fetchMyTrades
@@ -310,7 +310,7 @@ export default class alpaca extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): Str;
     parseTransactionType(type: any): string;
     /**
      * @method
@@ -325,8 +325,8 @@ export default class alpaca extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
+        body: Str;
         headers: Dict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

@@ -369,7 +369,10 @@ public partial class independentreserve : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "AvailableBalance");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "TotalBalance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -399,7 +402,7 @@ public partial class independentreserve : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -893,15 +896,19 @@ public partial class independentreserve : Exchange
             object currencyId = this.safeString(fee, "CurrencyCode");
             object code = this.safeCurrencyCode(currencyId);
             object tradingFee = this.safeNumber(fee, "Fee");
-            ((IDictionary<string,object>)fees)[(string)code] = new Dictionary<string, object>() {
-                { "info", fee },
-                { "fee", tradingFee },
-            };
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)fees)[(string)code] = new Dictionary<string, object>() {
+                    { "info", fee },
+                    { "fee", tradingFee },
+                };
+            }
         }
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        object symbols = this.symbols;
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object fee = this.safeValue(fees, getValue(market, "base"), new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {

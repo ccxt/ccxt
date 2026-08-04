@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitteam.js';
-import { Balances, Currencies, Currency, Dict, NullableDict, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { Balances, Currencies, Currency, CurrencyInterface, Dict, NullableDict, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 /**
  * @class bitteam
  * @augments Exchange
@@ -25,7 +25,7 @@ export default class bitteam extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(currency: Dict): Currency;
+    parseCurrency(currency: Dict): CurrencyInterface;
     /**
      * @method
      * @name bitteam#fetchOHLCV
@@ -47,7 +47,7 @@ export default class bitteam extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -140,15 +140,15 @@ export default class bitteam extends Exchange {
      * @name bitteam#cancelAllOrders
      * @description cancel open orders of market
      * @see https://bit.team/trade/api/documentation#/PRIVATE/postTradeApiCcxtCancelallorder
-     * @param {string} symbol unified market symbol
+     * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): string;
+    parseOrderStatus(status: Str): Str;
     parseOrderType(status: any): string;
-    parseValueToPricision(valueObject: any, valueKey: any, preciseObject: any, precisionKey: any): string;
+    parseValueToPricision(valueObject: any, valueKey: any, preciseObject: any, precisionKey: any): string | undefined;
     /**
      * @method
      * @name bitteam#fetchTickers
@@ -219,12 +219,12 @@ export default class bitteam extends Exchange {
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionType(type: any): string;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): Str;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
-        headers: Dict;
+        body: Str;
+        headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

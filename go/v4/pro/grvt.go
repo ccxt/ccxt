@@ -209,8 +209,8 @@ func (this *GrvtCore) WatchTickers(optionalArgs ...any) <-chan any {
 		channelparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "channel", "v1.ticker.s")
 		channel = ccxt.GetValue(channelparamsVariable, 0)
 		params = ccxt.GetValue(channelparamsVariable, 1)
-		var interval any = nil
-		intervalparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "interval", 500)
+		var interval any = 500
+		intervalparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "interval", interval)
 		interval = ccxt.GetValue(intervalparamsVariable, 0)
 		params = ccxt.GetValue(intervalparamsVariable, 1)
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
@@ -330,7 +330,7 @@ func (this *GrvtCore) HandleTicker(client any, message any) {
 	var selector any = this.SafeString(message, "selector", "")
 	var parts any = ccxt.Split(selector, "@")
 	var marketId any = this.SafeString(parts, 0)
-	var market any = this.SafeMarket(marketId, nil)
+	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var ticker any = this.ParseWsTicker(data, market)
 	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
@@ -460,7 +460,7 @@ func (this *GrvtCore) HandleTrades(client any, message any) {
 	var selector any = this.SafeString(message, "selector", "")
 	var parts any = ccxt.Split(selector, "@")
 	var marketId any = this.SafeString(parts, 0)
-	var market any = this.SafeMarket(marketId, nil)
+	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	if !ccxt.IsTrue((ccxt.InOp(this.Trades, symbol))) {
 		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -604,7 +604,7 @@ func (this *GrvtCore) HandleOHLCV(client any, message any) {
 	var selector any = this.SafeString(message, "selector", "")
 	var parts any = ccxt.Split(selector, "@")
 	var marketId any = this.SafeString(parts, 0)
-	var market any = this.SafeMarket(marketId, nil)
+	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var secondPart any = this.SafeString(parts, 1, "")
 	var timeframeId any = ccxt.Replace(secondPart, "-TRADE", "")
@@ -637,7 +637,7 @@ func (this *GrvtCore) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *GrvtCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -673,7 +673,7 @@ func (this *GrvtCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *GrvtCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -703,8 +703,8 @@ func (this *GrvtCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any)
 			limit = ccxt.GetValue(limitparamsVariable, 0)
 			params = ccxt.GetValue(limitparamsVariable, 1)
 		}
-		var interval any = nil
-		intervalparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "interval", 500)
+		var interval any = 500
+		intervalparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "interval", interval)
 		interval = ccxt.GetValue(intervalparamsVariable, 0)
 		params = ccxt.GetValue(intervalparamsVariable, 1)
 		symbols = this.MarketSymbols(symbols)
@@ -763,7 +763,7 @@ func (this *GrvtCore) HandleOrderBook(client any, message any) {
 	var selector any = this.SafeString(message, "selector", "")
 	var parts any = ccxt.Split(selector, "@")
 	var marketId any = this.SafeString(parts, 0)
-	var market any = this.SafeMarket(marketId, nil)
+	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var timestamp any = this.SafeIntegerProduct(data, "event_time", 0.000001)
 	if !ccxt.IsTrue((ccxt.InOp(this.Orderbooks, symbol))) {

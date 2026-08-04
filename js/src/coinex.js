@@ -771,7 +771,9 @@ export default class coinex extends Exchange {
                 },
                 'info': chain,
             };
-            networks[networkCode] = network;
+            if (networkCode !== undefined) {
+                networks[networkCode] = network;
+            }
         }
         return this.safeCurrencyStructure({
             'id': currencyId,
@@ -1256,7 +1258,7 @@ export default class coinex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = 20, params = {}) {
         if (this.markets === undefined) {
@@ -1741,7 +1743,9 @@ export default class coinex extends Exchange {
             const baseDebt = this.safeString(loan, 'base_ccy');
             const baseInterest = this.safeString(interest, 'base_ccy');
             baseAccount['debt'] = Precise.stringAdd(baseDebt, baseInterest);
-            result[baseCurrencyCode] = baseAccount;
+            if (baseCurrencyCode !== undefined) {
+                result[baseCurrencyCode] = baseAccount;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1772,7 +1776,9 @@ export default class coinex extends Exchange {
             const account = this.account();
             account['free'] = this.safeString(entry, 'available');
             account['used'] = this.safeString(entry, 'frozen');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1806,7 +1812,9 @@ export default class coinex extends Exchange {
             const account = this.account();
             account['free'] = this.safeString(entry, 'available');
             account['used'] = this.safeString(entry, 'frozen');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1837,7 +1845,9 @@ export default class coinex extends Exchange {
             const account = this.account();
             account['free'] = this.safeString(entry, 'available');
             account['used'] = this.safeString(entry, 'frozen');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2174,6 +2184,12 @@ export default class coinex extends Exchange {
         return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const swap = market['swap'];
         const clientOrderId = this.safeString2(params, 'client_id', 'clientOrderId');
@@ -3101,7 +3117,9 @@ export default class coinex extends Exchange {
             const rawOrder = orders[i];
             const marketId = this.safeString(rawOrder, 'symbol');
             const market = this.market(marketId);
-            orderSymbols.push(marketId);
+            if (marketId !== undefined) {
+                orderSymbols.push(marketId);
+            }
             const id = this.safeString(rawOrder, 'id');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
@@ -4621,7 +4639,7 @@ export default class coinex extends Exchange {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         const status = this.safeStringLower(response, 'message');
         const type = (addOrReduce === 'reduce') ? 'reduce' : 'add';
         return this.extend(this.parseMarginModification(data, market), {
@@ -5180,7 +5198,7 @@ export default class coinex extends Exchange {
         if (type === 'deposit') {
             feeCost = '0';
         }
-        const feeCurrencyId = this.safeString(transaction, 'fee_asset');
+        const feeCurrencyId = this.safeString2(transaction, 'fee_asset', 'fee_ccy'); // https://github.com/ccxt/ccxt/issues/25153
         const fee = {
             'cost': this.parseNumber(feeCost),
             'currency': this.safeCurrencyCode(feeCurrencyId),
@@ -5857,7 +5875,9 @@ export default class coinex extends Exchange {
             }
             const code = this.safeCurrencyCode(currencyId);
             if (codes === undefined || this.inArray(code, codes)) {
-                result[code] = this.parseDepositWithdrawFee(item);
+                if (code !== undefined) {
+                    result[code] = this.parseDepositWithdrawFee(item);
+                }
             }
         }
         return result;
@@ -5917,16 +5937,18 @@ export default class coinex extends Exchange {
                     const currencyId = this.safeString(asset, 'ccy');
                     const feeCode = this.safeCurrencyCode(currencyId, currency);
                     const networkCode = this.networkIdToCode(networkId, feeCode);
-                    result['networks'][networkCode] = {
-                        'withdraw': {
-                            'fee': this.safeNumber(entry, 'withdrawal_fee'),
-                            'percentage': false,
-                        },
-                        'deposit': {
-                            'fee': undefined,
-                            'percentage': undefined,
-                        },
-                    };
+                    if (networkCode !== undefined) {
+                        result['networks'][networkCode] = {
+                            'withdraw': {
+                                'fee': this.safeNumber(entry, 'withdrawal_fee'),
+                                'percentage': false,
+                            },
+                            'deposit': {
+                                'fee': undefined,
+                                'percentage': undefined,
+                            },
+                        };
+                    }
                 }
             }
         }

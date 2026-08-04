@@ -782,7 +782,7 @@ class bingx extends bingx$1["default"] {
                     },
                 },
             },
-            'rollingWindowSize': 2000.0, // Some endpoints have a 10s window, some have a 5s window, a more complicated rate limiter is needed to accomodate for this
+            'rollingWindowSize': 2000.0, // Some endpoints have a 10s window, some have a 5s window, a more complicated rate limiter is needed to accommodate for this
         });
     }
     /**
@@ -895,17 +895,19 @@ class bingx extends bingx$1["default"] {
                 },
             };
             const precision = this.parseNumber(this.parsePrecision(this.safeString(rawNetwork, 'withdrawPrecision')));
-            networks[networkCode] = {
-                'info': rawNetwork,
-                'id': network,
-                'network': networkCode,
-                'fee': this.safeNumber(rawNetwork, 'withdrawFee'),
-                'active': undefined,
-                'deposit': this.safeBool(rawNetwork, 'depositEnable'),
-                'withdraw': this.safeBool(rawNetwork, 'withdrawEnable'),
-                'precision': precision,
-                'limits': limits,
-            };
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': rawNetwork,
+                    'id': network,
+                    'network': networkCode,
+                    'fee': this.safeNumber(rawNetwork, 'withdrawFee'),
+                    'active': undefined,
+                    'deposit': this.safeBool(rawNetwork, 'depositEnable'),
+                    'withdraw': this.safeBool(rawNetwork, 'withdrawEnable'),
+                    'precision': precision,
+                    'limits': limits,
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'info': rawCurrency,
@@ -1517,10 +1519,18 @@ class bingx extends bingx$1["default"] {
         }
         let amount = this.safeStringN(trade, ['qty', 'amount', 'q']);
         if ((market !== undefined) && market['swap'] && ('volume' in trade)) {
-            // private trade returns num of contracts instead of base currency (as the order-related methods do)
-            const contractSize = this.safeString(market['info'], 'tradeMinQuantity');
-            const volume = this.safeString(trade, 'volume');
-            amount = Precise["default"].stringMul(volume, contractSize);
+            if (market['linear']) {
+                // private linear swap trades report 'amount' as the notional (quote) value, not the base amount;
+                // 'volume' is the exchange's own base-currency fill quantity (bingx linear contractSize is always 1),
+                // use it directly instead of 'notional / price', which picks up rounding noise from the notional field
+                amount = this.safeString(trade, 'volume');
+            }
+            else {
+                // private trade returns num of contracts instead of base currency (as the order-related methods do)
+                const contractSize = this.safeString(market['info'], 'tradeMinQuantity');
+                const volume = this.safeString(trade, 'volume');
+                amount = Precise["default"].stringMul(volume, contractSize);
+            }
         }
         return this.safeTrade({
             'id': this.safeString2(trade, 'id', 't'),
@@ -1551,7 +1561,7 @@ class bingx extends bingx$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -2609,7 +2619,9 @@ class bingx extends bingx$1["default"] {
                 account['free'] = this.safeString2(balance, 'availableMargin', 'availableBalance');
                 account['used'] = this.safeString(balance, 'usedMargin');
                 account['total'] = this.safeString(balance, 'maxWithdrawAmount');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         else {
@@ -2620,7 +2632,9 @@ class bingx extends bingx$1["default"] {
                 const account = this.account();
                 account['free'] = this.safeString(balance, 'free');
                 account['used'] = this.safeString(balance, 'locked');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -3045,6 +3059,12 @@ class bingx extends bingx$1["default"] {
         return await this.createOrder(symbol, 'market', 'sell', cost, undefined, params);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -3466,7 +3486,7 @@ class bingx extends bingx$1["default"] {
         const marketIds = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
-            const marketId = this.safeString(rawOrder, 'symbol');
+            const marketId = this.safeString(rawOrder, 'symbol', '');
             const type = this.safeString(rawOrder, 'type');
             marketIds.push(marketId);
             const side = this.safeString(rawOrder, 'side');
@@ -5602,7 +5622,7 @@ class bingx extends bingx$1["default"] {
         const network = this.safeString(transaction, 'network');
         const currencyId = this.safeString(transaction, 'coin');
         let code = this.safeCurrencyCode(currencyId, currency);
-        if ((code !== undefined) && (code !== network) && code.indexOf(network) >= 0) {
+        if ((code !== undefined) && (network !== undefined) && (code !== network) && code.indexOf(network) >= 0) {
             if (network !== undefined) {
                 code = code.replace(network, '');
             }
@@ -6436,7 +6456,7 @@ class bingx extends bingx$1["default"] {
                 //
             }
         }
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     /**
@@ -6701,7 +6721,7 @@ class bingx extends bingx$1["default"] {
             //    }
             //
         }
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         return this.parseOrder(data, market);
     }
     /**
@@ -7021,7 +7041,8 @@ class bingx extends bingx$1["default"] {
                 parsedParams = this.parseParams(params);
                 encodeRequest = this.rawencode(parsedParams, true);
             }
-            const signature = this.hmac(this.encode(encodeRequest), this.encode(this.secret), sha2_js.sha256);
+            const encodeRequestSafe = (encodeRequest === undefined) ? '' : encodeRequest;
+            const signature = this.hmac(this.encode(encodeRequestSafe), this.encode(this.secret), sha2_js.sha256);
             headers = {
                 'X-BX-APIKEY': this.apiKey,
                 'X-SOURCE-KEY': this.safeString(this.options, 'broker', 'CCXT'),

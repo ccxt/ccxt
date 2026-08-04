@@ -155,7 +155,7 @@ public partial class whitebit : ccxt.whitebit
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -348,7 +348,7 @@ public partial class whitebit : ccxt.whitebit
         //
         object tickers = this.safeValue(message, "params", new List<object>() {});
         object marketId = this.safeString(tickers, 0);
-        object market = this.safeMarket(marketId, null);
+        object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object rawTicker = this.safeValue(tickers, 1, new Dictionary<string, object>() {});
         object messageHash = add(add("ticker", ":"), symbol);
@@ -846,6 +846,10 @@ public partial class whitebit : ccxt.whitebit
         //   }
         //
         object method = this.safeString(message, "method");
+        if (isTrue(isEqual(method, null)))
+        {
+            return;
+        }
         object data = this.safeValue(message, "params");
         object balanceDict = this.safeValue(data, 0);
         ((IDictionary<string,object>)this.balance)["info"] = balanceDict;
@@ -856,7 +860,10 @@ public partial class whitebit : ccxt.whitebit
         object account = this.account();
         ((IDictionary<string,object>)account)["free"] = this.safeString(rawBalance, "available");
         ((IDictionary<string,object>)account)["used"] = this.safeString(rawBalance, "freeze");
-        ((IDictionary<string,object>)this.balance)[(string)code] = account;
+        if (isTrue(!isEqual(code, null)))
+        {
+            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+        }
         this.balance = this.safeBalance(this.balance);
         object messageHash = "wallet:";
         if (isTrue(isGreaterThanOrEqual(getIndexOf(method, "Spot"), 0)))
@@ -902,7 +909,10 @@ public partial class whitebit : ccxt.whitebit
             object subscription = new Dictionary<string, object>() {};
             object market = this.market(symbol);
             object marketId = getValue(market, "id");
-            ((IDictionary<string,object>)subscription)[(string)marketId] = true;
+            if (isTrue(!isEqual(marketId, null)))
+            {
+                ((IDictionary<string,object>)subscription)[(string)marketId] = true;
+            }
             marketIds = new List<object>() {marketId};
             if (isTrue(isNested))
             {
@@ -924,7 +934,10 @@ public partial class whitebit : ccxt.whitebit
             object isSubscribed = this.safeBool(subscription, marketId, false);
             if (!isTrue(isSubscribed))
             {
-                ((IDictionary<string,object>)subscription)[(string)marketId] = true;
+                if (isTrue(!isEqual(marketId, null)))
+                {
+                    ((IDictionary<string,object>)subscription)[(string)marketId] = true;
+                }
                 hasSymbolSubscription = false;
             }
             if (isTrue(hasSymbolSubscription))
@@ -1106,7 +1119,7 @@ public partial class whitebit : ccxt.whitebit
         object values = new List<object>(((IDictionary<string,object>)subs).Values);
         for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
         {
-            object subscription = ((object)getValue(values, i));
+            object subscription = getValue(values, i);
             if (isTrue(!isEqual(subscription, true)))
             {
                 object subId = this.safeInteger(subscription, "id");

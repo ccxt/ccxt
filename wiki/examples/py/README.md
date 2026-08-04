@@ -269,6 +269,8 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Bittrex Fetch Closed Orders History](./examples/py/bittrex-fetch-closed-orders-history.md)
 
+- [Bitvavo Un Watch Order Book For Symbols](./examples/py/bitvavo-un-watch-order-book-for-symbols.md)
+
 - [Bitvavo Watch Order Book](./examples/py/bitvavo-watch-order-book.md)
 
 - [📂 Bots](https://github.com/ccxt/ccxt/tree/master/./examples/py/bots)
@@ -304,6 +306,12 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 - [Coinbase Fetch Trades](./examples/py/coinbase-fetch-trades.md)
 
 - [Coinbase Watch All Trades](./examples/py/coinbase-watch-all-trades.md)
+
+- [Coinbase Watch Ohlcv](./examples/py/coinbase-watch-ohlcv.md)
+
+- [Coinbase Watch Order Book](./examples/py/coinbase-watch-order-book.md)
+
+- [Coinbase Watch Ticker](./examples/py/coinbase-watch-ticker.md)
 
 - [Coinbase Watch Trades](./examples/py/coinbase-watch-trades.md)
 

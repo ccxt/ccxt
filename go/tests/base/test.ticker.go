@@ -58,7 +58,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var isFetchTickerCalled any = IsEqual(method, "fetchTicker")
 	var symbolForMarket any = Ternary(IsTrue((!IsEqual(symbol, nil))), symbol, exchange.SafeString(entry, "symbol"))
 	if IsTrue(!IsEqual(symbolForMarket, nil)) {
-		if IsTrue(InOp(exchange.GetMarkets(), symbolForMarket)) {
+		if IsTrue(IsTrue((!IsEqual(exchange.GetMarkets(), nil))) && IsTrue((InOp(exchange.GetMarkets(), symbolForMarket)))) {
 			market = exchange.Market(symbolForMarket)
 		} else {
 			isUnrecognizedSymbol = true

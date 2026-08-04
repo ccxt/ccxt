@@ -391,7 +391,7 @@ func (this *Krakenfutures) CancelOrders(ids []string, options ...CancelOrdersOpt
  * @name krakenfutures#cancelAllOrders
  * @see https://docs.kraken.com/api/docs/futures-api/trading/cancel-all-orders
  * @description Cancels all orders on the exchange, including trigger orders
- * @param {str} symbol Unified market symbol
+ * @param {string} [symbol] Unified market symbol
  * @param {dict} [params] Exchange specific params
  * @returns Response from exchange api
  */
@@ -1176,10 +1176,10 @@ func (this *Krakenfutures) FetchDeposits(options ...FetchDepositsOptions) ([]Tra
 func (this *Krakenfutures) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Krakenfutures) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Krakenfutures) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Krakenfutures) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Krakenfutures) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Krakenfutures) FetchFreeBalance(params ...any) (Balance, error) {

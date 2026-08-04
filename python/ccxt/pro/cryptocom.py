@@ -11,6 +11,7 @@ from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import ChecksumError
 
@@ -63,7 +64,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             },
         })
 
-    async def pong(self, client, message):
+    async def pong(self, client: Client, message: Any):
         # {
         #     "id": 1587523073344,
         #     "method": "public/heartbeat",
@@ -104,7 +105,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         return self.un_watch_order_book_for_symbols([symbol], params)
 
-    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -115,7 +116,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.bookSubscriptionType]: The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
         :param int [params.bookUpdateFrequency]: Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -148,7 +149,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         orderbook = await self.watch_public_multiple(messageHashes, topics, params)
         return orderbook.limit()
 
-    async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}) -> OrderBook:
+    async def un_watch_order_book_for_symbols(self, symbols: List[str], params: dict = {}) -> OrderBook:
         """
         unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -192,17 +193,17 @@ class cryptocom(ccxt.async_support.cryptocom):
             topics.append(currentTopic)
         return await self.un_watch_public_multiple('orderbook', symbols, messageHashes, subMessageHashes, topics, params)
 
-    def handle_delta(self, bookside, delta):
+    def handle_delta(self, bookside: Any, delta: Any):
         price = self.safe_float(delta, 0)
         amount = self.safe_float(delta, 1)
         count = self.safe_integer(delta, 2)
         bookside.storeArray([price, amount, count])
 
-    def handle_deltas(self, bookside, deltas):
+    def handle_deltas(self, bookside: Any, deltas: Any):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         # snapshot
         #    {
@@ -369,7 +370,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             topics.append(currentTopic)
         return await self.un_watch_public_multiple('trades', symbols, messageHashes, topics, topics, params)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         # {
         #     "code": 0,
@@ -393,6 +394,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         # }
         #
         channel = self.safe_string(message, 'channel')
+        if channel is None:
+            return
         marketId = self.safe_string(message, 'instrument_name')
         symbolSpecificMessageHash = self.safe_string(message, 'subscription')
         market = self.safe_market(marketId)
@@ -528,7 +531,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             messageHashes.append('unsubscribe:ticker:' + symbol)
         return await self.un_watch_public_multiple('ticker', symbols, messageHashes, subMessageHashes, subMessageHashes, params)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: Any):
         #
         #     {
         #       "instrument_name": "ETHUSD-PERP",
@@ -562,7 +565,8 @@ class cryptocom(ccxt.async_support.cryptocom):
             ticker = data[i]
             parsed = self.parse_ws_ticker(ticker, market)
             symbol = parsed['symbol']
-            self.tickers[symbol] = parsed
+            if symbol is not None:
+                self.tickers[symbol] = parsed
             client.resolve(parsed, messageHash)
 
     def parse_ws_ticker(self, ticker: dict, market: Market = None) -> Ticker:
@@ -647,16 +651,17 @@ class cryptocom(ccxt.async_support.cryptocom):
             return tickers
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
 
-    def handle_bid_ask(self, client: Client, message):
+    def handle_bid_ask(self, client: Client, message: Any):
         data = self.safe_list(message, 'data', [])
         ticker = self.safe_dict(data, 0, {})
         parsedTicker = self.parse_ws_bid_ask(ticker)
         symbol = parsedTicker['symbol']
-        self.bidsasks[symbol] = parsedTicker
+        if symbol is not None:
+            self.bidsasks[symbol] = parsedTicker
         messageHash = 'bidask.' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker: Any, market: Market = None):
         marketId = self.safe_string(ticker, 'i')
         market = self.safe_market(marketId, market)
         symbol = self.safe_string(market, 'symbol')
@@ -719,7 +724,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         }
         return await self.un_watch_public_multiple('ohlcv', [market['symbol']], [messageHash], [subMessageHash], [subMessageHash], params, subExtend)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         #  {
         #       "instrument_name": "BTC_USDT",
@@ -737,11 +742,12 @@ class cryptocom(ccxt.async_support.cryptocom):
         interval = self.safe_string(message, 'interval')
         timeframe = self.find_timeframe(interval)
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
-            self.ohlcvs[symbol][timeframe] = stored
+            if symbol is not None and timeframe is not None:
+                self.ohlcvs[symbol][timeframe] = stored
         data = self.safe_value(message, 'data')
         for i in range(0, len(data)):
             tick = data[i]
@@ -774,7 +780,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client: Client, message, subscription=None):
+    def handle_orders(self, client: Client, message: Any, subscription: dict | None = None):
         #
         #    {
         #        "method": "subscribe",
@@ -849,6 +855,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         messageHash = 'positions'
         symbols = self.market_symbols(symbols)
         if not self.is_empty(symbols):
+            if symbols is None:
+                raise ArgumentsRequired(self.id + ' watchPositions() symbols is required')
             messageHash = '::' + ','.join(symbols)
         client = self.client(url)
         self.set_positions_cache(client, symbols)
@@ -862,7 +870,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             return newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def set_positions_cache(self, client: Client, type, symbols: Strings = None):
+    def set_positions_cache(self, client: Client, type: Any, symbols: Strings = None):
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
         if fetchPositionsSnapshot:
             messageHash = 'fetchPositionsSnapshot'
@@ -872,14 +880,14 @@ class cryptocom(ccxt.async_support.cryptocom):
         else:
             self.positions = ArrayCacheBySymbolBySide()
 
-    async def load_positions_snapshot(self, client, messageHash):
+    async def load_positions_snapshot(self, client: Client, messageHash: Any):
         positions = await self.fetch_positions()
         self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
         for i in range(0, len(positions)):
             position = positions[i]
             contracts = self.safe_number(position, 'contracts', 0)
-            if contracts > 0:
+            if (contracts is not None) and (contracts > 0):
                 cache.append(position)
         # don't remove the future from the .futures cache
         if messageHash in client.futures:
@@ -887,7 +895,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             future.resolve(cache)
             client.resolve(cache, 'positions')
 
-    def handle_positions(self, client, message):
+    def handle_positions(self, client: Any, message: Any):
         #
         #    {
         #        "subscription": "user.position_balance",
@@ -949,7 +957,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         messageHash = 'user.balance'
         return await self.watch_private_subscribe(messageHash, params)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: Any):
         #
         #     {
         #         "id": 1,
@@ -1006,7 +1014,8 @@ class cryptocom(ccxt.async_support.cryptocom):
             account = self.account()
             account['total'] = self.safe_string(balance, 'quantity')
             account['used'] = self.safe_string(balance, 'reserved_qty')
-            self.balance[code] = account
+            if code is not None:
+                self.balance[code] = account
             self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, messageHash)
         messageHashRequest = self.safe_string(message, 'id')
@@ -1063,7 +1072,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         messageHash = self.nonce()
         return await self.watch_private_request(messageHash, request)
 
-    def handle_order(self, client: Client, message):
+    def handle_order(self, client: Client, message: Any):
         #
         #    {
         #        "id": 1,
@@ -1126,7 +1135,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         messageHash = self.nonce()
         return await self.watch_private_request(messageHash, request)
 
-    def handle_cancel_all_orders(self, client: Client, message):
+    def handle_cancel_all_orders(self, client: Client, message: Any):
         #
         #    {
         #        "id": 1688914586647,
@@ -1137,7 +1146,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         messageHash = self.safe_string(message, 'id')
         client.resolve(message, messageHash)
 
-    async def watch_public(self, messageHash, params={}):
+    async def watch_public(self, messageHash: Any, params={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
         request = {
@@ -1150,7 +1159,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def watch_public_multiple(self, messageHashes, topics, params={}):
+    async def watch_public_multiple(self, messageHashes: Any, topics: Any, params={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
         request = {
@@ -1184,7 +1193,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         message = self.deep_extend(request, params)
         return await self.watch_multiple(url, messageHashes, message, messageHashes, self.extend(subscription, subExtend))
 
-    async def watch_private_request(self, nonce, params={}):
+    async def watch_private_request(self, nonce: Any, params={}):
         await self.authenticate()
         url = self.urls['api']['ws']['private']
         request = {
@@ -1194,7 +1203,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         message = self.extend(request, params)
         return await self.watch(url, str(nonce), message, True)
 
-    async def watch_private_subscribe(self, messageHash, params={}):
+    async def watch_private_subscribe(self, messageHash: Any, params={}):
         await self.authenticate()
         url = self.urls['api']['ws']['private']
         id = self.nonce()
@@ -1208,7 +1217,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         #    {
         #        "id": 0,
@@ -1238,7 +1247,7 @@ class cryptocom(ccxt.async_support.cryptocom):
                 client.reject(e, id)
             return True
 
-    def handle_subscribe(self, client: Client, message):
+    def handle_subscribe(self, client: Client, message: Any):
         methods = {
             'candlestick': self.handle_ohlcv,
             'ticker': self.handle_ticker,
@@ -1262,7 +1271,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         if method is not None:
             method(client, result)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         #
         # ping
         #    {
@@ -1338,17 +1347,17 @@ class cryptocom(ccxt.async_support.cryptocom):
             self.watch(url, messageHash, message, messageHash)
         return await future
 
-    def handle_ping(self, client: Client, message):
+    def handle_ping(self, client: Client, message: Any):
         self.spawn(self.pong, client, message)
 
-    def handle_authenticate(self, client: Client, message):
+    def handle_authenticate(self, client: Client, message: Any):
         #
         #  {id: 1648132625434, method: "public/auth", code: 0}
         #
         future = self.safe_value(client.futures, 'authenticated')
         future.resolve(True)
 
-    def handle_unsubscribe(self, client: Client, message):
+    def handle_unsubscribe(self, client: Client, message: Any):
         id = self.safe_string(message, 'id')
         keys = list(client.subscriptions.keys())
         for i in range(0, len(keys)):

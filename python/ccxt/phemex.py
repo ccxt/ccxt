@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Any, ADL, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, ADL, Balances, Conversion, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -233,7 +233,7 @@ class phemex(Exchange, ImplicitAPI):
                         'api-data/g-futures/trades': 5,  # ?symbol=<symbol>
                         'api-data/futures/trading-fees': 5,  # ?symbol=<symbol>
                         'api-data/g-futures/trading-fees': 5,  # ?symbol=<symbol>
-                        'api-data/futures/v2/tradeAccountDetail': 5,  # ?currency=<currecny>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
+                        'api-data/futures/v2/tradeAccountDetail': 5,  # ?currency=<currency>&type=<type>&limit=<limit>&offset=<offset>&start=<start>&end=<end>&withCount=<withCount>
                         'api-data/g-futures/closedPosition': 5,
                         'g-orders/activeList': 1,  # ?symbol=<symbol>
                         'orders/activeList': 1,  # ?symbol=<symbol>
@@ -1039,7 +1039,7 @@ class phemex(Exchange, ImplicitAPI):
         #                     "symbol":"BTCUSDT",
         #                     "steps":"2000K",
         #                     "riskLimits":[
-        #                         {"limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"},,
+        #                         {"limit":2000000,"initialMarginRr":"0.01","maintenanceMarginRr":"0.005"},
         #                         {"limit":4000000,"initialMarginRr":"0.015","maintenanceMarginRr":"0.0075"},
         #                         {"limit":6000000,"initialMarginRr":"0.02","maintenanceMarginRr":"0.01"},
         #                     ]
@@ -1149,7 +1149,7 @@ class phemex(Exchange, ImplicitAPI):
         currencies = self.safe_value(data, 'currencies', [])
         return self.parse_currencies(currencies)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(id)
         valueScaleString = self.safe_string(rawCurrency, 'valueScale')
@@ -1189,7 +1189,7 @@ class phemex(Exchange, ImplicitAPI):
             'type': 'crypto',
         })
 
-    def custom_parse_bid_ask(self, bidask, priceKey=0, amountKey=1, market: Market = None):
+    def custom_parse_bid_ask(self, bidask: Any, priceKey=0, amountKey=1, market: Market = None):
         if market is None:
             raise ArgumentsRequired(self.id + ' customParseBidAsk() requires a market argument')
         amount = self.safe_string(bidask, amountKey)
@@ -1200,7 +1200,7 @@ class phemex(Exchange, ImplicitAPI):
             self.parse_number(amount),
         ]
 
-    def custom_parse_order_book(self, orderbook, symbol, timestamp=None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1, market: Market = None):
+    def custom_parse_order_book(self, orderbook: Any, symbol: Any, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey=0, amountKey=1, market: Market = None):
         result = {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1228,7 +1228,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -1278,7 +1278,7 @@ class phemex(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(result, 'sequence')
         return orderbook
 
-    def to_en(self, n, scale):
+    def to_en(self, n: Any, scale: Any):
         stringN = self.number_to_string(n)
         precise = Precise(stringN)
         precise.decimals = precise.decimals - scale
@@ -1286,17 +1286,17 @@ class phemex(Exchange, ImplicitAPI):
         preciseString = str(precise)
         return self.parse_to_numeric(preciseString)
 
-    def to_ev(self, amount, market: dict = None):
+    def to_ev(self, amount: Any, market: dict | None = None):
         if (amount is None) or (market is None):
             return amount
         return self.to_en(amount, market['valueScale'])
 
-    def to_ep(self, price, market: Market = None):
+    def to_ep(self, price: Any, market: Market = None):
         if (price is None) or (market is None):
             return price
-        return self.to_en(price, market['priceScale'])
+        return self.to_en(price, self.safe_value(market, 'priceScale'))
 
-    def from_en(self, en, scale):
+    def from_en(self, en: Any, scale: Any):
         if en is None or scale is None:
             return None
         precise = Precise(en)
@@ -1304,22 +1304,22 @@ class phemex(Exchange, ImplicitAPI):
         precise.reduce()
         return str(precise)
 
-    def from_ep(self, ep, market: Market = None):
+    def from_ep(self, ep: Any, market: Market = None):
         if (ep is None) or (market is None):
             return ep
         return self.from_en(ep, self.safe_integer(market, 'priceScale'))
 
-    def from_ev(self, ev, market: Market = None):
+    def from_ev(self, ev: Any, market: Market = None):
         if (ev is None) or (market is None):
             return ev
         return self.from_en(ev, self.safe_integer(market, 'valueScale'))
 
-    def from_er(self, er, market: Market = None):
+    def from_er(self, er: Any, market: Market = None):
         if (er is None) or (market is None):
             return er
         return self.from_en(er, self.safe_integer(market, 'ratioScale'))
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     [
         #         1592467200,  # timestamp
@@ -1949,7 +1949,7 @@ class phemex(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def parse_spot_balance(self, response):
+    def parse_spot_balance(self, response: Any):
         #
         #     {
         #         "code":0,
@@ -2000,7 +2000,7 @@ class phemex(Exchange, ImplicitAPI):
         result['datetime'] = self.iso8601(timestamp)
         return self.safe_balance(result)
 
-    def parse_swap_balance(self, response):
+    def parse_swap_balance(self, response: Any):
         # usdt
         #   {
         #       "info": {
@@ -2370,14 +2370,14 @@ class phemex(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def parse_order_side(self, side):
+    def parse_order_side(self, side: Any):
         sides = {
             '1': 'buy',
             '2': 'sell',
         }
         return self.safe_string(sides, side, side)
 
-    def parse_swap_order(self, order, market: Market = None):
+    def parse_swap_order(self, order: Any, market: Market = None):
         #
         #     {
         #         "bizError":0,
@@ -3585,7 +3585,7 @@ class phemex(Exchange, ImplicitAPI):
         networkId = self.safe_string(transaction, 'chainName')
         timestamp = self.safe_integer_n(transaction, ['createdAt', 'submitedAt', 'submittedAt'])
         type = self.safe_string_lower(transaction, 'type')
-        feeCost = self.parse_number(self.from_en(self.safe_string(transaction, 'feeEv'), currency['valueScale']))
+        feeCost = self.parse_number(self.from_en(self.safe_string(transaction, 'feeEv'), self.safe_value(currency, 'valueScale')))
         if feeCost is None:
             feeCost = self.safe_number(transaction, 'feeRv')
         fee = None
@@ -3596,7 +3596,7 @@ class phemex(Exchange, ImplicitAPI):
                 'currency': code,
             }
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        amount = self.parse_number(self.from_en(self.safe_string(transaction, 'amountEv'), currency['valueScale']))
+        amount = self.parse_number(self.from_en(self.safe_string(transaction, 'amountEv'), self.safe_value(currency, 'valueScale')))
         if amount is None:
             amount = self.safe_number(transaction, 'amountRv')
         return {
@@ -3766,7 +3766,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str symbol: unified contract symbol
         :param int [since]: the earliest time in ms to fetch positions for
         :param int [limit]: the maximum amount of records to fetch
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch positions for
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
@@ -4055,7 +4055,7 @@ class phemex(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_funding_fee_to_precision(self, value, market: Market = None, currencyCode: Str = None):
+    def parse_funding_fee_to_precision(self, value: Any, market: Market = None, currencyCode: Str = None):
         if value is None or currencyCode is None or market is None:
             return value
         # it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
@@ -4113,7 +4113,7 @@ class phemex(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_funding_rate(result, market)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         #
         #     {
         #         "askEp": 2332500,
@@ -4209,7 +4209,7 @@ class phemex(Exchange, ImplicitAPI):
             'amount': amount,
         })
 
-    def parse_margin_status(self, status):
+    def parse_margin_status(self, status: Any):
         statuses = {
             '0': 'ok',
         }
@@ -4285,7 +4285,7 @@ class phemex(Exchange, ImplicitAPI):
         https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#switch-position-mode-synchronously
 
         :param bool hedged: set to True to use dualSidePosition
-        :param str symbol: not used by binance setPositionMode()
+        :param str symbol: not used by setPositionMode()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
@@ -4401,7 +4401,7 @@ class phemex(Exchange, ImplicitAPI):
         riskLimits = self.safe_list(data, 'riskLimits')
         return self.parse_leverage_tiers(riskLimits, symbols, 'symbol')
 
-    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
         """
         :param dict info: Exchange market response for 1 market
         :param dict market: CCXT market
@@ -4432,14 +4432,14 @@ class phemex(Exchange, ImplicitAPI):
                 'currency': market['settle'],
                 'minNotional': minNotionalResponse,
                 'maxNotional': maxNotional,
-                'maintenanceMarginRate': self.safe_string(tier, 'maintenanceMargin'),
+                'maintenanceMarginRate': self.safe_number(tier, 'maintenanceMargin'),
                 'maxLeverage': None,
                 'info': tier,
             })
             minNotional = maxNotional
         return tiers
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         requestPath = '/' + self.implode_params(path, params)
         url = requestPath
@@ -4796,7 +4796,7 @@ class phemex(Exchange, ImplicitAPI):
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str tag:
-        :param dict [params]: extra parameters specific to the phemex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: unified network code
         :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
@@ -4898,7 +4898,7 @@ class phemex(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result')
         return self.parse_open_interest(result, market)
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         #
         #    {
         #        closeRp: '67550.1',
@@ -5478,7 +5478,7 @@ class phemex(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         #

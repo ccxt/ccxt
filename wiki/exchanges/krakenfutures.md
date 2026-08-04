@@ -288,12 +288,12 @@ Cancels all orders on the exchange, including trigger orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>str</code> | Yes | Unified market symbol |
+| symbol | <code>string</code> | No | Unified market symbol |
 | params | <code>dict</code> | No | Exchange specific params |
 
 
 ```javascript
-krakenfutures.cancelAllOrders (symbol, params?)
+krakenfutures.cancelAllOrders (symbol?, params?)
 ```
 
 

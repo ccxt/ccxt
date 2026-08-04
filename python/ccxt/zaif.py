@@ -266,11 +266,13 @@ class zaif(Exchange, ImplicitAPI):
     def parse_market(self, market: dict) -> Market:
         id = self.safe_string(market, 'currency_pair')
         name = self.safe_string(market, 'name')
+        if name is None:
+            raise ExchangeError(self.id + ' parseMarket() missing name')
         baseId, quoteId = name.split('/')
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
-        return {
+        return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -318,9 +320,9 @@ class zaif(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': market,
-        }
+        })
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         balances = self.safe_value(response, 'return', {})
         deposit = self.safe_value(balances, 'deposit')
         result = {
@@ -340,7 +342,8 @@ class zaif(Exchange, ImplicitAPI):
             if deposit is not None:
                 if currencyId in deposit:
                     account['total'] = self.safe_string(deposit, currencyId)
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -366,7 +369,7 @@ class zaif(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -560,7 +563,7 @@ class zaif(Exchange, ImplicitAPI):
 
         cancels an open order
         :param str id: order id
-        :param str symbol: not used by zaif cancelOrder()
+        :param str symbol: not used by cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -582,7 +585,7 @@ class zaif(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_dict(response, 'return')
+        data = self.safe_dict(response, 'return', {})
         return self.parse_order(data)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
@@ -742,7 +745,7 @@ class zaif(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        returnData = self.safe_dict(result, 'return')
+        returnData = self.safe_dict(result, 'return', {})
         return self.parse_transaction(returnData, currency)
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
@@ -795,7 +798,7 @@ class zaif(Exchange, ImplicitAPI):
         nonce = float(num)
         return format(nonce, '.8f')
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         url = self.urls['api']['rest'] + '/'
         if api == 'public':
             url += 'api/' + self.version + '/' + self.implode_params(path, params)
@@ -821,7 +824,7 @@ class zaif(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         #

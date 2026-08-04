@@ -520,6 +520,9 @@ class upbit extends upbit$1["default"] {
     }
     parseMarket(market) {
         const id = this.safeString(market, 'market');
+        if (id === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseMarket() missing id');
+        }
         const [quoteId, baseId] = id.split('-');
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
@@ -588,7 +591,9 @@ class upbit extends upbit$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(balance, 'balance');
             account['used'] = this.safeString(balance, 'locked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -708,7 +713,7 @@ class upbit extends upbit$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         const orderbooks = await this.fetchOrderBooks([symbol], limit, params);
@@ -825,6 +830,9 @@ class upbit extends upbit$1["default"] {
         return this.parseTickers(concated, symbols);
     }
     idsQueryStrings(ids, maxQueryLength) {
+        if (ids === undefined) {
+            return [];
+        }
         let idsString = '';
         const queries = [];
         for (let i = 0; i < ids.length; i++) {
@@ -1067,7 +1075,10 @@ class upbit extends upbit$1["default"] {
             element['percentage'] = true;
             element['tierBased'] = false;
             element['info'] = fetchMarketResponse[i];
-            response[this.safeString(fetchMarketResponse[i], 'symbol')] = element;
+            const feeSymbol = this.safeString(fetchMarketResponse[i], 'symbol');
+            if (feeSymbol !== undefined) {
+                response[feeSymbol] = element;
+            }
         }
         return response;
     }
@@ -1190,6 +1201,9 @@ class upbit extends upbit$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' When createMarketBuyOrderRequiresPrice is false, "amount" is required and should be the total quote amount to spend.');
             }
             quoteAmount = this.costToPrecision(symbol, amount);
+        }
+        if (quoteAmount === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' calcOrderPrice() could not determine quote amount');
         }
         return quoteAmount;
     }

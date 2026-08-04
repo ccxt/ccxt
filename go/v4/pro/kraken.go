@@ -721,7 +721,7 @@ func (this *KrakenCore) HandleOHLCV(client any, message any) {
 	var interval any = this.SafeInteger(first, "interval")
 	var timeframe any = this.FindTimeframe(interval)
 	var messageHash any = this.GetMessageHash("ohlcv", nil, symbol)
-	var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
+	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
 	if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
 		var limit any = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -966,7 +966,7 @@ func (this *KrakenCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan a
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *KrakenCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -1074,7 +1074,7 @@ func (this *KrakenCore) LoadMarkets(optionalArgs ...any) <-chan any {
 			if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
 				for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
 					var symbol any = ccxt.GetValue(symbols, i)
-					var market any = ccxt.GetValue(this.Markets, symbol)
+					var market any = this.Market(symbol)
 					var info any = this.SafeValue(market, "info", map[string]any{})
 					var wsName any = this.SafeString(info, "wsname")
 					ccxt.AddElementToObject(marketsByWsName, wsName, market)

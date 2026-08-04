@@ -145,7 +145,7 @@ func (this *Cex) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tickers
  * @see https://docs.cex.io/#ws-api-ticker-deprecated
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
- * @param {object} [params] extra parameters specific to the cex api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Cex) FetchTickerWs(symbol string, options ...ccxt.FetchTickerWsOptions) (ccxt.Ticker, error) {
@@ -172,7 +172,7 @@ func (this *Cex) FetchTickerWs(symbol string, options ...ccxt.FetchTickerWsOptio
  * @name cex#fetchBalanceWs
  * @see https://docs.cex.io/#ws-api-get-balance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @param {object} [params] extra parameters specific to the cex api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Cex) FetchBalanceWs(params ...any) (ccxt.Balances, error) {
@@ -281,7 +281,7 @@ func (this *Cex) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Tra
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Cex) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
 
@@ -360,7 +360,7 @@ func (this *Cex) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) ([
  * @see https://docs.cex.io/#ws-api-get-order
  * @param {string} id the order id
  * @param {string} symbol not used by cex fetchOrder
- * @param {object} [params] extra parameters specific to the cex api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Cex) FetchOrderWs(id string, options ...ccxt.FetchOrderWsOptions) (ccxt.Order, error) {
@@ -395,7 +395,7 @@ func (this *Cex) FetchOrderWs(id string, options ...ccxt.FetchOrderWsOptions) (c
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
- * @param {object} [params] extra parameters specific to the cex api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {ccxt.Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Cex) FetchOpenOrdersWs(options ...ccxt.FetchOpenOrdersWsOptions) ([]ccxt.Order, error) {
@@ -442,7 +442,7 @@ func (this *Cex) FetchOpenOrdersWs(options ...ccxt.FetchOpenOrdersWsOptions) ([]
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
- * @param {object} [params] extra parameters specific to the kraken api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.maker_only] Optional, maker only places an order only if offers best sell (<= max) or buy(>= max) price for this pair, if not order placement will be rejected with an error - "Order is not maker"
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
@@ -481,7 +481,7 @@ func (this *Cex) CreateOrderWs(symbol string, typeVar string, side string, amoun
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of the currency you want to trade in units of the base currency
  * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
- * @param {object} [params] extra parameters specific to the cex api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
 func (this *Cex) EditOrderWs(id string, symbol string, typeVar string, side string, options ...ccxt.EditOrderWsOptions) (ccxt.Order, error) {
@@ -519,8 +519,8 @@ func (this *Cex) EditOrderWs(id string, symbol string, typeVar string, side stri
  * @see https://docs.cex.io/#ws-api-order-cancel
  * @description cancels an open order
  * @param {string} id order id
- * @param {string} symbol not used by cex cancelOrder ()
- * @param {object} [params] extra parameters specific to the cex api endpoint
+ * @param {string} symbol not used by cancelOrder ()
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Cex) CancelOrderWs(id string, options ...ccxt.CancelOrderWsOptions) (ccxt.Order, error) {
@@ -553,8 +553,8 @@ func (this *Cex) CancelOrderWs(id string, options ...ccxt.CancelOrderWsOptions) 
  * @description cancel multiple orders
  * @see https://docs.cex.io/#ws-api-mass-cancel-place
  * @param {string[]} ids order ids
- * @param {string} symbol not used by cex cancelOrders()
- * @param {object} [params] extra parameters specific to the cex api endpoint
+ * @param {string} symbol not used by cancelOrders()
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Cex) CancelOrdersWs(ids []string, options ...ccxt.CancelOrdersWsOptions) ([]ccxt.Order, error) {
@@ -757,10 +757,10 @@ func (this *Cex) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Tra
 func (this *Cex) FetchDepositsWithdrawals(options ...ccxt.FetchDepositsWithdrawalsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Cex) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Cex) FetchDepositWithdrawFee(code string, options ...ccxt.FetchDepositWithdrawFeeOptions) (ccxt.DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Cex) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Cex) FetchDepositWithdrawFees(options ...ccxt.FetchDepositWithdrawFeesOptions) (ccxt.DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Cex) FetchFreeBalance(params ...any) (ccxt.Balance, error) {

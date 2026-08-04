@@ -237,7 +237,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const output = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const market = this.markets[symbol];
+            const market = this.market(symbol);
             if (market['active']) {
                 output.push(symbol);
             }

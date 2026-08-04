@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Bool, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -173,10 +173,10 @@ class kraken(ccxt.async_support.kraken):
         isTrailingLimitAmountOrder = trailingLimitAmount is not None
         isTrailingLimitPercentOrder = trailingLimitPercent is not None
         offset = self.safe_string(params, 'offset', '')  # can set self to - for minus
-        trailingAmountString = offset + (self.number_to_string(trailingAmount)) if (trailingAmount is not None) else None
-        trailingPercentString = offset + (self.number_to_string(trailingPercent)) if (trailingPercent is not None) else None
-        trailingLimitAmountString = offset + (self.number_to_string(trailingLimitAmount)) if (trailingLimitAmount is not None) else None
-        trailingLimitPercentString = offset + (self.number_to_string(trailingLimitPercent)) if (trailingLimitPercent is not None) else None
+        trailingAmountString = offset + self.number_to_string(trailingAmount) if (trailingAmount is not None) else None
+        trailingPercentString = offset + self.number_to_string(trailingPercent) if (trailingPercent is not None) else None
+        trailingLimitAmountString = offset + self.number_to_string(trailingLimitAmount) if (trailingLimitAmount is not None) else None
+        trailingLimitPercentString = offset + self.number_to_string(trailingLimitPercent) if (trailingLimitPercent is not None) else None
         priceType = 'pct' if (isTrailingPercentOrder or isTrailingLimitPercentOrder) else 'quote'
         if method == 'createOrderWs':
             reduceOnly = self.safe_bool(params, 'reduceOnly')
@@ -290,7 +290,7 @@ class kraken(ccxt.async_support.kraken):
         request, params = self.order_request_ws('createOrderWs', symbol, type, request, amount, price, params)
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    def handle_create_edit_order(self, client, message):
+    def handle_create_edit_order(self, client: Client, message: Any):
         #
         #  createOrder
         #     {
@@ -410,7 +410,7 @@ class kraken(ccxt.async_support.kraken):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    def handle_cancel_order(self, client, message):
+    def handle_cancel_order(self, client: Client, message: Any):
         #
         #     {
         #         "method": "cancel_order",
@@ -452,7 +452,7 @@ class kraken(ccxt.async_support.kraken):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    def handle_cancel_all_orders(self, client, message):
+    def handle_cancel_all_orders(self, client: Client, message: Any):
         #
         #     {
         #         "method": "cancel_all",
@@ -468,7 +468,7 @@ class kraken(ccxt.async_support.kraken):
         reqId = self.safe_string(message, 'req_id')
         client.resolve(message, reqId)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Any, message: Any):
         #
         #     {
         #         "channel": "ticker",
@@ -526,7 +526,7 @@ class kraken(ccxt.async_support.kraken):
         self.tickers[symbol] = result
         client.resolve(result, messageHash)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: Any):
         #
         #     {
         #         "channel": "trade",
@@ -559,7 +559,7 @@ class kraken(ccxt.async_support.kraken):
             stored.append(parsed[i])
         client.resolve(stored, messageHash)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         #     {
         #         "channel": "ohlc",
@@ -591,7 +591,7 @@ class kraken(ccxt.async_support.kraken):
         interval = self.safe_integer(first, 'interval')
         timeframe = self.find_timeframe(interval)
         messageHash = self.get_message_hash('ohlcv', None, symbol)
-        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+        stored = self.safe_value(self.safe_value(self.ohlcvs, symbol), timeframe)
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
@@ -655,7 +655,7 @@ class kraken(ccxt.async_support.kraken):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
+    async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches best bid & ask for symbols
 
@@ -730,7 +730,7 @@ class kraken(ccxt.async_support.kraken):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         requiredParams = {}
         if limit is not None:
@@ -785,7 +785,7 @@ class kraken(ccxt.async_support.kraken):
             if symbols is not None:
                 for i in range(0, len(symbols)):
                     symbol = symbols[i]
-                    market = self.markets[symbol]
+                    market = self.market(symbol)
                     info = self.safe_value(market, 'info', {})
                     wsName = self.safe_string(info, 'wsname')
                     marketsByWsName[wsName] = market
@@ -801,7 +801,7 @@ class kraken(ccxt.async_support.kraken):
             request['event'] = 'ping'
         return request
 
-    def handle_pong(self, client: Client, message):
+    def handle_pong(self, client: Client, message: Any):
         client.lastPong = self.milliseconds()
         return message
 
@@ -811,7 +811,7 @@ class kraken(ccxt.async_support.kraken):
         url = (self.urls['api'])['ws']['publicV2']
         return await self.watch(url, event)
 
-    def handle_heartbeat(self, client: Client, message):
+    def handle_heartbeat(self, client: Client, message: Any):
         #
         # every second(approx) if no other updates are sent
         #
@@ -820,7 +820,7 @@ class kraken(ccxt.async_support.kraken):
         event = self.safe_string(message, 'channel')
         client.resolve(message, event)
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         # first message(snapshot)
         #
@@ -938,7 +938,7 @@ class kraken(ccxt.async_support.kraken):
                 return
         client.resolve(orderbook, messageHash)
 
-    def custom_handle_deltas(self, bookside, deltas):
+    def custom_handle_deltas(self, bookside: Any, deltas: Any):
         # sortOrder = True if (key == 'bids') else False
         for j in range(0, len(deltas)):
             delta = deltas[j]
@@ -954,7 +954,7 @@ class kraken(ccxt.async_support.kraken):
             # bookside = self.sort_by(bookside, 0, sortOrder)
             # bookside[0:9]
 
-    def format_number(self, data):
+    def format_number(self, data: Any):
         parts = data.split('.')
         integer = self.safe_string(parts, 0)
         decimals = self.safe_string(parts, 1, '')
@@ -966,7 +966,7 @@ class kraken(ccxt.async_support.kraken):
             joinedResult = joinedResult[i:]
         return joinedResult
 
-    def handle_system_status(self, client: Client, message):
+    def handle_system_status(self, client: Client, message: Any):
         #
         # todo: answer the question whether handleSystemStatus should be renamed
         # and unified for any usage pattern that
@@ -1020,7 +1020,7 @@ class kraken(ccxt.async_support.kraken):
             client.subscriptions[authenticated] = subscription
         return self.safe_string(subscription, 'token')
 
-    async def watch_private(self, name, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def watch_private(self, name: Any, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         await self.load_markets()
         token = await self.authenticate()
         subscriptionHash = 'executions'
@@ -1045,7 +1045,7 @@ class kraken(ccxt.async_support.kraken):
             limit = result.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(result, symbol, since, limit, True)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -1060,7 +1060,7 @@ class kraken(ccxt.async_support.kraken):
         params['snap_trades'] = True
         return await self.watch_private('myTrades', symbol, since, limit, params)
 
-    def handle_my_trades(self, client: Client, message, subscription=None):
+    def handle_my_trades(self, client: Client, message: Any, subscription: dict | None = None):
         #
         #     {
         #         "channel": "executions",
@@ -1113,7 +1113,7 @@ class kraken(ccxt.async_support.kraken):
                 messageHash = name + ':' + keys[i]
                 client.resolve(self.myTrades, messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade: Any, market: Market = None):
         #
         #     {
         #         "order_id": "O6NTZC-K6FRH-ATWBCK",
@@ -1182,7 +1182,7 @@ class kraken(ccxt.async_support.kraken):
         """
         return self.watch_private('orders', symbol, since, limit, self.extend(params, {'snap_orders': True}))
 
-    def handle_orders(self, client: Client, message, subscription=None):
+    def handle_orders(self, client: Client, message: Any, subscription: dict | None = None):
         #
         #     {
         #         "channel": "executions",
@@ -1245,7 +1245,7 @@ class kraken(ccxt.async_support.kraken):
                 messageHash = name + ':' + keys[i]
                 client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order: Any, market: Market = None):
         #
         # watchOrders
         #
@@ -1316,7 +1316,7 @@ class kraken(ccxt.async_support.kraken):
             'trades': None,
         })
 
-    async def watch_multi_helper(self, unifiedName: str, channelName: str, symbols: Strings = None, subscriptionArgs=None, params={}):
+    async def watch_multi_helper(self, unifiedName: str, channelName: str, symbols: Strings = None, subscriptionArgs: Any = None, params={}):
         await self.load_markets()
         # symbols are required
         symbols = self.market_symbols(symbols, None, False, True, False)
@@ -1366,7 +1366,7 @@ class kraken(ccxt.async_support.kraken):
         request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: Any):
         #
         #     {
         #         "channel": "balances",
@@ -1418,7 +1418,7 @@ class kraken(ccxt.async_support.kraken):
             messageHash += '#' + subChannelName
         return messageHash
 
-    def handle_subscription_status(self, client: Client, message):
+    def handle_subscription_status(self, client: Client, message: Any):
         #
         # public
         #
@@ -1450,7 +1450,7 @@ class kraken(ccxt.async_support.kraken):
         #     del client.futures[requestId]
         # }
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: Any) -> Bool:
         #
         #     {
         #         "errorMessage": "Currency pair not in ISO 4217-A3 format foobar",
@@ -1485,7 +1485,7 @@ class kraken(ccxt.async_support.kraken):
             return False
         return True
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         channel = self.safe_string(message, 'channel')
         if channel is not None:
             if channel == 'executions':

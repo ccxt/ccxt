@@ -64,7 +64,7 @@ public partial class testMainClass : BaseTest
         object symbolForMarket = ((bool) isTrue((!isEqual(symbol, null)))) ? symbol : exchange.safeString(entry, "symbol");
         if (isTrue(!isEqual(symbolForMarket, null)))
         {
-            if (isTrue(inOp(exchange.markets, symbolForMarket)))
+            if (isTrue(isTrue((!isEqual(exchange.markets, null))) && isTrue((inOp(exchange.markets, symbolForMarket)))))
             {
                 market = exchange.market(symbolForMarket);
             } else
@@ -116,12 +116,12 @@ public partial class testMainClass : BaseTest
         //
         // base & quote volumes
         //
-        object baseVolume = exchange.omitZero(((string)exchange.safeString(entry, "baseVolume")));
-        object quoteVolume = exchange.omitZero(((string)exchange.safeString(entry, "quoteVolume")));
-        object high = exchange.omitZero(((string)exchange.safeString(entry, "high")));
-        object low = exchange.omitZero(((string)exchange.safeString(entry, "low")));
-        object open = exchange.omitZero(((string)exchange.safeString(entry, "open")));
-        object close = exchange.omitZero(((string)exchange.safeString(entry, "close")));
+        object baseVolume = exchange.omitZero(exchange.safeString(entry, "baseVolume"));
+        object quoteVolume = exchange.omitZero(exchange.safeString(entry, "quoteVolume"));
+        object high = exchange.omitZero(exchange.safeString(entry, "high"));
+        object low = exchange.omitZero(exchange.safeString(entry, "low"));
+        object open = exchange.omitZero(exchange.safeString(entry, "open"));
+        object close = exchange.omitZero(exchange.safeString(entry, "close"));
         if (!isTrue((inOp(skippedProperties, "compareQuoteVolumeBaseVolume"))))
         {
             // assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values

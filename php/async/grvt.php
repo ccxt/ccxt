@@ -679,7 +679,7 @@ class grvt extends Exchange {
         })();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         //
         //    {
         //        "instrument" => "BTC_USDT_Perp",
@@ -968,7 +968,7 @@ class grvt extends Exchange {
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->loc] crypto location, default => us
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market symbols
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1213,7 +1213,7 @@ class grvt extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //            {
         //                "open_time" => "1767288240000000000",
@@ -1297,7 +1297,7 @@ class grvt extends Exchange {
         })();
     }
 
-    public function parse_funding_rate_history($rawItem, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $rawItem, ?array $market = null) {
         //
         //            array(
         //                "instrument" => "BTC_USDT_Perp",
@@ -1319,7 +1319,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function get_sub_account_id($params) {
+    public function get_sub_account_id(mixed $params) {
         $subAccountId = null;
         list($subAccountId, $params) = $this->handle_option_and_params($params, 'getSubAccountId', 'accountId');
         if ($subAccountId === null) {
@@ -1376,7 +1376,7 @@ class grvt extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         //        {
         //            "event_time" => "1764863116142428457",
@@ -1418,7 +1418,9 @@ class grvt extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'balance');
             $account['free'] = $availableBalance; // todo => revise after API team clarification
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -1548,7 +1550,7 @@ class grvt extends Exchange {
         })();
     }
 
-    public function internal_fetch_transfers($req, mixed $currency = null, ?int $since = null, ?int $limit = null) {
+    public function internal_fetch_transfers(mixed $req, mixed $currency = null, ?int $since = null, ?int $limit = null) {
         return Async\async(function () use ($req, $currency, $since, $limit) {
             $response = Async\await($this->privateTradingPostFullV1TransferHistory($req));
             //
@@ -2219,11 +2221,11 @@ class grvt extends Exchange {
         })();
     }
 
-    public function convert_to_big_int_custom($x) {
+    public function convert_to_big_int_custom(mixed $x) {
         return intval($x);
     }
 
-    public function eip_message_for_order($order, $structureType) {
+    public function eip_message_for_order(mixed $order, mixed $structureType) {
         $priceMultiplier = '1000000000';
         $orderLegs = $this->safe_list($order, 'legs', array());
         $legs = array();
@@ -2597,7 +2599,7 @@ class grvt extends Exchange {
         })();
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         //
         // fetchMarginModes
         //
@@ -2678,7 +2680,7 @@ class grvt extends Exchange {
         })();
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         //            {
         //                "event_time" => "1765267200004987902",
@@ -3149,7 +3151,7 @@ class grvt extends Exchange {
              *
              * @see https://api-docs.grvt.io/trading_api/#cancel-all-orders
              *
-             * @param {string} $symbol cancel alls open orders
+             * @param {string} [$symbol] unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
@@ -3231,11 +3233,14 @@ class grvt extends Exchange {
         return $this->convert_to_big_int_custom('10000'); // multiply needed https://t.me/c/3396937126/88
     }
 
-    public function create_signed_request(mixed $request, string $structureType, $currencyObj = null, ?string $signerAddress = null): array {
+    public function create_signed_request(mixed $request, string $structureType, ?array $currencyObj = null, ?string $signerAddress = null): array {
         $messageData = null;
         if ($structureType === 'EIP712_TRANSFER_TYPE') {
             $amountMultiplier = $this->convert_to_big_int_custom('1000000');
             $amountInt = $request['num_tokens'] * $amountMultiplier;
+            if ($currencyObj === null) {
+                throw new ExchangeError($this->id . ' createSignedRequest() missing currencyObj');
+            }
             $messageData = array(
                 'fromAccount' => $request['from_account_id'],
                 'fromSubAccount' => $request['from_sub_account_id'],
@@ -3248,6 +3253,9 @@ class grvt extends Exchange {
             );
         } elseif ($structureType === 'EIP712_WITHDRAWAL_TYPE') {
             $amountMultiplier = $this->convert_to_big_int_custom('1000000');
+            if ($currencyObj === null) {
+                throw new ExchangeError($this->id . ' createSignedRequest() missing currencyObj');
+            }
             $messageData = array(
                 'fromAccount' => $request['from_account_id'],
                 'toEthAddress' => $request['to_eth_address'],
@@ -3312,7 +3320,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function handle_until_option_string(string $key, $request, $params, $multiplier = 1) {
+    public function handle_until_option_string(string $key, mixed $request, mixed $params, $multiplier = 1) {
         $until = $this->safe_integer_2($params, 'until', 'till');
         if ($until !== null) {
             $request[$key] = $this->number_to_string($this->parse_to_int($until * $multiplier));
@@ -3327,7 +3335,7 @@ class grvt extends Exchange {
         return $requestId;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . $path;
         $queryString = '';
@@ -3363,7 +3371,7 @@ class grvt extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (str_ends_with($url, 'auth/api_key/login') || str_ends_with($url, 'auth/wallet/login')) {
             $accountId = $this->safe_string_2($headers, 'X-Grvt-Account-Id', 'x-grvt-account-id');
             $this->options['AuthAccountId'] = $accountId;

@@ -507,22 +507,24 @@ class hollaex extends hollaex$1["default"] {
             const networkId = networkIds[j];
             const networkEntry = this.safeDict(rawNetworks, networkId);
             const networkCode = this.networkIdToCode(networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'active': this.safeBool(networkEntry, 'active'),
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': this.safeNumber(networkEntry, 'value'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': this.safeBool(networkEntry, 'active'),
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': this.safeNumber(networkEntry, 'value'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                },
-                'info': networkEntry,
-            };
+                    'info': networkEntry,
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -583,7 +585,7 @@ class hollaex extends hollaex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -988,14 +990,20 @@ class hollaex extends hollaex$1["default"] {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
         };
-        const currencyIds = Object.keys(this.currencies_by_id);
+        const currenciesById = this.currencies_by_id;
+        if (currenciesById === undefined) {
+            throw new errors.ExchangeError(this.id + ' currencies not loaded');
+        }
+        const currencyIds = Object.keys(currenciesById);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
             account['free'] = this.safeString(response, currencyId + '_available');
             account['total'] = this.safeString(response, currencyId + '_balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1962,6 +1970,9 @@ class hollaex extends hollaex$1["default"] {
                 const currencyId = this.safeString(value, 'symbol');
                 const currencyCode = this.safeCurrencyCode(currencyId);
                 const networkCode = this.networkIdToCode(key, currencyCode);
+                if (networkCode === undefined) {
+                    throw new errors.ArgumentsRequired(this.id + ' requires a networkCode argument');
+                }
                 const networkCodeUpper = networkCode.toUpperCase(); // default to the upper case network code
                 const withdrawalFee = this.safeNumber(value, 'value');
                 result['networks'][networkCodeUpper] = {

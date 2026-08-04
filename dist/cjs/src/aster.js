@@ -1443,7 +1443,7 @@ class aster extends aster$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1723,6 +1723,9 @@ class aster extends aster$1["default"] {
         //         ...
         //     ]
         //
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' fetchLastPrices() returned empty response');
+        }
         const results = [];
         for (let i = 0; i < response.length; i++) {
             const marketId = this.safeString(response[i], 'symbol');
@@ -2064,7 +2067,9 @@ class aster extends aster$1["default"] {
             account['free'] = this.safeString2(balance, 'free', 'availableBalance');
             account['used'] = this.safeString(balance, 'locked');
             account['total'] = this.safeString(balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2717,6 +2722,12 @@ class aster extends aster$1["default"] {
         return this.parseOrders(response);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -3792,10 +3803,12 @@ class aster extends aster$1["default"] {
             const code = this.safeCurrencyCode(currencyId);
             const crossWalletBalance = this.safeString(entry, 'crossWalletBalance');
             const crossUnPnl = this.safeString(entry, 'crossUnPnl');
-            balances[code] = {
-                'crossMargin': Precise["default"].stringAdd(crossWalletBalance, crossUnPnl),
-                'crossWalletBalance': crossWalletBalance,
-            };
+            if (code !== undefined) {
+                balances[code] = {
+                    'crossMargin': Precise["default"].stringAdd(crossWalletBalance, crossUnPnl),
+                    'crossWalletBalance': crossWalletBalance,
+                };
+            }
         }
         const result = [];
         for (let i = 0; i < positions.length; i++) {
@@ -3830,6 +3843,9 @@ class aster extends aster$1["default"] {
         let initialMarginPercentageString = undefined;
         if (leverageString !== undefined) {
             initialMarginPercentageString = Precise["default"].stringDiv('1', leverageString, 8);
+            if (leverage === undefined) {
+                throw new errors.ExchangeError(this.id + ' parseAccountPosition() missing leverage');
+            }
             const rational = this.isRoundNumber(1000 % leverage);
             if (!rational) {
                 initialMarginPercentageString = Precise["default"].stringDiv(Precise["default"].stringAdd(initialMarginPercentageString, '1e-8'), '1', 8);
@@ -3951,6 +3967,9 @@ class aster extends aster$1["default"] {
             const rounderString = rounder.toString();
             const liquidationPriceRoundedString = Precise["default"].stringAdd(rounderString, liquidationPriceStringRaw);
             let truncatedLiquidationPrice = Precise["default"].stringDiv(liquidationPriceRoundedString, '1', pricePrecision);
+            if (truncatedLiquidationPrice === undefined) {
+                throw new errors.ExchangeError(this.id + ' method() missing truncatedLiquidationPrice');
+            }
             if (truncatedLiquidationPrice[0] === '-') {
                 // user cannot be liquidated
                 // since he has more collateral than the size of the position
@@ -4295,7 +4314,7 @@ class aster extends aster$1["default"] {
                     { 'name': 'msg', 'type': 'string' },
                 ],
             };
-            // Build v3 params: original endpoint params + nonce (macroseconds) + user + signer
+            // Build v3 params: original endpoint params + nonce (microseconds) + user + signer
             // Note: timestamp and recvWindow are not used for v3; nonce replaces timestamp
             const finalParams = this.extend({
                 'nonce': nonce.toString(),

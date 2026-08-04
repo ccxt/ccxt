@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.5.70",
+  "version": "4.5.71",
   "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
@@ -35,7 +35,6 @@
     "nyc-coverage": "nyc --reporter=html --reporter=lcov --exclude='js/src/pro/**' --exclude='js/src/base/**' --exclude='js/src/test/**' --exclude='js/src/abstract/**' --exclude='js/src/static_dependencies' node jsInstrumented/src/test/tests.init.js --requestTests --responseTests",
     "coverage-js": "npm run instrument && npm run nyc-coverage && rm -rf jsInstrumented",
     "docker": "docker-compose run --rm ccxt",
-    "fixTSBug": "node build/fixTSBug",
     "transpileCsSingle": "tsx build/csharpTranspiler.ts",
     "transpileJavaSingle": "tsx build/javaTranspiler.ts",
     "transpileCS": "tsx build/csharpTranspiler.ts --rest-and-ws",
@@ -74,7 +73,7 @@
     "fumadocs-linkcheck": "tsx build/check-fumadocs-links.ts",
     "tsBuildFile": "tsc --outDir ./js/src ",
     "addJsHeaders": "tsx build/transpile.ts --js-headers",
-    "tsBuild": "tsc && npm run addJsHeaders || echo \"\"",
+    "tsBuild": "tsc && npm run addJsHeaders",
     "tsBuildExamples": "tsx examples/clean-js-dir.ts && tsc -p ./examples/tsconfig.json",
     "emitAPI": "tsx build/generateImplicitAPI.ts",
     "emitAPITs": "tsx build/generateImplicitAPI.ts -- --ts",
@@ -117,6 +116,8 @@
     "transpile": "npm run transpileRest && npm run transpileWs",
     "transpileRest": "tsx build/transpile.ts",
     "transpileWs": "tsx build/transpileWS.ts",
+    "transpile-types": "tsx build/transpileTypes.ts",
+    "transpile-types-check": "tsx build/transpileTypes.ts --check",
     "force-transpile": "npm run force-transpileRest && npm run force-transpileWs",
     "force-transpile-fast": "npm run dev-force-transpile",
     "force-transpile-fast-py": "npm run fast-force-transpileRest-py && npm run fast-force-transpileWs-py",
@@ -399,7 +400,7 @@
     "@noble/hashes": "2.2.0",
     "@scure/base": "2.2.0",
     "@scure/starknet": "2.2.0",
-    "undici": "7.28.0",
+    "undici": "7.29.0",
     "ws": "8.21.0"
   },
   "overrides": {

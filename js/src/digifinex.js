@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/digifinex.js';
-import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol, ArgumentsRequired } from './base/errors.js';
+import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, NotSupported, AuthenticationError, PermissionDenied, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound, InvalidAddress, RateLimitExceeded, BadSymbol, ArgumentsRequired, NullResponse } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
@@ -533,26 +533,28 @@ export default class digifinex extends Exchange {
             const networkEntry = networkEntries[j];
             const networkId = this.safeString2(networkEntry, 'chain', 'currency');
             const networkCode = this.networkIdToCode(networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeInteger(networkEntry, 'deposit_status') === 1,
-                'withdraw': this.safeInteger(networkEntry, 'withdraw_status') === 1,
-                'fee': this.safeNumber(networkEntry, 'min_withdraw_fee'),
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(networkEntry, 'min_withdraw_amount'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeInteger(networkEntry, 'deposit_status') === 1,
+                    'withdraw': this.safeInteger(networkEntry, 'withdraw_status') === 1,
+                    'fee': this.safeNumber(networkEntry, 'min_withdraw_fee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(networkEntry, 'min_withdraw_amount'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(networkEntry, 'min_deposit_amount'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber(networkEntry, 'min_deposit_amount'),
-                        'max': undefined,
-                    },
-                },
-                'info': networkEntry,
-            };
+                    'info': networkEntry,
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -762,6 +764,9 @@ export default class digifinex extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString(market, 'market');
+            if (id === undefined) {
+                throw new ExchangeError(this.id + ' fetchMarketsV1() missing id');
+            }
             const [baseId, quoteId] = id.split('_');
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
@@ -852,7 +857,9 @@ export default class digifinex extends Exchange {
             account['free'] = free;
             account['used'] = Precise.stringSub(total, free);
             account['total'] = total;
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -936,7 +943,7 @@ export default class digifinex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1094,7 +1101,9 @@ export default class digifinex extends Exchange {
             }, tickers[i]);
             const ticker = this.parseTicker(rawTicker);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
     }
@@ -1178,6 +1187,9 @@ export default class digifinex extends Exchange {
         }
         else {
             result = this.extend({ 'date': date }, firstTicker);
+        }
+        if (result === undefined) {
+            throw new NullResponse(this.id + ' fetchTicker() returned empty response');
         }
         return this.parseTicker(result, market);
     }
@@ -1360,6 +1372,9 @@ export default class digifinex extends Exchange {
             }
         }
         else {
+            if (side === undefined) {
+                throw new ExchangeError(this.id + ' parseTrade() returned no side');
+            }
             const parts = side.split('_');
             side = this.safeString(parts, 0);
             type = this.safeString(parts, 1);
@@ -1605,6 +1620,9 @@ export default class digifinex extends Exchange {
                         }
                     }
                     else {
+                        if (limit === undefined) {
+                            throw new ArgumentsRequired(this.id + ' fetchOHLCV() requires a limit argument');
+                        }
                         request['end_time'] = this.sum(startTime, limit * duration);
                     }
                 }
@@ -1703,6 +1721,9 @@ export default class digifinex extends Exchange {
         //         "data": "1590873693003714560"
         //     }
         //
+        if (response === undefined) {
+            throw new NullResponse(this.id + ' createOrder() returned empty response');
+        }
         const order = this.parseOrder(response, market);
         order['symbol'] = market['symbol'];
         order['type'] = type;
@@ -1812,6 +1833,12 @@ export default class digifinex extends Exchange {
         return this.parseOrders(result, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -3154,6 +3181,9 @@ export default class digifinex extends Exchange {
             //
             response = await this.privateSpotPostTransfer(this.extend(request, params));
         }
+        if (response === undefined) {
+            throw new NullResponse(this.id + ' transfer() returned empty response');
+        }
         return this.parseTransfer(response, currency);
     }
     /**
@@ -3294,7 +3324,7 @@ export default class digifinex extends Exchange {
         //     }
         //
         const data = this.safeValue(response, 'list', []);
-        let result = [];
+        let result = undefined;
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             if (this.safeString(entry, 'currency') === code) {
@@ -3372,7 +3402,9 @@ export default class digifinex extends Exchange {
             const currency = this.safeString(item, codeKey);
             const code = this.safeCurrencyCode(currency);
             const borrowRate = this.parseBorrowRate(item);
-            result[code] = borrowRate;
+            if (code !== undefined) {
+                result[code] = borrowRate;
+            }
         }
         return result;
     }
@@ -3963,6 +3995,9 @@ export default class digifinex extends Exchange {
         const request = {};
         if (code !== undefined) {
             currency = this.safeCurrencyCode(code);
+            if (currency === undefined) {
+                throw new ExchangeError(this.id + ' fetchTransfers() could not resolve currency');
+            }
             request['currency'] = currency['id'];
         }
         if (since !== undefined) {
@@ -4235,7 +4270,7 @@ export default class digifinex extends Exchange {
             const entry = response[i];
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            if ((codes === undefined) || (this.inArray(code, codes))) {
+            if ((code !== undefined) && ((codes === undefined) || (this.inArray(code, codes)))) {
                 const depositWithdrawFee = this.safeValue(depositWithdrawFees, code);
                 if (depositWithdrawFee === undefined) {
                     depositWithdrawFees[code] = this.depositWithdrawFee({});
@@ -4255,10 +4290,12 @@ export default class digifinex extends Exchange {
                 };
                 if (networkId !== undefined) {
                     const networkCode = this.networkIdToCode(networkId, code);
-                    depositWithdrawFees[code]['networks'][networkCode] = {
-                        'withdraw': withdrawResult,
-                        'deposit': depositResult,
-                    };
+                    if (networkCode !== undefined) {
+                        depositWithdrawFees[code]['networks'][networkCode] = {
+                            'withdraw': withdrawResult,
+                            'deposit': depositResult,
+                        };
+                    }
                 }
                 else {
                     depositWithdrawFees[code]['withdraw'] = withdrawResult;

@@ -1,5 +1,6 @@
 import { Exchange } from "../../../../ccxt.js";
 import testSharedMethods from './test.sharedMethods.js';
+import type { Dict } from '../../../base/types.js';
 
 function testMarginModification (exchange: Exchange, skippedProperties: object, method: string, entry: object) {
     const format = {
@@ -13,7 +14,7 @@ function testMarginModification (exchange: Exchange, skippedProperties: object, 
     };
     const emptyAllowedFor = [ 'status', 'symbol', 'code', 'total', 'amount' ];
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
-    testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, entry['code']);
+    testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, (entry as Dict)['code']);
     //
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'amount', '0');
     testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, entry, 'total', '0');

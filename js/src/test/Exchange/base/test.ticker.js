@@ -53,7 +53,7 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
     const isFetchTickerCalled = method === 'fetchTicker';
     const symbolForMarket = (symbol !== undefined) ? symbol : exchange.safeString(entry, 'symbol');
     if (symbolForMarket !== undefined) {
-        if (symbolForMarket in exchange.markets) {
+        if ((exchange.markets !== undefined) && (symbolForMarket in exchange.markets)) {
             market = exchange.market(symbolForMarket);
         }
         else {

@@ -128,8 +128,10 @@ func (this *AlpacaCore) HandleTicker(client any, message any) {
 	var ticker any = this.ParseTicker(message)
 	var symbol any = ccxt.GetValue(ticker, "symbol")
 	var messageHash any = ccxt.Add("ticker:", symbol)
-	ccxt.AddElementToObject(this.Tickers, symbol, ticker)
-	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Tickers, symbol), messageHash)
+	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
+	}
+	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
 func (this *AlpacaCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
@@ -198,12 +200,12 @@ func (this *AlpacaCore) WatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
 
-		retRes1628 := (<-this.Authenticate(url))
-		ccxt.PanicOnError(retRes1628)
+		retRes1648 := (<-this.Authenticate(url))
+		ccxt.PanicOnError(retRes1648)
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes16412 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes16412)
+			retRes16612 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes16612)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -262,7 +264,7 @@ func (this *AlpacaCore) HandleOHLCV(client any, message any) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *AlpacaCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -275,12 +277,12 @@ func (this *AlpacaCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
 
-		retRes2218 := (<-this.Authenticate(url))
-		ccxt.PanicOnError(retRes2218)
+		retRes2238 := (<-this.Authenticate(url))
+		ccxt.PanicOnError(retRes2238)
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes22312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes22312)
+			retRes22512 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes22512)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -379,12 +381,12 @@ func (this *AlpacaCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
 
-		retRes3078 := (<-this.Authenticate(url))
-		ccxt.PanicOnError(retRes3078)
+		retRes3098 := (<-this.Authenticate(url))
+		ccxt.PanicOnError(retRes3098)
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes30912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes30912)
+			retRes31112 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes31112)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -459,13 +461,13 @@ func (this *AlpacaCore) WatchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading")
 
-		retRes3658 := (<-this.Authenticate(url))
-		ccxt.PanicOnError(retRes3658)
+		retRes3678 := (<-this.Authenticate(url))
+		ccxt.PanicOnError(retRes3678)
 		var messageHash any = "myTrades"
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes36812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes36812)
+			retRes37012 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes37012)
 		}
 		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 			symbol = this.Symbol(symbol)
@@ -516,12 +518,12 @@ func (this *AlpacaCore) WatchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading")
 
-		retRes3998 := (<-this.Authenticate(url))
-		ccxt.PanicOnError(retRes3998)
+		retRes4018 := (<-this.Authenticate(url))
+		ccxt.PanicOnError(retRes4018)
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes40112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes40112)
+			retRes40312 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes40312)
 		}
 		var messageHash any = "orders"
 		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -670,6 +672,9 @@ func (this *AlpacaCore) HandleMyTrade(client any, message any) {
 		myTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var trade any = this.ParseMyTrade(rawOrder)
+	if ccxt.IsTrue(ccxt.IsEqual(trade, nil)) {
+		return
+	}
 	myTrades.(ccxt.Appender).Append(trade)
 	var messageHash any = ccxt.Add("myTrades:", ccxt.GetValue(trade, "symbol"))
 	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
@@ -719,6 +724,9 @@ func (this *AlpacaCore) ParseMyTrade(trade any, optionalArgs ...any) any {
 	var marketId any = this.SafeString(trade, "symbol")
 	var datetime any = this.SafeString(trade, "filled_at")
 	var typeVar any = this.SafeString(trade, "type")
+	if ccxt.IsTrue(ccxt.IsEqual(typeVar, nil)) {
+		return nil
+	}
 	if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(typeVar, "limit"), 0)) {
 		// might be limit or stop-limit
 		typeVar = "limit"
@@ -770,9 +778,9 @@ func (this *AlpacaCore) Authenticate(url any, optionalArgs ...any) <-chan any {
 			this.Watch(url, messageHash, request, messageHash, future)
 		}
 
-		retRes63915 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes63915)
-		ch <- retRes63915
+		retRes64715 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes64715)
+		ch <- retRes64715
 		return nil
 
 	}()

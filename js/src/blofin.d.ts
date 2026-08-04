@@ -24,7 +24,7 @@ export default class blofin extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
@@ -129,8 +129,8 @@ export default class blofin extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: {}): Promise<Balances>;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
-    parseOrderStatus(status: Str): string;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any;
+    parseOrderStatus(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -162,8 +162,8 @@ export default class blofin extends Exchange {
      * @param {float} [params.tpsl] whether to force to send the order to the combined TPSL oco order endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    createTpslOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): any;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
+    createTpslOrderRequest(symbol: Str, type: Str, side: Str, amount?: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name blofin#cancelOrder
@@ -264,8 +264,8 @@ export default class blofin extends Exchange {
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionWithdrawalStatus(status: Str): string;
-    parseTransactionDepositStatus(status: Str): string;
+    parseTransactionWithdrawalStatus(status: Str): Str;
+    parseTransactionDepositStatus(status: Str): Str;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
     parseIds(ids: any): any;
@@ -459,11 +459,11 @@ export default class blofin extends Exchange {
      */
     fetchPositionsADLRank(symbols?: Strings, params?: {}): Promise<ADL[]>;
     parseADLRank(info: Dict, market?: Market): ADL;
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
-        headers: Dict;
+        body: Str;
+        headers: NullableDict;
     };
 }

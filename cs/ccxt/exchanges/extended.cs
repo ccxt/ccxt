@@ -844,7 +844,7 @@ public partial class extended : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1532,7 +1532,10 @@ public partial class extended : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "availableToWithdraw");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2327,7 +2330,7 @@ public partial class extended : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseLeverage(this.safeDict(data, 0), market);
+        return this.parseLeverage(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
     }
 
     /**
@@ -2606,7 +2609,7 @@ public partial class extended : Exchange
         roundUp ??= false;
         object resolutionString = this.numberToString(resolution);
         object precise = Precise.stringMul(amount, resolutionString);
-        object result = this.decimalToPrecision(((string)precise), TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
+        object result = this.decimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
         if (isTrue(isTrue(roundUp) && isTrue(Precise.stringGt(precise, result))))
         {
             result = ((string)Precise.stringAdd(result, "1"));
@@ -2748,6 +2751,14 @@ public partial class extended : Exchange
     public async virtual Task<object> createExtendedOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         await this.loadMarkets();
         object market = this.market(symbol);
         object uppercaseType = ((string)type).ToUpper();

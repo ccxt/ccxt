@@ -68,12 +68,12 @@ public partial class mexc
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchSpotMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchSpotMarkets(object parameters = null)
     {
         var res = await this.fetchSpotMarkets(parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
-    public async Task<List<Dictionary<string, object>>> FetchSwapMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchSwapMarkets(object parameters = null)
     {
         var res = await this.fetchSwapMarkets(parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
@@ -99,7 +99,7 @@ public partial class mexc
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -433,7 +433,7 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CreateSpotOrder(object market, object type, object side, object amount, double? price2 = 0, string marginMode = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateSpotOrder(object market, string type, object side, object amount, double? price2 = 0, string marginMode = null, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.createSpotOrder(market, type, side, amount, price, marginMode, parameters);
@@ -799,6 +799,12 @@ public partial class mexc
     /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-orders-under-a-contract"/>  <br/>
     /// See <see href="https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-planned-orders"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
@@ -1498,10 +1504,10 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositWithdrawFees(res);
     }
     /// <summary>
     /// fetch the set leverage for a market
@@ -1544,7 +1550,7 @@ public partial class mexc
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the exchange api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// <item>

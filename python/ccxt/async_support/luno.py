@@ -5,7 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.luno import ImplicitAPI
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -25,6 +25,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import NullResponse
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -453,7 +454,7 @@ class luno(Exchange, ImplicitAPI):
         values = list(grouped.values())
         return self.parse_currencies(values)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency[0], 'native_currency')  # first item is guaranteed
         code = self.safe_currency_code(id)
         networks = {}
@@ -461,26 +462,27 @@ class luno(Exchange, ImplicitAPI):
             networkEntry = rawCurrency[i]
             networkId = self.safe_string(networkEntry, 'name')
             networkCode = self.network_id_to_code(networkId, code)
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': None,
-                'info': networkEntry,
-            }
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': None,
+                    'precision': None,
+                    'info': networkEntry,
+                }
         return self.safe_currency_structure({
             'id': id,
             'code': code,
@@ -615,12 +617,12 @@ class luno(Exchange, ImplicitAPI):
             result.append({
                 'id': accountId,
                 'type': None,
-                'currency': code,
+                'code': code,
                 'info': account,
             })
         return result
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         wallets = self.safe_value(response, 'balance', [])
         result = {
             'info': response,
@@ -636,10 +638,10 @@ class luno(Exchange, ImplicitAPI):
             balance = self.safe_string(wallet, 'balance')
             reservedUnconfirmed = Precise.string_add(reserved, unconfirmed)
             balanceUnconfirmed = Precise.string_add(balance, unconfirmed)
-            if code in result:
+            if (code is not None) and (code in result):
                 result[code]['used'] = Precise.string_add(result[code]['used'], reservedUnconfirmed)
                 result[code]['total'] = Precise.string_add(result[code]['total'], balanceUnconfirmed)
-            else:
+            elif code is not None:
                 account = self.account()
                 account['used'] = reservedUnconfirmed
                 account['total'] = balanceUnconfirmed
@@ -680,7 +682,7 @@ class luno(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -1070,7 +1072,7 @@ class luno(Exchange, ImplicitAPI):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict params: extra parameters specific to the luno api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         if self.markets is None:
@@ -1105,7 +1107,7 @@ class luno(Exchange, ImplicitAPI):
         ohlcvs = self.safe_list(response, 'candles', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         # {
         #     "timestamp": 1664055240000,
         #     "open": "19612.65",
@@ -1227,6 +1229,8 @@ class luno(Exchange, ImplicitAPI):
             'pair': market['id'],
         }
         response = None
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         if type == 'market':
             request['type'] = side.upper()
             # todo add createMarketBuyOrderRequires price logic is implemented in the other exchanges
@@ -1240,6 +1244,8 @@ class luno(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(market['symbol'], price)
             request['type'] = 'BID' if (side == 'buy') else 'ASK'
             response = await self.privatePostPostorder(self.extend(request, params))
+        if response is None:
+            raise NullResponse(self.id + ' createOrder() returned empty response')
         return self.safe_order({
             'info': response,
             'id': response['order_id'],
@@ -1271,7 +1277,7 @@ class luno(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    async def fetch_ledger_by_entries(self, code: Str = None, entry=None, limit=None, params={}):
+    async def fetch_ledger_by_entries(self, code: Str = None, entry: Any = None, limit: Int = None, params={}):
         # by default without entry number or limit number, return most recent entry
         if entry is None:
             entry = -1
@@ -1333,7 +1339,7 @@ class luno(Exchange, ImplicitAPI):
         entries = self.safe_value(response, 'transactions', [])
         return self.parse_ledger(entries, currency, since, limit)
 
-    def parse_ledger_comment(self, comment):
+    def parse_ledger_comment(self, comment: Any):
         words = comment.split(' ')
         types = {
             'Withdrawal': 'fee',
@@ -1362,7 +1368,7 @@ class luno(Exchange, ImplicitAPI):
             'referenceId': referenceId,
         }
 
-    def parse_ledger_entry(self, entry, currency: Currency = None) -> LedgerEntry:
+    def parse_ledger_entry(self, entry: Any, currency: Currency = None) -> LedgerEntry:
         # details = self.safe_value(entry, 'details', {})
         id = self.safe_string(entry, 'row_index')
         account_id = self.safe_string(entry, 'account_id')
@@ -1496,7 +1502,7 @@ class luno(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "account_id": "string",
@@ -1527,7 +1533,7 @@ class luno(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'name'),
         }
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if query:
@@ -1540,7 +1546,7 @@ class luno(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None
         error = self.safe_value(response, 'error')

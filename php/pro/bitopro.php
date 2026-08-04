@@ -51,7 +51,7 @@ class bitopro extends \ccxt\async\bitopro {
         ));
     }
 
-    public function watch_public($path, $messageHash, $marketId) {
+    public function watch_public(mixed $path, mixed $messageHash, mixed $marketId) {
         return Async\async(function () use ($path, $messageHash, $marketId) {
             $url = $this->urls['ws']['public'] . '/' . $path . '/' . $marketId;
             return Async\await($this->watch($url, $messageHash, null, $messageHash));
@@ -68,7 +68,7 @@ class bitopro extends \ccxt\async\bitopro {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($limit !== null) {
                 if (($limit !== 5) && ($limit !== 10) && ($limit !== 20) && ($limit !== 50) && ($limit !== 100) && ($limit !== 500) && ($limit !== 1000)) {
@@ -92,7 +92,7 @@ class bitopro extends \ccxt\async\bitopro {
         })();
     }
 
-    public function handle_order_book(Client $client, $message) {
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "ORDER_BOOK",
@@ -156,7 +156,7 @@ class bitopro extends \ccxt\async\bitopro {
         })();
     }
 
-    public function handle_trade(Client $client, $message) {
+    public function handle_trade(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "TRADE",
@@ -227,7 +227,7 @@ class bitopro extends \ccxt\async\bitopro {
         })();
     }
 
-    public function handle_my_trade(Client $client, $message) {
+    public function handle_my_trade(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "USER_TRADE",
@@ -365,7 +365,7 @@ class bitopro extends \ccxt\async\bitopro {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "TICKER",
@@ -399,7 +399,7 @@ class bitopro extends \ccxt\async\bitopro {
         $client->resolve($result, $messageHash);
     }
 
-    public function authenticate($url) {
+    public function authenticate(mixed $url) {
         if (($this->clients !== null) && (is_array($this->clients) && array_key_exists($url ?? '', $this->clients))) {
             return;
         }
@@ -454,7 +454,7 @@ class bitopro extends \ccxt\async\bitopro {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //     {
         //         "event" => "ACCOUNT_BALANCE",
@@ -489,13 +489,15 @@ class bitopro extends \ccxt\async\bitopro {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'available');
             $account['total'] = $this->safe_string($balance, 'amount');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         $this->balance = $this->safe_balance($result);
         $client->resolve($this->balance, $event);
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         $methods = array(
             'TRADE' => array($this, 'handle_trade'),
             'TICKER' => array($this, 'handle_ticker'),

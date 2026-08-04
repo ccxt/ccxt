@@ -33,7 +33,7 @@ const precisionConstants = {
     PAD_WITH_ZERO,
 };
 
-const assert = (x, y) => { if (!x) throw new Error (y || 'assertion failed'); };
+const assert = (x: any, y: string | undefined = undefined) => { if (!x) throw new Error (y || 'assertion failed'); };
 
 /*  ------------------------------------------------------------------------ */
 
@@ -85,7 +85,10 @@ const truncate_to_string = (num: number | string, precision = 0) => {
 };
 const truncate = (num: number | string, precision = 0): number => parseFloat (truncate_to_string (num, precision));
 
-function precisionFromString (str: string) {
+function precisionFromString (str: string | undefined): number {
+    if (str === undefined) {
+        return 0;
+    }
     // support string formats like '1e-4'
     if (str.indexOf ('e') > -1 || str.indexOf ('E') > -1) {
         const numStr = str.replace (/\d\.?\d*[eE]/, '')
@@ -103,7 +106,7 @@ function precisionFromString (str: string) {
 /*  ------------------------------------------------------------------------ */
 
 const decimalToPrecision = (
-    x: string,
+    x: string | number | undefined,
     roundingMode: number,
     numPrecisionDigits: any,
     countingMode: number = DECIMAL_PLACES,
@@ -112,7 +115,7 @@ const decimalToPrecision = (
     return _decimalToPrecision (x, roundingMode, numPrecisionDigits, countingMode, paddingMode);
 }
 
-const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: any, countingMode: number = DECIMAL_PLACES, paddingMode: number = NO_PADDING) => {
+const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: any, countingMode: number = DECIMAL_PLACES, paddingMode: number = NO_PADDING): string => {
     assert (numPrecisionDigits !== undefined, 'numPrecisionDigits should not be undefined');
 
     if (typeof numPrecisionDigits === 'string') {
@@ -133,7 +136,7 @@ const _decimalToPrecision = (x: any, roundingMode: number, numPrecisionDigits: a
     if (numPrecisionDigits < 0) {
         const toNearest = Math.pow (10, -numPrecisionDigits);
         if (roundingMode === ROUND) {
-            return (toNearest * _decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ();
+            return (toNearest * parseFloat (_decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode))).toString ();
         }
         if (roundingMode === TRUNCATE) {
             return (x - (x % toNearest)).toString ();

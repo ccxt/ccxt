@@ -307,6 +307,9 @@ class mercado extends Exchange {
                 $quoteId = 'BRL';
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
+                if (($base === null) || ($quote === null)) {
+                    continue;
+                }
                 $id = $quote . $base;
                 $result[] = array(
                     'id' => $id,
@@ -369,7 +372,7 @@ class mercado extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -522,7 +525,7 @@ class mercado extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $data = $this->safe_value($response, 'response_data', array());
         $balances = $this->safe_value($data, 'balance', array());
         $result = array( 'info' => $response );
@@ -535,7 +538,9 @@ class mercado extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($balance, 'available');
                 $account['total'] = $this->safe_string($balance, 'total');
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             }
         }
         return $this->safe_balance($result);
@@ -869,7 +874,7 @@ class mercado extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
@@ -1000,7 +1005,7 @@ class mercado extends Exchange {
         })();
     }
 
-    public function orders_to_trades($orders) {
+    public function orders_to_trades(mixed $orders) {
         $result = array();
         for ($i = 0; $i < count($orders); $i++) {
             $trades = $this->safe_value($orders[$i], 'trades', array());
@@ -1011,7 +1016,7 @@ class mercado extends Exchange {
         return $result;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/';
         $query = $this->omit($params, $this->extract_params($path));
         if (($api === 'public') || ($api === 'v4Public') || ($api === 'v4PublicNet')) {
@@ -1037,7 +1042,7 @@ class mercado extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

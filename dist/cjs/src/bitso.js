@@ -531,7 +531,7 @@ class bitso extends bitso$1["default"] {
             };
             fee['tiers'] = tiers;
             const baseCurrency = this.safeDict(currencies, base);
-            result.push(this.extend({
+            result.push(this.safeMarketStructure(this.extend({
                 'id': id,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -581,7 +581,7 @@ class bitso extends bitso$1["default"] {
                 },
                 'created': undefined,
                 'info': market,
-            }, fee));
+            }, fee)));
         }
         return result;
     }
@@ -670,7 +670,9 @@ class bitso extends bitso$1["default"] {
             account['free'] = this.safeString(balance, 'available');
             account['used'] = this.safeString(balance, 'locked');
             account['total'] = this.safeString(balance, 'total');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -722,7 +724,7 @@ class bitso extends bitso$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1250,7 +1252,7 @@ class bitso extends bitso$1["default"] {
      * @name bitso#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.bitso.com/bitso-api/docs/cancel-an-order
-     * @param {undefined} symbol bitso does not support canceling orders for only a specific market
+     * @param {string} [symbol] bitso does not support canceling orders for only a specific market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1612,14 +1614,16 @@ class bitso extends bitso$1["default"] {
             if ((codes !== undefined) && !this.inArray(code, codes)) {
                 continue;
             }
-            result[code] = {
-                'deposit': this.safeNumber(depositFee, 'fee'),
-                'withdraw': undefined,
-                'info': {
-                    'deposit': depositFee,
+            if (code !== undefined) {
+                result[code] = {
+                    'deposit': this.safeNumber(depositFee, 'fee'),
                     'withdraw': undefined,
-                },
-            };
+                    'info': {
+                        'deposit': depositFee,
+                        'withdraw': undefined,
+                    },
+                };
+            }
         }
         const withdrawalFees = this.safeValue(payload, 'withdrawal_fees', []);
         const currencyIds = Object.keys(withdrawalFees);
@@ -1629,14 +1633,16 @@ class bitso extends bitso$1["default"] {
             if ((codes !== undefined) && !this.inArray(code, codes)) {
                 continue;
             }
-            result[code] = {
-                'deposit': this.safeValue(result[code], 'deposit'),
-                'withdraw': this.safeNumber(withdrawalFees, currencyId),
-                'info': {
-                    'deposit': this.safeValue(result[code]['info'], 'deposit'),
+            if (code !== undefined) {
+                result[code] = {
+                    'deposit': this.safeValue(this.safeValue(result, code), 'deposit'),
                     'withdraw': this.safeNumber(withdrawalFees, currencyId),
-                },
-            };
+                    'info': {
+                        'deposit': this.safeValue(this.safeValue(this.safeValue(result, code), 'info'), 'deposit'),
+                        'withdraw': this.safeNumber(withdrawalFees, currencyId),
+                    },
+                };
+            }
         }
         return result;
     }
@@ -1748,26 +1754,28 @@ class bitso extends bitso$1["default"] {
             const entry = depositResponse[i];
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            if ((codes === undefined) || (code in codes)) {
-                result[code] = {
-                    'deposit': {
-                        'fee': this.safeNumber(entry, 'fee'),
-                        'percentage': !this.safeValue(entry, 'is_fixed'),
-                    },
-                    'withdraw': {
-                        'fee': undefined,
-                        'percentage': undefined,
-                    },
-                    'networks': {},
-                    'info': entry,
-                };
+            if ((codes === undefined) || ((code !== undefined) && (code in codes))) {
+                if (code !== undefined) {
+                    result[code] = {
+                        'deposit': {
+                            'fee': this.safeNumber(entry, 'fee'),
+                            'percentage': !this.safeValue(entry, 'is_fixed'),
+                        },
+                        'withdraw': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                        'networks': {},
+                        'info': entry,
+                    };
+                }
             }
         }
         const withdrawalKeys = Object.keys(withdrawalResponse);
         for (let i = 0; i < withdrawalKeys.length; i++) {
             const currencyId = withdrawalKeys[i];
             const code = this.safeCurrencyCode(currencyId);
-            if ((codes === undefined) || (code in codes)) {
+            if ((code !== undefined) && ((codes === undefined) || (code in codes))) {
                 const withdrawFee = this.parseNumber(withdrawalResponse[currencyId]);
                 const resultValue = this.safeValue(result, code);
                 if (resultValue === undefined) {

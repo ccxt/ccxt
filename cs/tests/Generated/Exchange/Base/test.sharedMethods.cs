@@ -196,6 +196,10 @@ public partial class testMainClass : BaseTest
                     // so, we have to compare with millisecond accururacy
                     object dtParsed = exchange.parse8601(dt);
                     object tsMs = getValue(entry, "timestamp");
+                    if (isTrue(isEqual(dtParsed, null)))
+                    {
+                        assert(false, add(add("datetime is not parseable: ", dt), logText));
+                    }
                     object diff = Math.Abs(Convert.ToDouble(subtract(dtParsed, tsMs)));
                     if (isTrue(isGreaterThanOrEqual(diff, 500)))
                     {
@@ -271,7 +275,7 @@ public partial class testMainClass : BaseTest
         public void assertSymbolInMarkets(BaseExchange exchange, object skippedProperties, object method, object symbol)
         {
             object logText = logTemplate(exchange, method, new Dictionary<string, object>() {});
-            assert((inOp(exchange.markets, symbol)), add("symbol should be present in exchange.symbols", logText));
+            assert(isTrue((!isEqual(exchange.markets, null))) && isTrue((inOp(exchange.markets, symbol))), add("symbol should be present in exchange.symbols", logText));
         }
         public void assertGreater(BaseExchange exchange, object skippedProperties, object method, object entry, object key, object compareTo, object allowNull = null)
         {
@@ -752,7 +756,7 @@ public partial class testMainClass : BaseTest
                 if (isTrue(!isEqual(symbol, null)))
                 {
                     // if it's not in markets, then maybe newly added symbol, so can can compromise there
-                    if (!isTrue((inOp(exchange.markets, symbol))))
+                    if (isTrue(isTrue((isEqual(exchange.markets, null))) || !isTrue((inOp(exchange.markets, symbol)))))
                     {
                         return;
                     }

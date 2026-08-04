@@ -135,7 +135,7 @@ class lbank(ccxt.async_support.lbank):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client, message):
+    def handle_ohlcv(self, client: Any, message: Any):
         #
         # request
         #    {
@@ -243,7 +243,7 @@ class lbank(ccxt.async_support.lbank):
 
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the cex api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if self.markets is None:
@@ -267,7 +267,7 @@ class lbank(ccxt.async_support.lbank):
 
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict params: extra parameters specific to the lbank api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         if self.markets is None:
@@ -283,7 +283,7 @@ class lbank(ccxt.async_support.lbank):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, messageHash, request)
 
-    def handle_ticker(self, client, message):
+    def handle_ticker(self, client: Any, message: Any):
         #
         #     {
         #         "tick":{
@@ -315,7 +315,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchTicker:' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_ticker(self, ticker, market: Market = None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None):
         #
         #     {
         #         "tick":{
@@ -420,7 +420,7 @@ class lbank(ccxt.async_support.lbank):
         result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
         return self.sort_by(result, 'timestamp')  # needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Any, message: Any):
         #
         # request
         #     {
@@ -467,7 +467,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchTrades:' + symbol
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade: Any, market: Market = None):
         #
         # request
         #    ['timestamp', 'price', 'volume', 'direction']
@@ -517,7 +517,7 @@ class lbank(ccxt.async_support.lbank):
         :param str [symbol]: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
-        :param dict params: extra parameters specific to the lbank api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         if self.markets is None:
@@ -543,7 +543,7 @@ class lbank(ccxt.async_support.lbank):
         orders = await self.watch(url, messageHash, request, messageHash, request)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_orders(self, client, message):
+    def handle_orders(self, client: Client, message: Any):
         #
         #     {
         #         "orderUpdate":{
@@ -569,13 +569,15 @@ class lbank(ccxt.async_support.lbank):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             myOrders = ArrayCacheBySymbolById(limit)
         order = self.parse_ws_order(message)
+        if myOrders is None:
+            return
         myOrders.append(order)
         self.orders = myOrders
         client.resolve(myOrders, 'orders')
         messageHash = 'orders:' + symbol
         client.resolve(myOrders, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order: Any, market: Market = None):
         #
         #     {
         #         "orderUpdate":{
@@ -656,7 +658,7 @@ class lbank(ccxt.async_support.lbank):
             'trades': None,
         }, market)
 
-    def parse_ws_order_status(self, status):
+    def parse_ws_order_status(self, status: Any):
         statuses = {
             '-1': 'canceled',  # Withdrawn
             '0': 'open',   # Unsettled
@@ -688,7 +690,7 @@ class lbank(ccxt.async_support.lbank):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, messageHash, request)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: Any):
         #
         #     {
         #         "data": {
@@ -716,7 +718,8 @@ class lbank(ccxt.async_support.lbank):
         account['free'] = self.safe_string(data, 'free')
         account['used'] = self.safe_string(data, 'freeze')
         account['total'] = self.safe_string(data, 'asset')
-        self.balance[code] = account
+        if code is not None:
+            self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 
@@ -728,7 +731,7 @@ class lbank(ccxt.async_support.lbank):
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the lbank api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         if self.markets is None:
@@ -756,8 +759,8 @@ class lbank(ccxt.async_support.lbank):
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
-        :param dict params: extra parameters specific to the lbank api endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        :param dict params: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -777,7 +780,7 @@ class lbank(ccxt.async_support.lbank):
         orderbook = await self.watch(url, messageHash, request, messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client, message):
+    def handle_order_book(self, client: Any, message: Any):
         #
         # request
         #    {
@@ -850,7 +853,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchOrderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
-    def handle_error_message(self, client, message):
+    def handle_error_message(self, client: Client, message: Any):
         #
         #    {
         #        SERVER: 'V2',
@@ -863,7 +866,7 @@ class lbank(ccxt.async_support.lbank):
         error = ExchangeError(self.id + ' ' + errMsg)
         client.reject(error)
 
-    async def handle_ping(self, client: Client, message):
+    async def handle_ping(self, client: Client, message: Any):
         #
         #  {ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping'}
         #
@@ -876,7 +879,7 @@ class lbank(ccxt.async_support.lbank):
         except Exception as e:
             self.on_error(client, e)
 
-    def handle_message(self, client, message):
+    def handle_message(self, client: Any, message: Any):
         status = self.safe_string(message, 'status')
         if status == 'error':
             self.handle_error_message(client, message)
@@ -899,7 +902,7 @@ class lbank(ccxt.async_support.lbank):
 
     async def authenticate(self, params={}):
         # when we implement more private streams, we need to refactor the authentication
-        # to be concurent-safe and respect the same authentication token
+        # to be concurrent-safe and respect the same authentication token
         url = self.urls['api']['ws']
         client = self.client(url)
         now = self.milliseconds()

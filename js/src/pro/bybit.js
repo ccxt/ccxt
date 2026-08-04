@@ -127,7 +127,7 @@ export default class bybit extends bybitRest {
                 },
                 'watchMyTrades': {
                     // filter execType: https://bybit-exchange.github.io/docs/api-explorer/v5/position/execution
-                    'filterExecTypes': [
+                    'execType': [
                         'Trade', 'AdlTrade', 'BustTrade', 'Settle',
                     ],
                 },
@@ -882,7 +882,7 @@ export default class bybit extends bybitRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1458,7 +1458,23 @@ export default class bybit extends bybitRest {
         }
         const trades = this.myTrades;
         const symbols = {};
-        const filterExecTypes = this.handleOption('watchMyTrades', 'filterExecTypes', []);
+        // the option was renamed from filterExecTypes to execType to mirror
+        // the exchange's own field name, the old key is still read as a
+        // fallback for backward compatibility
+        // see https://github.com/ccxt/ccxt/issues/17244
+        // and https://github.com/ccxt/ccxt/issues/28181
+        let execTypeOption = this.handleOption('watchMyTrades', 'execType');
+        if (execTypeOption === undefined) {
+            execTypeOption = this.handleOption('watchMyTrades', 'filterExecTypes');
+        }
+        let execTypes = undefined;
+        if (typeof execTypeOption === 'string') {
+            // a single execution type is accepted as a plain string as well
+            execTypes = [execTypeOption];
+        }
+        else {
+            execTypes = execTypeOption;
+        }
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
             let parsed = undefined;
@@ -1471,7 +1487,7 @@ export default class bybit extends bybitRest {
                 if (executionFast) {
                     execType = 'Trade';
                 }
-                if (!this.inArray(execType, filterExecTypes)) {
+                if ((execTypes !== undefined) && !this.inArray(execType, execTypes)) {
                     continue;
                 }
                 parsed = this.parseTrade(rawTrade);
@@ -2320,10 +2336,14 @@ export default class bybit extends bybitRest {
             if (this.safeValue(this.balance, accountType) === undefined) {
                 this.balance[accountType] = {};
             }
-            this.balance[accountType][code] = account;
+            if ((accountType !== undefined) && (code !== undefined)) {
+                this.balance[accountType][code] = account;
+            }
         }
         else {
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
         }
     }
     async watchTopics(url, messageHashes, topics, params = {}) {
@@ -2452,6 +2472,17 @@ export default class bybit extends bybitRest {
                 client.reject(error, authenticatedHash);
                 if (authenticatedHash in client.subscriptions) {
                     delete client.subscriptions[authenticatedHash];
+                }
+                const op = this.safeString(message, 'op');
+                if ((op !== undefined) && (op !== 'auth')) {
+                    // an operation response that carries no reqId, e.g. bybit
+                    // omits it on some permission rejections of trade ops,
+                    // would leave the awaiting future pending forever, and
+                    // since nothing on this client can proceed without
+                    // authentication, reject everything pending, mirroring the
+                    // behavior of unattributable non auth errors, see
+                    // https://github.com/ccxt/ccxt/issues/29361
+                    client.reject(error);
                 }
             }
             else {

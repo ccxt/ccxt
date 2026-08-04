@@ -110,7 +110,9 @@ class cex extends cex$1["default"] {
             account['free'] = this.safeString(freeBalance, currencyId);
             account['used'] = this.safeString(usedBalance, currencyId);
             const code = this.safeCurrencyCode(currencyId);
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         this.balance = this.safeBalance(result);
         const messageHash = this.safeString(message, 'oid');
@@ -223,6 +225,9 @@ class cex extends cex$1["default"] {
     handleTradesInner(client, message) {
         const data = this.safeList(message, 'data', []);
         const symbol = this.safeString(this.options['watchTrades'], 'symbol');
+        if (symbol === undefined) {
+            return;
+        }
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.trades[symbol] = new Cache.ArrayCache(limit);
@@ -613,7 +618,7 @@ class cex extends cex$1["default"] {
         //         "fee_amount": "0.05",
         //         "id": "59091012962"
         //     }
-        // Note symbol and symbol2 are inverse on sell and ammount is in symbol currency.
+        // Note symbol and symbol2 are inverse on sell and amount is in symbol currency.
         //
         const side = this.safeString(trade, 'type');
         const price = this.safeString(trade, 'price');
@@ -813,10 +818,16 @@ class cex extends cex$1["default"] {
         const remainsPrecision = this.safeString(order, 'remains');
         let remaining = undefined;
         if (remainsPrecision !== undefined) {
+            if (market === undefined) {
+                return undefined;
+            }
             remaining = this.currencyFromPrecision(market['base'], remainsPrecision);
         }
         const amount = this.safeString(order, 'amount');
         if (!isTransaction) {
+            if (market === undefined) {
+                return undefined;
+            }
             this.currencyFromPrecision(market['base'], amount);
         }
         let baseId = this.safeString(order, 'symbol');
@@ -911,7 +922,7 @@ class cex extends cex$1["default"] {
         const symbol = this.safeString(message, 'oid'); // symbol is set as requestId in watchOrders
         const rawOrders = this.safeValue(message, 'data', []);
         let myOrders = this.orders;
-        if (this.orders === undefined) {
+        if (myOrders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             myOrders = new Cache.ArrayCacheBySymbolById(limit);
         }
@@ -937,7 +948,7 @@ class cex extends cex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1110,6 +1121,9 @@ class cex extends cex$1["default"] {
         //     }
         //
         const pair = this.safeString(message, 'pair');
+        if (pair === undefined) {
+            return;
+        }
         const parts = pair.split(':');
         const baseId = this.safeString(parts, 0);
         const quoteId = this.safeString(parts, 1);

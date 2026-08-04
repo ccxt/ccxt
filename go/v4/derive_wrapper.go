@@ -367,7 +367,7 @@ func (this *Derive) CancelOrder(id string, options ...CancelOrderOptions) (Order
  * @see https://docs.derive.xyz/reference/post_private-cancel-by-instrument
  * @see https://docs.derive.xyz/reference/post_private-cancel-all
  * @description cancel all open orders in a market
- * @param {string} symbol unified market symbol
+ * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subaccount_id] *required* the subaccount id
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -681,7 +681,7 @@ func (this *Derive) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
  * @name derive#fetchPositions
  * @description fetch all open positions
  * @see https://docs.derive.xyz/reference/post_private-get-positions
- * @param {string[]} [symbols] not used by kraken fetchPositions ()
+ * @param {string[]} [symbols] not used by fetchPositions ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subaccount_id] *required* the subaccount id
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -1016,10 +1016,10 @@ func (this *Derive) FetchDepositAddressesByNetwork(code string, options ...Fetch
 func (this *Derive) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Derive) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Derive) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Derive) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Derive) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Derive) FetchFreeBalance(params ...any) (Balance, error) {

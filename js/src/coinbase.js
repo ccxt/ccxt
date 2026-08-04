@@ -39,8 +39,8 @@ export default class coinbase extends Exchange {
                 'CORS': true,
                 'spot': true,
                 'margin': false,
-                'swap': false,
-                'future': false,
+                'swap': true,
+                'future': true,
                 'option': false,
                 'addMargin': false,
                 'borrowCrossMargin': false,
@@ -160,6 +160,7 @@ export default class coinbase extends Exchange {
                 'setMargin': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'urls': {
@@ -1981,35 +1982,43 @@ export default class coinbase extends Exchange {
             const id = this.safeString2(currency, 'id', 'code');
             const code = this.safeCurrencyCode(id);
             const name = this.safeString(currency, 'name');
-            this.options['networks'][code] = name.toLowerCase();
-            this.options['networksById'][code] = name.toLowerCase();
+            if (code !== undefined) {
+                this.options['networks'][code] = name.toLowerCase();
+            }
+            if (code !== undefined) {
+                this.options['networksById'][code] = name.toLowerCase();
+            }
             const type = (assetId !== undefined) ? 'crypto' : 'fiat';
-            result[code] = this.safeCurrencyStructure({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'type': type,
-                'name': name,
-                'active': true,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': undefined,
-                'networks': {}, // todo
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber(currency, 'min_size'),
-                        'max': undefined,
+            if (code !== undefined) {
+                result[code] = this.safeCurrencyStructure({
+                    'info': currency,
+                    'id': id,
+                    'code': code,
+                    'type': type,
+                    'name': name,
+                    'active': true,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'networks': {}, // todo
+                    'limits': {
+                        'amount': {
+                            'min': this.safeNumber(currency, 'min_size'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            });
+                });
+            }
             if (assetId !== undefined) {
                 const lowerCaseName = name.toLowerCase();
-                networks[code] = lowerCaseName;
+                if (code !== undefined) {
+                    networks[code] = lowerCaseName;
+                }
                 networksById[lowerCaseName] = code;
             }
         }
@@ -2017,14 +2026,16 @@ export default class coinbase extends Exchange {
         for (let i = 0; i < ratesIds.length; i++) {
             const currencyId = ratesIds[i];
             const code = this.safeCurrencyCode(currencyId);
-            if (!(code in result)) {
-                result[code] = this.safeCurrencyStructure({
-                    'info': {},
-                    'id': currencyId,
-                    'code': code,
-                    'type': 'crypto',
-                    'networks': {}, // todo
-                });
+            if ((code === undefined) || !(code in result)) {
+                if (code !== undefined) {
+                    result[code] = this.safeCurrencyStructure({
+                        'info': {},
+                        'id': currencyId,
+                        'code': code,
+                        'type': 'crypto',
+                        'networks': {}, // todo
+                    });
+                }
             }
         }
         this.options['networks'] = this.extend(networks, this.options['networks']);
@@ -2406,7 +2417,9 @@ export default class coinbase extends Exchange {
                         account['free'] = Precise.stringAdd(account['free'], total);
                         account['total'] = Precise.stringAdd(account['total'], total);
                     }
-                    result[code] = account;
+                    if (code !== undefined) {
+                        result[code] = account;
+                    }
                 }
             }
             else if (this.inArray(type, v3Accounts)) {
@@ -2430,7 +2443,9 @@ export default class coinbase extends Exchange {
                         account['used'] = Precise.stringAdd(account['used'], used);
                         account['total'] = Precise.stringAdd(account['total'], total);
                     }
-                    result[code] = account;
+                    if (code !== undefined) {
+                        result[code] = account;
+                    }
                 }
             }
         }
@@ -4074,7 +4089,7 @@ export default class coinbase extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the order book
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -4453,7 +4468,7 @@ export default class coinbase extends Exchange {
             'amount': this.numberToString(amount),
             'currency': code.toUpperCase(), // need to use code in case depositing USD etc.
             'payment_method': id,
-            'commit': true, // otheriwse the deposit does not go through
+            'commit': true, // otherwise the deposit does not go through
         };
         const response = await this.v2PrivatePostAccountsAccountIdDeposits(this.extend(request, params));
         //
@@ -4759,6 +4774,61 @@ export default class coinbase extends Exchange {
             'toAmount': undefined,
             'price': undefined,
             'fee': this.safeNumber(feeAmountStructure, 'value'),
+        };
+    }
+    /**
+     * @method
+     * @name coinbase#transfer
+     * @description transfer currency internally between portfolios of the same account
+     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/move-portfolios-funds
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount the portfolio uuid to transfer funds from
+     * @param {string} toAccount the portfolio uuid to transfer funds to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    async transfer(code, amount, fromAccount, toAccount, params = {}) {
+        await this.loadMarkets();
+        const currency = this.currency(code);
+        const request = {
+            'funds': {
+                'value': this.currencyToPrecision(code, amount),
+                'currency': currency['id'],
+            },
+            'source_portfolio_uuid': fromAccount,
+            'target_portfolio_uuid': toAccount,
+        };
+        const response = await this.v3PrivatePostBrokeragePortfoliosMoveFunds(this.extend(request, params));
+        //
+        //     {
+        //         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+        //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+        //     }
+        //
+        const transfer = this.parseTransfer(response, currency);
+        transfer['amount'] = amount;
+        transfer['status'] = 'ok';
+        return transfer;
+    }
+    parseTransfer(transfer, currency = undefined) {
+        //
+        //     {
+        //         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
+        //         "target_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe"
+        //     }
+        //
+        const currencyCode = this.safeCurrencyCode(undefined, currency);
+        return {
+            'info': transfer,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': currencyCode,
+            'amount': undefined,
+            'fromAccount': this.safeString(transfer, 'source_portfolio_uuid'),
+            'toAccount': this.safeString(transfer, 'target_portfolio_uuid'),
+            'status': undefined,
         };
     }
     /**

@@ -1,5 +1,5 @@
 import cexRest from '../cex.js';
-import type { Balances, Bool, Int, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class cex extends cexRest {
     describe(): any;
@@ -27,7 +27,7 @@ export default class cex extends cexRest {
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTradesSnapshot(client: Client, message: any): void;
-    parseWsOldTrade(trade: any, market?: any): Trade;
+    parseWsOldTrade(trade: any, market?: Market): Trade;
     handleTrade(client: Client, message: any): void;
     handleTradesInner(client: Client, message: any): void;
     /**
@@ -62,7 +62,7 @@ export default class cex extends cexRest {
      */
     fetchTickerWs(symbol: string, params?: {}): Promise<Ticker>;
     handleTicker(client: Client, message: any): void;
-    parseWsTicker(ticker: any, market?: any): Ticker;
+    parseWsTicker(ticker: Dict, market?: Market): Ticker;
     /**
      * @method
      * @name cex#fetchBalanceWs
@@ -98,11 +98,11 @@ export default class cex extends cexRest {
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTransaction(client: Client, message: any): void;
     handleMyTrades(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     handleOrderUpdate(client: Client, message: any): void;
-    parseWsOrderUpdate(order: any, market?: any): Order;
-    fromPrecision(amount: any, scale: any): string;
-    currencyFromPrecision(currency: any, amount: any): string;
+    parseWsOrderUpdate(order: any, market?: Market): Order | undefined;
+    fromPrecision(amount: any, scale: any): string | undefined;
+    currencyFromPrecision(currency: any, amount: any): string | undefined;
     handleOrdersSnapshot(client: Client, message: any): void;
     /**
      * @method
@@ -112,7 +112,7 @@ export default class cex extends cexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBookSnapshot(client: Client, message: any): void;

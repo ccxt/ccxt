@@ -875,7 +875,7 @@ func (this *PoloniexCore) ParseSpotMarket(market any) any {
 	var active any = IsEqual(state, "NORMAL")
 	var symbolTradeLimit any = this.SafeValue(market, "symbolTradeLimit")
 	// these are known defaults
-	return map[string]any{
+	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         Add(Add(base, "/"), quote),
 		"base":           base,
@@ -919,7 +919,7 @@ func (this *PoloniexCore) ParseSpotMarket(market any) any {
 		},
 		"created": this.SafeInteger(market, "tradableStartTime"),
 		"info":    market,
-	}
+	})
 }
 func (this *PoloniexCore) ParseSwapMarket(market any) any {
 	//
@@ -979,7 +979,7 @@ func (this *PoloniexCore) ParseSwapMarket(market any) any {
 		typeVar = "future"
 	}
 	var marketType any = Ternary(IsTrue((IsEqual(typeVar, "future"))), "future", "swap")
-	return map[string]any{
+	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         symbol,
 		"base":           base,
@@ -1029,7 +1029,7 @@ func (this *PoloniexCore) ParseSwapMarket(market any) any {
 		},
 		"created": this.SafeInteger(market, "oDate"),
 		"info":    market,
-	}
+	})
 }
 
 /**
@@ -1311,27 +1311,29 @@ func (this *PoloniexCore) ParseCurrency(currency any) any {
 		var chain any = GetValue(chains, j)
 		var chainId any = this.SafeString(chain, "blockchain")
 		var networkCode any = this.NetworkIdToCode(chainId, code)
-		AddElementToObject(networks, networkCode, map[string]any{
-			"info":      chain,
-			"id":        chainId,
-			"name":      nil,
-			"code":      networkCode,
-			"active":    nil,
-			"fee":       this.SafeNumber(chain, "withdrawFee"),
-			"deposit":   this.SafeBool(chain, "depositEnable"),
-			"withdraw":  this.SafeBool(chain, "withdrawalEnable"),
-			"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(chain, "decimals"))),
-			"limits": map[string]any{
-				"withdraw": map[string]any{
-					"min": this.SafeNumber(chain, "withdrawMin"),
-					"max": nil,
+		if IsTrue(!IsEqual(networkCode, nil)) {
+			AddElementToObject(networks, networkCode, map[string]any{
+				"info":      chain,
+				"id":        chainId,
+				"name":      nil,
+				"code":      networkCode,
+				"active":    nil,
+				"fee":       this.SafeNumber(chain, "withdrawFee"),
+				"deposit":   this.SafeBool(chain, "depositEnable"),
+				"withdraw":  this.SafeBool(chain, "withdrawalEnable"),
+				"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(chain, "decimals"))),
+				"limits": map[string]any{
+					"withdraw": map[string]any{
+						"min": this.SafeNumber(chain, "withdrawMin"),
+						"max": nil,
+					},
+					"deposit": map[string]any{
+						"min": nil,
+						"max": nil,
+					},
 				},
-				"deposit": map[string]any{
-					"min": nil,
-					"max": nil,
-				},
-			},
-		})
+			})
+		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
@@ -1368,8 +1370,8 @@ func (this *PoloniexCore) FetchTicker(symbol any, optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes12668 := (<-this.LoadMarkets())
-		PanicOnError(retRes12668)
+		retRes12688 := (<-this.LoadMarkets())
+		PanicOnError(retRes12688)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -1574,8 +1576,8 @@ func (this *PoloniexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes14488 := (<-this.LoadMarkets())
-		PanicOnError(retRes14488)
+		retRes14508 := (<-this.LoadMarkets())
+		PanicOnError(retRes14508)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -1658,17 +1660,17 @@ func (this *PoloniexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes15078 := (<-this.LoadMarkets())
-		PanicOnError(retRes15078)
+		retRes15098 := (<-this.LoadMarkets())
+		PanicOnError(retRes15098)
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes151119 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes151119)
-			ch <- retRes151119
+			retRes151319 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+			PanicOnError(retRes151319)
+			ch <- retRes151319
 			return nil
 		}
 		var market any = nil
@@ -2005,8 +2007,8 @@ func (this *PoloniexCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes18248 := (<-this.LoadMarkets())
-		PanicOnError(retRes18248)
+		retRes18268 := (<-this.LoadMarkets())
+		PanicOnError(retRes18268)
 		var market any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2137,8 +2139,8 @@ func (this *PoloniexCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes19278 := (<-this.LoadMarkets())
-		PanicOnError(retRes19278)
+		retRes19298 := (<-this.LoadMarkets())
+		PanicOnError(retRes19298)
 		var market any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2239,8 +2241,8 @@ func (this *PoloniexCore) CreateOrder(symbol any, typeVar any, side any, amount 
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes20088 := (<-this.LoadMarkets())
-		PanicOnError(retRes20088)
+		retRes20108 := (<-this.LoadMarkets())
+		PanicOnError(retRes20108)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -2396,8 +2398,8 @@ func (this *PoloniexCore) EditOrder(id any, symbol any, typeVar any, side any, o
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes21348 := (<-this.LoadMarkets())
-		PanicOnError(retRes21348)
+		retRes21368 := (<-this.LoadMarkets())
+		PanicOnError(retRes21368)
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(Add(Add(this.Id, " editOrder() does not support "), GetValue(market, "type")), " orders, only spot orders are accepted")))
@@ -2458,8 +2460,8 @@ func (this *PoloniexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes21778 := (<-this.LoadMarkets())
-		PanicOnError(retRes21778)
+		retRes21798 := (<-this.LoadMarkets())
+		PanicOnError(retRes21798)
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
@@ -2526,7 +2528,7 @@ func (this *PoloniexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @see https://api-docs.poloniex.com/spot/api/private/order#cancel-all-orders
  * @see https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders  // trigger orders
  * @see https://api-docs.poloniex.com/v3/futures/api/trade/cancel-all-orders - contract markets
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] true if canceling trigger orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2541,8 +2543,8 @@ func (this *PoloniexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes22378 := (<-this.LoadMarkets())
-		PanicOnError(retRes22378)
+		retRes22398 := (<-this.LoadMarkets())
+		PanicOnError(retRes22398)
 		var request any = map[string]any{
 			"symbols": []any{},
 		}
@@ -2637,8 +2639,8 @@ func (this *PoloniexCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes23118 := (<-this.LoadMarkets())
-		PanicOnError(retRes23118)
+		retRes23138 := (<-this.LoadMarkets())
+		PanicOnError(retRes23138)
 		id = ToString(id)
 		var request any = map[string]any{
 			"id": id,
@@ -2708,8 +2710,8 @@ func (this *PoloniexCore) FetchOrderStatus(id any, optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes23628 := (<-this.LoadMarkets())
-		PanicOnError(retRes23628)
+		retRes23648 := (<-this.LoadMarkets())
+		PanicOnError(retRes23648)
 
 		orders := (<-this.FetchOpenOrders(symbol, nil, nil, params))
 		PanicOnError(orders)
@@ -2748,8 +2750,8 @@ func (this *PoloniexCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes23818 := (<-this.LoadMarkets())
-		PanicOnError(retRes23818)
+		retRes23838 := (<-this.LoadMarkets())
+		PanicOnError(retRes23838)
 		var request any = map[string]any{
 			"id": id,
 		}
@@ -2803,7 +2805,9 @@ func (this *PoloniexCore) ParseBalance(response any) any {
 			var account any = this.Account()
 			AddElementToObject(account, "total", this.SafeString(balance, "avail"))
 			AddElementToObject(account, "used", this.SafeString(balance, "im"))
-			AddElementToObject(result, code, account)
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(result, code, account)
+			}
 		}
 		return this.SafeBalance(result)
 	}
@@ -2818,7 +2822,9 @@ func (this *PoloniexCore) ParseBalance(response any) any {
 			var newAccount any = this.Account()
 			AddElementToObject(newAccount, "free", this.SafeString(balance, "available"))
 			AddElementToObject(newAccount, "used", this.SafeString(balance, "hold"))
-			AddElementToObject(result, code, newAccount)
+			if IsTrue(!IsEqual(code, nil)) {
+				AddElementToObject(result, code, newAccount)
+			}
 		}
 	}
 	return this.SafeBalance(result)
@@ -2841,8 +2847,8 @@ func (this *PoloniexCore) FetchBalance(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes24608 := (<-this.LoadMarkets())
-		PanicOnError(retRes24608)
+		retRes24668 := (<-this.LoadMarkets())
+		PanicOnError(retRes24668)
 		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
@@ -2939,8 +2945,8 @@ func (this *PoloniexCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes25378 := (<-this.LoadMarkets())
-		PanicOnError(retRes25378)
+		retRes25438 := (<-this.LoadMarkets())
+		PanicOnError(retRes25438)
 
 		response := (<-this.PrivateGetFeeinfo(params))
 		PanicOnError(response)
@@ -2953,8 +2959,9 @@ func (this *PoloniexCore) FetchTradingFees(optionalArgs ...any) <-chan any {
 		//     }
 		//
 		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
-			var symbol any = GetValue(this.Symbols, i)
+		var symbols any = this.Symbols
+		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+			var symbol any = GetValue(symbols, i)
 			AddElementToObject(result, symbol, map[string]any{
 				"info":       response,
 				"symbol":     symbol,
@@ -2981,7 +2988,7 @@ func (this *PoloniexCore) FetchTradingFees(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *PoloniexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2993,8 +3000,8 @@ func (this *PoloniexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes25748 := (<-this.LoadMarkets())
-		PanicOnError(retRes25748)
+		retRes25818 := (<-this.LoadMarkets())
+		PanicOnError(retRes25818)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -3090,8 +3097,8 @@ func (this *PoloniexCore) CreateDepositAddress(code any, optionalArgs ...any) <-
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes26528 := (<-this.LoadMarkets())
-		PanicOnError(retRes26528)
+		retRes26598 := (<-this.LoadMarkets())
+		PanicOnError(retRes26598)
 		requestextraParamscurrencynetworkEntryVariable := this.PrepareRequestForDepositAddress(code, params)
 		request := GetValue(requestextraParamscurrencynetworkEntryVariable, 0)
 		extraParams := GetValue(requestextraParamscurrencynetworkEntryVariable, 1)
@@ -3131,8 +3138,8 @@ func (this *PoloniexCore) FetchDepositAddress(code any, optionalArgs ...any) <-c
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes26748 := (<-this.LoadMarkets())
-		PanicOnError(retRes26748)
+		retRes26818 := (<-this.LoadMarkets())
+		PanicOnError(retRes26818)
 		requestextraParamscurrencynetworkEntryVariable := this.PrepareRequestForDepositAddress(code, params)
 		request := GetValue(requestextraParamscurrencynetworkEntryVariable, 0)
 		extraParams := GetValue(requestextraParamscurrencynetworkEntryVariable, 1)
@@ -3175,7 +3182,7 @@ func (this *PoloniexCore) PrepareRequestForDepositAddress(code any, optionalArgs
 	}
 	var exchangeNetworkId any = nil
 	networkCode = this.NetworkIdToCode(networkCode, code)
-	var networkEntry any = this.SafeDict(GetValue(currency, "networks"), networkCode)
+	var networkEntry any = Ternary(IsTrue((IsEqual(networkCode, nil))), nil, this.SafeDict(GetValue(currency, "networks"), networkCode))
 	if IsTrue(!IsEqual(networkEntry, nil)) {
 		exchangeNetworkId = GetValue(networkEntry, "id")
 	} else {
@@ -3229,8 +3236,8 @@ func (this *PoloniexCore) Transfer(code any, amount any, fromAccount any, toAcco
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes27528 := (<-this.LoadMarkets())
-		PanicOnError(retRes27528)
+		retRes27598 := (<-this.LoadMarkets())
+		PanicOnError(retRes27598)
 		var currency any = this.Currency(code)
 		var accountsByType any = this.SafeValue(this.Options, "accountsByType", map[string]any{})
 		var fromId any = this.SafeString(accountsByType, fromAccount, fromAccount)
@@ -3350,8 +3357,8 @@ func (this *PoloniexCore) FetchTransactionsHelper(optionalArgs ...any) <-chan an
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes28348 := (<-this.LoadMarkets())
-		PanicOnError(retRes28348)
+		retRes28418 := (<-this.LoadMarkets())
+		PanicOnError(retRes28418)
 		var year any = 31104000 // 60 * 60 * 24 * 30 * 12 = one year of history, why not
 		var now any = this.Seconds()
 		var start any = Ternary(IsTrue((!IsEqual(since, nil))), this.ParseToInt(Divide(since, 1000)), Subtract(now, Multiply(10, year)))
@@ -3466,8 +3473,8 @@ func (this *PoloniexCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes29298 := (<-this.LoadMarkets())
-		PanicOnError(retRes29298)
+		retRes29368 := (<-this.LoadMarkets())
+		PanicOnError(retRes29368)
 
 		response := (<-this.FetchTransactionsHelper(code, since, limit, params))
 		PanicOnError(response)
@@ -3548,8 +3555,8 @@ func (this *PoloniexCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan a
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes29758 := (<-this.LoadMarkets())
-		PanicOnError(retRes29758)
+		retRes29828 := (<-this.LoadMarkets())
+		PanicOnError(retRes29828)
 
 		response := (<-this.PublicGetCurrencies(this.Extend(params, map[string]any{
 			"includeMultiChainCurrencies": true,
@@ -3625,7 +3632,7 @@ func (this *PoloniexCore) ParseDepositWithdrawFees(response any, optionalArgs ..
 		var currencyId any = GetValue(responseKeys, i)
 		var code any = this.SafeCurrencyCode(currencyId)
 		var feeInfo any = GetValue(response, currencyId)
-		if IsTrue(IsTrue((IsEqual(codes, nil))) || IsTrue((this.InArray(code, codes)))) {
+		if IsTrue(IsTrue((!IsEqual(code, nil))) && IsTrue((IsTrue((IsEqual(codes, nil))) || IsTrue((this.InArray(code, codes)))))) {
 			var currency any = this.Currency(code)
 			AddElementToObject(depositWithdrawFees, code, this.ParseDepositWithdrawFee(feeInfo, currency))
 			var childChains any = this.SafeValue(feeInfo, "childChains")
@@ -3638,16 +3645,18 @@ func (this *PoloniexCore) ParseDepositWithdrawFees(response any, optionalArgs ..
 					var networkInfo any = this.SafeValue(response, networkId)
 					var networkObject any = map[string]any{}
 					var withdrawFee any = this.SafeNumber(networkInfo, "withdrawalFee")
-					AddElementToObject(networkObject, networkCode, map[string]any{
-						"withdraw": map[string]any{
-							"fee":        withdrawFee,
-							"percentage": Ternary(IsTrue((!IsEqual(withdrawFee, nil))), false, nil),
-						},
-						"deposit": map[string]any{
-							"fee":        nil,
-							"percentage": nil,
-						},
-					})
+					if IsTrue(!IsEqual(networkCode, nil)) {
+						AddElementToObject(networkObject, networkCode, map[string]any{
+							"withdraw": map[string]any{
+								"fee":        withdrawFee,
+								"percentage": Ternary(IsTrue((!IsEqual(withdrawFee, nil))), false, nil),
+							},
+							"deposit": map[string]any{
+								"fee":        nil,
+								"percentage": nil,
+							},
+						})
+					}
 					AddElementToObject(GetValue(depositWithdrawFees, code), "networks", this.Extend(GetValue(GetValue(depositWithdrawFees, code), "networks"), networkObject))
 				}
 			}
@@ -3674,10 +3683,12 @@ func (this *PoloniexCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) 
 	AddElementToObject(depositWithdrawFee, "withdraw", withdrawResult)
 	AddElementToObject(depositWithdrawFee, "deposit", depositResult)
 	var networkCode any = this.NetworkIdToCode(networkId, this.SafeString(currency, "code"))
-	AddElementToObject(GetValue(depositWithdrawFee, "networks"), networkCode, map[string]any{
-		"withdraw": withdrawResult,
-		"deposit":  depositResult,
-	})
+	if IsTrue(!IsEqual(networkCode, nil)) {
+		AddElementToObject(GetValue(depositWithdrawFee, "networks"), networkCode, map[string]any{
+			"withdraw": withdrawResult,
+			"deposit":  depositResult,
+		})
+	}
 	return depositWithdrawFee
 }
 
@@ -3843,8 +3854,8 @@ func (this *PoloniexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan 
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes32288 := (<-this.LoadMarkets())
-		PanicOnError(retRes32288)
+		retRes32398 := (<-this.LoadMarkets())
+		PanicOnError(retRes32398)
 		var market any = this.Market(symbol)
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params)
@@ -3895,8 +3906,8 @@ func (this *PoloniexCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes32618 := (<-this.LoadMarkets())
-		PanicOnError(retRes32618)
+		retRes32728 := (<-this.LoadMarkets())
+		PanicOnError(retRes32728)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbol": GetValue(market, "id"),
@@ -4093,8 +4104,8 @@ func (this *PoloniexCore) FetchPositions(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes34098 := (<-this.LoadMarkets())
-		PanicOnError(retRes34098)
+		retRes34208 := (<-this.LoadMarkets())
+		PanicOnError(retRes34208)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.SwapPrivateGetV3TradePositionOpens(params))
@@ -4223,8 +4234,8 @@ func (this *PoloniexCore) ModifyMarginHelper(symbol any, amount any, typeVar any
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes35248 := (<-this.LoadMarkets())
-		PanicOnError(retRes35248)
+		retRes35358 := (<-this.LoadMarkets())
+		PanicOnError(retRes35358)
 		var market any = this.Market(symbol)
 		amount = this.AmountToPrecision(symbol, amount)
 		var request any = map[string]any{
@@ -4301,9 +4312,9 @@ func (this *PoloniexCore) ReduceMargin(symbol any, amount any, optionalArgs ...a
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes358615 := (<-this.ModifyMarginHelper(symbol, OpNeg(amount), "reduce", params))
-		PanicOnError(retRes358615)
-		ch <- retRes358615
+		retRes359715 := (<-this.ModifyMarginHelper(symbol, OpNeg(amount), "reduce", params))
+		PanicOnError(retRes359715)
+		ch <- retRes359715
 		return nil
 
 	}()
@@ -4327,9 +4338,9 @@ func (this *PoloniexCore) AddMargin(symbol any, amount any, optionalArgs ...any)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes359915 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-		PanicOnError(retRes359915)
-		ch <- retRes359915
+		retRes361015 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+		PanicOnError(retRes361015)
+		ch <- retRes361015
 		return nil
 
 	}()

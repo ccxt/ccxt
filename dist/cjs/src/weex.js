@@ -694,7 +694,7 @@ class weex extends weex$1["default"] {
      */
     async fetchStatus(params = {}) {
         const response = await this.publicGetApiV3Ping(params);
-        // reutns an empty response if the exchange is alive, otherwise will trigger an error
+        // returns an empty response if the exchange is alive, otherwise will trigger an error
         return {
             'status': 'ok',
             'updated': undefined,
@@ -862,27 +862,29 @@ class weex extends weex$1["default"] {
             const chain = this.safeDict(chains, j);
             const networkId = this.safeString(chain, 'network');
             const networkCode = this.networkIdToCode(networkId, code);
-            networks[networkCode] = {
-                'info': chain,
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': this.safeBool(chain, 'depositEnable'),
-                'withdraw': this.safeBool(chain, 'withdrawEnable'),
-                'fee': this.safeNumber(chain, 'withdrawFee'),
-                'precision': this.safeNumber(chain, 'withdrawIntegerMultiple'),
-                'isDefault': this.safeBool(chain, 'isDefault', false),
-                'limits': {
-                    'withdraw': {
-                        'min': this.safeNumber(chain, 'withdrawMin'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': this.safeBool(chain, 'depositEnable'),
+                    'withdraw': this.safeBool(chain, 'withdrawEnable'),
+                    'fee': this.safeNumber(chain, 'withdrawFee'),
+                    'precision': this.safeNumber(chain, 'withdrawIntegerMultiple'),
+                    'isDefault': this.safeBool(chain, 'isDefault', false),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber(chain, 'withdrawMin'),
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(chain, 'depositDust'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber(chain, 'depositDust'),
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         const networkKeys = Object.keys(networks);
         const networksLength = networkKeys.length;
@@ -1021,7 +1023,7 @@ class weex extends weex$1["default"] {
             }
         }
         else {
-            active = this.safeBool(market, 'enableTrade');
+            active = this.safeBool(market, 'enableTrade', false) === true;
         }
         let amountPrecision = this.safeNumber(market, 'stepSize');
         let pricePrecision = this.safeNumber(market, 'tickSize');
@@ -1032,6 +1034,9 @@ class weex extends weex$1["default"] {
             pricePrecision = this.parseNumber(pricePrecisionString);
         }
         const fees = this.safeDict(this.fees, isSpot ? 'spot' : 'contract', {});
+        if (id === undefined) {
+            throw new errors.ExchangeError(this.id + ' method() missing id');
+        }
         return this.safeMarketStructure({
             'id': id,
             'lowercaseId': id.toLowerCase(),
@@ -1280,7 +1285,7 @@ class weex extends weex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 15, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1437,6 +1442,9 @@ class weex extends weex$1["default"] {
                     startTime = now - timeDelta;
                 }
                 else if (since === undefined) {
+                    if (until === undefined) {
+                        throw new errors.ArgumentsRequired(this.id + ' fetchOHLCV() requires a since or until argument');
+                    }
                     startTime = until - timeDelta;
                 }
                 else {
@@ -1516,7 +1524,11 @@ class weex extends weex$1["default"] {
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1864,7 +1876,9 @@ class weex extends weex$1["default"] {
             account['free'] = this.safeString2(entry, 'availableBalance', 'free');
             account['used'] = this.safeString2(entry, 'frozen', 'locked');
             account['total'] = this.safeString(entry, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2001,10 +2015,22 @@ class weex extends weex$1["default"] {
         //         "transactTime": 1775608924724
         //     }
         //
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' parseOrder() returned empty response');
+        }
         return this.parseOrder(response, market);
     }
     createSpotOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createSpotOrderRequest() requires a side argument');
+        }
         const request = {
             'symbol': market['id'],
             'side': side.toUpperCase(),
@@ -2065,10 +2091,22 @@ class weex extends weex$1["default"] {
         else {
             response = await this.contractPrivatePostCapiV3Order(request);
         }
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' createOrder() returned empty response');
+        }
         return this.parseOrder(response, market);
     }
     createContractOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' createContractOrderRequest() requires a side argument');
+        }
         const request = {
             'symbol': market['id'],
             'side': side.toUpperCase(),
@@ -2248,6 +2286,9 @@ class weex extends weex$1["default"] {
         else {
             response = await this.contractPrivateDeleteCapiV3Order(this.extend(request, params));
         }
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' parseOrder() returned empty response');
+        }
         const order = this.parseOrder(response, market);
         order['status'] = 'canceled';
         return order;
@@ -2419,6 +2460,9 @@ class weex extends weex$1["default"] {
         }
         else {
             response = await this.contractPrivateGetCapiV3Order(this.extend(request, params));
+        }
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' parseOrder() returned empty response');
         }
         return this.parseOrder(response, market);
     }
@@ -3072,7 +3116,11 @@ class weex extends weex$1["default"] {
             //
             response = await this.contractPrivateGetCapiV3UserTrades(this.extend(request, params));
         }
-        return this.parseTrades(response, market, since, limit);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
     /**
      * @method
@@ -3111,6 +3159,9 @@ class weex extends weex$1["default"] {
             currency = this.currency(code);
         }
         if (accountType === 'contract') {
+            if (currency === undefined) {
+                throw new errors.ExchangeError(this.id + ' fetchLedger() could not resolve currency');
+            }
             if (code !== undefined) {
                 request['currency'] = currency['id'];
             }
@@ -3199,6 +3250,9 @@ class weex extends weex$1["default"] {
         const before = Precise["default"].stringSub(after, amountRaw);
         const amount = this.parseNumber(Precise["default"].stringAbs(amountRaw));
         let direction = 'in';
+        if (amountRaw === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseLedgerEntry() missing amountRaw');
+        }
         if (amountRaw.indexOf('-') >= 0) {
             direction = 'out';
         }

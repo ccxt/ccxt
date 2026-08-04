@@ -574,7 +574,7 @@ class bydfi extends Exchange {
              * @param {int} [$limit] the maximum amount of order book entries to return, could be 5, 10, 20, 50, 100, 500 or 1000 (default 500)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->loc] crypto location, default => us
-             * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -625,6 +625,9 @@ class bydfi extends Exchange {
         $limits = array( 5, 10, 20, 50, 100, 500, 1000 );
         $result = 1000;
         for ($i = 0; $i < count($limits); $i++) {
+            if ($limit === null) {
+                throw new ArgumentsRequired($this->id . ' getClosestLimit() requires a $limit argument');
+            }
             if ($limit <= $limits[$i]) {
                 $result = $limits[$i];
                 break;
@@ -870,6 +873,9 @@ class bydfi extends Exchange {
                 $startTime = $now - $timeDelta;
                 $until = $now;
             } elseif ($until === null) {
+                if ($startTime === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since or $until argument');
+                }
                 $until = $startTime . $timeDelta;
                 if ($until > $now) {
                     $until = $now;
@@ -907,7 +913,7 @@ class bydfi extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "s" => "ETH-USDT",
@@ -1072,7 +1078,7 @@ class bydfi extends Exchange {
         })();
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTC-USDT",
@@ -1163,7 +1169,7 @@ class bydfi extends Exchange {
         })();
     }
 
-    public function parse_funding_rate_history($contract, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
         //
         //     {
         //         "symbol" => "ETH-USDT",
@@ -1254,8 +1260,17 @@ class bydfi extends Exchange {
         })();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a $side argument');
+        }
         $request = array(
             'symbol' => $market['id'],
             'side' => strtoupper($side),
@@ -1481,7 +1496,7 @@ class bydfi extends Exchange {
         })();
     }
 
-    public function create_edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+    public function create_edit_order_request(?string $id, ?string $symbol, ?string $type, ?string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
         $request = array();
         if (($id === null) && ($clientOrderId === null)) {
@@ -2634,7 +2649,7 @@ class bydfi extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
@@ -2648,7 +2663,9 @@ class bydfi extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string_2($balance, 'total', 'balance');
             $account['free'] = $this->safe_string_2($balance, 'available', 'availableBalance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -2859,7 +2876,7 @@ class bydfi extends Exchange {
         })();
     }
 
-    public function fetch_transactions_helper($type, $code, $since, $limit, $params) {
+    public function fetch_transactions_helper(mixed $type, mixed $code, mixed $since, mixed $limit, mixed $params) {
         return Async\async(function () use ($type, $code, $since, $limit, $params) {
             $methodName = ($type === 'deposit') ? 'fetchDeposits' : 'fetchWithdrawals';
             if ($code === null) {
@@ -3007,7 +3024,7 @@ class bydfi extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         $url = $this->urls['api'][$api];
         $endpoint = '/' . $path;
         $query = '';
@@ -3045,7 +3062,7 @@ class bydfi extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

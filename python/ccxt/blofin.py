@@ -16,6 +16,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import NullResponse
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -605,7 +606,7 @@ class blofin(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -898,7 +899,7 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     [
         #         "1678928760000",  # timestamp
@@ -1008,7 +1009,7 @@ class blofin(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         #
         #    {
         #        "fundingRate": "0.00027815",
@@ -1077,14 +1078,14 @@ class blofin(Exchange, ImplicitAPI):
         entry = self.safe_dict(data, 0, {})
         return self.parse_funding_rate(entry, market)
 
-    def parse_balance_by_type(self, response):
+    def parse_balance_by_type(self, response: Any):
         data = self.safe_list(response, 'data')
         if (data is not None) and isinstance(data, list):
             return self.parse_funding_balance(response)
         else:
             return self.parse_balance(response)
 
-    def parse_balance(self, response):
+    def parse_balance(self, response: Any):
         #
         # "data" similar for REST & WS
         #
@@ -1138,7 +1139,7 @@ class blofin(Exchange, ImplicitAPI):
         result['datetime'] = self.iso8601(timestamp)
         return self.safe_balance(result)
 
-    def parse_funding_balance(self, response):
+    def parse_funding_balance(self, response: Any):
         #
         #  {
         #      "code": "0",
@@ -1206,7 +1207,11 @@ class blofin(Exchange, ImplicitAPI):
             response = self.privateGetAccountBalance(self.extend(request, params))
         return self.parse_balance_by_type(response)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -1393,7 +1398,7 @@ class blofin(Exchange, ImplicitAPI):
             'reduceOnly': reduceOnly,
         }, market)
 
-    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
+    def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1457,7 +1462,7 @@ class blofin(Exchange, ImplicitAPI):
         order['side'] = side
         return order
 
-    def create_tpsl_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    def create_tpsl_order_request(self, symbol: Str, type: Str, side: Str, amount: Num = None, price: Num = None, params={}):
         market = self.market(symbol)
         hedged = self.safe_bool(params, 'hedged', False)
         positionSide = 'net'
@@ -1896,7 +1901,7 @@ class blofin(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         types = {
             '1': 'transfer',  # transfer
             '2': 'trade',  # trade
@@ -1935,7 +1940,7 @@ class blofin(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ids(self, ids):
+    def parse_ids(self, ids: Any):
         """
  @ignore
         :param string[]|str ids: order ids
@@ -2068,7 +2073,7 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         position = self.safe_dict(data, 0)
         if position is None:
-            return None
+            raise NullResponse(self.id + ' fetchPosition() returned empty position')
         return self.parse_position(position, market)
 
     def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
@@ -2099,7 +2104,7 @@ class blofin(Exchange, ImplicitAPI):
         :param str[] [symbols]: unified contract symbols
         :param int [since]: timestamp in ms of the earliest position to fetch, default=3 months ago, max range for params["until"] - since is 3 months
         :param int [limit]: the maximum amount of records to fetch, default=20, max=100
-        :param dict params: extra parameters specific to the exchange api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
         :param str [params.productType]: USDT-FUTURES(default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
@@ -2243,7 +2248,8 @@ class blofin(Exchange, ImplicitAPI):
         if initialMarginPercentage is None:
             initialMarginPercentage = self.parse_number(Precise.string_div(initialMarginString, notionalString, 4))
         elif initialMarginString is None:
-            initialMarginString = Precise.string_mul(initialMarginPercentage, notionalString)
+            initialMarginPercentageString = self.number_to_string(initialMarginPercentage)
+            initialMarginString = Precise.string_mul(initialMarginPercentageString, notionalString)
         rounder = '0.00005'  # round to closest 0.01%
         maintenanceMarginPercentage = self.parse_number(Precise.string_div(Precise.string_add(maintenanceMarginPercentageString, rounder), '1', 4))
         liquidationPrice = self.safe_number(position, 'liquidationPrice')
@@ -2427,7 +2433,7 @@ class blofin(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str [side]: 'buy' or 'sell', leave in net mode
-        :param dict [params]: extra parameters specific to the blofin api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: a unique identifier for the order
         :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross
         :param str [params.code]: *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -2595,7 +2601,7 @@ class blofin(Exchange, ImplicitAPI):
         https://docs.blofin.com/index.html#set-position-mode
 
         :param bool hedged: set to True to use hedged mode, False for one-way mode
-        :param str [symbol]: not used by blofin setPositionMode()
+        :param str [symbol]: not used by setPositionMode()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
@@ -2697,7 +2703,7 @@ class blofin(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # fallback to default error handler
         #
@@ -2729,7 +2735,7 @@ class blofin(Exchange, ImplicitAPI):
             self.throw_broadly_matched_exception(self.exceptions['broad'], insideMsg, feedback)
         return None
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/api/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['rest'] + request

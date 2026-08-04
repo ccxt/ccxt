@@ -8,7 +8,7 @@ from ccxt.abstract.bitrue import ImplicitAPI
 import asyncio
 import hashlib
 import json
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, DepositWithdrawFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -404,8 +404,8 @@ class bitrue(Exchange, ImplicitAPI):
                 'fetchMyTradesMethod': 'v2PrivateGetMyTrades',  # spotV1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'currencyToPrecisionRoundingMode': TRUNCATE,
-                'recvWindow': 5 * 1000,  # 5 sec, binance default
-                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'recvWindow': 5 * 1000,  # 5 sec, the exchange default
+                'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'parseOrderToPrecision': False,  # force amounts and costs in parseOrder to precision
                 'newOrderRespType': {
@@ -785,7 +785,7 @@ class bitrue(Exchange, ImplicitAPI):
         coins = self.safe_list(response, 'coins', [])
         return self.parse_currencies(coins)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'coin')
         name = self.safe_string(rawCurrency, 'coinFulName')
         code = self.safe_currency_code(id)
@@ -795,22 +795,23 @@ class bitrue(Exchange, ImplicitAPI):
             entry = networkDetails[j]
             networkId = self.safe_string(entry, 'chain')
             network = self.network_id_to_code(networkId, code)
-            networks[network] = {
-                'info': entry,
-                'id': networkId,
-                'network': network,
-                'deposit': self.safe_bool(entry, 'enableDeposit'),
-                'withdraw': self.safe_bool(entry, 'enableWithdraw'),
-                'active': None,
-                'fee': self.safe_number(entry, 'withdrawFee'),
-                'precision': None,
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number(entry, 'minWithdraw'),
-                        'max': self.safe_number(entry, 'maxWithdraw'),
+            if network is not None:
+                networks[network] = {
+                    'info': entry,
+                    'id': networkId,
+                    'network': network,
+                    'deposit': self.safe_bool(entry, 'enableDeposit'),
+                    'withdraw': self.safe_bool(entry, 'enableWithdraw'),
+                    'active': None,
+                    'fee': self.safe_number(entry, 'withdrawFee'),
+                    'precision': None,
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(entry, 'minWithdraw'),
+                            'max': self.safe_number(entry, 'maxWithdraw'),
+                        },
                     },
-                },
-            }
+                }
         return self.safe_currency_structure({
             'id': id,
             'name': name,
@@ -840,7 +841,7 @@ class bitrue(Exchange, ImplicitAPI):
         https://www.bitrue.com/api-docs#current-open-contract
         https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
 
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         promisesRaw = []
@@ -986,7 +987,7 @@ class bitrue(Exchange, ImplicitAPI):
         if minCost is None:
             minCost = self.safe_number(market, 'minOrderMoney')
         isSpot = (type == 'spot')
-        return {
+        return self.safe_market_structure({
             'id': id,
             'lowercaseId': lowercaseId,
             'symbol': symbol,
@@ -1035,9 +1036,9 @@ class bitrue(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': market,
-        }
+        })
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         #
         # spot
         #
@@ -1096,7 +1097,8 @@ class bitrue(Exchange, ImplicitAPI):
             account = self.account()
             account['free'] = self.safe_string_2(balance, 'free', 'accountNormal')
             account['used'] = self.safe_string_2(balance, 'locked', 'accountLock')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
         return self.safe_balance(result)
@@ -1222,7 +1224,7 @@ class bitrue(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -1508,7 +1510,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         # spot
         #
@@ -1910,7 +1912,7 @@ class bitrue(Exchange, ImplicitAPI):
         amount = self.safe_string(order, 'origQty')
         # - Spot/Margin market: cummulativeQuoteQty
         # - Futures market: cumQuote.
-        #   Note self is not the actual cost, since Binance futures uses leverage to calculate margins.
+        #   Note self is not the actual cost, since the exchange uses leverage to calculate margins.
         cost = self.safe_string_2(order, 'cummulativeQuoteQty', 'cumQuote')
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'type')
@@ -1921,7 +1923,7 @@ class bitrue(Exchange, ImplicitAPI):
         postOnly = (type == 'limit_maker') or (timeInForce == 'GTX') or (type == 'post_only')
         if type == 'limit_maker':
             type = 'limit'
-        triggerPrice = self.parse_number(self.omit_zero((self.safe_string(order, 'stopPrice'))))
+        triggerPrice = self.parse_number(self.omit_zero(self.safe_string(order, 'stopPrice')))
         return self.safe_order({
             'info': order,
             'id': id,
@@ -1946,7 +1948,7 @@ class bitrue(Exchange, ImplicitAPI):
             'trades': fills,
         }, market)
 
-    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
+    async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params: dict = {}):
         """
         create a market buy order by providing the symbol and cost
 
@@ -2387,7 +2389,7 @@ class bitrue(Exchange, ImplicitAPI):
         https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
         https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
 
-        :param str symbol: unified market symbol of the market to cancel orders in
+        :param str [symbol]: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
@@ -2633,7 +2635,7 @@ class bitrue(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency)
 
-    def parse_transaction_status_by_type(self, status, type: Str = None):
+    def parse_transaction_status_by_type(self, status: Any, type: Str = None):
         statusesByType = {
             'deposit': {
                 '0': 'pending',
@@ -2820,7 +2822,7 @@ class bitrue(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
         #
         #   {
         #       "coin": "adx",
@@ -2849,16 +2851,17 @@ class bitrue(Exchange, ImplicitAPI):
                 networkId = self.safe_string(chainDetail, 'chain')
                 currencyCode = self.safe_string(currency, 'code')
                 networkCode = self.network_id_to_code(networkId, currencyCode)
-                result['networks'][networkCode] = {
-                    'deposit': {'fee': None, 'percentage': None},
-                    'withdraw': {'fee': self.safe_number(chainDetail, 'withdrawFee'), 'percentage': False},
-                }
+                if networkCode is not None:
+                    result['networks'][networkCode] = {
+                        'deposit': {'fee': None, 'percentage': None},
+                        'withdraw': {'fee': self.safe_number(chainDetail, 'withdrawFee'), 'percentage': False},
+                    }
                 if chainDetailLength == 1:
                     result['withdraw']['fee'] = self.safe_number(chainDetail, 'withdrawFee')
                     result['withdraw']['percentage'] = False
         return result
 
-    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -2874,7 +2877,7 @@ class bitrue(Exchange, ImplicitAPI):
         coins = self.safe_list(response, 'coins')
         return self.parse_deposit_withdraw_fees(coins, codes, 'coin')
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: Any, currency: Currency = None):
         #
         #     fetchTransfers
         #
@@ -3030,7 +3033,7 @@ class bitrue(Exchange, ImplicitAPI):
             response = await self.dapiV2PrivatePostLevelEdit(self.extend(request, params))
         return response
 
-    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: Any, market: Market = None) -> MarginModification:
         #
         # setMargin
         #
@@ -3088,7 +3091,7 @@ class bitrue(Exchange, ImplicitAPI):
         #
         return self.parse_margin_modification(response, market)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         type = self.safe_string(api, 0)
         version = self.safe_string(api, 1)
         access = self.safe_string(api, 2)
@@ -3156,11 +3159,11 @@ class bitrue(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         # error response in a form: {"code": -1013, "msg": "Invalid quantity."}
-        # following block cointains legacy checks against message patterns in "msg" property
+        # following block contains legacy checks against message patterns in "msg" property
         # will switch "code" checks eventually, when we know all of them
         if code >= 400:
             if body.find('Price * QTY is zero or less') >= 0:
@@ -3208,7 +3211,7 @@ class bitrue(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' ' + body)
         return None
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
+    def calculate_rate_limiter_cost(self, api: Any, method: Any, path: Any, params: Any, config={}):
         if ('noSymbol' in config) and not ('symbol' in params):
             return config['noSymbol']
         elif ('byLimit' in config) and ('limit' in params):

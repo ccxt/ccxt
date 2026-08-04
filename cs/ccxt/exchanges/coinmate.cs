@@ -402,7 +402,7 @@ public partial class coinmate : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1129,7 +1129,7 @@ public partial class coinmate : Exchange
         {
             await this.loadMarkets();
         }
-        object method = add("privatePost", this.capitalize(((string)side)));
+        object method = add("privatePost", this.capitalize(side));
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "currencyPair", getValue(market, "id") },
@@ -1195,7 +1195,7 @@ public partial class coinmate : Exchange
      * @description cancels an open order
      * @see https://coinmate.docs.apiary.io/#reference/order/cancel-order/post
      * @param {string} id order id
-     * @param {string} symbol not used by coinmate cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */

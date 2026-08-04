@@ -895,7 +895,7 @@ class tokocrypto extends tokocrypto$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1203,7 +1203,11 @@ class tokocrypto extends tokocrypto$1["default"] {
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = response;
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -1380,7 +1384,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         //         "0",                    // Ignore
         //         1591256519999,          // Close time
         //         "0",                    // Ignore
-        //         60,                     // Number of bisic data
+        //         60,                     // Number of basic data
         //         "0",                    // Ignore
         //         "0",                    // Ignore
         //         "0"                     // Ignore
@@ -1520,7 +1524,9 @@ class tokocrypto extends tokocrypto$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(balance, 'free');
             account['used'] = this.safeString(balance, 'locked');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2595,7 +2601,7 @@ class tokocrypto extends tokocrypto$1["default"] {
             throw new errors.DDoSProtection(this.id + ' ' + code.toString() + ' ' + reason + ' ' + body);
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
-        // following block cointains legacy checks against message patterns in "msg" property
+        // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if (code >= 400) {
             if (body.indexOf('Price * QTY is zero or less') >= 0) {

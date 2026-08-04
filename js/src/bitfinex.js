@@ -566,11 +566,13 @@ export default class bitfinex extends Exchange {
         // The amount field allows up to 8 decimals.
         // Anything exceeding this will be rounded to the 8th decimal.
         symbol = this.safeSymbol(symbol);
-        return this.decimalToPrecision(amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
+        const market = this.market(symbol);
+        return this.decimalToPrecision(amount, TRUNCATE, market['precision']['amount'], DECIMAL_PLACES);
     }
     priceToPrecision(symbol, price) {
         symbol = this.safeSymbol(symbol);
-        price = this.decimalToPrecision(price, ROUND, this.markets[symbol]['precision']['price'], this.precisionMode);
+        const market = this.market(symbol);
+        price = this.decimalToPrecision(price, ROUND, market['precision']['price'], this.precisionMode);
         // https://docs.bitfinex.com/docs/introduction#price-precision
         // The precision level of all trading prices is based on significant figures.
         // All pairs on Bitfinex use up to 5 significant digits and up to 8 decimals (e.g. 1.2345, 123.45, 1234.5, 0.00012345).
@@ -897,22 +899,24 @@ export default class bitfinex extends Exchange {
             const networkId = networkIds[j];
             const network = this.networkIdToCode(networkId, code);
             const dwStatuses = this.safeList(indexed['statuses'], networkId, []);
-            networks[network] = {
-                'info': networkId,
-                'id': networkId.toLowerCase(),
-                'network': networkId,
-                'active': undefined,
-                'deposit': this.safeInteger(dwStatuses, 1) === 1,
-                'withdraw': this.safeInteger(dwStatuses, 2) === 1,
-                'fee': undefined,
-                'precision': undefined,
-                'limits': {
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
+            if (network !== undefined) {
+                networks[network] = {
+                    'info': networkId,
+                    'id': networkId.toLowerCase(),
+                    'network': networkId,
+                    'active': undefined,
+                    'deposit': this.safeInteger(dwStatuses, 1) === 1,
+                    'withdraw': this.safeInteger(dwStatuses, 2) === 1,
+                    'fee': undefined,
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -981,7 +985,9 @@ export default class bitfinex extends Exchange {
                 const code = this.safeCurrencyCode(currencyId);
                 account['total'] = this.safeString(balance, 2);
                 account['free'] = this.safeString(balance, 4);
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -1143,7 +1149,7 @@ export default class bitfinex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return, bitfinex only allows 1, 25, or 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1692,6 +1698,12 @@ export default class bitfinex extends Exchange {
         }, market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' requires a side argument');
+        }
         /**
          * @method
          * @ignore
@@ -1940,7 +1952,7 @@ export default class bitfinex extends Exchange {
      * @name bitfinex#cancelAllOrders
      * @description cancel all open orders
      * @see https://docs.bitfinex.com/reference/rest-auth-cancel-orders-multiple
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2310,7 +2322,7 @@ export default class bitfinex extends Exchange {
             'id': orderId,
             'symbol': market['id'],
         };
-        // valid for trades upto 10 days old
+        // valid for trades up to 10 days old
         const response = await this.privatePostAuthROrderSymbolIdTrades(this.extend(request, params));
         const tradesList = [];
         for (let i = 0; i < response.length; i++) {
