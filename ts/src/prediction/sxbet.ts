@@ -766,8 +766,8 @@ export default class sxbet extends Exchange {
         const outcomeId = this.safeString (outcomeObj, 'outcomeId');
         const isOutcomeOne = (outcomeId === marketHash);
         const isBuy = (side === 'buy');
-        // 'sell' bets the complementary outcome, mirroring the requested outcome's own probability
-        // (same normalize-to-one-book convention used across the prediction venues in this codebase)
+        // 'sell' bets the complementary outcome, mirroring the requested outcome's own probability —
+        // matches the normalize-to-one-book convention used by other prediction venues
         const isMakerBettingOutcomeOne = isBuy ? isOutcomeOne : !isOutcomeOne;
         const priceStr = this.numberToString (price);
         const makerProbability = isBuy ? priceStr : Precise.stringSub ('1', priceStr);
