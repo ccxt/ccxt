@@ -633,8 +633,10 @@ button {
   display: none;
 }
 
-@media (max-width: 900px) {
-  /* Topbar becomes two rows: brand + actions, then language tabs + examples. */
+@media (max-width: 1110px) {
+  /* Topbar becomes two rows: brand + actions, then language tabs + examples.
+     1110px = the single-row topbar's intrinsic width; below it the trailing
+     Run button clips under .topbar's overflow:hidden. */
   .topbar {
     flex-wrap: wrap;
     height: auto;
@@ -702,8 +704,10 @@ button {
   .btn-label-short {
     display: inline;
   }
+}
 
-  /* The 400px AI column alone exceeds a phone viewport — overlay it instead. */
+/* Below 900px the 400px AI column alone exceeds the viewport — overlay it. */
+@media (max-width: 900px) {
   .body.with-ai {
     grid-template-columns: minmax(0, 1fr);
   }
