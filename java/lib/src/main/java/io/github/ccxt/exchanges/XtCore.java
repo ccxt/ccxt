@@ -5497,11 +5497,11 @@ final Object finalMarket = market;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 ((java.util.List<Object>)promisesUnresolved).add(this.privateInverseGetFutureUserV1PositionList(this.extend(request, parameters)));
-                ((java.util.List<Object>)promisesUnresolved).add(Helpers.callDynamically(this, "privateInverseGetFutureUserV1PositionBreakList", new Object[] { this.extend(request, parameters) }));
+                ((java.util.List<Object>)promisesUnresolved).add(this.privateInverseGetFutureUserV1PositionBreakList(this.extend(request, parameters)));
             } else
             {
                 ((java.util.List<Object>)promisesUnresolved).add(this.privateLinearGetFutureUserV1PositionList(this.extend(request, parameters)));
-                ((java.util.List<Object>)promisesUnresolved).add(Helpers.callDynamically(this, "privateLinearGetFutureUserV1PositionBreakList", new Object[] { this.extend(request, parameters) }));
+                ((java.util.List<Object>)promisesUnresolved).add(this.privateLinearGetFutureUserV1PositionBreakList(this.extend(request, parameters)));
             }
             var responsebreakResponseVariable = (Helpers.promiseAll(promisesUnresolved)).join();
             var response = ((java.util.List<Object>) responsebreakResponseVariable).get(0);
@@ -5596,11 +5596,11 @@ final Object finalMarket = market;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 ((java.util.List<Object>)promisesUnresolved).add(this.privateInverseGetFutureUserV1PositionList(parameters));
-                ((java.util.List<Object>)promisesUnresolved).add(Helpers.callDynamically(this, "privateInverseGetFutureUserV1PositionBreakList", new Object[] { parameters }));
+                ((java.util.List<Object>)promisesUnresolved).add(this.privateInverseGetFutureUserV1PositionBreakList(parameters));
             } else
             {
                 ((java.util.List<Object>)promisesUnresolved).add(this.privateLinearGetFutureUserV1PositionList(parameters));
-                ((java.util.List<Object>)promisesUnresolved).add(Helpers.callDynamically(this, "privateLinearGetFutureUserV1PositionBreakList", new Object[] { parameters }));
+                ((java.util.List<Object>)promisesUnresolved).add(this.privateLinearGetFutureUserV1PositionBreakList(parameters));
             }
             var responsebreakResponseVariable = (Helpers.promiseAll(promisesUnresolved)).join();
             var response = ((java.util.List<Object>) responsebreakResponseVariable).get(0);
