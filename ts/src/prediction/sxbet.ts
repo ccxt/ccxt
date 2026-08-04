@@ -5,7 +5,7 @@ import { ecdsa } from '../base/functions/crypto.js';
 import { ROUND, DECIMAL_PLACES, TICK_SIZE } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, BadRequest, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from '../base/errors.js';
-import type { Dict, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { Balances, Dict, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ export default class sxbet extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchMarkets': true,
@@ -54,11 +54,11 @@ export default class sxbet extends Exchange {
                 'logo': '', // todo
                 'api': {
                     'sxbet': 'https://api.sx.bet',
-                    'explorer': 'https://explorerl2.sx.technology/api',
+                    'explorer': 'https://explorerl2.sx.technology',
                 },
                 'test': {
                     'sxbet': 'https://api.toronto.sx.bet',
-                    'explorer': 'https://explorerl2.toronto.sx.technology/api',
+                    'explorer': 'https://explorerl2.toronto.sx.technology',
                 },
                 'www': 'https://sx.bet',
                 'doc': [ 'https://docs.sx.bet' ],
@@ -570,7 +570,7 @@ export default class sxbet extends Exchange {
      * @method
      * @name sxbet#loadSxMetadata
      * @description resolves and caches the network-specific values from /metadata needed to build and sign orders: the USDC token address (sx.bet orders can be denominated in USDC or WSX per-order, but every sxbet market's quote/settle is fixed to 'USDC' — see parseSxbetMarket, so only USDC-denominated liquidity/orders are surfaced), the executor address (maker order signing), the EIP-712 fill domain (chainId/version/verifyingContract) and the odds ladder step
-     * @returns {object} a dict with usdcAddress, executorAddress, chainId, fillVerifyingContract, fillDomainVersion, oddsLadderStepSize
+     * @returns {object} a dict with usdcAddress, wsxAddress, executorAddress, chainId, fillVerifyingContract, fillDomainVersion, oddsLadderStepSize, tokenTransferProxy
      */
     async loadSxMetadata (): Promise<Dict> {
         const cached = this.safeDict (this.options, 'sxMetadata');
@@ -583,11 +583,13 @@ export default class sxbet extends Exchange {
         const addressesKeys = Object.keys (addresses);
         const addressesKeysLength = addressesKeys.length;
         let usdcAddress: Str = undefined;
+        let wsxAddress: Str = undefined;
         let chainId: Str = undefined;
         if (addressesKeysLength > 0) {
             chainId = addressesKeys[0];
             const chainAddresses = this.safeDict (addresses, chainId, {});
             usdcAddress = this.safeString (chainAddresses, 'USDC');
+            wsxAddress = this.safeString (chainAddresses, 'WSX');
         }
         const executorAddress = this.safeString (data, 'executorAddress');
         const fillVerifyingContract = this.safeString (data, 'EIP712FillHasher');
@@ -599,6 +601,7 @@ export default class sxbet extends Exchange {
         }
         const metadata: Dict = {
             'usdcAddress': usdcAddress,
+            'wsxAddress': wsxAddress,
             'executorAddress': executorAddress,
             'chainId': chainId,
             'fillVerifyingContract': fillVerifyingContract,
@@ -1615,6 +1618,61 @@ export default class sxbet extends Exchange {
         const response = await this.sxbetPublicGetTrades (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
         return this.safeList (data, 'trades', []);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#fetchExplorerTokenBalance
+     * @description reads one token's raw wallet balance through the SX rollup block explorer API
+     * @param {string} tokenAddress the token contract address
+     * @param {object} [params] extra request params forwarded verbatim
+     * @returns {string} the raw integer balance in token base units
+     */
+    async fetchExplorerTokenBalance (tokenAddress: Str, params = {}): Promise<Str> {
+        const request: Dict = {
+            'module': 'account',
+            'action': 'tokenbalance',
+            'contractaddress': tokenAddress,
+            'address': this.walletAddress,
+        };
+        const response = await this.explorerPublicGetApi (this.extend (request, params));
+        //
+        //     { "message": "OK", "result": "1000000000", "status": "1" }
+        //
+        const status = this.safeString (response, 'status');
+        if (status !== '1') {
+            throw new ExchangeError (this.id + ' fetchBalance() explorer error: ' + this.json (response));
+        }
+        return this.safeString (response, 'result', '0');
+    }
+
+    /**
+     * @method
+     * @name sxbet#fetchBalance
+     * @description fetches the wallet's USDC and WSX balances through the SX rollup block explorer — sx.bet itself has no balance endpoint. resting maker orders lock no funds (tokens only move when a fill settles on-chain), so the whole on-chain balance is reported free
+     * @see https://docs.sx.bet/developers/testnet-and-mainnet
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+     */
+    override async fetchBalance (params = {}): Promise<Balances> {
+        if (this.walletAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchBalance() requires a walletAddress');
+        }
+        const sxMetadata = await this.loadSxMetadata ();
+        const usdcAddress = this.safeString (sxMetadata, 'usdcAddress', '');
+        const wsxAddress = this.safeString (sxMetadata, 'wsxAddress');
+        const usdcRaw = await this.fetchExplorerTokenBalance (usdcAddress, params);
+        const result: Dict = { 'info': { 'USDC': usdcRaw }};
+        const usdcTotal = this.parseNumber (Precise.stringDiv (usdcRaw, '1000000', 6));
+        result['USDC'] = { 'free': usdcTotal, 'used': 0, 'total': usdcTotal };
+        if (wsxAddress !== undefined) {
+            const wsxRaw = await this.fetchExplorerTokenBalance (wsxAddress, params);
+            const wsxTotal = this.parseNumber (Precise.stringDiv (wsxRaw, '1000000000000000000', 8));
+            result['WSX'] = { 'free': wsxTotal, 'used': 0, 'total': wsxTotal };
+            result['info'] = { 'USDC': usdcRaw, 'WSX': wsxRaw };
+        }
+        return this.safeBalance (result) as Balances;
     }
 
     /**
