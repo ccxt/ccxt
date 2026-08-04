@@ -81,12 +81,12 @@ public partial class backpack
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the bitteam api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -114,7 +114,7 @@ public partial class backpack
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the bitteam api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -706,6 +706,12 @@ public partial class backpack
     /// See <see href="https://docs.backpack.exchange/#tag/History/operation/get_order_history"/>  <br/>
     /// <list type="table">
     /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol of the market orders were made in
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>since</term>
     /// <description>
     /// int : the earliest time in ms to fetch orders for
@@ -714,13 +720,13 @@ public partial class backpack
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum number of  orde structures to retrieve (default 100, max 1000)
+    /// int : the maximum number of order structures to retrieve (default 100, max 1000)
     /// </description>
     /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the bitteam api endpoint
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>

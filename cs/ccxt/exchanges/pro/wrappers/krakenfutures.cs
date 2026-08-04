@@ -26,7 +26,7 @@ public partial class krakenfutures
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(List<string> symbols, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -317,7 +317,7 @@ public partial class krakenfutures
         var res = await this.watchBalance(parameters);
         return new Balances(res);
     }
-    public async Task<Dictionary<string, object>> WatchMultiHelper(string unifiedName, string channelName, List<String> symbols = null, object subscriptionArgs = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> WatchMultiHelper(string unifiedName, string channelName, object symbols = null, object subscriptionArgs = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchMultiHelper(unifiedName, channelName, symbols, subscriptionArgs, parameters);
         return ((Dictionary<string, object>)res);

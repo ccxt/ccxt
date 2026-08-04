@@ -3,7 +3,7 @@ import assert from 'assert';
 import testTicker from '../../../test/Exchange/base/test.ticker.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { ArgumentsRequired } from '../../../base/errors.js';
-import { Ticker, Tickers, Str, Strings } from '../../../base/types.js';
+import { Tickers, Str, Strings } from '../../../base/types.js';
 import { Exchange } from "../../../../ccxt.js";
 
 async function testWatchBidsAsks (exchange: Exchange, skippedProperties: object, symbol: string) {
@@ -50,7 +50,7 @@ async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: o
             }
             testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values, checkedSymbol);
             for (let i = 0; i < values.length; i++) {
-                const ticker = values[i] as Ticker;
+                const ticker = values[i];
                 testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
             }
             now = exchange.milliseconds ();

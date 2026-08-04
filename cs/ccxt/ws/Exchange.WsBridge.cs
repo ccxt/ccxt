@@ -75,6 +75,7 @@ public partial class BaseExchange
         }
         object maxRetries = this.handleOption("watchOrderBook", "snapshotMaxRetries", 3);
         object tries = 0;
+        Exception error = null;
         try
         {
             var stored = getValue(this.orderbooks, symbol) as ccxt.pro.IOrderBook;
@@ -94,14 +95,21 @@ public partial class BaseExchange
                 }
                 postFixIncrement(ref tries);
             }
-            (client).reject(new ExchangeError(add(add(add(this.id, " nonce is behind the cache after "), ((object)maxRetries).ToString()), " tries.")), messageHash);
-
+            error = new ExchangeError(add(add(add(this.id, " nonce is behind the cache after "), ((object)maxRetries).ToString()), " tries."));
         }
         catch (Exception e)
         {
-            (client).reject(e, messageHash);
-            await this.loadOrderBook(client, messageHash, symbol, limit, parameters);
+            error = e;
         }
+        // a failed synchronization must not recurse into another attempt with the
+        // same broken state - previously the catch invoked loadOrderBook again,
+        // recursing endlessly when the snapshot request kept failing, see
+        // https://github.com/ccxt/ccxt/pull/24224 and https://github.com/ccxt/ccxt/issues/14567
+        // instead, reject the watcher and drop the connection and the cached
+        // orderbook, so the next watchOrderBook() call resubscribes cleanly
+        (client).reject(error, messageHash);
+        this.clients.TryRemove(client.url, out _);
+        ((System.Collections.Generic.IDictionary<string, object>)this.orderbooks)[(string)symbol] = this.orderBook();
     }
 
 

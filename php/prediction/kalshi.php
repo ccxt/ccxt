@@ -7,6 +7,7 @@ namespace ccxt\prediction;
 
 use Exception; // a common import
 use ccxt\abstract\prediction\kalshi as Exchange;
+use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
@@ -277,7 +278,7 @@ class kalshi extends Exchange {
                         $m = $parsed[$j];
                         $flatMarkets[] = $m;
                         if ($eventKey) {
-                            if (!(is_array($eventsDict) && array_key_exists($eventKey, $eventsDict))) {
+                            if (!(is_array($eventsDict) && array_key_exists($eventKey ?? '', $eventsDict))) {
                                 $eventsDict[$eventKey] = array(
                                     'id' => $eventTicker,
                                     'slug' => $eventTicker,
@@ -356,6 +357,9 @@ class kalshi extends Exchange {
                     if ($this->markets === null) {
                         $this->markets = $this->create_safe_dictionary();
                     }
+                    if ($parsed === null) {
+                        throw new ExchangeError($this->id . ' fetchOutcome() could not resolve parsed');
+                    }
                     $this->markets[$parsed['market']] = $parsed;
                     // index only the market just fetched, not a full O(markets x outcomes) rebuild of the
                     // whole cache — on-demand fetchOutcome (loadAllOutcomes false) is the hot path here
@@ -415,7 +419,7 @@ class kalshi extends Exchange {
                 $symbolLength = $this->parse_to_int(strlen($outcomeSymbol));
                 $suffix = mb_substr($outcomeSymbol, $symbolLength - 3);
                 $baseTicker = ($suffix === '-NO') ? mb_substr($outcomeSymbol, 0, $symbolLength - 3 - 0) : $outcomeSymbol;
-                if (!(is_array($seen) && array_key_exists($baseTicker, $seen))) {
+                if (!(is_array($seen) && array_key_exists($baseTicker ?? '', $seen))) {
                     $seen[$baseTicker] = true;
                     $tickers[] = $baseTicker;
                 }
@@ -443,6 +447,9 @@ class kalshi extends Exchange {
                 $rawMarkets = $this->safe_list($response, 'markets', array());
                 for ($i = 0; $i < count($rawMarkets); $i++) {
                     $parsed = $this->parse_market($rawMarkets[$i]);
+                    if ($parsed === null) {
+                        throw new ExchangeError($this->id . ' fetchOutcomes() could not resolve parsed');
+                    }
                     $this->markets[$parsed['market']] = $parsed;
                     $this->index_market_outcomes($parsed);
                 }
@@ -634,7 +641,7 @@ class kalshi extends Exchange {
                 ),
             );
         }
-        // effectively-final copy for the market object literal below (is_array(the loop) && array_key_exists(reassigned, the loop))
+        // effectively-final copy for the market object literal below (is_array(the loop) && array_key_exists(reassigned ?? '', the loop))
         $marketResolvedOutcome = $resolvedOutcome;
         return array(
             'id' => $ticker,
@@ -815,7 +822,7 @@ class kalshi extends Exchange {
         })();
     }
 
-    public function parse_prediction_open_interest($interest, ?array $market = null): array {
+    public function parse_prediction_open_interest(array $interest, ?array $market = null): array {
         //
         //     array( "ticker" => "...", "open_interest_fp" => "60802.01", ... )   // open $interest in contracts
         //
@@ -992,7 +999,7 @@ class kalshi extends Exchange {
                 if ($ticker === null) {
                     continue;
                 }
-                if (!(is_array($outcomesByTicker) && array_key_exists($ticker, $outcomesByTicker))) {
+                if (!(is_array($outcomesByTicker) && array_key_exists($ticker ?? '', $outcomesByTicker))) {
                     $outcomesByTicker[$ticker] = array();
                     $tickers[] = $ticker;
                 }
@@ -1023,7 +1030,7 @@ class kalshi extends Exchange {
                 for ($i = 0; $i < count($rawMarkets); $i++) {
                     $raw = $rawMarkets[$i];
                     $marketTicker = $this->safe_string($raw, 'ticker');
-                    if (($marketTicker === null) || !(is_array($outcomesByTicker) && array_key_exists($marketTicker, $outcomesByTicker))) {
+                    if (($marketTicker === null) || !(is_array($outcomesByTicker) && array_key_exists($marketTicker ?? '', $outcomesByTicker))) {
                         continue;
                     }
                     $grouped = $outcomesByTicker[$marketTicker];
@@ -1235,7 +1242,7 @@ class kalshi extends Exchange {
         })();
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         /**
          * @ignore
          * parses a single kalshi candlestick object into a CCXT OHLCV tuple, converting cent prices to decimals
@@ -1408,6 +1415,9 @@ class kalshi extends Exchange {
                 // the ticker filter narrows to the market; a market has both legs, so the
                 // wanted-leg filter below still drops the opposite-leg $fills
                 $outcomeObj = $this->outcome($outcome);
+                if ($outcomeObj === null) {
+                    throw new ArgumentsRequired($this->id . ' requires a valid outcome');
+                }
                 $request['ticker'] = $this->safe_string($outcomeObj['info'], 'ticker');
             }
             if ($limit !== null) {
@@ -1526,7 +1536,7 @@ class kalshi extends Exchange {
         })();
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         /**
          * @ignore
          * parses a kalshi balance $response (cents) into a unified balances object with a USD entry
@@ -1573,6 +1583,9 @@ class kalshi extends Exchange {
                 return $parsed;
             }
             $wantedTickers = array();
+            if ($outcomes === null) {
+                throw new ExchangeError($this->id . ' fetchPositions() missing outcomes');
+            }
             for ($i = 0; $i < count($outcomes); $i++) {
                 $outcomeObj = $this->outcome($outcomes[$i]);
                 $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
@@ -1586,7 +1599,7 @@ class kalshi extends Exchange {
                 $position = $parsed[$i];
                 $positionInfo = $this->safe_dict($position, 'info', array());
                 $positionTicker = $this->safe_string($positionInfo, 'ticker');
-                if (($positionTicker !== null) && (is_array($wantedTickers) && array_key_exists($positionTicker, $wantedTickers))) {
+                if (($positionTicker !== null) && (is_array($wantedTickers) && array_key_exists($positionTicker ?? '', $wantedTickers))) {
                     $result[] = $position;
                 }
             }
@@ -1767,6 +1780,9 @@ class kalshi extends Exchange {
             $outcomeObj = null;
             if ($outcome !== null) {
                 $outcomeObj = $this->outcome($outcome);
+                if ($outcomeObj === null) {
+                    throw new ArgumentsRequired($this->id . ' requires a valid outcome');
+                }
                 $request['ticker'] = $this->safe_string($outcomeObj['info'], 'ticker');
             }
             $response = Async\await($this->kalshiPrivateGetPortfolioOrders($this->extend($request, $params)));
@@ -1796,6 +1812,9 @@ class kalshi extends Exchange {
             $outcomeObj = null;
             if ($outcome !== null) {
                 $outcomeObj = $this->outcome($outcome);
+                if ($outcomeObj === null) {
+                    throw new ArgumentsRequired($this->id . ' requires a valid outcome');
+                }
                 $request['ticker'] = $this->safe_string($outcomeObj['info'], 'ticker');
             }
             $response = Async\await($this->kalshiPrivateGetPortfolioOrders($this->extend($request, $params)));
@@ -2148,7 +2167,7 @@ class kalshi extends Exchange {
         })();
     }
 
-    public function fetch_events(array $params = array()): PromiseInterface {
+    public function fetch_events($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches kalshi events scoped by a search query, tag, category or series ticker — always live from the API, never from the local cache (it POPULATES the cache for later event()/outcome lookups). the scope decides the endpoint => a free-text `query` hits kalshi's ranked search endpoint and the top `limit` matches are fetched canonically; `tags`/`category` resolve to series via the /series listing then fetch their events; `series_ticker` is used verbatim. `limit` bounds how many events are actually fetched (broad scopes stop early), and any other param is forwarded straight to the /events endpoint.
@@ -2166,6 +2185,9 @@ class kalshi extends Exchange {
              * @return {array[]} an array of event structures
              */
             $queries = $this->parse_search_queries($params);
+            if ($queries === null) {
+                throw new ExchangeError($this->id . ' fetchEvents() missing queries');
+            }
             $queriesLength = count($queries);
             $params = $this->omit($params, array( 'query', 'queries' ));
             $userLimit = $this->safe_integer($params, 'limit');

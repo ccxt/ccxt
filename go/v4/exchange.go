@@ -10,6 +10,7 @@ import (
 	"math"
 	"math/big"
 	random2 "math/rand"
+	"net"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -130,7 +131,8 @@ type BaseExchange struct {
 	WalletAddress interface{}
 	Twofa         interface{}
 
-	httpClient *http.Client
+	httpClient   *http.Client
+	lastProxyURL string
 
 	HttpProxy            interface{}
 	Http_proxy           interface{}
@@ -291,7 +293,7 @@ func (this *BaseExchange) InitParent(userConfig map[string]any, exchangeConfig m
 
 	this.streaming = this.SafeDict(extendedProperties, "streaming", map[string]any{}).(map[string]any)
 	this.transformApiNew(this.Api)
-	transport := &http.Transport{}
+	transport := newDualStackTransport()
 
 	this.httpClient = &http.Client{
 		Timeout:   30 * time.Second,
@@ -311,6 +313,49 @@ func (this *BaseExchange) Init(userConfig map[string]any) {
 		this.MarketsMutex = &sync.Mutex{}
 	}
 	// to do
+}
+
+
+// Dual-stack (IPv4 + IPv6) networking helpers for the hand-written Go base.
+// Every HTTP transport and WebSocket dialer constructed by the base exchange
+// must dial with network "tcp" so that Go's Happy Eyeballs (RFC 8305)
+// implementation can race IPv4 and IPv6 and pick whichever works. Hard-coding
+// a single-stack network like tcp4 (or leaving dialing to components that do)
+// breaks IPv6-only hosts, so these helpers centralize the dialer/transport
+// construction in one place (same file as the exchange HTTP client setup).
+
+// newDualStackDialer returns a *net.Dialer whose Dial/DialContext methods are
+// intended to be called with network "tcp" (the http.Transport and
+// websocket.Dialer defaults), which dials dual-stack via Happy Eyeballs.
+// The deprecated net.Dialer.DualStack field is intentionally not set: since
+// Go 1.20 dual-stack is always enabled when dialing "tcp".
+//
+// FallbackDelay controls Fast Fallback (Happy Eyeballs): a zero value means
+// the 300ms default, and a negative value disables Fast Fallback entirely.
+// 1ns is the smallest positive time.Duration, so it starts racing the other
+// address family as soon as possible. Never set this to a negative value.
+func newDualStackDialer() *net.Dialer {
+	return &net.Dialer{
+		Timeout:       30 * time.Second,
+		KeepAlive:     30 * time.Second,
+		FallbackDelay: 1 * time.Nanosecond,
+	}
+}
+
+// newDualStackTransport returns an *http.Transport with an explicit
+// dual-stack DialContext. Never dial with a single-stack network such as
+// tcp4 — always use "tcp".
+func newDualStackTransport() *http.Transport {
+	return &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		// network "tcp" → dual-stack Happy Eyeballs
+		DialContext:           newDualStackDialer().DialContext,
+		ForceAttemptHTTP2:     false, // keep HTTP/1.1 semantics of the previous bare Transport
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
 }
 
 func NewExchange() ICoreExchange {
@@ -1591,23 +1636,25 @@ func (this *BaseExchange) UpdateProxySettings() {
 	this.CheckConflictingProxies(hasHttProxyDefined, proxyUrl)
 
 	if hasHttProxyDefined {
-		proxyTransport := &http.Transport{
-			// MaxIdleConns:       100,
-			// IdleConnTimeout:    90 * time.Second,
-			// DisableCompression: false,
-			// DisableKeepAlives:  false,
-		}
-
 		proxyUrlStr := ""
 		if httProxy != nil {
 			proxyUrlStr = httProxy.(string)
 		} else {
 			proxyUrlStr = httpsProxy.(string)
 		}
-		proxyURLParsed, _ := url.Parse(proxyUrlStr)
-		proxyTransport.Proxy = http.ProxyURL(proxyURLParsed)
-
-		this.httpClient.Transport = proxyTransport
+		// rebuild the transport only when the proxy URL changes, otherwise a
+		// fresh transport (and connection pool) is created on every request
+		if proxyUrlStr != this.lastProxyURL || this.httpClient.Transport == nil {
+			proxyURLParsed, _ := url.Parse(proxyUrlStr)
+			this.httpClient.Transport = &http.Transport{
+				Proxy:               http.ProxyURL(proxyURLParsed),
+				DialContext:         newDualStackDialer().DialContext, // dual-stack dial to the proxy
+				MaxConnsPerHost:     8,                                // hard ceiling per target host
+				MaxIdleConnsPerHost: 4,                                // reuse pool
+				IdleConnTimeout:     90 * time.Second,
+			}
+			this.lastProxyURL = proxyUrlStr
+		}
 	}
 }
 
@@ -1789,7 +1836,8 @@ func (this *BaseExchange) SetProxyAgents(httpProxy any, httpsProxy any, socksPro
 			return nil, BadRequest(this.Id + " invalid HTTP proxy URL: " + err.Error())
 		}
 		transport = &http.Transport{
-			Proxy: http.ProxyURL(proxyURL),
+			Proxy:       http.ProxyURL(proxyURL),
+			DialContext: newDualStackDialer().DialContext, // dual-stack dial to the proxy
 		}
 	} else if httpsProxy != "" {
 		// Handle HTTPS proxy
@@ -1798,7 +1846,8 @@ func (this *BaseExchange) SetProxyAgents(httpProxy any, httpsProxy any, socksPro
 			return nil, BadRequest(this.Id + " invalid HTTPS proxy URL: " + err.Error())
 		}
 		transport = &http.Transport{
-			Proxy: http.ProxyURL(proxyURL),
+			Proxy:       http.ProxyURL(proxyURL),
+			DialContext: newDualStackDialer().DialContext, // dual-stack dial to the proxy
 		}
 	} else if socksProxy != "" {
 		// Handle SOCKS proxy
@@ -2141,6 +2190,8 @@ func (this *Exchange) LoadOrderBook(client any, messageHash any, symbol any, opt
 		errorMsg := fmt.Sprintf("%s nonce is behind the cache after %v tries.", this.Id, maxRetries)
 		client.(*Client).Reject(ExchangeError(errorMsg), messageHash)
 		delete(this.Clients, client.(*Client).Url)
+		// clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753 (parity with the other ports, see #29399)
+		this.Orderbooks.Store(symbol.(string), this.OrderBook())
 	} else {
 		client.(*Client).Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
 		return nil

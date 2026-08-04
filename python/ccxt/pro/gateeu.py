@@ -16,7 +16,10 @@ class gateeu(gate):
         restInstance = gateeuRest()
         restDescribe = restInstance.describe()
         parentWsDescribe = super(gateeu, self).describe_data()
-        extended = self.deep_extend(parentWsDescribe, restDescribe)
+        # the ws describe-data must be applied on top of the rest describe,
+        # otherwise the explicit-None watch* defaults of the rest 'has'
+        # block wipe the parent's ws capability flags in the deep self.extend
+        extended = self.deep_extend(restDescribe, parentWsDescribe)
         return self.deep_extend(extended, {
             'id': 'gateeu',
             'name': 'Gate EU',

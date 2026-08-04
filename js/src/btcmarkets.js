@@ -521,7 +521,7 @@ export default class btcmarkets extends Exchange {
         if (quote === 'AUD') {
             minPrice = pricePrecision;
         }
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': symbol,
             'base': base,
@@ -571,7 +571,7 @@ export default class btcmarkets extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     /**
      * @method
@@ -599,7 +599,9 @@ export default class btcmarkets extends Exchange {
             const account = this.account();
             account['used'] = this.safeString(balance, 'locked');
             account['total'] = this.safeString(balance, 'balance');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -688,7 +690,7 @@ export default class btcmarkets extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1023,7 +1025,7 @@ export default class btcmarkets extends Exchange {
      * @description cancel multiple orders
      * @see https://docs.btcmarkets.net/v3/#tag/Batch-Order-APIs/paths/~1v3~1batchorders~1{ids}/delete
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by btcmarkets cancelOrders ()
+     * @param {string} symbol not used by cancelOrders ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1069,7 +1071,7 @@ export default class btcmarkets extends Exchange {
      * @description cancels an open order
      * @see https://docs.btcmarkets.net/v3/#operation/cancelOrder
      * @param {string} id order id
-     * @param {string} symbol not used by btcmarket cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1102,7 +1104,7 @@ export default class btcmarkets extends Exchange {
          * @param {object} params
          * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
          */
-        const market = this.markets[symbol];
+        const market = this.market(symbol);
         let currency = undefined;
         let cost = undefined;
         if (market['quote'] === 'AUD') {
@@ -1116,13 +1118,17 @@ export default class btcmarkets extends Exchange {
             currency = market['base'];
             cost = this.amountToPrecision(symbol, amount);
         }
-        const rate = market[takerOrMaker];
+        const rate = this.safeValue(market, takerOrMaker);
         const rateCost = Precise.stringMul(this.numberToString(rate), cost);
+        let feeCost = this.feeToPrecision(symbol, rateCost);
+        if (feeCost === undefined) {
+            feeCost = '0';
+        }
         return {
             'type': takerOrMaker,
             'currency': currency,
             'rate': rate,
-            'cost': parseFloat(this.feeToPrecision(symbol, rateCost)),
+            'cost': parseFloat(feeCost),
         };
     }
     parseOrderStatus(status) {

@@ -631,7 +631,7 @@ class woo extends Exchange {
                     'symbol must not be blank' => '\\ccxt\\BadRequest', // when sending 'cancelOrder' without symbol [-1005]
                     'The token is not supported' => '\\ccxt\\BadRequest', // when getting incorrect token's deposit address [-1005]
                     'Your order and symbol are not valid or already canceled' => '\\ccxt\\BadRequest', // actual response whensending 'cancelOrder' for already canceled id [-1006]
-                    'Insufficient WOO. Please enable margin trading for leverage trading' => '\\ccxt\\BadRequest', // when selling insufficent token [-1012]
+                    'Insufficient WOO. Please enable margin trading for leverage trading' => '\\ccxt\\BadRequest', // when selling insufficient token [-1012]
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -787,7 +787,7 @@ class woo extends Exchange {
             $inverse = false;
         }
         $active = $this->safe_string($market, 'status') === 'TRADING';
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
             'base' => $base,
@@ -835,7 +835,7 @@ class woo extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -914,7 +914,7 @@ class woo extends Exchange {
         //         "isMaker" => 0
         //     }
         //
-        $isFromFetchOrder = (is_array($trade) && array_key_exists('id', $trade));
+        $isFromFetchOrder = (is_array($trade) && array_key_exists('id' ?? '', $trade));
         $timestampString = $this->safe_string_2($trade, 'executed_timestamp', 'executedTimestamp');
         $timestamp = null;
         if ($timestampString !== null) {
@@ -960,7 +960,7 @@ class woo extends Exchange {
         ), $market);
     }
 
-    public function parse_token_and_fee_temp($item, $feeTokenKeys, $feeAmountKeys) {
+    public function parse_token_and_fee_temp(mixed $item, mixed $feeTokenKeys, mixed $feeAmountKeys) {
         $feeCost = $this->safe_string_n($item, $feeAmountKeys);
         $fee = null;
         if ($feeCost !== null) {
@@ -1143,7 +1143,7 @@ class woo extends Exchange {
         //     "success" => true
         // }
         //
-        // only make one request for currrencies...
+        // only make one request for currencies...
         $tokenNetworkResponsePromise = $this->v1PublicGetTokenNetwork($params);
         //
         // {
@@ -1188,7 +1188,9 @@ class woo extends Exchange {
             );
             $parsed = $this->parse_currency($customCurrency);
             $code = $this->safe_string($parsed, 'code');
-            $result[$code] = $parsed;
+            if ($code !== null) {
+                $result[$code] = $parsed;
+            }
         }
         return $result;
     }
@@ -1206,27 +1208,29 @@ class woo extends Exchange {
             $networkEntry = $this->safe_dict($chainsByNetworkId, $networkId, array());
             $networkCode = $this->network_id_to_code($networkId, $code);
             $specialNetworkId = $this->safe_string($tokenEntry, 'token');
-            $resultingNetworks[$networkCode] = array(
-                'id' => $networkId,
-                'currencyNetworkId' => $specialNetworkId, // exchange uses special crrency-ids (coin . network junction)
-                'network' => $networkCode,
-                'active' => null,
-                'deposit' => $this->safe_string($networkEntry, 'allow_deposit') === '1',
-                'withdraw' => $this->safe_string($networkEntry, 'allow_withdraw') === '1',
-                'fee' => $this->safe_number($networkEntry, 'withdrawal_fee'),
-                'precision' => $this->parse_number($this->parse_precision($this->safe_string($tokenEntry, 'decimals'))),
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($networkEntry, 'minimum_withdrawal'),
-                        'max' => null,
+            if ($networkCode !== null) {
+                $resultingNetworks[$networkCode] = array(
+                    'id' => $networkId,
+                    'currencyNetworkId' => $specialNetworkId, // exchange uses special currency-ids (coin . network junction)
+                    'network' => $networkCode,
+                    'active' => null,
+                    'deposit' => $this->safe_string($networkEntry, 'allow_deposit') === '1',
+                    'withdraw' => $this->safe_string($networkEntry, 'allow_withdraw') === '1',
+                    'fee' => $this->safe_number($networkEntry, 'withdrawal_fee'),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($tokenEntry, 'decimals'))),
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($networkEntry, 'minimum_withdrawal'),
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'info' => array( 'network' => $networkEntry, 'token' => $tokenEntry ),
-            );
+                    'info' => array( 'network' => $networkEntry, 'token' => $tokenEntry ),
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $currencyId,
@@ -1547,7 +1551,7 @@ class woo extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function encode_margin_mode($mode) {
+    public function encode_margin_mode(mixed $mode) {
         $modes = array(
             'cross' => 'CROSS',
             'isolated' => 'ISOLATED',
@@ -1724,7 +1728,7 @@ class woo extends Exchange {
          * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
          *
          * cancel all open orders in a $market
-         * @param {string} $symbol unified $market $symbol
+         * @param {string} [$symbol] unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
@@ -2192,7 +2196,7 @@ class woo extends Exchange {
             $timestamp = $this->safe_integer($order, 'timestamp');
         }
         $orderId = $this->safe_string_2($order, 'orderId', 'algoOrderId');
-        $clientOrderId = $this->omit_zero(($this->safe_string_2($order, 'clientOrderId', 'clientAlgoOrderId'))); // Somehow, this always returns 0 for limit $order
+        $clientOrderId = $this->omit_zero($this->safe_string_2($order, 'clientOrderId', 'clientAlgoOrderId')); // Somehow, this always returns 0 for limit $order
         $marketId = $this->safe_string($order, 'symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
@@ -2203,7 +2207,7 @@ class woo extends Exchange {
         $status = $this->safe_value_2($order, 'status', 'algoStatus');
         $side = $this->safe_string_lower($order, 'side');
         $filled = $this->omit_zero($this->safe_value_2($order, 'executed', 'totalExecutedQuantity'));
-        $average = $this->omit_zero(($this->safe_string($order, 'averageExecutedPrice')));
+        $average = $this->omit_zero($this->safe_string($order, 'averageExecutedPrice'));
         // $remaining = Precise::string_sub($cost, $filled);
         $fee = $this->safe_number($order, 'totalFee');
         $feeCurrency = $this->safe_string($order, 'feeAsset');
@@ -2276,7 +2280,7 @@ class woo extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -2324,7 +2328,7 @@ class woo extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] max=1000, max=100 when $since is defined and is less than (now - (999 * (is_array(ms) && array_key_exists($timeframe, ms))))
+         * @param {int} [$limit] max=1000, max=100 when $since is defined and is less than (now - (999 * (is_array(ms) && array_key_exists($timeframe ?? '', ms))))
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
@@ -2376,7 +2380,7 @@ class woo extends Exchange {
         return $this->parse_ohlcvs($rows, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 'startTimestamp'),
             $this->safe_number($ohlcv, 'open'),
@@ -2571,7 +2575,7 @@ class woo extends Exchange {
         return $this->parse_accounts($rows, $params);
     }
 
-    public function parse_account($account) {
+    public function parse_account(mixed $account) {
         //
         //     {
         //         "applicationId" => "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
@@ -2652,7 +2656,7 @@ class woo extends Exchange {
         return $this->parse_balance($data);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
         );
@@ -2663,7 +2667,9 @@ class woo extends Exchange {
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'holding');
             $account['free'] = $this->safe_string($balance, 'availableBalance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -2704,11 +2710,11 @@ class woo extends Exchange {
         return $this->parse_deposit_address($data, $currency);
     }
 
-    public function get_dedicated_network_id($currency, array $params): mixed {
+    public function get_dedicated_network_id(mixed $currency, array $params): mixed {
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         $networkCode = $this->network_id_to_code($networkCode, $currency['code']);
-        $networkEntry = $this->safe_dict($currency['networks'], $networkCode);
+        $networkEntry = ($networkCode === null) ? null : $this->safe_dict($currency['networks'], $networkCode);
         if ($networkEntry === null) {
             $supportedNetworks = is_array($currency['networks']) ? array_keys($currency['networks']) : array();
             throw new BadRequest($this->id . '  can not determine a network code, please provide unified "network" param, one from the following => ' . $this->json($supportedNetworks));
@@ -2717,7 +2723,7 @@ class woo extends Exchange {
         return array( $currentyNetworkId, $params );
     }
 
-    public function parse_deposit_address($depositEntry, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositEntry, ?array $currency = null): array {
         $address = $this->safe_string($depositEntry, 'address');
         $this->check_address($address);
         return array(
@@ -2863,7 +2869,7 @@ class woo extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'BALANCE' => 'transaction', // Funds moved in/out wallet
             'COLLATERAL' => 'transfer', // Funds moved between portfolios
@@ -2871,7 +2877,7 @@ class woo extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function get_currency_from_chaincode($networkizedCode, $currency) {
+    public function get_currency_from_chaincode(mixed $networkizedCode, mixed $currency) {
         if ($currency !== null) {
             return $currency;
         } else {
@@ -3292,7 +3298,7 @@ class woo extends Exchange {
         ));
     }
 
-    public function parse_margin_loan($info, ?array $currency = null) {
+    public function parse_margin_loan(mixed $info, ?array $currency = null) {
         //
         //     {
         //         "success" => true,
@@ -3313,7 +3319,7 @@ class woo extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
@@ -3384,7 +3390,7 @@ class woo extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
         }
@@ -3402,7 +3408,7 @@ class woo extends Exchange {
         return null;
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         //     {
         //         "id" => 1286360,
@@ -3509,7 +3515,7 @@ class woo extends Exchange {
         return $this->parse_incomes($rows, $market, $since, $limit);
     }
 
-    public function parse_funding_rate($fundingRate, ?array $market = null): array {
+    public function parse_funding_rate(mixed $fundingRate, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "PERP_BTC_USDT",
@@ -3969,7 +3975,7 @@ class woo extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'REDUCE', $params);
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): array {
+    public function modify_margin_helper(string $symbol, mixed $amount, mixed $type, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -3983,7 +3989,7 @@ class woo extends Exchange {
         return $this->v1PrivatePostClientIsolatedMargin($this->extend($request, $params));
     }
 
-    public function fetch_position(?string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()) {
         /**
          * fetch data on an open position
          *
@@ -4456,34 +4462,36 @@ class woo extends Exchange {
             $entry = $data[$i];
             $id = $this->safe_string($entry, 'token');
             $code = $this->safe_currency_code($id);
-            $result[$code] = array(
-                'info' => $entry,
-                'id' => $id,
-                'code' => $code,
-                'networks' => null,
-                'type' => null,
-                'name' => null,
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
-                'precision' => $this->safe_number($entry, 'tick'),
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
+            if ($code !== null) {
+                $result[$code] = array(
+                    'info' => $entry,
+                    'id' => $id,
+                    'code' => $code,
+                    'networks' => null,
+                    'type' => null,
+                    'name' => null,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'precision' => $this->safe_number($entry, 'tick'),
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'created' => $this->safe_timestamp($entry, 'createdTime'),
-            );
+                    'created' => $this->safe_timestamp($entry, 'createdTime'),
+                );
+            }
         }
         return $result;
     }
@@ -4578,7 +4586,7 @@ class woo extends Exchange {
         );
     }
 
-    public function default_network_code_for_currency($code) {
+    public function default_network_code_for_currency(mixed $code) {
         $currencyItem = $this->currency($code);
         $networks = $currencyItem['networks'];
         $networkKeys = is_array($networks) ? array_keys($networks) : array();

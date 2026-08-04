@@ -69,18 +69,15 @@ function assertStructure(exchange, skippedProperties, method, entry, format, emp
         for (let i = 0; i < format.length; i++) {
             const emptyAllowedForThisKey = (emptyAllowedFor === undefined) || exchange.inArray(i, emptyAllowedFor);
             const value = entry[i];
-            if (i in skippedProperties) {
-                continue;
-            }
             // check when:
             // - it's not inside "allowe empty values" list
             // - it's not undefined
-            if (emptyAllowedForThisKey && (value === undefined)) {
+            if ((emptyAllowedForThisKey && (value === undefined)) || (i in skippedProperties)) {
                 continue;
             }
             assert(value !== undefined, i.toString() + ' index is expected to have a value' + logText);
             // because of other langs, this is needed for arrays
-            const typeAssertion = assertType(exchange, skippedProperties, entry, i, format);
+            const typeAssertion = assertType(exchange, {}, entry, i, format);
             assert(typeAssertion, i.toString() + ' index does not have an expected type ' + logText);
         }
     }
@@ -90,16 +87,15 @@ function assertStructure(exchange, skippedProperties, method, entry, format, emp
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             if (key in skippedProperties) {
+                // a skipped key must not be required to exist at all, e.g. prediction
+                // market structures are keyed by an outcome handle and omit 'symbol'
                 continue;
             }
             assert(key in entry, '"' + stringValue(key) + '" key is missing from structure' + logText);
-            if (key in skippedProperties) {
-                continue;
-            }
             const emptyAllowedForThisKey = (emptyAllowedFor === undefined) || exchange.inArray(key, emptyAllowedFor);
             const value = entry[key];
             // check when:
-            // - it's not inside "allowe empty values" list
+            // - it's not inside "allowed empty values" list
             // - it's not undefined
             if (emptyAllowedForThisKey && (value === undefined)) {
                 continue;
@@ -108,7 +104,7 @@ function assertStructure(exchange, skippedProperties, method, entry, format, emp
             assert(value !== undefined, '"' + stringValue(key) + '" key is expected to have a value' + logText);
             // add exclusion for info key, as it can be any type
             if (key !== 'info') {
-                const typeAssertion = assertType(exchange, skippedProperties, entry, key, format);
+                const typeAssertion = assertType(exchange, {}, entry, key, format);
                 assert(typeAssertion, '"' + stringValue(key) + '" key is neither undefined, neither of expected type' + logText);
                 if (deep) {
                     if (exchange.isDictionary(value) || Array.isArray(value)) {
@@ -169,6 +165,9 @@ function assertTimestampAndDatetime(exchange, skippedProperties, method, entry, 
             // so, we have to compare with millisecond accururacy
             const dtParsed = exchange.parse8601(dt);
             const tsMs = entry['timestamp'];
+            if (dtParsed === undefined) {
+                assert(false, 'datetime is not parseable: ' + dt + logText);
+            }
             const diff = Math.abs(dtParsed - tsMs);
             if (diff >= 500) { // tolerate up to 500ms skew // TODO: dont know if this is a proper solution
                 const dtParsedString = exchange.iso8601(dtParsed);
@@ -230,7 +229,7 @@ function assertSymbol(exchange, skippedProperties, method, entry, key, expectedS
 }
 function assertSymbolInMarkets(exchange, skippedProperties, method, symbol) {
     const logText = logTemplate(exchange, method, {});
-    assert((symbol in exchange.markets), 'symbol should be present in exchange.symbols' + logText);
+    assert((exchange.markets !== undefined) && (symbol in exchange.markets), 'symbol should be present in exchange.symbols' + logText);
 }
 function assertGreater(exchange, skippedProperties, method, entry, key, compareTo, allowNull = true) {
     if (key in skippedProperties) {
@@ -622,7 +621,7 @@ async function validateTickerExceptionForPercentage(ex, exchange, ticker) {
         const symbol = ticker['symbol'];
         if (symbol !== undefined) {
             // if it's not in markets, then maybe newly added symbol, so can can compromise there
-            if (!(symbol in exchange.markets)) {
+            if ((exchange.markets === undefined) || !(symbol in exchange.markets)) {
                 return;
             }
             // if OHLCV supported

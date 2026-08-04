@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LongShortRatio, MarginModification, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, OpenInterests, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Account, Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LongShortRatio, MarginModification, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, OpenInterests, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -33,6 +33,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import NullResponse
 from ccxt.base.errors import CancelPending
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -1473,7 +1474,7 @@ class okx(Exchange, ImplicitAPI):
             'rollingWindowSize': 0.0,  # okx always receives rateLimitExceeded with rolling window
         })
 
-    def handle_market_type_and_params(self, methodName: str, market: Market = None, params={}, defaultValue: Any = None) -> Any:
+    def handle_market_type_and_params(self, methodName: str, market: Market = None, params: dict = {}, defaultValue: Any = None) -> Any:
         instType = self.safe_string(params, 'instType')
         params = self.omit(params, 'instType')
         type = self.safe_string(params, 'type')
@@ -1481,7 +1482,7 @@ class okx(Exchange, ImplicitAPI):
             params['type'] = instType
         return super(okx, self).handle_market_type_and_params(methodName, market, params, defaultValue)
 
-    def convert_to_instrument_type(self, type):
+    def convert_to_instrument_type(self, type: Any):
         exchangeTypes = self.safe_dict(self.options, 'exchangeType', {})
         return self.safe_string(exchangeTypes, type, type)
 
@@ -1558,7 +1559,7 @@ class okx(Exchange, ImplicitAPI):
             # "PERFTESTA-PERFTESTB") options, which would crash createExpiredOptionMarket
             # on the missing expiry.
             isOption = (partsLength > 3) and (marketId.endswith('-C') or marketId.endswith('-P'))
-        if isOption and (marketId is not None) and not (marketId in self.markets_by_id):
+        if isOption and (marketId is not None) and ((self.markets_by_id is None) or not (marketId in self.markets_by_id)):
             # handle expired option contracts
             return self.create_expired_option_market(marketId)
         return super(okx, self).safe_market(marketId, market, delimiter, marketType)
@@ -1884,7 +1885,7 @@ class okx(Exchange, ImplicitAPI):
                 },
                 'amount': {
                     'min': self.safe_number(market, 'minSz'),
-                    'max': None,
+                    'max': self.safe_number(market, 'maxLmtSz'),
                 },
                 'price': {
                     'min': None,
@@ -1898,7 +1899,7 @@ class okx(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    async def fetch_markets_by_type(self, type, params={}):
+    async def fetch_markets_by_type(self, type: Any, params={}):
         request = {
             'instType': self.convert_to_instrument_type(type),
         }
@@ -2034,7 +2035,7 @@ class okx(Exchange, ImplicitAPI):
         currencies = list(dataByCurrencyId.values())
         return self.parse_currencies(currencies)
 
-    def parse_currency(self, currency: dict) -> Currency:
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
         chains = currency
         # currencies are grouped by chain entries, so there is at least one entry
         firstChain = self.safe_dict(chains, 0, {})
@@ -2054,22 +2055,23 @@ class okx(Exchange, ImplicitAPI):
             parts = self.array_slice(idParts, 1)
             chainPart = '-'.join(parts)
             networkCode = self.network_id_to_code(chainPart, code)
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'active': None,
-                'deposit': self.safe_bool(chain, 'canDep'),
-                'withdraw': self.safe_bool(chain, 'canWd'),
-                'fee': self.safe_number(chain, 'fee'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'wdTickSz'))),
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number(chain, 'minWd'),
-                        'max': self.safe_number(chain, 'maxWd'),
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': self.safe_bool(chain, 'canDep'),
+                    'withdraw': self.safe_bool(chain, 'canWd'),
+                    'fee': self.safe_number(chain, 'fee'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'wdTickSz'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(chain, 'minWd'),
+                            'max': self.safe_number(chain, 'maxWd'),
+                        },
                     },
-                },
-                'info': chain,
-            }
+                    'info': chain,
+                }
         return self.safe_currency_structure({
             'info': chains,
             'code': code,
@@ -2101,7 +2103,7 @@ class okx(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -2551,7 +2553,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     [
         #         "1678928760000",  # timestamp
@@ -2749,13 +2751,13 @@ class okx(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def parse_balance_by_type(self, type, response):
+    def parse_balance_by_type(self, type: Any, response: Any):
         if type == 'funding':
             return self.parse_funding_balance(response)
         else:
             return self.parse_trading_balance(response)
 
-    def parse_trading_balance(self, response):
+    def parse_trading_balance(self, response: Any):
         result = {'info': response}
         data = self.safe_list(response, 'data', [])
         first = self.safe_dict(data, 0, {})
@@ -2775,12 +2777,13 @@ class okx(Exchange, ImplicitAPI):
                 account['used'] = self.safe_string(balance, 'frozenBal')
             else:
                 account['free'] = availEq
-            result[code] = account
+            if code is not None:
+                result[code] = account
         result['timestamp'] = timestamp
         result['datetime'] = self.iso8601(timestamp)
         return self.safe_balance(result)
 
-    def parse_funding_balance(self, response):
+    def parse_funding_balance(self, response: Any):
         result = {'info': response}
         data = self.safe_list(response, 'data', [])
         for i in range(0, len(data)):
@@ -2792,7 +2795,8 @@ class okx(Exchange, ImplicitAPI):
             account['total'] = self.safe_string(balance, 'bal')
             account['free'] = self.safe_string(balance, 'availBal')
             account['used'] = self.safe_string(balance, 'frozenBal')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
@@ -3037,7 +3041,11 @@ class okx(Exchange, ImplicitAPI):
         }
         return await self.create_order(symbol, 'market', 'sell', cost, None, self.extend(req, params))
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'tpTriggerPx')
         stopLossPrice = self.safe_value_2(params, 'stopLossPrice', 'slTriggerPx')
@@ -3095,7 +3103,7 @@ class okx(Exchange, ImplicitAPI):
         trigger = (triggerPrice is not None) or (type == 'trigger')
         isReduceOnly = self.safe_value(params, 'reduceOnly', False) or (closeFraction is not None)
         defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string_2(params, 'marginMode', 'tdMode')  # cross or isolated, tdMode not ommited so be extended into the request
+        marginMode = self.safe_string_2(params, 'marginMode', 'tdMode')  # cross or isolated, tdMode not omitted so be extended into the request
         margin = False
         if (marginMode is not None) and (marginMode != 'cash'):
             margin = True
@@ -3407,7 +3415,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data)
 
-    def edit_order_request(self, id: str, symbol, type, side, amount: Num = None, price: Num = None, params={}):
+    def edit_order_request(self, id: str, symbol: Str, type: Any, side: Any, amount: Num = None, price: Num = None, params={}):
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -3590,7 +3598,7 @@ class okx(Exchange, ImplicitAPI):
         order = self.safe_dict(data, 0)
         return self.parse_order(order, market)
 
-    def parse_ids(self, ids):
+    def parse_ids(self, ids: Any):
         """
  @ignore
         :param string[]|str ids: order ids
@@ -4967,7 +4975,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ledger(data, currency, since, limit)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         types = {
             '1': 'transfer',  # transfer
             '2': 'trade',  # trade
@@ -5051,7 +5059,7 @@ class okx(Exchange, ImplicitAPI):
             'fee': fee,
         }, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "addr": "okbtothemoon",
@@ -5206,14 +5214,15 @@ class okx(Exchange, ImplicitAPI):
         params = self.omit(params, 'network')
         code = self.safe_currency_code(code)
         network = self.network_id_to_code(rawNetwork, code)
-        response = await self.fetch_deposit_addresses_by_network(code, params)
+        responseRaw = await self.fetch_deposit_addresses_by_network(code, params)
+        response = responseRaw
         if network is not None:
             result = self.safe_dict(response, network)
             if result is None:
                 raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
             return result
         codeNetwork = self.network_id_to_code(code, code)
-        if codeNetwork in response:
+        if (codeNetwork is not None) and (codeNetwork in response):
             return response[codeNetwork]
         # if the network is not specified, return the first address
         keys = list(response.keys())
@@ -5256,7 +5265,8 @@ class okx(Exchange, ImplicitAPI):
         if fee is None:
             currencies = await self.fetch_currencies()
             self.currencies = self.map_to_safe_map(self.deep_extend(self.currencies, currencies))
-            targetNetwork = self.safe_dict(currency['networks'], self.network_id_to_code(network, currency['code']), {})
+            networkCodeResolved = self.network_id_to_code(network, currency['code'])
+            targetNetwork = {} if (networkCodeResolved is None) else self.safe_dict(currency['networks'], networkCodeResolved, {})
             fee = self.safe_string(targetNetwork, 'fee')
             if fee is None:
                 raise ArgumentsRequired(self.id + ' withdraw() requires a "fee" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set "0". Withdrawing to external digital asset address requires network transaction fee.')
@@ -5714,7 +5724,7 @@ class okx(Exchange, ImplicitAPI):
             'shortLeverage': shortLeverage,
         }
 
-    async def fetch_position(self, symbol: str, params={}):
+    async def fetch_position(self, symbol: str, params={}) -> Position:
         """
         fetch data on a single open contract trade position
 
@@ -5786,7 +5796,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         position = self.safe_dict(data, 0)
         if position is None:
-            return None
+            raise NullResponse(self.id + ' fetchPosition() could not find a position for ' + symbol)
         return self.parse_position(position, market)
 
     async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
@@ -6009,7 +6019,8 @@ class okx(Exchange, ImplicitAPI):
             initialMarginPercentage = self.parse_number(Precise.string_div(initialMarginString, notionalString, 4))
         elif initialMarginString is None:
             if market['linear']:
-                initialMarginString = Precise.string_mul(initialMarginPercentage, notionalString)
+                initialMarginPercentageString = self.number_to_string(initialMarginPercentage)
+                initialMarginString = Precise.string_mul(initialMarginPercentageString, notionalString)
             else:
                 initialMarginString = Precise.string_div(Precise.string_div(Precise.string_mul(contractsAbs, contractSizeString), entryPriceString), leverageString)
         rounder = '0.00005'  # round to closest 0.01%
@@ -6297,7 +6308,7 @@ class okx(Exchange, ImplicitAPI):
         transfers = self.safe_list(response, 'data', [])
         return self.parse_transfers(transfers, currency, since, limit, params)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         isArray = isinstance(params, list)
         request = '/api/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
@@ -6348,7 +6359,7 @@ class okx(Exchange, ImplicitAPI):
             headers['OK-ACCESS-SIGN'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
         #
         #    {
         #        "fundingRate": "0.00027815",
@@ -6408,7 +6419,7 @@ class okx(Exchange, ImplicitAPI):
             'interval': self.parse_funding_interval(millisecondsInterval),
         }
 
-    def parse_funding_interval(self, interval):
+    def parse_funding_interval(self, interval: Any):
         intervals = {
             '3600000': '1h',
             '7200000': '2h',
@@ -6444,8 +6455,11 @@ class okx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['swap']:
-            raise ExchangeError(self.id + ' fetchFundingRate() is only valid for swap markets')
+        marketInfo = self.safe_dict(market, 'info', {})
+        ruleType = self.safe_string(marketInfo, 'ruleType')
+        isExtendedPerpetual = (ruleType == 'xperp')  # long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+        if not market['swap'] and not isExtendedPerpetual:
+            raise ExchangeError(self.id + ' fetchFundingRate() is only valid for swap markets or XPERP futures')
         request = {
             'instId': market['id'],
         }
@@ -6482,7 +6496,15 @@ class okx(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, 'swap', True)
+        symbols = self.market_symbols(symbols, None, True)
+        if symbols is not None:
+            for i in range(0, len(symbols)):
+                market = self.market(symbols[i])
+                marketInfo = self.safe_dict(market, 'info', {})
+                ruleType = self.safe_string(marketInfo, 'ruleType')
+                isExtendedPerpetual = (ruleType == 'xperp')  # long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+                if not market['swap'] and not isExtendedPerpetual:
+                    raise BadRequest(self.id + ' fetchFundingRates() symbols must be swap markets or XPERP futures, ' + symbols[i] + ' is not')
         request = {'instId': 'ANY'}
         response = await self.publicGetPublicFundingRate(self.extend(request, params))
         #
@@ -6896,7 +6918,7 @@ class okx(Exchange, ImplicitAPI):
         rate = self.safe_dict(data, 0, {})
         return self.parse_borrow_rate(rate)
 
-    def parse_borrow_rate(self, info, currency: Currency = None):
+    def parse_borrow_rate(self, info: Any, currency: Currency = None):
         #
         #    {
         #        "amt": "992.10341195",
@@ -6916,7 +6938,7 @@ class okx(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def parse_borrow_rate_histories(self, response, codes, since, limit):
+    def parse_borrow_rate_histories(self, response: Any, codes: Any, since: Any, limit: Any):
         #
         #    [
         #        {
@@ -6932,7 +6954,7 @@ class okx(Exchange, ImplicitAPI):
         for i in range(0, len(response)):
             item = response[i]
             code = self.safe_currency_code(self.safe_string(item, 'ccy'))
-            if codes is None or self.in_array(code, codes):
+            if (code is not None) and (codes is None or self.in_array(code, codes)):
                 if not (code in borrowRateHistories):
                     borrowRateHistories[code] = []
                 borrowRateStructure = self.parse_borrow_rate(item)
@@ -6944,7 +6966,7 @@ class okx(Exchange, ImplicitAPI):
             borrowRateHistories[code] = self.filter_by_currency_since_limit(borrowRateHistories[code], code, since, limit)
         return borrowRateHistories
 
-    async def fetch_borrow_rate_histories(self, codes=None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_borrow_rate_histories(self, codes: Strings = None, since: Int = None, limit: Int = None, params={}):
         """
         retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is None
 
@@ -7029,7 +7051,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_borrow_rate_history(data, code, since, limit)
 
-    async def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
+    async def modify_margin_helper(self, symbol: str, amount: Any, type: Any, params={}) -> MarginModification:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -7217,7 +7239,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_market_leverage_tiers(data, market)
 
-    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: Any, market: Market = None) -> List[LeverageTier]:
         """
  @ignore
         :param dict info: Exchange response for 1 market
@@ -7372,7 +7394,7 @@ class okx(Exchange, ImplicitAPI):
         loan = self.safe_dict(data, 0, {})
         return self.parse_margin_loan(loan, currency)
 
-    async def repay_cross_margin(self, code: str, amount, params={}):
+    async def repay_cross_margin(self, code: str, amount: float, params={}):
         """
         repay borrowed margin and interest
 
@@ -7417,7 +7439,7 @@ class okx(Exchange, ImplicitAPI):
         loan = self.safe_dict(data, 0, {})
         return self.parse_margin_loan(loan, currency)
 
-    def parse_margin_loan(self, info, currency: Currency = None):
+    def parse_margin_loan(self, info: Any, currency: Currency = None):
         #
         #     {
         #         "amt": "102",
@@ -7560,7 +7582,7 @@ class okx(Exchange, ImplicitAPI):
         # handle unified currency code or symbol
         currencyId = None
         market = None
-        if (symbol in self.markets) or (symbol in self.markets_by_id):
+        if ((self.markets is not None) and (symbol in self.markets)) or ((self.markets_by_id is not None) and (symbol in self.markets_by_id)):
             market = self.market(symbol)
             currencyId = market['baseId']
         else:
@@ -7600,7 +7622,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_open_interests_history(data, None, since, limit)
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: Any, market: Market = None):
         #
         # fetchOpenInterestHistory
         #
@@ -7660,7 +7682,7 @@ class okx(Exchange, ImplicitAPI):
         elif 'x-simulated-trading' in self.headers:
             self.headers = self.omit(self.headers, 'x-simulated-trading')
 
-    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -7723,7 +7745,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data')
         return self.parse_deposit_withdraw_fees(data, codes)
 
-    def parse_deposit_withdraw_fees(self, response, codes: Strings = None, currencyIdKey: Any = None):
+    def parse_deposit_withdraw_fees(self, response: Any, codes: Strings = None, currencyIdKey: Any = None):
         #
         # [
         #   {
@@ -7751,7 +7773,7 @@ class okx(Exchange, ImplicitAPI):
             feeInfo = response[i]
             currencyId = self.safe_string(feeInfo, 'ccy')
             code = self.safe_currency_code(currencyId)
-            if (codes is None) or (self.in_array(code, codes)):
+            if (code is not None) and ((codes is None) or (self.in_array(code, codes))):
                 depositWithdrawFee = self.safe_value(depositWithdrawFees, code)
                 if depositWithdrawFee is None:
                     depositWithdrawFees[code] = self.deposit_withdraw_fee({})
@@ -7772,10 +7794,11 @@ class okx(Exchange, ImplicitAPI):
                     'percentage': None,
                 }
                 networkCode = self.network_id_to_code(networkId, code)
-                depositWithdrawFees[code]['networks'][networkCode] = {
-                    'withdraw': withdrawResult,
-                    'deposit': depositResult,
-                }
+                if networkCode is not None:
+                    depositWithdrawFees[code]['networks'][networkCode] = {
+                        'withdraw': withdrawResult,
+                        'deposit': depositResult,
+                    }
         depositWithdrawCodes = list(depositWithdrawFees.keys())
         for i in range(0, len(depositWithdrawCodes)):
             code = depositWithdrawCodes[i]
@@ -7836,7 +7859,7 @@ class okx(Exchange, ImplicitAPI):
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
-    def parse_settlement(self, settlement, market):
+    def parse_settlement(self, settlement: Any, market: Any):
         #
         #     {
         #         "insId": "BTC-USD-230521-28500-P",
@@ -7853,7 +7876,7 @@ class okx(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    def parse_settlements(self, settlements, market):
+    def parse_settlements(self, settlements: Any, market: Any):
         #
         #     {
         #         "details": [
@@ -8102,7 +8125,7 @@ class okx(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str [side]: 'buy' or 'sell', leave in net mode
-        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: a unique identifier for the order
         :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross
         :param str [params.code]: *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -8601,37 +8624,38 @@ class okx(Exchange, ImplicitAPI):
             entry = data[i]
             id = self.safe_string(entry, 'ccy')
             code = self.safe_currency_code(id)
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': None,
-                'type': None,
-                'name': None,
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
-                'precision': None,
-                'limits': {
-                    'amount': {
-                        'min': self.safe_number(entry, 'min'),
-                        'max': self.safe_number(entry, 'max'),
+            if code is not None:
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': None,
+                    'type': None,
+                    'name': None,
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': None,
+                    'precision': None,
+                    'limits': {
+                        'amount': {
+                            'min': self.safe_number(entry, 'min'),
+                            'max': self.safe_number(entry, 'max'),
+                        },
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'created': None,
-            }
+                    'created': None,
+                }
         return result
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if not response:
             return None  # fallback to default error handler
         #
@@ -8679,7 +8703,7 @@ class okx(Exchange, ImplicitAPI):
         :param str [type]: "add" or "reduce"
         :param int [since]: the earliest time in ms to fetch margin adjustment history for
         :param int [limit]: the maximum number of entries to retrieve
-        :param dict params: extra parameters specific to the exchange api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param boolean [params.auto]: True if fetching auto margin increases
         :returns dict[]: a list of `margin structures <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
@@ -8772,7 +8796,7 @@ class okx(Exchange, ImplicitAPI):
         :param str [symbols]: unified market symbols
         :param int [since]: timestamp in ms of the earliest position to fetch
         :param int [limit]: the maximum amount of records to fetch, default=100, max=100
-        :param dict params: extra parameters specific to the exchange api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: "cross" or "isolated"
 
  EXCHANGE SPECIFIC PARAMETERS

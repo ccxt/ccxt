@@ -1,5 +1,5 @@
 /* eslint-disable */
-// Link/anchor checker for the built Fumadocs static export (website/out).
+// Link/anchor checker for the built Fumadocs static export (docs/website/out).
 // Validates every internal link (page target + #fragment) against the real `id`
 // attributes Fumadocs emitted — so it reflects exactly what the browser resolves.
 //
@@ -13,7 +13,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const OUT = path.resolve(import.meta.dirname, '..', 'website', 'out');
+const OUT = path.resolve(import.meta.dirname, '..', 'docs', 'website', 'out');
 const BASELINE_FILE = path.resolve(import.meta.dirname, 'fumadocs-linkcheck-baseline.json');
 
 function walk (dir: string, out: string[] = []): string[] {

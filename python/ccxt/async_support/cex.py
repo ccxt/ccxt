@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.cex import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -370,7 +370,7 @@ class cex(Exchange, ImplicitAPI):
         data = self.deep_extend(currenciesIndexed, dataNetworks)
         return self.parse_currencies(self.to_array(data))
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(id)
         type = 'fiat' if self.safe_bool(rawCurrency, 'fiat') else 'crypto'
@@ -384,27 +384,28 @@ class cex(Exchange, ImplicitAPI):
             networkCode = self.network_id_to_code(networkId, code)
             deposit = self.safe_string(rawNetwork, 'deposit') == 'enabled'
             withdraw = self.safe_string(rawNetwork, 'withdrawal') == 'enabled'
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'margin': None,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'active': None,
-                'fee': self.safe_number(rawNetwork, 'withdrawalFee'),
-                'precision': currencyPrecision,
-                'limits': {
-                    'deposit': {
-                        'min': self.safe_number(rawNetwork, 'minDeposit'),
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'margin': None,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'active': None,
+                    'fee': self.safe_number(rawNetwork, 'withdrawalFee'),
+                    'precision': currencyPrecision,
+                    'limits': {
+                        'deposit': {
+                            'min': self.safe_number(rawNetwork, 'minDeposit'),
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': self.safe_number(rawNetwork, 'minWithdrawal'),
+                            'max': None,
+                        },
                     },
-                    'withdraw': {
-                        'min': self.safe_number(rawNetwork, 'minWithdrawal'),
-                        'max': None,
-                    },
-                },
-                'info': rawNetwork,
-            }
+                    'info': rawNetwork,
+                }
         return self.safe_currency_structure({
             'id': id,
             'code': code,
@@ -718,7 +719,7 @@ class cex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -811,7 +812,7 @@ class cex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 'timestamp'),
             self.safe_number(ohlcv, 'open'),
@@ -847,7 +848,7 @@ class cex(Exchange, ImplicitAPI):
         fees = self.safe_dict(data, 'tradingFee', {})
         return self.parse_trading_fees(fees, True)
 
-    def parse_trading_fees(self, response, useKeyAsId=False) -> TradingFees:
+    def parse_trading_fees(self, response: Any, useKeyAsId=False) -> TradingFees:
         result = {}
         keys = list(response.keys())
         for i in range(0, len(keys)):
@@ -856,9 +857,11 @@ class cex(Exchange, ImplicitAPI):
             if useKeyAsId:
                 market = self.safe_market(key)
             parsed = self.parse_trading_fee(response[key], market)
-            result[parsed['symbol']] = parsed
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+            if parsed['symbol'] is not None:
+                result[parsed['symbol']] = parsed
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             if not (symbol in result):
                 market = self.market(symbol)
                 result[symbol] = self.parse_trading_fee(response, market)
@@ -962,7 +965,7 @@ class cex(Exchange, ImplicitAPI):
             accountBalance = self.safe_dict(response, 'data', {})
         return self.parse_balance(accountBalance)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {
             'info': response,
         }
@@ -975,7 +978,8 @@ class cex(Exchange, ImplicitAPI):
                 'used': self.safe_string(balance, 'balanceOnHold'),
                 'total': self.safe_string(balance, 'balance'),
             }
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     async def fetch_orders_by_status(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1237,6 +1241,8 @@ class cex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         request = {
             'clientOrderId': self.uuid(),
             'currency1': market['baseId'],
@@ -1306,7 +1312,7 @@ class cex(Exchange, ImplicitAPI):
         #             "rejectCode": 405,
         #             "rejectReason": "Either AmountCcy1(OrderQty) or AmountCcy2(CashOrderQty) should be specified for market order not both",
         #
-        data = self.safe_dict(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -1340,7 +1346,7 @@ class cex(Exchange, ImplicitAPI):
 
         https://trade.cex.io/docs/#rest-private-api-calls-cancel-all-orders
 
-        :param str symbol: alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1444,7 +1450,7 @@ class cex(Exchange, ImplicitAPI):
             'fee': None,
         }, currency)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         ledgerType = {
             'deposit': 'deposit',
             'withdraw': 'withdrawal',
@@ -1698,7 +1704,7 @@ class cex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         address = self.safe_string(depositAddress, 'address')
         currencyId = self.safe_string(depositAddress, 'currency')
         currency = self.safe_currency(currencyId, currency)
@@ -1711,7 +1717,7 @@ class cex(Exchange, ImplicitAPI):
             'tag': None,
         }
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -1737,7 +1743,7 @@ class cex(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         # in some cases, like from createOrder, exchange returns nested escaped JSON string:
         #      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"}}
         # and because of `.parseJson` bug, we need extra fix

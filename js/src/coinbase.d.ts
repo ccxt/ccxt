@@ -1,5 +1,5 @@
 import Exchange from './abstract/coinbase.js';
-import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, MarketInterface, Conversion, Dict, NullableDict, int, TradingFees, LedgerEntry, DepositAddress, Position } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, OHLCV, Ticker, OrderBook, Str, Transaction, Balances, Tickers, Strings, Market, Currency, Num, Account, Currencies, Conversion, Dict, NullableDict, int, TradingFees, LedgerEntry, DepositAddress, Position, TransferEntry } from './base/types.js';
 /**
  * @class coinbase
  * @augments Exchange
@@ -40,9 +40,9 @@ export default class coinbase extends Exchange {
      */
     fetchPortfolios(params?: {}): Promise<Account[]>;
     parseAccount(account: any): {
-        id: string;
-        type: string;
-        code: string;
+        id: Str;
+        type: Str;
+        code: Str;
         info: any;
     };
     /**
@@ -61,7 +61,7 @@ export default class coinbase extends Exchange {
      * @ignore
      * @description fetch sells
      * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
-     * @param {string} symbol not used by coinbase fetchMySells ()
+     * @param {string} symbol not used by fetchMySells ()
      * @param {int} [since] timestamp in ms of the earliest sell, default is undefined
      * @param {int} [limit] max number of sells to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -74,7 +74,7 @@ export default class coinbase extends Exchange {
      * @ignore
      * @description fetch buys
      * @see https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis
-     * @param {string} symbol not used by coinbase fetchMyBuys ()
+     * @param {string} symbol not used by fetchMyBuys ()
      * @param {int} [since] timestamp in ms of the earliest buy, default is undefined
      * @param {int} [limit] max number of buys to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -122,7 +122,7 @@ export default class coinbase extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): Str;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTrade(trade: Dict, market?: Market): Trade;
     /**
@@ -140,8 +140,8 @@ export default class coinbase extends Exchange {
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchMarketsV2(params?: {}): Promise<Market[]>;
     fetchMarketsV3(params?: {}): Promise<Market[]>;
-    parseSpotMarket(market: any, feeTier: any): MarketInterface;
-    parseContractMarket(market: any, feeTier: any): MarketInterface;
+    parseSpotMarket(market: any, feeTier: any): Market;
+    parseContractMarket(market: any, feeTier: any): Market;
     fetchCurrenciesFromCache(params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
     /**
      * @method
@@ -198,7 +198,7 @@ export default class coinbase extends Exchange {
      * @param {int} [params.limit] default 250, maximum number of accounts to return
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    fetchBalance(params?: {}): Promise<Balances>;
+    fetchBalance(params?: Dict): Promise<Balances>;
     /**
      * @method
      * @name coinbase#fetchLedger
@@ -215,7 +215,7 @@ export default class coinbase extends Exchange {
     parseLedgerEntryStatus(status: any): string;
     parseLedgerEntryType(type: any): string;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
-    findAccountId(code: any, params?: {}): Promise<string>;
+    findAccountId(code: any, params?: {}): Promise<Str>;
     prepareAccountRequest(limit?: Int, params?: {}): Dict;
     prepareAccountRequestWithCurrencyCode(code?: Str, limit?: Int, params?: {}): Promise<{}[]>;
     /**
@@ -228,7 +228,7 @@ export default class coinbase extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: {}): Promise<Order>;
+    createMarketBuyOrderWithCost(symbol: string, cost: number, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name coinbase#createOrder
@@ -258,18 +258,18 @@ export default class coinbase extends Exchange {
      * @param {float} [params.reduceOnly] set to true for closing a position or use closePosition
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): string;
-    parseOrderType(type: Str): string;
-    parseTimeInForce(timeInForce: Str): string;
+    parseOrderStatus(status: Str): Str;
+    parseOrderType(type: Str): Str;
+    parseTimeInForce(timeInForce: Str): Str;
     /**
      * @method
      * @name coinbase#cancelOrder
      * @description cancels an open order
      * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
      * @param {string} id order id
-     * @param {string} symbol not used by coinbase cancelOrder()
+     * @param {string} symbol not used by cancelOrder()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -280,7 +280,7 @@ export default class coinbase extends Exchange {
      * @description cancel multiple orders
      * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders
      * @param {string[]} ids order ids
-     * @param {string} symbol not used by coinbase cancelOrders()
+     * @param {string} symbol not used by cancelOrders()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -423,7 +423,7 @@ export default class coinbase extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.usePrivate] default false, when true will use the private endpoint to fetch the order book
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -507,18 +507,18 @@ export default class coinbase extends Exchange {
      */
     fetchDepositMethodId(id: string, params?: {}): Promise<{
         info: any;
-        id: string;
-        currency: string;
-        verified: boolean;
-        tag: string;
+        id: Str;
+        currency: Str;
+        verified: boolean | undefined;
+        tag: Str;
     }>;
     parseDepositMethodIds(ids: any, params?: {}): any[];
     parseDepositMethodId(depositId: any): {
         info: any;
-        id: string;
-        currency: string;
-        verified: boolean;
-        tag: string;
+        id: Str;
+        currency: Str;
+        verified: boolean | undefined;
+        tag: Str;
     };
     /**
      * @method
@@ -563,12 +563,26 @@ export default class coinbase extends Exchange {
     parseConversion(conversion: Dict, fromCurrency?: Currency, toCurrency?: Currency): Conversion;
     /**
      * @method
+     * @name coinbase#transfer
+     * @description transfer currency internally between portfolios of the same account
+     * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/move-portfolios-funds
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount the portfolio uuid to transfer funds from
+     * @param {string} toAccount the portfolio uuid to transfer funds to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
+    parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
+    /**
+     * @method
      * @name coinbase#closePosition
      * @description *futures only* closes open positions for a market
      * @see https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/close-position
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by coinbase
-     * @param {object} [params] extra parameters specific to the coinbase api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string}  params.clientOrderId *mandatory* the client order id of the position to close
      * @param {float} [params.size] the size of the position to close, optional
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -626,10 +640,10 @@ export default class coinbase extends Exchange {
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: string;
-        headers: Dict;
+        body: Str;
+        headers: NullableDict;
     };
-    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
     /**
      * @method
      * @name coinbase#fetchDepositAddresses

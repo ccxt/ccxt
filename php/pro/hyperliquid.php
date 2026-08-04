@@ -246,7 +246,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -301,7 +301,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         })();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(mixed $client, mixed $message) {
         //
         //     {
         //         "channel" => "l2Book",
@@ -339,7 +339,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         );
         $timestamp = $this->safe_integer($entry, 'time');
         $snapshot = $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'px', 'sz');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $ob = $this->order_book($snapshot);
             $this->orderbooks[$symbol] = $ob;
         }
@@ -526,7 +526,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         })();
     }
 
-    public function handle_ws_tickers(Client $client, $message) {
+    public function handle_ws_tickers(Client $client, mixed $message) {
         // hip3 $mids
         // {
         //     channel => 'allMids',
@@ -566,11 +566,11 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return true;
     }
 
-    public function parse_ws_ticker($rawTicker, ?array $market = null): array {
+    public function parse_ws_ticker(mixed $rawTicker, ?array $market = null): array {
         return $this->parse_ticker($rawTicker, $market);
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         //     {
         //         "channel" => "userFills",
@@ -695,7 +695,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "channel" => "trades",
@@ -722,7 +722,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $marketId = $this->coinToMarketId($coin);
         $market = $this->market($marketId);
         $symbol = $market['symbol'];
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
@@ -776,7 +776,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $amount = $this->safe_string($trade, 'sz');
         $coin = $this->safe_string($trade, 'coin');
         $marketId = $this->coinToMarketId($coin);
-        $market = $this->safe_market($marketId, null);
+        $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $id = $this->safe_string($trade, 'tid');
         $side = $this->safe_string($trade, 'side');
@@ -872,7 +872,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         channel => 'candle',
@@ -895,10 +895,10 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $marketId = $this->coinToMarketId($base);
         $symbol = $this->safe_symbol($marketId);
         $timeframe = $this->safe_string($data, 'i');
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp($limit);
             $this->ohlcvs[$symbol][$timeframe] = $stored;
@@ -1018,7 +1018,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         // spot
         // {
@@ -1108,7 +1108,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $client->resolve($this->balance[$account], $messageHash);
     }
 
-    public function parse_ws_balance($balance, ?string $accountType = null) {
+    public function parse_ws_balance(mixed $balance, ?string $accountType = null) {
         //
         // spot
         //     {
@@ -1156,9 +1156,13 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             if ($this->safe_value($this->balance, $accountType) === null) {
                 $this->balance[$accountType] = array();
             }
-            $this->balance[$accountType][$code] = $account;
+            if (($accountType !== null) && ($code !== null)) {
+                $this->balance[$accountType][$code] = $account;
+            }
         } else {
-            $this->balance[$code] = $account;
+            if ($code !== null) {
+                $this->balance[$code] = $account;
+            }
         }
     }
 
@@ -1221,7 +1225,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $this->positions = new ArrayCacheBySymbolBySide();
     }
 
-    public function handle_positions($client, $message) {
+    public function handle_positions(mixed $client, mixed $message) {
         if ($this->positions === null) {
             $this->positions = new ArrayCacheBySymbolBySide();
         }
@@ -1370,7 +1374,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         })();
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         //
         //     {
         //         channel => 'orderUpdates',
@@ -1419,7 +1423,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //    {
         //      "channel" => "post",
@@ -1499,7 +1503,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $subMessageHash = 'orderbook:' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+        if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
     }
@@ -1512,7 +1516,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $subMessageHash = 'trade:' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+        if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
             unset($this->trades[$symbol]);
         }
     }
@@ -1537,8 +1541,8 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $subMessageHash = 'candles:' . $timeframe . ':' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
-            if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+        if (is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs)) {
+            if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol])) {
                 unset($this->ohlcvs[$symbol][$timeframe]);
             }
         }
@@ -1573,7 +1577,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         );
         $this->clean_cache($topicStructure);
         // clean swap balance if it existed
-        if (is_array($this->balance) && array_key_exists('swap', $this->balance)) {
+        if (is_array($this->balance) && array_key_exists('swap' ?? '', $this->balance)) {
             unset($this->balance['swap']);
         }
     }
@@ -1582,12 +1586,12 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $subHash = 'spotState';
         $unSubHash = 'unsubscribe:' . $subHash;
         $this->clean_unsubscription($client, $subHash, $unSubHash, true);
-        if (is_array($this->balance) && array_key_exists('spot', $this->balance)) {
+        if (is_array($this->balance) && array_key_exists('spot' ?? '', $this->balance)) {
             unset($this->balance['spot']);
         }
     }
 
-    public function handle_subscription_response(Client $client, $message) {
+    public function handle_subscription_response(Client $client, mixed $message) {
         // {
         //     "channel":"subscriptionResponse",
         //     "data":{
@@ -1635,7 +1639,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         //
         // {
         //     "channel":"subscriptionResponse",
@@ -1689,7 +1693,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         );
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         //
         //   {
         //       "channel" => "pong"

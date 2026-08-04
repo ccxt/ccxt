@@ -315,7 +315,7 @@ public partial class bitbns : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -492,7 +492,10 @@ public partial class bitbns : Exchange
                     currencyId = "INR";
                 }
                 object code = this.safeCurrencyCode(currencyId);
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -658,6 +661,10 @@ public partial class bitbns : Exchange
         object targetRate = this.safeString(parameters, "target_rate");
         object trailRate = this.safeString(parameters, "trail_rate");
         parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate"});
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "side", ((string)side).ToUpper() },
             { "symbol", getValue(market, "uppercaseId") },
@@ -694,7 +701,8 @@ public partial class bitbns : Exchange
         //         "code":200
         //     }
         //
-        return this.parseOrder(response, market);
+        object parsed = ((bool) isTrue((isEqual(response, null)))) ? new Dictionary<string, object>() {} : response;
+        return this.parseOrder(parsed, market);
     }
 
     /**
@@ -733,7 +741,8 @@ public partial class bitbns : Exchange
         quoteSide = add(quoteSide, tail);
         ((IDictionary<string,object>)request)["side"] = quoteSide;
         response = await this.v2PostCancel(this.extend(request, parameters));
-        return this.parseOrder(response, market);
+        object parsed = ((bool) isTrue((isEqual(response, null)))) ? new Dictionary<string, object>() {} : response;
+        return this.parseOrder(parsed, market);
     }
 
     /**
@@ -794,7 +803,7 @@ public partial class bitbns : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object first = this.safeDict(data, 0);
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseOrder(first, market);
     }
 

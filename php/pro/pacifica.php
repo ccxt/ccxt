@@ -79,7 +79,7 @@ class pacifica extends \ccxt\async\pacifica {
         if ($key !== null) {
             $headers['PF-API-KEY'] = $key;
         } else {
-            if ($this->handle_option('setupApiKeyHeaders', 'apiKey', null) !== null) {
+            if ($this->handle_option('setupApiKeyHeaders', 'apiKey') !== null) {
                 $headers['PF-API-KEY'] = $this->options['apiKey'];
             }
         }
@@ -297,7 +297,7 @@ class pacifica extends \ccxt\async\pacifica {
             $ordersToReturn = array();
             for ($i = 0; $i < count($results); $i++) {
                 $order = $results[$i];
-                $error = $this->safe_string($order, 'error', null);
+                $error = $this->safe_string($order, 'error');
                 $success = $this->safe_bool($order, 'success', false);
                 $marketId = $this->safe_string($order, 'symbol');
                 $market = $this->safe_market($marketId);
@@ -434,7 +434,7 @@ class pacifica extends \ccxt\async\pacifica {
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int|null} [$params->aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             $this->setup_api_key_headers();
             if ($this->markets === null) {
@@ -497,7 +497,7 @@ class pacifica extends \ccxt\async\pacifica {
         })();
     }
 
-    public function handle_order_book($client, $message) {
+    public function handle_order_book(mixed $client, mixed $message) {
         //
         // {
         //   "channel" => "book",
@@ -546,7 +546,7 @@ class pacifica extends \ccxt\async\pacifica {
         if ($nonce) {
             $snapshot['nonce'] = $nonce;
         }
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $ob = $this->order_book($snapshot);
             $this->orderbooks[$symbol] = $ob;
         }
@@ -715,7 +715,7 @@ class pacifica extends \ccxt\async\pacifica {
         })();
     }
 
-    public function handle_ws_tickers(Client $client, $message) {
+    public function handle_ws_tickers(Client $client, mixed $message) {
         //
         // {
         //     "channel" => "prices",
@@ -752,11 +752,11 @@ class pacifica extends \ccxt\async\pacifica {
         return true;
     }
 
-    public function parse_ws_ticker($rawTicker, ?array $market = null): array {
+    public function parse_ws_ticker(mixed $rawTicker, ?array $market = null): array {
         return $this->parse_ticker($rawTicker, $market);
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         // {
         //   "channel" => "account_trades",
@@ -796,7 +796,9 @@ class pacifica extends \ccxt\async\pacifica {
             $rawTrade = $data[$i];
             $parsed = $this->parse_ws_trade($rawTrade);
             $symbol = $parsed['symbol'];
-            $symbols[$symbol] = true;
+            if ($symbol !== null) {
+                $symbols[$symbol] = true;
+            }
             $trades->append($parsed);
         }
         $keys = is_array($symbols) ? array_keys($symbols) : array();
@@ -880,7 +882,7 @@ class pacifica extends \ccxt\async\pacifica {
         })();
     }
 
-    public function handle_trades(Client $client, $message) {
+    public function handle_trades(Client $client, mixed $message) {
         //
         // {
         //   "channel" => "trades",
@@ -903,14 +905,14 @@ class pacifica extends \ccxt\async\pacifica {
         $marketId = $this->safe_string($first, 's');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
         $trades = $this->trades[$symbol];
         for ($i = 0; $i < count($entry); $i++) {
-            $data = $this->safe_dict($entry, $i);
+            $data = $this->safe_dict($entry, $i, array());
             $trade = $this->parse_ws_trade($data);
             $trades->append($trade);
         }
@@ -1074,7 +1076,7 @@ class pacifica extends \ccxt\async\pacifica {
         })();
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         // {
         //   "channel" => "candle",
@@ -1097,15 +1099,19 @@ class pacifica extends \ccxt\async\pacifica {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $timeframe = $this->safe_string($data, 'i');
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if ($timeframe === null) {
+            return;
+        }
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
-        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        $symbolOhlcvs = $this->safe_value($this->ohlcvs, $symbol, array());
+        $ohlcv = $this->safe_value($symbolOhlcvs, $timeframe);
+        if ($ohlcv === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            $stored = new ArrayCacheByTimestamp($limit);
-            $this->ohlcvs[$symbol][$timeframe] = $stored;
+            $ohlcv = new ArrayCacheByTimestamp($limit);
+            $symbolOhlcvs[$timeframe] = $ohlcv;
         }
-        $ohlcv = $this->ohlcvs[$symbol][$timeframe];
         $parsed = $this->parse_ohlcv($data);
         $ohlcv->append($parsed);
         $messageHash = 'candles:' . $timeframe . ':' . $symbol;
@@ -1193,7 +1199,7 @@ class pacifica extends \ccxt\async\pacifica {
         })();
     }
 
-    public function handle_order(Client $client, $message) {
+    public function handle_order(Client $client, mixed $message) {
         // not snapshot, only updates
         // {
         //   "channel" => "account_order_updates",
@@ -1238,7 +1244,9 @@ class pacifica extends \ccxt\async\pacifica {
             $order = $this->parse_order($rawOrder);
             $stored->append($order);
             $symbol = $this->safe_string($order, 'symbol');
-            $marketSymbols[$symbol] = true;
+            if ($symbol !== null) {
+                $marketSymbols[$symbol] = true;
+            }
         }
         $keys = is_array($marketSymbols) ? array_keys($marketSymbols) : array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -1249,7 +1257,7 @@ class pacifica extends \ccxt\async\pacifica {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         // 'rl' key is present only when a rate-limited API key is used
         // array("id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":array("r":1245,"q":1250,"t":56))
@@ -1277,7 +1285,7 @@ class pacifica extends \ccxt\async\pacifica {
         $subMessageHash = 'orderbook:' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+        if (is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
     }
@@ -1289,7 +1297,7 @@ class pacifica extends \ccxt\async\pacifica {
         $subMessageHash = 'trade:' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
+        if (is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades)) {
             unset($this->trades[$symbol]);
         }
     }
@@ -1310,11 +1318,14 @@ class pacifica extends \ccxt\async\pacifica {
         $symbol = $market['symbol'];
         $interval = $this->safe_string($subscription, 'interval');
         $timeframe = $this->find_timeframe($interval);
+        if ($timeframe === null) {
+            return;
+        }
         $subMessageHash = 'candles:' . $timeframe . ':' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
         $this->clean_unsubscription($client, $subMessageHash, $messageHash);
-        if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
-            if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+        if (($symbol !== null) && (is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
+            if (($timeframe !== null) && (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
                 unset($this->ohlcvs[$symbol][$timeframe]);
             }
         }
@@ -1340,7 +1351,7 @@ class pacifica extends \ccxt\async\pacifica {
         $this->clean_cache($topicStructure);
     }
 
-    public function handle_subscription_response(Client $client, $message) {
+    public function handle_subscription_response(Client $client, mixed $message) {
         //  {
         //      "channel" => "subscribe",
         //      "data" => {
@@ -1380,7 +1391,7 @@ class pacifica extends \ccxt\async\pacifica {
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         //
         // {
         //     "channel":"subscribe",
@@ -1398,7 +1409,7 @@ class pacifica extends \ccxt\async\pacifica {
         if ($this->handle_error_message($client, $message)) {
             return;
         }
-        $postType = $this->safe_string($message, 'type', null);
+        $postType = $this->safe_string($message, 'type');
         $topic = $this->safe_string($message, 'channel', '');
         $methods = array(
             'pong' => array($this, 'handle_pong'),
@@ -1437,7 +1448,7 @@ class pacifica extends \ccxt\async\pacifica {
         );
     }
 
-    public function handle_pong(Client $client, $message) {
+    public function handle_pong(Client $client, mixed $message) {
         //
         //   {
         //       "channel" => "pong"
@@ -1451,7 +1462,7 @@ class pacifica extends \ccxt\async\pacifica {
         return $this->uuid(); // uuid v4
     }
 
-    public function wrap_as_post_action(string $operationType, array $request): array {
+    public function wrap_as_post_action(?string $operationType, array $request): array {
         if ($operationType === null) {
             throw new ArgumentsRequired($this->id . 'postAction() requires a "operationType" argument!');
         }

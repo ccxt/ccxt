@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woofipro import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -540,6 +540,8 @@ class woofipro(Exchange, ImplicitAPI):
         #   }
         #
         marketId = self.safe_string(market, 'symbol')
+        if marketId is None:
+            raise ExchangeError(self.id + ' parseMarket() missing marketId')
         parts = marketId.split('_')
         marketType = 'swap'
         baseId = self.safe_string(parts, 1)
@@ -549,7 +551,7 @@ class woofipro(Exchange, ImplicitAPI):
         settleId = self.safe_string(parts, 2)
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
-        return {
+        return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -597,7 +599,7 @@ class woofipro(Exchange, ImplicitAPI):
             },
             'created': self.safe_integer(market, 'created_time'),
             'info': market,
-        }
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -692,10 +694,12 @@ class woofipro(Exchange, ImplicitAPI):
         for i in range(0, len(tokenRows)):
             token = tokenRows[i]
             parsed = self.parse_currency({'_token': token, '_indexedChains': indexedChains})
+            if parsed is None:
+                raise ExchangeError(self.id + ' fetchCurrencies() could not resolve parsed')
             result[parsed['code']] = parsed
         return result
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         token = self.safe_dict(rawCurrency, '_token', {})
         currencyId = self.safe_string(token, 'token')
         networks = self.safe_list(token, 'chain_details', [])
@@ -706,28 +710,29 @@ class woofipro(Exchange, ImplicitAPI):
             networkEntry = networks[j]
             networkId = self.safe_string(networkEntry, 'chain_id')
             networkRow = self.safe_dict(indexedChains, networkId)
-            networkName = self.safe_string(networkRow, 'name')
+            networkName = self.safe_string(networkRow, 'name', networkId)
             networkCode = self.network_id_to_code(networkName, code)
-            resultingNetworks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'limits': {
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
+            if networkCode is not None:
+                resultingNetworks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': self.safe_number(networkEntry, 'withdrawal_fee'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(networkEntry, 'decimals'))),
-                'info': {'network': networkEntry, 'networkRow': networkRow},
-            }
+                    'active': None,
+                    'deposit': None,
+                    'withdraw': None,
+                    'fee': self.safe_number(networkEntry, 'withdrawal_fee'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(networkEntry, 'decimals'))),
+                    'info': {'network': networkEntry, 'networkRow': networkRow},
+                }
         return self.safe_currency_structure({
             'id': currencyId,
             'name': None,
@@ -751,7 +756,7 @@ class woofipro(Exchange, ImplicitAPI):
             'info': token,
         })
 
-    def parse_token_and_fee_temp(self, item, feeTokenKey, feeAmountKey):
+    def parse_token_and_fee_temp(self, item: Any, feeTokenKey: Any, feeAmountKey: Any):
         feeCost = self.safe_string(item, feeAmountKey)
         fee = None
         if feeCost is not None:
@@ -801,7 +806,7 @@ class woofipro(Exchange, ImplicitAPI):
         order_id = self.safe_string(trade, 'order_id')
         fee = self.parse_token_and_fee_temp(trade, 'fee_asset', 'fee')
         feeCost = self.safe_string(fee, 'cost')
-        if feeCost is not None:
+        if (fee is not None) and (feeCost is not None):
             fee['cost'] = feeCost
         cost = Precise.string_mul(price, amount)
         side = self.safe_string_lower(trade, 'side')
@@ -866,7 +871,7 @@ class woofipro(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_trades(rows, market, since, limit)
 
-    def parse_funding_rate(self, fundingRate, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, fundingRate: Any, market: Market = None) -> FundingRate:
         #
         #         {
         #             "symbol":"PERP_AAVE_USDT",
@@ -907,7 +912,7 @@ class woofipro(Exchange, ImplicitAPI):
             'interval': self.parse_funding_interval(millisecondsInterval),
         }
 
-    def parse_funding_interval(self, interval):
+    def parse_funding_interval(self, interval: Any):
         intervals = {
             '3600000': '1h',
             '14400000': '4h',
@@ -1064,7 +1069,7 @@ class woofipro(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_income(self, income, market: Market = None):
+    def parse_income(self, income: Any, market: Market = None):
         #
         # {
         #         "symbol": "PERP_ETH_USDC",
@@ -1199,8 +1204,9 @@ class woofipro(Exchange, ImplicitAPI):
         maker = self.safe_string(data, 'futures_maker_fee_rate')
         taker = self.safe_string(data, 'futures_taker_fee_rate')
         result = {}
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        symbols = self.symbols
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,
@@ -1220,7 +1226,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -1253,7 +1259,7 @@ class woofipro(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'timestamp')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 'start_timestamp'),
             self.safe_number(ohlcv, 'open'),
@@ -1454,7 +1460,11 @@ class woofipro(Exchange, ImplicitAPI):
         }
         return self.safe_string_lower(types, type, type)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         """
  @ignore
         helper function to build the request
@@ -1468,6 +1478,8 @@ class woofipro(Exchange, ImplicitAPI):
         """
         reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only')
         orderType = type.upper()
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrderRequest() requires a side argument')
         market = self.market(symbol)
         orderSide = side.upper()
         request = {
@@ -1538,7 +1550,7 @@ class woofipro(Exchange, ImplicitAPI):
                     'type': 'LIMIT',
                     'reduce_only': True,
                 }
-                outterOrder.append(takeProfitOrder)
+                childOrders.append(takeProfitOrder)
             request['child_orders'] = [outterOrder]
         params = self.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit'])
         return self.extend(request, params)
@@ -1703,6 +1715,8 @@ class woofipro(Exchange, ImplicitAPI):
             request[orderQtyKey] = self.amount_to_precision(symbol, amount)
         params = self.omit(params, ['stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent'])
         response = None
+        if side is None:
+            raise ArgumentsRequired(self.id + ' editOrder() requires a side argument')
         if isConditional:
             response = self.v1PrivatePutAlgoOrder(self.extend(request, params))
         else:
@@ -1809,7 +1823,8 @@ class woofipro(Exchange, ImplicitAPI):
         else:
             extendParams['id'] = id
         if trigger:
-            return self.extend(self.parse_order(response), extendParams)
+            parsedResponse = {} if (response is None) else response
+            return self.extend(self.parse_order(parsedResponse), extendParams)
         data = self.safe_dict(response, 'data', {})
         return self.extend(self.parse_order(data), extendParams)
 
@@ -1858,7 +1873,7 @@ class woofipro(Exchange, ImplicitAPI):
         https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
 
         cancel all open orders in a market
-        :param str symbol: unified market symbol
+        :param str [symbol]: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a stop/algo order
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
@@ -1965,7 +1980,8 @@ class woofipro(Exchange, ImplicitAPI):
         # }
         #
         orders = self.safe_dict(response, 'data', response)
-        return self.parse_order(orders, market)
+        parsedOrders = {} if (orders is None) else orders
+        return self.parse_order(parsedOrders, market)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -2207,7 +2223,7 @@ class woofipro(Exchange, ImplicitAPI):
         trades = self.safe_list(data, 'rows', [])
         return self.parse_trades(trades, market, since, limit, params)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {
             'info': response,
         }
@@ -2218,7 +2234,8 @@ class woofipro(Exchange, ImplicitAPI):
             account = self.account()
             account['total'] = self.safe_string(balance, 'holding')
             account['frozen'] = self.safe_string(balance, 'frozen')
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}) -> Balances:
@@ -2323,7 +2340,7 @@ class woofipro(Exchange, ImplicitAPI):
             'info': item,
         }, currency)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         types = {
             'BALANCE': 'transaction',  # Funds moved in/out wallet
             'COLLATERAL': 'transfer',  # Funds moved between portfolios
@@ -2451,7 +2468,10 @@ class woofipro(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
-        return self.parse_transactions(rows, currency, since, limit, params)
+        rowsList = []
+        if rows is not None:
+            rowsList = rows
+        return self.parse_transactions(rowsList, currency, since, limit, params)
 
     def get_withdraw_nonce(self, params={}):
         response = self.v1PrivateGetWithdrawNonce(params)
@@ -2467,17 +2487,17 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.safe_number(data, 'withdraw_nonce')
 
-    def hash_message(self, message):
+    def hash_message(self, message: Any):
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash, privateKey):
+    def sign_hash(self, hash: Any, privateKey: Any):
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_message(self, message, privateKey):
+    def sign_message(self, message: Any, privateKey: Any):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
@@ -2558,7 +2578,7 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         leverageValue = self.safe_integer(leverage, 'max_leverage')
         return {
             'info': leverage,
@@ -2701,7 +2721,7 @@ class woofipro(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    def fetch_position(self, symbol: Str, params={}):
+    def fetch_position(self, symbol: str, params={}):
         """
 
         https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
@@ -2744,7 +2764,7 @@ class woofipro(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        data = self.safe_dict(response, 'data')
+        data = self.safe_dict(response, 'data', {})
         return self.parse_position(data, market)
 
     def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
@@ -2805,7 +2825,7 @@ class woofipro(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, section='public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)
@@ -2860,7 +2880,7 @@ class woofipro(Exchange, ImplicitAPI):
             headers['orderly-signature'] = self.urlencode_base64(self.base64_to_binary(signature))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if not response:
             return None  # fallback to default error handler
         #

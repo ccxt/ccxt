@@ -455,26 +455,28 @@ export default class gemini extends Exchange {
         let networkCode = undefined;
         if (networkId !== undefined) {
             networkCode = this.networkIdToCode(networkId, code);
-            networks[networkCode] = {
-                'info': rawCurrency,
-                'id': networkId,
-                'network': networkCode,
-                'active': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': undefined,
-                'precision': precision,
-                'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'info': rawCurrency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': precision,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'info': rawCurrency,
@@ -825,7 +827,7 @@ export default class gemini extends Exchange {
         }
         const type = swap ? 'swap' : 'spot';
         const isSpot = !swap;
-        return {
+        return this.safeMarketStructure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -873,7 +875,7 @@ export default class gemini extends Exchange {
             },
             'created': undefined,
             'info': response,
-        };
+        });
     }
     /**
      * @method
@@ -883,7 +885,7 @@ export default class gemini extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -1221,7 +1223,9 @@ export default class gemini extends Exchange {
             const account = this.account();
             account['free'] = this.safeString(balance, 'available');
             account['total'] = this.safeString(balance, 'amount');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1273,8 +1277,9 @@ export default class gemini extends Exchange {
         const maker = this.parseNumber(makerString);
         const taker = this.parseNumber(takerString);
         const result = {};
-        for (let i = 0; i < this.symbols.length; i++) {
-            const symbol = this.symbols[i];
+        const symbols = this.symbols;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
             result[symbol] = {
                 'info': response,
                 'symbol': symbol,

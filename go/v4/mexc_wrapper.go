@@ -116,7 +116,7 @@ func (this *Mexc) FetchSwapMarkets(params ...any) ([]map[string]any, error) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Mexc) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -831,7 +831,7 @@ func (this *Mexc) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]
  * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-all-orders // spot all symbols
  * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-orders-under-a-contract // swap
  * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-all-planned-orders // swap trigger
- * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+ * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -1481,7 +1481,7 @@ func (this *Mexc) FetchPositions(options ...FetchPositionsOptions) ([]Position, 
  * @see https://mexcdevelop.github.io/apidocs/spot_v2_en/#internal-assets-transfer-order-inquiry
  * @param {string} id transfer id
  * @param {string} [code] not used by mexc fetchTransfer
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Mexc) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {
@@ -1633,7 +1633,7 @@ func (this *Mexc) Withdraw(code string, amount float64, address string, options 
  * @description set hedged to true or false for a market
  * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/modify-user-position-mode
  * @param {bool} hedged set to true to use dualSidePosition
- * @param {string} symbol not used by mexc setPositionMode ()
+ * @param {string} symbol not used by setPositionMode ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
@@ -1736,7 +1736,7 @@ func (this *Mexc) FetchTransactionFees(options ...FetchTransactionFeesOptions) (
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Mexc) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Mexc) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 
 	opts := FetchDepositWithdrawFeesOptionsStruct{}
 
@@ -1755,9 +1755,9 @@ func (this *Mexc) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOp
 	}
 	res := <-this.Core.FetchDepositWithdrawFees(codes, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return DepositWithdrawFees{}, CreateReturnError(res)
 	}
-	return (res).(map[string]any), nil
+	return NewDepositWithdrawFees(res), nil
 }
 
 /**
@@ -1796,7 +1796,7 @@ func (this *Mexc) FetchLeverage(symbol string, options ...FetchLeverageOptions) 
  * @param {string[]} [symbols] unified contract symbols
  * @param {int} [since] not used by mexc fetchPositionsHistory
  * @param {int} [limit] the maximum amount of candles to fetch, default=1000
- * @param {object} [params] extra parameters specific to the exchange api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  *
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {int} [params.type] position type，1: long, 2: short
@@ -2001,7 +2001,7 @@ func (this *Mexc) FetchDepositAddresses(options ...FetchDepositAddressesOptions)
 func (this *Mexc) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Mexc) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Mexc) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
 func (this *Mexc) FetchFreeBalance(params ...any) (Balance, error) {

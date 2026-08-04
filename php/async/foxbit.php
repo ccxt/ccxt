@@ -393,31 +393,33 @@ class foxbit extends Exchange {
             $networkDepositInfo = $this->safe_dict($network, 'deposit_info');
             $isWithdrawEnabled = $this->safe_string($networkWithdrawInfo, 'status') === 'ENABLED';
             $isDepositEnabled = $this->safe_string($networkDepositInfo, 'status') === 'ENABLED';
-            $parsedNetworks[$networkCode] = array(
-                'info' => $rawCurrency,
-                'id' => $networkId,
-                'network' => $networkCode,
-                'name' => $this->safe_string($network, 'name'),
-                'deposit' => $isDepositEnabled,
-                'withdraw' => $isWithdrawEnabled,
-                'active' => true,
-                'precision' => $precision,
-                'fee' => $this->safe_number($networkWithdrawInfo, 'fee'),
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
+            if ($networkCode !== null) {
+                $parsedNetworks[$networkCode] = array(
+                    'info' => $rawCurrency,
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'name' => $this->safe_string($network, 'name'),
+                    'deposit' => $isDepositEnabled,
+                    'withdraw' => $isWithdrawEnabled,
+                    'active' => true,
+                    'precision' => $precision,
+                    'fee' => $this->safe_number($networkWithdrawInfo, 'fee'),
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($depositInfo, 'min_amount'),
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($withdrawInfo, 'min_amount'),
+                            'max' => null,
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => $this->safe_number($depositInfo, 'min_amount'),
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => $this->safe_number($withdrawInfo, 'min_amount'),
-                        'max' => null,
-                    ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $currencyId,
@@ -700,7 +702,7 @@ class foxbit extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return, the maximum is 100
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -874,7 +876,9 @@ class foxbit extends Exchange {
                     'used' => $used,
                     'total' => $total,
                 );
-                $result[$currencyCode] = $balanceObj;
+                if ($currencyCode !== null) {
+                    $result[$currencyCode] = $balanceObj;
+                }
             }
             return $this->safe_balance($result);
         })();
@@ -978,6 +982,9 @@ class foxbit extends Exchange {
             $timeInForce = $this->safe_string_upper($params, 'timeInForce');
             $postOnly = $this->safe_bool($params, 'postOnly', false);
             $triggerPrice = $this->safe_number($params, 'triggerPrice');
+            if ($side === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+            }
             $request = array(
                 'market_symbol' => $market['id'],
                 'side' => strtoupper($side),
@@ -1150,7 +1157,7 @@ class foxbit extends Exchange {
              *
              * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel
              *
-             * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
+             * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
@@ -1584,6 +1591,9 @@ class foxbit extends Exchange {
                 Async\await($this->load_markets());
             }
             $market = $this->market($symbol);
+            if ($side === null) {
+                throw new ArgumentsRequired($this->id . ' editOrder() requires a $side argument');
+            }
             $request = array(
                 'mode' => 'ALLOW_FAILURE',
                 'cancel' => array(
@@ -1814,7 +1824,7 @@ class foxbit extends Exchange {
         ), $market);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
@@ -1825,7 +1835,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade(mixed $trade, ?array $market = null): array {
         $timestamp = $this->parse_date($this->safe_string($trade, 'created_at'));
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'volume', $this->safe_string($trade, 'quantity'));
@@ -1866,7 +1876,7 @@ class foxbit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         $symbol = $this->safe_string($order, 'market_symbol');
         if ($market === null && $symbol !== null) {
             $market = $this->market($symbol);
@@ -1925,7 +1935,7 @@ class foxbit extends Exchange {
         ));
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null) {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null) {
         $network = $this->safe_dict($depositAddress, 'network');
         $networkId = $this->safe_string($network, 'code');
         $currencyCode = $this->safe_currency_code(null, $currency);
@@ -1960,7 +1970,7 @@ class foxbit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_transaction(mixed $transaction, ?array $currency = null, ?int $since = null, ?int $limit = null): array {
         $cryptoDetails = $this->safe_dict($transaction, 'details_crypto');
         $address = $this->safe_string_2($cryptoDetails, 'receiving_address', 'destination_address');
         $sn = $this->safe_string($transaction, 'sn');
@@ -2011,7 +2021,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'DEPOSITING' => 'transaction',
             'WITHDRAWING' => 'transaction',
@@ -2049,9 +2059,21 @@ class foxbit extends Exchange {
             'cost' => $this->safe_number($item, 'fee'),
             'currency' => $currencySymbol,
         );
+        if ($amount === null) {
+            throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a $amount argument');
+        }
         if ($amount < 0) {
             $direction = 'out';
+            if ($amount === null) {
+                throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a $amount argument');
+            }
             $realAmount = $amount * -1;
+        }
+        if ($balance === null) {
+            throw new ExchangeError($this->id . ' parseLedgerEntry() missing balance');
+        }
+        if ($amount === null) {
+            throw new ArgumentsRequired($this->id . ' parseLedgerEntry() requires a $amount argument');
         }
         return array(
             'id' => $id,
@@ -2072,7 +2094,7 @@ class foxbit extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = array(), $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $version = $api[0];
         $urlPath = $api[1];
         $fullPath = '/rest/' . $version . '/' . $this->implode_params($path, $params);
@@ -2124,7 +2146,7 @@ class foxbit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

@@ -117,7 +117,7 @@ class kucoinfutures(kucoin):
             'toAccount': toAccount,
         })
 
-    def parse_transfer_type(self, transferType):
+    def parse_transfer_type(self, transferType: Any):
         transferTypes = {
             'spot': 'TRADE',
             'funding': 'MAIN',

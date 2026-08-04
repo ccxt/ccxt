@@ -374,7 +374,7 @@ public partial class deepcoin : Exchange
     public virtual object convertToInstrumentType(object type)
     {
         object exchangeTypes = this.safeDict(this.options, "exchangeType", new Dictionary<string, object>() {});
-        return this.safeString(exchangeTypes, type, type);
+        return this.safeString(exchangeTypes, ((string)type), type);
     }
 
     /**
@@ -517,7 +517,7 @@ public partial class deepcoin : Exchange
             settle = this.safeCurrencyCode(settleId);
             symbol = add(add(symbol, ":"), settle);
         }
-        object fees = this.safeDict2(this.fees, ((string)type), "trading", new Dictionary<string, object>() {});
+        object fees = this.safeDict2(this.fees, type, "trading", new Dictionary<string, object>() {});
         object maxLeverage = this.safeString(market, "lever", "1");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         object maxMarketSize = this.safeString(market, "maxMktSz");
@@ -579,19 +579,22 @@ public partial class deepcoin : Exchange
 
     public override object setMarkets(object markets, object currencies = null)
     {
-        markets = base.setMarkets(markets, currencies);
-        object symbols = new List<object>(((IDictionary<string,object>)markets).Keys);
+        object result = base.setMarkets(markets, currencies);
+        object symbols = new List<object>(((IDictionary<string,object>)result).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            object market = getValue(markets, symbol);
-            if (isTrue(getValue(market, "swap")))
+            object market = getValue(result, symbol);
+            if (isTrue(isTrue((!isEqual(market, null))) && isTrue(getValue(market, "swap"))))
             {
-                object additionalId = add(getValue(market, "baseId"), getValue(market, "quoteId"));
-                ((IDictionary<string,object>)this.markets_by_id)[(string)additionalId] = new List<object>() {market}; // some endpoints return swap market id as base+quote
+                object additionalId = add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", ""));
+                if (isTrue(!isEqual(this.markets_by_id, null)))
+                {
+                    ((IDictionary<string,object>)this.markets_by_id)[(string)additionalId] = new List<object>() {market}; // some endpoints return swap market id as base+quote
+                }
             }
         }
-        return this.markets;
+        return result;
     }
 
     /**
@@ -602,7 +605,7 @@ public partial class deepcoin : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -703,7 +706,7 @@ public partial class deepcoin : Exchange
             if (isTrue(!isEqual(since, null)))
             {
                 // the exchange do not have a since param for this endpoint
-                // we canlculate until (after) for correct pagination
+                // we calculate until (after) for correct pagination
                 object duration = this.parseTimeframe(timeframe);
                 object numberOfCandles = ((bool) isTrue((isEqual(limit, null)))) ? maxLimit : limit;
                 object endTime = add(since, multiply((multiply(duration, numberOfCandles)), 1000));
@@ -1477,7 +1480,7 @@ public partial class deepcoin : Exchange
             { "4", "transfer" },
             { "5", "fee" },
         };
-        return this.safeString(ledgerType, type, type);
+        return this.safeString(ledgerType, ((string)type), type);
     }
 
     /**
@@ -1648,6 +1651,14 @@ public partial class deepcoin : Exchange
         * @description helper function to build request
         */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
         object triggerPrice = this.safeString(parameters, "triggerPrice");
         // const isTriggerOrder = (triggerPrice !== undefined) || this.safeString2 (params, 'stopLossPrice', 'takeProfitPrice') !== undefined;
@@ -1693,6 +1704,14 @@ public partial class deepcoin : Exchange
         * @param {string} [params.mrgPosition] *swap only* 'merge' or 'split', the default is 'merge'
         */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
         object orderType = type;
         var orderTypeparametersVariable = this.handleTypePostOnlyAndTimeInForce(type, parameters);
@@ -1810,6 +1829,14 @@ public partial class deepcoin : Exchange
         * @param {string} [params.marginMode] *swap only* 'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
         */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
@@ -2817,7 +2844,7 @@ public partial class deepcoin : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object firstSymbol = this.safeString(symbols, 0);
-            market = this.market(((string)firstSymbol));
+            market = this.market(firstSymbol);
         }
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositions", market, parameters, marketType);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
@@ -3003,7 +3030,7 @@ public partial class deepcoin : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object firstSymbol = this.safeString(symbols, 0);
-            firstMarket = this.market(((string)firstSymbol));
+            firstMarket = this.market(firstSymbol);
         }
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingRates", firstMarket, parameters, subType);
         subType = ((IList<object>)subTypeparametersVariable)[0];

@@ -8,7 +8,7 @@ var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 
 // ----------------------------------------------------------------------------
-//  ---------------------------------------------------------------------------xs
+//  ---------------------------------------------------------------------------
 /**
  * @class alpaca
  * @augments Exchange
@@ -438,9 +438,21 @@ class alpaca extends alpaca$1["default"] {
         //     }
         //
         const timestamp = this.safeString(response, 'timestamp');
+        if (timestamp === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchTime() missing timestamp');
+        }
         const localTime = timestamp.slice(0, 23);
+        if (timestamp === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchTime() missing timestamp');
+        }
         const jetlagStrStart = timestamp.length - 6;
+        if (timestamp === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchTime() missing timestamp');
+        }
         const jetlagStrEnd = timestamp.length - 3;
+        if (timestamp === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchTime() missing timestamp');
+        }
         const jetlag = timestamp.slice(jetlagStrStart, jetlagStrEnd);
         const iso = this.parseToInt(this.parse8601(localTime)) - this.parseToNumeric(jetlag) * 3600 * 1000;
         return iso;
@@ -450,7 +462,7 @@ class alpaca extends alpaca$1["default"] {
      * @name alpaca#fetchMarkets
      * @description retrieves data on all markets for alpaca
      * @see https://docs.alpaca.markets/reference/get-v2-assets
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
@@ -505,6 +517,9 @@ class alpaca extends alpaca$1["default"] {
         //     }
         //
         const marketId = this.safeString(asset, 'symbol');
+        if (marketId === undefined) {
+            throw new errors.ExchangeError(this.id + ' parseMarket() missing marketId');
+        }
         const parts = marketId.split('/');
         const assetClass = this.safeString(asset, 'class');
         const baseId = this.safeString(parts, 0);
@@ -522,7 +537,7 @@ class alpaca extends alpaca$1["default"] {
         const minAmount = this.safeNumber(asset, 'min_order_size');
         const amount = this.safeNumber(asset, 'min_trade_increment');
         const price = this.safeNumber(asset, 'price_increment');
-        return {
+        return this.safeMarketStructure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -570,7 +585,7 @@ class alpaca extends alpaca$1["default"] {
             },
             'created': undefined,
             'info': asset,
-        };
+        });
     }
     /**
      * @method
@@ -649,7 +664,11 @@ class alpaca extends alpaca$1["default"] {
         else {
             throw new errors.NotSupported(this.id + ' fetchTrades() does not support ' + method + ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported');
         }
-        return this.parseTrades(symbolTrades, market, since, limit);
+        let symbolTradesList = [];
+        if (symbolTrades !== undefined) {
+            symbolTradesList = symbolTrades;
+        }
+        return this.parseTrades(symbolTradesList, market, since, limit);
     }
     /**
      * @method
@@ -660,7 +679,7 @@ class alpaca extends alpaca$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -726,7 +745,7 @@ class alpaca extends alpaca$1["default"] {
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
-     * @param {object} [params] extra parameters specific to the alpha api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.loc] crypto location, default: us
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocBars
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -1160,7 +1179,7 @@ class alpaca extends alpaca$1["default"] {
      * @name alpaca#cancelAllOrders
      * @description cancel all open orders in a market
      * @see https://docs.alpaca.markets/reference/deleteallorders
-     * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+     * @param {string} [symbol] alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1897,7 +1916,9 @@ class alpaca extends alpaca$1["default"] {
         const code = this.safeCurrencyCode(currencyId);
         account['free'] = this.safeString(response, 'cash');
         account['total'] = this.safeString(response, 'equity');
-        result[code] = account;
+        if (code !== undefined) {
+            result[code] = account;
+        }
         return this.safeBalance(result);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

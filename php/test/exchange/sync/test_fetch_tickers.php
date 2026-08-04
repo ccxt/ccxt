@@ -63,6 +63,9 @@ function fetch_tickers_amounts_test($exchange, $skipped_properties, $tickers) {
         // ensure tickers length is less than markets length
         //
         $all_markets = $exchange->markets;
+        if ($all_markets === null) {
+            return;
+        }
         $all_markets_length = count(is_array($all_markets) ? array_keys($all_markets) : array());
         assert($obtained_tickers_length <= $all_markets_length, $exchange->id . ' ' . 'fetchTickers' . ' must return <= than all markets, but returned: ' . ((string) $obtained_tickers_length) . ' tickers, ' . ((string) $all_markets_length) . ' markets');
     }

@@ -305,6 +305,9 @@ class mercado extends mercado$1["default"] {
             const quoteId = 'BRL';
             const base = this.safeCurrencyCode(baseId);
             const quote = this.safeCurrencyCode(quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const id = quote + base;
             result.push({
                 'id': id,
@@ -365,7 +368,7 @@ class mercado extends mercado$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -526,7 +529,9 @@ class mercado extends mercado$1["default"] {
                 const account = this.account();
                 account['free'] = this.safeString(balance, 'available');
                 account['total'] = this.safeString(balance, 'total');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance(result);

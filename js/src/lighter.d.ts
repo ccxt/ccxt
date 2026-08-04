@@ -1,5 +1,5 @@
 import Exchange from './abstract/lighter.js';
-import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction, Trade, Account, MarginModification, NullableDict } from './base/types.js';
+import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, CurrencyInterface, Currencies, Transaction, Trade, Account, MarginModification, NullableDict } from './base/types.js';
 /**
  * @class lighter
  * @augments Exchange
@@ -20,8 +20,8 @@ export default class lighter extends Exchange {
     handleApiKeyIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): any[];
     handleAccountIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): Promise<any[]>;
     createSubAccount(name: string, params?: {}): Promise<any>;
-    createAuth(params?: {}): string;
-    pow(n: string, m: string): string;
+    createAuth(params?: {}): Str;
+    pow(n: string, m: string): string | undefined;
     hashMessage(message: string): string;
     signHash(hash: any, privateKey: any): string;
     signL1AndPrepareTxInfo(txInfo: any, message: any, privateKey: any): string;
@@ -29,8 +29,8 @@ export default class lighter extends Exchange {
     approveBuilderFee(builder: number, takerFeeRate: number, makerFeeRate: number, accountIndex: number, apiKeyIndex: number, params?: object): Promise<any>;
     changeApiKey(params?: object): Promise<any>;
     setSandboxMode(enable: boolean): void;
-    createOrderRequest(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any[];
-    fetchNonce(accountIndex: any, apiKeyIndex: any, params?: {}): Promise<number>;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Num, price?: Num, params?: {}): any[];
+    fetchNonce(accountIndex: any, apiKeyIndex: any, params?: {}): Promise<Int>;
     /**
      * @method
      * @name lighter#createOrder
@@ -51,7 +51,7 @@ export default class lighter extends Exchange {
      * @param {int} [params.orderExpiry] orderExpiry
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: Dict): Promise<Order>;
     /**
      * @method
      * @name lighter#editOrder
@@ -78,9 +78,9 @@ export default class lighter extends Exchange {
      */
     fetchStatus(params?: {}): Promise<{
         status: string;
-        updated: any;
-        eta: any;
-        url: any;
+        updated: undefined;
+        eta: undefined;
+        url: undefined;
         info: any;
     }>;
     /**
@@ -110,7 +110,7 @@ export default class lighter extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    parseCurrency(rawCurrency: Dict): Currency;
+    parseCurrency(rawCurrency: Dict): CurrencyInterface;
     /**
      * @method
      * @name lighter#fetchOrderBook
@@ -119,7 +119,7 @@ export default class lighter extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
@@ -218,9 +218,9 @@ export default class lighter extends Exchange {
      */
     fetchAccounts(params?: {}): Promise<Account[]>;
     parseAccount(account: any): {
-        id: string;
+        id: Str;
         type: string;
-        code: any;
+        code: undefined;
         info: any;
     };
     /**
@@ -250,11 +250,11 @@ export default class lighter extends Exchange {
      */
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
-    parseOrderStatus(status: Str): string;
+    parseOrderStatus(status: Str): Str;
     parseOrderType(type: any): string;
-    parseOrderTypeInteger(typeInteger: any): string;
+    parseOrderTypeInteger(typeInteger: any): Str;
     parseOrderTimeInForce(tif: any): string;
-    parseOrderTimeInForceInteger(tifInteger: any): string;
+    parseOrderTimeInForceInteger(tifInteger: any): Str;
     /**
      * @method
      * @name lighter#transfer
@@ -316,7 +316,7 @@ export default class lighter extends Exchange {
      */
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
-    parseTransactionStatus(status: Str): string;
+    parseTransactionStatus(status: Str): Str;
     /**
      * @method
      * @name lighter#withdraw
@@ -433,7 +433,7 @@ export default class lighter extends Exchange {
      * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
-     * @param {object} [params] parameters specific to the bingx api endpoint
+     * @param {object} [params] parameters specific to the exchange API endpoint
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
@@ -444,7 +444,7 @@ export default class lighter extends Exchange {
         url: string;
         method: string;
         body: any;
-        headers: Dict;
+        headers: NullableDict;
     };
-    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): undefined;
 }

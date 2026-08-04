@@ -91,7 +91,7 @@ function nullSkipReplacer(key: string, value: any) {
  */
 export function formatSpaces(json: string) {
   let insideQuotes = false;
-  const newString = [];
+  const newString: string[] = [];
   // eslint-disable-next-line no-restricted-syntax
   for (const char of json) {
     if (char === '"' && (newString.length > 0 && newString.slice(-1)[0] === '\\') === false) {

@@ -8,8 +8,7 @@ import type {
     Market, PredictionOrderBook, OHLCV,
     Balances, fetchEventsParams,
     Strings,
-    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition,
-} from '../base/types.js';
+    PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, NullableDict} from '../base/types.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, RateLimitExceeded } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -19,7 +18,7 @@ import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, Insuffic
  * @augments Exchange
  */
 export default class hyperliquid extends Exchange {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'hyperliquid',
             'name': 'Hyperliquid',
@@ -151,7 +150,7 @@ export default class hyperliquid extends Exchange {
         });
     }
 
-    setSandboxMode (enabled: boolean) {
+    override setSandboxMode (enabled: boolean) {
         super.setSandboxMode (enabled);
         this.options['sandboxMode'] = enabled;
     }
@@ -218,7 +217,7 @@ export default class hyperliquid extends Exchange {
             return {};
         }
         const parts = description.split ('|');
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < parts.length; i++) {
             const part = parts[i];
             const colonIndex = part.indexOf (':');
@@ -298,7 +297,7 @@ export default class hyperliquid extends Exchange {
                 const nameLower = name.toLowerCase ();
                 if (questionUnderlying && thresholdsRaw && indexStr !== undefined) {
                     const thresholdParts = thresholdsRaw.split (',');
-                    const thresholds = [];
+                    const thresholds: string[] = [];
                     for (let i = 0; i < thresholdParts.length; i++) {
                         const trimmed = thresholdParts[i].trim ();
                         if (trimmed.length > 0) {
@@ -373,7 +372,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters
      * @returns {Market[]} array of market structures
      */
-    async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params = {}): Promise<Market[]> {
         //
         // outcomeMeta response:
         //
@@ -406,7 +405,7 @@ export default class hyperliquid extends Exchange {
         const response = await this.publicPostInfo (this.extend ({ 'type': 'outcomeMeta' }, params));
         const outcomesList = this.safeList (response, 'outcomes', []);
         const questionsList = this.safeList (response, 'questions', []);
-        const outcomesToQuestions = {};
+        const outcomesToQuestions: Dict = {};
         for (let qi = 0; qi < questionsList.length; qi++) {
             const question = this.safeDict (questionsList, qi, {});
             const fallbackOutcome = this.safeInteger (question, 'fallbackOutcome');
@@ -423,7 +422,7 @@ export default class hyperliquid extends Exchange {
                 }
             }
         }
-        const markets = [];
+        const markets: Market[] = [];
         if (this.outcomes === undefined) {
             this.outcomes = {};
         }
@@ -437,7 +436,7 @@ export default class hyperliquid extends Exchange {
             const market = this.parseOutcomeMarket (outcomeInfo, outcomeId, linkedQuestion);
             markets.push (market);
             // Build outcomes dictionary from market outcomes
-            const marketOutcomes = this.safeList (market as any, 'outcomes', []);
+            const marketOutcomes = this.safeList (market, 'outcomes', []);
             for (let oi = 0; oi < marketOutcomes.length; oi++) {
                 const outcome = this.safeDict (marketOutcomes, oi, {});
                 const outcomeSymbol = this.safeString2 (outcome, 'outcome', 'symbol');
@@ -475,8 +474,8 @@ export default class hyperliquid extends Exchange {
         const noOutcomeSymbol = parentSymbol + ':NO';
         // Parse expiry from description
         const expiry = this.safeString (desc, 'expiry');
-        let expiryMs = undefined;
-        let expiryDatetime = undefined;
+        let expiryMs: Int = undefined;
+        let expiryDatetime: Str = undefined;
         if (expiry) {
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             const expParts = expiry.split ('-');
@@ -630,7 +629,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    async fetchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
+    override async fetchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
@@ -664,8 +663,8 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
-        const requestedOutcomeSymbols = {};
+    override async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
+        const requestedOutcomeSymbols: Dict = {};
         if (outcomes !== undefined) {
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
             // then identities resolve synchronously
@@ -716,7 +715,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [market] the market the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    parsePredictionTicker (raw: Dict, market: Market = undefined): PredictionTicker {
+    override parsePredictionTicker (raw: Dict, market: Market = undefined): PredictionTicker {
         //
         //     {
         //         "coin": "#10",
@@ -749,7 +748,7 @@ export default class hyperliquid extends Exchange {
         // day volume lives on the parent market's ctx; resolve it from the outcome's parent market
         const parentSymbol = this.safeString (mkt, 'market');
         const parentMarket = (parentSymbol !== undefined) ? this.safeMarket (parentSymbol) : undefined;
-        const ctx = (parentMarket !== undefined) ? this.safeDict (this.safeDict (parentMarket as any, 'info', {}), 'ctx', {}) : {};
+        const ctx = (parentMarket !== undefined) ? this.safeDict (this.safeDict (parentMarket, 'info', {}), 'ctx', {}) : {};
         const dayVolume = this.safeNumber (ctx, 'dayNtlVlm');
         return this.safePredictionTicker ({
             'outcome': outcome,
@@ -788,7 +787,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    async fetchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+    override async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
@@ -811,8 +810,8 @@ export default class hyperliquid extends Exchange {
         const levels = this.safeList (response, 'levels', []);
         const rawBids = this.safeList (levels, 0, []);
         const rawAsks = this.safeList (levels, 1, []);
-        const bids = [];
-        const asks = [];
+        const bids: Num[][] = [];
+        const asks: Num[][] = [];
         for (let i = 0; i < rawBids.length; i++) {
             const entry = rawBids[i];
             bids.push ([ this.safeNumber (entry, 'px'), this.safeNumber (entry, 'sz') ]);
@@ -838,7 +837,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [params.until] end timestamp in ms
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (outcome: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async fetchOHLCV (outcome: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         // markets are keyed by the parent market outcome, not the outcome handle ("MARKET:LABEL")
@@ -851,6 +850,9 @@ export default class hyperliquid extends Exchange {
             const candleCount = (limit !== undefined) ? limit : 100;
             const startOffset = tf * candleCount * -1000;
             startTime = this.sum (until, startOffset);
+            if (startTime === undefined) {
+                throw new ExchangeError (this.id + ' fetchOHLCV() missing startTime');
+            }
             if (startTime < 0) {
                 startTime = 0;
             }
@@ -894,7 +896,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [market] the market the candle belongs to
      * @returns {int[]} a candle ordered as timestamp, open, high, low, close, volume
      */
-    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+    override parseOHLCV (ohlcv: any, market: Market = undefined): OHLCV {
         //
         //     {
         //         "T": 1704287699999,   // close time
@@ -928,7 +930,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.user] wallet address (defaults to this.walletAddress)
      * @returns {Balances} balance structure
      */
-    async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params = {}): Promise<Balances> {
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchBalance', params);
         const request = {
@@ -945,7 +947,7 @@ export default class hyperliquid extends Exchange {
         //         ]
         //     }
         //
-        const result = {
+        const result: Dict = {
             'info': response,
         };
         const balances = this.safeList (response, 'balances', []);
@@ -957,7 +959,9 @@ export default class hyperliquid extends Exchange {
             const account = this.account ();
             account['total'] = total;
             account['used'] = used;
-            result[coin] = account;
+            if (coin !== undefined) {
+                result[coin] = account;
+            }
         }
         return this.safeBalance (result);
     }
@@ -972,8 +976,8 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.user] wallet address
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
-        const requestedOutcomeSymbols = {};
+    override async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
+        const requestedOutcomeSymbols: Dict = {};
         if (outcomes !== undefined) {
             // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
             // then identities resolve synchronously
@@ -1006,7 +1010,7 @@ export default class hyperliquid extends Exchange {
         const midsResponse = results[1];
         const balances = this.safeList (response, 'balances', []);
         const mids = this.safeDict (midsResponse, 'mids', midsResponse);
-        const positions = [];
+        const positions: PredictionPosition[] = [];
         for (let i = 0; i < balances.length; i++) {
             const balance = this.safeDict (balances, i, {});
             const coin = this.safeString (balance, 'coin', '');
@@ -1042,7 +1046,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
+    override parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
         // `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
         // enriched with the current mid price (markPx); hyperliquid does not return the position
         // value / entry price / pnl for outcome tokens, so they are computed here
@@ -1050,13 +1054,13 @@ export default class hyperliquid extends Exchange {
         const totalStr = this.safeString (position, 'total');
         const total = this.parseNumber (totalStr);
         const entryNtlStr = this.safeString (position, 'entryNtl');
-        let entryPrice = undefined;
+        let entryPrice: Num = undefined;
         if ((entryNtlStr !== undefined) && (totalStr !== undefined) && !Precise.stringEq (totalStr, '0')) {
             entryPrice = this.parseNumber (Precise.stringDiv (entryNtlStr, totalStr));
         }
         const markPxStr = this.safeString (position, 'markPx');
-        let notional = undefined;        // current position value = size * mark price
-        let unrealizedPnl = undefined;   // value - entry notional
+        let notional: Num = undefined;        // current position value = size * mark price
+        let unrealizedPnl: Num = undefined;   // value - entry notional
         if ((markPxStr !== undefined) && (totalStr !== undefined)) {
             const notionalStr = Precise.stringMul (totalStr, markPxStr);
             notional = this.parseNumber (notionalStr);
@@ -1096,7 +1100,7 @@ export default class hyperliquid extends Exchange {
     }
 
     findOutcomeInMarket (market: Market, sideHint: Str = undefined): Dict {
-        const outcomesList = this.safeList (market as any, 'outcomes', []);
+        const outcomesList = this.safeList (market, 'outcomes', []);
         const normalizedHint = sideHint ? sideHint.toUpperCase () : undefined;
         if (normalizedHint !== undefined) {
             for (let i = 0; i < outcomesList.length; i++) {
@@ -1178,7 +1182,7 @@ export default class hyperliquid extends Exchange {
                 return this.safeDict (this.outcomes_by_id, key, {});
             }
         }
-        if ((outcomeInput in this.markets) || (outcomeInput in this.markets_by_id)) {
+        if (((this.markets !== undefined) && (outcomeInput in this.markets)) || ((this.markets_by_id !== undefined) && (outcomeInput in this.markets_by_id))) {
             const market = this.safeMarket (outcomeInput);
             const sideHintOrDefault = (sideHint !== undefined) ? sideHint : 'YES';
             const found = this.findOutcomeInMarket (market, sideHintOrDefault);
@@ -1208,7 +1212,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async createOrder (outcome: string, type: string, side: string, amount: number, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+    override async createOrder (outcome: string, type: string, side: string, amount: number, price: Num = undefined, params = {}): Promise<PredictionOrder> {
         await this.initializeClient ();
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
@@ -1237,7 +1241,7 @@ export default class hyperliquid extends Exchange {
             }
             throw new ArgumentsRequired (this.id + ' createOrder() requires a limit price for outcome markets in between 0 and 1.');
         }
-        let px: string;
+        let px: Str = undefined;
         if (isMarket) {
             const priceStr = this.numberToString (price);
             px = isBuy ? Precise.stringMul (priceStr, Precise.stringAdd ('1', slippage)) : Precise.stringMul (priceStr, Precise.stringSub ('1', slippage));
@@ -1245,11 +1249,14 @@ export default class hyperliquid extends Exchange {
         } else {
             px = this.priceToPrecision (marketSymbol, price);
         }
-        const sz = this.amountToPrecision (marketSymbol, amount);
+        if (px === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() could not determine price');
+        }
+        const sz: Str = this.amountToPrecision (marketSymbol, amount);
         const orderType = {
             'limit': { 'tif': tif },
         };
-        const orderObj = {
+        const orderObj: Dict = {
             'a': assetId,
             'b': isBuy,
             'p': px,
@@ -1260,10 +1267,10 @@ export default class hyperliquid extends Exchange {
         if (clientOrderId !== undefined) {
             orderObj['c'] = clientOrderId;
         }
-        let vaultAddress = undefined;
+        let vaultAddress: Str = undefined;
         [ vaultAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
-        const orderAction = {
+        const orderAction: Dict = {
             'type': 'order',
             'orders': [ orderObj ],
             'grouping': 'na',
@@ -1279,7 +1286,7 @@ export default class hyperliquid extends Exchange {
             orderAction['builder'] = { 'b': wallet, 'f': feeInt };
         }
         const signature = this.signL1Action (orderAction, nonce, vaultAddress);
-        const request = {
+        const request: Dict = {
             'action': orderAction,
             'nonce': nonce,
             'signature': signature,
@@ -1344,7 +1351,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.vaultAddress] optional subaccount/vault address to cancel on behalf of
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+    override async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
         const orders = await this.cancelOrders ([ id ], outcome, params);
         return this.safeDict (orders, 0) as PredictionOrder;
     }
@@ -1359,7 +1366,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
         this.checkRequiredCredentials ();
         if (outcome === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires an outcome argument');
@@ -1372,8 +1379,8 @@ export default class hyperliquid extends Exchange {
         const nonce = this.milliseconds ();
         const clientOrderId = this.safeValue2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
-        const cancelReq = [];
-        const cancelAction = { 'type': 'cancel', 'cancels': [] };
+        const cancelReq: Dict[] = [];
+        const cancelAction: Dict = { 'type': 'cancel', 'cancels': [] };
         if (clientOrderId !== undefined) {
             const cloids = Array.isArray (clientOrderId) ? clientOrderId : [ clientOrderId ];
             cancelAction['type'] = 'cancelByCloid';
@@ -1387,11 +1394,11 @@ export default class hyperliquid extends Exchange {
             }
         }
         cancelAction['cancels'] = cancelReq;
-        let vaultAddress = undefined;
+        let vaultAddress: Str = undefined;
         [ vaultAddress, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'vaultAddress');
         vaultAddress = this.formatVaultAddress (vaultAddress);
         const signature = this.signL1Action (cancelAction, nonce, vaultAddress);
-        const request = {
+        const request: Dict = {
             'action': cancelAction,
             'nonce': nonce,
             'signature': signature,
@@ -1412,7 +1419,7 @@ export default class hyperliquid extends Exchange {
                 requestIds = [ clientOrderId ];
             }
         }
-        const orders = [];
+        const orders: PredictionOrder[] = [];
         for (let i = 0; i < statuses.length; i++) {
             const status = statuses[i];
             const error = this.safeString (status, 'error');
@@ -1436,7 +1443,7 @@ export default class hyperliquid extends Exchange {
                 'timestamp': this.milliseconds (),
                 'datetime': this.iso8601 (this.milliseconds ()),
             };
-            orders.push (this.safePredictionOrder (order) as PredictionOrder);
+            orders.push (this.safePredictionOrder (order));
         }
         return orders;
     }
@@ -1454,14 +1461,14 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.method] 'openOrders' | 'frontendOpenOrders' (default)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOpenOrders', params);
         let method: Str;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'frontendOpenOrders');
         const request = { 'type': method, 'user': userAddress };
         const response = await this.publicPostInfo (this.extend (request, params));
-        const ordersWithStatus = [];
+        const ordersWithStatus: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
             const order = response[i];
             ordersWithStatus.push (this.extend (order, { 'ccxtStatus': 'open' }));
@@ -1488,13 +1495,13 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.user] wallet address
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOrders', params);
         const request = { 'type': 'historicalOrders', 'user': userAddress };
         const response = await this.publicPostInfo (this.extend (request, params));
         // Deduplicate by oid keeping most recent statusTimestamp
-        const deduped = {};
+        const deduped: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const raw = response[i];
             let entry = this.safeDict (raw, 'order');
@@ -1541,7 +1548,7 @@ export default class hyperliquid extends Exchange {
         let userAddress: Str;
         [ userAddress, params ] = this.handlePublicAddress ('fetchOrder', params);
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        const request = { 'type': 'orderStatus', 'user': userAddress };
+        const request: Dict = { 'type': 'orderStatus', 'user': userAddress };
         if (clientOrderId !== undefined) {
             params = this.omit (params, 'clientOrderId');
             request['oid'] = clientOrderId;
@@ -1572,7 +1579,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [market] the market the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
+    override parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
         //
         // from frontendOpenOrders:
         // {
@@ -1595,14 +1602,14 @@ export default class hyperliquid extends Exchange {
         let entry = this.safeDict (order, 'order', order); // eslint-disable-line
         const status = this.parseOrderStatus (this.safeString2 (order, 'ccxtStatus', 'status'));
         const coin = this.safeString (entry, 'coin');
-        const outcomeObj = this.safeOutcome (coin, market as any);
+        const outcomeObj = this.safeOutcome (coin, market);
         const marketSymbol = this.safeString (outcomeObj, 'outcome');
-        const resolvedMarket = marketSymbol ? this.safeMarket (marketSymbol, market as any) : market;
+        const resolvedMarket = marketSymbol ? this.safeMarket (marketSymbol, market) : market;
         const sideRaw = this.safeString (entry, 'side');
         const side = (sideRaw === 'B') ? 'buy' : 'sell';
         const totalAmount = this.safeString (entry, 'origSz');
         const remaining = this.safeString (entry, 'sz');
-        let filled = undefined;
+        let filled: Str = undefined;
         if ((remaining !== undefined) && (totalAmount !== undefined)) {
             filled = Precise.stringSub (totalAmount, remaining);
         }
@@ -1691,7 +1698,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
@@ -1718,7 +1725,7 @@ export default class hyperliquid extends Exchange {
      * @param {int} [params.until] end timestamp in ms
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         let outcomeHandle: Str = undefined;
         if (outcome !== undefined) {
             const outcomeObj = await this.loadOutcome (outcome);
@@ -1746,7 +1753,7 @@ export default class hyperliquid extends Exchange {
         const fills = (response) ? response : [];
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
-        const parsedTrades = this.parsePredictionTrades (fills as any[], undefined);
+        const parsedTrades = this.parsePredictionTrades (fills, undefined);
         return this.filterByOutcomeSinceLimit (parsedTrades, outcomeHandle, since, limit);
     }
 
@@ -1759,7 +1766,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [market] the market the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
+    override parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
         //
         // {
         //   "closedPnl": "0.19343",
@@ -1783,19 +1790,19 @@ export default class hyperliquid extends Exchange {
         const price = this.safeString (trade, 'px');
         const amount = this.safeString (trade, 'sz');
         const coin = this.safeString (trade, 'coin');
-        const outcomeObj = this.safeOutcome (coin, market as any);
+        const outcomeObj = this.safeOutcome (coin, market);
         const marketSymbol = this.safeString (outcomeObj, 'outcome');
-        const resolvedMarket = marketSymbol ? this.safeMarket (marketSymbol, market as any) : market;
+        const resolvedMarket = marketSymbol ? this.safeMarket (marketSymbol, market) : market;
         const rawSide = this.safeString (trade, 'side');
         const side = (rawSide === 'B') ? 'buy' : 'sell';
         const fee = this.safeNumber (trade, 'fee');
         const feeCurrency = this.safeString (trade, 'feeToken', 'USDC');
         const outcomeSymbol = this.safeString (outcomeObj, 'outcome');
-        let feeObject = undefined;
+        let feeObject: NullableDict = undefined;
         if (fee !== undefined) {
             feeObject = { 'cost': fee, 'currency': feeCurrency };
         }
-        let cost = undefined;
+        let cost: Num = undefined;
         if ((price !== undefined) && (amount !== undefined)) {
             cost = this.parseNumber (Precise.stringMul (price, amount));
         }
@@ -1828,7 +1835,7 @@ export default class hyperliquid extends Exchange {
      * @param {string[]} [params.queries] multiple query strings (alternative to query)
      * @returns {PredictionEvent[]} array of event structures
      */
-    async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
+    override async fetchEvents (params: fetchEventsParams = {}): Promise<PredictionEvent[]> {
         this.requireEventQuery (params);
         const queries = this.parseSearchQueries (params);
         // hyperliquid has no dedicated events endpoint - events are grouped from the outcome
@@ -1838,20 +1845,23 @@ export default class hyperliquid extends Exchange {
         const marketsDict = await this.loadMarkets ();
         const marketValues = this.toArray (marketsDict);
         // Group markets by parentSymbol
-        const groupMap = {};
-        const lowerQueries = [];
+        const groupMap: Dict = {};
+        if (queries === undefined) {
+            throw new ExchangeError (this.id + ' fetchEvents() missing queries');
+        }
+        const lowerQueries: string[] = [];
         for (let i = 0; i < queries.length; i++) {
             const queryString = queries[i] as string;
             lowerQueries.push (queryString.toLowerCase ());
         }
         const lowerQueriesLength = lowerQueries.length;
         for (let i = 0; i < marketValues.length; i++) {
-            const mkt = marketValues[i] as Market;
-            if (!this.safeBool (mkt as any, 'prediction', false)) {
+            const mkt = marketValues[i];
+            if (!this.safeBool (mkt, 'prediction', false)) {
                 continue;
             }
-            const info = this.safeDict (mkt as any, 'info', {});
-            const parentSymbol = this.safeString (info, 'parentSymbol', this.safeString2 (mkt as any, 'market', 'symbol'));
+            const info = this.safeDict (mkt, 'info', {});
+            const parentSymbol = this.safeString (info, 'parentSymbol', this.safeString2 (mkt, 'market', 'symbol'));
             // Apply query filter
             if (lowerQueriesLength > 0) {
                 const description = this.safeString (info, 'description', '').toLowerCase ();
@@ -1882,21 +1892,28 @@ export default class hyperliquid extends Exchange {
                     continue;
                 }
             }
+            if (parentSymbol === undefined) {
+                throw new ExchangeError (this.id + ' fetchEvents() missing parentSymbol');
+            }
             if (!(parentSymbol in groupMap)) {
-                groupMap[parentSymbol] = [];
+                if (parentSymbol !== undefined) {
+                    groupMap[parentSymbol] = [];
+                }
             }
             // push through a local and write the slice back — the go transpiler's
             // AppendToArray reassigns only a local copy of a map-stored array, so a
             // direct push on groupMap[parentSymbol] loses the element in go
-            const parentMarkets = groupMap[parentSymbol] as any[];
+            const parentMarkets = this.safeValue (groupMap, parentSymbol);
             parentMarkets.push (mkt);
-            groupMap[parentSymbol] = parentMarkets;
+            if (parentSymbol !== undefined) {
+                groupMap[parentSymbol] = parentMarkets;
+            }
         }
-        const events = [];
+        const events: Dict[] = [];
         const groupKeys = Object.keys (groupMap);
         for (let gi = 0; gi < groupKeys.length; gi++) {
             const key = groupKeys[gi];
-            const groupMarkets = groupMap[key] as any[];
+            const groupMarkets = groupMap[key];
             const event = this.parseEvent ({ 'parentSymbol': key, 'markets': groupMarkets });
             events.push (event);
         }
@@ -1919,13 +1936,13 @@ export default class hyperliquid extends Exchange {
         // Extract info from first market
         const marketsLength = markets.length;
         const firstMarket = (marketsLength > 0) ? markets[0] : {};
-        const firstInfo = this.safeDict (firstMarket as any, 'info', {});
+        const firstInfo = this.safeDict (firstMarket, 'info', {});
         const desc = this.safeDict (firstInfo, 'parsedDescription', {});
         const underlying = this.safeString (desc, 'underlying');
         const targetPrice = this.safeString (desc, 'targetPrice');
         const expiryRaw = this.safeString (desc, 'expiry');
-        let expiryMs = undefined;
-        let expiryDatetime = undefined;
+        let expiryMs: Int = undefined;
+        let expiryDatetime: Str = undefined;
         if (expiryRaw) {
             const parts = expiryRaw.split ('-');
             const partsLength = parts.length;
@@ -1937,7 +1954,7 @@ export default class hyperliquid extends Exchange {
                 expiryDatetime = isoStr;
             }
         }
-        const firstExpiry = this.safeInteger (firstMarket as any, 'expiry');
+        const firstExpiry = this.safeInteger (firstMarket, 'expiry');
         let title = parentSymbol;
         if (underlying !== undefined) {
             let titleSuffix = '';
@@ -1974,21 +1991,27 @@ export default class hyperliquid extends Exchange {
         });
     }
 
-    amountToPrecision (outcome: string, amount: any): string {
+    override amountToPrecision (outcome: Str, amount: any): string {
         const market = this.market (outcome);
-        const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'amount', 0.0001);
+        const prec = this.safeNumber (this.safeDict (market, 'precision', {}), 'amount', 0.0001);
         // Convert precision to decimal places
         let decimals = 4;
+        if (prec === undefined) {
+            throw new ExchangeError (this.id + ' amountToPrecision() missing prec');
+        }
         if (prec > 0) {
             decimals = this.precisionFromString (this.numberToString (prec));
         }
         return this.decimalToPrecision (amount, 1, decimals, 2, this.paddingMode);
     }
 
-    priceToPrecision (outcome: string, price: any): string {
+    override priceToPrecision (outcome: Str, price: any): string {
         const market = this.market (outcome);
-        const prec = this.safeNumber (this.safeDict (market as any, 'precision', {}), 'price', 0.0001);
+        const prec = this.safeNumber (this.safeDict (market, 'precision', {}), 'price', 0.0001);
         let decimals = 4;
+        if (prec === undefined) {
+            throw new ExchangeError (this.id + ' priceToPrecision() missing prec');
+        }
         if (prec > 0) {
             decimals = this.precisionFromString (this.numberToString (prec));
         }
@@ -2150,7 +2173,7 @@ export default class hyperliquid extends Exchange {
     }
 
     handlePublicAddress (methodName: string, params: Dict): any {
-        let userAux = undefined;
+        let userAux: Str = undefined;
         [ userAux, params ] = this.handleOptionAndParams2 (params, methodName, 'user', 'subAccountAddress');
         let user = userAux;
         [ user, params ] = this.handleOptionAndParams (params, methodName, 'address', userAux);
@@ -2174,7 +2197,7 @@ export default class hyperliquid extends Exchange {
         return normalized.toLowerCase ();
     }
 
-    sign (path: any, api: any = 'public', method = 'POST', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'public', method = 'POST', params = {}, headers: any = undefined, body: any = undefined) {
         const apiGroup = Array.isArray (api) ? api[0] : api;
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         let baseUrl: string;
@@ -2193,7 +2216,7 @@ export default class hyperliquid extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (!response) {
             return undefined;
         }
@@ -2221,7 +2244,7 @@ export default class hyperliquid extends Exchange {
         return undefined;
     }
 
-    calculateRateLimiterCost (api, method, path, params, config = {}) {
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
         if (('byType' in config) && ('type' in params)) {
             const type = params['type'];
             const byType = config['byType'] as Dict;

@@ -22,3 +22,6 @@ java/lib/src/main/java/io/github/ccxt/exchanges/prediction/*.java linguist-gener
 *.o   binary
 *.dll binary
 *.dylib binary
+*.png binary
+*.ico binary
+*.jar binary

@@ -79,15 +79,6 @@ async function vssEverything () {
     vss ('./README.md',       "ccxt@{version}", version, true)
     vss ('./wiki/Install.md', "ccxt@{version}", version, true)
 
-    const pythonFiles = [
-        'package.json',
-        'LICENSE.txt',
-        'keys.json',
-        'README.md',
-    ]
-
-    pythonFiles.forEach ((fileName) => copyFile ('./' + fileName, './python/' + fileName))
-
     log.bright.green ('Version single-sourced successfully.')
 }
 

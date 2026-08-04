@@ -245,7 +245,7 @@ public partial class htx
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -1340,7 +1340,7 @@ public partial class htx
         var res = await this.fetchDepositAddress(code, parameters);
         return new DepositAddress(res);
     }
-    public async Task<List<Dictionary<string, object>>> FetchWithdrawAddresses(string code, object note = null, object networkCode = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchWithdrawAddresses(string code, string note = null, string networkCode = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchWithdrawAddresses(code, note, networkCode, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
@@ -2036,10 +2036,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return ((Dictionary<string, object>)res);
+        return new DepositWithdrawFees(res);
     }
     /// <summary>
     /// retrieves the public liquidations of a trading pair

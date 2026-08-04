@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Int, OrderBook, Trade
+from ccxt.base.types import Any, Int, Market, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -86,7 +86,7 @@ class dydx(ccxt.async_support.dydx):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    def handle_trades(self, client, message):
+    def handle_trades(self, client: Any, message: Any):
         #
         # {
         #     "type": "subscribed",
@@ -126,7 +126,7 @@ class dydx(ccxt.async_support.dydx):
         messageHash = 'trade' + ':' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade: Any, market: Market = None):
         #
         # {
         #     "id": "02b6148d0000000200000003",
@@ -164,7 +164,7 @@ class dydx(ccxt.async_support.dydx):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -201,7 +201,7 @@ class dydx(ccxt.async_support.dydx):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: Any):
         #
         # {
         #     "type": "subscribed",
@@ -242,7 +242,7 @@ class dydx(ccxt.async_support.dydx):
         self.orderbooks[symbol] = orderbook
         client.resolve(orderbook, messageHash)
 
-    def handle_delta(self, bookside, delta):
+    def handle_delta(self, bookside: Any, delta: Any):
         if isinstance(delta, list):
             price = self.safe_float(delta, 0)
             amount = self.safe_float(delta, 1)
@@ -305,7 +305,7 @@ class dydx(ccxt.async_support.dydx):
         }
         return await self.watch(url, messageHash, self.extend(request, params), messageHash)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: Any):
         #
         # {
         #     "type": "subscribed",
@@ -357,7 +357,7 @@ class dydx(ccxt.async_support.dydx):
         #     }
         # }
         #
-        id = self.safe_string(message, 'id')
+        id = self.safe_string(message, 'id', '')
         part = id.split('/')
         interval = self.safe_string(part, 1)
         timeframe = self.find_timeframe(interval)
@@ -378,7 +378,7 @@ class dydx(ccxt.async_support.dydx):
         stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message: Any):
         #
         # {
         #     "type": "error",
@@ -394,7 +394,7 @@ class dydx(ccxt.async_support.dydx):
             client.reject(e)
         return True
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: Any):
         type = self.safe_string(message, 'type')
         if type == 'error':
             self.handle_error_message(client, message)

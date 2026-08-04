@@ -48,6 +48,7 @@ public class Exchange extends BaseExchange {
             }
             int maxRetries = ((Number) this.handleOption("watchOrderBook", "snapshotMaxRetries", 3)).intValue();
             int tries = 0;
+            Exception error = null;
             try {
                 Object stored = Helpers.GetValue(this.orderbooks, symbol);
                 while (tries < maxRetries) {
@@ -64,13 +65,19 @@ public class Exchange extends BaseExchange {
                     }
                     tries++;
                 }
-                client.reject(new ExchangeError(this.id + " nonce is behind the cache after " + maxRetries + " tries."), messageHash);
-                ((java.util.concurrent.ConcurrentHashMap<String, Client>) this.clients).remove(client.url);
-                Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
+                error = new ExchangeError(this.id + " nonce is behind the cache after " + maxRetries + " tries.");
             } catch (Exception e) {
-                client.reject(e, messageHash);
-                this.loadOrderBook(client, messageHash, symbol, limit, params);
+                error = e;
             }
+            // a failed synchronization must not recurse into another attempt with the
+            // same broken state - previously the catch invoked loadOrderBook again,
+            // recursing endlessly when the snapshot request kept failing, see
+            // https://github.com/ccxt/ccxt/pull/24224 and https://github.com/ccxt/ccxt/issues/14567
+            // instead, reject the watcher and drop the connection and the cached
+            // orderbook, so the next watchOrderBook() call resubscribes cleanly
+            client.reject(error, messageHash);
+            ((java.util.concurrent.ConcurrentHashMap<String, Client>) this.clients).remove(client.url);
+            Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         } catch (Exception e) {
             client.reject(e, messageHash);
         }
@@ -1115,7 +1122,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
                 {
                     if (Helpers.isTrue(Helpers.isEqual((Helpers.add(i, 1)), fetchSnapshotMaxRetries)))
                     {
-                        throw e;
+                        throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                     }
                 }
             }
@@ -1407,7 +1414,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchOrder(this.safeString(order, "id"), this.safeString(order, "symbol"), parameters)).join();
+            return (this.fetchOrder(((String)this.safeString(order, "id")), this.safeString(order, "symbol"), parameters)).join();
         });
 
     }
@@ -1835,7 +1842,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            return this.cancelOrder(this.safeString(order, "id"), this.safeString(order, "symbol"), parameters);
+            return this.cancelOrder(((String)this.safeString(order, "id")), this.safeString(order, "symbol"), parameters);
         });
 
     }

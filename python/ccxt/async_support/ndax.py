@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ndax import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, IndexType, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -518,7 +518,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         id = self.safe_string(rawCurrency, 'ProductId')
         code = self.safe_currency_code(self.safe_string(rawCurrency, 'Product'))
         ProductType = self.safe_string(rawCurrency, 'ProductType')
@@ -623,7 +623,7 @@ class ndax(Exchange, ImplicitAPI):
         sessionStatus = self.safe_string(market, 'SessionStatus')
         isDisable = self.safe_value(market, 'IsDisable')
         sessionRunning = (sessionStatus == 'Running')
-        return {
+        return self.safe_market_structure({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -671,9 +671,9 @@ class ndax(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': market,
-        }
+        })
 
-    def parse_order_book(self, orderbook, symbol, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 6, amountKey: IndexType = 8, countOrIdKey: IndexType = 2):
+    def parse_order_book(self, orderbook: Any, symbol: Any, timestamp: Int = None, bidsKey='bids', asksKey='asks', priceKey: IndexType = 6, amountKey: IndexType = 8, countOrIdKey: IndexType = 2):
         nonce = None
         result = {
             'symbol': symbol,
@@ -717,7 +717,7 @@ class ndax(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         if self.markets is None:
@@ -919,7 +919,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(response, market)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     [
         #         1501603632000,  # 0 DateTime
@@ -1213,7 +1213,7 @@ class ndax(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1222,12 +1222,13 @@ class ndax(Exchange, ImplicitAPI):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'ProductId')
-            if (currencyId is not None) and (currencyId in self.currencies_by_id):
+            if (currencyId is not None) and (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id):
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
                 account['total'] = self.safe_string(balance, 'Amount')
                 account['used'] = self.safe_string(balance, 'Hold')
-                result[code] = account
+                if code is not None:
+                    result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -1286,7 +1287,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: Any):
         types = {
             'Trade': 'trade',
             'Deposit': 'transaction',
@@ -1568,7 +1569,10 @@ class ndax(Exchange, ImplicitAPI):
         }
         # If OrderType=1(Market), Side=0(Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if price is not None:
-            request['LimitPrice'] = float(self.price_to_precision(symbol, price))
+            limitPriceString = self.price_to_precision(symbol, price)
+            if limitPriceString is None:
+                limitPriceString = '0'
+            request['LimitPrice'] = float(limitPriceString)
         if clientOrderId is not None:
             request['ClientOrderId'] = clientOrderId
         if triggerPrice is not None:
@@ -1630,7 +1634,10 @@ class ndax(Exchange, ImplicitAPI):
         }
         # If OrderType=1(Market), Side=0(Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if price is not None:
-            request['LimitPrice'] = float(self.price_to_precision(symbol, price))
+            limitPriceString = self.price_to_precision(symbol, price)
+            if limitPriceString is None:
+                limitPriceString = '0'
+            request['LimitPrice'] = float(limitPriceString)
         if clientOrderId is not None:
             request['ClientOrderId'] = clientOrderId
         response = await self.privatePostCancelReplaceOrder(self.extend(request, params))
@@ -1736,7 +1743,7 @@ class ndax(Exchange, ImplicitAPI):
 
         https://apidoc.ndax.io/#cancelallorders
 
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -2176,7 +2183,7 @@ class ndax(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         #
         # fetchDepositAddress, createDepositAddress
         #
@@ -2570,7 +2577,7 @@ class ndax(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
@@ -2616,7 +2623,7 @@ class ndax(Exchange, ImplicitAPI):
                     url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if code == 404:
             raise AuthenticationError(self.id + ' ' + body)
         if response is None:

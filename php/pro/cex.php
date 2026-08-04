@@ -89,7 +89,7 @@ class cex extends \ccxt\async\cex {
         })();
     }
 
-    public function handle_balance(Client $client, $message) {
+    public function handle_balance(Client $client, mixed $message) {
         //
         //     {
         //         "e" => "get-balance",
@@ -123,7 +123,9 @@ class cex extends \ccxt\async\cex {
             $account['free'] = $this->safe_string($freeBalance, $currencyId);
             $account['used'] = $this->safe_string($usedBalance, $currencyId);
             $code = $this->safe_currency_code($currencyId);
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         $this->balance = $this->safe_balance($result);
         $messageHash = $this->safe_string($message, 'oid');
@@ -180,7 +182,7 @@ class cex extends \ccxt\async\cex {
         })();
     }
 
-    public function handle_trades_snapshot(Client $client, $message) {
+    public function handle_trades_snapshot(Client $client, mixed $message) {
         //
         //     {
         //         "e" => "history",
@@ -195,7 +197,7 @@ class cex extends \ccxt\async\cex {
         $this->handle_trades_inner($client, $message);
     }
 
-    public function parse_ws_old_trade($trade, $market = null) {
+    public function parse_ws_old_trade(mixed $trade, ?array $market = null) {
         //
         //  snapshot $trade
         //    "sell:1665467367741:3888551:19058.8:14541219"
@@ -228,7 +230,7 @@ class cex extends \ccxt\async\cex {
         ), $market);
     }
 
-    public function handle_trade(Client $client, $message) {
+    public function handle_trade(Client $client, mixed $message) {
         //
         //     {
         //         "e" => "history-update",
@@ -240,10 +242,13 @@ class cex extends \ccxt\async\cex {
         $this->handle_trades_inner($client, $message);
     }
 
-    public function handle_trades_inner(Client $client, $message) {
+    public function handle_trades_inner(Client $client, mixed $message) {
         $data = $this->safe_list($message, 'data', array());
         $symbol = $this->safe_string($this->options['watchTrades'], 'symbol');
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+        if ($symbol === null) {
+            return;
+        }
+        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->trades[$symbol] = new ArrayCache($limit);
         }
@@ -350,7 +355,7 @@ class cex extends \ccxt\async\cex {
              *
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             if ($this->markets === null) {
@@ -368,7 +373,7 @@ class cex extends \ccxt\async\cex {
         })();
     }
 
-    public function handle_ticker(Client $client, $message) {
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "e" => "tick",
@@ -397,7 +402,7 @@ class cex extends \ccxt\async\cex {
         }
     }
 
-    public function parse_ws_ticker($ticker, $market = null) {
+    public function parse_ws_ticker(array $ticker, ?array $market = null) {
         //
         //  public
         //    {
@@ -468,7 +473,7 @@ class cex extends \ccxt\async\cex {
              * @see https://docs.cex.io/#ws-api-get-balance
              *
              * query for balance and get the amount of funds available for trading or funds locked in orders
-             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             if ($this->markets === null) {
@@ -568,7 +573,7 @@ class cex extends \ccxt\async\cex {
         })();
     }
 
-    public function handle_transaction(Client $client, $message) {
+    public function handle_transaction(Client $client, mixed $message) {
         $data = $this->safe_value($message, 'data');
         $symbol2 = $this->safe_string($data, 'symbol2');
         if ($symbol2 === null) {
@@ -578,7 +583,7 @@ class cex extends \ccxt\async\cex {
         $this->handle_my_trades($client, $message);
     }
 
-    public function handle_my_trades(Client $client, $message) {
+    public function handle_my_trades(Client $client, mixed $message) {
         //
         //     {
         //         "e" => "tx",
@@ -634,7 +639,7 @@ class cex extends \ccxt\async\cex {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade(mixed $trade, ?array $market = null) {
         //
         //     {
         //         "d" => "order:59091012956:a:BTC",
@@ -656,7 +661,7 @@ class cex extends \ccxt\async\cex {
         //         "fee_amount" => "0.05",
         //         "id" => "59091012962"
         //     }
-        // Note $symbol and symbol2 are inverse on sell and ammount is in $symbol currency.
+        // Note $symbol and symbol2 are inverse on sell and $amount is in $symbol currency.
         //
         $side = $this->safe_string($trade, 'type');
         $price = $this->safe_string($trade, 'price');
@@ -697,7 +702,7 @@ class cex extends \ccxt\async\cex {
         return $this->safe_trade($parsedTrade, $market);
     }
 
-    public function handle_order_update(Client $client, $message) {
+    public function handle_order_update(Client $client, mixed $message) {
         //
         //  partialExecution
         //     {
@@ -817,7 +822,7 @@ class cex extends \ccxt\async\cex {
         $client->resolve($storedOrders, $messageHash);
     }
 
-    public function parse_ws_order_update($order, $market = null) {
+    public function parse_ws_order_update(mixed $order, ?array $market = null) {
         //
         //      {
         //          "id" => "150714937",
@@ -858,10 +863,16 @@ class cex extends \ccxt\async\cex {
         $remainsPrecision = $this->safe_string($order, 'remains');
         $remaining = null;
         if ($remainsPrecision !== null) {
+            if ($market === null) {
+                return null;
+            }
             $remaining = $this->currency_from_precision($market['base'], $remainsPrecision);
         }
         $amount = $this->safe_string($order, 'amount');
         if (!$isTransaction) {
+            if ($market === null) {
+                return null;
+            }
             $this->currency_from_precision($market['base'], $amount);
         }
         $baseId = $this->safe_string($order, 'symbol');
@@ -924,7 +935,7 @@ class cex extends \ccxt\async\cex {
         return $this->safe_order($parsedOrder, $market);
     }
 
-    public function from_precision($amount, $scale) {
+    public function from_precision(mixed $amount, mixed $scale) {
         if ($amount === null) {
             return null;
         }
@@ -934,12 +945,12 @@ class cex extends \ccxt\async\cex {
         return (string) $precise;
     }
 
-    public function currency_from_precision($currency, $amount) {
+    public function currency_from_precision(mixed $currency, mixed $amount) {
         $scale = $this->safe_integer($this->currencies[$currency], 'precision', 0);
         return $this->from_precision($amount, $scale);
     }
 
-    public function handle_orders_snapshot(Client $client, $message) {
+    public function handle_orders_snapshot(Client $client, mixed $message) {
         //
         //     {
         //         "e" => "open-orders",
@@ -958,7 +969,7 @@ class cex extends \ccxt\async\cex {
         $symbol = $this->safe_string($message, 'oid'); // $symbol is set in watchOrders
         $rawOrders = $this->safe_value($message, 'data', array());
         $myOrders = $this->orders;
-        if ($this->orders === null) {
+        if ($myOrders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $myOrders = new ArrayCacheBySymbolById($limit);
         }
@@ -987,7 +998,7 @@ class cex extends \ccxt\async\cex {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
              */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
@@ -1016,7 +1027,7 @@ class cex extends \ccxt\async\cex {
         })();
     }
 
-    public function handle_order_book_snapshot(Client $client, $message) {
+    public function handle_order_book_snapshot(Client $client, mixed $message) {
         //
         //     {
         //         "e" => "order-book-subscribe",
@@ -1056,7 +1067,7 @@ class cex extends \ccxt\async\cex {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function pair_to_symbol($pair) {
+    public function pair_to_symbol(mixed $pair) {
         $parts = explode(':', $pair);
         $baseId = $this->safe_string($parts, 0);
         $quoteId = $this->safe_string($parts, 1);
@@ -1066,7 +1077,7 @@ class cex extends \ccxt\async\cex {
         return $symbol;
     }
 
-    public function handle_order_book_update(Client $client, $message) {
+    public function handle_order_book_update(Client $client, mixed $message) {
         //
         //     {
         //         "e" => "md_update",
@@ -1103,12 +1114,12 @@ class cex extends \ccxt\async\cex {
         $client->resolve($storedOrderBook, $messageHash);
     }
 
-    public function handle_delta($bookside, $delta) {
+    public function handle_delta(mixed $bookside, mixed $delta) {
         $bidAsk = $this->parse_order_book_bid_ask($delta, 0, 1);
         $bookside->storeArray($bidAsk);
     }
 
-    public function handle_deltas($bookside, $deltas) {
+    public function handle_deltas(mixed $bookside, mixed $deltas) {
         for ($i = 0; $i < count($deltas); $i++) {
             $this->handle_delta($bookside, $deltas[$i]);
         }
@@ -1150,7 +1161,7 @@ class cex extends \ccxt\async\cex {
         })();
     }
 
-    public function handle_init_ohlcv(Client $client, $message) {
+    public function handle_init_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "e" => "init-ohlcv-$data",
@@ -1169,6 +1180,9 @@ class cex extends \ccxt\async\cex {
         //     }
         //
         $pair = $this->safe_string($message, 'pair');
+        if ($pair === null) {
+            return;
+        }
         $parts = explode(':', $pair);
         $baseId = $this->safe_string($parts, 0);
         $quoteId = $this->safe_string($parts, 1);
@@ -1184,14 +1198,14 @@ class cex extends \ccxt\async\cex {
         for ($i = 0; $i < count($sorted); $i++) {
             $stored->append($this->parse_ohlcv($sorted[$i], $market));
         }
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
         $this->ohlcvs[$symbol]['unknown'] = $stored;
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_ohlcv24(Client $client, $message) {
+    public function handle_ohlcv24(Client $client, mixed $message) {
         //
         //     {
         //         "e" => "ohlcv24",
@@ -1202,7 +1216,7 @@ class cex extends \ccxt\async\cex {
         return $message;
     }
 
-    public function handle_ohlcv1m(Client $client, $message) {
+    public function handle_ohlcv1m(Client $client, mixed $message) {
         //
         //     {
         //         "e" => "ohlcv1m",
@@ -1235,7 +1249,7 @@ class cex extends \ccxt\async\cex {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "e" => "ohlcv",
@@ -1277,7 +1291,7 @@ class cex extends \ccxt\async\cex {
              *
              * @param {string} $id the order $id
              * @param {string} $symbol not used by cex fetchOrder
-             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             if ($this->markets === null) {
@@ -1313,7 +1327,7 @@ class cex extends \ccxt\async\cex {
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             if ($symbol === null) {
@@ -1351,7 +1365,7 @@ class cex extends \ccxt\async\cex {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the kraken api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->maker_only] Optional, maker only places an order only if offers best sell (<= max) or buy(>= max) $price for this pair, if not order placement will be rejected with an error - "Order is not maker"
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
              */
@@ -1394,7 +1408,7 @@ class cex extends \ccxt\async\cex {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
              * @param {float|null} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
              */
             if ($amount === null) {
@@ -1435,8 +1449,8 @@ class cex extends \ccxt\async\cex {
              *
              * cancels an open order
              * @param {string} $id order $id
-             * @param {string} $symbol not used by cex cancelOrder ()
-             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @param {string} $symbol not used by cancelOrder ()
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             if ($this->markets === null) {
@@ -1470,8 +1484,8 @@ class cex extends \ccxt\async\cex {
              * @see https://docs.cex.io/#ws-api-mass-cancel-place
              *
              * @param {string[]} $ids order $ids
-             * @param {string} $symbol not used by cex cancelOrders()
-             * @param {array} [$params] extra parameters specific to the cex api endpoint
+             * @param {string} $symbol not used by cancelOrders()
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             if ($symbol !== null) {
@@ -1507,7 +1521,7 @@ class cex extends \ccxt\async\cex {
         })();
     }
 
-    public function resolve_data(Client $client, $message) {
+    public function resolve_data(Client $client, mixed $message) {
         //
         //    "e" => "open-orders",
         //    "data" => array(
@@ -1530,7 +1544,7 @@ class cex extends \ccxt\async\cex {
         $client->resolve($data, $messageHash);
     }
 
-    public function handle_connected(Client $client, $message) {
+    public function handle_connected(Client $client, mixed $message) {
         //
         //     {
         //         "e" => "connected"
@@ -1539,7 +1553,7 @@ class cex extends \ccxt\async\cex {
         return $message;
     }
 
-    public function handle_error_message(Client $client, $message): ?bool {
+    public function handle_error_message(Client $client, mixed $message): ?bool {
         //
         //     {
         //         "e" => "get-balance",
@@ -1568,7 +1582,7 @@ class cex extends \ccxt\async\cex {
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         $ok = $this->safe_string($message, 'ok');
         if ($ok === 'error') {
             $this->handle_error_message($client, $message);
@@ -1604,7 +1618,7 @@ class cex extends \ccxt\async\cex {
         }
     }
 
-    public function handle_authentication_message(Client $client, $message) {
+    public function handle_authentication_message(Client $client, mixed $message) {
         //
         //     {
         //         "e" => "auth",

@@ -458,27 +458,30 @@ public partial class bigone : Exchange
             object minWithdrawalAmount = this.safeString(chain, "min_withdrawal_amount");
             object withdrawalFee = this.safeString(chain, "withdrawal_fee");
             object precision = this.parsePrecision(this.safeString2(chain, "withdrawal_scale", "scale"));
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "margin", null },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "active", null },
-                { "fee", this.parseNumber(withdrawalFee) },
-                { "precision", this.parseNumber(precision) },
-                { "limits", new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", minDepositAmount },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "margin", null },
+                    { "deposit", deposit },
+                    { "withdraw", withdraw },
+                    { "active", null },
+                    { "fee", this.parseNumber(withdrawalFee) },
+                    { "precision", this.parseNumber(precision) },
+                    { "limits", new Dictionary<string, object>() {
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", minDepositAmount },
+                            { "max", null },
+                        } },
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", minWithdrawalAmount },
+                            { "max", null },
+                        } },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", minWithdrawalAmount },
-                        { "max", null },
-                    } },
-                } },
-                { "info", chain },
-            };
+                    { "info", chain },
+                };
+            }
         }
         object chainLength = getArrayLength(chains);
         object type = null;
@@ -942,6 +945,10 @@ public partial class bigone : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(data, "Timestamp");
+        if (isTrue(isEqual(timestamp, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchTime() missing timestamp")) ;
+        }
         return this.parseToInt(divide(timestamp, 1000000));
     }
 
@@ -953,7 +960,7 @@ public partial class bigone : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1392,7 +1399,10 @@ public partial class bigone : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked_balance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1444,7 +1454,7 @@ public partial class bigone : Exchange
             { "LIMIT", "limit" },
             { "MARKET", "market" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1590,7 +1600,7 @@ public partial class bigone : Exchange
         object isLimit = isEqual(uppercaseType, "LIMIT");
         object exchangeSpecificParam = this.safeBool(parameters, "post_only", false);
         object postOnly = null;
-        var postOnlyparametersVariable = this.handlePostOnly((isEqual(uppercaseType, "MARKET")), exchangeSpecificParam, parameters);
+        var postOnlyparametersVariable = this.handlePostOnly(isEqual(uppercaseType, "MARKET"), isEqual(exchangeSpecificParam, true), parameters);
         postOnly = ((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
         object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
@@ -1681,7 +1691,7 @@ public partial class bigone : Exchange
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
         //
-        object order = this.safeDict(response, "data");
+        object order = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
@@ -1718,7 +1728,7 @@ public partial class bigone : Exchange
         //        "created_at":"2019-01-29T06:05:56Z",
         //        "updated_at":"2019-01-29T06:05:56Z"
         //    }
-        object order = this.safeDict(response, "data");
+        object order = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(order);
     }
 
@@ -1727,7 +1737,7 @@ public partial class bigone : Exchange
      * @name bigone#cancelAllOrders
      * @description cancel all open orders
      * @see https://open.big.one/docs/spot_orders.html#cancel-all-orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */

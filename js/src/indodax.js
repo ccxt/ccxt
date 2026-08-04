@@ -444,7 +444,9 @@ export default class indodax extends Exchange {
             const account = this.account();
             account['free'] = this.safeString(free, currencyId);
             account['used'] = this.safeString(used, currencyId);
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -501,7 +503,7 @@ export default class indodax extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -804,6 +806,7 @@ export default class indodax extends Exchange {
         const price = this.safeString(order, 'price');
         let amount = undefined;
         let remaining = undefined;
+        let filled = undefined;
         const marketId = this.safeString(order, 'pair');
         market = this.safeMarket(marketId, market);
         if (market !== undefined) {
@@ -817,10 +820,11 @@ export default class indodax extends Exchange {
                 baseId = 'rp';
             }
             cost = this.safeString(order, 'order_' + quoteId);
-            if (!cost) {
-                amount = this.safeString(order, 'order_' + baseId);
-                remaining = this.safeString(order, 'remain_' + baseId);
-            }
+            amount = this.safeString(order, 'order_' + baseId);
+            remaining = this.safeString(order, 'remain_' + baseId);
+            // filled buy orders on idr-quoted markets carry the executed base amount
+            // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
+            filled = this.safeString(order, 'receive_' + baseId);
         }
         const timestamp = this.safeInteger(order, 'submit_time');
         const fee = undefined;
@@ -842,7 +846,7 @@ export default class indodax extends Exchange {
             'cost': cost,
             'average': undefined,
             'amount': amount,
-            'filled': undefined,
+            'filled': filled,
             'remaining': remaining,
             'status': status,
             'fee': fee,
@@ -1410,25 +1414,39 @@ export default class indodax extends Exchange {
                 let network = undefined;
                 if (marketId in networks) {
                     const networkId = this.safeString(networks, marketId);
+                    if (networkId === undefined) {
+                        throw new ExchangeError(this.id + ' fetchDepositAddresses() missing networkId');
+                    }
                     if (networkId.indexOf(',') >= 0) {
                         network = [];
+                        if (networkId === undefined) {
+                            throw new ExchangeError(this.id + ' fetchDepositAddresses() missing networkId');
+                        }
                         const networkIds = networkId.split(',');
                         for (let j = 0; j < networkIds.length; j++) {
-                            network.push(this.networkIdToCode(networkIds[j], code).toUpperCase());
+                            const _netIdTmp = this.networkIdToCode(networkIds[j], code);
+                            if (_netIdTmp !== undefined) {
+                                network.push(_netIdTmp.toUpperCase());
+                            }
                         }
                     }
                     else {
-                        network = this.networkIdToCode(networkId, code).toUpperCase();
+                        const _netIdTmp = this.networkIdToCode(networkId, code);
+                        if (_netIdTmp !== undefined) {
+                            network = _netIdTmp.toUpperCase();
+                        }
                     }
                 }
                 const finalNetwork = network; // java req
-                result[code] = {
-                    'info': {},
-                    'currency': code,
-                    'network': finalNetwork,
-                    'address': address,
-                    'tag': undefined,
-                };
+                if (code !== undefined) {
+                    result[code] = {
+                        'info': {},
+                        'currency': code,
+                        'network': finalNetwork,
+                        'address': address,
+                        'tag': undefined,
+                    };
+                }
             }
         }
         return result;

@@ -23,12 +23,11 @@ import { Int, Str } from '../types.js';
 // overwrites absolute volumes at price levels
 
 interface CustomOrderBookProp  {
-    cache: any[];
 }
 
 class OrderBook implements CustomOrderBookProp {
 
-    cache = [] // make prop visible so we use typed OrderBooks
+    cache: any[] = [] // make prop visible so we use typed OrderBooks
 
     asks: IOrderBookSide<any>;
 
@@ -127,6 +126,24 @@ class OrderBook implements CustomOrderBookProp {
             delete this.symbol
         }
         return this
+    }
+
+    copy () {
+        const snapshot = {}
+        if (this.outcome !== undefined) {
+            snapshot['outcome'] = this.outcome
+            snapshot['outcomeId'] = this.outcomeId
+            snapshot['market'] = this.market
+        } else {
+            snapshot['symbol'] = this.symbol
+        }
+        const copy = new (this.constructor as any)(snapshot, this.asks.depth)
+        copy.asks = this.asks.copy ()
+        copy.bids = this.bids.copy ()
+        copy.nonce = this.nonce
+        copy.timestamp = this.timestamp
+        copy.datetime = this.datetime
+        return copy
     }
 }
 

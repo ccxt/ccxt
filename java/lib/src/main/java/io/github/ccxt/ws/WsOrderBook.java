@@ -151,6 +151,35 @@ public class WsOrderBook {
         return result;
     }
 
+    public synchronized WsOrderBook copy() {
+        Map<String, Object> snapshot = new HashMap<>();
+        if (this.outcome != null) {
+            snapshot.put("outcome", this.outcome);
+            snapshot.put("outcomeId", this.outcomeId);
+            snapshot.put("market", this.market);
+        } else {
+            snapshot.put("symbol", this.symbol);
+        }
+        WsOrderBook copy;
+        if (this instanceof IndexedOrderBook) {
+            copy = new IndexedOrderBook(snapshot, this.asks.depth);
+        } else if (this instanceof CountedOrderBook) {
+            copy = new CountedOrderBook(snapshot, this.asks.depth);
+        } else {
+            copy = new WsOrderBook(snapshot, this.asks.depth);
+        }
+        synchronized (this.asks) {
+            synchronized (this.bids) {
+                copy.asks = (OrderBookSide.Asks) this.asks.copy();
+                copy.bids = (OrderBookSide.Bids) this.bids.copy();
+            }
+        }
+        copy.nonce = this.nonce;
+        copy.timestamp = this.timestamp;
+        copy.datetime = this.datetime;
+        return copy;
+    }
+
     // ─── Variants ───
 
     public static class IndexedOrderBook extends WsOrderBook {

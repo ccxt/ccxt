@@ -10,9 +10,9 @@
   <PropertyGroup>
     <PackageId>ccxt</PackageId>
     <Authors>Carlos, Kroitor, Carlo</Authors>
-    <PackageVersion>4.5.68</PackageVersion>
-    <AssemblyVersion>4.5.68</AssemblyVersion>
-    <FileVersion>4.5.68</FileVersion>
+    <PackageVersion>4.5.70</PackageVersion>
+    <AssemblyVersion>4.5.70</AssemblyVersion>
+    <FileVersion>4.5.70</FileVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>Cryptocurrency trading API with support for more than 100 bitcoin/altcoin exchanges</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -20,7 +20,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/ccxt/ccxt</RepositoryUrl>
     <PackageProjectUrl>https://github.com/ccxt/ccxt</PackageProjectUrl>
-    <PackageIcon>ccxt4.png</PackageIcon>
+    <PackageIcon>ccxt5.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -40,7 +40,7 @@
     <None Remove="static/**/obj/**;static/**/bin/**" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="img/ccxt4.png" Pack="true" PackagePath="" />
+    <None Include="img/ccxt5.png" Pack="true" PackagePath="" />
     <None Include="../../README.md" Pack="true" PackagePath="" />
 </ItemGroup>
 <ItemGroup>

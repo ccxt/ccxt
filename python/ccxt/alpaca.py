@@ -445,9 +445,17 @@ class alpaca(Exchange, ImplicitAPI):
         #     }
         #
         timestamp = self.safe_string(response, 'timestamp')
+        if timestamp is None:
+            raise ExchangeError(self.id + ' fetchTime() missing timestamp')
         localTime = timestamp[0:23]
+        if timestamp is None:
+            raise ExchangeError(self.id + ' fetchTime() missing timestamp')
         jetlagStrStart = len(timestamp) - 6
+        if timestamp is None:
+            raise ExchangeError(self.id + ' fetchTime() missing timestamp')
         jetlagStrEnd = len(timestamp) - 3
+        if timestamp is None:
+            raise ExchangeError(self.id + ' fetchTime() missing timestamp')
         jetlag = timestamp[jetlagStrStart:jetlagStrEnd]
         iso = self.parse_to_int(self.parse8601(localTime)) - self.parse_to_numeric(jetlag) * 3600 * 1000
         return iso
@@ -458,7 +466,7 @@ class alpaca(Exchange, ImplicitAPI):
 
         https://docs.alpaca.markets/reference/get-v2-assets
 
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         request = {
@@ -490,7 +498,7 @@ class alpaca(Exchange, ImplicitAPI):
         #
         return self.parse_markets(assets)
 
-    def parse_market(self, asset) -> Market:
+    def parse_market(self, asset: dict) -> Market:
         #
         #     {
         #         "id": "c150e086-1e75-44e6-9c2c-093bb1e93139",
@@ -512,6 +520,8 @@ class alpaca(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(asset, 'symbol')
+        if marketId is None:
+            raise ExchangeError(self.id + ' parseMarket() missing marketId')
         parts = marketId.split('/')
         assetClass = self.safe_string(asset, 'class')
         baseId = self.safe_string(parts, 0)
@@ -528,7 +538,7 @@ class alpaca(Exchange, ImplicitAPI):
         minAmount = self.safe_number(asset, 'min_order_size')
         amount = self.safe_number(asset, 'min_trade_increment')
         price = self.safe_number(asset, 'price_increment')
-        return {
+        return self.safe_market_structure({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -576,7 +586,7 @@ class alpaca(Exchange, ImplicitAPI):
             },
             'created': None,
             'info': asset,
-        }
+        })
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -649,7 +659,10 @@ class alpaca(Exchange, ImplicitAPI):
             symbolTrades = [symbolTrades]
         else:
             raise NotSupported(self.id + ' fetchTrades() does not support ' + method + ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported')
-        return self.parse_trades(symbolTrades, market, since, limit)
+        symbolTradesList = []
+        if symbolTrades is not None:
+            symbolTradesList = symbolTrades
+        return self.parse_trades(symbolTradesList, market, since, limit)
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -661,7 +674,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.loc]: crypto location, default: us
-        :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -726,7 +739,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
-        :param dict [params]: extra parameters specific to the alpha api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.loc]: crypto location, default: us
         :param str [params.method]: method, default: marketPublicGetV1beta3CryptoLocBars
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
@@ -806,7 +819,7 @@ class alpaca(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchOHLCV() does not support ' + method + ', marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported')
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
         #
         #     {
         #        "c":22895,
@@ -960,7 +973,7 @@ class alpaca(Exchange, ImplicitAPI):
             results.append(ticker)
         return self.filter_by_array(results, 'symbol', symbols)
 
-    def generate_client_order_id(self, params):
+    def generate_client_order_id(self, params: Any):
         clientOrderIdprefix = self.safe_string(self.options, 'clientOrderId')
         uuid = self.uuid()
         parts = uuid.split('-')
@@ -1140,7 +1153,7 @@ class alpaca(Exchange, ImplicitAPI):
 
         https://docs.alpaca.markets/reference/deleteallorders
 
-        :param str symbol: alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
+        :param str [symbol]: alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1566,7 +1579,7 @@ class alpaca(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
@@ -1630,7 +1643,7 @@ class alpaca(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def fetch_transactions_helper(self, type, code, since, limit, params):
+    def fetch_transactions_helper(self, type: Any, code: Any, since: Any, limit: Any, params: Any):
         if self.markets is None:
             self.load_markets()
         currency = None
@@ -1765,7 +1778,7 @@ class alpaca(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_transaction_type(self, type):
+    def parse_transaction_type(self, type: Any):
         types = {
             'INCOMING': 'deposit',
             'OUTGOING': 'withdrawal',
@@ -1834,17 +1847,18 @@ class alpaca(Exchange, ImplicitAPI):
         #
         return self.parse_balance(response)
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: Any) -> Balances:
         result = {'info': response}
         account = self.account()
         currencyId = self.safe_string(response, 'currency')
         code = self.safe_currency_code(currencyId)
         account['free'] = self.safe_string(response, 'cash')
         account['total'] = self.safe_string(response, 'equity')
-        result[code] = account
+        if code is not None:
+            result[code] = account
         return self.safe_balance(result)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         endpoint = '/' + self.implode_params(path, params)
         url = self.implode_hostname(self.urls['api'][api[0]])
         headers = headers if (headers is not None) else {}
@@ -1862,7 +1876,7 @@ class alpaca(Exchange, ImplicitAPI):
         url = url + endpoint
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
         if response is None:
             return None  # default error handler
         # {
