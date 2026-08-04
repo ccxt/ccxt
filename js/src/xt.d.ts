@@ -484,10 +484,24 @@ export default class xt extends Exchange {
         amount: Num;
     };
     /**
+     * @ignore
+     * @method
+     * @param {object[]} breakList the "result" array of a position/break-list response
+     */
+    indexPositionBreakList(breakList: Dict[]): Dict;
+    /**
+     * @ignore
+     * @method
+     * @param {object} entry a single entry from a position/list response
+     * @param {object} breakBySymbolSide the result of indexPositionBreakList()
+     */
+    mergePositionBreakInfo(entry: Dict, breakBySymbolSide: Dict): Dict;
+    /**
      * @method
      * @name xt#fetchPosition
      * @description fetch data on a single open contract trade position
      * @see https://doc.xt.com/#futures_usergetPosition
+     * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -498,6 +512,7 @@ export default class xt extends Exchange {
      * @name xt#fetchPositions
      * @description fetch all open positions
      * @see https://doc.xt.com/#futures_usergetPosition
+     * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
      * @param {string} [symbols] list of unified market symbols, not supported with xt
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}

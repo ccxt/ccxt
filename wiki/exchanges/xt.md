@@ -931,7 +931,11 @@ fetch data on a single open contract trade position
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://doc.xt.com/#futures_usergetPosition  
+**See**
+
+- https://doc.xt.com/#futures_usergetPosition
+- https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
+
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -952,7 +956,11 @@ fetch all open positions
 **Kind**: instance method of [<code>xt</code>](#xt)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://doc.xt.com/#futures_usergetPosition  
+**See**
+
+- https://doc.xt.com/#futures_usergetPosition
+- https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

@@ -259,6 +259,7 @@ class xt extends xt$1["default"] {
                             'future/user/v1/balance/funding-rate-list': 1,
                             'future/user/v1/balance/list': 1,
                             'future/user/v1/position/adl': 1,
+                            'future/user/v1/position/break-list': 1,
                             'future/user/v1/position/list': 1,
                             'future/user/v1/user/collection/list': 1,
                             'future/user/v1/user/listen-key': 1,
@@ -303,6 +304,7 @@ class xt extends xt$1["default"] {
                             'future/user/v1/balance/funding-rate-list': 1,
                             'future/user/v1/balance/list': 1,
                             'future/user/v1/position/adl': 1,
+                            'future/user/v1/position/break-list': 1,
                             'future/user/v1/position/list': 1,
                             'future/user/v1/user/collection/list': 1,
                             'future/user/v1/user/listen-key': 1,
@@ -4757,10 +4759,47 @@ class xt extends xt$1["default"] {
         };
     }
     /**
+     * @ignore
+     * @method
+     * @param {object[]} breakList the "result" array of a position/break-list response
+     */
+    indexPositionBreakList(breakList) {
+        const breakBySymbolSide = {};
+        for (let i = 0; i < breakList.length; i++) {
+            const breakEntry = breakList[i];
+            // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
+            // endpoint, including here and on position/list; there is no one-way/net
+            // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
+            // both validate positionSide against exactly ['LONG', 'SHORT'])
+            const key = this.safeString(breakEntry, 'symbol') + '_' + this.safeString(breakEntry, 'positionSide');
+            breakBySymbolSide[key] = breakEntry;
+        }
+        return breakBySymbolSide;
+    }
+    /**
+     * @ignore
+     * @method
+     * @param {object} entry a single entry from a position/list response
+     * @param {object} breakBySymbolSide the result of indexPositionBreakList()
+     */
+    mergePositionBreakInfo(entry, breakBySymbolSide) {
+        const marketId = this.safeString(entry, 'symbol');
+        const key = marketId + '_' + this.safeString(entry, 'positionSide');
+        const breakEntry = this.safeDict(breakBySymbolSide, key);
+        if (breakEntry === undefined) {
+            return entry;
+        }
+        return this.extend(entry, {
+            'breakPrice': this.safeString(breakEntry, 'breakPrice'),
+            'calMarkPrice': this.safeString(breakEntry, 'calMarkPrice'),
+        });
+    }
+    /**
      * @method
      * @name xt#fetchPosition
      * @description fetch data on a single open contract trade position
      * @see https://doc.xt.com/#futures_usergetPosition
+     * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -4775,13 +4814,18 @@ class xt extends xt$1["default"] {
         };
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchPosition', market, params);
-        let response = undefined;
+        const promisesUnresolved = [];
         if (subType === 'inverse') {
-            response = await this.privateInverseGetFutureUserV1PositionList(this.extend(request, params));
+            promisesUnresolved.push(this.privateInverseGetFutureUserV1PositionList(this.extend(request, params)));
+            promisesUnresolved.push(this.privateInverseGetFutureUserV1PositionBreakList(this.extend(request, params)));
         }
         else {
-            response = await this.privateLinearGetFutureUserV1PositionList(this.extend(request, params));
+            promisesUnresolved.push(this.privateLinearGetFutureUserV1PositionList(this.extend(request, params)));
+            promisesUnresolved.push(this.privateLinearGetFutureUserV1PositionBreakList(this.extend(request, params)));
         }
+        const [response, breakResponse] = await Promise.all(promisesUnresolved);
+        //
+        // position/list
         //
         //     {
         //         "returnCode": 0,
@@ -4802,19 +4846,36 @@ class xt extends xt$1["default"] {
         //                 "openOrderMarginFrozen": "0",
         //                 "realizedProfit": "-0.00130138",
         //                 "autoMargin": false,
-        //                 "leverage": 25
+        //                 "leverage": 25,
+        //                 "markPrice": "27050"
         //             },
         //         ]
         //     }
         //
-        const positions = this.safeValue(response, 'result', []);
+        // position/break-list
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "result": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "positionSide": "SHORT",
+        //                 "breakPrice": "0",
+        //                 "calMarkPrice": "27050"
+        //             },
+        //         ]
+        //     }
+        //
+        const positions = this.safeList(response, 'result', []);
+        const breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, 'result', []));
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             const marketId = this.safeString(entry, 'symbol');
             const marketInner = this.safeMarket(marketId, undefined, undefined, 'contract');
             const positionSize = this.safeString(entry, 'positionSize');
             if (positionSize !== '0') {
-                return this.parsePosition(entry, marketInner);
+                const merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
+                return this.parsePosition(merged, marketInner);
             }
         }
         throw new errors.NullResponse(this.id + ' fetchPosition() could not find a position for ' + symbol);
@@ -4824,6 +4885,7 @@ class xt extends xt$1["default"] {
      * @name xt#fetchPositions
      * @description fetch all open positions
      * @see https://doc.xt.com/#futures_usergetPosition
+     * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
      * @param {string} [symbols] list of unified market symbols, not supported with xt
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -4834,13 +4896,18 @@ class xt extends xt$1["default"] {
         }
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchPositions', undefined, params);
-        let response = undefined;
+        const promisesUnresolved = [];
         if (subType === 'inverse') {
-            response = await this.privateInverseGetFutureUserV1PositionList(params);
+            promisesUnresolved.push(this.privateInverseGetFutureUserV1PositionList(params));
+            promisesUnresolved.push(this.privateInverseGetFutureUserV1PositionBreakList(params));
         }
         else {
-            response = await this.privateLinearGetFutureUserV1PositionList(params);
+            promisesUnresolved.push(this.privateLinearGetFutureUserV1PositionList(params));
+            promisesUnresolved.push(this.privateLinearGetFutureUserV1PositionBreakList(params));
         }
+        const [response, breakResponse] = await Promise.all(promisesUnresolved);
+        //
+        // position/list
         //
         //     {
         //         "returnCode": 0,
@@ -4861,22 +4928,41 @@ class xt extends xt$1["default"] {
         //                 "openOrderMarginFrozen": "0",
         //                 "realizedProfit": "-0.00130138",
         //                 "autoMargin": false,
-        //                 "leverage": 25
+        //                 "leverage": 25,
+        //                 "markPrice": "27050"
         //             },
         //         ]
         //     }
         //
-        const positions = this.safeValue(response, 'result', []);
+        // position/break-list
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "result": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "positionSide": "SHORT",
+        //                 "breakPrice": "0",
+        //                 "calMarkPrice": "27050"
+        //             },
+        //         ]
+        //     }
+        //
+        const positions = this.safeList(response, 'result', []);
+        const breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, 'result', []));
         const result = [];
         for (let i = 0; i < positions.length; i++) {
             const entry = positions[i];
             const marketId = this.safeString(entry, 'symbol');
             const marketInner = this.safeMarket(marketId, undefined, undefined, 'contract');
-            result.push(this.parsePosition(entry, marketInner));
+            const merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
+            result.push(this.parsePosition(merged, marketInner));
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
+        //
+        // position/list
         //
         //     {
         //         "symbol": "btc_usdt",
@@ -4892,7 +4978,17 @@ class xt extends xt$1["default"] {
         //         "openOrderMarginFrozen": "0",
         //         "realizedProfit": "-0.00130138",
         //         "autoMargin": false,
-        //         "leverage": 25
+        //         "leverage": 25,
+        //         "markPrice": "27050"
+        //     }
+        //
+        // position/break-list
+        //
+        //     {
+        //         "symbol": "btc_usdt",
+        //         "positionSide": "SHORT",
+        //         "breakPrice": "0",
+        //         "calMarkPrice": "27050"
         //     }
         //
         const marketId = this.safeString(position, 'symbol');
@@ -4901,6 +4997,7 @@ class xt extends xt$1["default"] {
         const positionType = this.safeString(position, 'positionType');
         const marginMode = (positionType === 'CROSSED') ? 'cross' : 'isolated';
         const collateral = this.safeNumber(position, 'isolatedMargin');
+        const liquidationPriceString = this.omitZero(this.safeString(position, 'breakPrice'));
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -4912,7 +5009,7 @@ class xt extends xt$1["default"] {
             'contracts': this.safeNumber(position, 'positionSize'),
             'contractSize': market['contractSize'],
             'entryPrice': this.safeNumber(position, 'entryPrice'),
-            'markPrice': undefined,
+            'markPrice': this.safeNumber2(position, 'markPrice', 'calMarkPrice'),
             'notional': undefined,
             'leverage': this.safeInteger(position, 'leverage'),
             'collateral': collateral,
@@ -4921,7 +5018,7 @@ class xt extends xt$1["default"] {
             'initialMarginPercentage': undefined,
             'maintenanceMarginPercentage': undefined,
             'unrealizedPnl': undefined,
-            'liquidationPrice': undefined,
+            'liquidationPrice': this.parseNumber(liquidationPriceString),
             'marginMode': marginMode,
             'percentage': undefined,
             'marginRatio': undefined,
