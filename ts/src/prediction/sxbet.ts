@@ -5,7 +5,7 @@ import { ecdsa } from '../base/functions/crypto.js';
 import { ROUND, DECIMAL_PLACES, TICK_SIZE } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, BadRequest, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from '../base/errors.js';
-import type { Dict, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { Dict, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -44,8 +44,8 @@ export default class sxbet extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
-                'fetchPositions': false,
-                'fetchSettlements': false,
+                'fetchPositions': true,
+                'fetchSettlements': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'prediction': true,
@@ -1579,6 +1579,256 @@ export default class sxbet extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const rawTrades = this.safeList (data, 'trades', []);
         return this.parsePredictionTrades (rawTrades, outcomeObj, since, limit);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#fetchRawBettorTrades
+     * @description fetches the wallet's raw GET /trades rows scoped by bettor (shared by fetchPositions and fetchSettlements)
+     * @param {string[]} [marketHashes] narrow to these market hashes (max 100)
+     * @param {boolean} [settled] the server-side settled filter
+     * @param {int} [since] timestamp in ms mapped to the server-side startDate
+     * @param {int} [limit] the server-side pageSize
+     * @param {object} [params] extra request params forwarded verbatim
+     * @returns {object[]} the raw (unparsed) sx.bet trade objects
+     */
+    async fetchRawBettorTrades (marketHashes: Strings = undefined, settled: any = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any[]> {
+        if (this.walletAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' requires a walletAddress to identify the bettor');
+        }
+        // warm the metadata cache so tokenAmountDivider can tell USDC from WSX amounts
+        await this.loadSxMetadata ();
+        const request: Dict = { 'bettor': this.walletAddress };
+        if (marketHashes !== undefined) {
+            request['marketHashes'] = marketHashes.join (',');
+        }
+        if (settled !== undefined) {
+            request['settled'] = settled;
+        }
+        if (since !== undefined) {
+            request['startDate'] = this.parseToInt (since / 1000);
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.sxbetPublicGetTrades (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        return this.safeList (data, 'trades', []);
+    }
+
+    /**
+     * @method
+     * @name sxbet#fetchPositions
+     * @description builds the wallet's open positions by aggregating its unsettled successful trades per outcome — sx.bet has no dedicated positions endpoint, a position is the sum of live bets on one side of a market. contracts is the total potential payout (stake / odds summed over the trades, i.e. the USDC received if the outcome wins), entryPrice is the stake-weighted average implied probability, and collateral/notional is the total stake at risk
+     * @see https://docs.sx.bet/api-reference/get-trades
+     * @param {string[]} [outcomes] filter by unified outcomes or outcomeIds
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
+     */
+    override async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
+        // copy to a plain list so the transpilers and the strict null checks see one shape
+        const outcomesList: string[] = (outcomes === undefined) ? [] : outcomes;
+        const outcomesLength = outcomesList.length;
+        let marketHashes: Strings = undefined;
+        if (outcomesLength > 0) {
+            await this.loadOutcomes (outcomesList);
+            marketHashes = [];
+            for (let i = 0; i < outcomesLength; i++) {
+                const outcomeObj = this.outcome (outcomesList[i]);
+                marketHashes.push (this.safeString (outcomeObj['info'], 'marketHash', ''));
+            }
+        }
+        const rawTrades = await this.fetchRawBettorTrades (marketHashes, false, undefined, undefined, this.extend ({ 'tradeStatus': 'SUCCESS' }, params));
+        // aggregate per outcomeId: stakes sum to the collateral at risk, stake / odds sums to the
+        // potential payout, and the stake-weighted implied probability becomes the entry price
+        const totals: Dict = {};
+        const order: string[] = [];
+        const oneDenom = '100000000000000000000';
+        const rawTradesLength = rawTrades.length;
+        for (let i = 0; i < rawTradesLength; i++) {
+            const trade = rawTrades[i];
+            const marketHash = this.safeString (trade, 'marketHash', '');
+            const bettingOutcomeOne = this.safeBool (trade, 'bettingOutcomeOne', true);
+            const outcomeId = (bettingOutcomeOne) ? marketHash : (marketHash + '-2');
+            const divider = this.tokenAmountDivider (this.safeString (trade, 'baseToken'));
+            const stake = Precise.stringDiv (this.safeString (trade, 'stake', '0'), divider, 6);
+            const odds = Precise.stringDiv (this.safeString (trade, 'odds', '0'), oneDenom, 10);
+            if (Precise.stringLe (odds, '0')) {
+                continue;
+            }
+            if (!(outcomeId in totals)) {
+                totals[outcomeId] = { 'stake': '0', 'payout': '0', 'timestamp': undefined, 'lastTrade': trade };
+                order.push (outcomeId);
+            }
+            const entry = totals[outcomeId];
+            entry['stake'] = Precise.stringAdd (entry['stake'], stake);
+            entry['payout'] = Precise.stringAdd (entry['payout'], Precise.stringDiv (stake, odds, 6));
+            const tradeTimestamp = this.safeTimestamp (trade, 'betTime');
+            const entryTimestamp = this.safeInteger (entry, 'timestamp');
+            if ((tradeTimestamp !== undefined) && ((entryTimestamp === undefined) || (tradeTimestamp > entryTimestamp))) {
+                entry['timestamp'] = tradeTimestamp;
+                entry['lastTrade'] = trade;
+            }
+            totals[outcomeId] = entry;
+        }
+        const result: PredictionPosition[] = [];
+        const orderLength = order.length;
+        for (let i = 0; i < orderLength; i++) {
+            const outcomeId = order[i];
+            const entry = totals[outcomeId];
+            const outcomeObj = this.safeOutcome (outcomeId);
+            const stakeTotal = this.safeString (entry, 'stake', '0');
+            const payoutTotal = this.safeString (entry, 'payout', '0');
+            // hoist the condition to a bare local — a call inside the ternary condition mangles
+            // in the regex transpiler
+            const hasPayout = Precise.stringGt (payoutTotal, '0');
+            const entryPrice = (hasPayout) ? Precise.stringDiv (stakeTotal, payoutTotal, 6) : undefined;
+            const timestamp = this.safeInteger (entry, 'timestamp');
+            result.push ({
+                'id': outcomeId,
+                'info': this.safeDict (entry, 'lastTrade', {}),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'contracts': this.parseNumber (payoutTotal),
+                'contractSize': 1,
+                'side': 'long',
+                'notional': this.parseNumber (stakeTotal),
+                'unrealizedPnl': undefined,
+                'realizedPnl': undefined,
+                'collateral': this.parseNumber (stakeTotal),
+                'entryPrice': this.parseNumber (entryPrice),
+                'markPrice': undefined,
+                'lastPrice': undefined,
+                'percentage': undefined,
+                'outcome': this.safeString (outcomeObj, 'outcome', outcomeId),
+                'outcomeId': this.safeString (outcomeObj, 'outcomeId', outcomeId),
+                'label': this.safeString (outcomeObj, 'label'),
+                'market': this.safeString (outcomeObj, 'market'),
+                'event': undefined,
+            } as unknown as PredictionPosition);
+        }
+        if (outcomesLength === 0) {
+            return result;
+        }
+        // the server-side marketHashes filter covers both sides of each market — drop the legs
+        // the caller did not ask for
+        const wantedIds: Dict = {};
+        for (let i = 0; i < outcomesLength; i++) {
+            const outcomeObj = this.outcome (outcomesList[i]);
+            wantedIds[this.safeString (outcomeObj, 'outcomeId', '')] = true;
+        }
+        const filtered: PredictionPosition[] = [];
+        const resultLength = result.length;
+        for (let i = 0; i < resultLength; i++) {
+            const position = result[i];
+            // hoist the key to a bare local — a call on the left of `in` breaks the php transpiler
+            const positionOutcomeId = this.safeString (position, 'outcomeId', '');
+            if (positionOutcomeId in wantedIds) {
+                filtered.push (position);
+            }
+        }
+        return filtered;
+    }
+
+    /**
+     * @method
+     * @name sxbet#fetchSettlements
+     * @description fetches the wallet's settled bets — each settled GET /trades row becomes one settlement with the resolved winner, the payout (stake / odds when won, the stake back when the market voided, zero when lost) and the realized pnl
+     * @see https://docs.sx.bet/api-reference/get-trades
+     * @param {string} [outcome] filter to a single unified outcome or outcomeId
+     * @param {int} [since] timestamp in ms of the earliest settlement to fetch (server-side startDate on the bet time)
+     * @param {int} [limit] the maximum number of settlements to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of prediction settlement structures
+     */
+    override async fetchSettlements (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionSettlement[]> {
+        let marketHashes: Strings = undefined;
+        let wantedOutcomeId: Str = undefined;
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+            const outcomeObj = this.outcome (outcome);
+            marketHashes = [ this.safeString (outcomeObj['info'], 'marketHash', '') ];
+            wantedOutcomeId = this.safeString (outcomeObj, 'outcomeId');
+        }
+        const rawTrades = await this.fetchRawBettorTrades (marketHashes, true, since, limit, params);
+        const result: any[] = [];
+        const rawTradesLength = rawTrades.length;
+        for (let i = 0; i < rawTradesLength; i++) {
+            const settlement = this.parseSettlement (rawTrades[i]);
+            if ((wantedOutcomeId === undefined) || (this.safeString (settlement, 'outcomeId') === wantedOutcomeId)) {
+                result.push (settlement);
+            }
+        }
+        return this.filterBySinceLimit (result, since, limit, 'timestamp') as PredictionSettlement[];
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#parseSettlement
+     * @description parses one settled GET /trades row into the unified prediction settlement shape. the raw `outcome` field carries the winner as 1 or 2 with 0 for a voided market, and the full payout of a winning bet is stake / odds (the implied probability the bettor received)
+     * @param {object} settlement the raw settled sx.bet trade
+     * @param {object} [market] a resolved outcome/market hint
+     * @returns {object} a prediction settlement structure
+     */
+    parseSettlement (settlement: Dict, market: Market = undefined): any {
+        const marketHash = this.safeString (settlement, 'marketHash', '');
+        const bettingOutcomeOne = this.safeBool (settlement, 'bettingOutcomeOne', true);
+        const outcomeId = (bettingOutcomeOne) ? marketHash : (marketHash + '-2');
+        const outcomeObj = this.safeOutcome (outcomeId, market as any);
+        const winner = this.safeInteger (settlement, 'outcome');
+        const isVoid = (winner === 0);
+        const heldNumber = (bettingOutcomeOne) ? 1 : 2;
+        let won: any = undefined;
+        if ((winner !== undefined) && !isVoid) {
+            won = (winner === heldNumber);
+        }
+        const divider = this.tokenAmountDivider (this.safeString (settlement, 'baseToken'));
+        const stake = Precise.stringDiv (this.safeString (settlement, 'stake', '0'), divider, 6);
+        const oneDenom = '100000000000000000000';
+        const odds = Precise.stringDiv (this.safeString (settlement, 'odds', '0'), oneDenom, 10);
+        // a winning bet returns its full stake / odds, a voided market refunds the stake
+        let payout: Str = '0';
+        if (isVoid) {
+            payout = stake;
+        } else if (won === true) {
+            // hoist the condition to a bare local — see the fetchPositions comment
+            const hasOdds = Precise.stringGt (odds, '0');
+            payout = (hasOdds) ? Precise.stringDiv (stake, odds, 6) : stake;
+        }
+        const pnl = Precise.stringSub (payout, stake);
+        // resolve the winning side's human label through the cached market when available
+        let resultLabel: Str = undefined;
+        if (isVoid) {
+            resultLabel = 'VOID';
+        } else if (winner !== undefined) {
+            const info = this.safeDict (outcomeObj, 'info', {});
+            const labelKey = (winner === 1) ? 'outcomeOneName' : 'outcomeTwoName';
+            resultLabel = this.safeString (info, labelKey, this.numberToString (winner));
+        }
+        const timestamp = this.parse8601 (this.safeString (settlement, 'settleDate'));
+        let settlePrice: Num = undefined;
+        if (won !== undefined) {
+            settlePrice = (won) ? 1 : 0;
+        }
+        return {
+            'info': settlement,
+            'id': this.safeString (settlement, 'fillHash'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'outcome': this.safeString (outcomeObj, 'outcome', outcomeId),
+            'outcomeId': this.safeString (outcomeObj, 'outcomeId', outcomeId),
+            'market': this.safeString (outcomeObj, 'market'),
+            'event': undefined,
+            'result': resultLabel,
+            'won': won,
+            'amount': this.parseNumber (stake),
+            'price': settlePrice,
+            'cost': this.parseNumber (stake),
+            'payout': this.parseNumber (payout),
+            'pnl': this.parseNumber (pnl),
+        };
     }
 
     /**
