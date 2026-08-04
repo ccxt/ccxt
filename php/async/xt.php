@@ -266,6 +266,7 @@ class xt extends Exchange {
                             'future/user/v1/balance/funding-rate-list' => 1,
                             'future/user/v1/balance/list' => 1,
                             'future/user/v1/position/adl' => 1,
+                            'future/user/v1/position/break-list' => 1,
                             'future/user/v1/position/list' => 1,
                             'future/user/v1/user/collection/list' => 1,
                             'future/user/v1/user/listen-key' => 1,
@@ -310,6 +311,7 @@ class xt extends Exchange {
                             'future/user/v1/balance/funding-rate-list' => 1,
                             'future/user/v1/balance/list' => 1,
                             'future/user/v1/position/adl' => 1,
+                            'future/user/v1/position/break-list' => 1,
                             'future/user/v1/position/list' => 1,
                             'future/user/v1/user/collection/list' => 1,
                             'future/user/v1/user/listen-key' => 1,
@@ -4814,12 +4816,49 @@ class xt extends Exchange {
         );
     }
 
+    public function index_position_break_list($breakList): array {
+        /**
+         * @ignore
+         * @param {array[]} $breakList the "result" array of a position/break-list response
+         */
+        $breakBySymbolSide = array();
+        for ($i = 0; $i < count($breakList); $i++) {
+            $breakEntry = $breakList[$i];
+            // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
+            // endpoint, including here and on position/list; there is no one-way/net
+            // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
+            // both validate positionSide against exactly ['LONG', 'SHORT'])
+            $key = $this->safe_string($breakEntry, 'symbol') . '_' . $this->safe_string($breakEntry, 'positionSide');
+            $breakBySymbolSide[$key] = $breakEntry;
+        }
+        return $breakBySymbolSide;
+    }
+
+    public function merge_position_break_info(array $entry, array $breakBySymbolSide): array {
+        /**
+         * @ignore
+         * @param {array} $entry a single $entry from a position/list response
+         * @param {array} $breakBySymbolSide the result of indexPositionBreakList()
+         */
+        $marketId = $this->safe_string($entry, 'symbol');
+        $key = $marketId . '_' . $this->safe_string($entry, 'positionSide');
+        $breakEntry = $this->safe_dict($breakBySymbolSide, $key);
+        if ($breakEntry === null) {
+            return $entry;
+        }
+        return $this->extend($entry, array(
+            'breakPrice' => $this->safe_string($breakEntry, 'breakPrice'),
+            'calMarkPrice' => $this->safe_string($breakEntry, 'calMarkPrice'),
+        ));
+    }
+
     public function fetch_position(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on a single open contract trade position
              *
              * @see https://doc.xt.com/#futures_usergetPosition
+             * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
              *
              * @param {string} $symbol unified $market $symbol of the $market the position is held in
              * @param {array} $params extra parameters specific to the exchange API endpoint
@@ -4834,12 +4873,17 @@ class xt extends Exchange {
             );
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchPosition', $market, $params);
-            $response = null;
+            $promisesUnresolved = array();
             if ($subType === 'inverse') {
-                $response = Async\await($this->privateInverseGetFutureUserV1PositionList($this->extend($request, $params)));
+                $promisesUnresolved[] = $this->privateInverseGetFutureUserV1PositionList($this->extend($request, $params));
+                $promisesUnresolved[] = $this->privateInverseGetFutureUserV1PositionBreakList($this->extend($request, $params));
             } else {
-                $response = Async\await($this->privateLinearGetFutureUserV1PositionList($this->extend($request, $params)));
+                $promisesUnresolved[] = $this->privateLinearGetFutureUserV1PositionList($this->extend($request, $params));
+                $promisesUnresolved[] = $this->privateLinearGetFutureUserV1PositionBreakList($this->extend($request, $params));
             }
+            list($response, $breakResponse) = Async\await(Promise\all($promisesUnresolved));
+            //
+            // position/list
             //
             //     {
             //         "returnCode" => 0,
@@ -4860,19 +4904,36 @@ class xt extends Exchange {
             //                 "openOrderMarginFrozen" => "0",
             //                 "realizedProfit" => "-0.00130138",
             //                 "autoMargin" => false,
-            //                 "leverage" => 25
+            //                 "leverage" => 25,
+            //                 "markPrice" => "27050"
             //             ),
             //         )
             //     }
             //
-            $positions = $this->safe_value($response, 'result', array());
+            // position/break-list
+            //
+            //     {
+            //         "returnCode" => 0,
+            //         "result" => array(
+            //             array(
+            //                 "symbol" => "btc_usdt",
+            //                 "positionSide" => "SHORT",
+            //                 "breakPrice" => "0",
+            //                 "calMarkPrice" => "27050"
+            //             ),
+            //         )
+            //     }
+            //
+            $positions = $this->safe_list($response, 'result', array());
+            $breakBySymbolSide = $this->index_position_break_list($this->safe_list($breakResponse, 'result', array()));
             for ($i = 0; $i < count($positions); $i++) {
                 $entry = $positions[$i];
                 $marketId = $this->safe_string($entry, 'symbol');
                 $marketInner = $this->safe_market($marketId, null, null, 'contract');
                 $positionSize = $this->safe_string($entry, 'positionSize');
                 if ($positionSize !== '0') {
-                    return $this->parse_position($entry, $marketInner);
+                    $merged = $this->merge_position_break_info($entry, $breakBySymbolSide);
+                    return $this->parse_position($merged, $marketInner);
                 }
             }
             throw new NullResponse($this->id . ' fetchPosition() could not find a position for ' . $symbol);
@@ -4885,6 +4946,7 @@ class xt extends Exchange {
              * fetch all open $positions
              *
              * @see https://doc.xt.com/#futures_usergetPosition
+             * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
              *
              * @param {string} [$symbols] list of unified market $symbols, not supported with xt
              * @param {array} $params extra parameters specific to the exchange API endpoint
@@ -4895,12 +4957,17 @@ class xt extends Exchange {
             }
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', null, $params);
-            $response = null;
+            $promisesUnresolved = array();
             if ($subType === 'inverse') {
-                $response = Async\await($this->privateInverseGetFutureUserV1PositionList($params));
+                $promisesUnresolved[] = $this->privateInverseGetFutureUserV1PositionList($params);
+                $promisesUnresolved[] = $this->privateInverseGetFutureUserV1PositionBreakList($params);
             } else {
-                $response = Async\await($this->privateLinearGetFutureUserV1PositionList($params));
+                $promisesUnresolved[] = $this->privateLinearGetFutureUserV1PositionList($params);
+                $promisesUnresolved[] = $this->privateLinearGetFutureUserV1PositionBreakList($params);
             }
+            list($response, $breakResponse) = Async\await(Promise\all($promisesUnresolved));
+            //
+            // position/list
             //
             //     {
             //         "returnCode" => 0,
@@ -4921,24 +4988,43 @@ class xt extends Exchange {
             //                 "openOrderMarginFrozen" => "0",
             //                 "realizedProfit" => "-0.00130138",
             //                 "autoMargin" => false,
-            //                 "leverage" => 25
+            //                 "leverage" => 25,
+            //                 "markPrice" => "27050"
             //             ),
             //         )
             //     }
             //
-            $positions = $this->safe_value($response, 'result', array());
+            // position/break-list
+            //
+            //     {
+            //         "returnCode" => 0,
+            //         "result" => array(
+            //             array(
+            //                 "symbol" => "btc_usdt",
+            //                 "positionSide" => "SHORT",
+            //                 "breakPrice" => "0",
+            //                 "calMarkPrice" => "27050"
+            //             ),
+            //         )
+            //     }
+            //
+            $positions = $this->safe_list($response, 'result', array());
+            $breakBySymbolSide = $this->index_position_break_list($this->safe_list($breakResponse, 'result', array()));
             $result = array();
             for ($i = 0; $i < count($positions); $i++) {
                 $entry = $positions[$i];
                 $marketId = $this->safe_string($entry, 'symbol');
                 $marketInner = $this->safe_market($marketId, null, null, 'contract');
-                $result[] = $this->parse_position($entry, $marketInner);
+                $merged = $this->merge_position_break_info($entry, $breakBySymbolSide);
+                $result[] = $this->parse_position($merged, $marketInner);
             }
             return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
         })();
     }
 
     public function parse_position(mixed $position, ?array $market = null) {
+        //
+        // position/list
         //
         //     {
         //         "symbol" => "btc_usdt",
@@ -4954,7 +5040,17 @@ class xt extends Exchange {
         //         "openOrderMarginFrozen" => "0",
         //         "realizedProfit" => "-0.00130138",
         //         "autoMargin" => false,
-        //         "leverage" => 25
+        //         "leverage" => 25,
+        //         "markPrice" => "27050"
+        //     }
+        //
+        // position/break-list
+        //
+        //     {
+        //         "symbol" => "btc_usdt",
+        //         "positionSide" => "SHORT",
+        //         "breakPrice" => "0",
+        //         "calMarkPrice" => "27050"
         //     }
         //
         $marketId = $this->safe_string($position, 'symbol');
@@ -4963,6 +5059,7 @@ class xt extends Exchange {
         $positionType = $this->safe_string($position, 'positionType');
         $marginMode = ($positionType === 'CROSSED') ? 'cross' : 'isolated';
         $collateral = $this->safe_number($position, 'isolatedMargin');
+        $liquidationPriceString = $this->omit_zero($this->safe_string($position, 'breakPrice'));
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -4974,7 +5071,7 @@ class xt extends Exchange {
             'contracts' => $this->safe_number($position, 'positionSize'),
             'contractSize' => $market['contractSize'],
             'entryPrice' => $this->safe_number($position, 'entryPrice'),
-            'markPrice' => null,
+            'markPrice' => $this->safe_number_2($position, 'markPrice', 'calMarkPrice'),
             'notional' => null,
             'leverage' => $this->safe_integer($position, 'leverage'),
             'collateral' => $collateral,
@@ -4983,7 +5080,7 @@ class xt extends Exchange {
             'initialMarginPercentage' => null,
             'maintenanceMarginPercentage' => null,
             'unrealizedPnl' => null,
-            'liquidationPrice' => null,
+            'liquidationPrice' => $this->parse_number($liquidationPriceString),
             'marginMode' => $marginMode,
             'percentage' => null,
             'marginRatio' => null,

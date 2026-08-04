@@ -268,6 +268,9 @@ abstract class xt extends \ccxt\Exchange {
     public function private_linear_get_future_user_v1_position_adl($params = array()) {
         return $this->request('future/user/v1/position/adl', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_linear_get_future_user_v1_position_break_list($params = array()) {
+        return $this->request('future/user/v1/position/break-list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_linear_get_future_user_v1_position_list($params = array()) {
         return $this->request('future/user/v1/position/list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -381,6 +384,9 @@ abstract class xt extends \ccxt\Exchange {
     }
     public function private_inverse_get_future_user_v1_position_adl($params = array()) {
         return $this->request('future/user/v1/position/adl', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_inverse_get_future_user_v1_position_break_list($params = array()) {
+        return $this->request('future/user/v1/position/break-list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_inverse_get_future_user_v1_position_list($params = array()) {
         return $this->request('future/user/v1/position/list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
@@ -730,6 +736,9 @@ abstract class xt extends \ccxt\Exchange {
     public function privateLinearGetFutureUserV1PositionAdl($params = array()) {
         return $this->request('future/user/v1/position/adl', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateLinearGetFutureUserV1PositionBreakList($params = array()) {
+        return $this->request('future/user/v1/position/break-list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateLinearGetFutureUserV1PositionList($params = array()) {
         return $this->request('future/user/v1/position/list', array('private', 'linear'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -843,6 +852,9 @@ abstract class xt extends \ccxt\Exchange {
     }
     public function privateInverseGetFutureUserV1PositionAdl($params = array()) {
         return $this->request('future/user/v1/position/adl', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateInverseGetFutureUserV1PositionBreakList($params = array()) {
+        return $this->request('future/user/v1/position/break-list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateInverseGetFutureUserV1PositionList($params = array()) {
         return $this->request('future/user/v1/position/list', array('private', 'inverse'), 'GET', $params, null, null, array("cost" => 1));
