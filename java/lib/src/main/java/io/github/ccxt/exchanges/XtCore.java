@@ -255,6 +255,7 @@ public class XtCore extends XtApi
                             put( "future/user/v1/balance/funding-rate-list", 1 );
                             put( "future/user/v1/balance/list", 1 );
                             put( "future/user/v1/position/adl", 1 );
+                            put( "future/user/v1/position/break-list", 1 );
                             put( "future/user/v1/position/list", 1 );
                             put( "future/user/v1/user/collection/list", 1 );
                             put( "future/user/v1/user/listen-key", 1 );
@@ -299,6 +300,7 @@ public class XtCore extends XtApi
                             put( "future/user/v1/balance/funding-rate-list", 1 );
                             put( "future/user/v1/balance/list", 1 );
                             put( "future/user/v1/position/adl", 1 );
+                            put( "future/user/v1/position/break-list", 1 );
                             put( "future/user/v1/position/list", 1 );
                             put( "future/user/v1/user/collection/list", 1 );
                             put( "future/user/v1/user/listen-key", 1 );
@@ -5421,10 +5423,54 @@ final Object finalMarket = market;
     }
 
     /**
+     * @ignore
+     * @method
+     * @param {object[]} breakList the "result" array of a position/break-list response
+     */
+    public Object indexPositionBreakList(Object breakList)
+    {
+        Object breakBySymbolSide = new java.util.HashMap<String, Object>() {{}};
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(breakList)); i++)
+        {
+            Object breakEntry = Helpers.GetValue(breakList, i);
+            // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
+            // endpoint, including here and on position/list; there is no one-way/net
+            // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
+            // both validate positionSide against exactly ['LONG', 'SHORT'])
+            Object key = Helpers.add(Helpers.add(this.safeString(breakEntry, "symbol"), "_"), this.safeString(breakEntry, "positionSide"));
+            Helpers.addElementToObject(breakBySymbolSide, key, breakEntry);
+        }
+        return breakBySymbolSide;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @param {object} entry a single entry from a position/list response
+     * @param {object} breakBySymbolSide the result of indexPositionBreakList()
+     */
+    public Object mergePositionBreakInfo(Object entry, Object breakBySymbolSide)
+    {
+        Object marketId = this.safeString(entry, "symbol");
+        Object key = Helpers.add(Helpers.add(marketId, "_"), this.safeString(entry, "positionSide"));
+        Object breakEntry = this.safeDict(breakBySymbolSide, key);
+        if (Helpers.isTrue(Helpers.isEqual(breakEntry, null)))
+        {
+            return entry;
+        }
+        final Object finalBreakEntry = breakEntry;
+        return this.extend(entry, new java.util.HashMap<String, Object>() {{
+            put( "breakPrice", XtCore.this.safeString(finalBreakEntry, "breakPrice") );
+            put( "calMarkPrice", XtCore.this.safeString(finalBreakEntry, "calMarkPrice") );
+        }});
+    }
+
+    /**
      * @method
      * @name xt#fetchPosition
      * @description fetch data on a single open contract trade position
      * @see https://doc.xt.com/#futures_usergetPosition
+     * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -5447,14 +5493,21 @@ final Object finalMarket = market;
             var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPosition", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            Object promisesUnresolved = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
-                response = (this.privateInverseGetFutureUserV1PositionList(this.extend(request, parameters))).join();
+                ((java.util.List<Object>)promisesUnresolved).add(this.privateInverseGetFutureUserV1PositionList(this.extend(request, parameters)));
+                ((java.util.List<Object>)promisesUnresolved).add(Helpers.callDynamically(this, "privateInverseGetFutureUserV1PositionBreakList", new Object[] { this.extend(request, parameters) }));
             } else
             {
-                response = (this.privateLinearGetFutureUserV1PositionList(this.extend(request, parameters))).join();
+                ((java.util.List<Object>)promisesUnresolved).add(this.privateLinearGetFutureUserV1PositionList(this.extend(request, parameters)));
+                ((java.util.List<Object>)promisesUnresolved).add(Helpers.callDynamically(this, "privateLinearGetFutureUserV1PositionBreakList", new Object[] { this.extend(request, parameters) }));
             }
+            var responsebreakResponseVariable = (Helpers.promiseAll(promisesUnresolved)).join();
+            var response = ((java.util.List<Object>) responsebreakResponseVariable).get(0);
+            var breakResponse = ((java.util.List<Object>) responsebreakResponseVariable).get(1);
+            //
+            // position/list
             //
             //     {
             //         "returnCode": 0,
@@ -5475,12 +5528,28 @@ final Object finalMarket = market;
             //                 "openOrderMarginFrozen": "0",
             //                 "realizedProfit": "-0.00130138",
             //                 "autoMargin": false,
-            //                 "leverage": 25
+            //                 "leverage": 25,
+            //                 "markPrice": "27050"
             //             },
             //         ]
             //     }
             //
-            Object positions = this.safeValue(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            // position/break-list
+            //
+            //     {
+            //         "returnCode": 0,
+            //         "result": [
+            //             {
+            //                 "symbol": "btc_usdt",
+            //                 "positionSide": "SHORT",
+            //                 "breakPrice": "0",
+            //                 "calMarkPrice": "27050"
+            //             },
+            //         ]
+            //     }
+            //
+            Object positions = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
                 Object entry = Helpers.GetValue(positions, i);
@@ -5489,7 +5558,8 @@ final Object finalMarket = market;
                 Object positionSize = this.safeString(entry, "positionSize");
                 if (Helpers.isTrue(!Helpers.isEqual(positionSize, "0")))
                 {
-                    return this.parsePosition(entry, marketInner);
+                    Object merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
+                    return this.parsePosition(merged, marketInner);
                 }
             }
             throw new NullResponse((String)Helpers.add(Helpers.add(this.id, " fetchPosition() could not find a position for "), symbol)) ;
@@ -5502,6 +5572,7 @@ final Object finalMarket = market;
      * @name xt#fetchPositions
      * @description fetch all open positions
      * @see https://doc.xt.com/#futures_usergetPosition
+     * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
      * @param {string} [symbols] list of unified market symbols, not supported with xt
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -5521,14 +5592,21 @@ final Object finalMarket = market;
             var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositions", null, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            Object promisesUnresolved = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
-                response = (this.privateInverseGetFutureUserV1PositionList(parameters)).join();
+                ((java.util.List<Object>)promisesUnresolved).add(this.privateInverseGetFutureUserV1PositionList(parameters));
+                ((java.util.List<Object>)promisesUnresolved).add(Helpers.callDynamically(this, "privateInverseGetFutureUserV1PositionBreakList", new Object[] { parameters }));
             } else
             {
-                response = (this.privateLinearGetFutureUserV1PositionList(parameters)).join();
+                ((java.util.List<Object>)promisesUnresolved).add(this.privateLinearGetFutureUserV1PositionList(parameters));
+                ((java.util.List<Object>)promisesUnresolved).add(Helpers.callDynamically(this, "privateLinearGetFutureUserV1PositionBreakList", new Object[] { parameters }));
             }
+            var responsebreakResponseVariable = (Helpers.promiseAll(promisesUnresolved)).join();
+            var response = ((java.util.List<Object>) responsebreakResponseVariable).get(0);
+            var breakResponse = ((java.util.List<Object>) responsebreakResponseVariable).get(1);
+            //
+            // position/list
             //
             //     {
             //         "returnCode": 0,
@@ -5549,19 +5627,36 @@ final Object finalMarket = market;
             //                 "openOrderMarginFrozen": "0",
             //                 "realizedProfit": "-0.00130138",
             //                 "autoMargin": false,
-            //                 "leverage": 25
+            //                 "leverage": 25,
+            //                 "markPrice": "27050"
             //             },
             //         ]
             //     }
             //
-            Object positions = this.safeValue(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            // position/break-list
+            //
+            //     {
+            //         "returnCode": 0,
+            //         "result": [
+            //             {
+            //                 "symbol": "btc_usdt",
+            //                 "positionSide": "SHORT",
+            //                 "breakPrice": "0",
+            //                 "calMarkPrice": "27050"
+            //             },
+            //         ]
+            //     }
+            //
+            Object positions = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
                 Object entry = Helpers.GetValue(positions, i);
                 Object marketId = this.safeString(entry, "symbol");
                 Object marketInner = this.safeMarket(marketId, null, null, "contract");
-                ((java.util.List<Object>)result).add(this.parsePosition(entry, marketInner));
+                Object merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
+                ((java.util.List<Object>)result).add(this.parsePosition(merged, marketInner));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
         });
@@ -5570,6 +5665,8 @@ final Object finalMarket = market;
 
     public Object parsePosition(Object position, Object... optionalArgs)
     {
+        //
+        // position/list
         //
         //     {
         //         "symbol": "btc_usdt",
@@ -5585,7 +5682,17 @@ final Object finalMarket = market;
         //         "openOrderMarginFrozen": "0",
         //         "realizedProfit": "-0.00130138",
         //         "autoMargin": false,
-        //         "leverage": 25
+        //         "leverage": 25,
+        //         "markPrice": "27050"
+        //     }
+        //
+        // position/break-list
+        //
+        //     {
+        //         "symbol": "btc_usdt",
+        //         "positionSide": "SHORT",
+        //         "breakPrice": "0",
+        //         "calMarkPrice": "27050"
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
@@ -5595,6 +5702,7 @@ final Object finalMarket = market;
         Object positionType = this.safeString(position, "positionType");
         Object marginMode = ((Helpers.isTrue((Helpers.isEqual(positionType, "CROSSED"))))) ? "cross" : "isolated";
         Object collateral = this.safeNumber(position, "isolatedMargin");
+        Object liquidationPriceString = this.omitZero(this.safeString(position, "breakPrice"));
         final Object finalMarket = market;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
@@ -5607,7 +5715,7 @@ final Object finalMarket = market;
             put( "contracts", XtCore.this.safeNumber(position, "positionSize") );
             put( "contractSize", Helpers.GetValue(finalMarket, "contractSize") );
             put( "entryPrice", XtCore.this.safeNumber(position, "entryPrice") );
-            put( "markPrice", null );
+            put( "markPrice", XtCore.this.safeNumber2(position, "markPrice", "calMarkPrice") );
             put( "notional", null );
             put( "leverage", XtCore.this.safeInteger(position, "leverage") );
             put( "collateral", collateral );
@@ -5616,7 +5724,7 @@ final Object finalMarket = market;
             put( "initialMarginPercentage", null );
             put( "maintenanceMarginPercentage", null );
             put( "unrealizedPnl", null );
-            put( "liquidationPrice", null );
+            put( "liquidationPrice", XtCore.this.parseNumber(liquidationPriceString) );
             put( "marginMode", marginMode );
             put( "percentage", null );
             put( "marginRatio", null );

@@ -454,6 +454,11 @@ public class XtApi extends Exchange
         return this.callAsync ("privateLinearGetFutureUserV1PositionAdl", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privateLinearGetFutureUserV1PositionBreakList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateLinearGetFutureUserV1PositionBreakList", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privateLinearGetFutureUserV1PositionList (Object... optionalArgs)
     {
         return this.callAsync ("privateLinearGetFutureUserV1PositionList", optionalArgs);
@@ -642,6 +647,11 @@ public class XtApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  privateInverseGetFutureUserV1PositionAdl (Object... optionalArgs)
     {
         return this.callAsync ("privateInverseGetFutureUserV1PositionAdl", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privateInverseGetFutureUserV1PositionBreakList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateInverseGetFutureUserV1PositionBreakList", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privateInverseGetFutureUserV1PositionList (Object... optionalArgs)
