@@ -5,7 +5,7 @@ import { ecdsa } from '../base/functions/crypto.js';
 import { ROUND, DECIMAL_PLACES, TICK_SIZE } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, BadRequest, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from '../base/errors.js';
-import type { Dict, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionTicker, PredictionTickers, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { Dict, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ export default class sxbet extends Exchange {
                 'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchMarkets': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -1456,6 +1456,129 @@ export default class sxbet extends Exchange {
             throw new OrderNotFound (this.id + ' fetchOrder() could not find order ' + id + ' - it is not resting (filled, cancelled or expired orders leave the venue listing)');
         }
         return this.parsePredictionOrder (this.safeDict (rawOrders, 0, {}), outcomeObj);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#tokenAmountDivider
+     * @description resolves the raw-to-human divider for a base token amount — sx.bet denominates in USDC (6 decimals) or WSX (18 decimals); the token is recognised through the cached /metadata addresses, defaulting to USDC when the cache is cold
+     * @param {string} baseToken the base token contract address
+     * @returns {string} the power-of-ten divider as a string
+     */
+    tokenAmountDivider (baseToken: Str): string {
+        const sxMetadata = this.safeDict (this.options, 'sxMetadata', {});
+        const usdcAddress = this.safeStringLower (sxMetadata, 'usdcAddress', '');
+        const baseTokenLower = (baseToken === undefined) ? '' : baseToken.toLowerCase ();
+        if ((usdcAddress !== '') && (baseTokenLower !== usdcAddress)) {
+            return '1000000000000000000'; // WSX, 18 decimals
+        }
+        return '1000000'; // USDC, 6 decimals
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name sxbet#parsePredictionTrade
+     * @description parses one raw GET /trades row into a unified trade. the row's bettingOutcomeOne selects the outcome the bettor backed, so every trade is a 'buy' of that outcome at the implied probability the bettor received
+     * @param {object} trade the raw sx.bet trade object
+     * @param {object} [market] the outcome object the trade belongs to (resolved from the cache by outcomeId when omitted)
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    override parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
+        //
+        //     {
+        //         "baseToken": "0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B",
+        //         "bettor": "0x713117eCdEfB29B919544C7502162423220fE78b",
+        //         "stake": "5471240",
+        //         "odds": "65000000000000000000",
+        //         "orderHash": "0xa39a03729714170256eb0ea3c3c14b2985f7320d6fa75663edbca8c6d6e4dc83",
+        //         "marketHash": "0x80f558d8535e4f1343e3dc0303ab6d32432c732607fc460fe910ef95845ba40d",
+        //         "maker": false,
+        //         "bettingOutcomeOne": false,
+        //         "settled": true,
+        //         "settleValue": 1,
+        //         "fillHash": "0x8e55b9a69f8b2ff4b9816f59c772da765227df104833daad946cfe36d2873938",
+        //         "tradeStatus": "SUCCESS",
+        //         "betType": 1,
+        //         "settleDate": "2026-03-13T00:25:57.472Z",
+        //         "outcome": 1,
+        //         "createdAt": "2026-03-12T23:18:47.931Z",
+        //         "sportXeventId": "L18268159",
+        //         "netReturn": "8.417292",
+        //         "betTime": 1773357527
+        //     }
+        //
+        const id = this.safeString (trade, 'fillHash');
+        let timestamp = this.safeTimestamp (trade, 'betTime');
+        if (timestamp === undefined) {
+            timestamp = this.parse8601 (this.safeString (trade, 'createdAt'));
+        }
+        const marketHash = this.safeString (trade, 'marketHash', '');
+        const bettingOutcomeOne = this.safeBool (trade, 'bettingOutcomeOne', true);
+        const outcomeId = (bettingOutcomeOne) ? marketHash : (marketHash + '-2');
+        const outcomeObj = this.safeOutcome (outcomeId, market as any);
+        const oneDenom = '100000000000000000000';
+        const odds = this.safeString (trade, 'odds');
+        const price = (odds !== undefined) ? this.parseNumber (Precise.stringDiv (odds, oneDenom)) : undefined;
+        const divider = this.tokenAmountDivider (this.safeString (trade, 'baseToken'));
+        const stake = this.safeString (trade, 'stake', '0');
+        const amount = this.parseNumber (Precise.stringDiv (stake, divider, 6));
+        const isMaker = this.safeBool (trade, 'maker', false);
+        return this.safePredictionTrade ({
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'outcome': this.safeString (outcomeObj, 'outcome'),
+            'outcomeId': this.safeString (outcomeObj, 'outcomeId', outcomeId),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
+            'order': this.safeString (trade, 'orderHash'),
+            'type': undefined,
+            'side': 'buy',
+            'takerOrMaker': (isMaker) ? 'maker' : 'taker',
+            'price': price,
+            'amount': amount,
+            'cost': amount,
+            'fee': undefined,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name sxbet#fetchMyTrades
+     * @description fetches the wallet's trades (matched fills, both taker and maker legs) via GET /trades scoped by bettor — needs only walletAddress (the endpoint is public). settled trades embed the resolution (settled/settleValue/outcome) in the raw info
+     * @see https://docs.sx.bet/api-reference/get-trades
+     * @param {string} [outcome] unified outcome or outcomeId — narrows to that outcome's market and drops the opposite side's legs
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch (server-side startDate)
+     * @param {int} [limit] the maximum number of trades to return (server-side pageSize)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint (e.g. settled, sportXeventId, tradeStatus, paginationKey)
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        if (this.walletAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a walletAddress to identify the bettor');
+        }
+        // warm the metadata cache so tokenAmountDivider can tell USDC from WSX amounts
+        await this.loadSxMetadata ();
+        const request: Dict = { 'bettor': this.walletAddress };
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+            outcomeObj = this.outcome (outcome);
+            request['marketHashes'] = this.safeString (outcomeObj['info'], 'marketHash');
+        }
+        if (since !== undefined) {
+            request['startDate'] = this.parseToInt (since / 1000);
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.sxbetPublicGetTrades (this.extend (request, params));
+        const data = this.safeDict (response, 'data', {});
+        const rawTrades = this.safeList (data, 'trades', []);
+        return this.parsePredictionTrades (rawTrades, outcomeObj, since, limit);
     }
 
     /**
