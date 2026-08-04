@@ -774,7 +774,7 @@ public class TestSharedMethods extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
-        Object eMessage = exchange.exceptionMessage(ex, false);
+        Object eMessage = exchange.exceptionMessage(ex, false); // typed string so the php transpile uses mb_strpos, not in_array
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(eMessage, "percentage should be above"), 0)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(eMessage, "percentage should be below"), 0))))
         {
             Object symbol = Helpers.GetValue(ticker, "symbol");
