@@ -26,7 +26,7 @@ func (this *BullishCore) Describe() any {
 			"spot":                           true,
 			"margin":                         false,
 			"swap":                           true,
-			"future":                         false,
+			"future":                         true,
 			"option":                         false,
 			"addMargin":                      false,
 			"borrowMargin":                   false,
