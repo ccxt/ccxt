@@ -418,6 +418,13 @@ class BaseExchange(SyncExchange):
 
     def spawn(self, method, *args):
         def callback(asyncio_future):
+            # a cancelled task (e.g. a background snapshot fetch cancelled on close or
+            # unsubscribe) raises CancelledError from .exception(), which would crash this
+            # callback - propagate the cancellation to the wrapper future instead
+            if asyncio_future.cancelled():
+                if not future.done():
+                    future.cancel()
+                return
             exception = asyncio_future.exception()
             if exception is None:
                 future.resolve(asyncio_future.result())
