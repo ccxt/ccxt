@@ -1,7 +1,7 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
-import { appName, gitConfig } from './shared';
+import { gitConfig } from './shared';
 import { i18n } from './i18n';
-import { CcxtMark } from '@/components/ccxt-mark';
+import { CcxtNavTitle } from '@/components/ccxt-nav-title';
 import { SiDiscord, SiTelegram } from 'react-icons/si';
 
 // Top-nav section labels per locale (the Fumadocs UI chrome is translated separately
@@ -25,13 +25,9 @@ export function baseOptions(locale: string = i18n.defaultLanguage): BaseLayoutPr
   return {
     // Brand mark is slots.navTitle (plain <a>), not nav.title through fumadocs
     // InlineNavTitle → Link. Absolute https:// URLs via Link get target=_blank.
+    // Must be a client component module ref — slots cross the RSC boundary.
     slots: {
-      navTitle: ({ className }) => (
-        <a href="https://ccxt.com" className={className}>
-          <CcxtMark className="size-5" />
-          <span className="font-semibold">{appName}</span>
-        </a>
-      ),
+      navTitle: CcxtNavTitle,
     },
     nav: {
       // Keep url for any layout code that still reads nav.url; brand UI is slots.navTitle.
