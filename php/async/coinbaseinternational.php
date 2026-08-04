@@ -36,7 +36,7 @@ class coinbaseinternational extends Exchange {
                 'spot' => true,
                 'margin' => true,
                 'swap' => true,
-                'future' => true,
+                'future' => false,
                 'option' => false,
                 'addMargin' => false,
                 'cancelAllOrders' => true,

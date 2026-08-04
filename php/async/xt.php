@@ -827,7 +827,7 @@ class xt extends Exchange {
             /**
              * fetches the current integer timestamp in milliseconds from the xt server
              *
-             * @see https://doc.xt.com/#market1serverInfo
+             * @see https://doc.xt.com/docs/spot/Market/GetServerTime
              *
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the xt server
@@ -853,7 +853,7 @@ class xt extends Exchange {
             /**
              * fetches all available currencies on an exchange
              *
-             * @see https://doc.xt.com/#deposit_withdrawalsupportedCurrenciesGet
+             * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetSupportedCurrencies
              *
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
@@ -1001,8 +1001,8 @@ class xt extends Exchange {
             /**
              * retrieves data on all markets for xt
              *
-             * @see https://doc.xt.com/#market2symbol
-             * @see https://doc.xt.com/#futures_quotesgetSymbols
+             * @see https://doc.xt.com/docs/spot/Market/GetSymbolInformation
+             * @see https://doc.xt.com/docs/futures/MarketData/get-configuration-information-for-listed-and-tradeable-symbols
              *
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
@@ -1421,8 +1421,8 @@ class xt extends Exchange {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://doc.xt.com/#market4kline
-             * @see https://doc.xt.com/#futures_quotesgetKLine
+             * @see https://doc.xt.com/docs/spot/Market/GetKlineData
+             * @see https://doc.xt.com/docs/futures/MarketData/get-trading-pair-information-of-kline
              *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -1562,8 +1562,8 @@ class xt extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
-             * @see https://doc.xt.com/#market3depth
-             * @see https://doc.xt.com/#futures_quotesgetDepth
+             * @see https://doc.xt.com/docs/spot/Market/GetDepthData
+             * @see https://doc.xt.com/docs/futures/MarketData/get-depth-data-of-trading-pairs
              *
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $market $symbol to fetch the order book for
@@ -1660,8 +1660,8 @@ class xt extends Exchange {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              *
-             * @see https://doc.xt.com/#market10ticker24h
-             * @see https://doc.xt.com/#futures_quotesgetAggTicker
+             * @see https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker
+             * @see https://doc.xt.com/docs/futures/MarketData/get-aggregated-$market-information-for-specific-trading-pair
              *
              * @param {string} $symbol unified $market $symbol to fetch the $ticker for
              * @param {array} $params extra parameters specific to the exchange API endpoint
@@ -1741,8 +1741,8 @@ class xt extends Exchange {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
              *
-             * @see https://doc.xt.com/#market10ticker24h
-             * @see https://doc.xt.com/#futures_quotesgetAggTickers
+             * @see https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker
+             * @see https://doc.xt.com/docs/futures/MarketData/get_aggregated_market_information_for_all_trading_pairs
              *
              * @param {string} [$symbols] unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the exchange API endpoint
@@ -1835,7 +1835,7 @@ class xt extends Exchange {
             /**
              * fetches the bid and ask price and volume for multiple markets
              *
-             * @see https://doc.xt.com/#market9tickerBook
+             * @see https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker
              *
              * @param {string} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
              * @param {array} $params extra parameters specific to the exchange API endpoint
@@ -1966,8 +1966,8 @@ class xt extends Exchange {
             /**
              * get the list of most recent $trades for a particular $symbol
              *
-             * @see https://doc.xt.com/#market5tradeRecent
-             * @see https://doc.xt.com/#futures_quotesgetDeal
+             * @see https://doc.xt.com/docs/spot/Market/QueryRecentTransactions
+             * @see https://doc.xt.com/docs/futures/MarketData/get-latest-transaction-information-of-trading-pairs
              *
              * @param {string} $symbol unified $market $symbol to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -2044,8 +2044,8 @@ class xt extends Exchange {
             /**
              * fetch all $trades made by the user
              *
-             * @see https://doc.xt.com/#tradetradeGet
-             * @see https://doc.xt.com/#futures_ordergetTrades
+             * @see https://doc.xt.com/docs/spot/Trade/QueryTrade
+             * @see https://doc.xt.com/docs/futures/Order/see-transaction-details
              *
              * @param {string} [$symbol] unified $market $symbol to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -2331,8 +2331,8 @@ class xt extends Exchange {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
              *
-             * @see https://doc.xt.com/#balancebalancesGet
-             * @see https://doc.xt.com/#futures_usergetBalances
+             * @see https://doc.xt.com/docs/spot/Balance/GetBalances
+             * @see https://doc.xt.com/docs/futures/User/GetUserFunds
              *
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
@@ -2462,7 +2462,7 @@ class xt extends Exchange {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              *
-             * @see https://doc.xt.com/#orderorderPost
+             * @see https://doc.xt.com/docs/spot/Order/SubmitOrder
              *
              * create a $market buy order by providing the $symbol and $cost
              * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -2486,10 +2486,10 @@ class xt extends Exchange {
             /**
              * create a trade order
              *
-             * @see https://doc.xt.com/#orderorderPost
-             * @see https://doc.xt.com/#futures_ordercreate
-             * @see https://doc.xt.com/#futures_entrustcreatePlan
-             * @see https://doc.xt.com/#futures_entrustcreateProfit
+             * @see https://doc.xt.com/docs/spot/Order/SubmitOrder
+             * @see https://doc.xt.com/docs/futures/Order/Create%20Orders
+             * @see https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders
+             * @see https://doc.xt.com/docs/futures/Entrust/CreateStopLimit
              *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -2669,10 +2669,10 @@ class xt extends Exchange {
             /**
              * fetches information on an $order made by the user
              *
-             * @see https://doc.xt.com/#orderorderGet
-             * @see https://doc.xt.com/#futures_ordergetById
-             * @see https://doc.xt.com/#futures_entrustgetPlanById
-             * @see https://doc.xt.com/#futures_entrustgetProfitById
+             * @see https://doc.xt.com/docs/spot/Order/GetSingleOrder
+             * @see https://doc.xt.com/docs/futures/Order/see-orders-by-$id
+             * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId
+             * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId
              *
              * @param {string} $id $order $id
              * @param {string} [$symbol] unified $symbol of the $market the $order was made in
@@ -2851,9 +2851,9 @@ class xt extends Exchange {
             /**
              * fetches information on multiple $orders made by the user
              *
-             * @see https://doc.xt.com/#orderhistoryOrderGet
-             * @see https://doc.xt.com/#futures_ordergetHistory
-             * @see https://doc.xt.com/#futures_entrustgetPlanHistory
+             * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+             * @see https://doc.xt.com/docs/futures/Order/see-order-history
+             * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory
              *
              * @param {string} [$symbol] unified $market $symbol of the $market the $orders were made in
              * @param {int} [$since] timestamp in ms of the earliest order
@@ -3302,10 +3302,10 @@ class xt extends Exchange {
             /**
              * fetch all unfilled currently open orders
              *
-             * @see https://doc.xt.com/#orderopenOrderGet
-             * @see https://doc.xt.com/#futures_ordergetOrders
-             * @see https://doc.xt.com/#futures_entrustgetPlan
-             * @see https://doc.xt.com/#futures_entrustgetProfit
+             * @see https://doc.xt.com/docs/spot/Order/QueryOpenOrders
+             * @see https://doc.xt.com/docs/futures/Order/see-orders
+             * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+             * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
              *
              * @param {string} [$symbol] unified market $symbol of the market the orders were made in
              * @param {int} [$since] timestamp in ms of the earliest order
@@ -3324,10 +3324,10 @@ class xt extends Exchange {
             /**
              * fetches information on multiple closed orders made by the user
              *
-             * @see https://doc.xt.com/#orderhistoryOrderGet
-             * @see https://doc.xt.com/#futures_ordergetOrders
-             * @see https://doc.xt.com/#futures_entrustgetPlan
-             * @see https://doc.xt.com/#futures_entrustgetProfit
+             * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+             * @see https://doc.xt.com/docs/futures/Order/see-orders
+             * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+             * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
              *
              * @param {string} [$symbol] unified market $symbol of the market the orders were made in
              * @param {int} [$since] timestamp in ms of the earliest order
@@ -3346,10 +3346,10 @@ class xt extends Exchange {
             /**
              * fetches information on multiple canceled orders made by the user
              *
-             * @see https://doc.xt.com/#orderhistoryOrderGet
-             * @see https://doc.xt.com/#futures_ordergetOrders
-             * @see https://doc.xt.com/#futures_entrustgetPlan
-             * @see https://doc.xt.com/#futures_entrustgetProfit
+             * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
+             * @see https://doc.xt.com/docs/futures/Order/see-orders
+             * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
+             * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
              *
              * @param {string} [$symbol] unified market $symbol of the market the orders were made in
              * @param {int} [$since] timestamp in ms of the earliest order
@@ -3368,10 +3368,10 @@ class xt extends Exchange {
             /**
              * cancels an open $order
              *
-             * @see https://doc.xt.com/#orderorderDel
-             * @see https://doc.xt.com/#futures_ordercancel
-             * @see https://doc.xt.com/#futures_entrustcancelPlan
-             * @see https://doc.xt.com/#futures_entrustcancelProfit
+             * @see https://doc.xt.com/docs/spot/Order/CancelOrder
+             * @see https://doc.xt.com/docs/futures/Order/cancel-orders
+             * @see https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders
+             * @see https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
              *
              * @param {string} $id $order $id
              * @param {string} [$symbol] unified $symbol of the $market the $order was made in
@@ -3455,10 +3455,10 @@ class xt extends Exchange {
             /**
              * cancel all open orders in a $market
              *
-             * @see https://doc.xt.com/#orderopenOrderDel
-             * @see https://doc.xt.com/#futures_ordercancelBatch
-             * @see https://doc.xt.com/#futures_entrustcancelPlanBatch
-             * @see https://doc.xt.com/#futures_entrustcancelProfitBatch
+             * @see https://doc.xt.com/docs/spot/Order/CancelCurrentPendingOrder
+             * @see https://doc.xt.com/docs/futures/Order/cancel-all-orders
+             * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
+             * @see https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
              *
              * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
              * @param {array} $params extra parameters specific to the exchange API endpoint
@@ -3537,7 +3537,7 @@ class xt extends Exchange {
             /**
              * cancel multiple orders
              *
-             * @see https://doc.xt.com/#orderbatchOrderDel
+             * @see https://doc.xt.com/docs/spot/Order/CancelBatchOrder
              *
              * @param {string[]} $ids order $ids
              * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
@@ -3783,7 +3783,7 @@ class xt extends Exchange {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
              *
-             * @see https://doc.xt.com/#futures_usergetBalanceBill
+             * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Account%20Flow%20Information
              *
              * @param {string} [$code] unified $currency $code
              * @param {int} [$since] timestamp in ms of the earliest $ledger entry
@@ -3905,7 +3905,7 @@ class xt extends Exchange {
             /**
              * fetch the deposit address for a $currency associated with this account
              *
-             * @see https://doc.xt.com/#deposit_withdrawaldepositAddressGet
+             * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositAddress
              *
              * @param {string} $code unified $currency $code
              * @param {array} $params extra parameters specific to the exchange API endpoint
@@ -3964,7 +3964,7 @@ class xt extends Exchange {
             /**
              * fetch all $deposits made to an account
              *
-             * @see https://doc.xt.com/#deposit_withdrawalhistoryDepositGet
+             * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositHistory
              *
              * @param {string} [$code] unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch $deposits for
@@ -4025,7 +4025,7 @@ class xt extends Exchange {
             /**
              * fetch all $withdrawals made from an account
              *
-             * @see https://doc.xt.com/#deposit_withdrawalwithdrawHistory
+             * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/WithdrawHistory
              *
              * @param {string} [$code] unified $currency $code
              * @param {int} [$since] the earliest time in ms to fetch $withdrawals for
@@ -4086,7 +4086,7 @@ class xt extends Exchange {
             /**
              * make a withdrawal
              *
-             * @see https://doc.xt.com/#deposit_withdrawalwithdraw
+             * @see https://doc.xt.com/docs/spot/Deposit&Withdrawal/Withdraw
              *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
@@ -4224,7 +4224,7 @@ class xt extends Exchange {
             /**
              * set the level of $leverage for a $market
              *
-             * @see https://doc.xt.com/#futures_useradjustLeverage
+             * @see https://doc.xt.com/docs/futures/User/Adjust%20Leverage
              *
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
@@ -4276,7 +4276,7 @@ class xt extends Exchange {
             /**
              * add margin to a position
              *
-             * @see https://doc.xt.com/#futures_useradjustMargin
+             * @see https://doc.xt.com/docs/futures/User/Alter%20Margin
              *
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
@@ -4293,7 +4293,7 @@ class xt extends Exchange {
             /**
              * remove margin from a position
              *
-             * @see https://doc.xt.com/#futures_useradjustMargin
+             * @see https://doc.xt.com/docs/futures/User/Alter%20Margin
              *
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
@@ -4359,7 +4359,7 @@ class xt extends Exchange {
             /**
              * retrieve information on the maximum leverage for different trade sizes
              *
-             * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
+             * @see https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair
              *
              * @param {string} [$symbols] a list of unified market $symbols
              * @param {array} $params extra parameters specific to the exchange API endpoint
@@ -4446,7 +4446,7 @@ class xt extends Exchange {
             /**
              * retrieve information on the maximum leverage for different trade sizes of a single $market
              *
-             * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
+             * @see https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair
              *
              * @param {string} $symbol unified $market $symbol
              * @param {array} $params extra parameters specific to the exchange API endpoint
@@ -4538,7 +4538,7 @@ class xt extends Exchange {
             /**
              * fetches historical funding $rates
              *
-             * @see https://doc.xt.com/#futures_quotesgetFundingRateRecord
+             * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-records
              *
              * @param {string} [$symbol] unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
@@ -4624,7 +4624,7 @@ class xt extends Exchange {
             /**
              * fetch the current funding rate interval
              *
-             * @see https://doc.xt.com/#futures_quotesgetFundingRate
+             * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
              *
              * @param {string} $symbol unified market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4639,7 +4639,7 @@ class xt extends Exchange {
             /**
              * fetch the current funding rate
              *
-             * @see https://doc.xt.com/#futures_quotesgetFundingRate
+             * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
              *
              * @param {string} $symbol unified $market $symbol
              * @param {array} $params extra parameters specific to the exchange API endpoint
@@ -4724,7 +4724,7 @@ class xt extends Exchange {
             /**
              * fetch the funding history
              *
-             * @see https://doc.xt.com/#futures_usergetFunding
+             * @see https://doc.xt.com/docs/futures/User/Get%20Fund%20Fee%20Information
              *
              * @param {string} $symbol unified $market $symbol
              * @param {int} [$since] the starting timestamp in milliseconds
@@ -4857,7 +4857,7 @@ class xt extends Exchange {
             /**
              * fetch data on a single open contract trade position
              *
-             * @see https://doc.xt.com/#futures_usergetPosition
+             * @see https://doc.xt.com/docs/futures/User/Get%20Position%20Information
              * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
              *
              * @param {string} $symbol unified $market $symbol of the $market the position is held in
@@ -4945,7 +4945,7 @@ class xt extends Exchange {
             /**
              * fetch all open $positions
              *
-             * @see https://doc.xt.com/#futures_usergetPosition
+             * @see https://doc.xt.com/docs/futures/User/Get%20Position%20Information
              * @see https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information
              *
              * @param {string} [$symbols] list of unified market $symbols, not supported with xt
@@ -5092,7 +5092,7 @@ class xt extends Exchange {
             /**
              * transfer $currency internally between wallets on the same account
              *
-             * @see https://doc.xt.com/#transfersubTransferPost
+             * @see https://doc.xt.com/docs/spot/Transfer/TransferBetweenUserSystems
              *
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
@@ -5153,7 +5153,7 @@ class xt extends Exchange {
             /**
              * set margin mode to 'cross' or 'isolated'
              *
-             * @see https://doc.xt.com/#futures_userchangePositionType
+             * @see https://doc.xt.com/docs/futures/User/Change%20Position%20Type
              *
              * @param {string} $marginMode 'cross' or 'isolated'
              * @param {string} [$symbol] required
@@ -5215,9 +5215,9 @@ class xt extends Exchange {
             /**
              * cancels an order and places a new order
              *
-             * @see https://doc.xt.com/#orderorderUpdate
-             * @see https://doc.xt.com/#futures_orderupdate
-             * @see https://doc.xt.com/#futures_entrustupdateProfit
+             * @see https://doc.xt.com/docs/spot/Order/UpdateOrderLimit
+             * @see https://doc.xt.com/docs/futures/Order/update-orders
+             * @see https://doc.xt.com/docs/futures/Entrust/AlterStopLimit
              *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market to create an order in
